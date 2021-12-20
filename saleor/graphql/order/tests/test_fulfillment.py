@@ -10,7 +10,7 @@ from ....order import OrderLineData, OrderStatus
 from ....order.actions import fulfill_order_lines
 from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
-from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus
+from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus, OrderLine
 from ....plugins.manager import get_plugins_manager
 from ....product.models import Product, ProductVariant
 from ....warehouse.models import Allocation, Stock
@@ -1973,17 +1973,38 @@ def test_fulfillment_approve_partial_order_fulfill(
     fulfillment_awaiting_approval,
     permission_manage_orders,
 ):
+    # given
     query = APPROVE_FULFILLMENT_MUTATION
-    second_fulfillment = Fulfillment.objects.get(pk=fulfillment_awaiting_approval.pk)
-    second_fulfillment.pk = None
+    order = fulfillment_awaiting_approval.order
+
+    second_fulfillment = order.fulfillments.create()
+    line_1 = order.lines.first()
+    line_2 = order.lines.last()
+    second_fulfillment.lines.create(
+        order_line=line_1, quantity=line_1.quantity - line_1.quantity_fulfilled
+    )
+    second_fulfillment.lines.create(
+        order_line=line_2, quantity=line_2.quantity - line_2.quantity_fulfilled
+    )
+    second_fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     second_fulfillment.save()
+
+    line_1.quantity_fulfilled = line_1.quantity
+    line_2.quantity_fulfilled = line_2.quantity
+
+    OrderLine.objects.bulk_update([line_1, line_2], ["quantity_fulfilled"])
+
     fulfillment_id = graphene.Node.to_global_id(
         "Fulfillment", fulfillment_awaiting_approval.id
     )
     variables = {"id": fulfillment_id, "notifyCustomer": False}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentApprove"]
     assert not data["errors"]

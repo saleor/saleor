@@ -17,7 +17,10 @@ from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import Reservation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
-from ..mutations import update_checkout_shipping_method_if_invalid
+from ..mutations import (
+    group_quantity_by_variants,
+    update_checkout_shipping_method_if_invalid,
+)
 
 MUTATION_CHECKOUT_LINES_ADD = """
     mutation checkoutLinesAdd(
@@ -498,7 +501,42 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     assert content["errors"] == [
         {
             "field": "quantity",
-            "message": "Cannot add more than 50 times this item.",
+            "message": "Cannot add more than 50 times this item: SKU_A.",
+            "code": "QUANTITY_GREATER_THAN_LIMIT",
+            "variants": None,
+        }
+    ]
+
+
+@pytest.mark.parametrize("is_preorder", [True, False])
+def test_checkout_lines_add_too_many_after_two_trials(
+    user_api_client, checkout_with_item, stock, is_preorder
+):
+    variant = stock.product_variant
+    variant.is_preorder = is_preorder
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=1)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stock.quantity = 200
+    stock.save(update_fields=["quantity"])
+    variant.save(update_fields=["is_preorder", "preorder_end_date"])
+
+    variables = {
+        "token": checkout_with_item.token,
+        "lines": [{"variantId": variant_id, "quantity": 26}],
+        "channelSlug": checkout_with_item.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)["data"]["checkoutLinesAdd"]
+
+    assert not content["errors"]
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)["data"]["checkoutLinesAdd"]
+
+    assert content["errors"] == [
+        {
+            "field": "quantity",
+            "message": "Cannot add more than 50 times this item: SKU_A.",
             "code": "QUANTITY_GREATER_THAN_LIMIT",
             "variants": None,
         }
@@ -1223,3 +1261,48 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
     assert errors["code"] == CheckoutErrorCode.INVALID.name
     assert errors["lines"] == lines_list[1:]
     assert errors["field"] == "lineId"
+
+
+@pytest.mark.parametrize(
+    "lines, expected",
+    [
+        (
+            [
+                {"quantity": 6, "variantId": "abc"},
+                {"quantity": 6, "variantId": "abc"},
+                {"quantity": 1, "variantId": "def"},
+                {"quantity": 1, "variantId": "def"},
+            ],
+            [12, 2],
+        ),
+        (
+            [
+                {"quantity": 8, "variantId": "ghi"},
+                {"quantity": 2, "variantId": "ghi"},
+                {"quantity": 6, "variantId": "abc"},
+                {"quantity": 1, "variantId": "def"},
+                {"quantity": 6, "variantId": "abc"},
+                {"quantity": 1, "variantId": "def"},
+                {"quantity": 8, "variantId": "ghi"},
+                {"quantity": 2, "variantId": "ghi"},
+                {"quantity": 922, "variantId": "xyz"},
+                {"quantity": 6, "variantId": "abc"},
+                {"quantity": 1, "variantId": "def"},
+                {"quantity": 6, "variantId": "abc"},
+                {"quantity": 1, "variantId": "def"},
+                {"quantity": 1000, "variantId": "jkl"},
+                {"quantity": 999, "variantId": "zzz"},
+            ],
+            [20, 24, 4, 922, 1000, 999],
+        ),
+        (
+            [
+                {"quantity": 100, "variantId": name}
+                for name in (l1 + l2 for l1 in "abcdef" for l2 in "ghijkl")
+            ],
+            [100] * 36,
+        ),
+    ],
+)
+def test_group_by_variants(lines, expected):
+    assert expected == group_quantity_by_variants(lines)

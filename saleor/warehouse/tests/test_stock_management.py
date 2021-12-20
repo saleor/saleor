@@ -863,3 +863,56 @@ def test_allocate_preorders_insufficient_stocks_global_threshold(
         order_line=order_line,
         product_variant_channel_listing__in=channel_listings,
     ).exists()
+
+
+def test_allocate_preorders_with_channel_reservations(
+    order_line, checkout_line_with_reserved_preorder_item, channel_USD
+):
+    variant = checkout_line_with_reserved_preorder_item.variant
+    channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    channel_listing.preorder_quantity_threshold = 5
+    channel_listing.save(update_fields=["preorder_quantity_threshold"])
+
+    line_data = OrderLineData(line=order_line, variant=variant, quantity=5)
+
+    with pytest.raises(InsufficientStock):
+        allocate_preorders(
+            [line_data],
+            channel_USD.slug,
+            check_reservations=True,
+            checkout_lines=[],
+        )
+
+    # Allocation passes when checkout line is passed
+    allocate_preorders(
+        [line_data],
+        channel_USD.slug,
+        check_reservations=True,
+        checkout_lines=[checkout_line_with_reserved_preorder_item],
+    )
+
+
+def test_allocate_preorders_with_global_reservations(
+    order_line, checkout_line_with_reserved_preorder_item, channel_USD
+):
+    variant = checkout_line_with_reserved_preorder_item.variant
+    variant.preorder_global_threshold = 5
+    variant.save()
+
+    line_data = OrderLineData(line=order_line, variant=variant, quantity=5)
+
+    with pytest.raises(InsufficientStock):
+        allocate_preorders(
+            [line_data],
+            channel_USD.slug,
+            check_reservations=True,
+            checkout_lines=[],
+        )
+
+    # Allocation passes when checkout line is passed
+    allocate_preorders(
+        [line_data],
+        channel_USD.slug,
+        check_reservations=True,
+        checkout_lines=[checkout_line_with_reserved_preorder_item],
+    )

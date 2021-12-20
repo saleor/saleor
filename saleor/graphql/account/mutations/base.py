@@ -10,6 +10,7 @@ from ....account.notifications import (
     send_password_reset_notification,
     send_set_password_notification,
 )
+from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
@@ -311,12 +312,17 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
             info=info, instance=instance, data=data.get("input")
         )
         address = cls.validate_address(cleaned_input, instance=instance)
-        user = address.user_addresses.first()
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
+
+        user = address.user_addresses.first()
+        user.search_document = prepare_user_search_document_value(user)
+        user.save(update_fields=["search_document"])
+
         info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
+
         success_response = cls.success_response(address)
         success_response.user = user
         success_response.address = address
@@ -369,6 +375,9 @@ class BaseAddressDelete(ModelDeleteMutation):
         # user instance and the invalid ID returned in the response might cause
         # an error.
         user.refresh_from_db()
+
+        user.search_document = prepare_user_search_document_value(user)
+        user.save(update_fields=["search_document"])
 
         response = cls.success_response(instance)
 
@@ -484,6 +493,9 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             instance.addresses.add(default_billing_address)
         if default_shipping_address:
             instance.addresses.add(default_shipping_address)
+
+        instance.search_document = prepare_user_search_document_value(instance)
+        instance.save(update_fields=["search_document"])
 
         # The instance is a new object in db, create an event
         if is_creation:

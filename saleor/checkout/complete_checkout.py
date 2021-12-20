@@ -19,9 +19,8 @@ from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
-    decrease_voucher_usage,
     increase_voucher_usage,
-    remove_voucher_usage_by_customer,
+    release_voucher_usage,
 )
 from ..giftcard.models import GiftCard
 from ..giftcard.utils import fulfill_non_shippable_gift_cards
@@ -32,6 +31,7 @@ from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
+from ..order.search import prepare_order_search_document_value
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
@@ -47,13 +47,15 @@ from .utils import get_voucher_for_checkout
 if TYPE_CHECKING:
     from ..app.models import App
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
-def _get_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
+def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     """Fetch, process and return voucher/discount data from checkout.
 
     Careful! It should be called inside a transaction.
+    If voucher has a usage limit, it will be increased!
 
     :raises NotApplicable: When the voucher is not applicable in the current checkout.
     """
@@ -218,6 +220,7 @@ def _create_lines_for_order(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
+    check_reservations: bool,
 ) -> Iterable[OrderLineData]:
     """Create a lines for the given order.
 
@@ -258,7 +261,11 @@ def _create_lines_for_order(
         country_code,
         quantities,
         checkout_info.channel.slug,
-        additional_warehouse_lookup,
+        global_quantity_limit=None,
+        additional_filter_lookup=additional_warehouse_lookup,
+        existing_lines=lines,
+        replace=True,
+        check_reservations=check_reservations,
     )
 
     return [
@@ -280,7 +287,8 @@ def _prepare_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts
+    discounts: Iterable[DiscountInfo],
+    check_reservations: bool = False,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -327,14 +335,13 @@ def _prepare_order_data(
     )
 
     order_data["lines"] = _create_lines_for_order(
-        manager, checkout_info, lines, discounts
+        manager, checkout_info, lines, discounts, check_reservations
     )
 
     # validate checkout gift cards
     _validate_gift_cards(checkout)
 
-    # Get voucher data (last) as they require a transaction
-    order_data.update(_get_voucher_data_for_order(checkout_info))
+    order_data.update(_process_voucher_data_for_order(checkout_info))
 
     order_data["total_price_left"] = (
         manager.calculate_checkout_subtotal(checkout_info, lines, address, discounts)
@@ -342,7 +349,12 @@ def _prepare_order_data(
         - checkout.discount
     ).gross
 
-    manager.preprocess_order_creation(checkout_info, discounts, lines)
+    try:
+        manager.preprocess_order_creation(checkout_info, discounts, lines)
+    except TaxError:
+        release_voucher_usage(order_data)
+        raise
+
     return order_data
 
 
@@ -428,7 +440,12 @@ def _create_order(
         check_reservations=is_reservation_enabled(site_settings),
         checkout_lines=[line.line for line in checkout_lines],
     )
-    allocate_preorders(order_lines_info, checkout_info.channel.slug)
+    allocate_preorders(
+        order_lines_info,
+        checkout_info.channel.slug,
+        check_reservations=is_reservation_enabled(site_settings),
+        checkout_lines=[line.line for line in checkout_lines],
+    )
 
     add_gift_cards_to_order(checkout_info, order, total_price_left, user, app)
 
@@ -440,6 +457,7 @@ def _create_order(
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
     order.update_total_paid()
+    order.search_document = prepare_order_search_document_value(order)
     order.save()
 
     if site_settings.automatically_fulfill_non_shippable_gift_card:
@@ -510,19 +528,12 @@ def _prepare_checkout(
         checkout.save(update_fields=to_update)
 
 
-def release_voucher_usage(order_data: dict):
-    voucher = order_data.get("voucher")
-    if voucher and voucher.usage_limit:
-        decrease_voucher_usage(voucher)
-        if "user_email" in order_data:
-            remove_voucher_usage_by_customer(voucher, order_data["user_email"])
-
-
 def _get_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: List[DiscountInfo],
+    site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
     try:
@@ -531,6 +542,7 @@ def _get_order_data(
             checkout_info=checkout_info,
             lines=lines,
             discounts=discounts,
+            check_reservations=is_reservation_enabled(site_settings),
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
@@ -617,8 +629,13 @@ def complete_checkout(
         payment=payment,
     )
 
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
     try:
-        order_data = _get_order_data(manager, checkout_info, lines, discounts)
+        order_data = _get_order_data(
+            manager, checkout_info, lines, discounts, site_settings
+        )
     except ValidationError as exc:
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc

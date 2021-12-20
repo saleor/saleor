@@ -1014,13 +1014,19 @@ def test_confirm_payment_for_webhook(kind, stripe_plugin, payment_stripe_for_che
     ],
 )
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
-def test_confirm_payment(
-    mocked_intent_retrieve, kind, status, stripe_plugin, payment_stripe_for_checkout
+def test_confirm_payment_intent_without_details(
+    mocked_intent_retrieve,
+    kind,
+    status,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    stripe_payment_intent,
 ):
     gateway_response = {
         "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
     }
 
+    payment_intent = stripe_payment_intent
     payment_intent_id = "payment-intent-id"
 
     payment = payment_stripe_for_checkout
@@ -1034,7 +1040,7 @@ def test_confirm_payment(
         currency=payment.currency,
     )
 
-    payment_intent = StripeObject(id=payment_intent_id)
+    payment_intent["id"] = payment_intent_id
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
     payment_intent["status"] = status
     payment_intent["currency"] = payment.currency
@@ -1054,6 +1060,71 @@ def test_confirm_payment(
     assert response.currency == payment.currency
     assert response.transaction_id == payment_intent_id
     assert response.error is None
+    assert not response.payment_method_info
+
+
+@pytest.mark.parametrize(
+    "kind, status",
+    [
+        (TransactionKind.AUTH, AUTHORIZED_STATUS),
+        (TransactionKind.CAPTURE, SUCCESS_STATUS),
+    ],
+)
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
+def test_confirm_payment_intent_with_details(
+    mocked_intent_retrieve,
+    kind,
+    status,
+    stripe_plugin,
+    payment_stripe_for_checkout,
+    stripe_payment_intent_with_details,
+):
+    gateway_response = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+
+    payment_intent = stripe_payment_intent_with_details
+    payment_intent_id = "payment-intent-id"
+
+    payment = payment_stripe_for_checkout
+    payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        token=payment_intent_id,
+        gateway_response=gateway_response,
+        amount=payment.total,
+        currency=payment.currency,
+    )
+
+    payment_intent["id"] = payment_intent_id
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["status"] = status
+    payment_intent["currency"] = payment.currency
+    mocked_intent_retrieve.return_value = payment_intent
+
+    payment_info = create_payment_information(
+        payment_stripe_for_checkout, payment_token=payment_intent_id
+    )
+
+    plugin = stripe_plugin()
+    response = plugin.confirm_payment(payment_info, None)
+
+    assert response.is_success is True
+    assert response.action_required is False
+    assert response.kind == kind
+    assert response.amount == payment.total
+    assert response.currency == payment.currency
+    assert response.transaction_id == payment_intent_id
+    assert response.error is None
+
+    payment_method_info = response.payment_method_info
+    assert payment_method_info
+    assert payment_method_info.brand == "visa"
+    assert payment_method_info.exp_month == 3
+    assert payment_method_info.exp_year == 2030
+    assert payment_method_info.last_4 == "3220"
+    assert payment_method_info.type == "card"
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")

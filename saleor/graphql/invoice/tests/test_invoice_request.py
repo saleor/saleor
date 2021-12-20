@@ -41,9 +41,16 @@ def setup_dummy_gateways(settings):
     return settings
 
 
+@patch(
+    "saleor.graphql.invoice.mutations.is_event_active_for_any_plugin", return_value=True
+)
 @patch("saleor.plugins.manager.PluginsManager.invoice_request")
 def test_invoice_request(
-    plugin_mock, staff_api_client, permission_manage_orders, order
+    plugin_mock,
+    active_event_check_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order,
 ):
     dummy_invoice = Invoice.objects.create(order=order)
     plugin_mock.return_value = dummy_invoice
@@ -121,14 +128,19 @@ def test_invoice_request_no_billing_address(
     assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
 
 
-def test_invoice_request_no_number(staff_api_client, permission_manage_orders, order):
+@patch(
+    "saleor.graphql.invoice.mutations.is_event_active_for_any_plugin", return_value=True
+)
+def test_invoice_request_no_number(
+    active_event_check_mock, staff_api_client, permission_manage_orders, order
+):
     variables = {"orderId": graphene.Node.to_global_id("Order", order.pk)}
     staff_api_client.post_graphql(
         INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     invoice = Invoice.objects.get(order=order.pk)
     assert invoice.number is None
-    assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
+    assert OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
 
 
 def test_invoice_request_invalid_id(staff_api_client, permission_manage_orders):
@@ -140,3 +152,26 @@ def test_invoice_request_invalid_id(staff_api_client, permission_manage_orders):
     error = content["data"]["invoiceRequest"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "orderId"
+
+
+@patch(
+    "saleor.graphql.invoice.mutations.is_event_active_for_any_plugin",
+    return_value=False,
+)
+def test_invoice_request_no_invoice_plugin(
+    active_event_check_mock, order, permission_manage_orders, staff_api_client
+):
+    number = "01/12/2020/TEST"
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "number": number,
+    }
+    response = staff_api_client.post_graphql(
+        INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not Invoice.objects.filter(number=number, order=order.pk).exists()
+    error = content["data"]["invoiceRequest"]["errors"][0]
+    assert error["field"] == "orderId"
+    assert error["code"] == InvoiceErrorCode.NO_INVOICE_PLUGIN.name
+    assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
