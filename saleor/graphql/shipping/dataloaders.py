@@ -105,9 +105,7 @@ class ShippingMethodChannelListingByChannelSlugLoader(DataLoader):
     context_key = "shippingmethodchannellisting_by_channel"
 
     def batch_load(self, keys):
-        shipping_method_channel_listings = ShippingMethodChannelListing.objects.using(
-            self.database_connection_name
-        ).filter(
+        shipping_method_channel_listings = ShippingMethodChannelListing.objects.filter(
             channel__slug__in=keys
         ).annotate(channel_slug=F("channel__slug"))
         shipping_method_channel_listings_by_channel_slug = defaultdict(list)
