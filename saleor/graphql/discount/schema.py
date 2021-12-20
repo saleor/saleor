@@ -1,8 +1,9 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
-from ..core.fields import ChannelContextFilterConnectionField
+from ..core.fields import FilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
@@ -25,7 +26,7 @@ from .mutations import (
 )
 from .resolvers import resolve_sale, resolve_sales, resolve_voucher, resolve_vouchers
 from .sorters import SaleSortingInput, VoucherSortingInput
-from .types import Sale, Voucher
+from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConnection
 
 
 class VoucherFilterInput(FilterInputObjectType):
@@ -47,8 +48,8 @@ class DiscountQueries(graphene.ObjectType):
         ),
         description="Look up a sale by ID.",
     )
-    sales = ChannelContextFilterConnectionField(
-        Sale,
+    sales = FilterConnectionField(
+        SaleCountableConnection,
         filter=SaleFilterInput(description="Filtering options for sales."),
         sort_by=SaleSortingInput(description="Sort sales."),
         query=graphene.String(
@@ -72,8 +73,8 @@ class DiscountQueries(graphene.ObjectType):
         ),
         description="Look up a voucher by ID.",
     )
-    vouchers = ChannelContextFilterConnectionField(
-        Voucher,
+    vouchers = FilterConnectionField(
+        VoucherCountableConnection,
         filter=VoucherFilterInput(description="Filtering options for vouchers."),
         sort_by=VoucherSortingInput(description="Sort voucher."),
         query=graphene.String(
@@ -95,7 +96,10 @@ class DiscountQueries(graphene.ObjectType):
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sales(self, info, channel=None, **kwargs):
-        return resolve_sales(info, channel_slug=channel, **kwargs)
+        qs = resolve_sales(info, channel_slug=channel, **kwargs)
+        kwargs["channel"] = channel
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(self, info, id, channel=None):
@@ -104,7 +108,10 @@ class DiscountQueries(graphene.ObjectType):
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_vouchers(self, info, channel=None, **kwargs):
-        return resolve_vouchers(info, channel_slug=channel, **kwargs)
+        qs = resolve_vouchers(info, channel_slug=channel, **kwargs)
+        kwargs["channel"] = channel
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, VoucherCountableConnection)
 
 
 class DiscountMutations(graphene.ObjectType):
