@@ -26,6 +26,7 @@ from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Warehouse
+from . import traced_payload_generator
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
@@ -101,6 +102,7 @@ def prepare_order_lines_allocations_payload(line):
     return warehouse_id_quantity_allocated_map
 
 
+@traced_payload_generator
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
     line_fields = (
         "product_name",
@@ -152,6 +154,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
     )
 
 
+@traced_payload_generator
 def generate_order_payload(order: "Order"):
     serializer = PayloadSerializer()
     fulfillment_fields = (
@@ -244,6 +247,7 @@ def generate_order_payload(order: "Order"):
     return order_data
 
 
+@traced_payload_generator
 def generate_invoice_payload(invoice: "Invoice"):
     serializer = PayloadSerializer()
     invoice_fields = ("id", "number", "external_url", "created")
@@ -256,6 +260,7 @@ def generate_invoice_payload(invoice: "Invoice"):
     )
 
 
+@traced_payload_generator
 def generate_checkout_payload(checkout: "Checkout"):
     serializer = PayloadSerializer()
     checkout_fields = (
@@ -297,6 +302,7 @@ def generate_checkout_payload(checkout: "Checkout"):
     return checkout_data
 
 
+@traced_payload_generator
 def generate_customer_payload(customer: "User"):
     serializer = PayloadSerializer()
     data = serializer.serialize(
@@ -358,6 +364,7 @@ def serialize_product_channel_listing_payload(channel_listings):
     return channel_listing_payload
 
 
+@traced_payload_generator
 def generate_product_payload(product: "Product"):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
@@ -393,6 +400,7 @@ def generate_product_payload(product: "Product"):
     return product_payload
 
 
+@traced_payload_generator
 def generate_product_deleted_payload(product: "Product", variants_id):
     serializer = PayloadSerializer()
     product_fields = PRODUCT_FIELDS
@@ -416,6 +424,7 @@ PRODUCT_VARIANT_FIELDS = (
 )
 
 
+@traced_payload_generator
 def generate_product_variant_listings_payload(variant_channel_listings):
     serializer = PayloadSerializer()
     fields = (
@@ -431,6 +440,7 @@ def generate_product_variant_listings_payload(variant_channel_listings):
     return channel_listing_payload
 
 
+@traced_payload_generator
 def generate_product_variant_media_payload(product_variant):
     return [
         {
@@ -445,6 +455,7 @@ def generate_product_variant_media_payload(product_variant):
     ]
 
 
+@traced_payload_generator
 def generate_product_variant_payload(product_variants: Iterable["ProductVariant"]):
     serializer = PayloadSerializer()
     payload = serializer.serialize(
@@ -462,6 +473,7 @@ def generate_product_variant_payload(product_variants: Iterable["ProductVariant"
     return payload
 
 
+@traced_payload_generator
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
     lines = FulfillmentLine.objects.prefetch_related(
@@ -531,6 +543,7 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     )
 
 
+@traced_payload_generator
 def generate_fulfillment_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
 
@@ -570,6 +583,7 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
     return fulfillment_data
 
 
+@traced_payload_generator
 def generate_page_payload(page: Page):
     serializer = PayloadSerializer()
     page_fields = [
@@ -588,6 +602,7 @@ def generate_page_payload(page: Page):
     return page_payload
 
 
+@traced_payload_generator
 def generate_payment_payload(payment_data: "PaymentData"):
     data = asdict(payment_data)
     data["amount"] = quantize_price(data["amount"], data["currency"])
@@ -597,6 +612,7 @@ def generate_payment_payload(payment_data: "PaymentData"):
     return json.dumps(data, cls=CustomJsonEncoder)
 
 
+@traced_payload_generator
 def generate_list_gateways_payload(
     currency: Optional[str], checkout: Optional["Checkout"]
 ):
@@ -624,6 +640,7 @@ def _generate_payload_for_shipping_method(method: ShippingMethod):
     return payload
 
 
+@traced_payload_generator
 def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
     available_shipping_methods: List[ShippingMethod],
@@ -639,6 +656,7 @@ def generate_excluded_shipping_methods_for_order_payload(
     return json.dumps(payload, cls=CustomJsonEncoder)
 
 
+@traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
     available_shipping_methods: List[ShippingMethod],
@@ -696,6 +714,7 @@ def _generate_sample_order_payload(event_name):
         return generate_order_payload(anonymized_order)
 
 
+@traced_payload_generator
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
         WebhookEventType.CHECKOUT_UPDATED,
@@ -756,6 +775,7 @@ def process_translation_context(context):
     return result
 
 
+@traced_payload_generator
 def generate_translation_payload(translation: "Translation"):
     object_type, object_id = translation.get_translated_object_id()
     translated_keys = [
