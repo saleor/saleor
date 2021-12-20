@@ -32,6 +32,7 @@ from ....order.utils import (
 from ....payment import PaymentError, TransactionKind, gateway
 from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -44,7 +45,6 @@ from ...order.mutations.draft_orders import (
 )
 from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
-from ...shipping.utils import convert_shipping_method_model_to_dataclass
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
     validate_product_is_published_in_channel,
@@ -71,10 +71,10 @@ def clean_order_update_shipping(
             }
         )
 
-    valid_methods = get_valid_shipping_methods_for_order(order)
-    if valid_methods is None or method.pk not in valid_methods.values_list(
-        "id", flat=True
-    ):
+    valid_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
+    if str(method.pk) not in {m.id for m in valid_methods}:
         raise ValidationError(
             {
                 "shipping_method": ValidationError(
@@ -86,7 +86,13 @@ def clean_order_update_shipping(
 
     method.price = shipping_price  # type: ignore
     excluded_shipping_methods = manager.excluded_shipping_methods_for_order(
-        order, [convert_shipping_method_model_to_dataclass(method)]
+        order,
+        [
+            convert_to_shipping_method_data(
+                method,
+                order.channel.shipping_method_listings.get(shipping_method=method),
+            )
+        ],
     )
     if str(method.id) in [
         shipping_method.id for shipping_method in excluded_shipping_methods

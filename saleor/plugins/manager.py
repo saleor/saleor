@@ -28,7 +28,8 @@ from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
-from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens, ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -223,7 +224,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_shipping_price(
+        default_value = base_calculations.base_checkout_delivery_price(
             checkout_info, lines
         )
         return quantize_price(
@@ -1061,7 +1062,7 @@ class PluginsManager(PaymentInterface):
     def excluded_shipping_methods_for_order(
         self,
         order: "Order",
-        available_shipping_methods: List[ShippingMethod],
+        available_shipping_methods: List[ShippingMethodData],
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_order",
@@ -1073,7 +1074,7 @@ class PluginsManager(PaymentInterface):
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
-        available_shipping_methods: List[ShippingMethod],
+        available_shipping_methods: List[ShippingMethodData],
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",

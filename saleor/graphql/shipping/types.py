@@ -1,10 +1,11 @@
 import graphene
-from graphene import relay
+from graphene import ObjectType, relay
 
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
+from ...shipping.interface import ShippingMethodData
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
@@ -12,7 +13,6 @@ from ..channel.types import (
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
-    MetadataMixin,
 )
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import ChannelContextFilterConnectionField
@@ -24,6 +24,7 @@ from ..shipping.resolvers import (
     resolve_shipping_maximum_order_price,
 )
 from ..translations.fields import TranslationField
+from ..translations.resolvers import resolve_translation
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
@@ -34,7 +35,7 @@ from .dataloaders import (
     ShippingMethodsByShippingZoneIdLoader,
 )
 from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
-from .resolvers import resolve_shipping_minimum_order_price, resolve_shipping_price
+from .resolvers import resolve_shipping_minimum_order_price
 
 
 class ShippingMethodChannelListing(CountableDjangoObjectType):
@@ -248,7 +249,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(ChannelContextType, MetadataMixin):
+class ShippingMethod(ObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -278,7 +279,7 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=resolve_translation,
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
@@ -305,60 +306,13 @@ class ShippingMethod(ChannelContextType, MetadataMixin):
         )
 
     @staticmethod
-    def resolve_type(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
-        return root.node.type
+    def resolve_id(root: ShippingMethodData, _info):
+        return graphene.Node.to_global_id("ShippingMethod", root.id)
 
     @staticmethod
-    def resolve_minimum_order_price(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
-        return resolve_shipping_minimum_order_price(root, info, **_kwargs)
+    def resolve_maximum_order_weight(root: ShippingMethodData, *_args):
+        return convert_weight_to_default_weight_unit(root.maximum_order_weight)
 
     @staticmethod
-    def resolve_maximum_order_price(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
-        return resolve_shipping_maximum_order_price(root, info, **_kwargs)
-
-    @staticmethod
-    def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
-        # Price field are dynamically generated in available_shipping_methods resolver
-        return resolve_shipping_price(root, info, **_kwargs)
-
-    @staticmethod
-    def resolve_name(root: ChannelContext[models.ShippingMethod], info, **kwargs):
-        return root.node.name
-
-    @staticmethod
-    def resolve_id(root: ChannelContext, _info):
-        return graphene.Node.to_global_id("ShippingMethod", root.node.id)
-
-    @staticmethod
-    def resolve_active(root: ChannelContext, _info):
-        # Currently selected shipping method is not validated
-        # with webhooks on every single API call
-        if not hasattr(root.node, "active"):
-            return True
-        return root.node.active
-
-    @staticmethod
-    def resolve_message(root: ChannelContext, _info):
-        # Currently selected shipping method is not validated
-        # with webhooks on every single API call
-        return getattr(root.node, "message", "")
-
-    @staticmethod
-    def resolve_maximum_order_weight(
-        root: ChannelContext[models.ShippingMethod], *_args
-    ):
-        return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
-
-    @staticmethod
-    def resolve_minimum_order_weight(
-        root: ChannelContext[models.ShippingMethod], *_args
-    ):
-        return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
-
-    @staticmethod
-    def resolve_description(root: ChannelContext[models.ShippingMethod], *_args):
-        return root.node.description
+    def resolve_minimum_order_weight(root: ShippingMethodData, *_args):
+        return convert_weight_to_default_weight_unit(root.minimum_order_weight)

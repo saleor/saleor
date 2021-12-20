@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 from ...app.models import App
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
+from ...shipping.interface import ShippingMethodData
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -22,7 +23,7 @@ from ...webhook.payloads import (
     generate_product_variant_payload,
     generate_translation_payload,
 )
-from ..base_plugin import BasePlugin, ExcludedShippingMethod, ShippingMethod
+from ..base_plugin import BasePlugin, ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY
 from .tasks import (
     _get_webhooks_for_event,
@@ -429,7 +430,7 @@ class WebhookPlugin(BasePlugin):
     def excluded_shipping_methods_for_order(
         self,
         order: "Order",
-        available_shipping_methods: List[ShippingMethod],
+        available_shipping_methods: List[ShippingMethodData],
         previous_value: List[ExcludedShippingMethod],
     ) -> List[ExcludedShippingMethod]:
         generate_function = generate_excluded_shipping_methods_for_order_payload
@@ -448,7 +449,7 @@ class WebhookPlugin(BasePlugin):
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
-        available_shipping_methods: List[ShippingMethod],
+        available_shipping_methods: List[ShippingMethodData],
         previous_value: List[ExcludedShippingMethod],
     ) -> List[ExcludedShippingMethod]:
         generate_function = generate_excluded_shipping_methods_for_checkout_payload

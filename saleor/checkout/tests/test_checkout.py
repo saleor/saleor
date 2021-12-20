@@ -16,12 +16,15 @@ from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
+from ...shipping.utils import convert_to_shipping_method_data
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
+    DeliveryMethodBase,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_delivery_method_info,
 )
 from ..models import Checkout
 from ..utils import (
@@ -72,8 +75,8 @@ def test_clear_shipping_method(checkout, shipping_method):
     clear_shipping_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
-    assert not checkout_info.shipping_method
-    assert not checkout_info.shipping_method_channel_listings
+    assert not checkout_info.delivery_method_info.delivery_method
+    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
 
 
 def test_last_change_update(checkout):
@@ -141,13 +144,12 @@ def test_get_discount_for_checkout_value_voucher(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
+        delivery_method_info=get_delivery_method_info(None),
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -235,13 +237,12 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
+        delivery_method_info=get_delivery_method_info(None),
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
@@ -348,13 +349,12 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     checkout = Mock(quantity=total_quantity, spec=Checkout, channel=channel_USD)
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
+        delivery_method_info=get_delivery_method_info(None),
         shipping_address=None,
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
@@ -419,13 +419,17 @@ def test_get_discount_for_checkout_shipping_voucher(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            shipping_method
+            and convert_to_shipping_method_data(
+                shipping_method, shipping_method.channel_listings.get()
+            )
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None, None
@@ -477,13 +481,17 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            shipping_method
+            and convert_to_shipping_method_data(
+                shipping_method, shipping_method.channel_listings.get()
+            )
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None, None
@@ -522,13 +530,12 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=None,
+        delivery_method_info=get_delivery_method_info(None),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
@@ -667,13 +674,17 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        shipping_method=shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            shipping_method
+            and convert_to_shipping_method_data(
+                shipping_method, shipping_method.channel_listings.get()
+            )
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(

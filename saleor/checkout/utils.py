@@ -27,14 +27,13 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
-from ..shipping.models import ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
-from .fetch import (
-    update_checkout_info_shipping_address,
-    update_checkout_info_shipping_method,
-)
+from .fetch import get_delivery_method_info, update_checkout_info_shipping_address
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -237,7 +236,7 @@ def _get_shipping_voucher_discount_for_checkout(
     if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
         raise NotApplicable(msg)
-    shipping_method = checkout_info.shipping_method
+    shipping_method = checkout_info.delivery_method_info.delivery_method
     if not shipping_method:
         msg = "Please select a shipping method first."
         raise NotApplicable(msg)
@@ -589,30 +588,45 @@ def get_valid_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
-):
+) -> List[ShippingMethodData]:
     if not is_shipping_required(lines):
-        return None
+        return []
     if not checkout_info.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    queryset = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,  # type: ignore
+        country_code=country_code,
         lines=lines,
     )
+
+    channel_listings_map = {
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
+    }
+
+    saleor_methods = []
+    for method in queryset:
+        listing = channel_listings_map.get(method.pk)
+        if not listing:
+            continue
+
+        saleor_methods.append(convert_to_shipping_method_data(method, listing))
+
+    return saleor_methods
 
 
 def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
     """Check if shipping method is valid and remove (if not)."""
-    if not checkout_info.shipping_method:
+    if not checkout_info.delivery_method_info:
         return False
     if not checkout_info.shipping_address:
         return False
 
-    valid_methods = checkout_info.valid_shipping_methods
-    if valid_methods is None or checkout_info.shipping_method not in valid_methods:
+    if not checkout_info.delivery_method_info.is_method_in_valid_methods(checkout_info):
         clear_shipping_method(checkout_info)
         return False
     return True
@@ -621,7 +635,7 @@ def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
 def clear_shipping_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout.shipping_method = None
-    update_checkout_info_shipping_method(checkout_info, None)
+    checkout_info.delivery_method_info = get_delivery_method_info(None)
     checkout.save(update_fields=["shipping_method", "last_change"])
 
 

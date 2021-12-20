@@ -15,7 +15,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_valid_shipping_method_list_for_checkout_info,
+    get_shipping_method_list_for_checkout_info,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -38,6 +38,8 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
+from ...shipping.interface import ShippingMethodData
+from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
@@ -67,7 +69,7 @@ if TYPE_CHECKING:
 def clean_shipping_method(
     checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
-    method: Optional[models.ShippingMethod],
+    method: Optional[ShippingMethodData],
 ) -> bool:
     """Check if current shipping method is valid."""
 
@@ -103,7 +105,7 @@ def update_checkout_shipping_method_if_invalid(
     is_valid = clean_shipping_method(
         checkout_info=checkout_info,
         lines=lines,
-        method=checkout_info.shipping_method,
+        method=checkout_info.delivery_method_info.delivery_method,
     )
 
     if not is_valid:
@@ -510,10 +512,13 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         lines = fetch_checkout_lines(checkout)
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
+        checkout_info.all_shipping_methods = get_shipping_method_list_for_checkout_info(
+            checkout_info,
+            checkout_info.shipping_address,
+            lines,
+            discounts,
+            manager,
+            checkout_info.channel.shipping_method_listings.all(),
         )
         return lines
 
@@ -555,10 +560,13 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
 
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
+        checkout_info.all_shipping_methods = get_shipping_method_list_for_checkout_info(
+            checkout_info,
+            checkout_info.shipping_address,
+            lines,
+            discounts,
+            manager,
+            checkout_info.channel.shipping_method_listings.all(),
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
@@ -1137,7 +1145,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method_is_valid = clean_shipping_method(
             checkout_info=checkout_info,
             lines=lines,
-            method=shipping_method,
+            method=convert_to_shipping_method_data(
+                shipping_method,
+                checkout_info.channel.shipping_method_listings.get(
+                    shipping_method=shipping_method
+                ),
+            ),
         )
         if not shipping_method_is_valid:
             raise ValidationError(
@@ -1352,10 +1365,13 @@ class CheckoutAddPromoCode(BaseMutation):
             discounts,
         )
 
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
+        checkout_info.all_shipping_methods = get_shipping_method_list_for_checkout_info(
+            checkout_info,
+            checkout_info.shipping_address,
+            lines,
+            discounts,
+            manager,
+            checkout_info.channel.shipping_method_listings.all(),
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

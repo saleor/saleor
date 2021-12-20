@@ -14,10 +14,10 @@ from ...discount import DiscountValueType, OrderDiscountType
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.models import Order
-from ...plugins.base_plugin import ShippingMethod
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
+from ...shipping.interface import ShippingMethodData
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
@@ -622,7 +622,7 @@ def test_generate_customer_payload(customer_user, address_other_country, address
 
 
 def test_generate_excluded_shipping_methods_for_order(order):
-    shipping_method = ShippingMethod(
+    shipping_method = ShippingMethodData(
         id="123",
         price=Money(Decimal("10.59"), "USD"),
         name="shipping",
@@ -651,7 +651,7 @@ def test_generate_excluded_shipping_methods_for_order(order):
 
 
 def test_generate_excluded_shipping_methods_for_checkout(checkout):
-    shipping_method = ShippingMethod(
+    shipping_method = ShippingMethodData(
         id="123",
         price=Money(Decimal("10.59"), "USD"),
         name="shipping",

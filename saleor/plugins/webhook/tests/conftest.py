@@ -9,9 +9,9 @@ from prices import Money
 from ....app.models import App
 from ....plugins.manager import get_plugins_manager
 from ....plugins.webhook.plugin import WebhookPlugin
+from ....shipping.interface import ShippingMethodData
 from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook, WebhookEvent
-from ...base_plugin import ShippingMethod
 
 
 @pytest.fixture
@@ -26,11 +26,11 @@ def webhook_plugin(settings):
 
 @pytest.fixture()
 def available_shipping_methods_factory():
-    def factory(num_methods=1) -> List[ShippingMethod]:
+    def factory(num_methods=1) -> List[ShippingMethodData]:
         methods = []
         for i in range(num_methods):
             methods.append(
-                ShippingMethod(
+                ShippingMethodData(
                     id=str(i),
                     price=Money(Decimal("10"), "usd"),
                     name=uuid.uuid4().hex,

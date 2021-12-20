@@ -13,13 +13,15 @@ from ....checkout.fetch import (
     CheckoutInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_valid_shipping_method_list_for_checkout_info,
+    get_delivery_method_info,
+    get_shipping_method_list_for_checkout_info,
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
 from ....discount import VoucherType
 from ....product.models import Product, ProductType
+from ....shipping.utils import convert_to_shipping_method_data
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
@@ -958,10 +960,15 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
 
     lines = fetch_checkout_lines(checkout)
     assert len(lines) == 1
-    valid_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, ship_to_pl_address, lines, [], manager
+    valid_methods = get_shipping_method_list_for_checkout_info(
+        checkout_info,
+        ship_to_pl_address,
+        lines,
+        [],
+        manager,
+        checkout_info.channel.shipping_method_listings.all(),
     )
-    checkout_info.valid_shipping_methods = valid_methods
+    checkout_info.all_shipping_methods = valid_methods
 
     total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     total = quantize_price(total, total.currency)
@@ -1646,13 +1653,17 @@ def test_get_checkout_line_tax_rate(
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(
+                checkout_with_item.shipping_method,
+                checkout_with_item.shipping_method.channel_listings.get(),
+            )
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -1699,13 +1710,17 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
 
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(
+                checkout_with_item.shipping_method,
+                checkout_with_item.shipping_method.channel_listings.get(),
+            )
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -1764,13 +1779,17 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     variant2 = product2.variants.first()
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(
+                checkout_with_item.shipping_method,
+                checkout_with_item.shipping_method.channel_listings.get(),
+            )
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
     add_variant_to_checkout(checkout_info, variant2, 1)
 
@@ -1989,13 +2008,17 @@ def test_get_checkout_shipping_tax_rate(
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
-        shipping_method=checkout_with_item.shipping_method,
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(
+                checkout_with_item.shipping_method,
+                checkout_with_item.shipping_method.channel_listings.get(),
+            )
+        ),
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
+        all_shipping_methods=[],
     )
 
     # when

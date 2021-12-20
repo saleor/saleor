@@ -1,11 +1,10 @@
 from datetime import date
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
 
 import graphene
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils.encoding import smart_text
 from prices import TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -82,9 +81,10 @@ def _process_shipping_data_for_order(
     shipping_price: TaxedMoney,
     manager: "PluginsManager",
     lines: Iterable["CheckoutLineInfo"],
-) -> dict:
+) -> Dict[str, Any]:
     """Fetch, process and return shipping data from checkout."""
-    shipping_address = checkout_info.shipping_address
+    delivery_method_info = checkout_info.delivery_method_info
+    shipping_address = delivery_method_info.shipping_address
 
     if checkout_info.user and shipping_address:
         store_user_address(
@@ -93,13 +93,15 @@ def _process_shipping_data_for_order(
         if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
-    return {
+    result: Dict[str, Any] = {
         "shipping_address": shipping_address,
-        "shipping_method": checkout_info.shipping_method,
-        "shipping_method_name": smart_text(checkout_info.shipping_method),
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }
+    result.update(delivery_method_info.delivery_method_order_field)
+    result.update(delivery_method_info.delivery_method_name)
+
+    return result
 
 
 def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):

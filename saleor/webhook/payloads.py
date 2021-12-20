@@ -21,10 +21,10 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
-from ..plugins.base_plugin import ShippingMethod
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
+from ..shipping.interface import ShippingMethodData
 from ..warehouse.models import Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventType
@@ -626,7 +626,7 @@ def generate_list_gateways_payload(
     return json.dumps(payload)
 
 
-def _generate_payload_for_shipping_method(method: ShippingMethod):
+def _generate_payload_for_shipping_method(method: ShippingMethodData):
     payload = {
         "id": graphene.Node.to_global_id("ShippingMethod", method.id),
         "price": method.price.amount,
@@ -643,7 +643,7 @@ def _generate_payload_for_shipping_method(method: ShippingMethod):
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
-    available_shipping_methods: List[ShippingMethod],
+    available_shipping_methods: List[ShippingMethodData],
 ):
     order_data = json.loads(generate_order_payload(order))[0]
     payload = {
@@ -659,7 +659,7 @@ def generate_excluded_shipping_methods_for_order_payload(
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
-    available_shipping_methods: List[ShippingMethod],
+    available_shipping_methods: List[ShippingMethodData],
 ):
     checkout_data = json.loads(generate_checkout_payload(checkout))[0]
     payload = {
