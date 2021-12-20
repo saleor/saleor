@@ -4,10 +4,10 @@ from .graphql.schema import schema
 
 
 class OTPPlugin(BasePlugin):
-    PLUGIN_ID = "wecre8.otp"
+    PLUGIN_ID = "otp"
     PLUGIN_NAME = "OTP"
     DEFAULT_ACTIVE = True
-    PLUGIN_DESCRIPTION = "Plugin for handling providing OTPs for phones"
+    PLUGIN_DESCRIPTION = "Plugin for handling providing OTPs for emails"
     CONFIGURATION_PER_CHANNEL = False
 
     def webhook(self, request, path, previous_value):
