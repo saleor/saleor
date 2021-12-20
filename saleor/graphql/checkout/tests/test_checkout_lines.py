@@ -850,8 +850,6 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
 
     variables = {"token": checkout.token, "linesIds": lines_list}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
-    content = get_graphql_content(response)
-    errors = content["data"]["checkoutLinesDelete"]["errors"][0]
-    assert errors["code"] == CheckoutErrorCode.INVALID.name
-    assert errors["lines"] == lines_list[1:]
-    assert errors["field"] == "lineId"
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"][0]
+    assert errors["extensions"]["exception"]["code"] == "GraphQLError"

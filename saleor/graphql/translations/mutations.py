@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from graphql import GraphQLError
 
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
@@ -15,6 +16,7 @@ from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
+from ..core.utils import from_global_id_or_error
 from ..discount import types as discount_types
 from ..menu import types as menu_types
 from ..page import types as page_types
@@ -63,7 +65,17 @@ class BaseTranslateMutation(ModelMutation):
             )
 
         node_id = data["id"]
-        node_type, node_pk = graphene.Node.from_global_id(node_id)
+        try:
+            node_type, node_pk = from_global_id_or_error(node_id)
+        except GraphQLError:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Invalid ID has been provided.",
+                        code="not_found",
+                    )
+                }
+            )
         model_type = registry.get_type_for_model(cls._meta.model)
 
         # This mutation accepts either model IDs or translatable content IDs. Below we

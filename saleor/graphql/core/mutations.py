@@ -229,7 +229,7 @@ class BaseMutation(graphene.Mutation):
     def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
         try:
             instances = get_nodes(ids, only_type, qs=qs)
-        except GraphQLError as e:
+        except (ValueError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
             )

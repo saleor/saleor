@@ -268,6 +268,38 @@ def test_checkout_create_with_unavailable_variant(
     assert error["variants"] == [variant_id]
 
 
+def test_checkout_create_with_malicious_variant_id(
+    api_client, stock, graphql_address_data, channel_USD
+):
+
+    variant = stock.product_variant
+    variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variant_id = (
+        "UHJvZHVjdFZhcmlhbnQ6NDkxMyd8fERCTVNfUElQRS5SRUNFSVZFX01FU1N"
+        "BR0UoQ0hSKDk4KXx8Q0hSKDk4KXx8Q0hSKDk4KSwxNSl8fCc="
+    )
+    # This string translates to
+    # ProductVariant:4913'||DBMS_PIPE.RECEIVE_MESSAGE(CHR(98)||CHR(98)||CHR(98),15)||'
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    error = get_graphql_content(response)["data"]["checkoutCreate"]["errors"][0]
+
+    assert error["field"] == "variantId"
+    assert error["code"] == "GRAPHQL_ERROR"
+
+
 def test_checkout_create_with_inactive_default_channel(
     api_client, stock, graphql_address_data, channel_USD
 ):
