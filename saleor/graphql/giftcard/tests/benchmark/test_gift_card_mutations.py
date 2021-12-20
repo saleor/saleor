@@ -11,12 +11,14 @@ CREATE_GIFT_CARD_MUTATION = (
     FRAGMENT_GIFT_CARD_DETAILS
     + """
     mutation giftCardCreate(
-        $balance: PriceInput!, $userEmail: String, $tag: String, $channel: String,
-        $note: String, $expiryDate: Date, $isActive: Boolean!
+        $balance: PriceInput!, $userEmail: String, $addTags: [String!],
+         $channel: String, $note: String, $expiryDate: Date, $isActive: Boolean!
     ){
         giftCardCreate(input: {
-                balance: $balance, userEmail: $userEmail, tag: $tag, channel: $channel,
-                expiryDate: $expiryDate, note: $note, isActive: $isActive }) {
+                balance: $balance, userEmail: $userEmail, addTags: $addTags,
+                channel: $channel, expiryDate: $expiryDate, note: $note,
+                isActive: $isActive
+        }) {
             giftCard {
                 ...GiftCardDetails
             }
@@ -53,7 +55,7 @@ def test_create_never_expiry_gift_card(
         },
         "userEmail": customer_user.email,
         "channel": channel_USD.slug,
-        "tag": tag,
+        "addTags": [tag],
         "note": "This is gift card note that will be save in gift card event.",
         "expiry_date": None,
         "isActive": True,
@@ -111,12 +113,14 @@ def test_update_gift_card(
     # given
     initial_balance = 100.0
     date_value = date.today() + timedelta(days=365)
+    old_tag = gift_card.tags.first()
     tag = "new-gift-card-tag"
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "input": {
             "balanceAmount": initial_balance,
-            "tag": tag,
+            "addTags": [tag],
+            "removeTags": [old_tag.name],
             "expiryDate": date_value,
         },
     }
@@ -220,7 +224,7 @@ def test_bulk_create_gift_cards(
                 "amount": initial_balance,
                 "currency": currency,
             },
-            "tag": tag,
+            "tags": [tag],
             "isActive": is_active,
         }
     }

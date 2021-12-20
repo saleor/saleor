@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -21,7 +23,10 @@ class GiftCardBulkCreateInput(graphene.InputObjectType):
     balance = graphene.Field(
         PriceInput, description="Balance of the gift card.", required=True
     )
-    tag = graphene.String(description="The gift card tag.", required=True)
+    tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="The gift card tags.",
+    )
     expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
     is_active = graphene.Boolean(
         required=True, description="Determine if gift card is active."
@@ -60,7 +65,10 @@ class GiftCardBulkCreate(BaseMutation):
         cls.clean_expiry_date(input_data)
         cls.clean_balance(input_data)
         GiftCardCreate.set_created_by_user(input_data, info)
+        tags = input_data.pop("tags", None)
         instances = cls.create_instances(input_data, info)
+        if tags:
+            cls.assign_gift_card_tags(instances, tags)
         return cls(count=len(instances), gift_cards=instances)
 
     @staticmethod
@@ -125,6 +133,19 @@ class GiftCardBulkCreate(BaseMutation):
             gift_cards, info.context.user, info.context.app, balance
         )
         return gift_cards
+
+    @staticmethod
+    def assign_gift_card_tags(
+        instances: Iterable[models.GiftCard], tags_values: Iterable[str]
+    ):
+        tags = {tag.lower() for tag in tags_values}
+        tags_instances = models.GiftCardTag.objects.filter(name__in=tags)
+        tags_to_create = tags - set(tags_instances.values_list("name", flat=True))
+        models.GiftCardTag.objects.bulk_create(
+            [models.GiftCardTag(name=tag) for tag in tags_to_create]
+        )
+        for tag_instance in tags_instances.iterator():
+            tag_instance.gift_cards.set(instances)
 
 
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
