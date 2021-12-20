@@ -255,6 +255,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     info.context.user,
                     info.context.app,
                     info.context.plugins,
+                    info.context.site.settings,
                 )
 
             # New event

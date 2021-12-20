@@ -547,7 +547,7 @@ def test_calculate_order_line_total(
         order_line,
         variant,
         product,
-    )
+    ).price_with_discounts
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
 
@@ -607,6 +607,71 @@ def test_calculate_order_line_without_sku_total(
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
 
 
+@pytest.mark.vcr()
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_line_total_with_discount(
+    order_line,
+    address,
+    ship_to_pl_address,
+    shipping_zone,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+):
+    # given
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+
+    order = order_line.order
+    order.shipping_address = ship_to_pl_address
+    order.shipping_method = shipping_zone.shipping_methods.get()
+    order.save(update_fields=["shipping_address", "shipping_method"])
+
+    variant = order_line.variant
+    product = variant.product
+    product.metadata = {}
+    product.charge_taxes = True
+    product.save()
+    product.product_type.save()
+
+    channel = order_line.order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+
+    discount_amount = Decimal("2.0")
+    currency = order_line.currency
+    order_line.unit_discount = Money(discount_amount, currency)
+    order_line.unit_discount_value = discount_amount
+
+    net = variant.get_price(product, [], channel, channel_listing)
+    unit_price = TaxedMoney(net=net, gross=net)
+    order_line.unit_price = unit_price
+    undiscounted_unit_price = order_line.unit_price + order_line.unit_discount
+    order_line.undiscounted_unit_price = undiscounted_unit_price
+    total_price = unit_price * order_line.quantity
+    order_line.total_price = total_price
+    order_line.undiscounted_total_price = undiscounted_unit_price * order_line.quantity
+    order_line.save()
+
+    # when
+    total_price_data = manager.calculate_order_line_total(
+        order_line.order,
+        order_line,
+        variant,
+        product,
+    )
+
+    # then
+    assert total_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("29.27"), currency), gross=Money(Decimal("36.00"), currency)
+    )
+    assert total_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+
+
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_line_total_order_not_valid(
     order_line,
@@ -644,7 +709,7 @@ def test_calculate_order_line_total_order_not_valid(
         order_line,
         variant,
         product,
-    )
+    ).price_with_discounts
     total = quantize_price(total, total.currency)
     assert total == expected_total_price
 
@@ -1078,12 +1143,60 @@ def test_calculate_order_line_unit(
     site_settings.company_address = address_usa
     site_settings.save()
 
-    line_price = manager.calculate_order_line_unit(
+    line_price_data = manager.calculate_order_line_unit(
         order, order_line, order_line.variant, order_line.variant.product
     )
-    line_price = quantize_price(line_price, line_price.currency)
 
-    assert line_price == TaxedMoney(
+    expected_line_price = TaxedMoney(
+        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+    )
+    expected_undiscounted_line_price = TaxedMoney(
+        net=Money("10.00", "USD"), gross=Money("12.30", "USD")
+    )
+    assert line_price_data.undiscounted_price == expected_undiscounted_line_price
+    assert line_price_data.price_with_discounts == expected_line_price
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_line_unit_with_discount(
+    order_line,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    plugin_configuration,
+):
+    # given
+    plugin_configuration()
+    manager = get_plugins_manager()
+    unit_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("10.00", "USD"))
+    order_line.unit_price = unit_price
+    currency = order_line.currency
+    discount_amount = Decimal("2.5")
+    order_line.unit_discount = Money(discount_amount, currency)
+    order_line.unit_discount_value = discount_amount
+    order_line.save()
+
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    site_settings.company_address = address_usa
+    site_settings.save()
+
+    # when
+    line_price_data = manager.calculate_order_line_unit(
+        order, order_line, order_line.variant, order_line.variant.product
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money("10.00", "USD"), gross=Money("12.30", "USD")
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
 
@@ -2830,7 +2943,13 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
 
     line = order_with_lines.lines.first()
     line.unit_price_gross_amount = Decimal("0")
-    line.save()
+    line.undiscounted_unit_price_gross_amount = Decimal("0")
+    line.save(
+        update_fields=[
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+        ]
+    )
     variant = line.variant
     variant.product.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
@@ -2866,7 +2985,14 @@ def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
     line = order_with_lines.lines.first()
     line.quantity = 1
     line.unit_price_gross_amount = Decimal("10.0")
-    line.save()
+    line.undiscounted_unit_price_gross_amount = Decimal("10.0")
+    line.save(
+        update_fields=[
+            "quantity",
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+        ]
+    )
     variant = line.variant
     variant.product.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}

@@ -184,7 +184,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - When any sale or voucher discount was applied, `line.discount_reason` will be fulfilled.
   - New interface for handling more data for prices: `PricesData` and `TaxedPricesData` used in checkout calculations
   and in plugins/pluginManager.
-
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+  - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -296,6 +299,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Propagate sale and voucher discounts over specific lines - #8793 by @korycins
   - Use a new interface for response received from plugins/pluginManager. Methods `calculate_checkout_line_unit_price`
   and `calculate_checkout_line_total` returns `TaxedPricesData` instead of `TaxedMoney`.
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Use a new interface for the response received from plugins/pluginManager.
+  Methods `calculate_order_line_unit` and `calculate_order_line_total` returns
+  `OrderTaxedPricesData` instead of `TaxedMoney`.
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
 
 ### Other
 
