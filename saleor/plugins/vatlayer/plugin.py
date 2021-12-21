@@ -15,7 +15,8 @@ from django_prices_vatlayer.utils import (
 )
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ...checkout import calculations
+from ...checkout import base_calculations, calculations
+from ...checkout.interface import PricesData, TaxedPricesData
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
 from ...product.models import ProductType
@@ -124,7 +125,8 @@ class VatlayerPlugin(BasePlugin):
         self._cached_taxes = {}
 
     def _skip_plugin(
-        self, previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal]
+        self,
+        previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal, TaxedPricesData],
     ) -> bool:
         if not self.active or not self.config.access_key:
             return True
@@ -138,6 +140,12 @@ class VatlayerPlugin(BasePlugin):
 
         if isinstance(previous_value, TaxedMoney):
             return previous_value.net != previous_value.gross
+
+        if isinstance(previous_value, TaxedPricesData):
+            return (
+                previous_value.price_with_sale.net
+                != previous_value.price_with_sale.gross
+            )
         return False
 
     def calculate_checkout_total(
@@ -255,22 +263,23 @@ class VatlayerPlugin(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        unit_price = self.__calculate_checkout_line_unit_price(
-            address,
-            discounts,
-            checkout_line_info.variant,
-            checkout_line_info.product,
-            checkout_line_info.collections,
+        previous_value: TaxedPricesData,
+    ) -> TaxedPricesData:
+        unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
+            checkout_line_info,
             checkout_info.channel,
-            checkout_line_info.channel_listing,
+            discounts,
+            address,
             previous_value,
         )
-        return (
-            unit_price * checkout_line_info.line.quantity
-            if unit_price is not None
-            else previous_value
+        if not unit_taxed_prices_data:
+            return previous_value
+
+        quantity = checkout_line_info.line.quantity
+        return TaxedPricesData(
+            price_with_discounts=unit_taxed_prices_data.price_with_discounts * quantity,
+            price_with_sale=unit_taxed_prices_data.price_with_sale * quantity,
+            undiscounted_price=unit_taxed_prices_data.undiscounted_price * quantity,
         )
 
     def calculate_order_line_total(
@@ -301,39 +310,47 @@ class VatlayerPlugin(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        unit_price = self.__calculate_checkout_line_unit_price(
-            address,
-            discounts,
-            checkout_line_info.variant,
-            checkout_line_info.product,
-            checkout_line_info.collections,
+        previous_value: TaxedPricesData,
+    ) -> TaxedPricesData:
+        unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
+            checkout_line_info,
             checkout_info.channel,
-            checkout_line_info.channel_listing,
+            discounts,
+            address,
             previous_value,
         )
-        return unit_price if unit_price is not None else previous_value
+        return unit_taxed_prices_data if unit_taxed_prices_data else previous_value
 
     def __calculate_checkout_line_unit_price(
         self,
-        address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
-        variant: "ProductVariant",
-        product: "Product",
-        collections: List["Collection"],
+        checkout_line_info: "CheckoutLineInfo",
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
-        previous_value: TaxedMoney,
+        discounts: Iterable["DiscountInfo"],
+        address: Optional["Address"],
+        previous_value: TaxedPricesData,
     ):
         if self._skip_plugin(previous_value):
             return
 
-        price = variant.get_price(
-            product, collections, channel, channel_listing, discounts
+        prices_data = base_calculations.calculate_base_line_unit_price(
+            checkout_line_info,
+            channel,
+            discounts,
         )
+
         country = address.country if address else None
-        return self.__apply_taxes_to_product(product, price, country)
+        taxed_prices_data = TaxedPricesData(
+            price_with_sale=self.__apply_taxes_to_product(
+                checkout_line_info.product, prices_data.price_with_sale, country
+            ),
+            undiscounted_price=self.__apply_taxes_to_product(
+                checkout_line_info.product, prices_data.undiscounted_price, country
+            ),
+            price_with_discounts=self.__apply_taxes_to_product(
+                checkout_line_info.product, prices_data.price_with_discounts, country
+            ),
+        )
+        return taxed_prices_data
 
     def calculate_order_line_unit(
         self,

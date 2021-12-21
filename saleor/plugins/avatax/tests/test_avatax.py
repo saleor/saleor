@@ -19,6 +19,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
+from ....discount import VoucherType
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ....shipping.utils import convert_to_shipping_method_data
@@ -96,10 +97,342 @@ def test_calculate_checkout_line_total(
         checkout_line_info,
         checkout_with_item.shipping_address,
         discounts,
-    )
+    ).price_with_sale
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_variant_on_sale(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    discount_info,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    quantity = 3
+    line = checkout_with_item.lines.first()
+    line.quantity = quantity
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line,
+        checkout.shipping_address,
+        discounts=[discount_info],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("12.20"), currency), gross=Money(Decimal("15.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == line_price_data.price_with_sale
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_voucher(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    quantity = 3
+    line = checkout_with_item.lines.first()
+    line.quantity = quantity
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("17.07"), currency), gross=Money(Decimal("21.00"), currency)
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_voucher_once_per_order(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("21.95"), currency), gross=Money(Decimal("27.00"), currency)
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+    discount_info,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[discount_info],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("12.20"), currency), gross=Money(Decimal("15.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("4.88"), currency), gross=Money(Decimal("6.00"), currency)
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_once(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+    discount_info,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[discount_info],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("24.39"), currency), gross=Money(Decimal("30.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("12.20"), currency), gross=Money(Decimal("15.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("9.76"), currency), gross=Money(Decimal("12.00"), currency)
     )
 
 
@@ -155,14 +488,16 @@ def test_calculate_checkout_line_without_sku_total(
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     checkout_line_info = lines[0]
 
-    total = manager.calculate_checkout_line_total(
+    total_prices_data = manager.calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         discounts,
     )
-    total = quantize_price(total, total.currency)
+    total = quantize_price(
+        total_prices_data.price_with_sale, total_prices_data.price_with_sale.currency
+    )
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
@@ -429,10 +764,10 @@ def test_calculate_checkout_total_uses_default_calculation(
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
-        (True, "23.94", "28.98", "0.0", True),
-        (True, "23.98", "30.19", "5.0", False),
-        (False, "43.98", "53.64", "0.0", False),
-        (False, "33.13", "40.98", "3.0", True),
+        (True, "22.32", "26.99", "0.0", True),
+        (True, "21.99", "27.74", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
+        (False, "31.51", "38.99", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
@@ -767,9 +1102,6 @@ def test_calculate_checkout_line_unit_price(
 ):
     plugin_configuration()
     checkout = checkout_with_item
-    total_price = TaxedMoney(
-        net=Money("10.00", "USD") * 3, gross=Money("10.00", "USD") * 3
-    )
 
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
@@ -790,25 +1122,350 @@ def test_calculate_checkout_line_unit_price(
     site_settings.save()
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
-    line_price = manager.calculate_checkout_line_unit_price(
-        total_price,
-        checkout_line.line.quantity,
+    line_price_data = manager.calculate_checkout_line_unit_price(
         checkout_info,
         lines,
         checkout_line,
         checkout.shipping_address,
         [],
     )
-    line_price = quantize_price(line_price, line_price.currency)
 
     if charge_taxes:
-        assert line_price == TaxedMoney(
+        expected_line_price = TaxedMoney(
             net=Money("8.13", "USD"), gross=Money("10.00", "USD")
         )
     else:
-        assert line_price == TaxedMoney(
+        expected_line_price = TaxedMoney(
             net=Money("10.00", "USD"), gross=Money("10.00", "USD")
         )
+    assert line_price_data.price_with_sale == expected_line_price
+    assert line_price_data.undiscounted_price == expected_line_price
+    assert line_price_data.price_with_discounts == expected_line_price
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_with_variant_on_sale(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    discount_info,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line,
+        checkout.shipping_address,
+        discounts=[discount_info],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("4.07"), currency), gross=Money(Decimal("5.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == line_price_data.price_with_sale
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_with_voucher(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("5.69"), currency), gross=Money(Decimal("7.00"), currency)
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_with_voucher_once_per_order(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    # voucher with apply_once_per_order is added in calulation of total unit price
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("7.32"), currency), gross=Money(Decimal("9.00"), currency)
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+    discount_info,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[discount_info],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("4.07"), currency), gross=Money(Decimal("5.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("1.63"), currency), gross=Money(Decimal("2.00"), currency)
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher_only_once(
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+    voucher,
+    channel_USD,
+    discount_info,
+):
+    # given
+    plugin_configuration()
+    checkout = checkout_with_item
+
+    checkout_line = checkout.lines.first()
+    voucher.products.add(checkout_line.variant.product)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    voucher_amount = Money(Decimal(3), checkout_with_item.currency)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount = voucher_amount
+    voucher_channel_listing.save()
+
+    checkout_with_item.voucher_code = voucher.code
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line_info = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    currency = checkout_info.checkout.currency
+
+    # when
+    line_price_data = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout.shipping_address,
+        discounts=[discount_info],
+    )
+
+    # then
+    assert line_price_data.undiscounted_price == TaxedMoney(
+        net=Money(Decimal("8.13"), currency), gross=Money(Decimal("10.00"), currency)
+    )
+    assert line_price_data.price_with_sale == TaxedMoney(
+        net=Money(Decimal("4.07"), currency), gross=Money(Decimal("5.00"), currency)
+    )
+    assert line_price_data.price_with_discounts == TaxedMoney(
+        net=Money(Decimal("3.25"), currency), gross=Money(Decimal("4.00"), currency)
+    )
 
 
 @pytest.mark.vcr
