@@ -107,7 +107,8 @@ class OTOPlugin(BasePlugin):
             )
             fulfillment.order.save(update_fields=["private_metadata"])
             logger.info(
-                msg="OTO order created", extra={"order_id": fulfillment.order.id}
+                msg=f"OTO order {response.get('otoId')} created",
+                extra={"order_id": fulfillment.order.id},
             )
         else:
             msg = (
@@ -132,6 +133,11 @@ class OTOPlugin(BasePlugin):
             )
             raise ValidationError(
                 {"order_id": ValidationError(msg, code="invalid")},
+            )
+        else:
+            logger.info(
+                msg=f"OTO order {response.get('otoId')} canceled",
+                extra={"order_id": fulfillment.order.id},
             )
 
     @require_active_plugin
@@ -173,12 +179,12 @@ class OTOPlugin(BasePlugin):
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         # Fired when a webhook is received from OTO. Example: OTO cancels an order.
         if path == "/track/" and request.method == "POST":
-            handle_webhook(
+            response = handle_webhook(
                 request=request,
                 config=self.config,
             )
             logger.info(msg="Finish handling webhook from OTO!")
-            return HttpResponse(status=200)
+            return response
         else:
             logger.info(msg="Invalid webhook path from OTO!")
             return HttpResponseNotFound("This OTO path is not valid!")

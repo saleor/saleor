@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import hmac
 import json
@@ -5,7 +6,7 @@ import logging
 
 import requests
 from django.contrib.sites.models import Site
-from django.http import HttpRequest, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
 from saleor.celeryconf import app
 from saleor.order.models import Fulfillment
@@ -134,17 +135,20 @@ def send_oto_request(
 
 def verify_webhook(request: HttpRequest, config: "GatewayConfig"):
     """Verify webhook request from OTO."""
-    return True
     data = json.loads(request.body)
-    signature = request.POST.get("signature")
+    signature = data.get("signature")
     msg = f"{data['orderId']}:{data['status']}:{data['timestamp']}"
     h = hmac.new(
         msg=msg.encode("utf-8"),
         digestmod=hashlib.sha256,
-        key=config.connection_params.get("PUBLIC_KEY_FOR_SIGNATURE").encode("utf-8"),
-    ).hexdigest()
+        key=config.connection_params.get("PUBLIC_KEY_FOR_SIGNATURE", "").encode(
+            "utf-8"
+        ),
+    ).digest()
+    h = base64.b64encode(h).decode("utf-8")
+
     if h != signature:
-        return HttpResponseForbidden()
+        return HttpResponseForbidden("Invalid signature")
     return True
 
 
@@ -163,9 +167,16 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig):
                 items={
                     "otoStatus": data.get("status", ""),
                     "printAWBURL": data.get("printAWBURL", ""),
+                    "feedbackLink": data.get("feedbackLink", ""),
                     "shippingCompanyStatus": data.get("dcStatus", ""),
                 }
             )
             fulfillment.save(update_fields=["tracking_number", "private_metadata"])
             logger.info("Fulfillment #%s updated", fulfillment.composed_id)
-        logger.info("Fulfillment #%s is not found!", fulfillment)
+            return HttpResponse("OK")
+        else:
+            logger.info(f"Fulfillment {data.get('orderId')} not found")
+            return HttpResponse(f"Fulfillment {data.get('orderId')} not found))")
+    else:
+        logger.info("Webhook is not verified!")
+        return HttpResponseForbidden("Webhook is not verified!")
