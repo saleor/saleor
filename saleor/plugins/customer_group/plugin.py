@@ -36,9 +36,6 @@ class CustomerGroupPlugin(BasePlugin):
         },
     }
 
-    def _get_gateway_config(self):
-        return self.configuration
-
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""

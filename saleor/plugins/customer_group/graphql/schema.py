@@ -1,15 +1,16 @@
 import graphene
+from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
 from saleor.core.permissions import AccountPermissions
 from saleor.graphql.account.resolvers import resolve_customers
-from saleor.graphql.account.schema import CustomerFilterInput
-from saleor.graphql.account.types import User
-from saleor.graphql.core.fields import FilterInputConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
 from saleor.graphql.decorators import permission_required
-from saleor.plugins.customer_group.graphql.types import CustomerGroupType
+from saleor.plugins.customer_group.graphql.types import (
+    CustomerConnection,
+    CustomerGroupType,
+)
 from saleor.plugins.customer_group.models import CustomerGroup
 
 from .mutations import (
@@ -40,11 +41,8 @@ class CustomerGroupNode(DjangoObjectType):
 
 
 class CustomerGroupQueries(graphene.ObjectType):
-    customers = FilterInputConnectionField(
-        User,
-        filter=CustomerFilterInput(description="Filtering options for customers."),
-        description="List of the shop's customers.",
-    )
+
+    customers = relay.ConnectionField(CustomerConnection)
     customer_group = graphene.relay.Node.Field(CustomerGroupNode)
     customer_groups = DjangoFilterConnectionField(CustomerGroupNode)
 
