@@ -120,7 +120,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     site_settings,
 ):
     order = order_with_lines
-    variant = product.variants.get()
+    variant = product.variants.first()
     discount_info.variants_ids.add(variant.id)
     sale.variants.add(variant)
     lines_before = order.lines.count()

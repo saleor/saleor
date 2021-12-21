@@ -602,7 +602,7 @@ def test_calculate_order_line_without_sku_total(
         order_line,
         variant,
         product,
-    )
+    ).price_with_discounts
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(net=Money("24.39", "USD"), gross=Money("30.00", "USD"))
 
