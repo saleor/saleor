@@ -38,6 +38,7 @@ from .utils.common import (
     api_call,
     call_capture,
     get_payment_method_info,
+    get_request_data_for_check_payment,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
@@ -260,6 +261,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 return handle_additional_actions(
                     request,
                     self.adyen.checkout.payments_details,
+                    self.channel.slug,  # type: ignore
                 )
         return HttpResponseNotFound()
 
@@ -320,6 +322,29 @@ class AdyenGatewayPlugin(BasePlugin):
             currencies=self.get_supported_currencies([]),
         )
         return [gateway]
+
+    @require_active_plugin
+    def check_payment_balance(self, data: dict, previous_value=None) -> dict:
+        request_data = get_request_data_for_check_payment(
+            data, self.config.connection_params["merchant_account"]
+        )
+
+        with opentracing.global_tracer().start_active_span(
+            "adyen.checkout.payment_methods_balance"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "adyen")
+
+            try:
+                result = api_call(
+                    request_data,
+                    self.adyen.checkout.client.call_checkout_api,
+                    action="paymentMethods/balance",
+                )
+                return result.message
+            except PaymentError as e:
+                return e.message
 
     @property
     def order_auto_confirmation(self):
@@ -431,7 +456,17 @@ class AdyenGatewayPlugin(BasePlugin):
         config = self._get_gateway_config()
         additional_data = payment_information.data
         if not additional_data:
-            raise PaymentError("Unable to finish the payment.")
+            return GatewayResponse(
+                is_success=False,
+                action_required=False,
+                kind=kind,
+                amount=payment_information.amount,
+                currency=payment_information.currency,
+                transaction_id="",
+                error=f"Unable to finish the payment. "
+                f"Payment ({payment_information.graphql_payment_id}) "
+                f"does not have the additional data.",
+            )
 
         with opentracing.global_tracer().start_active_span(
             "adyen.checkout.payment_details"
@@ -509,8 +544,13 @@ class AdyenGatewayPlugin(BasePlugin):
             return self._process_additional_action(payment_information, kind)
 
         result_code = transaction.gateway_response.get("resultCode", "").strip().lower()
+        payment_method = (
+            transaction.gateway_response.get("paymentMethod", "").strip().lower()
+        )
         if result_code and result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
+        elif result_code == AUTH_STATUS and payment_method == "ideal":
+            kind = TransactionKind.CAPTURE
 
         # We already have the ACTION_TO_CONFIRM transaction, it means that
         # payment was processed asynchronous and no additional action is required

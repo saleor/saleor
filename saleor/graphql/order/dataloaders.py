@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...order import FulfillmentStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
@@ -104,17 +103,3 @@ class FulfillmentLinesByIdLoader(DataLoader):
     def batch_load(self, keys):
         fulfillment_lines = FulfillmentLine.objects.in_bulk(keys)
         return [fulfillment_lines.get(line_id) for line_id in keys]
-
-
-class FulfillmentLinesAwaitingApprovalByOrderLineIdLoader(DataLoader):
-    context_key = "fulfillment_lines_awaitng_approval_by_orderline"
-
-    def batch_load(self, keys):
-        fulfillments = FulfillmentLine.objects.filter(
-            order_line_id__in=keys,
-            fulfillment__status=FulfillmentStatus.WAITING_FOR_APPROVAL,
-        ).order_by("pk")
-        fulfillments_map = defaultdict(list)
-        for fulfillment in fulfillments.iterator():
-            fulfillments_map[fulfillment.order_line_id].append(fulfillment)
-        return [fulfillments_map.get(order_line_id, []) for order_line_id in keys]

@@ -41,6 +41,6 @@ def user_is_valid(user: Optional[User]) -> bool:
     return bool(user and not user.is_anonymous)
 
 
-def date_passed(given_date):
-    """Return true when date has passed."""
-    return given_date < date.today()
+def is_date_in_future(given_date):
+    """Return true when the date is in the future."""
+    return given_date > date.today()

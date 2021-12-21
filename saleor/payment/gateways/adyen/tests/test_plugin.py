@@ -2,6 +2,7 @@ import json
 from decimal import Decimal
 from unittest import mock
 
+import Adyen
 import pytest
 from django.core.exceptions import ValidationError
 from requests.exceptions import RequestException, SSLError
@@ -9,7 +10,7 @@ from requests.exceptions import RequestException, SSLError
 from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
 from ....interface import GatewayResponse, PaymentMethodInfo
-from ....models import Payment
+from ....models import Payment, Transaction
 from ....utils import create_payment_information, create_transaction
 
 
@@ -474,6 +475,30 @@ def test_confirm_payment_with_additional_details(payment_adyen_for_order, adyen_
     adyen_plugin.confirm_payment(payment_info, None)
 
 
+def test_confirm_payment_without_additional_data(payment_adyen_for_order, adyen_plugin):
+    Transaction.objects.create(
+        payment=payment_adyen_for_order,
+        action_required=False,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        token="token",
+        is_success=False,
+        amount="100",
+        currency="EUR",
+        error="",
+        gateway_response={},
+        action_required_data={},
+    )
+
+    payment_info = create_payment_information(payment_adyen_for_order)
+    response = adyen_plugin().confirm_payment(payment_info, None)
+
+    assert not response.is_success
+    assert not response.action_required
+    assert response.kind == TransactionKind.AUTH
+    assert response.error is not None
+    assert payment_info.graphql_payment_id in response.error
+
+
 @pytest.mark.vcr
 def test_refund_payment(payment_adyen_for_order, order_with_lines, adyen_plugin):
     payment_info = create_payment_information(
@@ -603,3 +628,77 @@ def test_validate_plugin_configuration_without_apple_cert(adyen_plugin):
     plugin_configuration = PluginConfiguration.objects.get()
     plugin_configuration.configuration = configuration
     plugin.validate_plugin_configuration(plugin_configuration)
+
+
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_adyen_check_payment_balance(
+    api_call_mock, adyen_plugin, adyen_check_balance_response
+):
+
+    api_call_mock.return_value = adyen_check_balance_response
+    plugin = adyen_plugin()
+
+    data = {
+        "gatewayId": "mirumee.payments.gateway",
+        "method": "givex",
+        "card": {
+            "cvc": "9891",
+            "code": "1234567910",
+            "money": {"currency": "GBP", "amount": Decimal(100.0)},
+        },
+    }
+
+    result = plugin.check_payment_balance(data)
+
+    assert result["pspReference"] == "851634546949980A"
+    assert result["resultCode"] == "Success"
+    assert result["balance"] == {"currency": "GBP", "value": 10000}
+    api_call_mock.assert_called_once_with(
+        {
+            "merchantAccount": "SaleorECOM",
+            "paymentMethod": {
+                "type": "givex",
+                "number": "1234567910",
+                "securityCode": "9891",
+            },
+            "amount": {"currency": "GBP", "value": "10000"},
+        },
+        plugin.adyen.checkout.client.call_checkout_api,
+        action="paymentMethods/balance",
+    )
+
+
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_adyen_check_payment_balance_adyen_raises_error(
+    api_call_mock, adyen_plugin, adyen_check_balance_response
+):
+
+    api_call_mock.return_value = Adyen.AdyenError("Error")
+    plugin = adyen_plugin()
+
+    data = {
+        "gatewayId": "mirumee.payments.gateway",
+        "method": "givex",
+        "card": {
+            "cvc": "9891",
+            "code": "1234567910",
+            "money": {"currency": "GBP", "amount": Decimal(100.0)},
+        },
+    }
+
+    result = plugin.check_payment_balance(data)
+
+    assert result == "Error"
+    api_call_mock.assert_called_once_with(
+        {
+            "merchantAccount": "SaleorECOM",
+            "paymentMethod": {
+                "type": "givex",
+                "number": "1234567910",
+                "securityCode": "9891",
+            },
+            "amount": {"currency": "GBP", "value": "10000"},
+        },
+        plugin.adyen.checkout.client.call_checkout_api,
+        action="paymentMethods/balance",
+    )

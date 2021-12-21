@@ -46,6 +46,7 @@ def test_trigger_tax_webhook_sync(
 
     # then
     mock_request.assert_called_once_with(
+        tax_checkout_webhook.app.name,
         tax_checkout_webhook.pk,
         tax_checkout_webhook.target_url,
         tax_checkout_webhook.secret_key,
@@ -72,6 +73,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     # then
     successful_webhook = tax_checkout_webhooks[0]
     mock_request.assert_called_once_with(
+        successful_webhook.app.name,
         successful_webhook.pk,
         successful_webhook.target_url,
         successful_webhook.secret_key,
@@ -99,7 +101,14 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     assert mock_request.call_count == 3
     for call, webhook in zip(mock_request.call_args_list, tax_checkout_webhooks):
         assert call == (
-            (webhook.pk, webhook.target_url, webhook.secret_key, event_type, data),
+            (
+                webhook.app.name,
+                webhook.pk,
+                webhook.target_url,
+                webhook.secret_key,
+                event_type,
+                data,
+            ),
             {},
         )
     assert tax_data == parse_tax_data(tax_data_response)

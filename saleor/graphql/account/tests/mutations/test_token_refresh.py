@@ -20,6 +20,7 @@ MUTATION_TOKEN_REFRESH = """
             token
             errors{
               code
+              field
             }
         }
     }
@@ -126,6 +127,26 @@ def test_access_app_token_used_as_a_refresh_token(api_client, app, customer_user
 
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
+
+
+def test_refresh_token_get_token_missing_csrf_token(api_client, customer_user):
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    variables = {"token": None}
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["tokenRefresh"]
+    errors = data["errors"]
+
+    token = data.get("token")
+    assert not token
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "csrfToken"
 
 
 def test_refresh_token_get_token_incorrect_csrf_token(api_client, customer_user):

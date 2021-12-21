@@ -5,9 +5,12 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.utils.encoding import smart_text
 
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
+from . import calculations
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -42,14 +45,19 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    valid_shipping_methods: List["ShippingMethod"]
+    valid_shipping_methods: List["ShippingMethodData"]
     valid_pick_up_points: List["Warehouse"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
 
     @property
-    def valid_delivery_methods(self) -> List[Union["ShippingMethod", "Warehouse"]]:
+    def valid_delivery_methods(
+        self,
+    ) -> List[Union["ShippingMethodData", "Warehouse"]]:
         return list(
-            itertools.chain(self.valid_shipping_methods, self.valid_pick_up_points)
+            itertools.chain(
+                self.valid_shipping_methods,
+                self.valid_pick_up_points,
+            )
         )
 
     def get_country(self) -> str:
@@ -64,13 +72,16 @@ class CheckoutInfo:
 
 @dataclass(frozen=True)
 class DeliveryMethodBase:
-    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]] = None
+    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]] = None
     shipping_address: Optional["Address"] = None
-    order_key: str = "shipping_method"
 
     @property
     def warehouse_pk(self) -> Optional[str]:
         pass
+
+    @property
+    def delivery_method_order_field(self) -> dict:
+        return {"shipping_method": self.delivery_method}
 
     @property
     def is_local_collection_point(self) -> bool:
@@ -95,13 +106,18 @@ class DeliveryMethodBase:
 
 @dataclass(frozen=True)
 class ShippingMethodInfo(DeliveryMethodBase):
-    delivery_method: "ShippingMethod"
+    delivery_method: "ShippingMethodData"
     shipping_address: Optional["Address"]
-    order_key: str = "shipping_method"
 
     @property
     def delivery_method_name(self) -> Dict[str, Optional[str]]:
-        return {"shipping_method_name": smart_text(self.delivery_method)}
+        return {"shipping_method_name": smart_text(self.delivery_method.name)}
+
+    @property
+    def delivery_method_order_field(self) -> dict:
+        if not self.delivery_method.is_external:
+            return {"shipping_method_id": self.delivery_method.id}
+        return {}
 
     def is_valid_delivery_method(self) -> bool:
         return bool(self.shipping_address)
@@ -113,22 +129,27 @@ class ShippingMethodInfo(DeliveryMethodBase):
         )
 
     def update_channel_listings(self, checkout_info: "CheckoutInfo") -> None:
-        checkout_info.shipping_method_channel_listings = (
-            ShippingMethodChannelListing.objects.filter(
-                shipping_method=self.delivery_method, channel=checkout_info.channel
-            ).first()
-        )
+        if not self.delivery_method.is_external:
+            checkout_info.shipping_method_channel_listings = (
+                ShippingMethodChannelListing.objects.filter(
+                    shipping_method_id=int(self.delivery_method.id),
+                    channel=checkout_info.channel,
+                ).first()
+            )
 
 
 @dataclass(frozen=True)
 class CollectionPointInfo(DeliveryMethodBase):
     delivery_method: "Warehouse"
     shipping_address: Optional["Address"]
-    order_key: str = "collection_point"
 
     @property
     def warehouse_pk(self):
         return self.delivery_method.pk
+
+    @property
+    def delivery_method_order_field(self) -> dict:
+        return {"collection_point": self.delivery_method}
 
     @property
     def is_local_collection_point(self):
@@ -163,12 +184,12 @@ class CollectionPointInfo(DeliveryMethodBase):
 
 @singledispatch
 def get_delivery_method_info(
-    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
+    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]],
     address=Optional["Address"],
 ) -> DeliveryMethodBase:
     if delivery_method is None:
         return DeliveryMethodBase()
-    if isinstance(delivery_method, ShippingMethod):
+    if isinstance(delivery_method, ShippingMethodData):
         return ShippingMethodInfo(delivery_method, address)
     if isinstance(delivery_method, Warehouse):
         return CollectionPointInfo(delivery_method, delivery_method.address)
@@ -176,13 +197,23 @@ def get_delivery_method_info(
     raise NotImplementedError()
 
 
-def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
+def fetch_checkout_lines(
+    checkout: "Checkout", prefetch_variant_attributes=False
+) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    lines = checkout.lines.prefetch_related(
+    prefetched_fields = [
         "variant__product__collections",
         "variant__channel_listings__channel",
         "variant__product__product_type",
-    )
+    ]
+    if prefetch_variant_attributes:
+        prefetched_fields.extend(
+            [
+                "variant__attributes__assignment__attribute",
+                "variant__attributes__values",
+            ]
+        )
+    lines = checkout.lines.prefetch_related(*prefetched_fields)
     lines_info = []
 
     for line in lines:
@@ -219,40 +250,95 @@ def fetch_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
+    *,
+    # Ugly hack to disable fetching shipping methods if they aren't needed
+    # Preventing multiple redundant and potentially costful API calls in
+    # checkout lines add/update/delete mutations
+    fetch_delivery_methods: bool = True,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
-
-    channel = checkout.channel
-    shipping_address = checkout.shipping_address
-    shipping_method = checkout.shipping_method
-    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        shipping_method=shipping_method, channel=channel
-    ).first()
-    delivery_method = checkout.collection_point or shipping_method
-    delivery_method_info = get_delivery_method_info(delivery_method, shipping_address)
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
-        channel=channel,
+        channel=checkout.channel,
         billing_address=checkout.billing_address,
-        shipping_address=shipping_address,
-        delivery_method_info=delivery_method_info,
-        shipping_method_channel_listings=shipping_channel_listings,
+        shipping_address=checkout.shipping_address,
+        delivery_method_info=DeliveryMethodBase(),
+        shipping_method_channel_listings=None,
         valid_shipping_methods=[],
         valid_pick_up_points=[],
     )
 
-    valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts, manager
-    )
-    valid_pick_up_points = get_valid_collection_points_for_checkout_info(
-        checkout_info, shipping_address, lines
-    )
-    checkout_info.valid_shipping_methods = valid_shipping_methods
-    checkout_info.valid_pick_up_points = valid_pick_up_points
-    checkout_info.delivery_method_info = delivery_method_info
+    if fetch_delivery_methods:
+        populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
+        valid_pick_up_points = get_valid_collection_points_for_checkout_info(
+            checkout.shipping_address, lines, checkout_info
+        )
+        checkout_info.valid_pick_up_points = valid_pick_up_points
 
     return checkout_info
+
+
+def populate_checkout_info_shippings(
+    checkout_info: CheckoutInfo,
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
+):
+    from .utils import get_external_shipping_id
+
+    checkout = checkout_info.checkout
+    channel = checkout_info.channel
+    shipping_address = checkout_info.shipping_address
+    shipping_method = checkout.shipping_method
+
+    external_shipping_methods = (
+        get_valid_external_shipping_method_list_for_checkout_info(
+            checkout_info, shipping_address, lines, discounts, manager
+        )
+    )
+
+    shipping_channel_listings = None
+    if shipping_method:
+        shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method, channel=channel
+        ).first()
+
+        delivery_method: Optional[
+            Union["ShippingMethodData", "Warehouse"]
+        ] = convert_to_shipping_method_data(shipping_method)
+    else:
+        delivery_method = checkout.collection_point
+
+    checkout_info.shipping_method_channel_listings = shipping_channel_listings
+
+    if not delivery_method:
+        external_shipping_method_id = get_external_shipping_id(checkout)
+        if external_shipping_method_id:
+            external_shipping_methods_map = {
+                external_shipping_method.id: external_shipping_method
+                for external_shipping_method in external_shipping_methods
+            }
+            delivery_method = external_shipping_methods_map.get(
+                external_shipping_method_id
+            )
+
+    if delivery_method:
+        delivery_method_info = get_delivery_method_info(
+            delivery_method, shipping_address
+        )
+        checkout_info.delivery_method_info = delivery_method_info
+
+    valid_shipping_methods: List["ShippingMethodData"] = list(
+        itertools.chain(
+            get_valid_local_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+            external_shipping_methods,
+        )
+    )
+
+    checkout_info.valid_shipping_methods = valid_shipping_methods
 
 
 def update_checkout_info_shipping_address(
@@ -263,13 +349,62 @@ def update_checkout_info_shipping_address(
     manager: "PluginsManager",
 ):
     checkout_info.shipping_address = address
-    valid_methods = get_valid_shipping_method_list_for_checkout_info(
+
+    valid_shipping_methods: List[
+        "ShippingMethodData"
+    ] = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, address, lines, discounts, manager
     )
-    checkout_info.valid_shipping_methods = valid_methods
+
+    checkout_info.valid_shipping_methods = valid_shipping_methods
+
     delivery_method = checkout_info.delivery_method_info.delivery_method
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, address
+    )
+
+
+def get_valid_local_shipping_method_list_for_checkout_info(
+    checkout_info: "CheckoutInfo",
+    shipping_address: Optional["Address"],
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
+) -> List["ShippingMethodData"]:
+    from .utils import get_valid_shipping_methods_for_checkout
+
+    country_code = shipping_address.country.code if shipping_address else None
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+        discounts=discounts,
+    )
+    subtotal -= checkout_info.checkout.discount
+    valid_shipping_method = get_valid_shipping_methods_for_checkout(
+        checkout_info, lines, subtotal, country_code=country_code
+    )
+
+    if valid_shipping_method is None:
+        return []
+
+    return [
+        convert_to_shipping_method_data(shipping)  # type: ignore
+        for shipping in valid_shipping_method
+    ]
+
+
+def get_valid_external_shipping_method_list_for_checkout_info(
+    checkout_info: "CheckoutInfo",
+    shipping_address: Optional["Address"],
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
+) -> List["ShippingMethodData"]:
+
+    return manager.list_shipping_methods_for_checkout(
+        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
     )
 
 
@@ -279,40 +414,40 @@ def get_valid_shipping_method_list_for_checkout_info(
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
-):
-    from .utils import get_valid_shipping_methods_for_checkout
-
-    country_code = shipping_address.country.code if shipping_address else None
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, discounts
+) -> List["ShippingMethodData"]:
+    return list(
+        itertools.chain(
+            get_valid_local_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+            get_valid_external_shipping_method_list_for_checkout_info(
+                checkout_info, shipping_address, lines, discounts, manager
+            ),
+        )
     )
-    subtotal -= checkout_info.checkout.discount
-    valid_shipping_method = get_valid_shipping_methods_for_checkout(
-        checkout_info, lines, subtotal, country_code=country_code
-    )
-    valid_shipping_method = (
-        list(valid_shipping_method) if valid_shipping_method is not None else []
-    )
-    return valid_shipping_method
 
 
 def get_valid_collection_points_for_checkout_info(
-    checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
+    checkout_info: CheckoutInfo,
 ):
     from .utils import get_valid_collection_points_for_checkout
 
-    country_code = shipping_address.country.code if shipping_address else None
+    if shipping_address:
+        country_code = shipping_address.country.code
+    else:
+        country_code = checkout_info.channel.default_country.code
+
     valid_collection_points = get_valid_collection_points_for_checkout(
-        lines, checkout_info, country_code=country_code, quantity_check=False
+        lines, country_code=country_code, quantity_check=False
     )
     return list(valid_collection_points)
 
 
 def update_checkout_info_delivery_method(
     checkout_info: CheckoutInfo,
-    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
+    delivery_method: Optional[Union["ShippingMethodData", "Warehouse"]],
 ):
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address

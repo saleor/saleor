@@ -27,11 +27,11 @@ from ...payment import error_codes as payment_error_codes
 from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
+from ...site import error_codes as site_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ...wishlist import error_codes as wishlist_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
-from ..shop import error_codes as shop_error_codes
 from .utils import str_to_enum
 
 
@@ -114,7 +114,10 @@ PluginErrorCode = graphene.Enum.from_enum(plugin_error_codes.PluginErrorCode)
 GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode)
 MenuErrorCode = graphene.Enum.from_enum(menu_error_codes.MenuErrorCode)
 OrderSettingsErrorCode = graphene.Enum.from_enum(
-    shop_error_codes.OrderSettingsErrorCode
+    site_error_codes.OrderSettingsErrorCode
+)
+GiftCardSettingsErrorCode = graphene.Enum.from_enum(
+    site_error_codes.GiftCardSettingsErrorCode
 )
 MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)

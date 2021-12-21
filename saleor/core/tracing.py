@@ -35,3 +35,18 @@ def opentracing_trace(span_name, component_name, service_name):
         span.set_tag(opentracing.tags.COMPONENT, component_name)
         span.set_tag("service.name", service_name)
         yield
+
+
+@contextmanager
+def webhooks_opentracing_trace(span_name, domain, sync=False, app_name=None):
+    with opentracing.global_tracer().start_active_span(
+        f"webhooks.{span_name}"
+    ) as scope:
+        span = scope.span
+        if app_name:
+            span.set_tag("webhooks.app", app_name)
+        span.set_tag(opentracing.tags.COMPONENT, "webhooks")
+        span.set_tag("service.name", "webhooks")
+        span.set_tag("webhooks.domain", domain)
+        span.set_tag("webhooks.execution_mode", "sync" if sync else "async")
+        yield

@@ -1,11 +1,11 @@
 import django_filters
 from django.db.models import Exists, OuterRef, Q, Sum
+from django.utils import timezone
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
-from ...account.models import User
-from ...discount.models import OrderDiscount
 from ...order.models import Order, OrderLine
-from ...payment.models import Payment
+from ...order.search import search_orders
+from ...product.models import ProductVariant
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
@@ -26,12 +26,6 @@ def get_payment_id_from_query(value):
         return from_global_id_or_error(value, only_type="Payment")[1]
     except Exception:
         return None
-
-
-def get_order_id_from_query(value):
-    if value.startswith("#"):
-        value = value[1:]
-    return value if value.isnumeric() else None
 
 
 def filter_order_by_payment(qs, payment_id):
@@ -60,7 +54,7 @@ def filter_status(qs, _, value):
 
 def filter_customer(qs, _, value):
     qs = qs.filter(
-        Q(user_email__trigram_similar=value)
+        Q(user_email__ilike=value)
         | Q(user__email__trigram_similar=value)
         | Q(user__first_name__trigram_similar=value)
         | Q(user__last_name__trigram_similar=value)
@@ -73,39 +67,46 @@ def filter_created_range(qs, _, value):
 
 
 def filter_order_search(qs, _, value):
-    if payment_id := get_payment_id_from_query(value):
-        return filter_order_by_payment(qs, payment_id)
-
-    users = User.objects.filter(
-        Q(email__trigram_similar=value)
-        | Q(first_name__trigram_similar=value)
-        | Q(last_name__trigram_similar=value)
-    ).values("pk")
-
-    filter_option = Q(user_email__trigram_similar=value) | Q(
-        Exists(users.filter(pk=OuterRef("user_id")))
-    )
-
-    if order_id := get_order_id_from_query(value):
-        filter_option |= Q(pk=order_id)
-
-    payments = Payment.objects.filter(psp_reference=value).values("id")
-    filter_option |= Q(Exists(payments.filter(order_id=OuterRef("id"))))
-
-    discounts = OrderDiscount.objects.filter(
-        Q(name__trigram_similar=value) | Q(translated_name__trigram_similar=value)
-    ).values("id")
-    filter_option |= Q(Exists(discounts.filter(order_id=OuterRef("id"))))
-
-    lines = OrderLine.objects.filter(product_sku=value).values("id")
-    filter_option |= Q(Exists(lines.filter(order_id=OuterRef("id"))))
-    return qs.filter(filter_option)
+    return search_orders(qs, value)
 
 
 def filter_channels(qs, _, values):
     if values:
         _, channels_ids = resolve_global_ids_to_primary_keys(values, "Channel")
         qs = qs.filter(channel_id__in=channels_ids)
+    return qs
+
+
+def filter_is_click_and_collect(qs, _, values):
+    if values is not None:
+        lookup = Q(collection_point__isnull=False) | Q(
+            collection_point_name__isnull=False
+        )
+        qs = qs.filter(lookup) if values is True else qs.exclude(lookup)
+    return qs
+
+
+def filter_is_preorder(qs, _, values):
+    if values is not None:
+        variants = ProductVariant.objects.filter(
+            Q(is_preorder=True)
+            & (
+                Q(preorder_end_date__isnull=True)
+                | Q(preorder_end_date__gte=timezone.now())
+            )
+        ).values("id")
+        lines = OrderLine.objects.filter(
+            Exists(variants.filter(id=OuterRef("variant_id")))
+        )
+        lookup = Exists(lines.filter(order_id=OuterRef("id")))
+        qs = qs.filter(lookup) if values is True else qs.exclude(lookup)
+    return qs
+
+
+def filter_order_ids(qs, _, values):
+    if values:
+        _, order_ids = resolve_global_ids_to_primary_keys(values, "Order")
+        qs = qs.filter(id__in=order_ids)
     return qs
 
 
@@ -129,6 +130,11 @@ class OrderFilter(DraftOrderFilter):
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
+    is_click_and_collect = django_filters.BooleanFilter(
+        method=filter_is_click_and_collect
+    )
+    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_order_ids)
 
     class Meta:
         model = Order

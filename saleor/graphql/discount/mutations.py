@@ -1,8 +1,9 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, List
+from typing import TYPE_CHECKING, DefaultDict, Dict, List, Set
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...core.permissions import DiscountPermissions
 from ...core.tracing import traced_atomic_transaction
@@ -10,6 +11,7 @@ from ...core.utils.promo_code import generate_promo_code, is_available_promo_cod
 from ...discount import DiscountValueType, models
 from ...discount.error_codes import DiscountErrorCode
 from ...discount.models import SaleChannelListing
+from ...discount.utils import CatalogueInfo, fetch_catalogue_info
 from ...product.tasks import (
     update_products_discounted_prices_of_catalogues_task,
     update_products_discounted_prices_of_discount_task,
@@ -17,11 +19,13 @@ from ...product.tasks import (
 from ...product.utils import get_products_ids_without_variants
 from ..channel import ChannelContext
 from ..channel.mutations import BaseChannelListingMutation
+from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
 from ..core.validators import validate_end_is_after_start, validate_price_precision
-from ..product.types import Category, Collection, Product
+from ..discount.dataloaders import SaleChannelListingBySaleIdLoader
+from ..product.types import Category, Collection, Product, ProductVariant
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
 
@@ -29,6 +33,22 @@ if TYPE_CHECKING:
     from ...discount.models import Sale as SaleModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
+NodeCatalogueInfo = DefaultDict[str, Set[str]]
+
+
+def convert_catalogue_info_to_global_ids(
+    catalogue_info: CatalogueInfo,
+) -> NodeCatalogueInfo:
+    catalogue_fields = ["categories", "collections", "products", "variants"]
+    type_names = ["Category", "Collection", "Product", "ProductVariant"]
+    converted_catalogue_info: NodeCatalogueInfo = defaultdict(set)
+
+    for type_name, catalogue_field in zip(type_names, catalogue_fields):
+        converted_catalogue_info[catalogue_field].update(
+            graphene.Node.to_global_id(type_name, id_)
+            for id_ in catalogue_info[catalogue_field]
+        )
+    return converted_catalogue_info
 
 
 class CatalogueInput(graphene.InputObjectType):
@@ -45,6 +65,11 @@ class CatalogueInput(graphene.InputObjectType):
         description="Collections related to the discount.",
         name="collections",
     )
+    variants = graphene.List(
+        graphene.ID,
+        description=f"{ADDED_IN_31} Product variant related to the discount.",
+        name="variants",
+    )
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):
@@ -52,11 +77,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def recalculate_discounted_prices(cls, products, categories, collections):
+    def recalculate_discounted_prices(cls, products, categories, collections, variants):
         update_products_discounted_prices_of_catalogues_task.delay(
             product_ids=[p.pk for p in products],
             category_ids=[c.pk for c in categories],
             collection_ids=[c.pk for c in collections],
+            variant_ids=[v.pk for v in variants],
         )
 
     @classmethod
@@ -74,8 +100,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         if collections:
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.add(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.add(*variants)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounted_prices(products, categories, collections)
+        cls.recalculate_discounted_prices(products, categories, collections, variants)
 
     @classmethod
     def clean_product(cls, products):
@@ -105,8 +135,12 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         if collections:
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.remove(*collections)
+        variants = input.get("variants", [])
+        if variants:
+            variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
+            node.variants.remove(*variants)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounted_prices(products, categories, collections)
+        cls.recalculate_discounted_prices(products, categories, collections, variants)
 
 
 class VoucherInput(graphene.InputObjectType):
@@ -126,6 +160,11 @@ class VoucherInput(graphene.InputObjectType):
     )
     products = graphene.List(
         graphene.ID, description="Products discounted by the voucher.", name="products"
+    )
+    variants = graphene.List(
+        graphene.ID,
+        description=f"{ADDED_IN_31} Variants discounted by the voucher.",
+        name="variants",
     )
     collections = graphene.List(
         graphene.ID,
@@ -486,6 +525,11 @@ class SaleInput(graphene.InputObjectType):
     products = graphene.List(
         graphene.ID, description="Products related to the discount.", name="products"
     )
+    variants = graphene.List(
+        graphene.ID,
+        descriptions=f"{ADDED_IN_31} Product variant related to the discount.",
+        name="variants",
+    )
     categories = graphene.List(
         graphene.ID,
         description="Categories related to the discount.",
@@ -539,6 +583,21 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             error.code = DiscountErrorCode.INVALID.value
             raise ValidationError({"end_date": error})
 
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        instance = getattr(response, cls._meta.return_field_name).node
+        current_catalogue = fetch_catalogue_info(instance)
+
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_created(
+                instance,
+                convert_catalogue_info_to_global_ids(current_catalogue),
+            )
+        )
+        return response
+
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Arguments:
@@ -554,6 +613,23 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         error_type_class = DiscountError
         error_type_field = "discount_errors"
 
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Sale)
+        previous_catalogue = fetch_catalogue_info(instance)
+        response = super().perform_mutation(_root, info, **data)
+        current_catalogue = fetch_catalogue_info(instance)
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_updated(
+                instance,
+                convert_catalogue_info_to_global_ids(previous_catalogue),
+                convert_catalogue_info_to_global_ids(current_catalogue),
+            )
+        )
+        return response
+
 
 class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
     class Arguments:
@@ -565,6 +641,21 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Sale)
+        previous_catalogue = fetch_catalogue_info(instance)
+        response = super().perform_mutation(_root, info, **data)
+
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_deleted(
+                instance, convert_catalogue_info_to_global_ids(previous_catalogue)
+            )
+        )
+        return response
 
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):
@@ -591,11 +682,27 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         error_type_field = "discount_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         sale = cls.get_node_or_error(
             info, data.get("id"), only_type=Sale, field="sale_id"
         )
+        previous_catalogue = fetch_catalogue_info(sale)
         cls.add_catalogues_to_node(sale, data.get("input"))
+        current_catalogue = fetch_catalogue_info(sale)
+
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_updated(
+                sale,
+                previous_catalogue=convert_catalogue_info_to_global_ids(
+                    previous_catalogue
+                ),
+                current_catalogue=convert_catalogue_info_to_global_ids(
+                    current_catalogue
+                ),
+            )
+        )
+
         return SaleAddCatalogues(sale=ChannelContext(node=sale, channel_slug=None))
 
 
@@ -607,11 +714,27 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
         error_type_field = "discount_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         sale = cls.get_node_or_error(
             info, data.get("id"), only_type=Sale, field="sale_id"
         )
+        previous_catalogue = fetch_catalogue_info(sale)
         cls.remove_catalogues_from_node(sale, data.get("input"))
+        current_catalogue = fetch_catalogue_info(sale)
+
+        transaction.on_commit(
+            lambda: info.context.plugins.sale_updated(
+                sale,
+                previous_catalogue=convert_catalogue_info_to_global_ids(
+                    previous_catalogue
+                ),
+                current_catalogue=convert_catalogue_info_to_global_ids(
+                    current_catalogue
+                ),
+            )
+        )
+
         return SaleRemoveCatalogues(sale=ChannelContext(node=sale, channel_slug=None))
 
 
@@ -732,6 +855,10 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(info, sale, cleaned_input)
+
+        # Invalidate dataloader for channel listings
+        SaleChannelListingBySaleIdLoader(info.context).clear(sale.id)
+
         return SaleChannelListingUpdate(
             sale=ChannelContext(node=sale, channel_slug=None)
         )

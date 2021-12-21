@@ -26,7 +26,11 @@ def get_product_data(line: "OrderLine", organization: dict) -> dict:
         )
     product_data = {
         "@type": "Offer",
-        "itemOffered": {"@type": "Product", "name": line_name, "sku": line.product_sku},
+        "itemOffered": {
+            "@type": "Product",
+            "name": line_name,
+            "sku": line.product_sku or line.product_variant_id,
+        },
         "price": gross_product_price.amount,
         "priceCurrency": gross_product_price.currency,
         "eligibleQuantity": {"@type": "QuantitativeValue", "value": line.quantity},

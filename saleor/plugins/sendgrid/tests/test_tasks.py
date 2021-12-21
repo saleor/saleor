@@ -6,6 +6,8 @@ import pytest
 from ....account import CustomerEvents
 from ....account.models import CustomerEvent
 from ....account.notifications import get_default_user_payload
+from ....giftcard import GiftCardEvents
+from ....giftcard.models import GiftCardEvent
 from ....invoice import InvoiceEvents
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order import OrderEvents, OrderEventsEmails
@@ -20,6 +22,7 @@ from ..tasks import (
     send_email,
     send_fulfillment_confirmation_email_task,
     send_fulfillment_update_email_task,
+    send_gift_card_email_task,
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
@@ -52,7 +55,7 @@ def test_send_email(
     mocked_api_client, mocked_mail, sendgrid_email_plugin, sample_payload
 ):
     plugin = sendgrid_email_plugin(
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
         api_key="123",
     )
@@ -125,7 +128,7 @@ def test_send_password_reset_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_password_reset_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -162,7 +165,7 @@ def test_send_request_email_change_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_change_email_request_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -201,7 +204,7 @@ def test_send_user_change_email_notification_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_change_email_confirm_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -241,7 +244,7 @@ def test_send_account_delete_confirmation_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_delete_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -274,7 +277,7 @@ def test_send_set_user_password_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         account_set_customer_password_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -312,7 +315,7 @@ def test_send_invoice_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         invoice_ready_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -359,7 +362,7 @@ def test_send_invoice_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         invoice_ready_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -398,7 +401,7 @@ def test_send_order_confirmation_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -431,7 +434,7 @@ def test_send_fulfillment_confirmation_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_fulfillment_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -466,7 +469,7 @@ def test_send_fulfillment_confirmation_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_fulfillment_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -499,7 +502,7 @@ def test_send_fulfillment_update_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_fulfillment_update_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -537,7 +540,7 @@ def test_send_payment_confirmation_email_task(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_payment_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -576,7 +579,7 @@ def test_send_order_canceled_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_canceled_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -617,7 +620,7 @@ def test_send_order_canceled_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_canceled_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -660,7 +663,7 @@ def test_send_order_refund_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_refund_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -703,7 +706,7 @@ def test_send_order_refund_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_refund_confirmation_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -723,6 +726,145 @@ def test_send_order_refund_email_task_by_app(
     }
     assert not order_event.user
     assert order_event.app == app
+
+
+@patch("saleor.plugins.sendgrid.tasks.send_email")
+def test_send_gift_card_email_task_by_user(
+    mocked_send_email, staff_user, gift_card, sendgrid_email_plugin
+):
+    template_id = "ABC1"
+    recipient_email = "user@example.com"
+
+    payload = {
+        "user": get_default_user_payload(staff_user),
+        "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "recipient_email": recipient_email,
+        "resending": False,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+    }
+
+    plugin = sendgrid_email_plugin(
+        api_key="A12",
+        send_gift_card_template_id=template_id,
+        sender_name="Sender Name",
+        sender_address="sender@example.com",
+    )
+
+    send_gift_card_email_task(payload, asdict(plugin.config))
+
+    mocked_send_email.assert_called_with(
+        configuration=plugin.config,
+        template_id=template_id,
+        payload=payload,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.SENT_TO_CUSTOMER
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert gift_card_event.user == staff_user
+    assert not gift_card_event.app
+
+
+@patch("saleor.plugins.sendgrid.tasks.send_email")
+def test_send_gift_card_email_task_by_user_resending(
+    mocked_send_email, staff_user, gift_card, sendgrid_email_plugin
+):
+    template_id = "ABC1"
+    recipient_email = "user@example.com"
+
+    payload = {
+        "user": get_default_user_payload(staff_user),
+        "requester_user_id": staff_user.id,
+        "requester_app_id": None,
+        "recipient_email": recipient_email,
+        "resending": True,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+    }
+
+    plugin = sendgrid_email_plugin(
+        api_key="A12",
+        send_gift_card_template_id=template_id,
+        sender_name="Sender Name",
+        sender_address="sender@example.com",
+    )
+
+    send_gift_card_email_task(payload, asdict(plugin.config))
+
+    mocked_send_email.assert_called_with(
+        configuration=plugin.config,
+        template_id=template_id,
+        payload=payload,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.RESENT
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert gift_card_event.user == staff_user
+    assert not gift_card_event.app
+
+
+@patch("saleor.plugins.sendgrid.tasks.send_email")
+def test_send_gift_card_email_task_by_app(
+    mocked_send_email, app, gift_card, sendgrid_email_plugin
+):
+    template_id = "ABC1"
+
+    recipient_email = "user@example.com"
+    payload = {
+        "user": None,
+        "requester_user_id": None,
+        "requester_app_id": app.id,
+        "recipient_email": recipient_email,
+        "resending": False,
+        "recipient_email": recipient_email,
+        "gift_card": {
+            "id": gift_card.id,
+            "code": gift_card.code,
+            "balance": gift_card.current_balance_amount,
+            "currency": gift_card.currency,
+        },
+        "recipient_email": recipient_email,
+    }
+
+    plugin = sendgrid_email_plugin(
+        api_key="A12",
+        send_gift_card_template_id=template_id,
+        sender_name="Sender Name",
+        sender_address="sender@example.com",
+    )
+
+    send_gift_card_email_task(payload, asdict(plugin.config))
+
+    mocked_send_email.assert_called_with(
+        configuration=plugin.config,
+        template_id=template_id,
+        payload=payload,
+    )
+
+    gift_card_event = GiftCardEvent.objects.get()
+    assert gift_card_event.type == GiftCardEvents.SENT_TO_CUSTOMER
+    assert gift_card_event.parameters == {
+        "email": recipient_email,
+    }
+    assert not gift_card_event.user
+    assert gift_card_event.app == app
 
 
 @patch("saleor.plugins.sendgrid.tasks.send_email")
@@ -746,7 +888,7 @@ def test_send_order_confirmed_email_task_by_user(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_confirmed_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 
@@ -789,7 +931,7 @@ def test_send_order_confirmed_email_task_by_app(
     plugin = sendgrid_email_plugin(
         api_key="A12",
         order_confirmed_template_id=template_id,
-        sender_name="Sander Name",
+        sender_name="Sender Name",
         sender_address="sender@example.com",
     )
 

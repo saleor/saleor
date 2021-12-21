@@ -21,3 +21,4 @@ class SendgridConfiguration:
     order_payment_confirmation_template_id: Optional[str]
     order_canceled_template_id: Optional[str]
     order_refund_confirmation_template_id: Optional[str]
+    send_gift_card_template_id: Optional[str]

@@ -15,6 +15,7 @@ from .tasks import (
     send_account_delete_confirmation_email_task,
     send_fulfillment_confirmation_email_task,
     send_fulfillment_update_email_task,
+    send_gift_card_email_task,
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
@@ -87,6 +88,10 @@ EVENT_MAP = {
         send_order_refund_email_task,
         "order_refund_confirmation_template_id",
     ),
+    UserNotifyEvent.SEND_GIFT_CARD: (
+        send_gift_card_email_task,
+        "send_gift_card_template_id",
+    ),
 }
 
 HELP_TEXT_TEMPLATE = "ID of the dynamic template in Sendgrid"
@@ -115,6 +120,7 @@ class SendgridEmailPlugin(BasePlugin):
         {"name": "order_payment_confirmation_template_id", "value": None},
         {"name": "order_canceled_template_id", "value": None},
         {"name": "order_refund_confirmation_template_id", "value": None},
+        {"name": "send_gift_card_template_id", "value": None},
         {"name": "api_key", "value": None},
     ]
     CONFIG_STRUCTURE = {
@@ -197,6 +203,11 @@ class SendgridEmailPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": HELP_TEXT_TEMPLATE,
             "label": "Order refund confirmation email template",
+        },
+        "send_gift_card_template_id": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Send gift card email template",
         },
         "api_key": {
             "type": ConfigurationTypeField.SECRET,

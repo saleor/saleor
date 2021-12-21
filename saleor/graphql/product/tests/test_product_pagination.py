@@ -5,6 +5,7 @@ import graphene
 import pytest
 
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....product import ProductTypeKind
 from ....product.models import (
     Category,
     Collection,
@@ -305,7 +306,9 @@ def test_collections_pagination_with_filtering(
 def products_for_pagination(
     product_type, color_attribute, category, warehouse, channel_USD
 ):
-    product_type2 = ProductType.objects.create(name="Apple")
+    product_type2 = ProductType.objects.create(
+        name="Apple", kind=ProductTypeKind.NORMAL
+    )
     products = Product.objects.bulk_create(
         [
             Product(

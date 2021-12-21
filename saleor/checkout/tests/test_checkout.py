@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
+import graphene
 import pytest
 import pytz
 from django.utils import timezone
@@ -17,6 +18,7 @@ from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingMethod, ShippingZone
+from ...shipping.utils import convert_to_shipping_method_data
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -28,17 +30,21 @@ from ..fetch import (
 )
 from ..models import Checkout, CheckoutLine
 from ..utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
     cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
+    delete_external_shipping_id,
+    get_external_shipping_id,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_fully_paid,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
+    set_external_shipping_id,
 )
 
 
@@ -69,6 +75,39 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
+@patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_is_valid_delivery_method_external_method(
+    mock_send_request, checkout_with_item, address, settings, shipping_app
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    mock_send_request.return_value = mock_json_response
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: method_id}
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    delivery_method_info = checkout_info.delivery_method_info
+
+    assert delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
 def test_clear_delivery_method(checkout, shipping_method):
     checkout.shipping_method = shipping_method
     checkout.save()
@@ -91,7 +130,7 @@ def test_last_change_update(checkout):
         assert checkout.last_change == pytz.utc.localize(frozen_datetime())
 
 
-def test_last_change_update_foregin_key(checkout, shipping_method):
+def test_last_change_update_foreign_key(checkout, shipping_method):
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
         assert checkout.last_change != frozen_datetime()
 
@@ -103,12 +142,16 @@ def test_last_change_update_foregin_key(checkout, shipping_method):
 
 @pytest.mark.parametrize(
     "total, min_spent_amount, min_checkout_items_quantity, "
-    "discount_value, discount_value_type, expected_value",
+    "discount_value, discount_value_type, expected_value, taxes_included",
     [
-        (20, 20, 2, 50, DiscountValueType.PERCENTAGE, 10),
-        (20, None, None, 50, DiscountValueType.PERCENTAGE, 10),
-        (20, 20, 2, 5, DiscountValueType.FIXED, 5),
-        (20, None, None, 5, DiscountValueType.FIXED, 5),
+        (20, 20, 2, 50, DiscountValueType.PERCENTAGE, Decimal("12.30"), True),
+        (20, 20, 2, 50, DiscountValueType.PERCENTAGE, Decimal("10.00"), False),
+        (20, None, None, 50, DiscountValueType.PERCENTAGE, Decimal("12.30"), True),
+        (20, None, None, 50, DiscountValueType.PERCENTAGE, Decimal("10.00"), False),
+        (20, 20, 2, 5, DiscountValueType.FIXED, Decimal("5.00"), True),
+        (20, 20, 2, 5, DiscountValueType.FIXED, Decimal("5.00"), False),
+        (20, None, None, 5, DiscountValueType.FIXED, Decimal("5.00"), True),
+        (20, None, None, 5, DiscountValueType.FIXED, Decimal("5.00"), False),
     ],
 )
 def test_get_discount_for_checkout_value_voucher(
@@ -118,6 +161,7 @@ def test_get_discount_for_checkout_value_voucher(
     discount_value,
     discount_value_type,
     expected_value,
+    taxes_included,
     monkeypatch,
     channel_USD,
     checkout_with_items,
@@ -135,7 +179,8 @@ def test_get_discount_for_checkout_value_voucher(
         min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
     checkout = Mock(spec=checkout_with_items, channel=channel_USD)
-    subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
+    tax_amount = Decimal("1.23")
+    subtotal = TaxedMoney(Money(total, "USD"), Money(total * tax_amount, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda manager, checkout_info, lines, address, discounts: subtotal,
@@ -168,14 +213,15 @@ def test_get_discount_for_checkout_value_voucher(
     ]
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_info, lines, None, []
+        manager, voucher, checkout_info, lines, None, taxes_included, []
     )
     assert discount == Money(expected_value, "USD")
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 @patch("saleor.discount.utils.validate_voucher")
 def test_get_voucher_discount_for_checkout_voucher_validation(
-    mock_validate_voucher, voucher, checkout_with_voucher
+    mock_validate_voucher, voucher, checkout_with_voucher, taxes_included
 ):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_voucher)
@@ -183,7 +229,9 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
     manager = get_plugins_manager()
     address = checkout_with_voucher.shipping_address
-    get_voucher_discount_for_checkout(manager, voucher, checkout_info, lines, address)
+    get_voucher_discount_for_checkout(
+        manager, voucher, checkout_info, lines, address, taxes_included
+    )
     subtotal = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
@@ -198,13 +246,18 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
 
 @pytest.mark.parametrize(
     "total, total_quantity, discount_value, discount_type, min_spent_amount, "
-    "min_checkout_items_quantity",
+    "min_checkout_items_quantity, taxes_included",
     [
-        ("99", 9, 10, DiscountValueType.FIXED, None, 10),
-        ("99", 9, 10, DiscountValueType.FIXED, 100, None),
-        ("99", 10, 10, DiscountValueType.PERCENTAGE, 100, 10),
-        ("100", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
-        ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
+        ("99", 9, 10, DiscountValueType.FIXED, None, 10, True),
+        ("99", 9, 10, DiscountValueType.FIXED, None, 10, False),
+        ("99", 9, 10, DiscountValueType.FIXED, 100, None, True),
+        ("99", 9, 10, DiscountValueType.FIXED, 100, None, False),
+        ("99", 10, 10, DiscountValueType.PERCENTAGE, 100, 10, True),
+        ("99", 10, 10, DiscountValueType.PERCENTAGE, 100, 10, False),
+        ("100", 9, 10, DiscountValueType.PERCENTAGE, 100, 10, True),
+        ("100", 9, 10, DiscountValueType.PERCENTAGE, 100, 10, False),
+        ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10, True),
+        ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10, False),
     ],
 )
 def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
@@ -214,6 +267,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     discount_type,
     min_spent_amount,
     min_checkout_items_quantity,
+    taxes_included,
     monkeypatch,
     channel_USD,
 ):
@@ -252,26 +306,35 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None, [])
+        get_voucher_discount_for_checkout(
+            manager, voucher, checkout_info, [], None, taxes_included, []
+        )
 
 
 @pytest.mark.parametrize(
-    "discount_value, discount_type, apply_once_per_order, discount_amount",
+    "discount_value, discount_type, apply_once_per_order, "
+    "discount_amount, taxes_included",
     [
-        (5, DiscountValueType.FIXED, True, 5),
-        (5, DiscountValueType.FIXED, False, 15),
-        (10000, DiscountValueType.FIXED, True, 10),
-        (10, DiscountValueType.PERCENTAGE, True, 1),
-        (10, DiscountValueType.PERCENTAGE, False, 6),
+        (5, DiscountValueType.FIXED, True, Decimal("5.00"), True),
+        (5, DiscountValueType.FIXED, True, Decimal("5.00"), False),
+        (5, DiscountValueType.FIXED, False, Decimal("15.00"), True),
+        (5, DiscountValueType.FIXED, False, Decimal("15.00"), False),
+        (10000, DiscountValueType.FIXED, True, Decimal("12.30"), True),
+        (10000, DiscountValueType.FIXED, True, Decimal("10.00"), False),
+        (10, DiscountValueType.PERCENTAGE, True, Decimal("1.23"), True),
+        (10, DiscountValueType.PERCENTAGE, True, Decimal("1.00"), False),
+        (10, DiscountValueType.PERCENTAGE, False, Decimal("7.38"), True),
+        (10, DiscountValueType.PERCENTAGE, False, Decimal("6.00"), False),
     ],
 )
 def test_get_discount_for_checkout_specific_products_voucher(
-    checkout_with_items,
+    priced_checkout_with_items,
     product_list,
     discount_value,
     discount_type,
     apply_once_per_order,
     discount_amount,
+    taxes_included,
     channel_USD,
 ):
     voucher = Voucher.objects.create(
@@ -288,10 +351,10 @@ def test_get_discount_for_checkout_specific_products_voucher(
     for product in product_list:
         voucher.products.add(product)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    lines = fetch_checkout_lines(priced_checkout_with_items)
+    checkout_info = fetch_checkout_info(priced_checkout_with_items, lines, [], manager)
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_info, lines, None, []
+        manager, voucher, checkout_info, lines, None, taxes_included, []
     )
     assert discount == Money(discount_amount, "USD")
 
@@ -366,18 +429,86 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
-            manager, voucher, checkout_info, [], None, discounts
+            manager, voucher, checkout_info, [], None, False, discounts
         )
 
 
 @pytest.mark.parametrize(
     "shipping_cost, shipping_country_code, discount_value, discount_type,"
-    "countries, expected_value",
+    "countries, expected_value, taxes_included",
     [
-        # (10, None, 50, DiscountValueType.PERCENTAGE, [], 5),
-        # (10, None, 20, DiscountValueType.FIXED, [], 10),
-        # (10, "PL", 20, DiscountValueType.FIXED, [], 10),
-        (5, "PL", 5, DiscountValueType.FIXED, ["PL"], 5),
+        (
+            Decimal("10.00"),
+            None,
+            50,
+            DiscountValueType.PERCENTAGE,
+            [],
+            Decimal("6.15"),
+            True,
+        ),
+        (
+            Decimal("10.00"),
+            None,
+            50,
+            DiscountValueType.PERCENTAGE,
+            [],
+            Decimal("5.00"),
+            False,
+        ),
+        (
+            Decimal("10.00"),
+            None,
+            20,
+            DiscountValueType.FIXED,
+            [],
+            Decimal("12.30"),
+            True,
+        ),
+        (
+            Decimal("10.00"),
+            None,
+            20,
+            DiscountValueType.FIXED,
+            [],
+            Decimal("10.00"),
+            False,
+        ),
+        (
+            Decimal("10.00"),
+            "PL",
+            20,
+            DiscountValueType.FIXED,
+            [],
+            Decimal("12.30"),
+            True,
+        ),
+        (
+            Decimal("10.00"),
+            "PL",
+            20,
+            DiscountValueType.FIXED,
+            [],
+            Decimal("10.00"),
+            False,
+        ),
+        (
+            Decimal("5.00"),
+            "PL",
+            Decimal("5.00"),
+            DiscountValueType.FIXED,
+            ["PL"],
+            Decimal("5.00"),
+            True,
+        ),
+        (
+            Decimal("5.00"),
+            "PL",
+            Decimal("5.00"),
+            DiscountValueType.FIXED,
+            ["PL"],
+            Decimal("5.00"),
+            False,
+        ),
     ],
 )
 def test_get_discount_for_checkout_shipping_voucher(
@@ -387,13 +518,17 @@ def test_get_discount_for_checkout_shipping_voucher(
     discount_type,
     countries,
     expected_value,
+    taxes_included,
     monkeypatch,
     channel_USD,
     shipping_method,
 ):
     manager = get_plugins_manager()
+    tax = Decimal("1.23")
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
-    shipping = TaxedMoney(Money(shipping_cost, "USD"), Money(shipping_cost, "USD"))
+    shipping = TaxedMoney(
+        Money(shipping_cost, "USD"), Money(shipping_cost * tax, "USD")
+    )
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda manager, checkout_info, lines, address, discounts: subtotal,
@@ -430,7 +565,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         checkout=checkout,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            shipping_method, shipping_address
+            convert_to_shipping_method_data(shipping_method), shipping_address
         ),
         billing_address=None,
         channel=channel_USD,
@@ -441,7 +576,7 @@ def test_get_discount_for_checkout_shipping_voucher(
     )
 
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_info, [], None, None
+        manager, voucher, checkout_info, [], None, taxes_included, None
     )
     assert discount == Money(expected_value, "USD")
 
@@ -490,7 +625,9 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(shipping_method, None),
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method), None
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -500,7 +637,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         valid_pick_up_points=[],
     )
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_info, [], None, None
+        manager, voucher, checkout_info, [], None, False, None
     )
 
     assert discount == Money(5, "USD")
@@ -547,7 +684,9 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None, [])
+        get_voucher_discount_for_checkout(
+            manager, voucher, checkout_info, [], None, False, []
+        )
 
 
 @pytest.mark.parametrize(
@@ -683,7 +822,9 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(shipping_method),
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method)
+        ),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
@@ -694,7 +835,12 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(
-            manager, voucher, checkout_info, [], checkout.shipping_address, None
+            manager,
+            voucher,
+            checkout_info,
+            [],
+            checkout.shipping_address,
+            None,
         )
     assert str(e.value) == error_msg
 
@@ -734,7 +880,11 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
 
 
 def test_recalculate_checkout_discount(
-    checkout_with_voucher, voucher, voucher_translation_fr, settings, channel_USD
+    checkout_with_voucher,
+    voucher,
+    voucher_translation_fr,
+    settings,
+    channel_USD,
 ):
     settings.LANGUAGE_CODE = "fr"
     voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
@@ -743,22 +893,42 @@ def test_recalculate_checkout_discount(
     lines = fetch_checkout_lines(checkout_with_voucher)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
 
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None, False)
     assert (
         checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
     )  # noqa
     assert checkout_with_voucher.discount == Money("10.00", "USD")
 
 
+@pytest.mark.parametrize(
+    "taxes_included, tax_multiplier",
+    [(True, Decimal("1.23")), (False, Decimal("1.00"))],
+)
+def test_recalculate_checkout_discount_percentage(
+    priced_checkout_with_voucher_percentage, taxes_included, tax_multiplier
+):
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(priced_checkout_with_voucher_percentage)
+    checkout_info = fetch_checkout_info(
+        priced_checkout_with_voucher_percentage, lines, [], manager
+    )
+
+    recalculate_checkout_discount(manager, checkout_info, lines, None, taxes_included)
+    assert priced_checkout_with_voucher_percentage.discount == Money(
+        Decimal("3.00") * tax_multiplier, "USD"
+    )
+
+
 def test_recalculate_checkout_discount_with_sale(
-    checkout_with_voucher_percentage, discount_info
+    checkout_with_voucher_percentage,
+    discount_info,
 ):
     checkout = checkout_with_voucher_percentage
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
-    recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
+    recalculate_checkout_discount(manager, checkout_info, lines, [discount_info], False)
     assert checkout.discount == Money("1.50", "USD")
     assert (
         calculations.checkout_total(
@@ -781,7 +951,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None, False)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
@@ -797,7 +967,7 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None, False)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
@@ -827,7 +997,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     channel_listing.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None, False)
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -869,7 +1039,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     channel_listing.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None, False)
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -895,7 +1065,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    recalculate_checkout_discount(manager, checkout_info, lines, None, False)
 
     assert not checkout.discount_name
     assert not checkout.voucher_code
@@ -1019,7 +1189,7 @@ def test_add_voucher_to_checkout(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, False)
     assert checkout_with_item.voucher_code == voucher.code
 
 
@@ -1032,7 +1202,7 @@ def test_add_staff_voucher_to_anonymous_checkout(checkout_with_item, voucher):
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     with pytest.raises(NotApplicable):
-        add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher, False)
 
 
 def test_add_staff_voucher_to_customer_checkout(
@@ -1048,7 +1218,7 @@ def test_add_staff_voucher_to_customer_checkout(
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     with pytest.raises(NotApplicable):
-        add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher, False)
 
 
 def test_add_staff_voucher_to_staff_checkout(checkout_with_item, voucher, staff_user):
@@ -1062,7 +1232,7 @@ def test_add_staff_voucher_to_staff_checkout(checkout_with_item, voucher, staff_
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, False)
 
 
 def test_add_voucher_to_checkout_fail(
@@ -1077,6 +1247,7 @@ def test_add_voucher_to_checkout_fail(
             checkout_info,
             lines,
             voucher_with_high_min_spent_amount,
+            False,
         )
 
     assert checkout_with_item.voucher_code is None
@@ -1242,7 +1413,7 @@ def test_cancel_active_payments(checkout_with_payments):
     assert checkout.payments.filter(is_active=True).count() == 0
 
 
-def test_chckout_without_delivery_method_creates_empty_delivery_method(
+def test_checkout_without_delivery_method_creates_empty_delivery_method(
     checkout_with_item,
 ):
     checkout = checkout_with_item
@@ -1255,6 +1426,21 @@ def test_chckout_without_delivery_method_creates_empty_delivery_method(
     assert not delivery_method_info.is_valid_delivery_method()
     assert not delivery_method_info.is_local_collection_point
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+def test_manage_external_shipping_id(checkout):
+    app_shipping_id = "abcd"
+    initial_private_metadata = {"test": 123}
+    checkout.private_metadata = initial_private_metadata
+
+    set_external_shipping_id(checkout, app_shipping_id)
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+
+    shipping_id = get_external_shipping_id(checkout)
+    assert shipping_id == app_shipping_id
+
+    delete_external_shipping_id(checkout)
+    assert checkout.private_metadata == initial_private_metadata
 
 
 def test_checkout_total_setter():

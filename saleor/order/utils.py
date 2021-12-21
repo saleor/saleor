@@ -14,6 +14,8 @@ from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
+from ..giftcard import events as gift_card_events
+from ..giftcard.models import GiftCard
 from ..graphql.order.mutations.utils import invalidate_order_prices
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
@@ -30,6 +32,8 @@ from ..warehouse.models import Warehouse
 from . import events
 
 if TYPE_CHECKING:
+    from ..app.models import App
+    from ..checkout.fetch import CheckoutInfo
     from ..plugins.manager import PluginsManager
 
 
@@ -301,6 +305,11 @@ def update_order_status(order):
         quantity_returned,
     ) = _calculate_quantity_including_returns(order)
 
+    # check if order contains any fulfillments that awaiting approval
+    awaiting_approval = order.fulfillments.filter(
+        status=FulfillmentStatus.WAITING_FOR_APPROVAL
+    ).exists()
+
     # total_quantity == 0 means that all products have been replaced, we don't change
     # the order status in that case
     if total_quantity == 0:
@@ -311,7 +320,7 @@ def update_order_status(order):
         status = OrderStatus.PARTIALLY_RETURNED
     elif quantity_returned == total_quantity:
         status = OrderStatus.RETURNED
-    elif quantity_fulfilled < total_quantity:
+    elif quantity_fulfilled < total_quantity or awaiting_approval:
         status = OrderStatus.PARTIALLY_FULFILLED
     else:
         status = OrderStatus.FULFILLED
@@ -368,7 +377,9 @@ def add_variant_to_order(
             translated_product_name=translated_product_name,
             translated_variant_name=translated_variant_name,
             product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
             is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
             quantity=quantity,
             unit_price=unit_price,
             total_price=total_price,
@@ -415,22 +426,68 @@ def add_variant_to_order(
     return line
 
 
-def add_gift_card_to_order(order, gift_card, total_price_left):
-    """Add gift card to order.
+def add_gift_cards_to_order(
+    checkout_info: "CheckoutInfo",
+    order: Order,
+    total_price_left: Money,
+    user: Optional[User],
+    app: Optional["App"],
+):
+    order_gift_cards = []
+    gift_cards_to_update = []
+    balance_data: List[Tuple[GiftCard, float]] = []
+    used_by_user = checkout_info.user
+    used_by_email = checkout_info.get_customer_email()
+    for gift_card in checkout_info.checkout.gift_cards.select_for_update():
+        if total_price_left > zero_money(total_price_left.currency):
+            order_gift_cards.append(gift_card)
 
-    Return a total price left after applying the gift cards.
-    """
-    if total_price_left > zero_money(total_price_left.currency):
-        order.gift_cards.add(gift_card)
-        if total_price_left < gift_card.current_balance:
-            gift_card.current_balance = gift_card.current_balance - total_price_left
-            total_price_left = zero_money(total_price_left.currency)
-        else:
-            total_price_left = total_price_left - gift_card.current_balance
-            gift_card.current_balance_amount = 0
-        gift_card.last_used_on = timezone.now()
-        gift_card.save(update_fields=["current_balance_amount", "last_used_on"])
-    return total_price_left
+            update_gift_card_balance(gift_card, total_price_left, balance_data)
+
+            set_gift_card_user(gift_card, used_by_user, used_by_email)
+
+            gift_card.last_used_on = timezone.now()
+            gift_cards_to_update.append(gift_card)
+
+    order.gift_cards.add(*order_gift_cards)
+    update_fields = [
+        "current_balance_amount",
+        "last_used_on",
+        "used_by",
+        "used_by_email",
+    ]
+    GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
+    gift_card_events.gift_cards_used_in_order_event(balance_data, order.id, user, app)
+
+
+def update_gift_card_balance(
+    gift_card: GiftCard,
+    total_price_left: Money,
+    balance_data: List[Tuple[GiftCard, float]],
+):
+    previous_balance = gift_card.current_balance
+    if total_price_left < gift_card.current_balance:
+        gift_card.current_balance = gift_card.current_balance - total_price_left
+        total_price_left = zero_money(total_price_left.currency)
+    else:
+        total_price_left = total_price_left - gift_card.current_balance
+        gift_card.current_balance_amount = 0
+    balance_data.append((gift_card, previous_balance.amount))
+
+
+def set_gift_card_user(
+    gift_card: GiftCard,
+    used_by_user: Optional[User],
+    used_by_email: str,
+):
+    """Set user when the gift card is used for the first time."""
+    if gift_card.used_by_email is None:
+        gift_card.used_by = (
+            used_by_user
+            if used_by_user
+            else User.objects.filter(email=used_by_email).first()
+        )
+        gift_card.used_by_email = used_by_email
 
 
 def _update_allocations_for_line(
@@ -678,7 +735,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
         return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
     if order.voucher.type == VoucherType.SHIPPING:
         return order.voucher.get_discount_amount_for(
-            order.shipping_price, order.channel
+            order.shipping_price.gross, order.channel
         )
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order)

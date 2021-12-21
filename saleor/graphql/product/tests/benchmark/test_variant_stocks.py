@@ -369,6 +369,7 @@ def test_query_product_variants_stocks(
         query,
         variables,
         permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]

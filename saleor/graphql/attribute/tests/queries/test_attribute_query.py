@@ -5,6 +5,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from .....attribute import AttributeInputType, AttributeType
 from .....attribute.models import Attribute
+from .....product import ProductTypeKind
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import (
@@ -77,6 +78,7 @@ QUERY_ATTRIBUTE = """
                     node {
                         slug
                         inputType
+                        value
                         file {
                             url
                             contentType
@@ -365,6 +367,68 @@ def test_get_single_numeric_attribute_by_staff(
     )
 
 
+def test_get_single_swatch_attribute_by_staff(
+    staff_api_client, swatch_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", swatch_attribute.id)
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == swatch_attribute.slug
+    assert (
+        content["data"]["attribute"]["inputType"] == swatch_attribute.input_type.upper()
+    )
+    assert content["data"]["attribute"]["unit"] is None
+    assert (
+        content["data"]["attribute"]["valueRequired"] == swatch_attribute.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == swatch_attribute.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == swatch_attribute.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == swatch_attribute.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == swatch_attribute.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == swatch_attribute.storefront_search_position
+    )
+    assert (
+        len(content["data"]["attribute"]["choices"]["edges"])
+        == swatch_attribute.values.all().count()
+    )
+    attribute_value_data = []
+    for value in swatch_attribute.values.all():
+        data = {
+            "node": {
+                "slug": value.slug,
+                "value": value.value,
+                "inputType": value.input_type.upper(),
+                "file": {"url": value.file_url, "contentType": value.content_type}
+                if value.file_url
+                else None,
+            }
+        }
+        attribute_value_data.append(data)
+
+    for data in attribute_value_data:
+        assert data in content["data"]["attribute"]["choices"]["edges"]
+
+
 QUERY_ATTRIBUTES = """
     query {
         attributes(first: 20) {
@@ -417,7 +481,7 @@ def test_attributes_query_hidden_attribute(user_api_client, product, color_attri
     assert len(attributes_data) == attribute_count
 
 
-def test_attributes_query_hidden_attribute_as_staff_user(
+def test_attributes_query_hidden_attribute_as_staff_user_without_permissions(
     staff_api_client, product, color_attribute
 ):
     query = QUERY_ATTRIBUTES
@@ -429,6 +493,30 @@ def test_attributes_query_hidden_attribute_as_staff_user(
     attribute_count = Attribute.objects.all().count()
 
     response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    attributes_data = content["data"]["attributes"]["edges"]
+    assert len(attributes_data) == attribute_count - 1  # invisible doesn't count
+
+
+def test_attributes_query_hidden_attribute_as_staff_user_with_permissions(
+    staff_api_client,
+    product,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    query = QUERY_ATTRIBUTES
+
+    # hide the attribute
+    color_attribute.visible_in_storefront = False
+    color_attribute.save(update_fields=["visible_in_storefront"])
+
+    attribute_count = Attribute.objects.all().count()
+
+    response = staff_api_client.post_graphql(
+        query,
+        permissions=[permission_manage_product_types_and_attributes],
+        check_no_permissions=False,
+    )
     content = get_graphql_content(response)
     attributes_data = content["data"]["attributes"]["edges"]
     assert len(attributes_data) == attribute_count
@@ -532,7 +620,10 @@ def test_attributes_in_collection_query(
     other_category = Category.objects.create(name="Other Category", slug="other-cat")
     other_attribute = Attribute.objects.create(name="Other", slug="other")
     other_product_type = ProductType.objects.create(
-        name="Other type", has_variants=True, is_shipping_required=True
+        name="Other type",
+        has_variants=True,
+        is_shipping_required=True,
+        kind=ProductTypeKind.NORMAL,
     )
     other_product_type.product_attributes.add(other_attribute)
     other_product = Product.objects.create(

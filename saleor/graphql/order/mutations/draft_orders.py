@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -12,13 +13,18 @@ from ....core.utils.url import validate_storefront_url
 from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
+from ....order.search import (
+    prepare_order_search_document_value,
+    update_order_search_document,
+)
 from ....order.utils import (
     add_variant_to_order,
     get_order_country,
     recalculate_order,
     update_order_prices,
 )
-from ....warehouse.management import allocate_stocks
+from ....warehouse.management import allocate_preorders, allocate_stocks
+from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -26,6 +32,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
+from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
@@ -103,6 +110,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
 
+        shipping_method = get_shipping_model_by_object_id(
+            object_id=data.pop("shipping_method", None), raise_error=False
+        )
+
         cleaned_input = super().clean_input(info, instance, data)
 
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
@@ -117,6 +128,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         lines = data.pop("lines", None)
         cls.clean_lines(cleaned_input, lines, channel)
 
+        cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices
@@ -317,8 +329,19 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 code=OrderErrorCode.TAX_ERROR.value,
             )
 
+        if new_instance:
+            transaction.on_commit(
+                lambda: info.context.plugins.draft_order_created(instance)
+            )
+
+        else:
+            transaction.on_commit(
+                lambda: info.context.plugins.draft_order_updated(instance)
+            )
+
         # Post-process the results
         recalculate_order(instance, cls.invalidate_prices(instance, cleaned_input))
+        update_order_search_document(instance)
 
 
 class DraftOrderUpdate(DraftOrderCreate):
@@ -371,6 +394,26 @@ class DraftOrderDelete(ModelDeleteMutation):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-draft order.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_instance(info, **data)
+        response = super().perform_mutation(_root, info, **data)
+        transaction.on_commit(lambda: info.context.plugins.draft_order_deleted(order))
+        return response
+
 
 class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description="Completed order.")
@@ -399,7 +442,12 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
-        order = cls.get_node_or_error(info, id, only_type=Order)
+        order = cls.get_node_or_error(
+            info,
+            id,
+            only_type=Order,
+            qs=models.Order.objects.prefetch_related("lines__variant"),
+        )
         country = get_order_country(order)
         validate_draft_order(order, country)
         cls.update_user_fields(order)
@@ -412,15 +460,33 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
                 order.shipping_address = None
 
+        order.search_document = prepare_order_search_document_value(order)
         order.save()
 
         for line in order.lines.all():
-            if line.variant.track_inventory:
+            if line.variant.track_inventory or line.variant.is_preorder_active():
                 line_data = OrderLineData(
                     line=line, quantity=line.quantity, variant=line.variant
                 )
+                channel_slug = order.channel.slug
                 try:
-                    allocate_stocks([line_data], country, order.channel.slug, manager)
+                    with traced_atomic_transaction():
+                        allocate_stocks(
+                            [line_data],
+                            country,
+                            channel_slug,
+                            manager,
+                            check_reservations=is_reservation_enabled(
+                                info.context.site.settings
+                            ),
+                        )
+                        allocate_preorders(
+                            [line_data],
+                            channel_slug,
+                            check_reservations=is_reservation_enabled(
+                                info.context.site.settings
+                            ),
+                        )
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})

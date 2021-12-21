@@ -23,6 +23,7 @@ ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD = "order_fulfillment_update"
 ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD = "order_payment_confirmation"
 ORDER_CANCELED_TEMPLATE_FIELD = "order_canceled"
 ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD = "order_refund_confirmation"
+SEND_GIFT_CARD_TEMPLATE_FIELD = "send_gift_card"
 
 TEMPLATE_FIELDS = [
     ACCOUNT_CONFIRMATION_TEMPLATE_FIELD,
@@ -39,6 +40,7 @@ TEMPLATE_FIELDS = [
     ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD,
     ORDER_CANCELED_TEMPLATE_FIELD,
     ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD,
+    SEND_GIFT_CARD_TEMPLATE_FIELD,
 ]
 
 ACCOUNT_CONFIRMATION_DEFAULT_TEMPLATE = "confirm.html"
@@ -55,6 +57,7 @@ ORDER_FULFILLMENT_UPDATE_DEFAULT_TEMPLATE = "update_fulfillment.html"
 ORDER_PAYMENT_CONFIRMATION_DEFAULT_TEMPLATE = "confirm_payment.html"
 ORDER_CANCELED_DEFAULT_TEMPLATE = "order_cancel.html"
 ORDER_REFUND_CONFIRMATION_DEFAULT_TEMPLATE = "order_refund.html"
+SEND_GIFT_CARD_DEFAULT_TEMPLATE = "gift_card.html"
 
 
 ACCOUNT_CONFIRMATION_SUBJECT_FIELD = "account_confirmation_subject"
@@ -71,6 +74,7 @@ ORDER_FULFILLMENT_UPDATE_SUBJECT_FIELD = "order_fulfillment_update_subject"
 ORDER_PAYMENT_CONFIRMATION_SUBJECT_FIELD = "order_payment_confirmation_subject"
 ORDER_CANCELED_SUBJECT_FIELD = "order_canceled_subject"
 ORDER_REFUND_CONFIRMATION_SUBJECT_FIELD = "order_refund_confirmation_subject"
+SEND_GIFT_CARD_SUBJECT_FIELD = "send_gift_card_subject"
 
 
 ACCOUNT_CONFIRMATION_DEFAULT_SUBJECT = "Account confirmation e-mail"
@@ -80,12 +84,15 @@ ACCOUNT_CHANGE_EMAIL_CONFIRM_DEFAULT_SUBJECT = "Email change e-mail"
 ACCOUNT_CHANGE_EMAIL_REQUEST_DEFAULT_SUBJECT = "Email change e-mail"
 ACCOUNT_PASSWORD_RESET_DEFAULT_SUBJECT = "Password reset e-mail"
 INVOICE_READY_DEFAULT_SUBJECT = "Invoice"
-ORDER_CONFIRMATION_DEFAULT_SUBJECT = "Order #{{ order.id }} details"
-ORDER_CONFIRMED_DEFAULT_SUBJECT = "Order #{{ order.id }} confirmed"
+ORDER_CONFIRMATION_DEFAULT_SUBJECT = "Order #{{ order.number }} details"
+ORDER_CONFIRMED_DEFAULT_SUBJECT = "Order #{{ order.number }} confirmed"
 ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_SUBJECT = (
-    "Your order {{ id }} has been fulfilled"
+    "Your order {{ order.number }} has been fulfilled"
 )
-ORDER_FULFILLMENT_UPDATE_DEFAULT_SUBJECT = "Shipping update for order {{ order.id }}"
-ORDER_PAYMENT_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.id }} payment details"
-ORDER_CANCELED_DEFAULT_SUBJECT = "Order {{ order.id }} canceled"
-ORDER_REFUND_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.id }} refunded"
+ORDER_FULFILLMENT_UPDATE_DEFAULT_SUBJECT = (
+    "Shipping update for order {{ order.number }}"
+)
+ORDER_PAYMENT_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.number }} payment details"
+ORDER_CANCELED_DEFAULT_SUBJECT = "Order {{ order.number }} canceled"
+ORDER_REFUND_CONFIRMATION_DEFAULT_SUBJECT = "Order {{ order.number }} refunded"
+SEND_GIFT_CARD_DEFAULT_SUBJECT = "Gift card for {{ site_name }}"

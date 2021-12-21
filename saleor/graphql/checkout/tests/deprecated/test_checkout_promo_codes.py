@@ -17,6 +17,9 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 token
                 voucherCode
                 giftCards {
+                    code
+                }
+                giftCards {
                     id
                     displayCode
                 }
