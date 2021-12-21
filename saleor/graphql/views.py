@@ -173,6 +173,9 @@ class GraphQLView(View):
                 break
 
             response = self._handle_query(request)
+
+            if app := getattr(request, "app"):
+                span.set_tag("app.name", app.name)
             span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
 
             # RFC2616: Content-Length is defined in bytes,
