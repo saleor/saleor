@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import Iterable, Optional, Tuple
 
 from django.conf import settings
+from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -15,6 +16,8 @@ from .models import Order, OrderLine
 def _apply_tax_data_from_plugins(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
 ):
+    prefetch_related_objects(lines, "variant__product")
+
     for line in lines:
         variant = line.variant
         if not variant:
@@ -84,7 +87,7 @@ def fetch_order_prices_if_expired(
     (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
     """
     if lines is None:
-        lines = list(order.lines.prefetch_related("variant__product"))
+        lines = list(order.lines.all())
 
     if order.status not in ORDER_EDITABLE_STATUS:
         return order, lines

@@ -66,6 +66,7 @@ def tax_data(order_with_lines, order_lines):
     )
 
 
+@patch("saleor.order.calculations.prefetch_related_objects")
 def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
     # given
     line_without_variant = Mock(variant=None)
