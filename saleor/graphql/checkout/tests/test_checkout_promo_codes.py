@@ -168,7 +168,7 @@ def test_checkout_totals_use_discounts(
         lines=lines,
         checkout_line_info=checkout_line_info,
         discounts=discounts,
-    )
+    ).price_with_sale
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount
 
 

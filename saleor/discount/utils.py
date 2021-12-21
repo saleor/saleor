@@ -1,6 +1,17 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List, Optional, Set
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    DefaultDict,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+)
 
 from django.db.models import F
 from django.utils import timezone
@@ -66,8 +77,8 @@ def get_product_discount_on_sale(
     discount: DiscountInfo,
     channel: "Channel",
     variant_id: Optional[int] = None,
-):
-    """Return discount value if product is on sale or raise NotApplicable."""
+) -> Tuple[int, Callable]:
+    """Return sale id, discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
         product.id in discount.product_ids
         or product.category_id in discount.category_ids
@@ -76,7 +87,7 @@ def get_product_discount_on_sale(
     is_variant_on_sale = variant_id and variant_id in discount.variants_ids
     if is_product_on_sale or is_variant_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
-        return discount.sale.get_discount(sale_channel_listing)  # type: ignore
+        return discount.sale.id, discount.sale.get_discount(sale_channel_listing)  # type: ignore
     raise NotApplicable("Discount not applicable for this product")
 
 
@@ -87,8 +98,8 @@ def get_product_discounts(
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
     variant_id: Optional[int] = None
-) -> Money:
-    """Return discount values for all discounts applicable to a product."""
+) -> Iterator[Tuple[int, Callable]]:
+    """Return sale ids, discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
     for discount in discounts or []:
         try:
@@ -97,6 +108,36 @@ def get_product_discounts(
             )
         except NotApplicable:
             pass
+
+
+def get_sale_id_with_min_price(
+    *,
+    product: "Product",
+    price: Money,
+    collections: Iterable["Collection"],
+    discounts: Optional[Iterable[DiscountInfo]],
+    channel: "Channel",
+    variant_id: Optional[int] = None
+) -> Tuple[Optional[int], Money]:
+    """Return a sale_id and minimum product's price."""
+    available_discounts = [
+        (sale_id, discount)
+        for sale_id, discount in get_product_discounts(
+            product=product,
+            collections=collections,
+            discounts=discounts or [],
+            channel=channel,
+            variant_id=variant_id,
+        )
+    ]
+    if not available_discounts:
+        return None, price
+
+    applied_discount = min(
+        [(sale_id, discount(price)) for sale_id, discount in available_discounts],
+        key=lambda d: d[1],  # sort over a min price
+    )
+    return applied_discount
 
 
 def calculate_discounted_price(
@@ -110,18 +151,39 @@ def calculate_discounted_price(
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
-        discount_prices = list(
-            get_product_discounts(
-                product=product,
-                collections=collections,
-                discounts=discounts,
-                channel=channel,
-                variant_id=variant_id,
-            )
+        _, price = get_sale_id_with_min_price(
+            product=product,
+            price=price,
+            collections=collections,
+            discounts=discounts,
+            channel=channel,
+            variant_id=variant_id,
         )
-        if discount_prices:
-            price = min(discount(price) for discount in discount_prices)
     return price
+
+
+def get_sale_id_applied_as_a_discount(
+    *,
+    product: "Product",
+    price: Money,
+    collections: Iterable["Collection"],
+    discounts: Optional[Iterable[DiscountInfo]],
+    channel: "Channel",
+    variant_id: Optional[int] = None
+) -> Optional[int]:
+    """Return an ID of Sale applied to product."""
+    if not discounts:
+        return None
+
+    sale_id, _ = get_sale_id_with_min_price(
+        product=product,
+        price=price,
+        collections=collections,
+        discounts=discounts,
+        channel=channel,
+        variant_id=variant_id,
+    )
+    return sale_id
 
 
 def validate_voucher_for_checkout(
