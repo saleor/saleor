@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import AppPermission
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..decorators import permission_required
 from .enums import WebhookSampleEventTypeEnum
 from .mutations import WebhookCreate, WebhookDelete, WebhookUpdate
@@ -17,7 +18,12 @@ class WebhookQueries(graphene.ObjectType):
         description="Look up a webhook by ID.",
     )
     webhook_events = graphene.List(
-        WebhookEvent, description="List of all available webhook events."
+        WebhookEvent,
+        description="List of all available webhook events.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `WebhookEventTypeAsyncEnum` and "
+            "`WebhookEventTypeSyncEnum` to get available event types."
+        ),
     )
     webhook_sample_payload = graphene.Field(
         graphene.JSONString,

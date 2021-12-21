@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth import models as auth_models
 
 from ....account.models import User
+from ....account.search import prepare_user_search_document_value
 from ....order.models import Order
 from ...tests.utils import get_graphql_content
 
@@ -50,6 +51,8 @@ def customers_for_search(db, address):
     for i, user in enumerate(accounts):
         if i in (0, 3, 4):
             user.addresses.set([address])
+        user.search_document = prepare_user_search_document_value(user)
+    User.objects.bulk_update(accounts, ["search_document"])
     return accounts
 
 
@@ -97,6 +100,8 @@ def staff_for_search(db, address):
     for i, user in enumerate(accounts):
         if i in (0, 3, 4):
             user.addresses.set([address])
+        user.search_document = prepare_user_search_document_value(user)
+    User.objects.bulk_update(accounts, ["search_document"])
     return accounts
 
 
