@@ -18,6 +18,7 @@ from ..calculations import (
     order_line_total,
     order_line_unit,
     order_shipping,
+    order_shipping_tax_rate,
 )
 
 
@@ -318,11 +319,11 @@ def test_order_shipping_tax_rate(mocked_fetch_order_prices_if_expired):
     # given
     expected_shipping_tax_rate = sentinel.UNIT_PRICE
 
-    order = Mock(shipping_price=expected_shipping_tax_rate)
+    order = Mock(shipping_tax_rate=expected_shipping_tax_rate)
     mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
 
     # when
-    shipping_tax_rate = order_shipping(order, Mock())
+    shipping_tax_rate = order_shipping_tax_rate(order, Mock())
 
     # then
     assert shipping_tax_rate == expected_shipping_tax_rate
