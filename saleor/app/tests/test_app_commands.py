@@ -59,7 +59,12 @@ def test_creates_app_from_manifest_sends_token(monkeypatch):
     token = app.tokens.all()[0].auth_token
     mocked_post.assert_called_once_with(
         "http://localhost:3000/register",
-        headers={"Content-Type": "application/json", "x-saleor-domain": "mirumee.com"},
+        headers={
+            "Content-Type": "application/json",
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "x-saleor-domain": "mirumee.com",
+            "saleor-domain": "mirumee.com",
+        },
         json={"auth_token": token},
         timeout=ANY,
     )
@@ -119,7 +124,11 @@ def test_sends_data_to_target_url(monkeypatch):
     token = app.tokens.all()[0].auth_token
     mocked_post.assert_called_once_with(
         target_url,
-        headers={"x-saleor-domain": "mirumee.com"},
+        headers={
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "x-saleor-domain": "mirumee.com",
+            "saleor-domain": "mirumee.com",
+        },
         json={"auth_token": token},
         timeout=ANY,
     )

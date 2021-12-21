@@ -82,7 +82,7 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email, is_active=True).first()
+        user = models.User.objects.filter(email=email).first()
         if user and user.check_password(password):
             return user
         return None
@@ -96,6 +96,25 @@ class CreateToken(BaseMutation):
                     "email": ValidationError(
                         "Please, enter valid credentials",
                         code=AccountErrorCode.INVALID_CREDENTIALS.value,
+                    )
+                }
+            )
+        if not user.is_active and not user.last_login:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Account needs to be confirmed via email.",
+                        code=AccountErrorCode.ACCOUNT_NOT_CONFIRMED.value,
+                    )
+                }
+            )
+
+        if not user.is_active and user.last_login:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "Account inactive.",
+                        code=AccountErrorCode.INACTIVE.value,
                     )
                 }
             )
@@ -166,7 +185,7 @@ class RefreshToken(BaseMutation):
         if not refresh_token:
             raise ValidationError(
                 {
-                    "refreshToken": ValidationError(
+                    "refresh_token": ValidationError(
                         "Missing refreshToken",
                         code=AccountErrorCode.JWT_MISSING_TOKEN.value,
                     )
@@ -176,7 +195,7 @@ class RefreshToken(BaseMutation):
         if payload["type"] != JWT_REFRESH_TYPE:
             raise ValidationError(
                 {
-                    "refreshToken": ValidationError(
+                    "refresh_token": ValidationError(
                         "Incorrect refreshToken",
                         code=AccountErrorCode.JWT_INVALID_TOKEN.value,
                     )
@@ -186,11 +205,21 @@ class RefreshToken(BaseMutation):
 
     @classmethod
     def clean_csrf_token(cls, csrf_token, payload):
+        if not csrf_token:
+            msg = "CSRF token is required when refreshToken is provided by the cookie"
+            raise ValidationError(
+                {
+                    "csrf_token": ValidationError(
+                        msg,
+                        code=AccountErrorCode.REQUIRED.value,
+                    )
+                }
+            )
         is_valid = _compare_masked_tokens(csrf_token, payload["csrfToken"])
         if not is_valid:
             raise ValidationError(
                 {
-                    "csrfToken": ValidationError(
+                    "csrf_token": ValidationError(
                         "Invalid csrf token",
                         code=AccountErrorCode.JWT_INVALID_CSRF_TOKEN.value,
                     )
@@ -202,7 +231,7 @@ class RefreshToken(BaseMutation):
         try:
             user = get_user(payload)
         except ValidationError as e:
-            raise ValidationError({"refreshToken": e})
+            raise ValidationError({"refresh_token": e})
         return user
 
     @classmethod

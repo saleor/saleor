@@ -1,13 +1,20 @@
 import graphene
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
+from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+)
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.fields import ConnectionField
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -58,6 +65,10 @@ class Warehouse(CountableDjangoObjectType):
         description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
         required=True,
     )
+    shipping_zones = ConnectionField(
+        "saleor.graphql.shipping.types.ShippingZoneCountableConnection",
+        required=True,
+    )
 
     class Meta:
         description = "Represents warehouse."
@@ -67,20 +78,28 @@ class Warehouse(CountableDjangoObjectType):
             "id",
             "name",
             "slug",
-            "shipping_zones",
             "address",
             "email",
             "is_private",
         ]
 
     @staticmethod
-    def resolve_shipping_zones(root, *_args, **_kwargs):
+    def resolve_shipping_zones(root, info, *_args, **kwargs):
+        from ..shipping.types import ShippingZoneCountableConnection
+
         instances = root.shipping_zones.all()
-        shipping_zones = [
-            ChannelContext(node=shipping_zone, channel_slug=None)
-            for shipping_zone in instances
-        ]
-        return shipping_zones
+        slice = create_connection_slice(
+            instances, info, kwargs, ShippingZoneCountableConnection
+        )
+
+        edges_with_context = []
+        for edge in slice.edges:
+            node = edge.node
+            edge.node = ChannelContext(node=node, channel_slug=None)
+            edges_with_context.append(edge)
+        slice.edges = edges_with_context
+
+        return slice
 
     @staticmethod
     def resolve_company_name(root, info, *_args, **_kwargs):
@@ -94,6 +113,11 @@ class Warehouse(CountableDjangoObjectType):
         )
 
 
+class WarehouseCountableConnection(CountableConnection):
+    class Meta:
+        node = Warehouse
+
+
 class Stock(CountableDjangoObjectType):
     quantity = graphene.Int(
         required=True,
@@ -103,12 +127,21 @@ class Stock(CountableDjangoObjectType):
     quantity_allocated = graphene.Int(
         required=True, description="Quantity allocated for orders"
     )
+    quantity_reserved = graphene.Int(
+        required=True, description="Quantity reserved for checkouts"
+    )
 
     class Meta:
         description = "Represents stock."
         model = models.Stock
         interfaces = [graphene.relay.Node]
-        only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
+        only_fields = [
+            "warehouse",
+            "product_variant",
+            "quantity",
+            "quantity_allocated",
+            "quantity_reserved",
+        ]
 
     @staticmethod
     @one_of_permissions_required(
@@ -127,8 +160,31 @@ class Stock(CountableDjangoObjectType):
         )["quantity_allocated"]
 
     @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_quantity_reserved(root, info, *_args):
+        if not is_reservation_enabled(info.context.site.settings):
+            return 0
+
+        return root.reservations.aggregate(
+            quantity_reserved=Coalesce(
+                Sum(
+                    "quantity_reserved",
+                    filter=Q(reserved_until__gt=timezone.now()),
+                ),
+                0,
+            )
+        )["quantity_reserved"]
+
+    @staticmethod
     def resolve_product_variant(root, *_args):
         return ChannelContext(node=root.product_variant, channel_slug=None)
+
+
+class StockCountableConnection(CountableConnection):
+    class Meta:
+        node = Stock
 
 
 class Allocation(CountableDjangoObjectType):

@@ -4,20 +4,18 @@ Tagging Process
 +-----------------------------------+-----------------------------------------------------------------------+
 | Git Ref                           | Container Tags                                                        |
 +===================================+=======================================================================+
-| ``refs/tags/1.0.0``               | ghcr.io/mirumee/saleor:1.0.0                                          |
-|                                   | ghcr.io/mirumee/saleor:latest                                         |
+| ``refs/tags/1.0.0``               | ghcr.io/saleor/saleor:1.0.0                                           |
+|                                   | ghcr.io/saleor/saleor:latest                                          |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/tags/1.0.0a1``             | ghcr.io/mirumee/saleor:1.0.0a1                                        |
-|                                   | ghcr.io/mirumee/saleor:snapshot                                       |
+| ``refs/tags/1.0.0a1``             | ghcr.io/saleor/saleor:1.0.0a1                                         |
+|                                   | ghcr.io/saleor/saleor:snapshot                                        |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/tags/1.0.0rc1``            | ghcr.io/mirumee/saleor:1.0.0rc1                                       |
-|                                   | ghcr.io/mirumee/saleor:snapshot                                       |
+| ``refs/tags/1.0.0rc1``            | ghcr.io/saleor/saleor:1.0.0rc1                                        |
+|                                   | ghcr.io/saleor/saleor:snapshot                                        |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/heads/master``             | docker.io/mirumee/saleor:master                                       |
-|                                   | docker.io/mirumee/saleor:sha-8ccaf90855b4a4251659c382a86e7e58f173c4e3 |
+| ``refs/heads/main``               | ghcr.io/saleor/saleor:unstable-main                                   |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/heads/preview/my-feature`` | docker.io/mirumee/saleor:my-feature                                   |
-|                                   | docker.io/mirumee/saleor:sha-d122141d318518e216fc0e5b657259de317318c5 |
+| ``refs/heads/preview/my-feature`` | ghcr.io/saleor/saleor:unstable-my-feature                             |
 +-----------------------------------+-----------------------------------------------------------------------+
 
 
@@ -39,7 +37,7 @@ When the image is built, the following instructions will be provided to the belo
 +-----------------------------------+--------------------------------------------------------+
 | ``refs/tags/1.0.0a1``             | 1.0.0a1                                                |
 +-----------------------------------+--------------------------------------------------------+
-| ``refs/heads/master``             | heads/master-0-g8ccaf9                                 |
+| ``refs/heads/main``               | heads/main-0-g8ccaf9                                   |
 +-----------------------------------+--------------------------------------------------------+
 | ``refs/heads/preview/my-feature`` | heads/preview/my-feature-0-gd12214                     |
 +-----------------------------------+--------------------------------------------------------+

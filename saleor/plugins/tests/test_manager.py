@@ -1,5 +1,7 @@
 import json
 from decimal import Decimal
+from functools import partial
+from unittest import mock
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
@@ -9,12 +11,16 @@ from prices import Money, TaxedMoney
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType
+from ...discount.utils import fetch_catalogue_info
+from ...graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
 from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
+    ACTIVE_PLUGINS,
+    ALL_PLUGINS,
     ActiveDummyPaymentGateway,
     ActivePaymentGateway,
     ChannelPluginSample,
@@ -504,6 +510,10 @@ def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
     assert tax_rate_list == PluginsManager(plugins=plugins).get_tax_rate_type_choices()
 
 
+def sample_none_data(obj):
+    return None
+
+
 @pytest.mark.parametrize(
     "plugins, show_taxes",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], True), ([], False)],
@@ -515,8 +525,8 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
 @pytest.mark.parametrize(
     "plugins, expected_tax_data",
     [
-        ([], None),
-        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
+        ([], sample_none_data),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
     ],
 )
 def test_manager_get_taxes_for_checkout(
@@ -524,17 +534,16 @@ def test_manager_get_taxes_for_checkout(
     plugins,
     expected_tax_data,
 ):
-    assert (
-        PluginsManager(plugins=plugins).get_taxes_for_checkout(checkout)
-        == expected_tax_data
-    )
+    assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
+        checkout
+    ) == expected_tax_data(checkout)
 
 
 @pytest.mark.parametrize(
     "plugins, expected_tax_data",
     [
-        ([], None),
-        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data()),
+        ([], sample_none_data),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
     ],
 )
 def test_manager_get_taxes_for_order(
@@ -542,9 +551,9 @@ def test_manager_get_taxes_for_order(
     plugins,
     expected_tax_data,
 ):
-    assert (
-        PluginsManager(plugins=plugins).get_taxes_for_order(order) == expected_tax_data
-    )
+    assert PluginsManager(plugins=plugins).get_taxes_for_order(
+        order
+    ) == expected_tax_data(order)
 
 
 @pytest.mark.parametrize(
@@ -585,6 +594,52 @@ def test_manager_apply_taxes_to_shipping(
         shipping_price, address, channel_slug=channel_USD.slug
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
+
+
+def test_manager_sale_created(sale):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    sale_returned, current_catalogue_returned = PluginsManager(
+        plugins=plugins
+    ).sale_created(sale, current_catalogue)
+
+    assert sale == sale_returned
+    assert current_catalogue == current_catalogue_returned
+
+
+def test_manager_sale_updated(sale):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    previous_catalogue = convert_catalogue_info_to_global_ids(
+        fetch_catalogue_info(sale)
+    )
+    current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
+    (
+        sale_returned,
+        previous_catalogue_returned,
+        current_catalogue_returned,
+    ) = PluginsManager(plugins=plugins).sale_updated(
+        sale, previous_catalogue, current_catalogue
+    )
+
+    assert sale == sale_returned
+    assert current_catalogue == current_catalogue_returned
+    assert previous_catalogue == previous_catalogue_returned
+
+
+def test_manager_sale_deleted(sale):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    previous_catalogue = convert_catalogue_info_to_global_ids(
+        fetch_catalogue_info(sale)
+    )
+    sale_returned, previous_catalogue_returned = PluginsManager(
+        plugins=plugins
+    ).sale_created(sale, previous_catalogue)
+
+    assert sale == sale_returned
+    assert previous_catalogue == previous_catalogue_returned
 
 
 @pytest.mark.parametrize(
@@ -911,3 +966,138 @@ def test_list_external_authentications_active_only(channel_USD):
         "id": PluginSample.PLUGIN_ID,
         "name": PluginSample.PLUGIN_NAME,
     } in external_auths
+
+
+def test_run_method_on_plugins_default_value(plugins_manager):
+    default_value = "default"
+    value = plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method",
+        default_value=default_value,
+    )
+
+    assert value == default_value
+
+
+def test_run_method_on_plugins_default_value_when_not_existing_method_is_called(
+    channel_USD, all_plugins_manager
+):
+    default_value = "default"
+    value = all_plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method",
+        default_value=default_value,
+    )
+
+    assert value == default_value
+
+
+def test_run_method_on_plugins_value_overridden_by_plugin_method(
+    channel_USD, all_plugins_manager
+):
+    expected = ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES  # last active plugin
+    value = all_plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="get_supported_currencies",
+        default_value="default_value",
+    )
+
+    assert value == expected
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_single_plugin"
+)
+def test_run_method_on_plugins_only_on_active_ones(
+    mocked_method, channel_USD, all_plugins_manager
+):
+    all_plugins_manager._PluginsManager__run_method_on_plugins(
+        method_name="test_method_name",
+        default_value="default_value",
+    )
+    active_plugins_count = len(ACTIVE_PLUGINS)
+
+    assert len(all_plugins_manager.all_plugins) == len(ALL_PLUGINS)
+    assert (
+        len([p for p in all_plugins_manager.all_plugins if p.active])
+        == active_plugins_count
+    )
+    assert mocked_method.call_count == active_plugins_count
+
+    called_plugins_id = [arg.args[0].PLUGIN_ID for arg in mocked_method.call_args_list]
+    expected_active_plugins_id = [p.PLUGIN_ID for p in ACTIVE_PLUGINS]
+
+    assert called_plugins_id == expected_active_plugins_id
+
+
+def test_run_method_on_single_plugin_method_does_not_exist(plugins_manager):
+    default_value = "default_value"
+    method_name = "method_does_not_exist"
+    plugin = ActivePaymentGateway
+
+    assert (
+        plugins_manager._PluginsManager__run_method_on_single_plugin(
+            plugin, method_name, default_value
+        )
+        == default_value
+    )
+
+
+def test_run_method_on_single_plugin_method_not_implemented(plugins_manager):
+    default_value = "default_value"
+    plugin = ChannelPluginSample(configuration=None, active=True)
+    method_name = ChannelPluginSample.sample_not_implemented.__name__
+
+    assert (
+        plugins_manager._PluginsManager__run_method_on_single_plugin(
+            plugin, method_name, default_value
+        )
+        == default_value
+    )
+
+
+def test_run_method_on_single_plugin_valid_response(plugins_manager):
+    default_value = "default_value"
+    plugin = ActiveDummyPaymentGateway(configuration=None, active=True)
+    method_name = ActivePaymentGateway.get_supported_currencies.__name__
+
+    assert (
+        plugins_manager._PluginsManager__run_method_on_single_plugin(
+            plugin, method_name, default_value
+        )
+        == plugin.SUPPORTED_CURRENCIES
+    )
+
+
+def test_run_check_payment_balance(channel_USD):
+    plugins = ["saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"]
+
+    manager = PluginsManager(plugins=plugins)
+    assert manager.check_payment_balance({}, "main") == {"test_response": "success"}
+
+
+def test_run_check_payment_balance_not_implemented(channel_USD):
+    plugins = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
+
+    manager = PluginsManager(plugins=plugins)
+    assert not manager.check_payment_balance({}, "main")
+
+
+def test_create_plugin_manager_initializes_requestor_lazily(channel_USD):
+    def fake_request_getter(mock):
+        return mock()
+
+    user_mock = mock.MagicMock()
+    user_mock.return_value.id = "some id"
+    user_mock.return_value.name = "some name"
+
+    plugins = ["saleor.plugins.tests.sample_plugins.ActivePlugin"]
+
+    manager = PluginsManager(
+        plugins=plugins, requestor_getter=partial(fake_request_getter, user_mock)
+    )
+    user_mock.assert_not_called()
+
+    plugin = manager.all_plugins.pop()
+
+    assert plugin.requestor.id == "some id"
+    assert plugin.requestor.name == "some name"
+
+    user_mock.assert_called_once()

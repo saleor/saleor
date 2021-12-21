@@ -2,16 +2,18 @@ import graphene
 import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
-from ....account import models, notifications, utils
+from ....account import models, notifications, search, utils
 from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
+from ....core.tokens import account_delete_token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
+from ....giftcard.utils import assign_user_gift_cards
+from ....order.utils import match_orders_with_new_user
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -29,9 +31,19 @@ from .base import (
 )
 
 
-class AccountRegisterInput(graphene.InputObjectType):
+class AccountBaseInput(graphene.InputObjectType):
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
+
+
+class AccountRegisterInput(AccountBaseInput):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
     redirect_url = graphene.String(
         description=(
             "Base of frontend URL that will be needed to create confirmation URL."
@@ -122,6 +134,9 @@ class AccountRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
+        user.search_document = search.prepare_user_search_document_value(
+            user, attach_addresses_data=False
+        )
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
@@ -133,21 +148,17 @@ class AccountRegister(ModelMutation):
             )
         else:
             user.save()
+
         account_events.customer_account_created_event(user=user)
         info.context.plugins.customer_created(customer=user)
 
 
-class AccountInput(graphene.InputObjectType):
-    first_name = graphene.String(description="Given name.")
-    last_name = graphene.String(description="Family name.")
+class AccountInput(AccountBaseInput):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
-    )
-    language_code = graphene.Argument(
-        LanguageCodeEnum, required=False, description="User language code."
     )
 
 
@@ -257,7 +268,7 @@ class AccountDelete(ModelDeleteMutation):
         cls.clean_instance(info, user)
 
         token = data.pop("token")
-        if not default_token_generator.check_token(user, token):
+        if not account_delete_token_generator.check_token(user, token):
             raise ValidationError(
                 {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
             )
@@ -322,6 +333,8 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         user = info.context.user
         instance.user_addresses.add(user)
         info.context.plugins.customer_updated(user)
+        user.search_document = search.prepare_user_search_document_value(user)
+        user.save(update_fields=["search_document"])
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -523,11 +536,15 @@ class ConfirmEmailChange(BaseMutation):
             )
 
         user.email = new_email
-        user.save(update_fields=["email"])
+        user.search_document = search.prepare_user_search_document_value(user)
+        user.save(update_fields=["email", "search_document"])
 
         channel_slug = clean_channel(
             data.get("channel"), error_class=AccountErrorCode
         ).slug
+
+        assign_user_gift_cards(user)
+        match_orders_with_new_user(user)
 
         notifications.send_user_change_email_notification(
             old_email, user, info.context.plugins, channel_slug=channel_slug

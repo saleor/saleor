@@ -44,6 +44,10 @@ def get_attribute_value(assigned_attribute):
             value += f" {attribute.unit}"
     elif attribute.input_type == AttributeInputType.RICH_TEXT:
         value = clean_editor_js(value_instance.rich_text, to_string=True)
+    elif attribute.input_type == AttributeInputType.SWATCH:
+        value = (
+            value_instance.file_url if value_instance.file_url else value_instance.value
+        )
     elif attribute.input_type == AttributeInputType.BOOLEAN:
         value = str(value_instance.boolean)
     elif attribute.input_type == AttributeInputType.DATE:
@@ -51,7 +55,7 @@ def get_attribute_value(assigned_attribute):
     elif attribute.input_type == AttributeInputType.DATE_TIME:
         value = str(value_instance.date_time)
     else:
-        value = value_instance.slug
+        value = value_instance.name or value_instance.slug
     return value
 
 
@@ -101,12 +105,21 @@ def add_channel_to_expected_variant_data(data, variant, channel_ids, pk=None):
             price_header = f"{channel_slug} (channel price amount)"
             currency_header = f"{channel_slug} (channel variant currency code)"
             cost_price = f"{channel_slug} (channel variant cost price)"
+            preorder_quantity_threshold = (
+                f"{channel_slug} (channel variant preorder quantity threshold)"
+            )
             if pk:
                 data[pk][price_header] = channel_listing.price_amount
                 data[pk][currency_header] = channel_listing.currency
                 data[pk][cost_price] = channel_listing.cost_price_amount
+                data[pk][
+                    preorder_quantity_threshold
+                ] = channel_listing.preorder_quantity_threshold
             else:
                 data[price_header] = channel_listing.price_amount
                 data[currency_header] = channel_listing.currency
                 data[cost_price] = channel_listing.cost_price_amount
+                data[
+                    preorder_quantity_threshold
+                ] = channel_listing.preorder_quantity_threshold
     return data

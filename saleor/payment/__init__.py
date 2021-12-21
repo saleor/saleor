@@ -119,3 +119,25 @@ class ChargeStatus:
         (REFUSED, "Refused"),
         (CANCELLED, "Cancelled"),
     ]
+
+
+class StorePaymentMethod:
+    """Represents if and how a payment should be stored in a payment gateway.
+
+    The following store types are possible:
+    - ON_SESSION - the payment is stored only to be reused when
+    the customer is present in the checkout flow
+    - OFF_SESSION - the payment is stored to be reused even if
+    the customer is absent
+    - NONE - the payment is not stored.
+    """
+
+    ON_SESSION = "on_session"
+    OFF_SESSION = "off_session"
+    NONE = "none"
+
+    CHOICES = [
+        (ON_SESSION, "On session"),
+        (OFF_SESSION, "Off session"),
+        (NONE, "None"),
+    ]

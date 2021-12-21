@@ -234,7 +234,8 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
     def batch_load(self, keys):
         variant_channel_listings = ProductVariantChannelListing.objects.filter(
             variant_id__in=keys
-        )
+        ).annotate_preorder_quantity_allocated()
+
         variant_id_variant_channel_listings_map = defaultdict(list)
         for variant_channel_listing in variant_channel_listings:
             variant_id_variant_channel_listings_map[
@@ -283,7 +284,9 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             "variant_id__in": variant_ids,
             "price_amount__isnull": False,
         }
-        variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            **filter
+        ).annotate_preorder_quantity_allocated()
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
         for variant_channel_listing in variant_channel_listings.iterator():

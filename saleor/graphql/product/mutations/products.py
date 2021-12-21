@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.exceptions import PermissionDenied
+from ....core.exceptions import PermissionDenied, PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
@@ -33,9 +33,11 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
+from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
+from ...core.descriptions import ADDED_IN_31
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
@@ -50,6 +52,7 @@ from ...core.utils import (
 )
 from ...core.utils.reordering import perform_reordering
 from ...warehouse.types import Warehouse
+from ..enums import ProductTypeKindEnum
 from ..types import (
     Category,
     Collection,
@@ -59,6 +62,7 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
+    clean_variant_sku,
     create_stocks,
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
@@ -98,6 +102,10 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        description = cleaned_input.get("description")
+        cleaned_input["description_plaintext"] = (
+            clean_editor_js(description, to_string=True) if description else ""
+        )
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
@@ -744,6 +752,13 @@ class ProductDelete(ModelDeleteMutation):
         ).delete()
 
 
+class PreorderSettingsInput(graphene.InputObjectType):
+    global_threshold = graphene.Int(
+        description="The global threshold for preorder variant."
+    )
+    end_date = graphene.DateTime(description="The end date for preorder.")
+
+
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
         graphene.NonNull(AttributeValueInput),
@@ -758,6 +773,16 @@ class ProductVariantInput(graphene.InputObjectType):
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
+    preorder = PreorderSettingsInput(
+        description=f"{ADDED_IN_31} Determines if variant is in preorder."
+    )
+    quantity_limit_per_customer = graphene.Int(
+        required=False,
+        description=(
+            f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`,"
+            "that can be bought in a single checkout."
+        ),
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):
@@ -843,6 +868,20 @@ class ProductVariantCreate(ModelMutation):
                 }
             )
 
+        quantity_limit_per_customer = cleaned_input.get("quantity_limit_per_customer")
+        if quantity_limit_per_customer is not None and quantity_limit_per_customer < 1:
+            raise ValidationError(
+                {
+                    "quantity_limit_per_customer": ValidationError(
+                        (
+                            "Product variant can't have "
+                            "quantity_limit_per_customer lower than 1."
+                        ),
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
@@ -882,6 +921,17 @@ class ProductVariantCreate(ModelMutation):
                     )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+
+        preorder_settings = cleaned_input.get("preorder")
+        if preorder_settings:
+            cleaned_input["is_preorder"] = True
+            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
+                "global_threshold"
+            )
+            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
         return cleaned_input
 
@@ -1081,6 +1131,7 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
     slug = graphene.String(description="Product type slug.")
+    kind = ProductTypeKindEnum(description="The product type kind.")
     has_variants = graphene.Boolean(
         description=(
             "Determines if product of this type has multiple variants. This option "
@@ -1685,3 +1736,54 @@ class VariantMediaUnassign(BaseMutation):
             lambda: info.context.plugins.product_variant_updated(variant.node)
         )
         return VariantMediaUnassign(product_variant=variant, media=media)
+
+
+class ProductVariantPreorderDeactivate(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Product variant with ended preorder."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description="ID of a variant which preorder should be deactivated.",
+        )
+
+    class Meta:
+        description = (
+            f"{ADDED_IN_31} Deactivates product variant preorder."
+            "It changes all preorder allocation into regular allocation."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, id):
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
+        variant = cls.get_node_or_error(
+            info, id, field="id", only_type=ProductVariant, qs=qs
+        )
+        if not variant.is_preorder:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "This variant is not in preorder.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
+
+        try:
+            deactivate_preorder_for_variant(variant)
+        except PreorderAllocationError as error:
+            raise ValidationError(
+                str(error),
+                code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
+            )
+
+        variant = ChannelContext(node=variant, channel_slug=None)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
+        return ProductVariantPreorderDeactivate(product_variant=variant)

@@ -1,4 +1,7 @@
+from typing import Union
+
 import graphene
+from django.db.models import Model
 from graphene.types.resolver import get_default_resolver
 from graphene_django import DjangoObjectType
 
@@ -14,7 +17,7 @@ from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
 
 
-class ChannelContextType(DjangoObjectType):
+class ChannelContextTypeForObjectType(graphene.ObjectType):
     """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
@@ -31,17 +34,29 @@ class ChannelContextType(DjangoObjectType):
     def resolve_id(root: ChannelContext, _info):
         return root.node.pk
 
-    @classmethod
-    def is_type_of(cls, root: ChannelContext, info):
-        return super().is_type_of(root.node, info)
-
     @staticmethod
     def resolve_translation(root: ChannelContext, info, language_code):
         # Resolver for TranslationField; needs to be manually specified.
         return resolve_translation(root.node, info, language_code)
 
 
-class ChannelContextTypeWithMetadata(ChannelContextType):
+class ChannelContextType(ChannelContextTypeForObjectType, DjangoObjectType):
+    """A Graphene type that supports resolvers' root as ChannelContext objects."""
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def is_type_of(cls, root: Union[ChannelContext, Model], info):
+        # Unwrap node from ChannelContext if it didn't happen already
+        if isinstance(root, ChannelContext):
+            return super().is_type_of(root.node, info)
+
+        # Check type that was already unwrapped by the Entity union check
+        return super().is_type_of(root, info)
+
+
+class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectType):
     """A Graphene type for that uses ChannelContext as root in resolvers.
 
     Same as ChannelContextType, but for types that implement ObjectWithMetadata
@@ -60,6 +75,19 @@ class ChannelContextTypeWithMetadata(ChannelContextType):
     def resolve_private_metadata(root: ChannelContext, info):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
+
+
+class ChannelContextTypeWithMetadata(
+    ChannelContextTypeWithMetadataForObjectType, ChannelContextType
+):
+    """A Graphene type for that uses ChannelContext as root in resolvers.
+
+    Same as ChannelContextType, but for types that implement ObjectWithMetadata
+    interface.
+    """
+
+    class Meta:
+        abstract = True
 
 
 class Channel(CountableDjangoObjectType):

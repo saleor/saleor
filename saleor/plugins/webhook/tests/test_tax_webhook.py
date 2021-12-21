@@ -1,10 +1,13 @@
 from unittest import mock
 
+from freezegun import freeze_time
+
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import generate_checkout_payload, generate_order_payload
 from ..utils import parse_tax_data
 
 
+@freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_checkout(
     mock_request,
@@ -24,6 +27,7 @@ def test_get_taxes_for_checkout(
 
     # then
     mock_request.assert_called_once_with(
+        tax_checkout_webhook.app.name,
         tax_checkout_webhook.pk,
         tax_checkout_webhook.target_url,
         tax_checkout_webhook.secret_key,
@@ -50,6 +54,7 @@ def test_get_taxes_for_checkout_no_permission(
     assert tax_data is None
 
 
+@freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_order(
     mock_request,
@@ -69,6 +74,7 @@ def test_get_taxes_for_order(
 
     # then
     mock_request.assert_called_once_with(
+        tax_order_webhook.app.name,
         tax_order_webhook.pk,
         tax_order_webhook.target_url,
         tax_order_webhook.secret_key,

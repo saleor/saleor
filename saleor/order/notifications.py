@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional
 from urllib.parse import urlencode
 
@@ -6,6 +7,7 @@ from django.forms import model_to_dict
 from ..account.models import StaffNotificationRecipient
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
+from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
 from ..product import ProductMediaTypes
@@ -14,8 +16,6 @@ from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import User  # noqa: F401
     from ..app.models import App
 
@@ -82,6 +82,9 @@ def get_product_variant_payload(variant: ProductVariant):
     return {
         "id": variant.id,
         "weight": str(variant.weight or ""),
+        "is_preorder": variant.is_preorder_active(),
+        "preorder_global_threshold": variant.preorder_global_threshold,
+        "preorder_end_date": variant.preorder_end_date,
         **get_default_images_payload(images),
     }
 
@@ -91,24 +94,35 @@ def get_order_line_payload(line: "OrderLine"):
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
         digital_url = content.get_absolute_url() if content else None  # type: ignore
+    variant_dependent_fields = {}
+    if line.variant:
+        variant_dependent_fields = {
+            "product": get_product_payload(line.variant.product),
+            "variant": get_product_variant_payload(line.variant),
+        }
+    currency = line.currency
+
     return {
         "id": line.id,
-        "product": get_product_payload(line.variant.product),  # type: ignore
+        "product": variant_dependent_fields.get("product"),  # type: ignore
         "product_name": line.product_name,
         "translated_product_name": line.translated_product_name or line.product_name,
         "variant_name": line.variant_name,
-        "variant": get_product_variant_payload(line.variant),  # type: ignore
+        "variant": variant_dependent_fields.get("variant"),  # type: ignore
         "translated_variant_name": line.translated_variant_name or line.variant_name,
         "product_sku": line.product_sku,
+        "product_variant_id": line.product_variant_id,
         "quantity": line.quantity,
         "quantity_fulfilled": line.quantity_fulfilled,
-        "currency": line.currency,
-        "unit_price_net_amount": line.unit_price.net.amount,
-        "unit_price_gross_amount": line.unit_price.gross.amount,
-        "unit_tax_amount": line.unit_price.tax.amount,
-        "total_gross_amount": line.total_price.gross.amount,
-        "total_net_amount": line.total_price.net.amount,
-        "total_tax_amount": line.total_price.tax.amount,
+        "currency": currency,
+        "unit_price_net_amount": quantize_price(line.unit_price.net.amount, currency),
+        "unit_price_gross_amount": quantize_price(
+            line.unit_price.gross.amount, currency
+        ),
+        "unit_tax_amount": quantize_price(line.unit_price.tax.amount, currency),
+        "total_gross_amount": quantize_price(line.total_price.gross.amount, currency),
+        "total_net_amount": quantize_price(line.total_price.net.amount, currency),
+        "total_tax_amount": quantize_price(line.total_price.tax.amount, currency),
         "tax_rate": line.tax_rate,
         "is_shipping_required": line.is_shipping_required,
         "is_digital": line.is_digital,
@@ -183,7 +197,6 @@ ORDER_MODEL_FIELDS = [
     "token",
     "display_gross_prices",
     "currency",
-    "discount_amount",
     "total_gross_amount",
     "total_net_amount",
     "undiscounted_total_gross_amount",
@@ -193,6 +206,13 @@ ORDER_MODEL_FIELDS = [
     "private_metadata",
     "user_id",
     "language_code",
+]
+
+ORDER_PRICE_FIELDS = [
+    "total_gross_amount",
+    "total_net_amount",
+    "undiscounted_total_gross_amount",
+    "undiscounted_total_net_amount",
 ]
 
 
@@ -210,7 +230,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     if redirect_url:
         order_details_url = prepare_order_details_url(order, redirect_url)
     subtotal = order.get_subtotal()
-    tax = order.total_gross_amount - order.total_net_amount
+    tax = order.total_gross_amount - order.total_net_amount or Decimal(0)
 
     lines = order.lines.prefetch_related(
         "variant__product__media",
@@ -218,22 +238,26 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
         "variant__product__attributes__assignment__attribute",
         "variant__product__attributes__values",
     ).all()
+    currency = order.currency
+    quantize_price_fields(order, fields=ORDER_PRICE_FIELDS, currency=currency)
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
+            "number": order.id,
             "channel_slug": order.channel.slug,
             "created": str(order.created),
             "shipping_price_net_amount": order.shipping_price_net_amount,
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
             "order_details_url": order_details_url,
             "email": order.get_customer_email(),
-            "subtotal_gross_amount": subtotal.gross.amount,
-            "subtotal_net_amount": subtotal.net.amount,
-            "tax_amount": tax,
+            "subtotal_gross_amount": quantize_price(subtotal.gross.amount, currency),
+            "subtotal_net_amount": quantize_price(subtotal.net.amount, currency),
+            "tax_amount": quantize_price(tax, currency),
             "lines": get_lines_payload(lines),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
             "shipping_method_name": order.shipping_method_name,
+            "collection_point_name": order.collection_point_name,
             **get_discounts_payload(order),
         }
     )
@@ -338,6 +362,7 @@ def send_fulfillment_update(order, fulfillment, manager):
 def send_payment_confirmation(order, manager):
     """Send notification with the payment confirmation."""
     payment = order.get_last_payment()
+    payment_currency = payment.currency
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
@@ -345,9 +370,11 @@ def send_payment_confirmation(order, manager):
             "created": payment.created,
             "modified": payment.modified,
             "charge_status": payment.charge_status,
-            "total": payment.total,
-            "captured_amount": payment.captured_amount,
-            "currency": payment.currency,
+            "total": quantize_price(payment.total, payment_currency),
+            "captured_amount": quantize_price(
+                payment.captured_amount, payment_currency
+            ),
+            "currency": payment_currency,
         },
         **get_site_context(),
     }
@@ -383,7 +410,7 @@ def send_order_refunded_confirmation(
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
-        "amount": amount,
+        "amount": quantize_price(amount, currency),
         "currency": currency,
         **get_site_context(),
     }

@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
 
 from ....product.models import Product, ProductVariant
 from ...tests.utils import get_graphql_content
@@ -51,6 +54,18 @@ def products_for_variant_filtering(product_type, category):
                 category=category,
                 product_type=product_type,
             ),
+            Product(
+                name="ProductNoSku",
+                slug="prod4",
+                category=category,
+                product_type=product_type,
+            ),
+            Product(
+                name="ProductWithPreorder",
+                slug="prod5",
+                category=category,
+                product_type=product_type,
+            ),
         ]
     )
     ProductVariant.objects.bulk_create(
@@ -73,6 +88,30 @@ def products_for_variant_filtering(product_type, category):
                 product=products[4],
                 sku="P3-V1",
             ),
+            ProductVariant(
+                product=products[5],
+                sku="P-NO-SKU",
+            ),
+            ProductVariant(
+                product=products[5],
+            ),
+            ProductVariant(
+                product=products[6],
+                sku="Preorder-V1",
+                is_preorder=True,
+            ),
+            ProductVariant(
+                product=products[6],
+                sku="Preorder-V2",
+                is_preorder=True,
+                preorder_end_date=timezone.now() + timedelta(days=1),
+            ),
+            ProductVariant(
+                product=products[6],
+                sku="Preorder-V3",
+                is_preorder=True,
+                preorder_end_date=timezone.now() - timedelta(days=1),
+            ),
         ]
     )
     return products
@@ -87,11 +126,27 @@ def products_for_variant_filtering(product_type, category):
         ({"search": "XXL"}, ["PP2-V1"]),
         ({"search": "PP2-V1"}, ["PP2-V1"]),
         ({"search": "P1"}, ["P1-V1", "P1-V2", "PP1-V1"]),
-        ({"search": ["invalid"]}, []),
+        ({"search": "invalid"}, []),
+        ({"search": "ProductNoSku"}, ["P-NO-SKU", None]),
         ({"sku": ["P1"]}, []),
         ({"sku": ["P1-V1", "P1-V2", "PP1-V1"]}, ["P1-V1", "P1-V2", "PP1-V1"]),
         ({"sku": ["PP1-V1", "PP2-V1"]}, ["PP1-V1", "PP2-V1"]),
         ({"sku": ["invalid"]}, []),
+        ({"isPreorder": True}, ["Preorder-V1", "Preorder-V2"]),
+        (
+            {"isPreorder": False},
+            [
+                "P-NO-SKU",
+                "P1-V1",
+                "P1-V2",
+                "P2-V1",
+                "P3-V1",
+                "PP1-V1",
+                "PP2-V1",
+                "Preorder-V3",
+                None,
+            ],
+        ),
     ],
 )
 def test_products_pagination_with_filtering(
@@ -115,6 +170,18 @@ def test_products_pagination_with_filtering(
     # then
     content = get_graphql_content(response)
     products_nodes = content["data"]["productVariants"]["edges"]
-    for index, variant_sku in enumerate(variants):
-        assert variant_sku == products_nodes[index]["node"]["sku"]
-    assert len(variants) == len(products_nodes)
+    assert sorted([variant for variant in variants if variant is not None]) == sorted(
+        [
+            product_node["node"]["sku"]
+            for product_node in products_nodes
+            if product_node["node"]["sku"] is not None
+        ]
+    )
+    if None in variants:
+        assert variants.count(None) == len(
+            [
+                product_node["node"]["sku"]
+                for product_node in products_nodes
+                if product_node["node"]["sku"] is None
+            ]
+        )

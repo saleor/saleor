@@ -246,7 +246,9 @@ def test_query_category_product_visible_in_listings_as_staff_without_manage_prod
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+    assert (
+        len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+    )  # invisible doesn't count
 
 
 def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
@@ -291,7 +293,9 @@ def test_query_category_product_only_visible_in_listings_as_app_without_manage_p
 
     # then
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+    assert (
+        len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+    )  # invisible doesn't count
 
 
 def test_query_category_product_only_visible_in_listings_as_app_with_perm(
@@ -369,8 +373,9 @@ def test_category_create_mutation(
     )
 
     category_name = "Test category"
+    description = "description"
     category_slug = slugify(category_name)
-    category_description = dummy_editorjs("description", True)
+    category_description = dummy_editorjs(description, True)
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
@@ -393,6 +398,7 @@ def test_category_create_mutation(
     assert data["category"]["description"] == category_description
     assert not data["category"]["parent"]
     category = Category.objects.get(name=category_name)
+    assert category.description_plaintext == description
     assert category.background_image.file
     img_name, format = os.path.splitext(image_file._name)
     file_name = category.background_image.name
@@ -540,8 +546,9 @@ def test_category_update_mutation(
     child_category = category.children.create(name="child")
 
     category_name = "Updated name"
+    description = "description"
     category_slug = slugify(category_name)
-    category_description = dummy_editorjs("description", True)
+    category_description = dummy_editorjs(description, True)
 
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
@@ -571,6 +578,7 @@ def test_category_update_mutation(
     parent_id = graphene.Node.to_global_id("Category", category.pk)
     assert data["category"]["parent"]["id"] == parent_id
     category = Category.objects.get(name=category_name)
+    assert category.description_plaintext == description
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
     assert data["category"]["backgroundImage"]["alt"] == image_alt
@@ -998,7 +1006,6 @@ def test_categories_query_ids_not_exists(user_api_client, category):
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response, ignore_errors=True)
     message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
-
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == message_error
     assert content["data"]["categories"] is None
@@ -1082,3 +1089,36 @@ def test_update_category_mutation_remove_background_image(
     assert not data["backgroundImage"]
     category_with_image.refresh_from_db()
     assert not category_with_image.background_image
+
+
+def test_query_category_for_federation(api_client, non_default_category):
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    variables = {
+        "representations": [
+            {
+                "__typename": "Category",
+                "id": category_id,
+            },
+        ],
+    }
+    query = """
+      query GetCategoryInFederation($representations: [_Any]) {
+        _entities(representations: $representations) {
+          __typename
+          ... on Category {
+            id
+            name
+          }
+        }
+      }
+    """
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["_entities"] == [
+        {
+            "__typename": "Category",
+            "id": category_id,
+            "name": non_default_category.name,
+        }
+    ]
