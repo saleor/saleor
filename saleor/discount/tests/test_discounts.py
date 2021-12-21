@@ -463,7 +463,7 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         collection_ids=set(),
         variants_ids=set(),
     )
-    product_discount = get_product_discount_on_sale(
+    _, product_discount = get_product_discount_on_sale(
         variant.product, set(), discount, channel_USD
     )
 

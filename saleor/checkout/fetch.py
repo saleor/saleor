@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional,
 from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
 
+from ..discount import DiscountInfo, VoucherType
+from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
@@ -15,7 +17,7 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount import DiscountInfo
+    from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -35,6 +37,7 @@ class CheckoutLineInfo:
     product: "Product"
     product_type: "ProductType"
     collections: List["Collection"]
+    voucher: Optional["Voucher"] = None
 
 
 @dataclass
@@ -194,6 +197,8 @@ def fetch_checkout_lines(
     checkout: "Checkout", prefetch_variant_attributes=False
 ) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
+    from .utils import get_discounted_lines, get_voucher_for_checkout
+
     prefetched_fields = [
         "variant__product__collections",
         "variant__channel_listings__channel",
@@ -235,6 +240,42 @@ def fetch_checkout_lines(
                 collections=collections,
             )
         )
+    if checkout.voucher_code and lines_info:
+        channel_slug = checkout.channel.slug
+        voucher = get_voucher_for_checkout(
+            checkout, channel_slug=channel_slug, with_prefetch=True
+        )
+        if not voucher:
+            # in case when voucher is expired, it will be null so no need to apply any
+            # discount from voucher
+            return lines_info
+        if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
+            discounted_lines_by_voucher: List[CheckoutLineInfo] = []
+            if voucher.apply_once_per_order:
+                discounts = fetch_active_discounts()
+                channel = checkout.channel
+                cheapest_line_price = None
+                cheapest_line = None
+                for line_info in lines_info:
+                    line_price = line_info.variant.get_price(
+                        product=line_info.product,
+                        collections=line_info.collections,
+                        channel=channel,
+                        channel_listing=line_info.channel_listing,
+                        discounts=discounts,
+                    )
+                    if not cheapest_line or cheapest_line_price > line_price:
+                        cheapest_line_price = line_price
+                        cheapest_line = line_info
+                if cheapest_line:
+                    discounted_lines_by_voucher.append(cheapest_line)
+            else:
+                discounted_lines_by_voucher.extend(
+                    get_discounted_lines(lines_info, voucher)
+                )
+            for line_info in lines_info:
+                if line_info in discounted_lines_by_voucher:
+                    line_info.voucher = voucher
     return lines_info
 
 

@@ -19,7 +19,7 @@ from saleor.payment.gateways.adyen.utils.common import (
 from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 
-from ......plugins.manager import get_plugins_manager
+from ......checkout.interface import TaxedPricesData
 from ...utils.common import prepare_address_request_data
 
 
@@ -132,11 +132,9 @@ def test_append_checkout_details_without_sku(
     }
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.common.get_plugins_manager")
-@mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_total")
+@mock.patch("saleor.plugins.manager.PluginsManager.calculate_checkout_line_unit_price")
 def test_append_checkout_details_tax_included(
-    mocked_checkout_line_total,
-    mocked_plugins_manager,
+    mocked_calculate_checkout_line_unit_price,
     dummy_payment_data,
     payment_dummy,
     checkout_ready_to_complete,
@@ -145,15 +143,15 @@ def test_append_checkout_details_tax_included(
     net = Money(100, "USD")
     gross = Money(123, "USD")
     # tax 23 %
-    mocked_checkout_line_total.return_value = quantize_price(
-        TaxedMoney(net=net, gross=gross), "USD"
-    )
-    manager = get_plugins_manager()
-    unit_price = mock.MagicMock()
-    unit_price.return_value = quantize_price(TaxedMoney(net=net, gross=gross), "USD")
-    manager.calculate_checkout_line_unit_price = unit_price
-    mocked_plugins_manager.return_value = manager
+    unit_price = quantize_price(TaxedMoney(net=net, gross=gross), "USD")
+
     country_code = checkout_ready_to_complete.get_country()
+
+    mocked_calculate_checkout_line_unit_price.return_value = TaxedPricesData(
+        price_with_sale=unit_price,
+        undiscounted_price=unit_price,
+        price_with_discounts=unit_price,
+    )
 
     checkout_ready_to_complete.payments.add(payment_dummy)
     line = checkout_ready_to_complete.lines.first()

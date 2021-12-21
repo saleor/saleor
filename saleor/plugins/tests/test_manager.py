@@ -239,12 +239,16 @@ def test_manager_calculates_checkout_line_total(
         checkout_with_item, lines, [discount_info], manager
     )
     checkout_line_info = lines[0]
-    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        checkout_with_item.shipping_address,
-        [discount_info],
+    taxed_total = (
+        PluginsManager(plugins=plugins)
+        .calculate_checkout_line_total(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            checkout_with_item.shipping_address,
+            [discount_info],
+        )
+        .price_with_sale
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -447,8 +451,8 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
         (
             [],
             TaxedMoney(
-                net=Money(amount=15, currency="USD"),
-                gross=Money(amount=15, currency="USD"),
+                net=Money(amount=20, currency="USD"),
+                gross=Money(amount=20, currency="USD"),
             ),
             2,
         ),
@@ -462,14 +466,16 @@ def test_manager_calculates_checkout_line_unit_price(
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
 
-    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
-        total_line_price,
-        quantity,
-        checkout_info,
-        lines,
-        checkout_line_info,
-        address,
-        [],
+    taxed_total = (
+        PluginsManager(plugins=plugins)
+        .calculate_checkout_line_unit_price(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            address,
+            [],
+        )
+        .price_with_sale
     )
     currency = total_line_price.net.currency
     expected_net = Money(
