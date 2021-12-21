@@ -194,7 +194,6 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig, gateway: str):
                         for p in payment.checkout.payments.exclude(id=payment.id):
                             p.transactions.all().delete()
                             p.delete()
-                        payment.checkout.delete()
 
                         logger.info(
                             msg=f"Order #{order.id} created",
