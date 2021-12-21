@@ -8,7 +8,6 @@ import requests
 from django.contrib.sites.models import Site
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
-from saleor.celeryconf import app
 from saleor.order.models import Fulfillment
 from saleor.payment.interface import GatewayConfig
 
@@ -110,7 +109,6 @@ def get_oto_url(destination_url):
     return "https://api.tryoto.com/rest/v2/{0}".format(destination_url)
 
 
-@app.task
 def send_oto_request(
     fulfillment, config: "GatewayConfig", destination_url: str, data=None
 ):
