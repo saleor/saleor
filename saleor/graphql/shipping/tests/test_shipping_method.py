@@ -5,7 +5,6 @@ import pytest
 
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
-from ....shipping.utils import get_countries_without_shipping_zone
 from ....tests.utils import dummy_editorjs
 from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
@@ -125,10 +124,17 @@ def test_create_shipping_zone_without_warehouses_and_channels(
     assert zone["default"] is False
 
 
+TEST_COUNTRIES_LIST = ["DZ", "AX", "BY"]
+
+
+@patch(
+    "saleor.graphql.shipping.mutations.shippings.get_countries_without_shipping_zone",
+    return_value=TEST_COUNTRIES_LIST,
+)
 def test_create_default_shipping_zone(
-    staff_api_client, warehouse, permission_manage_shipping
+    _, staff_api_client, warehouse, permission_manage_shipping
 ):
-    unassigned_countries = set(get_countries_without_shipping_zone())
+    unassigned_countries = TEST_COUNTRIES_LIST
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
         "default": True,
@@ -139,6 +145,7 @@ def test_create_default_shipping_zone(
     response = staff_api_client.post_graphql(
         CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
+    expected_countries = set(unassigned_countries + variables["countries"])
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
     assert not data["errors"]
@@ -146,8 +153,8 @@ def test_create_default_shipping_zone(
     assert zone["name"] == "test shipping"
     assert zone["warehouses"][0]["name"] == warehouse.name
     assert zone["default"] is True
-    zone_countries = {c.code for c in zone["countries"]}
-    assert zone_countries == unassigned_countries
+    zone_countries = {c["code"] for c in zone["countries"]}
+    assert zone_countries == expected_countries
 
 
 def test_create_duplicated_default_shipping_zone(
