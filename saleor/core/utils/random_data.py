@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import json
 import os
@@ -23,6 +24,10 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
+from ...account.search import (
+    generate_address_search_document_value,
+    generate_user_fields_search_document_value,
+)
 from ...account.utils import store_user_address
 from ...attribute.models import (
     AssignedPageAttribute,
@@ -36,6 +41,9 @@ from ...attribute.models import (
 )
 from ...channel.models import Channel
 from ...checkout import AddressType
+from ...checkout.fetch import fetch_checkout_info
+from ...checkout.models import Checkout
+from ...checkout.utils import add_variant_to_checkout
 from ...core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -52,6 +60,7 @@ from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
+from ...order.search import prepare_order_search_document_value
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
@@ -527,6 +536,7 @@ def create_fake_user(user_password, save=True):
         note=fake.paragraph(),
         date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
     )
+    user.search_document = _prepare_search_document_value(user, address)
 
     if save:
         user.set_password(user_password)
@@ -797,6 +807,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
+    order.search_document = prepare_order_search_document_value(order)
     order.save()
 
     create_fake_payment(order=order)
@@ -900,8 +911,17 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         is_staff=True,
         is_active=True,
         is_superuser=superuser,
+        search_document=_prepare_search_document_value(
+            User(email=email, first_name=first_name, last_name=last_name), address
+        ),
     )
     return staff_user
+
+
+def _prepare_search_document_value(user, address):
+    search_document_value = generate_user_fields_search_document_value(user)
+    search_document_value += generate_address_search_document_value(address)
+    return search_document_value
 
 
 def create_staff_users(staff_password, how_many=2, superuser=False):
@@ -1625,3 +1645,23 @@ def get_product_list_images_dir(placeholder_dir):
 def get_image(image_dir, image_name):
     img_path = os.path.join(image_dir, image_name)
     return File(open(img_path, "rb"), name=image_name)
+
+
+def create_checkout_with_preorders():
+    channel = Channel.objects.get(currency_code="USD")
+    checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
+    checkout.set_country(channel.default_country, commit=True)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    for product_variant in ProductVariant.objects.all()[:2]:
+        product_variant.is_preorder = True
+        product_variant.preorder_global_threshold = 10
+        product_variant.preorder_end_date = timezone.now() + datetime.timedelta(days=10)
+        product_variant.save(
+            update_fields=[
+                "is_preorder",
+                "preorder_global_threshold",
+                "preorder_end_date",
+            ]
+        )
+        add_variant_to_checkout(checkout_info, product_variant, 2)
+    yield f"Created checkout with two preorders. Checkout token: {checkout.token}"

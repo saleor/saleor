@@ -3,7 +3,7 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventSyncType
 from ...manager import get_plugins_manager
 from ..tasks import trigger_webhook_sync
 from ..utils import parse_list_shipping_methods_response
@@ -28,14 +28,14 @@ def webhook_plugin(plugin_manager):
 def test_trigger_webhook_sync(mock_request, shipping_app):
     data = {"key": "value"}
     trigger_webhook_sync(
-        WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, shipping_app
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, shipping_app
     )
     webhook = shipping_app.webhooks.first()
     mock_request.assert_called_once_with(
         shipping_app.name,
         webhook.target_url,
         webhook.secret_key,
-        WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         data,
     )
 

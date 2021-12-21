@@ -1,14 +1,19 @@
 import json
 from dataclasses import asdict
+from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
 from unittest.mock import ANY
 
 import graphene
+from django.utils import timezone
+from freezegun import freeze_time
 
+from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
+from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.models import Order
@@ -24,10 +29,12 @@ from ..payloads import (
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_meta,
     generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_requestor,
     generate_sale_payload,
     generate_translation_payload,
 )
@@ -309,6 +316,11 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", first_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
+            "meta": {
+                "issuing_principal": {"id": None, "type": None},
+                "issued_at": ANY,
+                "version": __version__,
+            },
         },
         {
             "type": "Stock",
@@ -323,19 +335,27 @@ def test_generate_base_product_variant_payload(product_with_two_variants):
                 "Warehouse", second_stock.warehouse_id
             ),
             "product_slug": "test-product-with-two-variant",
+            "meta": {
+                "issuing_principal": {"id": None, "type": None},
+                "issued_at": ANY,
+                "version": __version__,
+            },
         },
     ]
     assert payload == expected_payload
 
 
 def test_generate_product_variant_payload(
-    product_with_variant_with_two_attributes, product_with_images, channel_USD
+    product_with_variant_with_two_attributes,
+    product_with_images,
+    channel_USD,
+    staff_user,
 ):
     variant = product_with_variant_with_two_attributes.variants.first()
-    payload = json.loads(generate_product_variant_payload([variant]))[0]
+    payload = json.loads(generate_product_variant_payload([variant], staff_user))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -358,6 +378,11 @@ def test_generate_product_variant_payload(
         "price_amount": "10.000",
         "type": "ProductVariantChannelListing",
     }
+    assert payload["meta"] == {
+        "issuing_principal": generate_requestor(staff_user),
+        "issued_at": ANY,
+        "version": __version__,
+    }
     assert len(payload.keys()) == len(payload_fields)
 
 
@@ -368,7 +393,7 @@ def test_generate_product_variant_with_external_media_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -405,7 +430,7 @@ def test_generate_product_variant_without_sku_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -439,7 +464,7 @@ def test_generate_product_variant_deleted_payload(
     payload = json.loads(generate_product_variant_payload([variant]))[0]
     [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
     additional_fields = ["channel_listings"]
-    extra_dict_data = ["attributes", "product_id", "media"]
+    extra_dict_data = ["attributes", "product_id", "media", "meta"]
     payload_fields = list(
         chain(
             ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
@@ -456,6 +481,7 @@ def test_generate_product_variant_deleted_payload(
     assert len(payload.keys()) == len(payload_fields)
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_invoice_payload(fulfilled_order):
     fulfilled_order.origin = OrderOrigin.CHECKOUT
     fulfilled_order.save(update_fields=["origin"])
@@ -467,9 +493,18 @@ def test_generate_invoice_payload(fulfilled_order):
     undiscounted_total_gross = fulfilled_order.undiscounted_total_gross_amount.quantize(
         Decimal("0.01")
     )
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
     assert payload == {
         "type": "Invoice",
         "id": graphene.Node.to_global_id("Invoice", invoice.id),
+        "meta": {
+            "issued_at": timestamp,
+            "issuing_principal": {"id": None, "type": None},
+            "version": __version__,
+        },
         "order": {
             "type": "Order",
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
@@ -496,6 +531,7 @@ def test_generate_invoice_payload(fulfilled_order):
     }
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_list_gateways_payload(checkout):
     currency = "USD"
     payload = generate_list_gateways_payload(currency, checkout)
@@ -504,6 +540,7 @@ def test_generate_list_gateways_payload(checkout):
     assert data["currency"] == currency
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_payment_payload(dummy_webhook_app_payment_data):
     payload = generate_payment_payload(dummy_webhook_app_payment_data)
     expected_payload = asdict(dummy_webhook_app_payment_data)
@@ -513,6 +550,8 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
     expected_payload["payment_method"] = from_payment_app_id(
         dummy_webhook_app_payment_data.gateway
     ).name
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
 
@@ -650,15 +689,25 @@ def test_generate_unique_page_attribute_value_translation_payload(
     assert translation_keys["rich_text"] == translated_attribute_value.rich_text
 
 
+@freeze_time("1914-06-28 10:50")
 def test_generate_customer_payload(customer_user, address_other_country, address):
 
     customer = customer_user
     customer.default_billing_address = address_other_country
     customer.save()
     payload = json.loads(generate_customer_payload(customer))[0]
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
     expected_payload = {
         "type": "User",
         "id": graphene.Node.to_global_id("User", customer.id),
+        "meta": {
+            "issuing_principal": {"id": None, "type": None},
+            "issued_at": timestamp,
+            "version": __version__,
+        },
         "default_shipping_address": {
             "type": "Address",
             "id": graphene.Node.to_global_id(
@@ -823,3 +872,42 @@ def test_genereate_sale_payload_calculates_set_differences(sale):
     assert set(payload["products_added"]) == {10, 20}
     assert set(payload["variants_added"]) == {"ddd"}
     assert set(payload["variants_removed"]) == {"ccc"}
+
+
+def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
+    request = rf.request()
+    request.user = staff_user
+    request.app = None
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_requestor(requestor) == {
+        "id": graphene.Node.to_global_id("User", staff_user.id),
+        "type": "user",
+    }
+
+
+def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
+    request = rf.request()
+    request.user = None
+    request.app = app
+    requestor = get_user_or_app_from_context(request)
+
+    assert generate_requestor(requestor) == {"id": app.name, "type": "app"}
+
+
+@freeze_time("1914-06-28 10:50")
+def test_generate_meta(app, rf):
+    request = rf.request()
+    request.app = app
+    request.user = None
+    requestor = get_user_or_app_from_context(request)
+
+    timestamp = timezone.make_aware(
+        datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+    ).isoformat()
+
+    assert generate_meta(requestor_data=generate_requestor(requestor)) == {
+        "issuing_principal": {"id": "Sample app objects", "type": "app"},
+        "issued_at": timestamp,
+        "version": __version__,
+    }

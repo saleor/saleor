@@ -464,8 +464,6 @@ type AssignedVariantAttribute {
 
 type Attribute implements Node & ObjectWithMetadata {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   inputType: AttributeInputTypeEnum
@@ -483,6 +481,8 @@ type Attribute implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
   storefrontSearchPosition: Int!
   withChoices: Boolean!
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
 }
 
 type AttributeBulkDelete {
@@ -2611,6 +2611,7 @@ enum InvoiceErrorCode {
   NUMBER_NOT_SET
   NOT_FOUND
   INVALID_STATUS
+  NO_INVOICE_PLUGIN
 }
 
 type InvoiceRequest {
@@ -5709,6 +5710,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   sku: String
   product: Product!
   trackInventory: Boolean!
+  quantityLimitPerCustomer: Int
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -5724,7 +5726,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
-  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int!
+  quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
 }
 
@@ -5741,6 +5743,7 @@ input ProductVariantBulkCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   stocks: [StockInput!]
   channelListings: [ProductVariantChannelListingAddInput!]
 }
@@ -5796,6 +5799,7 @@ input ProductVariantCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
   product: ID!
   stocks: [StockInput!]
 }
@@ -5819,6 +5823,7 @@ input ProductVariantInput {
   trackInventory: Boolean
   weight: WeightScalar
   preorder: PreorderSettingsInput
+  quantityLimitPerCustomer: Int
 }
 
 type ProductVariantPreorderDeactivate {
@@ -5896,7 +5901,7 @@ input PublishableChannelListingInput {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhookEvents: [WebhookEvent]
+  webhookEvents: [WebhookEvent] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
   webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
@@ -6438,6 +6443,7 @@ type Shop {
   automaticFulfillmentDigitalProducts: Boolean
   reserveStockDurationAnonymousUser: Int
   reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
@@ -6499,6 +6505,7 @@ input ShopSettingsInput {
   customerSetPasswordUrl: String
   reserveStockDurationAnonymousUser: Int
   reserveStockDurationAuthenticatedUser: Int
+  limitQuantityPerCheckout: Int
 }
 
 type ShopSettingsTranslate {
@@ -7143,7 +7150,6 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
   isPrivate: Boolean!
@@ -7151,6 +7157,7 @@ type Warehouse implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
 }
 
 enum WarehouseClickAndCollectOptionEnum {
@@ -7254,7 +7261,9 @@ type Webhook implements Node {
   isActive: Boolean!
   secretKey: String
   id: ID!
-  events: [WebhookEvent!]!
+  events: [WebhookEvent!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.")
+  syncEvents: [WebhookEventSync!]!
+  asyncEvents: [WebhookEventAsync!]!
   app: App!
 }
 
@@ -7268,6 +7277,8 @@ input WebhookCreateInput {
   name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
+  asyncEvents: [WebhookEventTypeAsyncEnum!]
+  syncEvents: [WebhookEventTypeSyncEnum!]
   app: ID
   isActive: Boolean
   secretKey: String
@@ -7296,6 +7307,55 @@ enum WebhookErrorCode {
 type WebhookEvent {
   eventType: WebhookEventTypeEnum!
   name: String!
+}
+
+type WebhookEventAsync {
+  eventType: WebhookEventTypeAsyncEnum!
+  name: String!
+}
+
+type WebhookEventSync {
+  eventType: WebhookEventTypeSyncEnum!
+  name: String!
+}
+
+enum WebhookEventTypeAsyncEnum {
+  ANY_EVENTS
+  ORDER_CREATED
+  ORDER_CONFIRMED
+  ORDER_FULLY_PAID
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
+  INVOICE_REQUESTED
+  INVOICE_DELETED
+  INVOICE_SENT
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  PRODUCT_VARIANT_CREATED
+  PRODUCT_VARIANT_UPDATED
+  PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_OUT_OF_STOCK
+  PRODUCT_VARIANT_BACK_IN_STOCK
+  CHECKOUT_CREATED
+  CHECKOUT_UPDATED
+  FULFILLMENT_CREATED
+  FULFILLMENT_CANCELED
+  NOTIFY_USER
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
 }
 
 enum WebhookEventTypeEnum {
@@ -7345,6 +7405,17 @@ enum WebhookEventTypeEnum {
   TRANSLATION_UPDATED
 }
 
+enum WebhookEventTypeSyncEnum {
+  PAYMENT_AUTHORIZE
+  PAYMENT_CAPTURE
+  PAYMENT_CONFIRM
+  PAYMENT_LIST_GATEWAYS
+  PAYMENT_PROCESS
+  PAYMENT_REFUND
+  PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
+}
+
 enum WebhookSampleEventTypeEnum {
   ORDER_CREATED
   ORDER_CONFIRMED
@@ -7379,14 +7450,6 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
-  PAYMENT_AUTHORIZE
-  PAYMENT_CAPTURE
-  PAYMENT_CONFIRM
-  PAYMENT_LIST_GATEWAYS
-  PAYMENT_PROCESS
-  PAYMENT_REFUND
-  PAYMENT_VOID
-  SHIPPING_LIST_METHODS_FOR_CHECKOUT
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -7401,6 +7464,8 @@ input WebhookUpdateInput {
   name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
+  asyncEvents: [WebhookEventTypeAsyncEnum!]
+  syncEvents: [WebhookEventTypeSyncEnum!]
   app: ID
   isActive: Boolean
   secretKey: String

@@ -8,6 +8,7 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events, models
 from ....order.error_codes import OrderErrorCode
+from ....order.search import update_order_search_document
 from ....order.utils import (
     create_order_discount_for_order,
     get_order_discounts,
@@ -251,6 +252,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         order.refresh_from_db()
 
         cls.recalculate_order(order)
+        update_order_search_document(order)
 
         return OrderDiscountDelete(order=order)
 
