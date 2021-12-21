@@ -30,7 +30,7 @@ def test_allocate_stocks(order_line, stock, channel_USD):
     stock.refresh_from_db()
     assert stock.quantity == 100
     allocation = Allocation.objects.get(order_line=order_line, stock=stock)
-    assert allocation.quantity_allocated == 50
+    assert allocation.quantity_allocated == stock.quantity_allocated == 50
 
 
 def test_allocate_stocks_multiple_lines(order_line, order, product, stock, channel_USD):
@@ -62,11 +62,11 @@ def test_allocate_stocks_multiple_lines(order_line, order, product, stock, chann
     stock.refresh_from_db()
     assert stock.quantity == 100
     allocation = Allocation.objects.get(order_line=order_line, stock=stock)
-    assert allocation.quantity_allocated == quantity_1
+    assert allocation.quantity_allocated == stock.quantity_allocated == quantity_1
 
     stock_2.refresh_from_db()
     allocation = Allocation.objects.get(order_line=order_line_2, stock=stock_2)
-    assert allocation.quantity_allocated == quantity_2
+    assert allocation.quantity_allocated == stock_2.quantity_allocated == quantity_2
 
 
 def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channel_USD):
@@ -77,8 +77,8 @@ def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channe
     allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
-    assert allocations[0].quantity_allocated == 4
-    assert allocations[1].quantity_allocated == 1
+    assert allocations[0].quantity_allocated == stocks[0].quantity_allocated == 4
+    assert allocations[1].quantity_allocated == stocks[1].quantity_allocated == 1
 
 
 def test_allocate_stock_many_stocks_partially_allocated(
@@ -179,7 +179,8 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
 def test_deallocate_stock(allocation):
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
@@ -193,6 +194,7 @@ def test_deallocate_stock(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 100
+    assert stock.quantity_allocated == 0
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 0
 
@@ -200,7 +202,8 @@ def test_deallocate_stock(allocation):
 def test_deallocate_stock_partially(allocation):
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
@@ -214,6 +217,7 @@ def test_deallocate_stock_partially(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 100
+    assert stock.quantity_allocated == 30
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 30
 
@@ -249,7 +253,8 @@ def test_deallocate_stock_many_allocations_partially(
 def test_increase_stock_without_allocate(allocation):
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
@@ -257,6 +262,7 @@ def test_increase_stock_without_allocate(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 150
+    assert stock.quantity_allocated == 80
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 80
 
@@ -264,7 +270,8 @@ def test_increase_stock_without_allocate(allocation):
 def test_increase_stock_with_allocate(allocation):
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
@@ -272,6 +279,7 @@ def test_increase_stock_with_allocate(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 150
+    assert stock.quantity_allocated == 130
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 130
 
@@ -285,6 +293,7 @@ def test_increase_stock_with_new_allocation(order_line, stock):
 
     stock.refresh_from_db()
     assert stock.quantity == 150
+    assert stock.quantity_allocated == 50
     allocation = Allocation.objects.get(order_line=order_line, stock=stock)
     assert allocation.quantity_allocated == 50
 
@@ -300,7 +309,8 @@ def test_increase_allocations(quantity, allocation):
     )
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     initially_allocated = 80
     allocation.quantity_allocated = initially_allocated
     allocation.save(update_fields=["quantity_allocated"])
@@ -313,6 +323,7 @@ def test_increase_allocations(quantity, allocation):
         order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
             "quantity_allocated__sum"
         ]
+        == stock.quantity_allocated
         == initially_allocated + quantity
     )
 
@@ -325,10 +336,11 @@ def test_increase_allocation_insufficient_stock(allocation):
         variant=order_line.variant,
         warehouse_pk=allocation.stock.warehouse.pk,
     )
+    initially_allocated = 80
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
-    initially_allocated = 80
+    stock.quantity_allocated = initially_allocated
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = initially_allocated
     allocation.save(update_fields=["quantity_allocated"])
 
@@ -337,6 +349,7 @@ def test_increase_allocation_insufficient_stock(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 100
+    assert stock.quantity_allocated == initially_allocated
     assert (
         order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
             "quantity_allocated__sum"
@@ -348,7 +361,8 @@ def test_increase_allocation_insufficient_stock(allocation):
 def test_decrease_stock(allocation):
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
@@ -366,6 +380,7 @@ def test_decrease_stock(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 50
+    assert stock.quantity_allocated == 30
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 30
 

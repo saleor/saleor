@@ -44,7 +44,7 @@ def allocate_stocks(
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")
     )
-    stocks_id = (stock.pop("id") for stock in stocks)
+    stocks_id = [stock.pop("id") for stock in stocks]
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
@@ -83,6 +83,8 @@ def allocate_stocks(
 
     if allocations:
         Allocation.objects.bulk_create(allocations)
+        for stock in Stock.objects.filter(id__in=stocks_id):
+            stock.recalculate_quantity_allocated()
 
 
 def _create_allocations(
@@ -179,6 +181,9 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
         raise AllocationError(not_dellocated_lines)
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
+    stock_ids = [alloc.stock_id for alloc in lines_allocations]
+    for stock in Stock.objects.filter(id__in=stock_ids):
+        stock.recalculate_quantity_allocated()
 
 
 @traced_atomic_transaction()
@@ -218,6 +223,8 @@ def increase_stock(
             Allocation.objects.create(
                 order_line=order_line, stock=stock, quantity_allocated=quantity
             )
+        stock.quantity_allocated = F("quantity_allocated") + quantity
+        stock.save(update_fields=["quantity_allocated"])
 
 
 @traced_atomic_transaction()
