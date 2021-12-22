@@ -580,7 +580,7 @@ def handle_order_opened(notification: Dict[str, Any], gateway_config: GatewayCon
     #
     # In this case we just logging here that we received the webhook properly.
 
-    logger.info(f"First payment request as a partial payment. psp: {notification}")
+    logger.info(f"First payment request as a partial payment. {notification}")
 
 
 def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayConfig):
