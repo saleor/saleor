@@ -561,11 +561,16 @@ class AvataxPlugin(BasePlugin):
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
         )
 
-        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
-        taxed_total_prices_data = self._calculate_checkout_line_total_price(
-            taxes_data, checkout_line_info.variant.sku, tax_included, previous_value
-        )
         quantity = checkout_line_info.line.quantity
+        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
+        default_total = CheckoutTaxedPricesData(
+            price_with_discounts=previous_value.price_with_discounts * quantity,
+            price_with_sale=previous_value.price_with_sale * quantity,
+            undiscounted_price=previous_value.undiscounted_price * quantity,
+        )
+        taxed_total_prices_data = self._calculate_checkout_line_total_price(
+            taxes_data, checkout_line_info.variant.sku, tax_included, default_total
+        )
         return CheckoutTaxedPricesData(
             undiscounted_price=taxed_total_prices_data.undiscounted_price / quantity,
             price_with_sale=taxed_total_prices_data.price_with_sale / quantity,
@@ -588,11 +593,15 @@ class AvataxPlugin(BasePlugin):
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
         )
 
-        taxes_data = self._get_order_tax_data(order, previous_value)
-        taxed_total_prices_data = self._calculate_order_line_total_price(
-            taxes_data, variant.sku, tax_included, previous_value
-        )
         quantity = order_line.quantity
+        taxes_data = self._get_order_tax_data(order, previous_value)
+        default_total = OrderTaxedPricesData(
+            price_with_discounts=previous_value.price_with_discounts * quantity,
+            undiscounted_price=previous_value.undiscounted_price * quantity,
+        )
+        taxed_total_prices_data = self._calculate_order_line_total_price(
+            taxes_data, variant.sku, tax_included, default_total
+        )
         return OrderTaxedPricesData(
             undiscounted_price=taxed_total_prices_data.undiscounted_price / quantity,
             price_with_discounts=taxed_total_prices_data.price_with_discounts
