@@ -225,3 +225,4 @@ checkout-sdk==2.0b8
 algoliasearch>=2.0,<3.0
 gql==2.0.0
 django-celery-results==2.2.0
+-e saleor/plugins/algolia/
