@@ -3,7 +3,7 @@ interactions:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "O9999999", "taxIncluded":
       false, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR020100", "taxIncluded": false, "itemCode": "Shipping",
+      "10.000", "taxCode": "FR000000", "taxIncluded": false, "itemCode": "Shipping",
       "description": null}], "code": "e30b79c9-1489-46d1-8189-f6a474a3b250", "date":
       "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":

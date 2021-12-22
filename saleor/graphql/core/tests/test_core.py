@@ -93,10 +93,10 @@ def test_reporting_period_to_date():
     assert start_date.microsecond == 0
 
 
-def test_require_pagination(api_client):
+def test_require_pagination(api_client, channel_USD):
     query = """
-    query {
-        products {
+    query GetProducts($channel: String) {
+        products(channel: $channel) {
             edges {
                 node {
                     name
@@ -105,7 +105,7 @@ def test_require_pagination(api_client):
         }
     }
     """
-    response = api_client.post_graphql(query)
+    response = api_client.post_graphql(query, {"channel": channel_USD.slug})
     content = get_graphql_content_from_response(response)
     assert "errors" in content
     assert content["errors"][0]["message"] == (

@@ -3,6 +3,7 @@ from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
+from ...shipping import interface as shipping_interface
 from ...shipping import models as shipping_models
 from ...site import models as site_models
 from . import dataloaders
@@ -28,6 +29,9 @@ TYPE_TO_TRANSLATION_LOADER_MAP = {
     shipping_models.ShippingMethod: (
         dataloaders.ShippingMethodTranslationByIdAndLanguageCodeLoader
     ),
+    shipping_interface.ShippingMethodData: (
+        dataloaders.ShippingMethodTranslationByIdAndLanguageCodeLoader
+    ),
     site_models.SiteSettings: (
         dataloaders.SiteSettingsTranslationByIdAndLanguageCodeLoader
     ),
@@ -40,7 +44,7 @@ def resolve_translation(instance, info, language_code):
 
     loader = TYPE_TO_TRANSLATION_LOADER_MAP.get(type(instance))
     if loader:
-        return loader(info.context).load((instance.pk, language_code))
+        return loader(info.context).load((instance.id, language_code))
     raise TypeError(f"No dataloader found to {type(instance)}")
 
 
