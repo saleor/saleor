@@ -3,10 +3,12 @@ from typing import DefaultDict, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
+from saleor.core.exceptions import PermissionDenied
 from saleor.plugins.customer_group.graphql.errors import CustomerGroupError
 
 from ....graphql.core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from .. import models
+from .custom_permissions import CustomerGroupPermissions
 from .types import CustomerGroupType
 
 
@@ -36,6 +38,7 @@ class CustomerGroupCreate(ModelMutation):
         description = "Creates new customer group."
         model = models.CustomerGroup
         error_type_class = CustomerGroupError
+        permissions = (CustomerGroupPermissions.MANAGE_STAFF,)
 
     @classmethod
     def check_permissions(cls, context):
@@ -69,15 +72,11 @@ class CustomerGroupUpdate(ModelMutation):
         description = "Update a customer group"
         model = models.CustomerGroup
         error_type_class = CustomerGroupError
+        permissions = (CustomerGroupPermissions.MANAGE_STAFF,)
 
     @classmethod
     def check_permissions(cls, context):
         return context.user.is_authenticated
-
-    @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
-        return cleaned_input
 
 
 class CustomerGroupDeleteInput(graphene.InputObjectType):
@@ -90,18 +89,37 @@ class CustomerGroupDeleteInput(graphene.InputObjectType):
 class CustomerGroupDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of customrt group to delete")
-        input = CustomerGroupDeleteInput(
-            description="Fields required to delete a customer group"
-        )
 
     class Meta:
         description = "delete the customer group"
         model = models.CustomerGroup
         error_type_class = CustomerGroupError
+        permissions = (CustomerGroupPermissions.MANAGE_STAFF,)
 
     @classmethod
     def check_permissions(cls, context):
         return context.user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        """Perform a mutation that deletes a model instance."""
+        if not cls.check_permissions(info.context):
+            raise PermissionDenied()
+
+        node_id = data.get("id")
+        model_type = cls.get_type_for_model()
+        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+
+        if instance:
+            cls.clean_instance(info, instance)
+
+        db_id = instance.id
+        instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        return cls.success_response(instance)
 
 
 ErrorType = DefaultDict[str, List[ValidationError]]
