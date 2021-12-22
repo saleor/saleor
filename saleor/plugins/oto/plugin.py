@@ -136,8 +136,8 @@ class OTOPlugin(BasePlugin):
             )
         else:
             logger.info(
-                msg=f"OTO order {response.get('otoId')} canceled",
-                extra={"order_id": fulfillment.order.id},
+                msg=f"OTO order {fulfillment.composed_id} canceled",
+                extra={"order_id": fulfillment.composed_id},
             )
 
     @require_active_plugin

@@ -123,9 +123,7 @@ def send_oto_request(
         json=data,
         headers={
             "Content-Type": "application/json",
-            "Authorization": "Bearer {}".format(
-                config.connection_params.get("ACCESS_TOKEN")
-            ),
+            "Authorization": f"Bearer {config.connection_params.get('ACCESS_TOKEN')}",
         },
     )
     return response.json()
