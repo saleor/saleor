@@ -13,12 +13,12 @@ from .utils import normalize_config
 class OAuth2Plugin(BasePlugin):
     PLUGIN_ID = "social-login"
     PLUGIN_NAME = "OAuth2 support"
-    DEFAULT_ACTIVE = False
+    DEFAULT_ACTIVE = True
     PLUGIN_DESCRIPTION = "A plugin that adds support for OAuth2 and currently supports Google and Facebook"  # noqa: E501
     CONFIGURATION_PER_CHANNEL = False
 
     DEFAULT_CONFIGURATION = [
-        {"name": "providers", "value": "google, facebook"},
+        {"name": "providers", "value": ""},
         {
             "name": "google_client_id",
             "value": None,
@@ -92,8 +92,8 @@ class OAuth2Plugin(BasePlugin):
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
-        configuration = normalize_config(plugin_configuration)
-        providers = configuration["providers"].split(",")
+        configuration = normalize_config(plugin_configuration.configuration)
+        providers = list(filter(bool, configuration["providers"].split(",")))
         errors: Mapping[str, List] = {provider: [] for provider in providers}
 
         for provider in providers:
