@@ -22,6 +22,10 @@ class JWTMiddleware:
     def resolve(self, next, root, info, **kwargs):
         request = info.context
 
+        if hasattr(request, "app") and request.app:
+            request.user = AnonymousUser()
+            return next(root, info, **kwargs)
+
         def user():
             return get_user(request) or AnonymousUser()
 
