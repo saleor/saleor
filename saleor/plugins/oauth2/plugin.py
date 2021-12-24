@@ -13,7 +13,7 @@ from .utils import normalize_config
 class OAuth2Plugin(BasePlugin):
     PLUGIN_ID = "social-login"
     PLUGIN_NAME = "OAuth2 support"
-    DEFAULT_ACTIVE = True
+    DEFAULT_ACTIVE = False
     PLUGIN_DESCRIPTION = "A plugin that adds support for OAuth2 and currently supports Google and Facebook"  # noqa: E501
     CONFIGURATION_PER_CHANNEL = False
 
