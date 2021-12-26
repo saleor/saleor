@@ -6,12 +6,13 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 
 from saleor.payment.interface import GatewayConfig
-from .utils import get_oto_order_id, handle_webhook, send_oto_request
-from ..base_plugin import BasePlugin, ConfigurationTypeField
-from ..models import PluginConfiguration
+
 from ...order import FulfillmentStatus
 from ...order.models import Fulfillment, Order
 from ...payment.gateways.utils import require_active_plugin
+from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..models import PluginConfiguration
+from .utils import get_oto_order_id, handle_webhook, send_oto_request
 
 logger = logging.getLogger(__name__)
 
