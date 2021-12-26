@@ -112,7 +112,8 @@ class OAuth2Plugin(BasePlugin):
             if redirect_uri is None:
                 errors[provider].append("redirect_uri")
 
-        if plugin_configuration.active and errors:
+        print(errors)
+        if plugin_configuration.active and all(errors.values()):
             error_msg = (
                 "To enable {} plugin, you need to provide values for the "
                 "following fields: "
