@@ -6,13 +6,12 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 
 from saleor.payment.interface import GatewayConfig
-
-from ...order.models import Fulfillment, Order
-from ...payment.gateways.utils import require_active_plugin
+from .utils import get_oto_order_id, handle_webhook, send_oto_request
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
-from . import constants
-from .utils import get_oto_order_id, handle_webhook, send_oto_request
+from ...order import FulfillmentStatus
+from ...order.models import Fulfillment, Order
+from ...payment.gateways.utils import require_active_plugin
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 class OTOPlugin(BasePlugin):
     PLUGIN_NAME = "OTO"
     DEFAULT_ACTIVE = False
-    PLUGIN_ID = constants.PLUGIN_ID
+    PLUGIN_ID = "wecre8.oto"
     CONFIGURATION_PER_CHANNEL = False
     PLUGIN_DESCRIPTION = "Plugin responsible for ship orders using OTO."
 
@@ -124,6 +123,8 @@ class OTOPlugin(BasePlugin):
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         # Cancel an OTO order.
+        if fulfillment.status == FulfillmentStatus.CANCELED:
+            return previous_value
         response = send_oto_request(fulfillment, self.config, "cancelOrder")
         if not response.get("success") is True:
             msg = (
@@ -139,10 +140,6 @@ class OTOPlugin(BasePlugin):
                 msg=f"OTO order {fulfillment.composed_id} canceled",
                 extra={"order_id": fulfillment.composed_id},
             )
-
-    @require_active_plugin
-    def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
-        pass
 
     @require_active_plugin
     def order_updated(self, order: "Order", previous_value: Any) -> Any:

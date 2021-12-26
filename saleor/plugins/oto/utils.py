@@ -8,8 +8,11 @@ import requests
 from django.contrib.sites.models import Site
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
+from saleor.account.models import User
+from saleor.order.actions import cancel_fulfillment
 from saleor.order.models import Fulfillment
 from saleor.payment.interface import GatewayConfig
+from saleor.plugins.manager import get_plugins_manager
 
 logger = logging.Logger(__name__)
 
@@ -171,9 +174,16 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig):
             fulfillment.save(update_fields=["tracking_number", "private_metadata"])
             logger.info("Fulfillment #%s updated", fulfillment.composed_id)
 
-            # Cancel order if status is cancelled
+            # Cancel order if OTO user cancel the OTO order
+            user, _ = User.objects.get_or_create(email="admin@example.com")
             if status == "canceled":
-                # TODO: Cancel the fulfillment
+                cancel_fulfillment(
+                    app=None,
+                    user=user,
+                    warehouse=None,
+                    fulfillment=fulfillment,
+                    manager=get_plugins_manager(),
+                )
                 logger.info("Fulfillment #%s cancelled", fulfillment.composed_id)
             return HttpResponse("OK")
         else:
