@@ -48,6 +48,11 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
       node {
         name
         slug
+        collections {
+          id
+          name
+          slug
+        }
         metadata {
           key
           value
