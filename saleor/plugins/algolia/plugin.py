@@ -32,15 +32,9 @@ class AlgoliaPlugin(BasePlugin):
             "help_text": "Algolia application id",
             "type": ConfigurationTypeField.SECRET,
         },
-        "ALGOLIA_INDEX_PREFIX": {
-            "label": "Algolia index prefix",
-            "help_text": "Algolia index prefix",
-            "type": ConfigurationTypeField.STRING,
-        },
     }
     DEFAULT_CONFIGURATION = [
         {"name": "ALGOLIA_API_KEY", "value": None},
-        {"name": "ALGOLIA_INDEX_PREFIX", "value": None},
         {"name": "ALGOLIA_APPLICATION_ID", "value": None},
     ]
 
@@ -50,7 +44,6 @@ class AlgoliaPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = {
             "ALGOLIA_API_KEY": configuration["ALGOLIA_API_KEY"],
-            "ALGOLIA_INDEX_PREFIX": configuration["ALGOLIA_INDEX_PREFIX"],
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
 

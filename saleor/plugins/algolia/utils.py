@@ -195,8 +195,7 @@ def get_algolia_indices(config: Dict, locale: str):
         app_id=config["ALGOLIA_APPLICATION_ID"],
     )
 
-    algolia_index_prefix = config["ALGOLIA_INDEX_PREFIX"]
-    index = client.init_index(name=f"{algolia_index_prefix}_products_{locale}")
+    index = client.init_index(name=f"products_{locale}")
     index.set_settings(
         settings={
             "searchableAttributes": [
