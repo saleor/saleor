@@ -158,10 +158,11 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig):
             order__pk=int(orderId[0].split("#")[1]), fulfillment_order=int(orderId[1])
         ).first()
         if fulfillment:
+            status = data.get("status", "")
             fulfillment.tracking_number = data.get("trackingNumber", "")
             fulfillment.store_value_in_private_metadata(
                 items={
-                    "otoStatus": data.get("status", ""),
+                    "otoStatus": status,
                     "printAWBURL": data.get("printAWBURL", ""),
                     "feedbackLink": data.get("feedbackLink", ""),
                     "shippingCompanyStatus": data.get("dcStatus", ""),
@@ -169,6 +170,11 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig):
             )
             fulfillment.save(update_fields=["tracking_number", "private_metadata"])
             logger.info("Fulfillment #%s updated", fulfillment.composed_id)
+
+            # Cancel order if status is cancelled
+            if status == "canceled":
+                # TODO: Cancel the fulfillment
+                logger.info("Fulfillment #%s cancelled", fulfillment.composed_id)
             return HttpResponse("OK")
         else:
             logger.info(f"Fulfillment {data.get('orderId')} not found")
