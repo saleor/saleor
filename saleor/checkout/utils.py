@@ -643,7 +643,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_valid_saleor_shipping_methods_for_checkout(
+def get_valid_internal_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
