@@ -176,12 +176,6 @@ class SetPasswordByCode(CreateToken):
         account_events.customer_password_reset_event(user=user)
 
     @classmethod
-    def activate_user_account(cls, user):
-        if not user.is_active:
-            user.is_active = True
-            user.save(update_fields=["is_active"])
-
-    @classmethod
     def perform_mutation(cls, root, info, **data):
         password = data["password"]
         code = data["code"]
@@ -189,7 +183,6 @@ class SetPasswordByCode(CreateToken):
         try:
             user = cls.get_user(info, data)
             cls._set_password_for_user(user, password, code)
-            cls.activate_user_account(user)
         except ValidationError as e:
             return cls.handle_errors(e)
         return super().perform_mutation(root, info, **data)
