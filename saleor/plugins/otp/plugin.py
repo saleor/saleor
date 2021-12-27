@@ -4,6 +4,7 @@ from .graphql.schema import schema
 
 
 class OTPPlugin(BasePlugin):
+    name = "OTP"  # tackle saleor#8873
     PLUGIN_ID = "otp"
     PLUGIN_NAME = "OTP"
     DEFAULT_ACTIVE = True

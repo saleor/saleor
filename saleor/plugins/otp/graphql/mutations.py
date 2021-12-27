@@ -25,7 +25,7 @@ class OTPError(Error):
 
 
 def send_password_reset_notification(
-    user, manager, channel_slug: Optional[str], staff=False
+    user, manager, channel_slug: Optional[str], staff=False, reset_url=None
 ):
 
     otp = OTP.objects.create(user=user)
@@ -37,6 +37,13 @@ def send_password_reset_notification(
         "channel_slug": channel_slug,
         **get_site_context(),
     }
+
+    if reset_url:
+        payload.update(
+            {
+                "reset_url": reset_url,
+            }
+        )
 
     event = (
         NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD
@@ -77,20 +84,18 @@ class RequestPasswordRecovery(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        email = data["email"]
-        channel_slug = data.get("channel")
+    def perform_mutation(cls, _root, info, email, channel=None):
         user = cls.clean_user(email)
 
         if not user.is_staff:
-            channel_slug = clean_channel(channel_slug, error_class=OTPErrorCode).slug
-        elif channel_slug is not None:
-            channel_slug = validate_channel(channel_slug, error_class=OTPErrorCode).slug
+            channel = clean_channel(channel, error_class=OTPErrorCode).slug
+        elif channel is not None:
+            channel = validate_channel(channel, error_class=OTPErrorCode).slug
 
         send_password_reset_notification(
             user,
             info.context.plugins,
-            channel_slug=channel_slug,
+            channel_slug=channel,
             staff=user.is_staff,
         )
         return RequestPasswordRecovery()
