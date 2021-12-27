@@ -28,6 +28,7 @@ from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
+from ..translations.resolvers import resolve_translation
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
@@ -347,7 +348,7 @@ class ShippingMethod(graphene.ObjectType):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=resolve_translation,
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
