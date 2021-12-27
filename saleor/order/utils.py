@@ -3,6 +3,7 @@ from decimal import Decimal
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
+import graphene
 from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
@@ -13,7 +14,11 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
-from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
+from ..discount.utils import (
+    get_products_voucher_discount,
+    get_sale_id_applied_as_a_discount,
+    validate_voucher_in_order,
+)
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
@@ -197,19 +202,15 @@ def update_taxes_for_order_line(
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
     line.unit_price = TaxedMoney(line_price, line_price)
 
-    unit_price = manager.calculate_order_line_unit(order, line, variant, product)
-    total_price = manager.calculate_order_line_total(order, line, variant, product)
-    line.unit_price = unit_price
-    line.total_price = total_price
-    line.undiscounted_unit_price = line.unit_price + line.unit_discount
-    line.undiscounted_total_price = (
-        line.undiscounted_unit_price * line.quantity
-        if line.unit_discount
-        else total_price
-    )
-    if unit_price.tax and unit_price.net:
+    unit_price_data = manager.calculate_order_line_unit(order, line, variant, product)
+    total_price_data = manager.calculate_order_line_total(order, line, variant, product)
+    line.unit_price = unit_price_data.price_with_discounts
+    line.total_price = total_price_data.price_with_discounts
+    line.undiscounted_unit_price = unit_price_data.undiscounted_price
+    line.undiscounted_total_price = total_price_data.undiscounted_price
+    if line.unit_price.tax and line.unit_price.net:
         line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, unit_price
+            order, product, variant, None, line.unit_price
         )
 
 
@@ -317,7 +318,15 @@ def update_order_status(order):
 
 @traced_atomic_transaction()
 def add_variant_to_order(
-    order, variant, quantity, user, app, manager, discounts=None, allocate_stock=False
+    order,
+    variant,
+    quantity,
+    user,
+    app,
+    manager,
+    site_settings,
+    discounts=None,
+    allocate_stock=False,
 ):
     """Add total_quantity of variant to order.
 
@@ -343,11 +352,24 @@ def add_variant_to_order(
         product = variant.product
         collections = product.collections.all()
         channel_listing = variant.channel_listings.get(channel=channel)
+
+        # vouchers are not applied for new lines in unconfirmed/draft orders
         unit_price = variant.get_price(
             product, collections, channel, channel_listing, discounts
         )
+        if not discounts:
+            undiscounted_price = unit_price
+        else:
+            undiscounted_price = variant.get_price(
+                product, collections, channel, channel_listing, []
+            )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        undiscounted_unit_price = TaxedMoney(
+            net=undiscounted_price, gross=undiscounted_price
+        )
         total_price = unit_price * quantity
+        undiscounted_total_price = unit_price * quantity
+
         product_name = str(product)
         variant_name = str(variant)
         translated_product_name = str(product.translated)
@@ -367,18 +389,49 @@ def add_variant_to_order(
             is_gift_card=variant.is_gift_card(),
             quantity=quantity,
             unit_price=unit_price,
+            undiscounted_unit_price=undiscounted_unit_price,
             total_price=total_price,
+            undiscounted_total_price=undiscounted_total_price,
             variant=variant,
         )
-        unit_price = manager.calculate_order_line_unit(order, line, variant, product)
-        total_price = manager.calculate_order_line_total(order, line, variant, product)
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
+        unit_price_data = manager.calculate_order_line_unit(
+            order, line, variant, product
+        )
+        total_line_price_data = manager.calculate_order_line_total(
+            order, line, variant, product
+        )
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_line_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_line_price_data.undiscounted_price
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
+
+        unit_discount = line.undiscounted_unit_price - line.unit_price
+        if unit_discount.gross:
+            sale_id = get_sale_id_applied_as_a_discount(
+                product=product,
+                price=channel_listing.price,
+                discounts=discounts,
+                collections=collections,
+                channel=channel,
+                variant_id=variant.id,
+            )
+            taxes_included_in_prices = site_settings.include_taxes_in_prices
+            if taxes_included_in_prices:
+                discount_amount = unit_discount.gross
+            else:
+                discount_amount = unit_discount.net
+            line.unit_discount = discount_amount
+            line.unit_discount_value = discount_amount.amount
+            line.unit_discount_reason = (
+                f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
+            )
+            line.sale_id = (
+                graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
+            )
+
         line.save(
             update_fields=[
                 "currency",
@@ -391,6 +444,10 @@ def add_variant_to_order(
                 "undiscounted_total_price_gross_amount",
                 "undiscounted_total_price_net_amount",
                 "tax_rate",
+                "unit_discount_amount",
+                "unit_discount_value",
+                "unit_discount_reason",
+                "sale_id",
             ]
         )
 

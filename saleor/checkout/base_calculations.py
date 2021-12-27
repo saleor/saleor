@@ -12,8 +12,9 @@ from prices import TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
 from ..discount import DiscountInfo
+from ..order.interface import OrderTaxedPricesData
 from .fetch import CheckoutLineInfo, ShippingMethodInfo
-from .interface import PricesData, TaxedPricesData
+from .interface import CheckoutPricesData, CheckoutTaxedPricesData
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -25,7 +26,7 @@ def calculate_base_line_unit_price(
     line_info: CheckoutLineInfo,
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> PricesData:
+) -> CheckoutPricesData:
     """Calculate line unit prices including discounts and vouchers.
 
     Returns a three money values. Undiscounted price, price and price with voucher.
@@ -67,7 +68,7 @@ def calculate_base_line_unit_price(
     else:
         price_with_discounts = variant_price
 
-    return PricesData(
+    return CheckoutPricesData(
         undiscounted_price=quantize_price(
             undiscounted_variant_price, undiscounted_variant_price.currency
         ),
@@ -82,7 +83,7 @@ def calculate_base_line_total_price(
     line_info: CheckoutLineInfo,
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> PricesData:
+) -> CheckoutPricesData:
     """Calculate line total prices including discounts and vouchers.
 
     Returns a three money values. Undiscounted price, price and price with voucher.
@@ -107,7 +108,7 @@ def calculate_base_line_total_price(
         # we add -1 as we handle a case when voucher is applied only to single line
         # of the cheapest line
         quantity_without_voucher = line_info.line.quantity - 1
-        prices_data = PricesData(
+        prices_data = CheckoutPricesData(
             price_with_discounts=(
                 prices_data.price_with_sale * quantity_without_voucher
                 + variant_price_with_discounts
@@ -116,7 +117,7 @@ def calculate_base_line_total_price(
             undiscounted_price=prices_data.undiscounted_price * line_info.line.quantity,
         )
     else:
-        prices_data = PricesData(
+        prices_data = CheckoutPricesData(
             price_with_sale=prices_data.price_with_sale * line_info.line.quantity,
             price_with_discounts=prices_data.price_with_discounts
             * line_info.line.quantity,
@@ -194,12 +195,12 @@ def base_checkout_line_total(
     checkout_line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> TaxedPricesData:
+) -> CheckoutTaxedPricesData:
     """Return the total price of this line."""
     prices_data = calculate_base_line_total_price(
         line_info=checkout_line_info, channel=channel, discounts=discounts
     )
-    return TaxedPricesData(
+    return CheckoutTaxedPricesData(
         price_with_sale=TaxedMoney(
             net=prices_data.price_with_sale, gross=prices_data.price_with_sale
         ),
@@ -212,9 +213,12 @@ def base_checkout_line_total(
     )
 
 
-def base_order_line_total(order_line: "OrderLine"):
-    unit_price = order_line.unit_price * order_line.quantity
-    return quantize_price(unit_price, unit_price.currency)
+def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
+    quantity = order_line.quantity
+    return OrderTaxedPricesData(
+        undiscounted_price=order_line.undiscounted_unit_price * quantity,
+        price_with_discounts=order_line.unit_price * quantity,
+    )
 
 
 def base_tax_rate(price: TaxedMoney):
@@ -233,7 +237,7 @@ def base_checkout_line_unit_price(
     prices_data = calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=channel, discounts=discounts
     )
-    return TaxedPricesData(
+    return CheckoutTaxedPricesData(
         price_with_sale=TaxedMoney(
             net=prices_data.price_with_sale, gross=prices_data.price_with_sale
         ),

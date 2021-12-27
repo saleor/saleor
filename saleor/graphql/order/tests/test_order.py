@@ -4084,6 +4084,15 @@ def test_order_lines_create_variant_on_sale(
         == variant_channel_listing.price_amount - sale_channel_listing.discount_value
     )
 
+    line = order.lines.get(product_sku=variant.sku)
+    assert line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert line.unit_discount_amount == sale_channel_listing.discount_value
+    assert line.unit_discount_value == sale_channel_listing.discount_value
+    assert (
+        line.unit_discount_reason
+        == f"Sale: {graphene.Node.to_global_id('Sale', sale.id)}"
+    )
+
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
