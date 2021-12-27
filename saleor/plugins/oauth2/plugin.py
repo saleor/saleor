@@ -94,7 +94,7 @@ class OAuth2Plugin(BasePlugin):
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         configuration = normalize_config(plugin_configuration.configuration)
         providers = list(filter(bool, configuration["providers"].split(",")))
-        errors: Mapping[str, List] = {provider: [] for provider in providers}
+        errors: Mapping[str, List] = {provider.strip(): [] for provider in providers}
 
         for provider in providers:
             provider = provider.lower()
