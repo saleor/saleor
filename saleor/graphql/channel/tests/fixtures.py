@@ -36,3 +36,14 @@ def channel_PLN(db):
         default_country="PL",
         is_active=True,
     )
+
+
+@pytest.fixture
+def channel_JPY(db):
+    return Channel.objects.create(
+        name="Channel=JPY",
+        slug="c-jpy",
+        currency_code="JPY",
+        default_country="JP",
+        is_active=True,
+    )

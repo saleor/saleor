@@ -264,8 +264,12 @@ def test_manager_calculates_order_line_total(order_line, plugins):
         if plugins
         else quantize_price(order_line.unit_price * order_line.quantity, currency)
     )
-    taxed_total = PluginsManager(plugins=plugins).calculate_order_line_total(
-        order_line.order, order_line, order_line.variant, order_line.variant.product
+    taxed_total = (
+        PluginsManager(plugins=plugins)
+        .calculate_order_line_total(
+            order_line.order, order_line, order_line.variant, order_line.variant.product
+        )
+        .price_with_discounts
     )
     assert expected_total == taxed_total
 
@@ -495,8 +499,12 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
     variant = order_line.variant
     currency = order_line.unit_price.currency
     expected_price = Money(amount, currency)
-    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(
-        order_line.order, order_line, variant, variant.product
+    unit_price = (
+        PluginsManager(plugins=plugins)
+        .calculate_order_line_unit(
+            order_line.order, order_line, variant, variant.product
+        )
+        .price_with_discounts
     )
     assert expected_price == unit_price.gross
 

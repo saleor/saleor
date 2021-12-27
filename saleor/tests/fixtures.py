@@ -289,6 +289,15 @@ def checkout(db, channel_USD):
 
 
 @pytest.fixture
+def checkout_JPY(channel_JPY):
+    checkout = Checkout.objects.create(
+        currency=channel_JPY.currency_code, channel=channel_JPY
+    )
+    checkout.set_country("JP", commit=True)
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_item(checkout, product):
     variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
@@ -300,6 +309,15 @@ def checkout_with_item(checkout, product):
 @pytest.fixture
 def checkout_line(checkout_with_item):
     return checkout_with_item.lines.first()
+
+
+@pytest.fixture
+def checkout_JPY_with_item(checkout_JPY, product_in_channel_JPY):
+    variant = product_in_channel_JPY.variants.get()
+    checkout_info = fetch_checkout_info(checkout_JPY, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 3)
+    checkout_JPY.save()
+    return checkout_JPY
 
 
 @pytest.fixture
@@ -742,6 +760,20 @@ def order_with_search_document_value(order):
 
 
 @pytest.fixture
+def order_JPY(customer_user, channel_JPY):
+    address = customer_user.default_billing_address.get_copy()
+    return Order.objects.create(
+        billing_address=address,
+        channel=channel_JPY,
+        currency=channel_JPY.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+
+
+@pytest.fixture
 def order_unconfirmed(order):
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -804,6 +836,20 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         shipping_method=method,
         minimum_order_price=Money(0, channel_USD.currency_code),
         price=Money(10, channel_USD.currency_code),
+    )
+    return shipping_zone
+
+
+@pytest.fixture
+def shipping_zone_JPY(shipping_zone, channel_JPY):
+    shipping_zone.channels.add(channel_JPY)
+    method = shipping_zone.shipping_methods.get()
+    ShippingMethodChannelListing.objects.create(
+        channel=channel_JPY,
+        currency=channel_JPY.currency_code,
+        shipping_method=method,
+        minimum_order_price=Money(0, channel_JPY.currency_code),
+        price=Money(700, channel_JPY.currency_code),
     )
     return shipping_zone
 
@@ -1723,6 +1769,29 @@ def shippable_gift_card_product(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
 
+    return product
+
+
+@pytest.fixture
+def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_JPY,
+        is_published=True,
+        discounted_price_amount="1200",
+        currency=channel_JPY.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+    variant = product.variants.get()
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_JPY,
+        price_amount=Decimal(1200),
+        cost_price_amount=Decimal(300),
+        currency=channel_JPY.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse_JPY, product_variant=variant, quantity=10)
     return product
 
 
@@ -2945,6 +3014,33 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
         order_line=line, stock=variant.stocks.first(), quantity_allocated=line.quantity
     )
     return line
+
+
+@pytest.fixture
+def order_line_JPY(order_JPY, product_in_channel_JPY):
+    product = product_in_channel_JPY
+    variant = product_in_channel_JPY.variants.get()
+    channel = order_JPY.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order_JPY.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
 
 
 @pytest.fixture
@@ -4964,6 +5060,19 @@ def warehouse(address, shipping_zone):
         email="test@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone)
+    warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
+def warehouse_JPY(address, shipping_zone_JPY):
+    warehouse = Warehouse.objects.create(
+        address=address,
+        name="Example Warehouse JPY",
+        slug="example-warehouse-jpy",
+        email="test-jpy@example.com",
+    )
+    warehouse.shipping_zones.add(shipping_zone_JPY)
     warehouse.save()
     return warehouse
 
