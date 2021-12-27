@@ -8,7 +8,14 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import (
+    ORDER_EDITABLE_STATUS,
+    FulfillmentStatus,
+    OrderLineData,
+    OrderStatus,
+    events,
+    models,
+)
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -51,8 +58,6 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-
-ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 def clean_order_update_shipping(order, method):
@@ -236,10 +241,17 @@ class OrderUpdate(DraftOrderCreate):
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
         instance.save()
+
+        invalid_price_fields = ["shipping_address", "billing_address"]
+        invalidate_prices = any(
+            cleaned_input.get(field) is not None for field in invalid_price_fields
+        )
+
         update_order_prices(
             instance,
             info.context.plugins,
             info.context.site.settings.include_taxes_in_prices,
+            invalidate_prices,
         )
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
@@ -849,7 +861,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order_lines=lines_to_add,
         )
 
-        recalculate_order(order)
+        recalculate_order(order, invalidate_prices=True)
         update_order_search_document(order)
 
         func = get_webhook_handler_by_order_status(order.status, info)
@@ -921,7 +933,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        recalculate_order(order)
+        recalculate_order(order, invalidate_prices=True)
         update_order_search_document(order)
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
@@ -992,7 +1004,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order)
+        recalculate_order(instance.order, invalidate_prices=True)
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))

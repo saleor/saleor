@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
-from django.db.models import F, QuerySet, Sum
+from django.db.models import F, QuerySet, Sum, prefetch_related_objects
 from django.utils import timezone
 
 from .. import __version__
@@ -129,7 +129,13 @@ def prepare_order_lines_allocations_payload(line):
     return warehouse_id_quantity_allocated_map
 
 
+def _charge_taxes(order_line: OrderLine) -> Optional[bool]:
+    variant = order_line.variant
+    return None if not variant else variant.product.charge_taxes
+
+
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
+    prefetch_related_objects(lines, "variant__product")
     line_fields = (
         "product_name",
         "variant_name",
@@ -171,10 +177,12 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
+            "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
             "product_variant_id": (lambda l: l.product_variant_id),
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
+            "charge_taxes": (lambda l: _charge_taxes(l)),
         },
     )
 
@@ -275,6 +283,7 @@ def generate_order_payload(
     extra_dict_data = {
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
+        "included_taxes_in_prices": include_taxes_in_prices(),
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": json.loads(
             _generate_collection_point_payload(order.collection_point)

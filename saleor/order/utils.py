@@ -16,6 +16,7 @@ from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
+from ..graphql.order.mutations.utils import invalidate_order_prices
 from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
@@ -151,7 +152,7 @@ def recalculate_order_prices(order: Order, **kwargs):
             assigned_order_discount.save(update_fields=["value", "amount_value"])
 
 
-def recalculate_order(order: Order, **kwargs):
+def recalculate_order(order: Order, invalidate_prices: bool = False, **kwargs):
     """Recalculate and assign total price of order.
 
     Total price is a sum of items in order and order shipping price minus
@@ -159,7 +160,15 @@ def recalculate_order(order: Order, **kwargs):
 
     Voucher discount amount is recalculated by default. To avoid this, pass
     update_voucher_discount argument set to False.
+
+    If you want to invalidate order prices, pass
+    invalidate_prices argument set to True.
     """
+
+    invalidate_updated_fields = []
+
+    if invalidate_prices:
+        invalidate_updated_fields = invalidate_order_prices(order, save=False)
 
     recalculate_order_prices(order, **kwargs)
 
@@ -174,6 +183,7 @@ def recalculate_order(order: Order, **kwargs):
             "undiscounted_total_gross_amount",
             "currency",
         ]
+        + invalidate_updated_fields
     )
     recalculate_order_weight(order)
 
@@ -234,7 +244,12 @@ def update_taxes_for_order_lines(
     )
 
 
-def update_order_prices(order: Order, manager: "PluginsManager", tax_included: bool):
+def update_order_prices(
+    order: Order,
+    manager: "PluginsManager",
+    tax_included: bool,
+    invalidate_prices: bool = False,
+):
     """Update prices in order with given discounts and proper taxes."""
 
     update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
@@ -254,7 +269,7 @@ def update_order_prices(order: Order, manager: "PluginsManager", tax_included: b
             ]
         )
 
-    recalculate_order(order)
+    recalculate_order(order, invalidate_prices)
 
 
 def _calculate_quantity_including_returns(order):

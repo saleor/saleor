@@ -15,6 +15,7 @@ from prices import Money, TaxedMoney
 
 from ... import __version__
 from ...core.prices import quantize_price
+from ...core.taxes import include_taxes_in_prices
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
@@ -104,6 +105,7 @@ def test_generate_order_payload(
     assert payload.get("discounts")
     assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
     assert payload.get("payments")
+    assert payload.get("included_taxes_in_prices") == include_taxes_in_prices()
     assert len(payload.get("payments")) == 1
     payments_data = payload.get("payments")[0]
     assert payments_data == {
@@ -263,6 +265,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
             total_line.gross.amount.quantize(Decimal("0.01"))
         ),
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
+        "charge_taxes": line.variant.product.charge_taxes,
         "allocations": [
             {
                 "warehouse_id": global_warehouse_id,
