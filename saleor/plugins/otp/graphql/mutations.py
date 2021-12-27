@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Optional
+from urllib.parse import urlparse
 
 import graphene
 from django.contrib.auth import get_user_model, password_validation
@@ -39,6 +40,13 @@ def send_password_reset_notification(
     }
 
     if reset_url:
+        url_components = urlparse(reset_url)
+        url_components._replace(
+            query={
+                "code": str(otp),
+            }
+        )
+
         payload.update(
             {
                 "reset_url": reset_url,
@@ -92,11 +100,17 @@ class RequestPasswordRecovery(BaseMutation):
         elif channel is not None:
             channel = validate_channel(channel, error_class=OTPErrorCode).slug
 
+        plugin = info.context.app
+        config = plugin.get_normalized_config()
+
+        redirect_url = config.get("redirect_url", None)
+
         send_password_reset_notification(
             user,
             info.context.plugins,
             channel_slug=channel,
             staff=user.is_staff,
+            reset_url=redirect_url,
         )
         return RequestPasswordRecovery()
 
