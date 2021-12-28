@@ -4,9 +4,10 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.contrib.auth.models import Permission
+from freezegun import freeze_time
 
 from ....tests.utils import dummy_editorjs
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_translation_payload
 from ...core.enums import LanguageCodeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -822,6 +823,7 @@ PRODUCT_TRANSLATE_MUTATION = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_create_translation(
     mocked_webhook_trigger,
@@ -844,9 +846,9 @@ def test_product_create_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
     translation = product.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -920,6 +922,7 @@ def test_product_create_translation_by_translatable_content_id(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_update_translation(
     mocked_webhook_trigger,
@@ -944,9 +947,9 @@ def test_product_update_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -970,6 +973,7 @@ mutation productVariantTranslate(
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_create_translation(
     mocked_webhook_trigger,
@@ -993,9 +997,9 @@ def test_product_variant_create_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation = variant.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1018,6 +1022,7 @@ def test_product_variant_create_translation_by_translatable_content_id(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_variant_update_translation(
     mocked_webhook_trigger,
@@ -1042,9 +1047,9 @@ def test_product_variant_update_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1067,6 +1072,7 @@ mutation collectionTranslate($collectionId: ID!, $input: TranslationInput!) {
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_collection_create_translation(
     mocked_webhook_trigger,
@@ -1089,9 +1095,9 @@ def test_collection_create_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
     translation = published_collection.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1150,6 +1156,7 @@ def test_collection_create_translation_for_description_name_as_null(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_collection_update_translation(
     mocked_webhook_trigger,
@@ -1176,9 +1183,9 @@ def test_collection_update_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1201,6 +1208,7 @@ mutation categoryTranslate($categoryId: ID!, $input: TranslationInput!) {
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_category_create_translation(
     mocked_webhook_trigger,
@@ -1223,9 +1231,9 @@ def test_category_create_translation(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
     translation = category.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1284,6 +1292,7 @@ def test_category_create_translation_for_description_name_as_null(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_category_update_translation(
     mocked_webhook_trigger,
@@ -1308,9 +1317,9 @@ def test_category_update_translation(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1332,6 +1341,7 @@ VOUCHER_TRANSLATE_MUTATION = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_voucher_create_translation(
     mocked_webhook_trigger,
@@ -1354,9 +1364,9 @@ def test_voucher_create_translation(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
     translation = voucher.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1378,6 +1388,7 @@ def test_voucher_create_translation_by_translatable_content_id(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_voucher_update_translation(
     mocked_webhook_trigger,
@@ -1401,9 +1412,9 @@ def test_voucher_update_translation(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1425,6 +1436,7 @@ SALE_TRANSLATION_MUTATION = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_sale_create_translation(
     mocked_webhook_trigger,
@@ -1447,9 +1459,9 @@ def test_sale_create_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
     translation = sale.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1471,6 +1483,7 @@ def test_sale_create_translation_by_translatable_content_id(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_sale_update_translation(
     mocked_webhook_trigger,
@@ -1495,9 +1508,9 @@ def test_sale_update_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1520,6 +1533,7 @@ mutation pageTranslate($pageId: ID!, $input: PageTranslationInput!) {
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_create_translation(
     mocked_webhook_trigger,
@@ -1542,9 +1556,9 @@ def test_page_create_translation(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
     translation = page.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1600,6 +1614,7 @@ def test_page_create_translation_by_translatable_content_id(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_update_translation(
     mocked_webhook_trigger,
@@ -1623,9 +1638,9 @@ def test_page_update_translation(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1649,6 +1664,7 @@ ATTRIBUTE_TRANSLATE_MUTATION = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_attribute_create_translation(
     mocked_webhook_trigger,
@@ -1671,9 +1687,9 @@ def test_attribute_create_translation(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
     translation = color_attribute.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1695,6 +1711,7 @@ def test_attribute_create_translation_by_translatable_content_id(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_attribute_update_translation(
     mocked_webhook_trigger,
@@ -1719,9 +1736,9 @@ def test_attribute_update_translation(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1745,6 +1762,7 @@ ATTRIBUTE_VALUE_TRANSLATE_MUTATION = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_attribute_value_create_translation(
     mocked_webhook_trigger,
@@ -1769,9 +1787,9 @@ def test_attribute_value_create_translation(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
     translation = pink_attribute_value.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1791,6 +1809,7 @@ def test_attribute_value_create_translation_by_translatable_content_id(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_attribute_value_update_translation(
     mocked_webhook_trigger,
@@ -1819,9 +1838,9 @@ def test_attribute_value_update_translation(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1848,6 +1867,7 @@ SHIPPING_PRICE_TRANSLATE = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_shipping_method_create_translation(
     mocked_webhook_trigger,
@@ -1877,9 +1897,9 @@ def test_shipping_method_create_translation(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
     translation = shipping_method.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
@@ -1908,6 +1928,7 @@ def test_shipping_method_create_translation_by_translatable_content_id(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_shipping_method_update_translation(
     mocked_webhook_trigger,
@@ -1951,9 +1972,9 @@ def test_shipping_method_update_translation(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -1976,6 +1997,7 @@ MENU_ITEM_TRANSLATE = """
 """
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_menu_item_update_translation(
     mocked_webhook_trigger,
@@ -2002,9 +2024,9 @@ def test_menu_item_update_translation(
     assert data["menuItem"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -2024,6 +2046,7 @@ def test_menu_item_create_translation_by_translatable_content_id(
     assert data["menuItem"]["translation"]["language"]["code"] == "PL"
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_shop_create_translation(
     mocked_webhook_trigger,
@@ -2059,12 +2082,13 @@ def test_shop_create_translation(
     assert data["shop"]["translation"]["language"]["code"] == "PL"
 
     translation = site_settings.translations.first()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_CREATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_CREATED, expected_payload
     )
 
 
+@freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_shop_update_translation(
     mocked_webhook_trigger,
@@ -2104,9 +2128,9 @@ def test_shop_update_translation(
     assert data["shop"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    expected_payload = generate_translation_payload(translation)
+    expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.TRANSLATION_UPDATED, expected_payload
+        WebhookEventAsyncType.TRANSLATION_UPDATED, expected_payload
     )
 
 
@@ -2147,6 +2171,7 @@ def test_translations_query(
                     __typename
                 }
             }
+            totalCount
         }
     }
     """
@@ -2157,6 +2182,7 @@ def test_translations_query(
     data = get_graphql_content(response)["data"]["translations"]
 
     assert data["edges"][0]["node"]["__typename"] == expected_typename
+    assert data["totalCount"] > 0
 
 
 def test_translations_query_inline_fragment(

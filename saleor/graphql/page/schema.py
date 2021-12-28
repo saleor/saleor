@@ -1,6 +1,7 @@
 import graphene
 
-from ..core.fields import FilterInputConnectionField
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
@@ -26,7 +27,7 @@ from .resolvers import (
     resolve_pages,
 )
 from .sorters import PageSortingInput, PageTypeSortingInput
-from .types import Page, PageType
+from .types import Page, PageCountableConnection, PageType, PageTypeCountableConnection
 
 
 class PageQueries(graphene.ObjectType):
@@ -36,8 +37,8 @@ class PageQueries(graphene.ObjectType):
         slug=graphene.String(description="The slug of the page."),
         description="Look up a page by ID or slug.",
     )
-    pages = FilterInputConnectionField(
-        Page,
+    pages = FilterConnectionField(
+        PageCountableConnection,
         sort_by=PageSortingInput(description="Sort pages."),
         filter=PageFilterInput(description="Filtering options for pages."),
         description="List of the shop's pages.",
@@ -49,8 +50,8 @@ class PageQueries(graphene.ObjectType):
         ),
         description="Look up a page type by ID.",
     )
-    page_types = FilterInputConnectionField(
-        PageType,
+    page_types = FilterConnectionField(
+        PageTypeCountableConnection,
         sort_by=PageTypeSortingInput(description="Sort page types."),
         filter=PageTypeFilterInput(description="Filtering options for page types."),
         description="List of the page types.",
@@ -60,14 +61,18 @@ class PageQueries(graphene.ObjectType):
         return resolve_page(info, id, slug)
 
     def resolve_pages(self, info, **kwargs):
-        return resolve_pages(info, **kwargs)
+        qs = resolve_pages(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, PageCountableConnection)
 
     def resolve_page_type(self, info, id):
         _, id = from_global_id_or_error(id, PageType)
         return resolve_page_type(id)
 
     def resolve_page_types(self, info, **kwargs):
-        return resolve_page_types(info, **kwargs)
+        qs = resolve_page_types(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, PageTypeCountableConnection)
 
 
 class PageMutations(graphene.ObjectType):

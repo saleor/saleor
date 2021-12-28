@@ -17,11 +17,15 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+)
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import resolve_federation_references
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import ConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
@@ -238,13 +242,14 @@ class User(CountableDjangoObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
     )
-    gift_cards = PrefetchingConnectionField(
-        "saleor.graphql.giftcard.types.GiftCard",
+    gift_cards = ConnectionField(
+        "saleor.graphql.giftcard.types.GiftCardCountableConnection",
         description="List of the user gift cards.",
     )
     note = graphene.String(description="A note about the customer.")
-    orders = PrefetchingConnectionField(
-        "saleor.graphql.order.types.Order", description="List of user's orders."
+    orders = ConnectionField(
+        "saleor.graphql.order.types.OrderCountableConnection",
+        description="List of user's orders.",
     )
     user_permissions = graphene.List(
         UserPermission, description="List of user's permissions."
@@ -322,8 +327,17 @@ class User(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.User, info, **_kwargs):
-        return GiftCardsByUserLoader(info.context).load(root.id)
+    def resolve_gift_cards(root: models.User, info, **kwargs):
+        from ..giftcard.types import GiftCardCountableConnection
+
+        def _resolve_gift_cards(gift_cards):
+            return create_connection_slice(
+                gift_cards, info, kwargs, GiftCardCountableConnection
+            )
+
+        return (
+            GiftCardsByUserLoader(info.context).load(root.id).then(_resolve_gift_cards)
+        )
 
     @staticmethod
     def resolve_user_permissions(root: models.User, _info, **_kwargs):
@@ -354,12 +368,19 @@ class User(CountableDjangoObjectType):
         return CustomerEventsByUserLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_orders(root: models.User, info, **_kwargs):
+    def resolve_orders(root: models.User, info, **kwargs):
+        from ..order.types import OrderCountableConnection
+
         def _resolve_orders(orders):
             requester = get_user_or_app_from_context(info.context)
-            if requester.has_perm(OrderPermissions.MANAGE_ORDERS):
-                return orders
-            return list(filter(lambda order: order.status != OrderStatus.DRAFT, orders))
+            if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+                orders = list(
+                    filter(lambda order: order.status != OrderStatus.DRAFT, orders)
+                )
+
+            return create_connection_slice(
+                orders, info, kwargs, OrderCountableConnection
+            )
 
         return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
@@ -414,6 +435,11 @@ class User(CountableDjangoObjectType):
             else:
                 results.append(users_by_email.get(root.email))
         return results
+
+
+class UserCountableConnection(CountableConnection):
+    class Meta:
+        node = User
 
 
 class ChoiceValue(graphene.ObjectType):
@@ -522,3 +548,8 @@ class Group(CountableDjangoObjectType):
             qs = resolve_permission_groups(info)
 
         return resolve_federation_references(Group, roots, qs)
+
+
+class GroupCountableConnection(CountableConnection):
+    class Meta:
+        node = Group
