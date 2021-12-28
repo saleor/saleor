@@ -8,7 +8,7 @@ from .. import models
 
 class NameCountryInput(graphene.InputObjectType):
     name = graphene.String(description="City name", required=True)
-    country = CountryCodeEnum(description="Country.")
+    country = CountryCodeEnum(description="Country.", required=True)
 
 
 class CityCreate(ModelMutation):
