@@ -41,4 +41,6 @@ class Mutations(graphene.ObjectType):
     country_are_create = mutations.CountryAreaCreate.Field()
 
 
-schema = build_federated_schema(query=Queries, mutation=Mutations)
+schema = build_federated_schema(
+    query=Queries, mutation=Mutations, types=[types.City, types.CountryArea]
+)
