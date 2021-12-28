@@ -5,6 +5,4 @@ LANGUAGES = [
     ("en", "English"),
 ]
 
-PLUGINS.append(  # noqa F405
-    "saleor.payment.gateways.cod.plugin.CashGatewayPlugin",
-)
+INSTALLED_APPS.append("django_celery_results")  # noqa F405
