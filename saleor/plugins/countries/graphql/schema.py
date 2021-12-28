@@ -5,7 +5,7 @@ from ....graphql.core.connection import create_connection_slice
 from ....graphql.core.federation import build_federated_schema
 from ....graphql.core.fields import ConnectionField
 from .. import models
-from . import types
+from . import mutations, types
 
 
 class Queries(graphene.ObjectType):
@@ -36,4 +36,9 @@ class Queries(graphene.ObjectType):
         )
 
 
-schema = build_federated_schema(query=Queries)
+class Mutations(graphene.ObjectType):
+    city_create = mutations.CityCreate.Field()
+    country_are_create = mutations.CountryAreaCreate.Field()
+
+
+schema = build_federated_schema(query=Queries, mutation=Mutations)
