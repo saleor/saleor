@@ -13,3 +13,9 @@ class OAuth2Error(Error):
 class ProviderEnum(graphene.Enum):
     GOOGLE = "google"
     FACEBOOK = "facebook"
+
+
+class OAuth2Input(graphene.InputObjectType):
+    provider = ProviderEnum(required=True)
+    code = graphene.String(required=True)
+    state = graphene.String(required=True)

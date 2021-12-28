@@ -1,7 +1,7 @@
 import graphene
 
 from ....graphql.core.federation import build_federated_schema
-from .mutations import InitiateOAuth2Mutation, OAuth2CallbackMutation
+from .mutations import SocialLogin, SocialLoginConfirm  # , AccountRegisterSocial
 
 
 class Queries(graphene.ObjectType):
@@ -9,8 +9,9 @@ class Queries(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    initiate_oauth2 = InitiateOAuth2Mutation.Field()
-    oauth2_callback = OAuth2CallbackMutation.Field()
+    social_login = SocialLogin.Field()
+    social_login_confirm = SocialLoginConfirm.Field()
+    # account_register_social = AccountRegisterSocial.Field()
 
 
 schema = build_federated_schema(query=Queries, mutation=Mutations)

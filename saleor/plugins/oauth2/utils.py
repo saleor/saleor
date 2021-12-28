@@ -1,18 +1,21 @@
-from .consts import URI_MAPPING
+from django.contrib.auth import get_user_model
+
+from .consts import providers_config_map
+from .providers import Provider
+
+User = get_user_model()
 
 
-def get_oauth_info(provider, info):
+def get_oauth_provider(name, info) -> Provider:
     plugin = info.context.app
+    config = plugin.get_oauth2_info(name)
 
-    return plugin.get_oauth2_info(provider)
-
-
-def get_state_from_qs(info):
-    return info.context.GET.get("state")
+    provider_cls = providers_config_map[name]
+    return provider_cls(**config)
 
 
-def get_uri_for(provider, _for):
-    return URI_MAPPING[provider][_for]
+def get_scope(provider_name):
+    return providers_config_map[provider_name].scope
 
 
 def normalize_config(config):

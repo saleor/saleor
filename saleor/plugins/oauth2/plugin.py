@@ -2,6 +2,7 @@ from typing import List, Mapping
 
 from django.core.exceptions import ValidationError
 
+from ...core.utils.url import validate_storefront_url
 from ...graphql.core.enums import PluginErrorCode
 from ...graphql.views import GraphQLView
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -52,7 +53,7 @@ class OAuth2Plugin(BasePlugin):
         "google_redirect_uri": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "The URL to redirect to after the user accepts the consent in Google OAuth2",  # noqa: E501
-            "label": "Google Redirect URL",
+            "label": "Google Redirect URI",
         },
         "facebook_client_id": {
             "type": ConfigurationTypeField.SECRET,
@@ -67,7 +68,7 @@ class OAuth2Plugin(BasePlugin):
         "facebook_redirect_uri": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "The URL to redirect to after the user accepts the consent in Google OAuth2",  # noqa: E501
-            "label": "Facebook Redirect URL",
+            "label": "Facebook Redirect URI",
         },
     }
 
@@ -76,12 +77,11 @@ class OAuth2Plugin(BasePlugin):
 
     def get_oauth2_info(self, provider):
         config = self.get_normalized_config()
-        items = config.items()
         result = {}
 
-        for key, val in items:
+        for key, val in config.items():
             if key.startswith(provider):
-                new_key = key.replace(provider, "", 1)
+                new_key = key.removeprefix(f"{provider}_")
                 result.update(
                     {
                         new_key: val,
@@ -109,7 +109,9 @@ class OAuth2Plugin(BasePlugin):
             if client_secret is None:
                 errors[provider].append("client_secret")
 
-            if redirect_uri is None:
+            if redirect_uri:
+                validate_storefront_url(redirect_uri)
+            else:
                 errors[provider].append("redirect_uri")
 
         if plugin_configuration.active and all(errors.values()):
