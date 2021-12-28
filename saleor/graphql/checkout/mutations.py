@@ -1179,7 +1179,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method_id = graphene.ID(required=True, description="Shipping method.")
 
     class Meta:
-        description = "Updates the shipping address of the checkout."
+        description = "Updates the shipping method of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
