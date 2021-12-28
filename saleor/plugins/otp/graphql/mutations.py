@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import graphene
 from django.contrib.auth import get_user_model, password_validation
@@ -11,6 +11,7 @@ from ....account import events as account_events
 from ....account.notifications import get_default_user_payload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
+from ....core.utils.url import validate_storefront_url
 from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.channel.utils import clean_channel, validate_channel
 from ....graphql.core.mutations import BaseMutation
@@ -39,19 +40,23 @@ def send_password_reset_notification(
         **get_site_context(),
     }
 
-    if reset_url:
-        url_components = urlparse(reset_url)
-        url_components._replace(
-            query={
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": user.email,
+        "code": str(otp),
+        "channel_slug": channel_slug,
+        **get_site_context(),
+    }
+
+    url_components = urlparse(reset_url)
+    url_components = url_components._replace(
+        query=urlencode(
+            {
                 "code": str(otp),
             }
         )
-
-        payload.update(
-            {
-                "reset_url": reset_url,
-            }
-        )
+    )
+    payload["reset_url"] = url_components.geturl()
 
     event = (
         NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD
@@ -66,6 +71,9 @@ class RequestPasswordRecovery(BaseMutation):
         email = graphene.String(
             required=True,
             description="Email of the user that will be used for password recovery.",
+        )
+        redirect_url = graphene.String(
+            required=True, description="Base URL for the email sent to the user."
         )
         channel = graphene.String(
             description=(
@@ -92,7 +100,7 @@ class RequestPasswordRecovery(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, email, channel=None):
+    def perform_mutation(cls, _root, info, email, redirect_url, channel=None):
         user = cls.clean_user(email)
 
         if not user.is_staff:
@@ -100,10 +108,12 @@ class RequestPasswordRecovery(BaseMutation):
         elif channel is not None:
             channel = validate_channel(channel, error_class=OTPErrorCode).slug
 
-        plugin = info.context.app
-        config = plugin.get_normalized_config()
-
-        redirect_url = config.get("redirect_url", None)
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=OTPErrorCode.INVALID_URL
+            )
 
         send_password_reset_notification(
             user,

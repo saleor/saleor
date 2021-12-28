@@ -3,10 +3,6 @@ from ..base_plugin import BasePlugin
 from .graphql.schema import schema
 
 
-def normalize_config(config):
-    return {item["name"]: item["value"] for item in config}
-
-
 class OTPPlugin(BasePlugin):
     name = "OTP"  # tackle saleor#8873
     PLUGIN_ID = "otp"
@@ -14,9 +10,6 @@ class OTPPlugin(BasePlugin):
     DEFAULT_ACTIVE = True
     PLUGIN_DESCRIPTION = "Plugin for handling providing OTPs for emails"
     CONFIGURATION_PER_CHANNEL = False
-
-    def get_normalized_config(self):
-        return normalize_config(self.configuration)
 
     def webhook(self, request, path, previous_value):
         request.app = self
