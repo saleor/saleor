@@ -2,11 +2,12 @@ from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
+
 from saleor.account.validators import validate_possible_number
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
-    """Less strict field for phone numbers written to database"""
+    # """Less strict field for phone numbers written to database"""
 
     default_validators = [validate_possible_number]
 
