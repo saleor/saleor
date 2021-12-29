@@ -3,6 +3,7 @@ from typing import Dict
 
 import graphene
 from algoliasearch.search_client import SearchClient
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.http import HttpRequest
@@ -250,3 +251,11 @@ def index_product_data_to_algolia(
             "sender": sender,
             "product": product_data.get("objectID"),
         }
+
+
+def get_locales():
+    """Return upper case language locales."""
+    locales = []
+    for locale in settings.LANGUAGES:
+        locale.append(locale[0].upper())
+    return locales
