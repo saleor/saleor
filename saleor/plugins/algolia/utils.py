@@ -1,3 +1,4 @@
+import json
 from typing import Dict
 
 import graphene
@@ -171,6 +172,12 @@ def get_product_data(product_global_id: str, locale="EN"):
         GET_PRODUCT_QUERY, variables=variables, context=UserAdminContext()
     )
     product_dict = product_data.data.get("products").get("edges")[0].get("node")
+    description = (
+        json.loads(product_dict.pop("description"))
+        .get("blocks")[0]
+        .get("data")
+        .get("text")
+    )
     channels = []
     channel_listings = product_dict.pop("channelListings")
     for channel in channel_listings:
@@ -186,6 +193,9 @@ def get_product_data(product_global_id: str, locale="EN"):
                 "objectID": slug,
                 "images": images,
                 "channels": channels,
+                "description": description
+                if locale == "EN"
+                else product_dict.pop("translation").get("description"),
                 "categoryPageId": category_page_id(),
                 "gender": product.get_value_from_metadata("gender"),
                 "hierarchicalCategories": hierarchical_categories(product),
@@ -204,11 +214,9 @@ def get_algolia_indices(config: Dict, locale: str):
     index.set_settings(
         settings={
             "searchableAttributes": [
-                "sku",
                 "name",
                 "channels",
                 "description",
-                "translation",
             ]
         }
     )
