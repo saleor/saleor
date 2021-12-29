@@ -16,8 +16,9 @@ GATEWAY_NAME = str(_("Cash"))
 
 class CashGatewayPlugin(BasePlugin):
     DEFAULT_ACTIVE = True
-    PLUGIN_ID = "payments.cash"
     PLUGIN_NAME = GATEWAY_NAME
+    PLUGIN_ID = "payments.cash"
+    CONFIGURATION_PER_CHANNEL = False
 
     DEFAULT_CONFIGURATION = [
         {"name": "Supported Currencies", "value": "SAR,"},
