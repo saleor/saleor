@@ -1,27 +1,15 @@
-import uuid
-
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
-
-
-def cash_success():
-    return True
-
-
-def get_client_token(**_):
-    return str(uuid.uuid4())
 
 
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    success = cash_success()
-    error = None
-    if not success:
-        error = "Unable to authorize transaction"
+    """Perform authorize transaction."""
+
     return GatewayResponse(
-        error=error,
-        is_success=success,
+        error=None,
+        is_success=True,
         action_required=False,
         kind=TransactionKind.AUTH,
         amount=payment_information.amount,
@@ -31,13 +19,11 @@ def authorize(
 
 
 def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
-    error = None
-    success = cash_success()
-    if not success:
-        error = "Unable to void the transaction."
+    """Perform void transaction."""
+
     return GatewayResponse(
-        error=error,
-        is_success=success,
+        error=None,
+        is_success=True,
         action_required=False,
         kind=TransactionKind.VOID,
         amount=payment_information.amount,
@@ -48,14 +34,10 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform capture transaction."""
-    error = None
-    success = cash_success()
-    if not success:
-        error = "Unable to process capture"
 
     return GatewayResponse(
-        error=error,
-        is_success=success,
+        error=None,
+        is_success=True,
         action_required=False,
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
@@ -66,14 +48,10 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 
 def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform confirm transaction."""
-    error = None
-    success = cash_success()
-    if not success:
-        error = "Unable to process capture"
 
     return GatewayResponse(
-        error=error,
-        is_success=success,
+        error=None,
+        is_success=True,
         action_required=False,
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
@@ -83,13 +61,9 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 
 
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
-    error = None
-    success = cash_success()
-    if not success:
-        error = "Unable to process refund"
     return GatewayResponse(
-        error=error,
-        is_success=success,
+        error=None,
+        is_success=True,
         action_required=False,
         kind=TransactionKind.REFUND,
         amount=payment_information.amount,

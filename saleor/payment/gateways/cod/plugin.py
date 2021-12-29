@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING
 
 from django.utils.translation import gettext_lazy as _
@@ -5,21 +6,12 @@ from django.utils.translation import gettext_lazy as _
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from ..utils import get_supported_currencies, require_active_plugin
-from . import (
-    GatewayConfig,
-    authorize,
-    capture,
-    confirm,
-    get_client_token,
-    process_payment,
-    refund,
-    void,
-)
+from . import GatewayConfig, authorize, capture, confirm, process_payment, refund, void
 
 GATEWAY_NAME = str(_("Cash"))
 
 if TYPE_CHECKING:
-    from ...interface import GatewayResponse, PaymentData, TokenConfig
+    from ...interface import GatewayResponse, PaymentData
 
 
 class CashGatewayPlugin(BasePlugin):
@@ -98,13 +90,12 @@ class CashGatewayPlugin(BasePlugin):
         return process_payment(payment_information, self._get_gateway_config())
 
     @require_active_plugin
-    def get_client_token(self, token_config: "TokenConfig", previous_value):
-        return get_client_token()
+    def get_client_token(self):
+        return str(uuid.uuid4())
 
     @require_active_plugin
     def get_payment_config(self, previous_value):
-        config = self._get_gateway_config()
-        return [{"field": "store_customer_card", "value": config.store_customer}]
+        return [{"field": "client_token", "value": self.get_client_token()}]
 
     @require_active_plugin
     def token_is_required_as_payment_input(self, previous_value):
