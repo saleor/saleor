@@ -8,16 +8,17 @@ from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ..utils import get_supported_currencies, require_active_plugin
 from . import GatewayConfig, authorize, capture, confirm, process_payment, refund, void
 
-GATEWAY_NAME = str(_("Cash"))
-
 if TYPE_CHECKING:
     from ...interface import GatewayResponse, PaymentData
 
+GATEWAY_NAME = str(_("Cash"))
+
 
 class CashGatewayPlugin(BasePlugin):
+    DEFAULT_ACTIVE = True
     PLUGIN_ID = "payments.cash"
     PLUGIN_NAME = GATEWAY_NAME
-    DEFAULT_ACTIVE = True
+
     DEFAULT_CONFIGURATION = [
         {"name": "Supported Currencies", "value": "SAR,"},
         {"name": "Automatic payment capture", "value": True},
