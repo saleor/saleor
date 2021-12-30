@@ -1,6 +1,7 @@
 import graphene
 from django.contrib.auth import get_user_model
 
+from ....core.utils.url import validate_storefront_url
 from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.core.mutations import BaseMutation
 from ..providers import Provider
@@ -13,14 +14,17 @@ User = get_user_model()
 class SocialLogin(BaseMutation):
     class Arguments:
         provider = ProviderEnum(required=True)
+        redirect_url = graphene.String(required=True)
 
     class Meta:
         description = "Initiate OAuth2 and get back the authorization URL"
         error_type_class = OAuth2Error
 
-    baseUrl = graphene.String(description="Base service authorization URL")
-
-    fullUrl = graphene.String(description="Full service authorization URL")
+    base_url = graphene.String(description="Base service authorization URL")
+    full_url = graphene.String(description="Full service authorization URL")
+    redirect_url = graphene.String(
+        description="A URL to redirect to after successful OAuth2"
+    )
 
     client_id = graphene.String(
         description="The client ID of the authorization service"
@@ -38,17 +42,26 @@ class SocialLogin(BaseMutation):
     state = graphene.String(description="State provided by OAuth2 provider")
 
     @classmethod
-    def perform_mutation(cls, root, info, provider, **data):
+    def clean_input(cls, root, info, **data):
+        redirect_url = data["redirect_url"]
+        validate_storefront_url(redirect_url)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        cls.clean_input(root, info, **data)
+
+        provider, redirect_url = data["provider"], data["redirect_url"]
         provider: Provider = get_oauth_provider(provider, info)
 
         auth_endpoint = provider.get_url_for("auth")
-        url, state = provider.get_authorization_url()
+        url, state = provider.get_authorization_url(redirect_url)
         scope = provider.scope
 
         return SocialLogin(
             client_id=provider.client_id,
-            baseUrl=auth_endpoint,
-            fullUrl=url,
+            base_url=auth_endpoint,
+            full_url=url,
+            redirect_url=redirect_url,
             state=state,
             scope=scope,
         )
@@ -70,7 +83,9 @@ class SocialLoginConfirm(CreateToken):
     @classmethod
     def perform_mutation(cls, root, info, oauth2, **kwargs):
         provider = get_oauth_provider(oauth2.provider, info)
-        auth_response = provider.fetch_tokens(info, oauth2.code, oauth2.state)
+        auth_response = provider.fetch_tokens(
+            info, oauth2.code, oauth2.state, oauth2.redirect_url
+        )
         return super().perform_mutation(root, info, provider=provider, **auth_response)
 
 

@@ -19,3 +19,4 @@ class OAuth2Input(graphene.InputObjectType):
     provider = ProviderEnum(required=True)
     code = graphene.String(required=True)
     state = graphene.String(required=True)
+    redirect_url = graphene.String(required=True)

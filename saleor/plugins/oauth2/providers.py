@@ -16,10 +16,9 @@ class Provider:
     urls = {}
     scope = []
 
-    def __init__(self, client_id, client_secret, redirect_uri, scope=None, **kwargs):
+    def __init__(self, client_id, client_secret, scope=None, **kwargs):
         self.client_id = client_id
         self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
         self.kwargs = kwargs
 
         if scope:
@@ -38,16 +37,16 @@ class Provider:
             return OAuth2Session(
                 client_id=self.client_id,
                 client_secret=self.client_secret,
-                redirect_uri=self.redirect_uri,
                 scope=scope,
                 **kwargs,
             )
         except OAuthError:
             raise ValidationError(error_message, code=OAuth2ErrorCode.OAUTH2_ERROR)
 
-    def get_authorization_url(self):
+    def get_authorization_url(self, redirect_uri):
         session = self.get_session(
-            f"Invalid {self.name} API authentication credentials provided"
+            f"Invalid {self.name} API authentication credentials provided",
+            redirect_uri=redirect_uri,
         )
         auth_endpoint = self.get_url_for("auth")
 
@@ -55,13 +54,9 @@ class Provider:
 
         return url, state
 
-    def fetch_tokens(self, info, code, state):
-        session = self.get_session()
+    def fetch_tokens(self, info, code, state, redirect_uri):
+        session = self.get_session(redirect_uri=redirect_uri)
         token_uri = self.get_url_for("token")
-
-        plugin = info.context.app
-        config = plugin.get_oauth2_info(self.name)
-        redirect_uri = config["redirect_uri"]
 
         try:
             return session.fetch_token(
@@ -117,13 +112,11 @@ class Facebook(Provider):
         "token": "https://graph.facebook.com/v12.0/oauth/access_token",
         "userinfo": "https://graph.facebook.com/me",
     }
-    # fields_map = {
-    #     'first_name': '',
-    #     'last_name': '',
-    #     'email': 'email',
-    #     'gender': '',
-    #     'phone_number': '',
-    # }
+    scope = [
+        "email",
+        "public_profile",
+        "openid",
+    ]
 
 
 class Google(Provider):
@@ -138,13 +131,6 @@ class Google(Provider):
         "https://www.googleapis.com/auth/userinfo.profile",
         "openid",
     ]
-    # fields_map = {
-    #     'first_name': '',
-    #     'last_name': '',
-    #     'email': 'email',
-    #     'gender': '',
-    #     'phone_number': '',
-    # }
 
 
 class Apple(Provider):
@@ -154,10 +140,3 @@ class Apple(Provider):
         "token": "https://appleid.apple.com/auth/token",
         "userinfo": "",
     }
-    # fields_map = {
-    #     'first_name': '',
-    #     'last_name': '',
-    #     'email': 'email',
-    #     'gender': '',
-    #     'phone_number': '',
-    # }

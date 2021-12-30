@@ -2,7 +2,6 @@ from typing import List, Mapping
 
 from django.core.exceptions import ValidationError
 
-from ...core.utils.url import validate_storefront_url
 from ...graphql.core.enums import PluginErrorCode
 from ...graphql.views import GraphQLView
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -28,10 +27,8 @@ class OAuth2Plugin(BasePlugin):
             "name": "google_client_secret",
             "value": None,
         },
-        {"name": "google_redirect_uri", "value": None},
         {"name": "facebook_client_id", "value": None},
         {"name": "facebook_client_secret", "value": None},
-        {"name": "facebook_redirect_uri", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -50,11 +47,6 @@ class OAuth2Plugin(BasePlugin):
             "help_text": "Google Your Client secret",
             "label": "Google Client Secret",
         },
-        "google_redirect_uri": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "The URL to redirect to after the user accepts the consent in Google OAuth2",  # noqa: E501
-            "label": "Google Redirect URI",
-        },
         "facebook_client_id": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Your Google Client ID",
@@ -64,11 +56,6 @@ class OAuth2Plugin(BasePlugin):
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Google Your Client secret",
             "label": "Facebook Client Secret",
-        },
-        "facebook_redirect_uri": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "The URL to redirect to after the user accepts the consent in Google OAuth2",  # noqa: E501
-            "label": "Facebook Redirect URI",
         },
     }
 
@@ -101,18 +88,12 @@ class OAuth2Plugin(BasePlugin):
 
             client_id = configuration.get(f"{provider}_client_id", None)
             client_secret = configuration.get(f"{provider}_client_secret", None)
-            redirect_uri = configuration.get(f"{provider}_redirect_uri", None)
 
             if client_id is None:
                 errors[provider].append("client_id")
 
             if client_secret is None:
                 errors[provider].append("client_secret")
-
-            if redirect_uri:
-                validate_storefront_url(redirect_uri)
-            else:
-                errors[provider].append("redirect_uri")
 
         if plugin_configuration.active and all(errors.values()):
             error_msg = (
