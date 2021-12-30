@@ -39,7 +39,7 @@ class Queries(graphene.ObjectType):
 
 class Mutations(graphene.ObjectType):
     city_create = CityCreate.Field()
-    country_are_create = CountryAreaCreate.Field()
+    country_area_create = CountryAreaCreate.Field()
 
 
 schema = build_federated_schema(
