@@ -645,6 +645,51 @@ def test_update_gift_card_expired_card(
     assert data["events"][0]["type"] == GiftCardEvents.EXPIRY_DATE_UPDATED.upper()
 
 
+def test_update_gift_card_expiry_date_not_changed(
+    staff_api_client,
+    gift_card_expiry_date,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+):
+    # given
+    gift_card = gift_card_expiry_date
+    old_expiry_date = gift_card.expiry_date
+
+    variables = {
+        "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
+        "input": {
+            "expiryDate": old_expiry_date,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardUpdate"]["errors"]
+    data = content["data"]["giftCardUpdate"]["giftCard"]
+
+    assert not errors
+    assert data["last4CodeChars"]
+    assert data["expiryDate"] == old_expiry_date.isoformat()
+    assert data["tags"][0]["name"] == gift_card.tags.first().name
+    assert data["createdBy"]["email"] == gift_card.created_by.email
+    assert data["createdByEmail"] == gift_card.created_by_email
+
+    # no events should be created
+    assert len(data["events"]) == 0
+
+
 def test_update_gift_card_duplicated_tags_item(
     staff_api_client,
     gift_card,
