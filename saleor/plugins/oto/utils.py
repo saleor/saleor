@@ -169,6 +169,7 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig):
                     "printAWBURL": data.get("printAWBURL", ""),
                     "feedbackLink": data.get("feedbackLink", ""),
                     "shippingCompanyStatus": data.get("dcStatus", ""),
+                    "deliverySlotDate": data.get("deliverySlotDate", ""),
                 }
             )
             fulfillment.save(update_fields=["tracking_number", "private_metadata"])
