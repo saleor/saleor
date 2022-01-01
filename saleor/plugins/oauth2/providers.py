@@ -73,7 +73,6 @@ class Provider:
             )
 
     def fetch_profile_info(self, auth_response):
-        provider = auth_response["provider"]
         access_token = auth_response["access_token"]
         profile_url = self.get_url_for("userinfo")
 
@@ -87,22 +86,10 @@ class Provider:
 
         raise ValidationError(
             message="An error occured while requesting {}: {}".format(
-                provider, json.dumps(response)
+                self.name, json.dumps(response)
             ),
             code=OAuth2ErrorCode.USER_NOT_FOUND,
         )
-
-    def fetch_user_oauth2(self, auth_response):
-        profile_info = self.fetch_profile_info(auth_response)
-        email = profile_info["email"]
-
-        try:
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise ValidationError(
-                message="No user found with the specified email",
-                code=OAuth2ErrorCode.USER_NOT_FOUND,
-            )
 
 
 class Facebook(Provider):

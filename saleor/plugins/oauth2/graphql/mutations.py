@@ -1,11 +1,14 @@
 import graphene
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
+from ....account import events as account_events
+from ....account import search
 from ....core.utils.url import validate_storefront_url
 from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.core.mutations import BaseMutation
 from ..providers import Provider
-from ..utils import get_oauth_provider
+from ..utils import get_oauth_provider, get_user_tokens
 from .types import OAuth2Error, OAuth2Input, ProviderEnum
 
 User = get_user_model()
@@ -68,73 +71,55 @@ class SocialLogin(BaseMutation):
 
 
 class SocialLoginConfirm(CreateToken):
+    created = graphene.Boolean(description="Describes if the account is created.")
+
     class Arguments:
-        oauth2 = OAuth2Input(description="OAuth2 data.", required=True)
+        input = OAuth2Input(description="OAuth2 data.", required=True)
 
     class Meta:
         description = "Perform an OAuth2 callback"
         error_type_class = OAuth2Error
 
     @classmethod
-    def get_user(cls, _info, auth_response):
-        provider: Provider = auth_response["provider"]
-        return provider.fetch_user_oauth2(auth_response)
+    def get_user(cls, info, input, provider, auth_response):
+        profile_info = provider.fetch_profile_info(auth_response)
+        email = profile_info["email"]
+        language_code = input.language_code
+
+        try:
+            user = User.objects.get(email=email)
+            created = False
+        except User.DoesNotExist:
+            password = User.objects.make_random_password()
+            user = User(email=email, is_active=True, language_code=language_code)
+            user.set_password(password)
+            user.search_document = search.prepare_user_search_document_value(
+                user, attach_addresses_data=False
+            )
+            user.save()
+            account_events.customer_account_created_event(user=user)
+            info.context.plugins.customer_created(customer=user)
+            created = True
+
+        return created, user
 
     @classmethod
-    def perform_mutation(cls, root, info, oauth2, **kwargs):
-        provider = get_oauth_provider(oauth2.provider, info)
+    def perform_mutation(cls, root, info, input, **kwargs):
+        provider = get_oauth_provider(input.provider, info)
         auth_response = provider.fetch_tokens(
-            info, oauth2.code, oauth2.state, oauth2.redirect_url
+            info, input.code, input.state, input.redirect_url
         )
-        return super().perform_mutation(root, info, provider=provider, **auth_response)
 
+        created, user = cls.get_user(info, input, provider, auth_response)
+        user_tokens = get_user_tokens(user)
+        info.context.refresh_token = user_tokens["refresh_token"]
+        info.context._cached_user = user
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
 
-# class AccountRegisterSocial(ModelMutation):
-#     class Arguments:
-#         oauth2 = OAuth2Input(description="OAuth2 data.", required=True)
-
-#     class Meta:
-#         model = User
-#         description = "Register a new user with oauth2 code"
-#         error_type_class = OAuth2Error
-#         exclude = ["password"]
-
-#     @classmethod
-#     def clean_input(cls, info, instance, oauth2, input_cls=None):
-#         session = get_oauth2_session(
-#             oauth2.provider,
-#             info,
-#             "Invalid state provided",
-#             state=oauth2.state,
-#         )
-
-#         auth_response = fetch_tokens(session, info, oauth2_input=oauth2)
-#         user_info = fetch_profile_info(auth_response)
-
-#         email = user_info.get("email", None)
-#         first_name = get_possible_keys(user_info, ["first_name", "firstName"])
-#         last_name = get_possible_keys(user_info, ["last_name", "lastName"])
-
-#         data["channel"] = clean_channel(
-#             data.get("channel"), error_class=OAuth2ErrorCode
-#         ).slug
-
-#         password = data["password"]
-#         try:
-#             password_validation.validate_password(password, instance)
-#         except ValidationError as error:
-#             raise ValidationError({"password": error})
-
-#         return super().clean_input(info, instance, data, input_cls=None)
-
-#     @classmethod
-#     @traced_atomic_transaction()
-#     def save(cls, info, user, cleaned_input):
-#         password = cleaned_input["password"]
-#         user.set_password(password)
-#         user.search_document = search.prepare_user_search_document_value(
-#             user, attach_addresses_data=False
-#         )
-#         user.save()
-#         account_events.customer_account_created_event(user=user)
-#         info.context.plugins.customer_created(customer=user)
+        return cls(
+            errors=[],
+            user=user,
+            created=created,
+            **user_tokens,
+        )

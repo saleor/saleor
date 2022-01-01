@@ -11,6 +11,7 @@ from .utils import normalize_config
 
 
 class OAuth2Plugin(BasePlugin):
+    name = "social-login"  # tackle saleor/saleor#8873
     PLUGIN_ID = "social-login"
     PLUGIN_NAME = "OAuth2 support"
     DEFAULT_ACTIVE = False

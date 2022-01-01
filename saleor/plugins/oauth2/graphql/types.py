@@ -1,5 +1,6 @@
 import graphene
 
+from ....graphql.core.enums import LanguageCodeEnum
 from ....graphql.core.types import Error
 from .enums import OAuth2ErrorCode as OAuth2ErrorCodeEnum
 
@@ -20,3 +21,10 @@ class OAuth2Input(graphene.InputObjectType):
     code = graphene.String(required=True)
     state = graphene.String(required=True)
     redirect_url = graphene.String(required=True)
+    channel = graphene.String(required=False)
+    language_code = graphene.Field(
+        LanguageCodeEnum,
+        required=False,
+        description="User language code.",
+        default_value="AR",
+    )
