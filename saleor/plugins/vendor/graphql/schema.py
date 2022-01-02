@@ -5,7 +5,8 @@ from saleor.graphql.core.fields import ConnectionField, FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
 
 from ..models import Vendor
-from . import mutations, types
+from . import types
+from .mutations import VendorCreate, VendorDelete, VendorUpdate
 
 
 class VendorQueries(graphene.ObjectType):
@@ -25,9 +26,9 @@ class VendorQueries(graphene.ObjectType):
 
 
 class VendorMutations(graphene.ObjectType):
-    vendor_create = mutations.VendorCreate.Field()
-    vendor_update = mutations.VendorUpdate.Field()
-    vendor_delete = mutations.VendorDelete.Field()
+    vendor_create = VendorCreate.Field()
+    vendor_update = VendorUpdate.Field()
+    vendor_delete = VendorDelete.Field()
 
 
 schema = graphene.Schema(
