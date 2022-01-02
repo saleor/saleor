@@ -1,15 +1,10 @@
-from typing import DefaultDict, Dict, List
-
 import graphene
-from django.core.exceptions import ValidationError
 
-from saleor.core.exceptions import PermissionDenied
 from saleor.plugins.customer_group.graphql.errors import CustomerGroupError
 
-from ....graphql.core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
 from .. import models
 from .custom_permissions import CustomerGroupPermissions
-from .types import CustomerGroupType
 
 
 class CustomerGroupInput(graphene.InputObjectType):
@@ -26,6 +21,11 @@ class CustomerGroupCreateInput(CustomerGroupInput):
         description="Customer IDs to add to the group",
         name="customers",
     )
+    variants = graphene.List(
+        graphene.ID,
+        description="Variants IDs to Assign to the group",
+        name="variants",
+    )
 
 
 class CustomerGroupCreate(ModelMutation):
@@ -38,16 +38,7 @@ class CustomerGroupCreate(ModelMutation):
         description = "Creates new customer group."
         model = models.CustomerGroup
         error_type_class = CustomerGroupError
-        permissions = (CustomerGroupPermissions.MANAGE_STAFF,)
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
-        return cleaned_input
+        permissions = (CustomerGroupPermissions.MANAGE_GROUPS,)
 
 
 class CustomerGroupUpdateInput(CustomerGroupInput):
@@ -58,6 +49,11 @@ class CustomerGroupUpdateInput(CustomerGroupInput):
         description="customers related to the customer group",
         name="customers",
         required=False,
+    )
+    variants = graphene.List(
+        graphene.ID,
+        description="Variants IDs to Assign to the group",
+        name="variants",
     )
 
 
@@ -72,18 +68,7 @@ class CustomerGroupUpdate(ModelMutation):
         description = "Update a customer group"
         model = models.CustomerGroup
         error_type_class = CustomerGroupError
-        permissions = (CustomerGroupPermissions.MANAGE_STAFF,)
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-
-class CustomerGroupDeleteInput(graphene.InputObjectType):
-    customer_group_id = graphene.ID(
-        required=True,
-        description="ID of customer group to delete the group",
-    )
+        permissions = (CustomerGroupPermissions.MANAGE_GROUPS,)
 
 
 class CustomerGroupDelete(ModelDeleteMutation):
@@ -94,144 +79,4 @@ class CustomerGroupDelete(ModelDeleteMutation):
         description = "delete the customer group"
         model = models.CustomerGroup
         error_type_class = CustomerGroupError
-        permissions = (CustomerGroupPermissions.MANAGE_STAFF,)
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        """Perform a mutation that deletes a model instance."""
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
-
-        node_id = data.get("id")
-        model_type = cls.get_type_for_model()
-        instance = cls.get_node_or_error(info, node_id, only_type=model_type)
-
-        if instance:
-            cls.clean_instance(info, instance)
-
-        db_id = instance.id
-        instance.delete()
-
-        # After the instance is deleted, set its ID to the original database's
-        # ID so that the success response contains ID of the deleted object.
-        instance.id = db_id
-        return cls.success_response(instance)
-
-
-ErrorType = DefaultDict[str, List[ValidationError]]
-
-
-class BaseCustomerGroupListingMutation(BaseMutation):
-    """Base CustomerGroup listing mutation with basic CustomerGroup ."""
-
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def clean_channels(
-        cls,
-        info,
-        input,
-        errors: ErrorType,
-        error_code,
-        input_source="add_customer_groups",
-    ) -> Dict:
-        add_groups = input.get(input_source, [])
-        add_groups_ids = [group["customer_group_id"] for group in add_groups]
-        remove_groups_ids = input.get("remove_groups", [])
-
-        if errors:
-            return {}
-        customer_groups_to_add: List["models.CustomerGroup"] = []
-        if add_groups_ids:
-            customer_groups_to_add = cls.get_nodes_or_error(  # type: ignore
-                add_groups_ids, "customer_group_id", CustomerGroupType
-            )
-
-        cleaned_input = {input_source: [], "remove_groups": remove_groups_ids}
-
-        for customer_group_listing, customer_group in zip(
-            add_groups, customer_groups_to_add
-        ):
-            customer_group_listing["customer_group"] = customer_group
-            cleaned_input[input_source].append(customer_group_listing)
-
-        return cleaned_input
-
-
-class CustomerGroupActivate(BaseMutation):
-    customer_group = graphene.Field(
-        CustomerGroupType, description="Activated CustomerGroup."
-    )
-
-    class Arguments:
-        id = graphene.ID(
-            required=True, description="ID of the CustomerGroup to activate."
-        )
-
-    class Meta:
-        description = "Activate a CustomerGroup."
-        error_type_class = CustomerGroupError
-
-    @classmethod
-    def clean_customer_group_availability(cls, customer_group):
-        if customer_group.is_active:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "This customer group is already activated.",
-                    )
-                }
-            )
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        customer_group = cls.get_node_or_error(
-            info, data["id"], only_type=CustomerGroupType
-        )
-        cls.clean_customer_group_availability(customer_group)
-        customer_group.is_active = True
-        customer_group.save(update_fields=["is_active"])
-
-        return CustomerGroupActivate(customer_group=customer_group)
-
-
-class CustomerGroupDeactivate(BaseMutation):
-    customer_group = graphene.Field(
-        CustomerGroupType, description="Deactivated customer_group."
-    )
-
-    class Arguments:
-        id = graphene.ID(
-            required=True, description="ID of the customer_group to deactivate."
-        )
-
-    class Meta:
-        description = "Deactivate a customer_group."
-        error_type_class = CustomerGroupError
-
-    @classmethod
-    def clean_customer_group_availability(cls, customer_group):
-        if customer_group.is_active is False:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "This customer_group is already deactivated.",
-                    )
-                }
-            )
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        customer_group = cls.get_node_or_error(
-            info, data["id"], only_type=CustomerGroupType
-        )
-        cls.clean_customer_group_availability(customer_group)
-        customer_group.is_active = False
-        customer_group.save(update_fields=["is_active"])
-
-        return CustomerGroupDeactivate(customer_group=customer_group)
+        permissions = (CustomerGroupPermissions.MANAGE_GROUPS,)
