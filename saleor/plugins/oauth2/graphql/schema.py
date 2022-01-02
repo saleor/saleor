@@ -1,6 +1,7 @@
 import graphene
 
-from .mutations import SocialLogin, SocialLoginConfirm
+from ....graphql.core.federation import build_federated_schema
+from .mutations import SocialLogin, SocialLoginConfirm  # , AccountRegisterSocial
 
 
 class Queries(graphene.ObjectType):
@@ -13,4 +14,4 @@ class Mutations(graphene.ObjectType):
     # account_register_social = AccountRegisterSocial.Field()
 
 
-schema = graphene.Schema(query=Queries, mutation=Mutations)
+schema = build_federated_schema(query=Queries, mutation=Mutations)
