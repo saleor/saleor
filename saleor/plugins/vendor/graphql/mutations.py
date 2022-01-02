@@ -1,0 +1,91 @@
+import graphene
+from .custom_permissions import VendorPermissions
+
+from saleor.plugins.vendor.graphql.enums import GenderCodeEnum
+
+from .errors import VendorError
+from ..models import Vendor
+from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
+from saleor.graphql.account.enums import CountryCodeEnum
+
+
+class VendorInput(graphene.InputObjectType):
+    is_active = graphene.Boolean(
+        description="Is Active to enable or disable the vendor"
+    )
+
+
+class VendorCreateInput(VendorInput):
+    name = graphene.String(description="name of the vendor", required=True)
+    slug = graphene.String(
+        description="Slug of the vendor. Will be generated if not provided",
+        required=False,
+    )
+    description = graphene.String(description="description of the vendor")
+    phone = graphene.String(description="Phone number")
+    country = CountryCodeEnum(description="Country")
+    national_id = graphene.String(description="national ID")
+    birth_date = graphene.DateTime(description="Birth Day")
+    gender = graphene.Field(GenderCodeEnum, description="gender")
+    users = graphene.List(
+        graphene.ID,
+        description="Users IDs to add to the vendor",
+        name="users",
+    )
+
+
+class VendorCreate(ModelMutation):
+    class Arguments:
+        input = VendorCreateInput(
+            required=True, description="Fields required to create vendor"
+        )
+
+    class Meta:
+        description = "create new vendor"
+        model = Vendor
+        error_type_class = VendorError
+        permutations = (VendorPermissions.MANAGE_VENDOR,)
+
+
+class VendorUpdateInput(VendorInput):
+    name = graphene.String(description="name of the vendor", required=True)
+    slug = graphene.String(
+        description="Slug of the vendor. Will be generated if not provided",
+        required=False,
+    )
+    description = graphene.String(description="description of the vendor")
+    phone = graphene.String(description="Phone number")
+    country = CountryCodeEnum(description="Country")
+    national_id = graphene.String(description="national ID")
+    birth_date = graphene.DateTime(description="Birth Day")
+    gender = graphene.Field(GenderCodeEnum, description="gender")
+    users = graphene.List(
+        graphene.ID,
+        description="Users IDs to add to the vendor",
+        name="users",
+    )
+
+
+class VendorUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a vendor to update")
+        input = VendorUpdateInput(
+            description="Fields required to update a vendor", required=True
+        )
+
+    class Meta:
+        description = "Update a vendor"
+        model = Vendor
+        error_type_class = VendorError
+        permissions = (VendorPermissions.MANAGE_VENDOR,)
+
+
+class VendorDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of vendor to delete")
+
+    class Meta:
+        description = "delete the vendor"
+        model = Vendor
+        error_type_class = VendorError
+        permissions = (VendorPermissions.MANAGE_VENDOR,)
