@@ -1,7 +1,10 @@
 from django.core.exceptions import ValidationError
 
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from saleor.graphql.views import GraphQLView
 from saleor.plugins.models import PluginConfiguration
+
+from ..base_plugin import BasePlugin, ConfigurationTypeField
+from .graphql.schema import schema
 
 
 class VendorPlugin(BasePlugin):
@@ -51,7 +54,7 @@ class VendorPlugin(BasePlugin):
                 }
             )
 
-    # def webhook(self, request, path, previous_value):
-    #     view = GraphQLView.as_view(schema=schema)
-    #     request.app = self
-    #     return view(request)
+    def webhook(self, request, path, previous_value):
+        view = GraphQLView.as_view(schema=schema)
+        request.app = self
+        return view(request)
