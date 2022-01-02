@@ -1,11 +1,11 @@
 import graphene
-from saleor.graphql.core.fields import ConnectionField, FilterConnectionField
 
 from saleor.graphql.core.connection import create_connection_slice
+from saleor.graphql.core.fields import ConnectionField, FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
-from . import types
+
 from ..models import Vendor
-from . import mutations
+from . import mutations, types
 
 
 class VendorQueries(graphene.ObjectType):

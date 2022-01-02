@@ -1,12 +1,12 @@
 import graphene
-from .custom_permissions import VendorPermissions
 
+from saleor.graphql.account.enums import CountryCodeEnum
 from saleor.plugins.vendor.graphql.enums import GenderCodeEnum
 
-from .errors import VendorError
-from ..models import Vendor
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
-from saleor.graphql.account.enums import CountryCodeEnum
+from ..models import Vendor
+from .custom_permissions import VendorPermissions
+from .errors import VendorError
 
 
 class VendorInput(graphene.InputObjectType):

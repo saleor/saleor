@@ -1,5 +1,6 @@
-import graphene
 from enum import Enum
+
+import graphene
 
 GENDER_CHOICES = (
     ("M", "Male"),
