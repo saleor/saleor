@@ -1,62 +1,40 @@
 import graphene
-from graphene import relay
-from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.types import DjangoObjectType
 
-from saleor.core.permissions import AccountPermissions
-from saleor.graphql.account.resolvers import resolve_customers
+from saleor.graphql.core.connection import create_connection_slice
+from saleor.graphql.core.fields import ConnectionField, FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
-from saleor.graphql.decorators import permission_required
-from saleor.plugins.customer_group.graphql.types import (
-    CustomerConnection,
-    CustomerGroupType,
-)
-from saleor.plugins.customer_group.models import CustomerGroup
 
-from .mutations import (
-    CustomerGroupActivate,
-    CustomerGroupCreate,
-    CustomerGroupDeactivate,
-    CustomerGroupDelete,
-    CustomerGroupUpdate,
-)
-
-
-class CustomerGroupNode(DjangoObjectType):
-    class Meta:
-        model = CustomerGroup
-        filter_fields = ["id", "name", "description"]
-        interfaces = (graphene.relay.Node,)
-
-    @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_customer_groups(root, info, **kwargs):
-        # Querying a list
-        return CustomerGroup.objects.all()
-
-    @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_customer_group(self, info, **data):
-        # Querying a single CustomerGroup
-        _, id = from_global_id_or_error(data.get("id"), CustomerGroupType)
-        return CustomerGroup.objects.get(id=id)
+from ..models import CustomerGroup
+from . import types
+from .mutations import CustomerGroupCreate, CustomerGroupDelete, CustomerGroupUpdate
 
 
 class CustomerGroupQueries(graphene.ObjectType):
 
-    customers = relay.ConnectionField(CustomerConnection)
-    customer_group = graphene.relay.Node.Field(CustomerGroupNode)
-    customer_groups = DjangoFilterConnectionField(CustomerGroupNode)
+    customer_group = ConnectionField(types.CustomerGroupConnection)
+    customer_groups = FilterConnectionField(types.CustomerGroupConnection)
 
-    @permission_required(AccountPermissions.MANAGE_USERS)
-    def resolve_customers(self, info, **kwargs):
-        return resolve_customers(info, **kwargs)
+    # @permission_required(AccountPermissions.MANAGE_GROUPS)
+    def resolve_customer_groups(root, info, **kwargs):
+        # Querying a list
+        qs = CustomerGroup.objects.all()
+        return create_connection_slice(qs, info, kwargs, types.CustomerGroupConnection)
+
+    # @permission_required(AccountPermissions.MANAGE_GROUPS)
+    def resolve_customer_group(self, info, id, **data):
+        # Querying a single CustomerGroup
+        _, id = from_global_id_or_error(id, types.CustomerGroup)
+        return CustomerGroup.objects.get(id=id)
 
 
 class CustomerGroupMutations(graphene.ObjectType):
     customer_group_create = CustomerGroupCreate.Field()
-    customer_group_activate = CustomerGroupActivate.Field()
-    customer_group_deactivate = CustomerGroupDeactivate.Field()
     customer_group_update = CustomerGroupUpdate.Field()
     customer_group_delete = CustomerGroupDelete.Field()
 
 
-schema = graphene.Schema(query=CustomerGroupQueries, mutation=CustomerGroupMutations)
+schema = graphene.Schema(
+    query=CustomerGroupQueries,
+    mutation=CustomerGroupMutations,
+    types=[types.CustomerGroup],
+)

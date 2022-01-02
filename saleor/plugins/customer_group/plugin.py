@@ -22,17 +22,13 @@ class CustomerGroupPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "name": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Determines name." " Please enter the name of customer group.",
+            "help_text": " Please enter the name of customer group.",
             "label": "customer group name",
         },
         "description": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "description of customer group",
             "label": "description",
-        },
-        "Active": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "label": "Active",
         },
     }
 
