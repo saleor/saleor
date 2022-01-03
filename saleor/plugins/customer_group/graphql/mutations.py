@@ -11,10 +11,6 @@ class CustomerGroupInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
         description="isActive flag to enable or diable customer group from mustations"
     )
-
-
-class CustomerGroupCreateInput(CustomerGroupInput):
-    name = graphene.String(description="Name of the customer group.", required=True)
     description = graphene.String(description="description of the customer group.")
     customers = graphene.List(
         graphene.ID,
@@ -26,6 +22,10 @@ class CustomerGroupCreateInput(CustomerGroupInput):
         description="Variants IDs to Assign to the group",
         name="variants",
     )
+
+
+class CustomerGroupCreateInput(CustomerGroupInput):
+    name = graphene.String(description="Name of the customer group.", required=True)
 
 
 class CustomerGroupCreate(ModelMutation):
@@ -43,18 +43,6 @@ class CustomerGroupCreate(ModelMutation):
 
 class CustomerGroupUpdateInput(CustomerGroupInput):
     name = graphene.String(description="name of customer group")
-    description = graphene.String(description="description of customer group")
-    customers = graphene.List(
-        graphene.ID,
-        description="customers related to the customer group",
-        name="customers",
-        required=False,
-    )
-    variants = graphene.List(
-        graphene.ID,
-        description="Variants IDs to Assign to the group",
-        name="variants",
-    )
 
 
 class CustomerGroupUpdate(ModelMutation):
