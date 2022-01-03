@@ -29,6 +29,7 @@ from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .resolvers import resolve_available_shipping_methods
+from .utils import get_countries_codes_list
 
 
 class Domain(graphene.ObjectType):
@@ -128,6 +129,10 @@ class Shop(graphene.ObjectType):
                 "A language code to return the translation for."
             ),
         ),
+        in_shipping_zones=graphene.Boolean(
+            description="Only countries that have shipping zones assigned",
+            required=False,
+        ),
         description="List of countries available in the shop.",
         required=True,
     )
@@ -222,9 +227,8 @@ class Shop(graphene.ObjectType):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
-    def resolve_countries(_, _info, language_code=None):
+    def resolve_countries(_, _info, language_code=None, in_shipping_zones=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
-
         # DEPRECATED: translation.override will be dropped in Saleor 4.0
         with translation.override(language_code):
             return [
@@ -232,6 +236,7 @@ class Shop(graphene.ObjectType):
                     code=country[0], country=country[1], vat=taxes.get(country[0])
                 )
                 for country in countries
+                if country[0] in get_countries_codes_list(in_shipping_zones)
             ]
 
     @staticmethod

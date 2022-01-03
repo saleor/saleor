@@ -6053,7 +6053,7 @@ type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
+  countries(languageCode: LanguageCodeEnum, inShippingZones: Boolean): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
