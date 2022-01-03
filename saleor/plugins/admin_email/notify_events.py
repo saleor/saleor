@@ -34,9 +34,7 @@ def send_set_staff_password_email(
     )
 
 
-def send_csv_export_success(
-    payload: dict, config: dict, plugin: "AdminEmailPlugin"
-):
+def send_csv_export_success(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
     recipient_email = payload.get("recipient_email")
     if recipient_email:
         template = get_email_template_or_default(

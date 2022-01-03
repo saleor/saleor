@@ -160,8 +160,8 @@ class GiftCardCreate(ModelMutation):
             cleaned_input["created_by_email"] = user.email
         cleaned_input["app"] = info.context.app
 
-    @staticmethod
-    def clean_expiry_date(cleaned_input, instance):
+    @classmethod
+    def clean_expiry_date(cls, cleaned_input, instance):
         expiry_date = cleaned_input.get("expiry_date")
         if expiry_date and not is_date_in_future(expiry_date):
             raise ValidationError(
@@ -266,6 +266,13 @@ class GiftCardUpdate(GiftCardCreate):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
+
+    @classmethod
+    def clean_expiry_date(cls, cleaned_input, instance):
+        super().clean_expiry_date(cleaned_input, instance)
+        expiry_date = cleaned_input.get("expiry_date")
+        if expiry_date and expiry_date == instance.expiry_date:
+            del cleaned_input["expiry_date"]
 
     @staticmethod
     def clean_balance(cleaned_input, instance):
