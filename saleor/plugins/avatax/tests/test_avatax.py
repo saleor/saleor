@@ -1014,6 +1014,9 @@ def test_calculate_order_line_unit(
     order_line.unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
+    order_line.undiscounted_unit_price = TaxedMoney(
+        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
+    )
     order_line.save()
 
     order = order_line.order
@@ -1033,10 +1036,50 @@ def test_calculate_order_line_unit(
     expected_line_price = TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
-    expected_undiscounted_line_price = TaxedMoney(
-        net=Money("10.00", "USD"), gross=Money("12.30", "USD")
+    assert line_price_data.undiscounted_price == expected_line_price
+    assert line_price_data.price_with_discounts == expected_line_price
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_line_unit_in_JPY(
+    order_line_JPY,
+    shipping_zone_JPY,
+    site_settings,
+    address,
+    channel_JPY,
+    plugin_configuration,
+):
+    plugin_configuration(channel=channel_JPY)
+    manager = get_plugins_manager()
+
+    # Net price from `test_calculate_checkout_line_unit_price_in_JPY`
+    order_line_JPY.unit_price = TaxedMoney(
+        net=Money("976", "JPY"), gross=Money("1200", "JPY")
     )
-    assert line_price_data.undiscounted_price == expected_undiscounted_line_price
+    order_line_JPY.undiscounted_unit_price = TaxedMoney(
+        net=Money("976", "JPY"), gross=Money("1200", "JPY")
+    )
+    order_line_JPY.save()
+
+    order = order_line_JPY.order
+    method = shipping_zone_JPY.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    line_price_data = manager.calculate_order_line_unit(
+        order, order_line_JPY, order_line_JPY.variant, order_line_JPY.variant.product
+    )
+
+    expected_line_price = TaxedMoney(
+        net=Money("976", "JPY"), gross=Money("1200", "JPY")
+    )
+    assert line_price_data.undiscounted_price == expected_line_price
     assert line_price_data.price_with_discounts == expected_line_price
 
 
@@ -1134,6 +1177,52 @@ def test_calculate_checkout_line_unit_price(
         expected_line_price = TaxedMoney(
             net=Money("10.00", "USD"), gross=Money("10.00", "USD")
         )
+    assert line_price_data.price_with_sale == expected_line_price
+    assert line_price_data.undiscounted_price == expected_line_price
+    assert line_price_data.price_with_discounts == expected_line_price
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_unit_price_in_JPY(
+    checkout_JPY_with_item,
+    shipping_zone_JPY,
+    site_settings,
+    ship_to_pl_address,
+    address,
+    channel_JPY,
+    plugin_configuration,
+):
+    checkout = checkout_JPY_with_item
+    plugin_configuration(channel=channel_JPY)
+
+    lines = fetch_checkout_lines(checkout)
+    checkout_line = lines[0]
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone_JPY.shipping_methods.get()
+    checkout.shipping_address = ship_to_pl_address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    line_price_data = manager.calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line,
+        checkout.shipping_address,
+        [],
+    )
+
+    expected_line_price = TaxedMoney(
+        net=Money("976", "JPY"), gross=Money("1200", "JPY")
+    )
     assert line_price_data.price_with_sale == expected_line_price
     assert line_price_data.undiscounted_price == expected_line_price
     assert line_price_data.price_with_discounts == expected_line_price

@@ -214,6 +214,22 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
 
 
 def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    """Handle authorization notification.
+
+    Handler for processing an authorization notification from Adyen. The notification
+    is async so we assume that it can be delivered in two different situations: order
+    is already created, order is not created yet.
+        - order is already created: we process notification and update the status of
+        payment and order in case if we didn't do that previously.
+        - order is not created yet: we create an order and update a payment's status.
+        In case when checkout_complete raises an exception we will call a refund/void
+        for a given payment.
+    For both cases we will include an external event to Order history.
+    No matter if Adyen has enabled auto capture on their side, we will always receive
+    authorization notification. In that case, we can't determine if the payment on
+    their side goes to authorization or captured status.
+    """
+
     transaction_id = notification.get("pspReference")
     payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
@@ -226,6 +242,26 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     kind = TransactionKind.AUTH
     if adyen_auto_capture:
         kind = TransactionKind.CAPTURE
+
+    amount = notification.get("amount", {})
+    try:
+        notification_payment_amount = price_from_minor_unit(
+            amount.get("value"), amount.get("currency")
+        )
+    except TypeError as e:
+        logger.exception("Cannot convert amount from minor unit", extra={"error": e})
+        return
+
+    if notification_payment_amount < payment.total:
+        # If amount from the notification is lower than payment total then we have
+        # a partial payment so we create an order in separate webhook (order_closed)
+        # after payment finished.
+        logger.info(
+            f"This is a partial payment notification. We can't create an order"
+            f"pspReference: {transaction_id}, payment_id: {payment.pk}"
+        )
+        return
+
     if not payment.order:
         handle_not_created_order(notification, payment, checkout, kind, manager)
     else:
@@ -557,6 +593,70 @@ def webhook_not_implemented(
     create_payment_notification_for_order(payment, msg, None, True)
 
 
+def handle_order_opened(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    # From Adyen's documentation:
+    # Sent when the first payment for your payment request is a partial payment, and an
+    # order has been created.
+    #
+    # In this case we just logging here that we received the webhook properly.
+
+    logger.info(f"First payment request as a partial payment. {notification}")
+
+
+def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    # From Adyen's documentation:
+    # The success field informs you of the outcome of the shopper's last payment when
+    # paying for an order in partial payments.
+    #
+    # Possible values:
+    # true: The full amount has been paid.
+    # false: The shopper did not pay the full amount within the sessionValidity.
+    # All partial payments that were processed previously are automatically cancelled
+    # or refunded.
+    is_success = True if notification.get("success") == "true" else False
+    psp_reference = notification.get("pspReference")
+
+    logger.info(
+        f"Partial payment has been finished with result: {is_success}."
+        f"psp: {psp_reference}"
+    )
+
+    if not is_success:
+        logger.info(
+            "The shopper did not pay the full amount within the "
+            "sessionValidity. All partial payments that were processed "
+            "previously are automatically cancelled or refunded."
+        )
+        return
+
+    payment = get_payment(notification.get("merchantReference"), psp_reference)
+
+    if not payment:
+        # We don't know anything about that payment
+        logger.info(f"There is no payment with psp: {psp_reference}")
+        return
+
+    if payment.order:
+        logger.info(f"Order already created for payment: {payment.pk}")
+        return
+
+    adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
+    kind = TransactionKind.CAPTURE if adyen_auto_capture else TransactionKind.AUTH
+
+    try:
+        handle_not_created_order(
+            notification, payment, payment.checkout, kind, get_plugins_manager()
+        )
+    except Exception as e:
+        logger.exception("Exception during order creation", extra={"error": e})
+        return
+
+    reason = notification.get("reason", "-")
+    success_msg = f"Adyen: The payment  {psp_reference} request  was successful."
+    failed_msg = f"Adyen: The payment {psp_reference} request failed. Reason: {reason}."
+    create_payment_notification_for_order(payment, success_msg, failed_msg, is_success)
+
+
 EVENT_MAP = {
     "AUTHORISATION": handle_authorization,
     "AUTHORISATION_ADJUSTMENT": webhook_not_implemented,
@@ -565,8 +665,8 @@ EVENT_MAP = {
     "CAPTURE": handle_capture,
     "CAPTURE_FAILED": handle_failed_capture,
     "HANDLED_EXTERNALLY": webhook_not_implemented,
-    "ORDER_OPENED": webhook_not_implemented,
-    "ORDER_CLOSED": webhook_not_implemented,
+    "ORDER_OPENED": handle_order_opened,
+    "ORDER_CLOSED": handle_order_closed,
     "PENDING": handle_pending,
     "PROCESS_RETRY": webhook_not_implemented,
     "REFUND": handle_refund,
@@ -688,6 +788,14 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 def handle_additional_actions(
     request: WSGIRequest, payment_details: Callable, channel_slug: str
 ):
+    """Handle redirect with additional actions.
+
+    When a customer uses a payment method with redirect, before customer is redirected
+    back to storefront, the request goes through the Saleor. We use the data received
+    from Adyen, as a query params or as a post data, to finalize an additional action.
+    After that, if payment doesn't require any additional action we create an order.
+    In case if action data exists, we don't create an order and we include them in url.
+    """
     payment_id = request.GET.get("payment")
     checkout_pk = request.GET.get("checkout")
 
