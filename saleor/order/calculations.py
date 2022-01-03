@@ -7,38 +7,67 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData
+from ..core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ..plugins.manager import PluginsManager
 from . import ORDER_EDITABLE_STATUS
 from .models import Order, OrderLine
 
 
-def _apply_tax_data_from_plugins(
+def _combine_prices_from_manager_into_tax_data(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
-):
+) -> Optional[TaxData]:
     prefetch_related_objects(lines, "variant__product")
+    currency = order.currency
 
-    for line in lines:
-        variant = line.variant
-        if not variant:
-            continue
-        product = variant.product
+    tax_lines_data = []
+    subtotal = zero_taxed_money(currency)
+    try:
+        for line in lines:
+            variant = line.variant
+            if not variant:
+                continue
+            product = variant.product
 
-        line.unit_price = manager.calculate_order_line_unit(
-            order, line, variant, product
-        )
-        line.total_price = manager.calculate_order_line_total(
-            order, line, variant, product
-        )
-        line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, line.unit_price
-        )
+            unit_price = manager.calculate_order_line_unit(
+                order, line, variant, product
+            )
+            total_price = manager.calculate_order_line_total(
+                order, line, variant, product
+            )
+            tax_rate = manager.get_order_line_tax_rate(
+                order, product, variant, None, unit_price
+            )
 
-    order.shipping_price = manager.calculate_order_shipping(order)
-    order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
-        order, order.shipping_price
-    )
-    order.total = order.shipping_price + order.get_subtotal()
+            tax_lines_data.append(
+                TaxLineData(
+                    id=line.id,
+                    currency=currency,
+                    tax_rate=tax_rate,
+                    unit_net_amount=unit_price.net.amount,
+                    unit_gross_amount=unit_price.gross.amount,
+                    total_net_amount=total_price.net.amount,
+                    total_gross_amount=total_price.gross.amount,
+                )
+            )
+            subtotal += total_price
+
+        shipping_price = manager.calculate_order_shipping(order)
+        shipping_tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
+        total = shipping_price + subtotal
+
+        return TaxData(
+            currency=currency,
+            total_net_amount=total.net.amount,
+            total_gross_amount=total.gross.amount,
+            subtotal_net_amount=subtotal.net.amount,
+            subtotal_gross_amount=subtotal.gross.amount,
+            shipping_price_net_amount=shipping_price.net.amount,
+            shipping_price_gross_amount=shipping_price.gross.amount,
+            shipping_tax_rate=shipping_tax_rate,
+            lines=tax_lines_data,
+        )
+    except TaxError:
+        return None
 
 
 def _apply_tax_data(
@@ -95,7 +124,14 @@ def fetch_order_prices_if_expired(
     if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
         return order, lines
 
-    _apply_tax_data_from_plugins(manager, order, lines)
+    combined_tax_data = _combine_prices_from_manager_into_tax_data(
+        manager, order, lines
+    )
+
+    if not combined_tax_data:
+        return order, lines
+
+    _apply_tax_data(order, lines, combined_tax_data)
 
     tax_data = manager.get_taxes_for_order(order)
 

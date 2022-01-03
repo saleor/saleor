@@ -7,12 +7,12 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxLineData
+from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus
 from ..calculations import (
     _apply_tax_data,
-    _apply_tax_data_from_plugins,
+    _combine_prices_from_manager_into_tax_data,
     fetch_order_prices_if_expired,
     order_line_tax_rate,
     order_line_total,
@@ -66,8 +66,12 @@ def tax_data(order_with_lines, order_lines):
     )
 
 
+def create_taxed_money(net: Decimal, gross: Decimal, currency: str) -> TaxedMoney:
+    return TaxedMoney(net=Money(net, currency), gross=Money(gross, currency))
+
+
 @patch("saleor.order.calculations.prefetch_related_objects")
-def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
+def test_combine_prices_from_manager_into_tax_data(order_with_lines, order_lines):
     # given
     line_without_variant = Mock(variant=None)
     order = order_with_lines
@@ -77,9 +81,6 @@ def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
 
     currency = order.currency
 
-    def get_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
-        return TaxedMoney(net=Money(net, currency), gross=Money(gross, order.currency))
-
     line_tax_rates = [
         Decimal("0.23") + Decimal(i / 100) for i, _ in enumerate(order_lines)
     ]
@@ -88,7 +89,7 @@ def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
     for i, tax_rate in enumerate(line_tax_rates):
         net = Decimal("5.00") + i
         gross = net * (tax_rate + 1)
-        line_unit_prices.append(get_taxed_money(net, gross))
+        line_unit_prices.append(create_taxed_money(net, gross, currency))
 
     line_total_prices = [
         unit_price * line.quantity
@@ -96,7 +97,7 @@ def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
     ]
 
     shipping_tax_rate = Decimal("0.17")
-    shipping_price = get_taxed_money(Decimal("10.00"), Decimal("11.70"))
+    shipping_price = create_taxed_money(Decimal("10.00"), Decimal("11.70"), currency)
 
     manager = Mock(
         calculate_order_line_unit=Mock(side_effect=line_unit_prices),
@@ -107,20 +108,62 @@ def test_apply_tax_data_from_plugins(order_with_lines, order_lines):
     )
 
     # when
-    _apply_tax_data_from_plugins(manager, order, lines)
+    tax_data = _combine_prices_from_manager_into_tax_data(manager, order, lines)
 
     # then
-    lines_with_variant = filter(lambda l: l.variant, lines)
     for line, unit_price, total_price, tax_rate in zip(
-        lines_with_variant, line_unit_prices, line_total_prices, line_tax_rates
+        tax_data.lines, line_unit_prices, line_total_prices, line_tax_rates
     ):
-        assert line.unit_price == unit_price
-        assert line.total_price == total_price
+        assert get_taxed_money(line, "unit") == unit_price
+        assert get_taxed_money(line, "total") == total_price
         assert line.tax_rate == tax_rate
 
-    assert order.shipping_price == shipping_price
-    assert order.shipping_tax_rate == shipping_tax_rate
-    assert order.total == order.shipping_price + order.get_subtotal()
+    assert get_taxed_money(tax_data, "shipping_price") == shipping_price
+    assert tax_data.shipping_tax_rate == shipping_tax_rate
+    assert (
+        get_taxed_money(tax_data, "total")
+        == sum(
+            [
+                create_taxed_money(
+                    line.total_net_amount, line.total_gross_amount, currency
+                )
+                for line in tax_data.lines
+            ],
+            zero_taxed_money(order.currency),
+        )
+        + shipping_price
+    )
+
+
+MANAGER_ORDER_METHODS = (
+    "calculate_order_line_unit",
+    "calculate_order_line_total",
+    "get_order_line_tax_rate",
+    "calculate_order_shipping",
+    "get_order_shipping_tax_rate",
+)
+
+
+@pytest.mark.parametrize("mocked_method_name", MANAGER_ORDER_METHODS)
+@patch("saleor.order.calculations.prefetch_related_objects")
+def test_combine_prices_from_manager_to_tax_data(
+    order_with_lines, order_lines, mocked_method_name
+):
+    # given
+    order = order_with_lines
+    lines = list(order_lines)
+    manager_methods = {
+        method_name: Mock(return_value=zero_taxed_money(order.currency))
+        for method_name in MANAGER_ORDER_METHODS
+    }
+    manager_methods[mocked_method_name] = Mock(side_effect=TaxError())
+    manager = Mock(**manager_methods)
+
+    # when
+    tax_data = _combine_prices_from_manager_into_tax_data(manager, order, lines)
+
+    # then
+    assert not tax_data
 
 
 def test_apply_tax_data(order_with_lines, order_lines, tax_data):
@@ -179,9 +222,9 @@ def get_taxed_money(
 
 
 @freeze_time("2020-12-12 12:00:00")
-@patch("saleor.order.calculations._apply_tax_data")
+@patch("saleor.order.calculations._combine_prices_from_manager_into_tax_data")
 def test_fetch_order_prices_if_expired_plugins(
-    _mocked_apply_tax_data,
+    mocked_combine_prices_from_manager_into_tax_data,
     manager,
     fetch_kwargs,
     order_with_lines,
@@ -189,42 +232,56 @@ def test_fetch_order_prices_if_expired_plugins(
 ):
     # given
     manager.get_taxes_for_order = Mock(return_value=None)
-
-    unit_prices, totals, tax_rates = zip(
-        *[
-            (
-                get_taxed_money(line, "unit"),
-                get_taxed_money(line, "total"),
-                line.tax_rate,
-            )
-            for line in tax_data.lines
-        ]
-    )
-    manager.calculate_order_line_unit = Mock(side_effect=unit_prices)
-    manager.calculate_order_line_total = Mock(side_effect=totals)
-    manager.get_order_line_tax_rate = Mock(side_effect=tax_rates)
-
-    shipping_price = get_taxed_money(tax_data, "shipping_price")
-    manager.calculate_order_shipping = Mock(return_value=shipping_price)
-
-    shipping_tax_rate = tax_data.shipping_tax_rate
-    manager.get_order_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
-
-    total = get_taxed_money(tax_data, "total")
-    manager.calculate_order_total = Mock(return_value=total)
+    mocked_combine_prices_from_manager_into_tax_data.return_value = tax_data
 
     # when
     fetch_order_prices_if_expired(**fetch_kwargs)
 
     # then
     order_with_lines.refresh_from_db()
-    assert order_with_lines.shipping_price == shipping_price
-    assert order_with_lines.shipping_tax_rate == shipping_tax_rate
-    assert order_with_lines.total == total
+    assert order_with_lines.shipping_price == get_taxed_money(
+        tax_data, "shipping_price"
+    )
+    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate
+    assert order_with_lines.total == get_taxed_money(tax_data, "total")
     for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
         assert order_line.unit_price == get_taxed_money(tax_line, "unit")
         assert order_line.total_price == get_taxed_money(tax_line, "total")
         assert order_line.tax_rate == tax_line.tax_rate
+
+
+@freeze_time("2020-12-12 12:00:00")
+@patch("saleor.order.calculations._combine_prices_from_manager_into_tax_data")
+def test_fetch_order_prices_if_expired_plugins_tax_error(
+    mocked_combine_prices_from_manager_into_tax_data,
+    order_with_lines,
+    order_lines,
+):
+    # given
+    manager = Mock(get_taxes_for_order=Mock(return_value=None))
+    mocked_combine_prices_from_manager_into_tax_data.return_value = None
+    order = order_with_lines
+    unchanged = create_taxed_money(Decimal(-1), Decimal(-1), order.currency)
+
+    order.shipping_price = unchanged
+    order.shipping_tax_rate = unchanged
+    order.total = unchanged
+    for line in order_lines:
+        line.unit_price = unchanged
+        line.total_price = unchanged
+        line.tax_rate = unchanged
+
+    # when
+    fetch_order_prices_if_expired(order, manager)
+
+    # then
+    assert order.shipping_price == unchanged
+    assert order.shipping_tax_rate == unchanged
+    assert order.total == unchanged
+    for line in order_lines:
+        assert line.unit_price == unchanged
+        assert line.total_price == unchanged
+        assert line.tax_rate == unchanged
 
 
 @freeze_time("2020-12-12 12:00:00")
