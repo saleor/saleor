@@ -1181,7 +1181,7 @@ def test_handle_not_created_order_refund_when_create_order_raises(
     )
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -1204,7 +1204,7 @@ def test_handle_not_created_order_void_when_create_order_raises(
     )
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 @pytest.mark.parametrize(
@@ -1285,7 +1285,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_re
     assert all_payment_transactions[1].kind == TransactionKind.AUTH
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -1317,7 +1317,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_vo
     assert all_payment_transactions[1].kind == TransactionKind.AUTH
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 def test_confirm_payment_and_set_back_to_confirm(

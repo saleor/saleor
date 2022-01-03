@@ -176,6 +176,7 @@ def create_order(payment, checkout, manager):
         # when checkout total value is different than total amount from payments
         # it means that some products has been removed during the payment was completed
         if checkout_total.gross.amount != payment.total:
+            payment_refund_or_void(payment, manager, checkout_info.channel.slug)
             raise ValidationError(
                 "Cannot create order - some products do not exist anymore."
             )
@@ -189,8 +190,10 @@ def create_order(payment, checkout, manager):
             user=checkout.user or AnonymousUser(),
             app=None,
         )
-    except ValidationError:
-        payment_refund_or_void(payment, manager, checkout_info.channel.slug)
+    except ValidationError as e:
+        logger.info(
+            "Failed to create order from checkout %s.", checkout.pk, extra={"error": e}
+        )
         return None
     # Refresh the payment to assign the newly created order
     payment.refresh_from_db()
