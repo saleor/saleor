@@ -248,6 +248,7 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
+    price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)
     search_document = models.TextField(blank=True, default="")
 
     price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)

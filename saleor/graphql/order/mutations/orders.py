@@ -241,10 +241,17 @@ class OrderUpdate(DraftOrderCreate):
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
         instance.save()
+
+        invalid_price_fields = ["shipping_address", "billing_address"]
+        invalidate_prices = any(
+            cleaned_input.get(field) is not None for field in invalid_price_fields
+        )
+
         update_order_prices_if_expired(
             instance,
             info.context.plugins,
             info.context.site.settings.include_taxes_in_prices,
+            invalidate_prices,
         )
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
@@ -847,7 +854,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order_lines=lines_to_add,
         )
 
-        recalculate_order(order)
+        recalculate_order(order, invalidate_prices=True)
         update_order_search_document(order)
 
         func = get_webhook_handler_by_order_status(order.status, info)
@@ -919,7 +926,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        recalculate_order(order)
+        recalculate_order(order, invalidate_prices=True)
         update_order_search_document(order)
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
@@ -990,7 +997,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order)
+        recalculate_order(instance.order, invalidate_prices=True)
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))

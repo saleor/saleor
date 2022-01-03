@@ -299,6 +299,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
+    def invalidate_prices(cls, instance, cleaned_input) -> bool:
+        return False
+
+    @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
@@ -336,7 +340,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
         # Post-process the results
-        recalculate_order(instance)
+        recalculate_order(instance, cls.invalidate_prices(instance, cleaned_input))
         update_order_search_document(instance)
 
 
@@ -370,6 +374,13 @@ class DraftOrderUpdate(DraftOrderCreate):
                 }
             )
         return instance
+
+    @classmethod
+    def invalidate_prices(cls, instance, cleaned_input) -> bool:
+        invalid_price_fields = ["shipping_address", "billing_address"]
+        return any(
+            cleaned_input.get(field) is not None for field in invalid_price_fields
+        )
 
 
 class DraftOrderDelete(ModelDeleteMutation):
