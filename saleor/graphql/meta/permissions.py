@@ -136,7 +136,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "Invoice": invoice_permissions,
     "Menu": menu_permissions,
     "MenuItem": menu_permissions,
-    "Order": no_permissions,
+    "Order": order_permissions,
     "Page": page_permissions,
     "PageType": page_type_permissions,
     "Payment": public_payment_permissions,
