@@ -72,8 +72,15 @@ class Provider:
                 code=OAuth2ErrorCode.OAUTH2_ERROR,
             )
 
-    def fetch_profile_info(self, auth_response):
-        access_token = auth_response["access_token"]
+    def fetch_profile_info(self, auth_response=None, access_token=None):
+        if access_token:
+            access_token = str(access_token)
+        else:
+            access_token = str(auth_response["access_token"])
+
+        if access_token is None:
+            raise TypeError("access_token must not be None")
+
         profile_url = self.get_url_for("userinfo")
 
         response = requests.get(

@@ -5,23 +5,22 @@ from django.utils import timezone
 from ....account import events as account_events
 from ....account import search
 from ....core.utils.url import validate_storefront_url
-from ....graphql.account.mutations.authentication import CreateToken
 from ....graphql.core.mutations import BaseMutation
 from ..providers import Provider
 from ..utils import get_oauth_provider, get_user_tokens
-from .types import OAuth2Error, OAuth2Input, ProviderEnum
+from . import types
 
 User = get_user_model()
 
 
 class SocialLogin(BaseMutation):
     class Arguments:
-        provider = ProviderEnum(required=True)
+        provider = types.ProviderEnum(required=True)
         redirect_url = graphene.String(required=True)
 
     class Meta:
         description = "Initiate OAuth2 and get back the authorization URL"
-        error_type_class = OAuth2Error
+        error_type_class = types.OAuth2Error
 
     base_url = graphene.String(description="Base service authorization URL")
     full_url = graphene.String(description="Full service authorization URL")
@@ -70,27 +69,37 @@ class SocialLogin(BaseMutation):
         )
 
 
-class SocialLoginConfirm(CreateToken):
+class SocialLoginByAccessToken(BaseMutation):
     created = graphene.Boolean(description="Describes if the account is created.")
+    token = graphene.String(description="JWT token, required to authenticate.")
+    refresh_token = graphene.String(
+        description="JWT refresh token, required to re-generate access token."
+    )
+    csrf_token = graphene.String(
+        description="CSRF token required to re-generate access token."
+    )
 
     class Arguments:
-        input = OAuth2Input(description="OAuth2 data.", required=True)
+        input = types.OAuth2TokenInput(description="OAuth2 data.", required=True)
 
     class Meta:
         description = "Perform an OAuth2 callback"
-        error_type_class = OAuth2Error
+        error_type_class = types.OAuth2Error
 
     @classmethod
-    def get_user(cls, info, input, provider, auth_response):
-        profile_info = provider.fetch_profile_info(auth_response)
+    def get_user(cls, info, input, **data):
+        provider = data["provider"]
+        access_token = data["access_token"]
+
+        profile_info = provider.fetch_profile_info(access_token=access_token)
         email = profile_info["email"]
-        language_code = input.language_code
 
         try:
             user = User.objects.get(email=email)
             created = False
         except User.DoesNotExist:
             password = User.objects.make_random_password()
+            language_code = input.language_code
             user = User(email=email, is_active=True, language_code=language_code)
             user.set_password(password)
             user.search_document = search.prepare_user_search_document_value(
@@ -99,18 +108,22 @@ class SocialLoginConfirm(CreateToken):
             user.save()
             account_events.customer_account_created_event(user=user)
             info.context.plugins.customer_created(customer=user)
+            # TODO: send welcome email
             created = True
 
         return created, user
 
     @classmethod
-    def perform_mutation(cls, root, info, input, **kwargs):
-        provider = get_oauth_provider(input.provider, info)
-        auth_response = provider.fetch_tokens(
-            info, input.code, input.state, input.redirect_url
-        )
+    def get_access_token(cls, **data):
+        return data["input"].token
 
-        created, user = cls.get_user(info, input, provider, auth_response)
+    @classmethod
+    def perform_mutation(cls, root, info, **kwargs):
+        input = kwargs["input"]
+        provider = get_oauth_provider(input.provider, info)
+        created, user = cls.get_user(
+            info, input, provider=provider, access_token=cls.get_access_token(**kwargs)
+        )
         user_tokens = get_user_tokens(user)
         info.context.refresh_token = user_tokens["refresh_token"]
         info.context._cached_user = user
@@ -119,7 +132,30 @@ class SocialLoginConfirm(CreateToken):
 
         return cls(
             errors=[],
-            user=user,
             created=created,
             **user_tokens,
         )
+
+
+class SocialLoginConfirm(SocialLoginByAccessToken):
+    class Arguments:
+        input = types.OAuth2Input(description="OAuth2 data.", required=True)
+
+    class Meta:
+        description = "Perform an OAuth2 callback with the provider access token."
+        error_type_class = types.OAuth2Error
+
+    @classmethod
+    def get_access_token(cls, **data):
+        return data["auth_response"]["access_token"]
+
+    @classmethod
+    def perform_mutation(cls, root, info, **kwargs):
+        input = kwargs["input"]
+        provider = get_oauth_provider(input.provider, info)
+        auth_response = provider.fetch_tokens(
+            info, input.code, input.state, input.redirect_url
+        )
+
+        kwargs["auth_response"] = auth_response
+        return super().perform_mutation(root, info, **kwargs)

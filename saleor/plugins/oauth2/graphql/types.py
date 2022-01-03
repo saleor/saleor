@@ -1,6 +1,5 @@
 import graphene
 
-from ....graphql.core.enums import LanguageCodeEnum
 from ....graphql.core.types import Error
 from .enums import OAuth2ErrorCode as OAuth2ErrorCodeEnum
 
@@ -17,14 +16,18 @@ class ProviderEnum(graphene.Enum):
 
 
 class OAuth2Input(graphene.InputObjectType):
-    provider = ProviderEnum(required=True)
+    provider = ProviderEnum(required=True, description="Provider name")
     code = graphene.String(required=True)
     state = graphene.String(required=True)
     redirect_url = graphene.String(required=True)
     channel = graphene.String(required=False)
-    language_code = graphene.Field(
-        LanguageCodeEnum,
-        required=False,
-        description="User language code.",
-        default_value="AR",
-    )
+
+
+class OAuth2TokenInput(graphene.InputObjectType):
+    provider = ProviderEnum(required=True, description="Provider name")
+    token = graphene.String(required=True, description="Provider access token.")
+
+
+# @extend(fields="id")
+# class User(graphene.ObjectType):
+#     id = external(graphene.String(required=True))
