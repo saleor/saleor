@@ -24,6 +24,7 @@ from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
 from graphql_relay import from_global_id
 
+from ....checkout.calculations import calculate_checkout_total_with_gift_cards
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -165,6 +166,19 @@ def create_order(payment, checkout, manager):
         discounts = fetch_active_discounts()
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_total = calculate_checkout_total_with_gift_cards(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address or checkout.billing_address,
+            discounts=discounts,
+        )
+        # when checkout total value is different than total amount from payments
+        # it means that some products has been removed during the payment was completed
+        if checkout_total.gross.amount != payment.total:
+            raise ValidationError(
+                "Cannot create order - some products do not exist anymore."
+            )
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,
