@@ -1,5 +1,4 @@
-import json
-from typing import Dict
+from typing import Dict, List
 
 import graphene
 from algoliasearch.search_client import SearchClient
@@ -12,10 +11,8 @@ from django.utils.functional import SimpleLazyObject
 from gql import gql
 
 from saleor.account.models import User
-from saleor.celeryconf import app
 from saleor.core.permissions import ProductPermissions
 from saleor.discount.utils import fetch_discounts
-from saleor.graphql.core.utils import from_global_id_or_error
 from saleor.graphql.product.schema import ProductQueries
 from saleor.plugins.manager import get_plugins_manager
 from saleor.product.models import Product
@@ -110,10 +107,6 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
           isPublished
           isAvailableForPurchase
         }
-        translation(languageCode: $languageCode) {
-          name
-          description
-        }
         attributes {
           attribute {
             name
@@ -162,93 +155,65 @@ def hierarchical_categories(product: Product):
         return hierarchical
 
 
-def map_product_name(product_dict: dict, language_code: str):
-    name = product_dict.get("name")
-    translated_name = product_dict.get("translation", {}).get("name")
-    return name if language_code == "EN" else translated_name
-
-
-def map_product_description(product_dict: dict, language_code: str):
-    description = product_dict.get("description", {})
-    translated_description = product_dict.get("translation", {}).get("description", {})
-    description_en = json.loads(description).get("blocks")[0].get("data").get("text")
-    description_ar = (
-        json.loads(translated_description).get("blocks")[0].get("data").get("text")
-    )
-
-    return description_en if language_code == "EN" else description_ar
+def map_product_description(description: dict):
+    return description.get("blocks", [{}])[0].get("data", {}).get("text", {})
 
 
 def map_product_attributes(product_dict: dict, language_code: str):
-    attributes = product_dict.get("attributes")
-    translated_attributes = product_dict.get("translation", {}).get("attributes")
-    print(translated_attributes)
+    translated_attributes: List[dict] = []
+    attributes = product_dict.get("attributes", [])
 
-    atts = []
+    attrs = []
     if attributes:
-        for attribute in attributes:
-            att_dict = {}
-            att_dict.update({"attribute": attribute.get("attribute").get("name")})
-            att_dict.update(
+        for attribute in attributes if language_code == "EN" else translated_attributes:
+            attr_dict = {}
+            attr_dict.update(
                 {
-                    "values": [
-                        value.get("name")
-                        for value in attribute.get("values")
-                        if value.get("name")
+                    f"{attribute.get('attribute').get('name')}": [
+                        value.get("name") for value in attribute.get("values")
                     ]
+                    if attribute.get("values")
+                    else []
                 }
             )
-            atts.append(att_dict)
-    for attribute in attributes:
-        attribute_key = (
-            attribute.get("name")
-            if language_code == "EN"
-            else attribute.get("translation", {}).get("name")
-        )
-        attribute_values = [
-            value
-            for value in attribute.get("values", {}).get("name")
-            if language_code == "EN"
-        ]  # else attribute.get("values", {}).get("translation", {}).get("name")
-        # ]
-        print(attribute_key, attribute_values)
-
-        atts.append(
-            {
-                "name": attribute.get("attribute", {}).get("name"),
-                "values": [
-                    {
-                        "name": value.get("name"),
-                        "translation": value.get("translation", {}).get("name"),
-                    }
-                    for value in attribute.get("values")
-                ],
-            }
-        )
-
-    return atts
+            attrs.append(attr_dict)
+    return attrs
 
 
-def get_product_data(product_global_id: str, language_code="EN"):
+def get_product_data(product_pk: int, language_code="EN"):
+    product = Product.objects.get(pk=product_pk)
     schema = graphene.Schema(query=ProductQueries, types=[Product])
-
-    pk = from_global_id_or_error(product_global_id, "Product")[1]
-    product = Product.objects.get(pk=pk)
-    variables = {"id": product_global_id, "languageCode": language_code}
+    product_global_id = graphene.Node.to_global_id("Product", product_pk)
+    variables = {"id": product_global_id, "languageCode": language_code.upper()}
 
     product_data = schema.execute(
         GET_PRODUCT_QUERY, variables=variables, context=UserAdminContext()
     )
     product_dict = product_data.data.get("products").get("edges")[0].get("node")
 
-    name = map_product_name(product_dict=product_dict, language_code=language_code)
+    translated_product = product.translations.filter(
+        language_code=language_code
+    ).first()
+
+    name = ""
+    if language_code == "EN":
+        name = product.name
+    elif translated_product and language_code != "EN":
+        name = translated_product.name
+
+    description = {}
+    if language_code == "EN":
+        description = product.description if product.description else {}
+    elif translated_product and language_code != "EN":
+        description = translated_product.description
+
     description = map_product_description(
-        product_dict=product_dict, language_code=language_code
+        description=description,
     )
+
     attributes = map_product_attributes(
         product_dict=product_dict, language_code=language_code
     )
-    print(attributes)
 
     channels = []
     channel_listings = product_dict.pop("channelListings")
@@ -266,6 +231,7 @@ def get_product_data(product_global_id: str, language_code="EN"):
                 "objectID": slug,
                 "images": images,
                 "channels": channels,
+                "attributes": attributes,
                 "description": description,
                 "categoryPageId": category_page_id(),
                 "gender": product.get_value_from_metadata("gender"),
@@ -294,38 +260,9 @@ def get_algolia_indices(config: Dict, locale: str):
     return index
 
 
-@app.task
-def index_product_data_to_algolia(
-    locale: str, product_global_id: str, sender: str, config: Dict
-):
-    index = get_algolia_indices(config=config, locale=locale)
-    product_data = get_product_data(
-        language_code=locale,
-        product_global_id=product_global_id,
-    )
-    if product_data:
-        if sender == "product_created":
-            index.save_object(
-                obj=product_data,
-                request_options={"autoGenerateObjectIDIfNotExist": False},
-            )
-        elif sender == "product_updated":
-            index.partial_update_object(
-                obj=product_data, request_options={"createIfNotExists": True}
-            )
-        elif sender == "product_deleted":
-            # Object ID is required to delete an object, it's the product slug.
-            index.delete_object(object_id=product_data.get("objectID"))
-        return {
-            "locale": locale,
-            "sender": sender,
-            "product": product_data.get("objectID"),
-        }
-
-
 def get_locales():
     """Return upper case language locales."""
     locales = []
     for locale in settings.LANGUAGES:
-        locale.append(locale[0].upper())
+        locales.append(locale[0])
     return locales

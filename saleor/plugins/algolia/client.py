@@ -25,17 +25,3 @@ class AlgoliaApiClient(metaclass=Singleton):
 
     def list_indexes(self):
         return self.indices
-
-    def save_object(self, record, locales):
-        for locale in locales:
-            self.indices[locale].save_object(record)
-
-    def partial_update_object(self, record, locales):
-        for locale in locales:
-            self.indices[locale].partial_update_object(
-                obj=record, request_options={"createIfNotExists": True}
-            )
-
-    def delete_object(self, record, locales):
-        for locale in locales:
-            self.indices[locale].delete_object(record["objectID"])
