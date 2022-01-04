@@ -1,5 +1,4 @@
 import base64
-import uuid
 from unittest.mock import patch
 
 import graphene
@@ -124,17 +123,31 @@ def item_contains_multiple_proper_public_metadata(
     )
 
 
+def invalid_id_graphql_error_raised(errors_from_respone):
+    return all(
+        [
+            len(errors_from_respone) == 1,
+            errors_from_respone[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name,
+            errors_from_respone[0]["field"] == "id",
+        ]
+    )
+
+
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_base_metadata_mutation_handles_errors_from_extra_action(
     mock_checkout_updated, api_client, checkout
 ):
+    # given
     error_field = "field"
     error_msg = "boom"
     mock_checkout_updated.side_effect = ValidationError({error_field: error_msg})
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, checkout_id, "Checkout"
+        api_client, None, checkout.token, "Checkout"
     )
+
+    # then
     errors = response["data"]["updateMetadata"]["errors"]
     assert errors[0]["field"] == error_field
     assert errors[0]["message"] == error_msg
@@ -335,9 +348,8 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
     # then
-    assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], checkout, checkout_id
-    )
+    errors = response["data"]["updateMetadata"]["errors"]
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
@@ -355,16 +367,18 @@ def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
-def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
-    mock_checkout_updated, api_client, checkout
-):
+def test_add_metadata_for_checkout_triggers_checkout_updated_hook(api_client, checkout):
+    # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
     response = execute_update_public_metadata_for_item(
         api_client, None, checkout_id, "Checkout"
     )
-    assert response["data"]["updateMetadata"]["errors"] == []
-    mock_checkout_updated.assert_called_once_with(checkout)
+
+    # then
+    errors = response["data"]["updateMetadata"]["errors"]
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_add_public_metadata_for_order_by_id(api_client, order):
@@ -378,9 +392,7 @@ def test_add_public_metadata_for_order_by_id(api_client, order):
 
     # then
     errors = response["data"]["updateMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_add_public_metadata_for_order_by_token(api_client, order):
@@ -409,9 +421,7 @@ def test_add_public_metadata_for_draft_order_by_id(api_client, draft_order):
 
     # then
     errors = response["data"]["updateMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
@@ -733,7 +743,7 @@ def test_update_public_metadata_for_item(api_client, checkout):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, checkout_id, "Checkout", value="NewMetaValue"
+        api_client, None, checkout.token, "Checkout", value="NewMetaValue"
     )
 
     # then
@@ -745,14 +755,16 @@ def test_update_public_metadata_for_item(api_client, checkout):
     )
 
 
-def test_update_public_metadata_for_non_exist_item(api_client):
+def test_update_public_metadata_for_non_exist_item(
+    staff_api_client, permission_manage_payments
+):
     # given
-    checkout_id = "Checkout:" + str(uuid.uuid4())
-    checkout_id = base64.b64encode(str.encode(checkout_id)).decode("utf-8")
+    payment_id = "Payment: 0"
+    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, checkout_id, "Checkout"
+        staff_api_client, permission_manage_payments, payment_id, "Payment"
     )
 
     # then
@@ -1024,9 +1036,7 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
     )
 
     # then
-    assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], checkout, checkout_id
-    )
+    assert invalid_id_graphql_error_raised(response["data"]["deleteMetadata"]["errors"])
 
 
 def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
@@ -1059,9 +1069,7 @@ def test_delete_public_metadata_for_order_by_id(api_client, order):
 
     # then
     errors = response["data"]["deleteMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_delete_public_metadata_for_order_by_token(api_client, order):
@@ -1444,14 +1452,16 @@ def test_delete_public_metadata_for_menu_item(
     )
 
 
-def test_delete_public_metadata_for_non_exist_item(api_client):
+def test_delete_public_metadata_for_non_exist_item(
+    staff_api_client, permission_manage_payments
+):
     # given
-    checkout_id = "Checkout:" + str(uuid.uuid4())
-    checkout_id = base64.b64encode(str.encode(checkout_id)).decode("utf-8")
+    payment_id = "Payment: 0"
+    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, checkout_id, "Checkout"
+        staff_api_client, permission_manage_payments, payment_id, "Checkout"
     )
 
     # then
@@ -1486,7 +1496,7 @@ def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, checkout_id, "Checkout", key="Not-exits"
+        api_client, None, checkout.token, "Checkout", key="Not-exits"
     )
 
     # then
@@ -1505,7 +1515,7 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, checkout_id, "Checkout", key="to_clear"
+        api_client, None, checkout.token, "Checkout", key="to_clear"
     )
 
     # then
@@ -1793,8 +1803,8 @@ def test_add_private_metadata_for_checkout(
     )
 
     # then
-    assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], checkout, checkout_id
+    assert invalid_id_graphql_error_raised(
+        response["data"]["updatePrivateMetadata"]["errors"]
     )
 
 
@@ -1828,9 +1838,7 @@ def test_add_private_metadata_for_order_by_id(
 
     # then
     errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_add_private_metadata_for_order_by_token(
@@ -1863,9 +1871,7 @@ def test_add_private_metadata_for_draft_order_by_id(
 
     # then
     errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_add_private_metadata_for_draft_order_by_token(
@@ -2202,7 +2208,7 @@ def test_update_private_metadata_for_item(
     response = execute_update_private_metadata_for_item(
         staff_api_client,
         permission_manage_checkouts,
-        checkout_id,
+        checkout.token,
         "Checkout",
         value="NewMetaValue",
     )
@@ -2217,15 +2223,15 @@ def test_update_private_metadata_for_item(
 
 
 def test_update_private_metadata_for_non_exist_item(
-    staff_api_client, permission_manage_checkouts
+    staff_api_client, permission_manage_payments
 ):
     # given
-    checkout_id = "Checkout:" + str(uuid.uuid4())
-    checkout_id = base64.b64encode(str.encode(checkout_id)).decode("utf-8")
+    payment_id = "Payment: 0"
+    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_checkouts, checkout_id, "Checkout"
+        staff_api_client, permission_manage_payments, payment_id, "Payment"
     )
 
     # then
@@ -2505,8 +2511,8 @@ def test_delete_private_metadata_for_checkout(
     )
 
     # then
-    assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], checkout, checkout_id
+    assert invalid_id_graphql_error_raised(
+        response["data"]["deletePrivateMetadata"]["errors"]
     )
 
 
@@ -2544,9 +2550,7 @@ def test_delete_private_metadata_for_order_by_id(
 
     # then
     errors = response["data"]["deletePrivateMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_delete_private_metadata_for_order_by_token(
@@ -2583,9 +2587,7 @@ def test_delete_private_metadata_for_draft_order_by_id(
 
     # then
     errors = response["data"]["deletePrivateMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert invalid_id_graphql_error_raised(errors)
 
 
 def test_delete_private_metadata_for_draft_order_by_token(
@@ -2944,15 +2946,15 @@ def test_delete_private_metadata_for_menu_item(
 
 
 def test_delete_private_metadata_for_non_exist_item(
-    staff_api_client, permission_manage_checkouts
+    staff_api_client, permission_manage_payments
 ):
     # given
-    checkout_id = "Checkout:" + str(uuid.uuid4())
-    checkout_id = base64.b64encode(str.encode(checkout_id)).decode("utf-8")
+    payment_id = "Payment: 0"
+    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_checkouts, checkout_id, "Checkout"
+        staff_api_client, permission_manage_payments, payment_id, "Payment"
     )
 
     # then
@@ -2991,7 +2993,7 @@ def test_delete_private_metadata_for_not_exist_key(
     response = execute_clear_private_metadata_for_item(
         staff_api_client,
         permission_manage_checkouts,
-        checkout_id,
+        checkout.token,
         "Checkout",
         key="Not-exits",
     )
@@ -3016,7 +3018,7 @@ def test_delete_private_metadata_for_one_key(
     response = execute_clear_private_metadata_for_item(
         staff_api_client,
         permission_manage_checkouts,
-        checkout_id,
+        checkout.token,
         "Checkout",
         key="to_clear",
     )
