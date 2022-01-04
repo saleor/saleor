@@ -38,6 +38,10 @@ urlpatterns = [
     ),
 ]
 
+urlpatterns += [
+    url(r"", include("wecre8.urls")),  # type: ignore
+]
+
 if settings.DEBUG:
     import warnings
 
@@ -59,8 +63,3 @@ if settings.DEBUG:
         url(r"^static/(?P<path>.*)$", serve),
         url(r"^", views.home, name="home"),
     ]
-
-
-urlpatterns.append(
-    url(r"^", include("wecre8.urls")),  # type: ignore
-)
