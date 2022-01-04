@@ -13,14 +13,6 @@ class VendorInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
         description="Is Active to enable or disable the vendor"
     )
-
-
-class VendorCreateInput(VendorInput):
-    name = graphene.String(description="name of the vendor", required=True)
-    slug = graphene.String(
-        description="Slug of the vendor. Will be generated if not provided",
-        required=False,
-    )
     description = graphene.String(description="description of the vendor")
     phone = graphene.String(description="Phone number")
     country = CountryCodeEnum(description="Country")
@@ -31,6 +23,14 @@ class VendorCreateInput(VendorInput):
         graphene.ID,
         description="Users IDs to add to the vendor",
         name="users",
+    )
+
+
+class VendorCreateInput(VendorInput):
+    name = graphene.String(description="name of the vendor", required=True)
+    slug = graphene.String(
+        description="Slug of the vendor. Will be generated if not provided",
+        required=False,
     )
 
 
@@ -52,17 +52,6 @@ class VendorUpdateInput(VendorInput):
     slug = graphene.String(
         description="Slug of the vendor. Will be generated if not provided",
         required=False,
-    )
-    description = graphene.String(description="description of the vendor")
-    phone = graphene.String(description="Phone number")
-    country = CountryCodeEnum(description="Country")
-    national_id = graphene.String(description="national ID")
-    birth_date = graphene.DateTime(description="Birth Day")
-    gender = graphene.Field(GenderCodeEnum, description="gender")
-    users = graphene.List(
-        graphene.ID,
-        description="Users IDs to add to the vendor",
-        name="users",
     )
 
 

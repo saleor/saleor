@@ -35,21 +35,21 @@ class VendorPlugin(BasePlugin):
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
 
-        missing_fields = []
+        errors = []
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
         if not configuration["name"]:
-            missing_fields.append("name")
+            errors.append("name")
 
-        if plugin_configuration.active and missing_fields:
+        if plugin_configuration.active and errors:
             error_msg = (
                 "To enable a plugin, you need to provide values for the "
                 "following fields: "
             )
             raise ValidationError(
                 {
-                    missing_fields[0]: ValidationError(
-                        error_msg + ", ".join(missing_fields), code="invalid"
+                    errors[0]: ValidationError(
+                        error_msg + ", ".join(errors), code="invalid"
                     )
                 }
             )
