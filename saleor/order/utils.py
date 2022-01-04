@@ -197,6 +197,8 @@ def update_taxes_for_order_line(
     line: "OrderLine", order: "Order", manager, tax_included
 ):
     variant = line.variant
+    if not variant:
+        return
     product = variant.product  # type: ignore
 
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
