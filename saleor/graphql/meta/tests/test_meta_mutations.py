@@ -1,6 +1,5 @@
 import base64
 import uuid
-import warnings
 from unittest.mock import patch
 
 import graphene
@@ -373,18 +372,15 @@ def test_add_public_metadata_for_order_by_id(api_client, order):
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_update_public_metadata_for_item(
-            api_client, None, order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_update_public_metadata_for_item(
+        api_client, None, order_id, "Order"
+    )
 
     # then
-    assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], order, order_id
-    )
+    errors = response["data"]["updateMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_add_public_metadata_for_order_by_token(api_client, order):
@@ -407,18 +403,15 @@ def test_add_public_metadata_for_draft_order_by_id(api_client, draft_order):
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_update_public_metadata_for_item(
-            api_client, None, draft_order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_update_public_metadata_for_item(
+        api_client, None, draft_order_id, "Order"
+    )
 
     # then
-    assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
-    )
+    errors = response["data"]["updateMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
@@ -1060,18 +1053,15 @@ def test_delete_public_metadata_for_order_by_id(api_client, order):
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_clear_public_metadata_for_item(
-            api_client, None, order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, order_id, "Order"
+    )
 
     # then
-    assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], order, order_id
-    )
+    errors = response["data"]["deleteMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_delete_public_metadata_for_order_by_token(api_client, order):
@@ -1098,18 +1088,15 @@ def test_delete_public_metadata_for_draft_order_by_id(api_client, draft_order):
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_clear_public_metadata_for_item(
-            api_client, None, draft_order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, draft_order_id, "Order"
+    )
 
     # then
-    assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
-    )
+    errors = response["data"]["deleteMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order):
@@ -1835,18 +1822,15 @@ def test_add_private_metadata_for_order_by_id(
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_update_private_metadata_for_item(
-            staff_api_client, permission_manage_orders, order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order_id, "Order"
+    )
 
     # then
-    assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], order, order_id
-    )
+    errors = response["data"]["updatePrivateMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_add_private_metadata_for_order_by_token(
@@ -1873,18 +1857,15 @@ def test_add_private_metadata_for_draft_order_by_id(
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_update_private_metadata_for_item(
-            staff_api_client, permission_manage_orders, draft_order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, draft_order_id, "Order"
+    )
 
     # then
-    assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
-    )
+    errors = response["data"]["updatePrivateMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_add_private_metadata_for_draft_order_by_token(
@@ -2557,18 +2538,15 @@ def test_delete_private_metadata_for_order_by_id(
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_clear_private_metadata_for_item(
-            staff_api_client, permission_manage_orders, order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order_id, "Order"
+    )
 
     # then
-    assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], order, order_id
-    )
+    errors = response["data"]["deletePrivateMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_delete_private_metadata_for_order_by_token(
@@ -2599,18 +2577,15 @@ def test_delete_private_metadata_for_draft_order_by_id(
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
-    with warnings.catch_warnings(record=True) as warns:
-        response = execute_clear_private_metadata_for_item(
-            staff_api_client, permission_manage_orders, draft_order_id, "Order"
-        )
-        expected_warning = "DEPRECATED. Use token for changing order metadata."
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, draft_order_id, "Order"
+    )
 
     # then
-    assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
-    )
+    errors = response["data"]["deletePrivateMetadata"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "id"
 
 
 def test_delete_private_metadata_for_draft_order_by_token(
