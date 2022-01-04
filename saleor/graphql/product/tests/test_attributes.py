@@ -802,29 +802,22 @@ def test_assignment_attribute_update_assigned_unsupported_type_should_raise_an_e
         assert error in expected_errors
 
 
-@pytest.mark.parametrize("api_client", ["app_api_client", "staff_api_client"])
 def test_assignment_attribute_update_assigned_should_modify_variant_selection(
-    api_client,
+    staff_api_client,
     permission_manage_product_types_and_attributes,
     size_attribute,
     color_attribute_without_values,
-    request,
 ):
     """The productAttributeAssignmentUpdate mutation should modify
     variant selection when validation successful."""
-    chosen_api_client = request.getfixturevalue(api_client)
+
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     attribute_1 = color_attribute_without_values
     attribute_2 = size_attribute
 
-    if api_client == "staff_api_client":
-        chosen_api_client.user.user_permissions.add(
-            permission_manage_product_types_and_attributes
-        )
-    else:
-        chosen_api_client.app.permissions.add(
-            permission_manage_product_types_and_attributes
-        )
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     product_type.variant_attributes.add(
         attribute_1, through_defaults={"variant_selection": False}
@@ -847,7 +840,54 @@ def test_assignment_attribute_update_assigned_should_modify_variant_selection(
     ]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
-    content = get_graphql_content(chosen_api_client.post_graphql(query, variables))[
+    content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    assert len(content["errors"]) == 0
+    assert AttributeVariant.objects.get(attribute_id=attribute_1.pk).variant_selection
+    assert not AttributeVariant.objects.get(
+        attribute_id=attribute_2.pk
+    ).variant_selection
+
+
+def test_assignment_attrib_update_assigned_should_modify_variant_selection_from_ext_app(
+    app_api_client,
+    permission_manage_product_types_and_attributes,
+    size_attribute,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should modify
+    variant selection from external app when validation successful."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute_1 = color_attribute_without_values
+    attribute_2 = size_attribute
+
+    app_api_client.app.permissions.add(permission_manage_product_types_and_attributes)
+
+    product_type.variant_attributes.add(
+        attribute_1, through_defaults={"variant_selection": False}
+    )
+    product_type.variant_attributes.add(
+        attribute_2, through_defaults={"variant_selection": True}
+    )
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    operations = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute_1.pk),
+            "variantSelection": True,
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute_2.pk),
+            "variantSelection": False,
+        },
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(app_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeAssignmentUpdate"]
 
