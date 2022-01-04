@@ -1376,7 +1376,7 @@ def test_create_product_variant_without_attributes(
     assert error["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_create_product_variant_not_all_attributes(
+def test_create_product_variant_missing_required_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
     query = CREATE_VARIANT_MUTATION
@@ -1386,6 +1386,10 @@ def test_create_product_variant_not_all_attributes(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
+
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required"])
+
     product_type.variant_attributes.add(
         color_attribute, through_defaults={"variant_selection": True}
     )
@@ -1404,7 +1408,7 @@ def test_create_product_variant_not_all_attributes(
         "field": "attributes",
         "code": ProductErrorCode.REQUIRED.name,
         "message": ANY,
-        "attributes": None,
+        "attributes": [graphene.Node.to_global_id("Attribute", color_attribute.pk)],
     }
     assert not product.variants.filter(sku=sku).exists()
 
@@ -2135,7 +2139,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
     mutation updateVariant (
         $id: ID!,
         $sku: String,
-        $attributes: [AttributeValueInput!]!) {
+        $attributes: [AttributeValueInput!]) {
             productVariantUpdate(
                 id: $id,
                 input: {
@@ -2174,29 +2178,22 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
 """
 
 
-def test_update_product_variant_not_all_attributes(
-    staff_api_client, product, product_type, color_attribute, permission_manage_products
+def test_update_product_variant_do_not_require_required_attributes(
+    staff_api_client, product, product_type, permission_manage_products
 ):
-    """Ensures updating a variant with missing attributes (all attributes must
-    be provided) raises an error. We expect the color attribute
-    to be flagged as missing."""
+    """Ensures product variant can be updated without providing required attributes."""
 
     query = QUERY_UPDATE_VARIANT_ATTRIBUTES
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "test sku"
-    attr_id = graphene.Node.to_global_id(
-        "Attribute", product_type.variant_attributes.first().id
-    )
-    variant_value = "test-value"
-    product_type.variant_attributes.add(
-        color_attribute, through_defaults={"variant_selection": True}
-    )
+    attr = product_type.variant_attributes.first()
+    attr.value_required = True
+    attr.save(update_fields=["value_required"])
 
     variables = {
         "id": variant_id,
         "sku": sku,
-        "attributes": [{"id": attr_id, "values": [variant_value]}],
     }
 
     response = staff_api_client.post_graphql(
@@ -2204,13 +2201,11 @@ def test_update_product_variant_not_all_attributes(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
-    assert content["data"]["productVariantUpdate"]["errors"][0] == {
-        "field": "attributes",
-        "message": "All variant selection attributes must take a value.",
-        "code": ProductErrorCode.REQUIRED.name,
-    }
-    assert not product.variants.filter(sku=sku).exists()
+    data = content["data"]["productVariantUpdate"]
+    assert not len(data["errors"])
+    assert data["productVariant"]["sku"] == sku
+    assert len(data["productVariant"]["attributes"]) == 1
+    assert data["productVariant"]["attributes"][0]["values"]
 
 
 def test_update_product_variant_with_current_attribute(

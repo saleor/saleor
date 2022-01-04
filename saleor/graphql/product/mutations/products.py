@@ -559,9 +559,7 @@ class ProductCreate(ModelMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.product_attributes
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, is_variant=False
-        )
+        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
     @classmethod
@@ -682,6 +680,16 @@ class ProductUpdate(ProductCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def clean_attributes(
+        cls, attributes: dict, product_type: models.ProductType
+    ) -> T_INPUT_MAP:
+        attributes_qs = product_type.product_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, creation=False
+        )
+        return attributes
 
     @classmethod
     @traced_atomic_transaction()
@@ -824,9 +832,7 @@ class ProductVariantCreate(ModelMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.variant_attributes
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, is_variant=True
-        )
+        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
     @classmethod
@@ -1029,6 +1035,16 @@ class ProductVariantUpdate(ProductVariantCreate):
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+
+    @classmethod
+    def clean_attributes(
+        cls, attributes: dict, product_type: models.ProductType
+    ) -> T_INPUT_MAP:
+        attributes_qs = product_type.variant_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, creation=False
+        )
+        return attributes
 
     @classmethod
     def validate_duplicated_attribute_values(
