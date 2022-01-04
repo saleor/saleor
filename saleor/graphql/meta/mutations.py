@@ -57,12 +57,13 @@ class BaseMetadataMutation(BaseMutation):
 
         try:
             type_name, _ = from_global_id_or_error(object_id)
-            if type_name == "Order":
+            if type_name in ["Order", "Checkout"]:
+                type_name = type_name.lower()
                 raise ValidationError(
                     {
                         "id": ValidationError(
-                            "Changing order metadata with use of `id` is forbidden. "
-                            "Use order token instead.",
+                            f"Changing {type_name} metadata with use of `id` "
+                            f"is forbidden. Use {type_name} token instead.",
                             code=MetadataErrorCode.GRAPHQL_ERROR.value,
                         )
                     }
