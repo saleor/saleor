@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 import graphene
 from algoliasearch.search_client import SearchClient
@@ -47,11 +47,6 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
       node {
         name
         slug
-        collections {
-          id
-          name
-          slug
-        }
         metadata {
           key
           value
@@ -60,44 +55,14 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
         media {
           url
         }
-        variants {
-          id
-          sku
-          name
-          attributes {
-            attribute {
-              id
-              name
-              translation(languageCode: $languageCode) {
-                name
-              }
-            }
-            values {
-              id
-              name
-              translation(languageCode: $languageCode) {
-                name
-              }
-            }
-          }
-          translation(languageCode: $languageCode) {
-            name
-          }
-        }
         channelListings {
           pricing {
             priceRange {
               start {
                 net {
                   amount
+                  currency
                 }
-                gross {
-                  amount
-                }
-                tax {
-                  amount
-                }
-                currency
               }
             }
           }
@@ -160,13 +125,14 @@ def map_product_description(description: dict):
 
 
 def map_product_attributes(product_dict: dict, language_code: str):
-    translated_attributes: List[dict] = []
     attributes = product_dict.get("attributes", [])
 
     attrs = []
+    attrs_ar = []
     if attributes:
-        for attribute in attributes if language_code == "EN" else translated_attributes:
+        for attribute in attributes:
             attr_dict = {}
+            attr_dict_ar = {}
             attr_dict.update(
                 {
                     f"{attribute.get('attribute').get('name')}": [
@@ -176,8 +142,36 @@ def map_product_attributes(product_dict: dict, language_code: str):
                     else []
                 }
             )
+            attribute_key = attribute.get("attribute").get("translation")
+            if attribute_key:
+                attr_dict_ar.update(
+                    {
+                        attribute_key.get("name"): [
+                            value.get("translation").get("name")
+                            for value in attribute.get("values")
+                        ]
+                        if attribute.get("values")
+                        else []
+                    }
+                )
             attrs.append(attr_dict)
-    return attrs
+            attrs_ar.append(attr_dict_ar)
+        return attrs if language_code == "EN" else attrs_ar
+
+
+def map_product_collections(product: Product, language_code: str):
+    collections = product.collections.all()
+    if not collections:
+        return []
+    elif collections and language_code == "EN":
+        return [collection.name for collection in collections]
+    else:
+        collection_translation = []
+        for c in collections:
+            translations = c.translations.filter(language_code=language_code)
+            for translation in translations:
+                collection_translation.append(translation.name)
+        return collection_translation
 
 
 def get_product_data(product_pk: int, language_code="EN"):
@@ -218,7 +212,23 @@ def get_product_data(product_pk: int, language_code="EN"):
     channels = []
     channel_listings = product_dict.pop("channelListings")
     for channel in channel_listings:
-        if channel.get("isAvailableForPurchase") and channel.get("isPublished"):
+        price_net = (
+            channel.pop("pricing", {})
+            .pop("priceRange", {})
+            .pop("start", {})
+            .pop("net", {})
+        )
+        is_published = channel.pop("isPublished", False)
+        is_available_for_purchase = channel.pop("isAvailableForPurchase", False)
+
+        if is_available_for_purchase and is_published:
+            channel.update(
+                {
+                    "price": price_net.pop("amount", 0),
+                    "currency": price_net.pop("currency", 0),
+                    "name": channel.pop("channel").get("slug"),
+                }
+            )
             channels.append(channel)
 
     if not product_data.errors and channels:
@@ -233,9 +243,12 @@ def get_product_data(product_pk: int, language_code="EN"):
                 "channels": channels,
                 "attributes": attributes,
                 "description": description,
-                "categoryPageId": category_page_id(),
+                # "categoryPageId": category_page_id(),
                 "gender": product.get_value_from_metadata("gender"),
                 "hierarchicalCategories": hierarchical_categories(product=product),
+                "collections": map_product_collections(
+                    product=product, language_code=language_code.lower()
+                ),
             }
         )
         return product_dict
