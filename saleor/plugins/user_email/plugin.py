@@ -1,8 +1,9 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...plugins.models import EmailTemplate
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
@@ -14,7 +15,6 @@ from ..email_common import (
     validate_default_email_configuration,
     validate_format_of_provided_templates,
 )
-from ..models import PluginConfiguration
 from . import constants
 from .constants import TEMPLATE_FIELDS
 from .notify_events import (
@@ -33,6 +33,10 @@ from .notify_events import (
     send_order_refund,
     send_payment_confirmation,
 )
+
+if TYPE_CHECKING:
+    from ..models import PluginConfiguration
+
 
 logger = logging.getLogger(__name__)
 
@@ -425,14 +429,61 @@ class UserEmailPlugin(BasePlugin):
         event_map[event](
             payload,
             asdict(self.config),  # type: ignore
-            self.configuration,
+            self,
         )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct."""
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
 
         validate_default_email_configuration(plugin_configuration, configuration)
-        validate_format_of_provided_templates(plugin_configuration, TEMPLATE_FIELDS)
+        email_templates_data = kwargs.get("email_templates_data", [])
+        validate_format_of_provided_templates(
+            plugin_configuration, email_templates_data
+        )
+
+    @classmethod
+    def save_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", cleaned_data
+    ):
+        current_config = plugin_configuration.configuration
+
+        configuration_to_update = []
+        email_templates_data = []
+
+        for data in cleaned_data.get("configuration", []):
+            if data["name"] in TEMPLATE_FIELDS:
+                email_templates_data.append(data)
+            else:
+                configuration_to_update.append(data)
+
+        if configuration_to_update:
+            cls._update_config_items(configuration_to_update, current_config)
+
+        if "active" in cleaned_data:
+            plugin_configuration.active = cleaned_data["active"]
+
+        cls.validate_plugin_configuration(
+            plugin_configuration, email_templates_data=email_templates_data
+        )
+        cls.pre_save_plugin_configuration(plugin_configuration)
+
+        plugin_configuration.save()
+
+        # TODO: move this logic to admin email as well
+        for et_data in email_templates_data:
+            if et_data["value"] != DEFAULT_EMAIL_VALUE:
+                EmailTemplate.objects.update_or_create(
+                    name=et_data["name"],
+                    plugin_configuration=plugin_configuration,
+                    defaults={"value": et_data["value"]},
+                )
+
+        if plugin_configuration.configuration:
+            # Let's add a translated descriptions and labels
+            cls._append_config_structure(plugin_configuration.configuration)
+        return plugin_configuration

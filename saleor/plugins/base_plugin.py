@@ -97,11 +97,13 @@ class BasePlugin:
         *,
         configuration: PluginConfigurationType,
         active: bool,
-        channel: Optional["Channel"] = None
+        channel: Optional["Channel"] = None,
+        db_config: Optional["PluginConfiguration"] = None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
         self.channel = channel
+        self.db_config = db_config
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -549,7 +551,9 @@ class BasePlugin:
             )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct.
 
         Raise django.core.exceptions.ValidationError otherwise.
@@ -572,11 +576,14 @@ class BasePlugin:
         configuration_to_update = cleaned_data.get("configuration")
         if configuration_to_update:
             cls._update_config_items(configuration_to_update, current_config)
+
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
+
         cls.validate_plugin_configuration(plugin_configuration)
         cls.pre_save_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
+
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
