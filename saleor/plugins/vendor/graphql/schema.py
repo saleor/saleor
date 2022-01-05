@@ -1,7 +1,7 @@
 import graphene
 
 from saleor.graphql.core.connection import create_connection_slice
-from saleor.graphql.core.fields import ConnectionField, FilterConnectionField
+from saleor.graphql.core.fields import FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
 
 from ..models import Vendor
@@ -11,7 +11,13 @@ from .mutations import VendorCreate, VendorDelete, VendorUpdate
 
 class VendorQueries(graphene.ObjectType):
 
-    vendor = ConnectionField(types.VendorConnection)
+    vendor = graphene.Field(
+        types.Vendor,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the vendor", required=True
+        ),
+        description="Look up a vendor by ID",
+    )
     vendors = FilterConnectionField(types.VendorConnection)
 
     def resolve_vendors(root, info, **kwargs):
