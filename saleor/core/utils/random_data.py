@@ -79,6 +79,7 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
+from ...product.search import update_products_search_document
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
@@ -460,6 +461,8 @@ def create_products_by_schema(placeholder_dir, create_images):
         collection_channel_listings_data=types["product.collectionchannellisting"],
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
+
+    update_products_search_document(Product.objects.all())
 
 
 class SaleorProvider(BaseProvider):

@@ -2,8 +2,8 @@ import pytest
 from django.utils.text import slugify
 
 from ...account.models import Address
-from ...graphql.product.filters import product_search
 from ...product.models import Product, ProductChannelListing
+from ...product.search import search_products
 from ...tests.utils import dummy_editorjs
 
 PRODUCTS = [
@@ -23,6 +23,7 @@ def named_products(category, product_type, channel_USD):
             description_plaintext=description,
             product_type=product_type,
             category=category,
+            search_document=f"{name}{description}",
         )
         ProductChannelListing.objects.create(
             product=product,
@@ -37,7 +38,7 @@ def named_products(category, product_type, channel_USD):
 def execute_search(phrase):
     """Execute storefront search."""
     qs = Product.objects.all()
-    return product_search(qs, phrase)
+    return search_products(qs, phrase)
 
 
 @pytest.mark.parametrize(

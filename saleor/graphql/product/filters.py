@@ -4,8 +4,7 @@ from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
-from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
@@ -33,6 +32,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ...product.search import search_products
 from ...warehouse.models import Allocation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
@@ -458,34 +458,8 @@ def _filter_stock_availability(qs, _, value, channel_slug):
     return qs
 
 
-def product_search(qs, phrase):
-    """Return matching products for storefront views.
-
-        Name and description is matched using search vector.
-
-    Args:
-        qs (ProductsQueryset): searched data set
-        phrase (str): searched phrase
-
-    """
-    query = SearchQuery(phrase, config="english")
-    vector = F("search_vector")
-    ft_in_description_or_name = Q(search_vector=query)
-
-    variants = ProductVariant.objects.filter(sku=phrase).values("id")
-    ft_by_sku = Q(Exists(variants.filter(product_id=OuterRef("pk"))))
-
-    return (
-        qs.annotate(rank=SearchRank(vector, query))
-        .filter((ft_in_description_or_name | ft_by_sku))
-        .order_by("-rank", "id")
-    )
-
-
 def filter_search(qs, _, value):
-    if value:
-        qs = product_search(qs, value)
-    return qs
+    return search_products(qs, value)
 
 
 def _filter_collections_is_published(qs, _, value, channel_slug):
