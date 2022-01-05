@@ -102,6 +102,7 @@ from ..product.models import (
     ProductVariantTranslation,
     VariantMedia,
 )
+from ..product.search import prepare_product_search_document_value
 from ..product.tests.utils import create_image
 from ..shipping.models import (
     ShippingMethod,
@@ -1467,7 +1468,9 @@ def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+                Attribute(
+                    slug="height", name="Height", type=AttributeType.PRODUCT_TYPE
+                ),
                 Attribute(
                     slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
                 ),
@@ -1732,6 +1735,7 @@ def product(product_type, category, warehouse, channel_USD):
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+
     return product
 
 
@@ -1973,6 +1977,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
 
     return product
 
@@ -2186,6 +2192,10 @@ def product_with_default_variant(
         currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
+
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
+
     return product
 
 
@@ -2587,6 +2597,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
+        product.search_document = prepare_product_search_document_value(product)
+
+    Product.objects.bulk_update(products, ["search_document"])
 
     return products
 
