@@ -7,7 +7,6 @@ from django.http import HttpResponse, HttpResponseNotFound
 
 from saleor.payment.interface import GatewayConfig
 
-from ...order import FulfillmentStatus
 from ...order.models import Fulfillment, Order
 from ...payment.gateways.utils import require_active_plugin
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -124,8 +123,6 @@ class OTOPlugin(BasePlugin):
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         # Cancel an OTO order.
-        if fulfillment.status == FulfillmentStatus.CANCELED:
-            return previous_value
         response = send_oto_request(fulfillment, self.config, "cancelOrder")
         if not response.get("success") is True:
             msg = (
