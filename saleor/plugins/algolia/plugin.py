@@ -46,8 +46,8 @@ class AlgoliaPlugin(BasePlugin):
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
         self.api_client = AlgoliaApiClient(
-            api_key=self.config["ALGOLIA_API_KEY"],
             app_id=self.config["ALGOLIA_APPLICATION_ID"],
+            api_key=self.config["ALGOLIA_API_KEY"],
         )
 
     @classmethod
