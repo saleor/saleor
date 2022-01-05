@@ -1,7 +1,6 @@
 import graphene
 
 from saleor.graphql.account.enums import CountryCodeEnum
-from saleor.plugins.vendor.graphql.enums import GenderCodeEnum
 
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
 from ..models import Vendor
@@ -16,9 +15,6 @@ class VendorInput(graphene.InputObjectType):
     description = graphene.String(description="description of the vendor")
     phone = graphene.String(description="Phone number")
     country = CountryCodeEnum(description="Country")
-    national_id = graphene.String(description="national ID")
-    birth_date = graphene.DateTime(description="Birth Day")
-    gender = graphene.Field(GenderCodeEnum, description="gender")
     users = graphene.List(
         graphene.ID,
         description="Users IDs to add to the vendor",
@@ -32,6 +28,7 @@ class VendorCreateInput(VendorInput):
         description="Slug of the vendor. Will be generated if not provided",
         required=False,
     )
+    national_id = graphene.String(description="national ID", required=True)
 
 
 class VendorCreate(ModelMutation):
@@ -48,11 +45,12 @@ class VendorCreate(ModelMutation):
 
 
 class VendorUpdateInput(VendorInput):
-    name = graphene.String(description="name of the vendor", required=True)
+    name = graphene.String(description="name of the vendor")
     slug = graphene.String(
         description="Slug of the vendor. Will be generated if not provided",
         required=False,
     )
+    national_id = graphene.String(description="national ID")
 
 
 class VendorUpdate(ModelMutation):
