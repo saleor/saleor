@@ -13,23 +13,14 @@ class PossiblePhoneNumberField(PhoneNumberField):
 
 
 class Vendor(models.Model):
-    GENDER_CHOICES = (
-        ("M", "Male"),
-        ("F", "Female"),
-        (
-            "U",
-            "Unsure",
-        ),
-    )
+
     name = models.CharField(max_length=256, db_index=True)
     slug = models.SlugField(max_length=255, unique=True)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     description = models.TextField(blank=True, default="")
     country = CountryField()
     phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
-    national_id = models.CharField(max_length=256, blank=True)
+    national_id = models.CharField(max_length=256)
     is_active = models.BooleanField(default=True)
-    birth_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
