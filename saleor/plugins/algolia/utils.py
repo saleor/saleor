@@ -160,6 +160,10 @@ def map_product_attributes(product_dict: dict, language_code: str):
         return attrs if language_code == "EN" else attrs_ar
 
 
+def map_product_media(media: list):
+    return [url.get("url") for url in media if url.get("url")]
+
+
 def map_product_collections(product: Product, language_code: str):
     collections = product.collections.all()
     if not collections:
@@ -235,16 +239,16 @@ def get_product_data(product_pk: int, language_code="EN"):
     if not product_data.errors and channels:
         product_dict.pop("metadata")
         slug = product_dict.pop("slug")
-        images = product_dict.pop("media", [])[:2]
+        media = product_dict.pop("media", [])[:2]
         product_dict.update(
             {
                 "name": name,
                 "objectID": slug,
-                "images": images,
                 "channels": channels,
                 "attributes": attributes,
                 "description": description,
                 # "categoryPageId": category_page_id(),
+                "images": map_product_media(media=media),
                 "gender": product.get_value_from_metadata("gender"),
                 "hierarchicalCategories": hierarchical_categories(product=product),
                 "collections": map_product_collections(
