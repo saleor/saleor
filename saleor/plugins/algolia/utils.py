@@ -149,6 +149,7 @@ def map_product_attributes(product_dict: dict, language_code: str):
                         attribute_key.get("name"): [
                             value.get("translation").get("name")
                             for value in attribute.get("values")
+                            if value.get("translation")
                         ]
                         if attribute.get("values")
                         else []
