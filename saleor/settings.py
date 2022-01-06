@@ -380,8 +380,6 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
-MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
-
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
@@ -527,8 +525,9 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
     "MIDDLEWARE": [
-        "saleor.graphql.middleware.app_middleware",
+        # Those middlewares are executed from bottom to top
         "saleor.graphql.middleware.JWTMiddleware",
+        "saleor.graphql.middleware.app_middleware",
     ],
 }
 

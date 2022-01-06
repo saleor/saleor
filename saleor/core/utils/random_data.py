@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import json
 import os
@@ -40,6 +41,9 @@ from ...attribute.models import (
 )
 from ...channel.models import Channel
 from ...checkout import AddressType
+from ...checkout.fetch import fetch_checkout_info
+from ...checkout.models import Checkout
+from ...checkout.utils import add_variant_to_checkout
 from ...core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -56,6 +60,7 @@ from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
+from ...order.search import prepare_order_search_document_value
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
@@ -74,6 +79,7 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
+from ...product.search import update_products_search_document
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
@@ -456,6 +462,8 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
+    update_products_search_document(Product.objects.all())
+
 
 class SaleorProvider(BaseProvider):
     def money(self):
@@ -597,17 +605,20 @@ def create_order_lines(order, discounts, how_many=10):
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
         variant = line.variant
-        unit_price = manager.calculate_order_line_unit(
+        unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
-        total_price = manager.calculate_order_line_total(
+        total_price_data = manager.calculate_order_line_total(
             order, line, variant, variant.product
         )
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
@@ -648,17 +659,20 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
     preorder_allocations = []
     for line in lines:
         variant = line.variant
-        unit_price = manager.calculate_order_line_unit(
+        unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
-        total_price = manager.calculate_order_line_total(
+        total_price_data = manager.calculate_order_line_total(
             order, line, variant, variant.product
         )
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
         variant_channel_listing = variant.channel_listings.get(channel=channel)
         preorder_allocations.append(
             PreorderAllocation(
@@ -802,6 +816,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
+    order.search_document = prepare_order_search_document_value(order)
     order.save()
 
     create_fake_payment(order=order)
@@ -1639,3 +1654,23 @@ def get_product_list_images_dir(placeholder_dir):
 def get_image(image_dir, image_name):
     img_path = os.path.join(image_dir, image_name)
     return File(open(img_path, "rb"), name=image_name)
+
+
+def create_checkout_with_preorders():
+    channel = Channel.objects.get(currency_code="USD")
+    checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
+    checkout.set_country(channel.default_country, commit=True)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    for product_variant in ProductVariant.objects.all()[:2]:
+        product_variant.is_preorder = True
+        product_variant.preorder_global_threshold = 10
+        product_variant.preorder_end_date = timezone.now() + datetime.timedelta(days=10)
+        product_variant.save(
+            update_fields=[
+                "is_preorder",
+                "preorder_global_threshold",
+                "preorder_end_date",
+            ]
+        )
+        add_variant_to_checkout(checkout_info, product_variant, 2)
+    yield f"Created checkout with two preorders. Checkout token: {checkout.token}"

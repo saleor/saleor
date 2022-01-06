@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch
 
+import graphene
 import pytest
 from prices import Money, TaxedMoney
 
@@ -14,11 +15,13 @@ from ...discount.models import (
     VoucherType,
 )
 from ...discount.utils import validate_voucher_in_order
+from ...graphql.tests.utils import get_graphql_content
+from ...order.interface import OrderTaxedPricesData
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
-from ...warehouse.models import Stock
+from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..events import (
@@ -76,14 +79,20 @@ def test_order_get_subtotal(order_with_lines):
 
 
 def test_add_variant_to_order_adds_line_for_new_variant(
-    order_with_lines, product, product_translation_fr, settings, info
+    order_with_lines, product, product_translation_fr, settings, info, site_settings
 ):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
     add_variant_to_order(
-        order, variant, 1, info.context.user, info.context.app, info.context.plugins
+        order,
+        variant,
+        1,
+        info.context.user,
+        info.context.app,
+        info.context.plugins,
+        site_settings,
     )
 
     line = order.lines.last()
@@ -95,10 +104,62 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
+    assert not line.unit_discount_amount
+    assert not line.unit_discount_value
+    assert not line.unit_discount_reason
+
+
+def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
+    order_with_lines,
+    product,
+    product_translation_fr,
+    sale,
+    discount_info,
+    settings,
+    info,
+    site_settings,
+):
+    order = order_with_lines
+    variant = product.variants.first()
+    discount_info.variants_ids.add(variant.id)
+    sale.variants.add(variant)
+    lines_before = order.lines.count()
+    settings.LANGUAGE_CODE = "fr"
+
+    add_variant_to_order(
+        order,
+        variant,
+        1,
+        info.context.user,
+        info.context.app,
+        info.context.plugins,
+        site_settings,
+        [discount_info],
+    )
+
+    line = order.lines.last()
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    sale_channel_listing = sale.channel_listings.first()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.quantity == 1
+    unit_amount = (
+        variant_channel_listing.price_amount - sale_channel_listing.discount_value
+    )
+    assert line.unit_price == TaxedMoney(
+        net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
+    )
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+
+    assert line.unit_discount_amount == sale_channel_listing.discount_value
+    assert line.unit_discount_value == sale_channel_listing.discount_value
+    assert line.unit_discount_reason
 
 
 def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
-    order_with_lines, product, product_translation_fr, settings, info
+    order_with_lines, product, product_translation_fr, settings, info, site_settings
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -106,14 +167,22 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
     settings.LANGUAGE_CODE = "fr"
     unit_price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
     total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
+    unit_price_data = OrderTaxedPricesData(
+        undiscounted_price=unit_price,
+        price_with_discounts=unit_price,
+    )
+    total_price_data = OrderTaxedPricesData(
+        undiscounted_price=total_price,
+        price_with_discounts=total_price,
+    )
     manager = Mock(
-        calculate_order_line_unit=Mock(return_value=unit_price),
-        calculate_order_line_total=Mock(return_value=total_price),
+        calculate_order_line_unit=Mock(return_value=unit_price_data),
+        calculate_order_line_total=Mock(return_value=total_price_data),
         get_order_line_tax_rate=Mock(return_value=0.25),
     )
 
     add_variant_to_order(
-        order, variant, 1, info.context.user, info.context.app, manager
+        order, variant, 1, info.context.user, info.context.app, manager, site_settings
     )
 
     line = order.lines.last()
@@ -129,7 +198,7 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
 
 
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
-    order_with_lines, product, product_translation_fr, settings, info
+    order_with_lines, product, product_translation_fr, settings, info, site_settings
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -140,7 +209,13 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
     add_variant_to_order(
-        order, variant, 1, info.context.user, info.context.app, info.context.plugins
+        order,
+        variant,
+        1,
+        info.context.user,
+        info.context.app,
+        info.context.plugins,
+        site_settings,
     )
 
     line = order.lines.last()
@@ -154,7 +229,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 
 
 def test_add_variant_to_order_not_allocates_stock_for_new_variant(
-    order_with_lines, product, info
+    order_with_lines, product, info, site_settings
 ):
     variant = product.variants.get()
     stock = Stock.objects.get(product_variant=variant)
@@ -168,13 +243,16 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
         info.context.user,
         info.context.app,
         info.context.plugins,
+        site_settings,
     )
 
     stock.refresh_from_db()
     assert get_quantity_allocated_for_stock(stock) == stock_before
 
 
-def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines, info):
+def test_add_variant_to_order_edits_line_for_existing_variant(
+    order_with_lines, info, site_settings
+):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
@@ -187,6 +265,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines, 
         info.context.user,
         info.context.app,
         info.context.plugins,
+        site_settings,
     )
 
     existing_line.refresh_from_db()
@@ -197,7 +276,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines, 
 
 
 def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
-    order_with_lines, info
+    order_with_lines, info, site_settings
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -213,6 +292,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
         info.context.user,
         info.context.app,
         info.context.plugins,
+        site_settings,
     )
 
     stock.refresh_from_db()
@@ -564,7 +644,16 @@ def test_update_order_prices(
     )
     price_2 = TaxedMoney(net=price_2, gross=price_2)
 
-    mocked_calculate_order_line_unit.side_effect = [price_1, price_2]
+    mocked_calculate_order_line_unit.side_effect = [
+        OrderTaxedPricesData(
+            undiscounted_price=price_1,
+            price_with_discounts=price_1,
+        ),
+        OrderTaxedPricesData(
+            undiscounted_price=price_2,
+            price_with_discounts=price_2,
+        ),
+    ]
 
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
         channel_id=order_with_lines.channel_id
@@ -644,7 +733,7 @@ def test_calculate_order_weight(order_with_lines):
     assert calculated_weight == order_weight
 
 
-def test_order_weight_add_more_variant(order_with_lines, info):
+def test_order_weight_add_more_variant(order_with_lines, info, site_settings):
     variant = order_with_lines.lines.first().variant
     add_variant_to_order(
         order_with_lines,
@@ -653,6 +742,7 @@ def test_order_weight_add_more_variant(order_with_lines, info):
         info.context.user,
         info.context.app,
         info.context.plugins,
+        site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -661,7 +751,7 @@ def test_order_weight_add_more_variant(order_with_lines, info):
     )
 
 
-def test_order_weight_add_new_variant(order_with_lines, product, info):
+def test_order_weight_add_new_variant(order_with_lines, product, info, site_settings):
     variant = product.variants.first()
 
     add_variant_to_order(
@@ -671,6 +761,7 @@ def test_order_weight_add_new_variant(order_with_lines, product, info):
         info.context.user,
         info.context.app,
         info.context.plugins,
+        site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -703,12 +794,20 @@ def test_order_weight_delete_line(lines_info):
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
-def test_get_order_weight_non_existing_product(order_with_lines, product, info):
+def test_get_order_weight_non_existing_product(
+    order_with_lines, product, info, site_settings
+):
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
     add_variant_to_order(
-        order, variant, 1, info.context.user, info.context.app, info.context.plugins
+        order,
+        variant,
+        1,
+        info.context.user,
+        info.context.app,
+        info.context.plugins,
+        site_settings,
     )
     old_weight = order.get_total_weight()
 
@@ -1250,3 +1349,59 @@ def test_email_sent_event_without_user_and_app_pk(
         "email": order.get_customer_email(),
         "email_type": expected_event_type,
     }
+
+
+GET_ORDER_AVAILABLE_COLLECTION_POINTS = """
+    query getAvailableCollectionPointsForOrder(
+        $id: ID!
+    ){
+      order(id:$id){
+        availableCollectionPoints{
+          name
+        }
+      }
+    }
+"""
+
+
+def test_available_collection_points_for_preorders_variants_in_order(
+    api_client, staff_api_client, order_with_preorder_lines, permission_manage_orders
+):
+    expected_collection_points = list(
+        Warehouse.objects.for_country("US").values("name")
+    )
+    response = staff_api_client.post_graphql(
+        GET_ORDER_AVAILABLE_COLLECTION_POINTS,
+        variables={
+            "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
+        },
+        permissions=[permission_manage_orders],
+    )
+    response_content = get_graphql_content(response)
+    assert (
+        expected_collection_points
+        == response_content["data"]["order"]["availableCollectionPoints"]
+    )
+
+
+def test_available_collection_points_for_preorders_and_regular_variants_in_order(
+    api_client,
+    staff_api_client,
+    order_with_preorder_lines,
+    permission_manage_orders,
+    warehouse,
+):
+
+    expected_collection_points = [{"name": warehouse.name}]
+    response = staff_api_client.post_graphql(
+        GET_ORDER_AVAILABLE_COLLECTION_POINTS,
+        variables={
+            "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
+        },
+        permissions=[permission_manage_orders],
+    )
+    response_content = get_graphql_content(response)
+    assert (
+        expected_collection_points
+        == response_content["data"]["order"]["availableCollectionPoints"]
+    )

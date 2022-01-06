@@ -13,7 +13,7 @@ from ....attribute.models import (
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import ProductTypeKind
 from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductType
+from ....product.models import Product, ProductType
 from ...attribute.enums import AttributeTypeEnum
 from ...core.utils import snake_to_camel_case
 from ...tests.utils import get_graphql_content
@@ -980,13 +980,26 @@ def test_unassign_attributes_from_product_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     product_type_attribute_list,
+    category,
 ):
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-11",
+        product_type=product_type,
+        category=category,
+    )
 
     variant_attribute, *product_attributes = product_type_attribute_list
     product_type.product_attributes.add(*product_attributes)
     product_type.variant_attributes.add(variant_attribute)
+
+    attribute = product_attributes[1]
+    product_attr_value = AttributeValue.objects.create(
+        attribute=attribute, name="Test value", slug="test-value"
+    )
+    associate_attribute_values_to_instance(product, attribute, product_attr_value)
 
     remaining_attribute_global_id = graphene.Node.to_global_id(
         "Attribute", product_attributes[1].pk
@@ -1017,6 +1030,10 @@ def test_unassign_attributes_from_product_type(
         content["productType"]["productAttributes"][0]["id"]
         == remaining_attribute_global_id
     )
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert product_attr_value.name not in product.search_document
 
 
 def test_unassign_attributes_not_in_product_type(

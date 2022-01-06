@@ -4,8 +4,8 @@ from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
-from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
@@ -32,6 +32,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ...product.search import search_products
 from ...warehouse.models import Allocation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
@@ -43,7 +44,7 @@ from ..core.filters import (
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_fields_containing_value, filter_range_field
+from ..utils.filters import filter_range_field
 from ..warehouse import types as warehouse_types
 from . import types as product_types
 from .enums import (
@@ -272,19 +273,19 @@ def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte
 def filter_products_by_minimal_price(
     qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
-    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    channel = Channel.objects.filter(slug=channel_slug).first()
+    if not channel:
+        return qs
     product_channel_listings = ProductChannelListing.objects.filter(
-        Exists(channels.filter(pk=OuterRef("channel_id")))
+        channel_id=channel.id
     )
     if minimal_price_lte:
         product_channel_listings = product_channel_listings.filter(
-            discounted_price_amount__lte=minimal_price_lte,
-            discounted_price_amount__isnull=False,
+            discounted_price_amount__lte=minimal_price_lte
         )
     if minimal_price_gte:
         product_channel_listings = product_channel_listings.filter(
-            discounted_price_amount__gte=minimal_price_gte,
-            discounted_price_amount__isnull=False,
+            discounted_price_amount__gte=minimal_price_gte
         )
     product_channel_listings = product_channel_listings.values("product_id")
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
@@ -313,13 +314,14 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     )
     allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
 
-    stocks = list(
+    stocks = (
         Stock.objects.for_channel(channel_slug)
         .filter(quantity__gt=Coalesce(allocated_subquery, 0))
-        .values_list("product_variant_id", flat=True)
+        .values("product_variant_id")
     )
-
-    variants = ProductVariant.objects.filter(pk__in=stocks).values("product_id")
+    variants = ProductVariant.objects.filter(
+        Exists(stocks.filter(product_variant_id=OuterRef("pk")))
+    ).values("product_id")
 
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
@@ -456,34 +458,8 @@ def _filter_stock_availability(qs, _, value, channel_slug):
     return qs
 
 
-def product_search(qs, phrase):
-    """Return matching products for storefront views.
-
-        Name and description is matched using search vector.
-
-    Args:
-        qs (ProductsQueryset): searched data set
-        phrase (str): searched phrase
-
-    """
-    query = SearchQuery(phrase, config="english")
-    vector = F("search_vector")
-    ft_in_description_or_name = Q(search_vector=query)
-
-    variants = ProductVariant.objects.filter(sku=phrase).values("id")
-    ft_by_sku = Q(Exists(variants.filter(product_id=OuterRef("pk"))))
-
-    return (
-        qs.annotate(rank=SearchRank(vector, query))
-        .filter((ft_in_description_or_name | ft_by_sku))
-        .order_by("-rank", "id")
-    )
-
-
 def filter_search(qs, _, value):
-    if value:
-        qs = product_search(qs, value)
-    return qs
+    return search_products(qs, value)
 
 
 def _filter_collections_is_published(qs, _, value, channel_slug):
@@ -569,25 +545,26 @@ def filter_quantity(qs, quantity_value, warehouse_ids=None):
     between given range. If warehouses is given, it aggregates quantity only
     from stocks which are in given warehouses.
     """
-    variants = ProductVariant.objects.filter(product__in=qs)
-
+    stocks = Stock.objects.all()
     if warehouse_ids:
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
             warehouse_ids, warehouse_types.Warehouse
         )
-        variants = variants.annotate(
-            total_quantity=Sum(
-                "stocks__quantity", filter=Q(stocks__warehouse__pk__in=warehouse_pks)
-            )
-        )
-    else:
-        variants = ProductVariant.objects.filter(product__in=qs).annotate(
-            total_quantity=Sum("stocks__quantity")
-        )
+        stocks = stocks.filter(warehouse_id__in=warehouse_pks)
+    stocks = stocks.values("product_variant_id").filter(
+        product_variant_id=OuterRef("pk")
+    )
 
-    variants = filter_range_field(variants, "total_quantity", quantity_value)
-
-    return qs.filter(Exists(variants.filter(product=OuterRef("pk"))))
+    stocks = Subquery(stocks.values_list(Sum("quantity")))
+    variants = ProductVariant.objects.annotate(
+        total_quantity=ExpressionWrapper(stocks, output_field=IntegerField())
+    )
+    variants = list(
+        filter_range_field(variants, "total_quantity", quantity_value).values_list(
+            "product_id", flat=True
+        )
+    )
+    return qs.filter(pk__in=variants)
 
 
 class ProductStockFilterInput(graphene.InputObjectType):
@@ -661,15 +638,21 @@ class ProductFilter(MetadataFilterBase):
 
 
 class ProductVariantFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("name", "product__name", "sku")
-    )
+    search = django_filters.CharFilter(method="product_variant_filter_search")
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
 
     class Meta:
         model = ProductVariant
         fields = ["search", "sku"]
+
+    def product_variant_filter_search(self, queryset, _name, value):
+        if not value:
+            return queryset
+        qs = Q(name__ilike=value) | Q(sku__ilike=value)
+        products = Product.objects.filter(name__ilike=value).values("pk")
+        qs |= Q(Exists(products.filter(variants=OuterRef("pk"))))
+        return queryset.filter(qs)
 
 
 class CollectionFilter(MetadataFilterBase):

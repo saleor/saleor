@@ -5,8 +5,9 @@ from uuid import uuid4
 import graphene
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import (
@@ -390,7 +391,7 @@ class Product(SeoModel, ModelWithMetadata):
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     description_plaintext = TextField(blank=True)
-    search_vector = SearchVectorField(null=True, blank=True)
+    search_document = models.TextField(blank=True, default="")
 
     category = models.ForeignKey(
         Category,
@@ -425,7 +426,14 @@ class Product(SeoModel, ModelWithMetadata):
         permissions = (
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
-        indexes = [GinIndex(fields=["search_vector"])]
+        indexes = [
+            GinIndex(
+                name="product_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["search_document"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
 
     def __iter__(self):
@@ -547,6 +555,7 @@ class ProductChannelListing(PublishableModel):
         ordering = ("pk",)
         indexes = [
             models.Index(fields=["publication_date"]),
+            BTreeIndex(fields=["discounted_price_amount"]),
         ]
 
     def is_available_for_purchase(self):
@@ -567,6 +576,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     is_preorder = models.BooleanField(default=False)
     preorder_end_date = models.DateTimeField(null=True, blank=True)
     preorder_global_threshold = models.IntegerField(blank=True, null=True)
+    quantity_limit_per_customer = models.IntegerField(
+        blank=True, null=True, validators=[MinValueValidator(1)]
+    )
 
     weight = MeasurementField(
         measurement=Weight,
