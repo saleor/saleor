@@ -7,18 +7,28 @@ import saleor.core.utils.json_serializer
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('account', '0058_update_user_search_document'),
+        ("account", "0058_update_user_search_document"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='address',
-            name='metadata',
-            field=models.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder, null=True),
+            model_name="address",
+            name="metadata",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='address',
-            name='private_metadata',
-            field=models.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder, null=True),
+            model_name="address",
+            name="private_metadata",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                null=True,
+            ),
         ),
     ]
