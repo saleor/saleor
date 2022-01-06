@@ -56,7 +56,7 @@ class AddressQueryset(models.QuerySet):
         )
 
 
-class Address(models.Model):
+class Address(ModelWithMetadata):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
     company_name = models.CharField(max_length=256, blank=True)
