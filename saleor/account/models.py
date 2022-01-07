@@ -103,7 +103,9 @@ class Address(ModelWithMetadata):
 
         Result does not contain the primary key or an associated user.
         """
-        data = model_to_dict(self, exclude=["id", "user", "metadata", "private_metadata"])
+        data = model_to_dict(
+            self, exclude=["id", "user", "metadata", "private_metadata"]
+        )
         if isinstance(data["country"], Country):
             data["country"] = data["country"].code
         if isinstance(data["phone"], PhoneNumber):
