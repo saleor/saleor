@@ -30,6 +30,17 @@ class Provider:
     def get_scope(self):
         return " ".join(self.scope)
 
+    def validate(self):
+        if not isinstance(self.client_id, str):
+            raise TypeError(
+                "client_id cannot be of type {t}".format(t=type(self.client_secret))
+            )
+
+        if not isinstance(self.client_secret, str):
+            raise TypeError(
+                "client_secret cannot be of type {t}".format(t=type(self.client_secret))
+            )
+
     def get_session(self, error_message="Invalid session", **kwargs):
         scope = kwargs.get("scope", self.get_scope())
 

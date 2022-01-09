@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.middleware.csrf import _get_new_csrf_token
 
 from ...core.jwt import create_access_token, create_refresh_token
 from .consts import providers_config_map
+from .graphql import enums
 from .providers import Provider
 
 User = get_user_model()
@@ -13,7 +15,14 @@ def get_oauth_provider(name, info) -> Provider:
     config = plugin.get_oauth2_info(name)
 
     provider_cls = providers_config_map[name]
-    return provider_cls(**config)
+    provider: Provider = provider_cls(**config)
+
+    try:
+        provider.validate()
+    except TypeError as e:
+        raise ValidationError(e, code=enums.OAuth2ErrorCode.OAUTH2_ERROR.value)
+
+    return provider
 
 
 def get_scope(provider_name):

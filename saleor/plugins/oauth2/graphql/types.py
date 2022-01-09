@@ -1,9 +1,9 @@
 import graphene
 
 from ....graphql.core.types import Error
-from .enums import OAuth2ErrorCode as OAuth2ErrorCodeEnum
+from . import enums
 
-OAuth2ErrorCode = graphene.Enum.from_enum(OAuth2ErrorCodeEnum)
+OAuth2ErrorCode = graphene.Enum.from_enum(enums.OAuth2ErrorCode)
 
 
 class OAuth2Error(Error):
