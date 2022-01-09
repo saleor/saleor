@@ -69,7 +69,8 @@ class OAuth2Plugin(BasePlugin):
 
         for key, val in config.items():
             if key.startswith(provider):
-                new_key = key.removeprefix(f"{provider}_")
+                prefix_length = len(f"{provider}_")
+                new_key = key[prefix_length:]
                 result.update(
                     {
                         new_key: val,
