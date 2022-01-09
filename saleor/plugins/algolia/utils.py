@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Dict
 
 import graphene
@@ -229,9 +230,9 @@ def get_product_data(product_pk: int, language_code="EN"):
         if is_available_for_purchase and is_published:
             channel.update(
                 {
-                    "price": price_net.pop("amount", 0),
                     "currency": price_net.pop("currency", 0),
                     "name": channel.pop("channel").get("slug"),
+                    "price": Decimal(price_net.pop("amount", 0)),
                 }
             )
             channels.append(channel)
