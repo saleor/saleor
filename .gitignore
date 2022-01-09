@@ -43,3 +43,4 @@ venv.bak/
 
 # Exported results file
 django-queries-results.html
+federation/node_modules/
