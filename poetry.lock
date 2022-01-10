@@ -791,7 +791,7 @@ testing = ["pre-commit"]
 
 [[package]]
 name = "faker"
-version = "11.1.0"
+version = "11.3.0"
 description = "Faker is a Python package that generates fake data for you."
 category = "main"
 optional = false
@@ -3146,8 +3146,8 @@ execnet = [
     {file = "execnet-1.9.0.tar.gz", hash = "sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5"},
 ]
 faker = [
-    {file = "Faker-11.1.0-py3-none-any.whl", hash = "sha256:ee29deb5174a8bd2e3a1be2f43d9505201d267d383a97ebc67715d12bb386e47"},
-    {file = "Faker-11.1.0.tar.gz", hash = "sha256:89c359e153f6a27820ff1d491e851018064dd65731f7894e226f93e2aa980655"},
+    {file = "Faker-11.3.0-py3-none-any.whl", hash = "sha256:61f97034cea252b8426d81810afab2f3c27b584f2b4313400a0cc83a9b013ded"},
+    {file = "Faker-11.3.0.tar.gz", hash = "sha256:adbe567e64da6a1097feacab699000e1ad16e17a6592a8f0ae1ee0b7fbf19887"},
 ]
 filelock = [
     {file = "filelock-3.4.2-py3-none-any.whl", hash = "sha256:cf0fc6a2f8d26bd900f19bf33915ca70ba4dd8c56903eeb14e1e7a2fd7590146"},
