@@ -51,6 +51,9 @@
   ],
   "buildpacks": [
     {
+      "url": "heroku-community/multi-procfile"
+    },
+    {
       "url": "heroku/nodejs"
     },
     {
