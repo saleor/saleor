@@ -560,6 +560,75 @@ def test_decrease_stock_multiple_lines(allocations):
     assert allocation_1.quantity_allocated == 10
 
 
+def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_lines):
+    """Ensure that when some of the lines raise an error during the deallocation
+    quantity allocated value for all allocation will be updated."""
+
+    # given
+    order_line_1 = order_with_lines.lines.first()
+    order_line_2 = order_with_lines.lines.last()
+
+    allocation_1 = order_line_1.allocations.first()
+    allocation_2 = order_line_2.allocations.first()
+
+    stock_quantity = 100
+    allocation_1_qty_allocated = 10
+    allocation_2_qty_allocated = 80
+
+    stock_1 = allocation_1.stock
+    stock_2 = allocation_2.stock
+    stock_1.quantity = stock_quantity
+    stock_2.quantity = stock_quantity
+    Stock.objects.bulk_update([stock_1, stock_2], ["quantity"])
+
+    allocation_1.quantity_allocated = allocation_1_qty_allocated
+    allocation_1.order_line = order_line_1
+    warehouse_pk_1 = stock_1.warehouse.pk
+
+    allocation_2.quantity_allocated = allocation_2_qty_allocated
+    allocation_2.order_line = order_line_2
+    warehouse_pk_2 = stock_2.warehouse.pk
+
+    Allocation.objects.bulk_update(
+        [allocation_1, allocation_2], ["quantity_allocated", "order_line"]
+    )
+
+    line_1_qty = 50
+    line_2_qty = 20
+
+    # when
+    decrease_stock(
+        [
+            OrderLineInfo(
+                line=order_line_1,
+                quantity=line_1_qty,
+                variant=order_line_1.variant,
+                warehouse_pk=warehouse_pk_1,
+            ),
+            OrderLineInfo(
+                line=order_line_2,
+                quantity=line_2_qty,
+                variant=order_line_2.variant,
+                warehouse_pk=warehouse_pk_2,
+            ),
+        ],
+        manager=get_plugins_manager(),
+    )
+
+    # then
+    stock_1.refresh_from_db()
+    assert stock_1.quantity == stock_quantity - line_1_qty
+
+    stock_2.refresh_from_db()
+    assert stock_2.quantity == stock_quantity - line_2_qty
+
+    allocation_1.refresh_from_db()
+    assert allocation_1.quantity_allocated == 0
+
+    allocation_2.refresh_from_db()
+    assert allocation_2.quantity_allocated == allocation_2_qty_allocated - line_2_qty
+
+
 def test_decrease_stock_partially(allocation):
     stock = allocation.stock
     stock.quantity = 100
