@@ -3,6 +3,7 @@ from typing import Any, List
 
 from django.core.exceptions import ValidationError
 
+from ...graphql.core.enums import PluginErrorCode
 from ...payment.gateways.utils import require_active_plugin
 from ...product.models import Product
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -31,9 +32,15 @@ class AlgoliaPlugin(BasePlugin):
             "help_text": "Algolia application id",
             "type": ConfigurationTypeField.SECRET,
         },
+        "ALGOLIA_LOCALES": {
+            "label": "Algolia Locales",
+            "help_text": "Algolia Locales",
+            "type": ConfigurationTypeField.STRING,
+        },
     }
     DEFAULT_CONFIGURATION = [
         {"name": "ALGOLIA_API_KEY", "value": None},
+        {"name": "ALGOLIA_LOCALES", "value": "en,ar"},
         {"name": "ALGOLIA_APPLICATION_ID", "value": None},
     ]
 
@@ -43,11 +50,13 @@ class AlgoliaPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = {
             "ALGOLIA_API_KEY": configuration["ALGOLIA_API_KEY"],
+            "ALGOLIA_LOCALES": configuration["ALGOLIA_LOCALES"],
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
         self.api_client = AlgoliaApiClient(
-            app_id=self.config["ALGOLIA_APPLICATION_ID"],
             api_key=self.config["ALGOLIA_API_KEY"],
+            app_id=self.config["ALGOLIA_APPLICATION_ID"],
+            locales=self.config["ALGOLIA_LOCALES"].split(","),
         )
 
     @classmethod
@@ -57,22 +66,24 @@ class AlgoliaPlugin(BasePlugin):
         missing_fields = []
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
-        if not configuration["ALGOLIA_API_KEY"]:
+        if not configuration.get("ALGOLIA_API_KEY"):
             missing_fields.append("ALGOLIA_API_KEY")
-        if not configuration["ALGOLIA_APPLICATION_ID"]:
+        if not configuration.get("ALGOLIA_APPLICATION_ID"):
             missing_fields.append("ALGOLIA_APPLICATION_ID")
 
         if plugin_configuration.active and missing_fields:
             error_msg = (
                 "To enable a plugin, you need to provide values for the "
-                "following fields: "
+                "following fields: {}"
             )
             raise ValidationError(
                 {
-                    missing_fields[0]: ValidationError(
-                        error_msg + ", ".join(missing_fields), code="invalid"
+                    f"{field}": ValidationError(
+                        error_msg.format(field),
+                        code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                     )
-                }
+                    for field in missing_fields
+                },
             )
 
     @require_active_plugin

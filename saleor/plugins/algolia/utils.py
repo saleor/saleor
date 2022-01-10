@@ -3,7 +3,6 @@ from typing import Dict
 
 import graphene
 from algoliasearch.search_client import SearchClient
-from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.http import HttpRequest
@@ -195,11 +194,11 @@ def get_product_data(product_pk: int, language_code="EN"):
         language_code=language_code
     ).first()
 
-    name = ""
+    product_name = ""
     if language_code == "EN":
-        name = product.name
+        product_name = product.name
     elif translated_product and language_code != "EN":
-        name = translated_product.name
+        product_name = translated_product.name
 
     description = {}
     if language_code == "EN":
@@ -228,13 +227,12 @@ def get_product_data(product_pk: int, language_code="EN"):
         is_available_for_purchase = channel.pop("isAvailableForPurchase", False)
 
         if is_available_for_purchase and is_published:
-            channel.update(
-                {
-                    "currency": price_net.pop("currency", 0),
-                    "name": channel.pop("channel").get("slug"),
-                    "price": Decimal(price_net.pop("amount", 0)),
-                }
-            )
+            name = channel.pop("channel").get("slug")
+            channel[name] = {
+                "name": name,
+                "currency": price_net.pop("currency", 0),
+                "price": Decimal(price_net.pop("amount", 0)),
+            }
             channels.append(channel)
 
     if not product_data.errors and channels:
@@ -243,9 +241,9 @@ def get_product_data(product_pk: int, language_code="EN"):
         media = product_dict.pop("media", [])[:2]
         product_dict.update(
             {
-                "name": name,
                 "objectID": slug,
                 "channels": channels,
+                "name": product_name,
                 "attributes": attributes,
                 "description": description,
                 # "categoryPageId": category_page_id(),
@@ -277,11 +275,3 @@ def get_algolia_indices(config: Dict, locale: str):
         }
     )
     return index
-
-
-def get_locales():
-    """Return upper case language locales."""
-    locales = []
-    for locale in settings.LANGUAGES:
-        locales.append(locale[0])
-    return locales
