@@ -14,8 +14,9 @@ from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
-from ...order import OrderLineData, OrderOrigin
+from ...order import OrderOrigin
 from ...order.actions import fulfill_order_lines
+from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
@@ -144,7 +145,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         order_line=line, quantity=line.quantity, stock=stock
     )
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
@@ -192,7 +193,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
 

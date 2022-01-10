@@ -6,10 +6,11 @@ import pytest
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....giftcard import GiftCardEvents
 from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderLineData, OrderStatus
+from ....order import OrderStatus
 from ....order.actions import fulfill_order_lines
 from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
+from ....order.fetch import OrderLineInfo
 from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus, OrderLine
 from ....plugins.manager import get_plugins_manager
 from ....product.models import Product, ProductVariant
@@ -1849,12 +1850,12 @@ def test_fulfillment_approve_gift_cards_created(
 
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=gift_card_line_1,
                 quantity=gift_card_line_1.quantity,
                 warehouse_pk=stock_1.warehouse.pk,
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=gift_card_line_2,
                 quantity=gift_card_line_2.quantity,
                 warehouse_pk=stock_2.warehouse.pk,
