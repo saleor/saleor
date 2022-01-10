@@ -389,6 +389,10 @@ def test_create_payment_for_checkout_with_active_payments(
     checkout.billing_address = address
     checkout.save()
 
+    Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
@@ -426,6 +430,54 @@ def test_create_payment_for_checkout_with_active_payments(
     assert active_payments.first().pk not in previous_active_payments_ids
 
 
+#
+# def test_create_payment_for_checkout_with_0_total_payment_not_created_(
+#     user_api_client, checkout_without_shipping_required, address, customer_user
+# ):
+#     checkout = checkout_without_shipping_required
+#     checkout.billing_address = address
+#     checkout.email = "old@example"
+#     checkout.user = customer_user
+#     checkout.save()
+#
+#
+#     manager = get_plugins_manager()
+#     lines = fetch_checkout_lines(checkout)
+#     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+#     total = calculations.checkout_total(
+#     #     manager=manager, checkout_info=checkout_info, lines=lines, address=address
+#     # )
+#     total = TaxedMoney(0, "USD")
+#     return_url = "https://www.example.com"
+#     variables = {
+#         "token": checkout.token,
+#         "input": {
+#             "gateway": DUMMY_GATEWAY,
+#             "token": "sample-token",
+#             "amount": total.gross.amount,
+#             "returnUrl": return_url,
+#         },
+#     }
+#     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+#     content = get_graphql_content(response)
+#     data = content["data"]["checkoutPaymentCreate"]
+#
+#     assert not data["errors"]
+#     payment = Payment.objects.get()
+#     assert payment.checkout == checkout
+#     assert payment.is_active
+#     assert payment.token == "sample-token"
+#     assert payment.total == total.gross.amount
+#     assert payment.currency == total.gross.currency
+#     assert payment.charge_status == ChargeStatus.NOT_CHARGED
+#     assert payment.billing_address_1 == checkout.billing_address.street_address_1
+#     assert payment.billing_first_name == checkout.billing_address.first_name
+#     assert payment.billing_last_name == checkout.billing_address.last_name
+#     assert payment.return_url == return_url
+#     assert payment.billing_email == customer_user.email
+#
+
+
 def test_create_payment_for_checkout_with_0_total_payment_not_created(
     checkout, user_api_client, address
 ):
@@ -434,8 +486,12 @@ def test_create_payment_for_checkout_with_0_total_payment_not_created(
     address.save()
     checkout.billing_address = address
     checkout.save()
-
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
 
     assert total.gross.amount == 0
     assert total.net.amount == 0
@@ -474,11 +530,18 @@ def test_create_payment_for_checkout_with_0_total_shipping_not_set(
     checkout.billing_address = address
     checkout.save()
 
-    variant = checkout.lines.first().variant
-    variant.price = Money(0, "USD")
-    variant.save(update_fields=["price_amount"])
-
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    line = checkout.lines.first()
+    # print('line', type(checkout.lines.first()),checkout.lines.first())
+    # print("varaint",type(variant),variant)
+    print(line.unit_price)
+    line.unit_price = Money(0, "USD")
+    line.save(update_fields=["price"])
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
 
     assert total.gross.amount == 0
     assert total.net.amount == 0
@@ -526,7 +589,12 @@ def test_create_payment_for_checkout_with_digital_product_with_0_price(
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
     )
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
 
     assert total.gross.amount == 0
     assert total.net.amount == 0
@@ -578,7 +646,12 @@ def test_create_payment_for_checkout_with_product_with_0_price_and_required_ship
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
     )
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {
@@ -626,7 +699,12 @@ def test_create_payment_for_checkout_with_digital_product_with_discount_equal_to
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
     )
 
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
 
     assert total.gross.amount == 0
     assert total.net.amount == 0

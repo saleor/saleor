@@ -281,6 +281,16 @@ def checkout_with_item(checkout, product):
     return checkout
 
 
+# @pytest.fixture
+# def checkout_with_item_total_0(checkout, product):
+#     variant = product.variants.get()
+#     checkout.
+#     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+#     add_variant_to_checkout(checkout_info, variant, 3)
+#     checkout.save()
+#     return checkout
+
+
 @pytest.fixture
 def checkout_JPY_with_item(checkout_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
@@ -2761,7 +2771,7 @@ def order_with_lines(
         visible_in_listings=True,
         available_for_purchase=datetime.date.today(),
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
+    variant = ProductVariant.objects.create(product=product, sku="SKU_C")
     channel_listing = ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
