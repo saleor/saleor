@@ -8,7 +8,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import order_has_gift_card_lines
-from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from ....order import FulfillmentLineData, FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import (
     approve_fulfillment,
@@ -20,6 +20,7 @@ from ....order.actions import (
     fulfillment_tracking_updated,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderLineInfo
 from ....order.notifications import send_fulfillment_update
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
@@ -693,7 +694,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                 )
 
             cleaned_order_lines.append(
-                OrderLineData(line=line, quantity=quantity, replace=replace)
+                OrderLineInfo(line=line, quantity=quantity, replace=replace)
             )
         cleaned_input["order_lines"] = cleaned_order_lines
 
