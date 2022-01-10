@@ -232,8 +232,8 @@ class AppCountableConnection(CountableConnection):
 
 class AppInstallation(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    app_name = graphene.String()
-    manifest_url = graphene.String()
+    app_name = graphene.String(required=True)
+    manifest_url = graphene.String(required=True)
 
     class Meta:
         model = models.AppInstallation

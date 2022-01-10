@@ -7,7 +7,6 @@ from ..meta.types import ObjectWithMetadata
 
 
 class Invoice(ModelObjectType):
-    id = graphene.GlobalID(required=True)
     number = graphene.String()
     external_url = graphene.String()
     created_at = graphene.DateTime(required=True)

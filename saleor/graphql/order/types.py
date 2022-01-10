@@ -700,6 +700,7 @@ class Order(ModelObjectType):
     token = graphene.String(required=True)
     voucher = graphene.Field(Voucher)
     gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
+    display_gross_prices = graphene.Boolean(required=True)
     customerNote = graphene.Boolean(required=True)
     customer_note = graphene.String(required=True)
     weight = graphene.Field(Weight)

@@ -274,8 +274,8 @@ class User(ModelObjectType):
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
     )
-    default_billing_address = graphene.Field(Address)
     default_shipping_address = graphene.Field(Address)
+    default_billing_address = graphene.Field(Address)
 
     last_login = graphene.DateTime()
     date_joined = graphene.DateTime(required=True)
