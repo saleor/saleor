@@ -371,12 +371,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.has_perm(
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
-        )
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
     @classmethod
     def get_operations(
