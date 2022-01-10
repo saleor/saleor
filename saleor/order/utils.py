@@ -27,7 +27,6 @@ from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import (
-    deallocate_stock,
     decrease_allocations,
     get_order_lines_with_track_inventory,
     increase_allocations,
@@ -628,35 +627,6 @@ def delete_order_line(line_info, manager):
     if line_info.line.order.is_unconfirmed():
         decrease_allocations([line_info], manager)
     line_info.line.delete()
-
-
-def restock_order_lines(order, manager):
-    """Return ordered products to corresponding stocks."""
-    country = get_order_country(order)
-    default_warehouse = Warehouse.objects.filter(
-        shipping_zones__countries__contains=country
-    ).first()
-
-    dellocating_stock_lines: List[OrderLineInfo] = []
-    for line in order.lines.all():
-        if line.variant and line.variant.track_inventory:
-            if line.quantity_unfulfilled > 0:
-                dellocating_stock_lines.append(
-                    OrderLineInfo(line=line, quantity=line.quantity_unfulfilled)
-                )
-            if line.quantity_fulfilled > 0:
-                allocation = line.allocations.first()
-                warehouse = (
-                    allocation.stock.warehouse if allocation else default_warehouse
-                )
-                increase_stock(line, warehouse, line.quantity_fulfilled)
-
-        if line.quantity_fulfilled > 0:
-            line.quantity_fulfilled = 0
-            line.save(update_fields=["quantity_fulfilled"])
-
-    if dellocating_stock_lines:
-        deallocate_stock(dellocating_stock_lines, manager)
 
 
 def restock_fulfillment_lines(fulfillment, warehouse):
