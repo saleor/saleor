@@ -19,7 +19,6 @@ from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import TranslationError
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
-from ..page.types import Page
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
@@ -82,7 +81,7 @@ class BaseTranslateMutation(ModelMutation):
 
         node_id = data["id"]
         node_type, node_pk = graphene.Node.from_global_id(node_id)
-        print("node_type", node_type, type(node_type))
+
         # This mutation accepts either model IDs or translatable content IDs. Below we
         # check if provided ID refers to a translatable content which matches with the
         # expected model_type. If so, we transform the translatable content ID to model
@@ -449,13 +448,6 @@ class PageTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
-
-    @classmethod
-    def get_type_for_model(cls):
-        # This method prevents type PageTranslate page field in GraphQL schema
-        # to be automatically changed to Page model, since we want to address that
-        # problem in a separate PR.
-        return translation_types.PageTranslatableContent
 
 
 class ShopSettingsTranslationInput(graphene.InputObjectType):

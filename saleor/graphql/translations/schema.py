@@ -45,7 +45,6 @@ class TranslatableItem(graphene.Union):
 
     @classmethod
     def resolve_type(cls, instance, info):
-        print(type(instance))
         if isinstance(instance, Product):
             return translation_types.ProductTranslatableContent
         if isinstance(instance, Collection):
