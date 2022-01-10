@@ -172,6 +172,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
   - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
+- Fix incorrect stock allocation - #8931 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
