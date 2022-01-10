@@ -15,6 +15,7 @@ def add_gift_card_code_to_checkout(checkout: Checkout, promo_code: str):
     except GiftCard.DoesNotExist:
         raise InvalidPromoCode()
     checkout.gift_cards.add(gift_card)
+    checkout.save(update_fields=["last_change"])
 
 
 def remove_gift_card_code_from_checkout(checkout: Checkout, gift_card_code: str):
@@ -22,6 +23,7 @@ def remove_gift_card_code_from_checkout(checkout: Checkout, gift_card_code: str)
     gift_card = checkout.gift_cards.filter(code=gift_card_code).first()
     if gift_card:
         checkout.gift_cards.remove(gift_card)
+        checkout.save(update_fields=["last_change"])
 
 
 def deactivate_gift_card(gift_card: GiftCard):
