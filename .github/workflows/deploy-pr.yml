@@ -19,17 +19,17 @@ jobs:
         env:
           HD_ALLOWED_CLIENT_HOSTS: "*"
           HD_ALLOWED_HOSTS: "*"
-          HD_DJANGO_SETTINGS_MODULE": saleor.settings
-          HD_DEBUG": True
-          HD_NPM_CONFIG_PRODUCTION": false
-          HD_DEFAULT_FROM_EMAIL": noreply@wecre8.com
+          HD_DJANGO_SETTINGS_MODULE": "saleor.settings"
+          HD_DEBUG": "True"
+          HD_NPM_CONFIG_PRODUCTION": "false"
+          HD_DEFAULT_FROM_EMAIL": "noreply@wecre8.com"
           # HD_EMAIL_URL: ${{secrets.EMAIL_URL}}
-          HD_SECRET_KEY": alibide
+          HD_SECRET_KEY": "alibide"
           # HD_AWS_MEDIA_BUCKET_NAME": ${{secrets.AWS_MEDIA_BUCKET_NAME}}
           # HD_AWS_ACCESS_KEY_ID": ${{secrets.AWS_ACCESS_KEY_ID}}
           # HD_AWS_SECRET_ACCESS_KEY": "${{secrets.AWS_SECRET_ACCESS_KEY}}"
           # HD_AWS_STORAGE_BUCKET_NAME: ${{secrets.AWS_STORAGE_BUCKET_NAME}}
-          HD_ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL": False
+          HD_ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL": "False"
 
       - name: Deploy Federation
         uses: akhileshns/heroku-deploy@v3.12.12
