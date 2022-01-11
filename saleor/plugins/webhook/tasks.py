@@ -61,9 +61,8 @@ def _get_webhooks_for_event(event_type, webhooks=None):
 
 
 @app.task(compression="zlib")
-def trigger_webhooks_for_event(event_type, data):
+def trigger_webhooks_for_event(event_type, data, webhooks):
     """Send a webhook request for an event as an async task."""
-    webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
             webhook.app.name,
