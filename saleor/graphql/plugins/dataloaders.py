@@ -1,17 +1,7 @@
 from collections import defaultdict
 
-from ...plugins.models import EmailTemplate, PluginConfiguration
+from ...plugins.models import EmailTemplate
 from ..core.dataloaders import DataLoader
-
-
-class PluginConfigurationByIdLoader(DataLoader):
-    context_key = "plugin_configuration_by_id"
-
-    def batch_load(self, keys):
-        plugin_configs = PluginConfiguration.objects.using(
-            self.database_connection_name
-        ).in_bulk(keys)
-        return [plugin_configs.get(plugin_config_id) for plugin_config_id in keys]
 
 
 class EmailTemplatesByPluginConfigurationLoader(DataLoader):

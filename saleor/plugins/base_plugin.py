@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
-from measurement.measures import Weight
 from prices import Money, TaxedMoney
+from promise.promise import Promise
 
 from ..checkout.interface import CheckoutTaxedPricesData
 from ..payment.interface import (
@@ -652,6 +652,12 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Override this function to customize resolving plugin configuration in API.
+        return self.configuration
 
     def excluded_shipping_methods_for_order(
         self,

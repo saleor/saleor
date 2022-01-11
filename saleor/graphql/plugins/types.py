@@ -1,14 +1,12 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import graphene
 
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from .dataloaders import EmailTemplatesByPluginConfigurationLoader
 from .enums import ConfigurationTypeFieldEnum
 
 if TYPE_CHECKING:
-    from ...plugins import models
     from ...plugins.base_plugin import BasePlugin
 
 
@@ -40,29 +38,7 @@ class PluginConfiguration(graphene.ObjectType):
 
     @staticmethod
     def resolve_configuration(root: "BasePlugin", info, **_kwargs):
-        # Here we are getting email templates from the database and merging them with
-        # root.configuration. Consider if we should do it here or inside of the "getter"
-        # of root.configuration field. With the current approach we manually call the DB
-        # here which gives us control over DB queries; see if we would have the same
-        # control when DB call is moved deeper to the getter.
-
-        def map_templates_to_configuration(
-            email_templates: List["models.EmailTemplate"],
-        ):
-            for email_template in email_templates:
-                for index, config_item in enumerate(root.configuration):
-                    if config_item["name"] == email_template.name:
-                        root.configuration[index]["value"] = email_template.value
-            return root.configuration
-
-        if root.db_config:
-            return (
-                EmailTemplatesByPluginConfigurationLoader(info.context)
-                .load(root.db_config.pk)
-                .then(map_templates_to_configuration)
-            )
-        else:
-            return root.configuration
+        return root.resolve_plugin_configuration(info.context)
 
 
 class Plugin(graphene.ObjectType):

@@ -1,10 +1,13 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
+
+from promise.promise import Promise
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...graphql.plugins.dataloaders import EmailTemplatesByPluginConfigurationLoader
 from ...plugins.models import EmailTemplate
-from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..base_plugin import BasePlugin, ConfigurationTypeField, PluginConfigurationType
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
@@ -412,6 +415,29 @@ class UserEmailPlugin(BasePlugin):
             order_refund_confirmation=configuration[
                 constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD
             ],
+        )
+
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Get email templates from the database and merge them with self.configuration.
+        configuration = super().resolve_plugin_configuration(request)
+        if not self.db_config:
+            return configuration
+
+        def map_templates_to_configuration(
+            email_templates: List["EmailTemplate"],
+        ) -> PluginConfigurationType:
+            for email_template in email_templates:
+                for index, config_item in enumerate(self.configuration):
+                    if config_item["name"] == email_template.name:
+                        self.configuration[index]["value"] = email_template.value
+            return self.configuration
+
+        return (
+            EmailTemplatesByPluginConfigurationLoader(request)
+            .load(self.db_config.pk)
+            .then(map_templates_to_configuration)
         )
 
     def notify(self, event: NotifyEventType, payload: dict, previous_value):

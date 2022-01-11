@@ -1,11 +1,13 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import Optional
+from typing import List, Optional, Union
 
 from django.conf import settings
+from promise.promise import Promise
 
 from ...core.notify_events import AdminNotifyEvent, NotifyEventType
-from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ...graphql.plugins.dataloaders import EmailTemplatesByPluginConfigurationLoader
+from ..base_plugin import BasePlugin, ConfigurationTypeField, PluginConfigurationType
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
@@ -215,6 +217,29 @@ class AdminEmailPlugin(BasePlugin):
             staff_reset_password=configuration[
                 constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD
             ],
+        )
+
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Get email templates from the database and merge them with self.configuration.
+        configuration = super().resolve_plugin_configuration(request)
+        if not self.db_config:
+            return configuration
+
+        def map_templates_to_configuration(
+            email_templates: List["EmailTemplate"],
+        ) -> PluginConfigurationType:
+            for email_template in email_templates:
+                for index, config_item in enumerate(self.configuration):
+                    if config_item["name"] == email_template.name:
+                        self.configuration[index]["value"] = email_template.value
+            return self.configuration
+
+        return (
+            EmailTemplatesByPluginConfigurationLoader(request)
+            .load(self.db_config.pk)
+            .then(map_templates_to_configuration)
         )
 
     def notify(self, event: NotifyEventType, payload: dict, previous_value):

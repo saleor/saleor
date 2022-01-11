@@ -15,7 +15,6 @@ from typing import (
 import opentracing
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import Q
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
@@ -117,18 +116,17 @@ class PluginsManager(PaymentInterface):
 
     def _get_db_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
-            if not hasattr(self, "_plugin_configs"):
-                qs = PluginConfiguration.objects.all().prefetch_related("channel")
-                channel_configs = defaultdict(dict)
-                global_configs = {}
-                for db_plugin_config in qs:
-                    channel = db_plugin_config.channel
-                    if channel is None:
-                        global_configs[db_plugin_config.identifier] = db_plugin_config
-                    else:
-                        channel_configs[channel][
-                            db_plugin_config.identifier
-                        ] = db_plugin_config
+            qs = PluginConfiguration.objects.all().prefetch_related("channel")
+            channel_configs = defaultdict(dict)
+            global_configs = {}
+            for db_plugin_config in qs:
+                channel = db_plugin_config.channel
+                if channel is None:
+                    global_configs[db_plugin_config.identifier] = db_plugin_config
+                else:
+                    channel_configs[channel][
+                        db_plugin_config.identifier
+                    ] = db_plugin_config
             return global_configs, channel_configs
 
     def __run_method_on_plugins(
