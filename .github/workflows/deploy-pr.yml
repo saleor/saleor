@@ -39,6 +39,7 @@ jobs:
           heroku_email: "hazem.khaled@gmail.com"
           region: "eu"
           team: "wecre8"
+          buildpack: heroku/nodejs
           appdir: "federation"
           procfile: "web: npm start"
         env:
