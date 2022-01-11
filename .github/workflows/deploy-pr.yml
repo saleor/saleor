@@ -43,4 +43,4 @@ jobs:
           appdir: "federation"
           procfile: "web: npm start"
         env:
-          HD_NODE_ENV: production
+          HD_NODE_ENV: development
