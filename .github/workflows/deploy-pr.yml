@@ -27,7 +27,7 @@ jobs:
           HD_SECRET_KEY": alibide
           HD_AWS_MEDIA_BUCKET_NAME": ${{secrets.AWS_MEDIA_BUCKET_NAME}}
           HD_AWS_ACCESS_KEY_ID": ${{secrets.AWS_ACCESS_KEY_ID}}
-          HD_AWS_SECRET_ACCESS_KEY": ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          HD_AWS_SECRET_ACCESS_KEY": "${{secrets.AWS_SECRET_ACCESS_KEY}}"
           HD_AWS_STORAGE_BUCKET_NAME: ${{secrets.AWS_STORAGE_BUCKET_NAME}}
           HD_ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL": False
 
