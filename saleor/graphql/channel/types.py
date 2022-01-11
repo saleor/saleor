@@ -56,7 +56,7 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
         if cls._meta.model._meta.proxy:
             model = root._meta.model
         else:
-            model = root._meta.model._meta.concrete_model
+            model = cast(Model, root._meta.model._meta.concrete_model)
 
         return model == cls._meta.model
 
