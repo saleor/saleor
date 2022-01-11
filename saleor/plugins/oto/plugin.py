@@ -10,6 +10,7 @@ from ...order.models import Fulfillment, Order
 from ...payment.gateways.utils import require_active_plugin
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
+from .constants import PLUGIN_ID
 from .utils import get_oto_order_id, handle_webhook, send_oto_request
 
 logger = logging.getLogger(__name__)
@@ -17,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 class OTOPlugin(BasePlugin):
     PLUGIN_NAME = "OTO"
+    PLUGIN_ID = PLUGIN_ID
     DEFAULT_ACTIVE = False
-    PLUGIN_ID = "wecre8.oto"
     CONFIGURATION_PER_CHANNEL = False
     PLUGIN_DESCRIPTION = "Plugin responsible for ship orders using OTO."
 
