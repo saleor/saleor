@@ -13,6 +13,10 @@ from ....core.utils.url import validate_storefront_url
 from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
+from ....order.search import (
+    prepare_order_search_document_value,
+    update_order_search_document,
+)
 from ....order.utils import (
     add_variant_to_order,
     get_order_country,
@@ -333,6 +337,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Post-process the results
         recalculate_order(instance)
+        update_order_search_document(instance)
 
 
 class DraftOrderUpdate(DraftOrderCreate):
@@ -444,6 +449,7 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
                 order.shipping_address = None
 
+        order.search_document = prepare_order_search_document_value(order)
         order.save()
 
         for line in order.lines.all():
@@ -463,7 +469,13 @@ class DraftOrderComplete(BaseMutation):
                                 info.context.site.settings
                             ),
                         )
-                        allocate_preorders([line_data], channel_slug)
+                        allocate_preorders(
+                            [line_data],
+                            channel_slug,
+                            check_reservations=is_reservation_enabled(
+                                info.context.site.settings
+                            ),
+                        )
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
