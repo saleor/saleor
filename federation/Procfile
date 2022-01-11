@@ -1,1 +1,0 @@
-web: cd federation && npm i && npm start
