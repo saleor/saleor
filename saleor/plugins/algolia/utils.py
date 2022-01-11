@@ -94,13 +94,6 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
 )
 
 
-def category_page_id():
-    return [
-        "Products",
-        "Categories",
-    ]
-
-
 def hierarchical_categories(product: Product):
     hierarchical = {}
     hierarchical_list = []
@@ -235,21 +228,25 @@ def get_product_data(product_pk: int, language_code="EN"):
             }
             channels.append(channel)
 
+    skus = []
+    for sku in product.variants.values_list("sku", flat=True):
+        skus.append(sku)
+
     if not product_data.errors and channels:
         product_dict.pop("metadata")
         slug = product_dict.pop("slug")
         media = product_dict.pop("media", [])[:2]
         product_dict.update(
             {
+                "skus": skus,
                 "objectID": slug,
                 "channels": channels,
                 "name": product_name,
                 "attributes": attributes,
                 "description": description,
-                # "categoryPageId": category_page_id(),
                 "images": map_product_media(media=media),
                 "gender": product.get_value_from_metadata("gender"),
-                "hierarchicalCategories": hierarchical_categories(product=product),
+                "categories": hierarchical_categories(product=product),
                 "collections": map_product_collections(
                     product=product, language_code=language_code.lower()
                 ),

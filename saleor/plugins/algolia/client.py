@@ -14,6 +14,7 @@ class AlgoliaApiClient(metaclass=Singleton):
             index.set_settings(
                 settings={
                     "searchableAttributes": [
+                        "skus",
                         "name",
                         "description",
                     ]
