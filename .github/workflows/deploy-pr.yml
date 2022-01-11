@@ -8,7 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: akhileshns/heroku-deploy@v3.12.12
+      - name: Deploy Saleor
+        uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: w8-saleor-pr-${{ github.event.pull_request.number }}
@@ -21,7 +22,6 @@ jobs:
           DJANGO_SETTINGS_MODULE": "saleor.settings"
           DEBUG": "True"
           NPM_CONFIG_PRODUCTION": "false"
-          ALLOWED_HOSTS": ".herokuapp.com"
           DEFAULT_FROM_EMAIL": "noreply@wecre8.com"
           EMAIL_URL: ${{secrets.EMAIL_URL}}
           SECRET_KEY": "alibide"
@@ -31,10 +31,11 @@ jobs:
           AWS_STORAGE_BUCKET_NAME: ${{secrets.AWS_STORAGE_BUCKET_NAME}}
           ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL": "False"
 
-      - uses: akhileshns/heroku-deploy@v3.12.12
+      - name: Deploy Federation
+        uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: w8-saleor-pr-${{ github.event.pull_request.number }}
+          heroku_app_name: w8-pr-${{ github.event.pull_request.number }}
           heroku_email: "hazem.khaled@gmail.com"
           region: "eu"
           team: "wecre8"
