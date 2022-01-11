@@ -1,4 +1,4 @@
-from typing import Union, cast
+from typing import Type, Union, cast
 
 import graphene
 from django.db.models import Model
@@ -56,7 +56,7 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
         if cls._meta.model._meta.proxy:
             model = root._meta.model
         else:
-            model = cast(Model, root._meta.model._meta.concrete_model)
+            model = cast(Type[Model], root._meta.model._meta.concrete_model)
 
         return model == cls._meta.model
 
