@@ -1,6 +1,6 @@
 import graphene
 
-from ...product import ProductTypeKind, ProductMediaTypes
+from ...product import ProductMediaTypes, ProductTypeKind
 from ..core.enums import to_enum
 
 ProductTypeKindEnum = to_enum(ProductTypeKind)

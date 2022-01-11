@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, cast
 
 import graphene
 from django.db.models import Model
@@ -48,7 +48,7 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
     def is_type_of(cls, root: Union[ChannelContext, Model], info):
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
-            root = root.node
+            root = cast(root.node, Model)
 
         if isinstance(root, cls):
             return True
