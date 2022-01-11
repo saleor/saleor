@@ -11,10 +11,12 @@ from .tasks import (
 )
 
 if TYPE_CHECKING:
-    from ...plugins.base_plugin import BasePlugin
+    from .plugin import AdminEmailPlugin
 
 
-def send_set_staff_password_email(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_set_staff_password_email(
+    payload: dict, config: dict, plugin: "AdminEmailPlugin"
+):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -32,7 +34,9 @@ def send_set_staff_password_email(payload: dict, config: dict, plugin: "BasePlug
     )
 
 
-def send_csv_product_export_success(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_csv_product_export_success(
+    payload: dict, config: dict, plugin: "AdminEmailPlugin"
+):
     recipient_email = payload.get("recipient_email")
     if recipient_email:
         template = get_email_template_or_default(
@@ -51,7 +55,9 @@ def send_csv_product_export_success(payload: dict, config: dict, plugin: "BasePl
         )
 
 
-def send_staff_order_confirmation(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_staff_order_confirmation(
+    payload: dict, config: dict, plugin: "AdminEmailPlugin"
+):
     recipient_list = payload.get("recipient_list")
     template = get_email_template_or_default(
         plugin,
@@ -69,7 +75,7 @@ def send_staff_order_confirmation(payload: dict, config: dict, plugin: "BasePlug
     )
 
 
-def send_csv_export_failed(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_csv_export_failed(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
     recipient_email = payload.get("recipient_email")
     if recipient_email:
         template = get_email_template_or_default(
@@ -88,7 +94,7 @@ def send_csv_export_failed(payload: dict, config: dict, plugin: "BasePlugin"):
         )
 
 
-def send_staff_reset_password(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_staff_reset_password(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
     recipient_email = payload.get("recipient_email")
     if recipient_email:
         template = get_email_template_or_default(

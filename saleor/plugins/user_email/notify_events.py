@@ -20,11 +20,11 @@ from .tasks import (
 )
 
 if TYPE_CHECKING:
-    from ...plugins.base_plugin import BasePlugin
+    from .plugin import UserEmailPlugin
 
 
 def send_account_password_reset_event(
-    payload: dict, config: dict, plugin: "BasePlugin"
+    payload: dict, config: dict, plugin: "UserEmailPlugin"
 ):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
@@ -47,7 +47,7 @@ def send_account_password_reset_event(
     )
 
 
-def send_account_confirmation(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_account_confirmation(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -66,7 +66,7 @@ def send_account_confirmation(payload: dict, config: dict, plugin: "BasePlugin")
 
 
 def send_account_change_email_request(
-    payload: dict, config: dict, plugin: "BasePlugin"
+    payload: dict, config: dict, plugin: "UserEmailPlugin"
 ):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
@@ -86,7 +86,7 @@ def send_account_change_email_request(
 
 
 def send_account_change_email_confirm(
-    payload: dict, config: dict, plugin: "BasePlugin"
+    payload: dict, config: dict, plugin: "UserEmailPlugin"
 ):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
@@ -105,7 +105,7 @@ def send_account_change_email_confirm(
     )
 
 
-def send_account_delete(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_account_delete(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -124,7 +124,7 @@ def send_account_delete(payload: dict, config: dict, plugin: "BasePlugin"):
 
 
 def send_account_set_customer_password(
-    payload: dict, config: dict, plugin: "BasePlugin"
+    payload: dict, config: dict, plugin: "UserEmailPlugin"
 ):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
@@ -143,7 +143,7 @@ def send_account_set_customer_password(
     )
 
 
-def send_invoice(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_invoice(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -159,7 +159,7 @@ def send_invoice(payload: dict, config: dict, plugin: "BasePlugin"):
     send_invoice_email_task.delay(recipient_email, payload, config, subject, template)
 
 
-def send_order_confirmation(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_order_confirmation(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -177,7 +177,9 @@ def send_order_confirmation(payload: dict, config: dict, plugin: "BasePlugin"):
     )
 
 
-def send_fulfillment_confirmation(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_fulfillment_confirmation(
+    payload: dict, config: dict, plugin: "UserEmailPlugin"
+):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -195,7 +197,7 @@ def send_fulfillment_confirmation(payload: dict, config: dict, plugin: "BasePlug
     )
 
 
-def send_fulfillment_update(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_fulfillment_update(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -213,7 +215,7 @@ def send_fulfillment_update(payload: dict, config: dict, plugin: "BasePlugin"):
     )
 
 
-def send_payment_confirmation(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_payment_confirmation(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -231,7 +233,7 @@ def send_payment_confirmation(payload: dict, config: dict, plugin: "BasePlugin")
     )
 
 
-def send_order_canceled(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_order_canceled(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -249,7 +251,7 @@ def send_order_canceled(payload: dict, config: dict, plugin: "BasePlugin"):
     )
 
 
-def send_order_refund(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_order_refund(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,
@@ -267,7 +269,7 @@ def send_order_refund(payload: dict, config: dict, plugin: "BasePlugin"):
     )
 
 
-def send_order_confirmed(payload: dict, config: dict, plugin: "BasePlugin"):
+def send_order_confirmed(payload: dict, config: dict, plugin: "UserEmailPlugin"):
     recipient_email = payload["recipient_email"]
     template = get_email_template_or_default(
         plugin,

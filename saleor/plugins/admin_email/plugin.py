@@ -220,20 +220,22 @@ class AdminEmailPlugin(BasePlugin):
     def notify(self, event: NotifyEventType, payload: dict, previous_value):
         if not self.active:
             return previous_value
+
         event_map = get_admin_event_map()
         if event not in AdminNotifyEvent.CHOICES:
             return previous_value
+
         if event not in event_map:
             logger.warning(f"Missing handler for event {event}")
             return previous_value
+
         template_map = get_admin_template_map(self.templates)
         if not template_map.get(event):
             return previous_value
-        event_map[event](
-            payload,
-            asdict(self.config),  # type: ignore
-            self,
-        )
+
+        event_func = event_map[event]
+        config = asdict(self.config)  # type: ignore
+        event_func(payload, config, self)
 
     @classmethod
     def validate_plugin_configuration(
