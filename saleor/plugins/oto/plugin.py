@@ -5,8 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 
-from saleor.payment.interface import GatewayConfig
-
+from ...graphql.core.enums import PluginErrorCode
 from ...order.models import Fulfillment, Order
 from ...payment.gateways.utils import require_active_plugin
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -48,18 +47,7 @@ class OTOPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        configuration = {item["name"]: item["value"] for item in self.configuration}
-
-        self.config = GatewayConfig(
-            auto_capture=True,
-            supported_currencies="USD",
-            gateway_name=self.PLUGIN_NAME,
-            connection_params={
-                "ACCESS_TOKEN": configuration["ACCESS_TOKEN"],
-                "REFRESH_TOKEN": configuration["REFRESH_TOKEN"],
-                "PUBLIC_KEY_FOR_SIGNATURE": configuration["PUBLIC_KEY_FOR_SIGNATURE"],
-            },
-        )
+        self.config = {item["name"]: item["value"] for item in self.configuration}
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -84,10 +72,12 @@ class OTOPlugin(BasePlugin):
             )
             raise ValidationError(
                 {
-                    missing_fields[0]: ValidationError(
-                        error_msg + ", ".join(missing_fields), code="invalid"
+                    f"{field}": ValidationError(
+                        error_msg.format(field),
+                        code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                     )
-                }
+                    for field in missing_fields
+                },
             )
 
     @require_active_plugin

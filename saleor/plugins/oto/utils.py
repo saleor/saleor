@@ -11,16 +11,9 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from saleor.account.models import User
 from saleor.order.actions import cancel_fulfillment
 from saleor.order.models import Fulfillment
-from saleor.payment.interface import GatewayConfig
 from saleor.plugins.manager import get_plugins_manager
 
 logger = logging.Logger(__name__)
-
-
-def get_oto_auth_credentials(config):
-    retailer_id = config.get("RETAILER_ID")
-    retailer_token = config.get("RETAILER_TOKEN")
-    return dict(retailerId=retailer_id, password=retailer_token)
 
 
 def get_order_customer_data(order):
@@ -112,9 +105,7 @@ def get_oto_url(destination_url):
     return "https://api.tryoto.com/rest/v2/{0}".format(destination_url)
 
 
-def send_oto_request(
-    fulfillment, config: "GatewayConfig", destination_url: str, data=None
-):
+def send_oto_request(fulfillment, config: "dict", destination_url: str, data=None):
     """Send request to OTO API."""
     url = get_oto_url(destination_url=destination_url)
     if not data:
@@ -126,13 +117,13 @@ def send_oto_request(
         json=data,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {config.connection_params.get('ACCESS_TOKEN')}",
+            "Authorization": f"Bearer {config.get('ACCESS_TOKEN')}",
         },
     )
     return response.json()
 
 
-def verify_webhook(request: HttpRequest, config: "GatewayConfig"):
+def verify_webhook(request: HttpRequest, config: "dict"):
     """Verify webhook request from OTO."""
     data = json.loads(request.body)
     signature = data.get("signature")
@@ -140,9 +131,7 @@ def verify_webhook(request: HttpRequest, config: "GatewayConfig"):
     h = hmac.new(
         msg=msg.encode("utf-8"),
         digestmod=hashlib.sha256,
-        key=config.connection_params.get("PUBLIC_KEY_FOR_SIGNATURE", "").encode(
-            "utf-8"
-        ),
+        key=config.get("PUBLIC_KEY_FOR_SIGNATURE", "").encode("utf-8"),
     ).digest()
     h = base64.b64encode(h).decode("utf-8")
 
@@ -151,7 +140,7 @@ def verify_webhook(request: HttpRequest, config: "GatewayConfig"):
     return True
 
 
-def handle_webhook(request: HttpRequest, config: GatewayConfig):
+def handle_webhook(request: HttpRequest, config: "dict"):
     """Handle webhook from OTO API."""
     if verify_webhook(request=request, config=config) is True:
         data = json.loads(request.body)
