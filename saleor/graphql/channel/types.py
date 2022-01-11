@@ -48,7 +48,7 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
     def is_type_of(cls, root: Union[ChannelContext, Model], info):
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
-            root = cast(root.node, Model)
+            root = cast(Model, root.node)
 
         if isinstance(root, cls):
             return True
