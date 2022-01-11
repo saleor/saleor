@@ -87,20 +87,14 @@ class PluginsManager(PaymentInterface):
             db_config=db_config,
         )
 
-    def __init__(self, plugins: List[str], channel_slug: Optional[str] = None):
+    def __init__(self, plugins: List[str]):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
             self.all_plugins = []
             self.global_plugins = []
             self.plugins_per_channel = defaultdict(list)
 
-            global_db_configs, channel_db_configs = self._get_db_plugin_configs(
-                channel_slug
-            )
-
-            if channel_slug:
-                channels = Channel.objects.filter(slug=channel_slug)
-            else:
-                channels = Channel.objects.all()
+            global_db_configs, channel_db_configs = self._get_db_plugin_configs()
+            channels = Channel.objects.all()
 
             for plugin_path in plugins:
                 with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
@@ -121,22 +115,11 @@ class PluginsManager(PaymentInterface):
             for channel in channels:
                 self.plugins_per_channel[channel.slug].extend(self.global_plugins)
 
-    def _get_db_plugin_configs(self, channel_slug: Optional[str] = None):
+    def _get_db_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
             if not hasattr(self, "_plugin_configs"):
-                # If channel_slug is provided, fetch only global configurations
-                # and filter channel-specific configurations to the given channel_slug. If
-                # no channel_slug is provided, fetch all global and all channel-specific
-                # configurations.
-                if channel_slug:
-                    qs = PluginConfiguration.objects.filter(
-                        Q(channel_id__isnull=True) | Q(channel__slug=channel_slug)
-                    )
-                else:
-                    qs = PluginConfiguration.objects.all()
-                qs = qs.prefetch_related("channel")
-
-                channel_configs: Dict = defaultdict(dict)
+                qs = PluginConfiguration.objects.all().prefetch_related("channel")
+                channel_configs = defaultdict(dict)
                 global_configs = {}
                 for db_plugin_config in qs:
                     channel = db_plugin_config.channel
@@ -1105,6 +1088,6 @@ class PluginsManager(PaymentInterface):
         )
 
 
-def get_plugins_manager(channel_slug: Optional[str] = None) -> PluginsManager:
+def get_plugins_manager() -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        return PluginsManager(settings.PLUGINS, channel_slug)
+        return PluginsManager(settings.PLUGINS)
