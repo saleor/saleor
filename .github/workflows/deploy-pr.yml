@@ -1,0 +1,45 @@
+name: Deploy PR
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: w8-saleor-pr-${{ github.event.pull_request.number }}
+          heroku_email: "hazem.khaled@gmail.com"
+          region: "eu"
+          team: "wecre8"
+        env:
+          ALLOWED_CLIENT_HOSTS: "*"
+          ALLOWED_HOSTS: "*"
+          DJANGO_SETTINGS_MODULE": "saleor.settings"
+          DEBUG": "True"
+          NPM_CONFIG_PRODUCTION": "false"
+          ALLOWED_HOSTS": ".herokuapp.com"
+          DEFAULT_FROM_EMAIL": "noreply@wecre8.com"
+          EMAIL_URL: ${{secrets.EMAIL_URL}}
+          SECRET_KEY": "alibide"
+          AWS_MEDIA_BUCKET_NAME": ${{secrets.AWS_MEDIA_BUCKET_NAME}}
+          AWS_ACCESS_KEY_ID": ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY": ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          AWS_STORAGE_BUCKET_NAME: ${{secrets.AWS_STORAGE_BUCKET_NAME}}
+          ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL": "False"
+
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: w8-saleor-pr-${{ github.event.pull_request.number }}
+          heroku_email: "hazem.khaled@gmail.com"
+          region: "eu"
+          team: "wecre8"
+          appdir: "federation"
+          procfile: "web: npm start"
+
+        env:
+          NODE_ENV: production
