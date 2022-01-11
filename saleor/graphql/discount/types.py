@@ -12,10 +12,7 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core import types
-from ..core.connection import (
-    CountableConnection,
-    create_connection_slice,
-)
+from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import ConnectionField
 from ..core.scalars import PositiveDecimal

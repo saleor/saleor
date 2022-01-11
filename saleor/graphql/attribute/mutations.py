@@ -18,7 +18,6 @@ from ...core.tracing import traced_atomic_transaction
 from ...core.utils import generate_unique_slug
 from ...product import models as product_models
 from ...product.search import update_products_search_document
-from ..attribute.types import Attribute, AttributeValue
 from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation

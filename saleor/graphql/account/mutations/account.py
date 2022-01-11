@@ -15,15 +15,14 @@ from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
-from ...account.enums import AddressTypeEnum
-from ...account.types import Address, AddressInput, User
 from ...channel.utils import clean_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ...meta.mutations import MetadataInput
+from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
-from ..types import Address
+from ..types import Address, AddressInput, User
 from .base import (
     INVALID_TOKEN,
     BaseAddressDelete,
