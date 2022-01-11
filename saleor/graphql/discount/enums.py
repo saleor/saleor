@@ -11,11 +11,6 @@ class SaleType(graphene.Enum):
     PERCENTAGE = DiscountValueType.PERCENTAGE
 
 
-class SaleType(graphene.Enum):
-    FIXED = DiscountValueType.FIXED
-    PERCENTAGE = DiscountValueType.PERCENTAGE
-
-
 class DiscountValueTypeEnum(graphene.Enum):
     FIXED = DiscountValueType.FIXED
     PERCENTAGE = DiscountValueType.PERCENTAGE

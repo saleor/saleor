@@ -1,7 +1,4 @@
 from typing import List
-from typing_extensions import Required
-
-from django.db.models.base import Model
 
 import graphene
 from django.conf import settings
