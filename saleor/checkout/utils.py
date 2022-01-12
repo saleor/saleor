@@ -655,7 +655,7 @@ def get_valid_internal_shipping_methods_for_checkout(
     if not checkout_info.shipping_address:
         return []
 
-    queryset = ShippingMethod.objects.applicable_shipping_methods_for_instance(
+    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
@@ -667,15 +667,15 @@ def get_valid_internal_shipping_methods_for_checkout(
         listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
-    saleor_methods = []
-    for method in queryset:
+    internal_methods = []
+    for method in shipping_methods:
         listing = channel_listings_map.get(method.pk)
         if not listing:
             continue
 
-        saleor_methods.append(convert_to_shipping_method_data(method, listing))
+        internal_methods.append(convert_to_shipping_method_data(method, listing))
 
-    return saleor_methods
+    return internal_methods
 
 
 def get_valid_collection_points_for_checkout(

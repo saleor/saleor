@@ -638,7 +638,7 @@ def get_valid_shipping_methods_for_order(
 
     valid_methods = []
 
-    queryset = ShippingMethod.objects.applicable_shipping_methods_for_instance(
+    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order,
         channel_id=order.channel_id,
         price=order.get_subtotal().gross,
@@ -649,7 +649,7 @@ def get_valid_shipping_methods_for_order(
         listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
-    for method in queryset:
+    for method in shipping_methods:
         listing = listing_map.get(method.id)
         if not listing:
             continue

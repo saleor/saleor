@@ -1355,7 +1355,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     class Arguments:
         token = UUID(description="Checkout token.", required=False)
         delivery_method_id = graphene.ID(
-            description=("Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."),
+            description="Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID).",
             required=False,
         )
 
