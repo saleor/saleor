@@ -9,7 +9,11 @@ const serviceList = [
   {
     name: "social-login",
     url: "https://api.wecre8.ninja/plugins/social-login/",
-  }
+  },
+  {
+    name: "otp",
+    url: "https://api.wecre8.ninja/plugins/social-login/",
+  },
 ];
 
 const gateway = new ApolloGateway({ serviceList });
