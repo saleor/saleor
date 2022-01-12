@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 class CheckoutGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     PLUGIN_ID = "payments.checkout"
+    CONFIGURATION_PER_CHANNEL = False
+
     DEFAULT_CONFIGURATION = [
         {"name": "use_sandbox", "value": True},
         {"name": "public_api_key", "value": None},
