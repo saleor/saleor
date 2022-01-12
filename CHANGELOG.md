@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor attributes validation - #8905 by @IKarbowiak
   - in create mutations: require all required attributes
   - in update mutations: do not require providing any attributes; when any attribute is given, validate provided values.
+- Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
 
 # 3.0.0 [Unreleased]
 
@@ -308,6 +309,8 @@ All notable, unreleased changes to this project will be documented in this file.
   `OrderTaxedPricesData` instead of `TaxedMoney`.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
+- Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
+  - Use `token` instead
 
 ### Other
 

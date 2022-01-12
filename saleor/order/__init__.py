@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..product.models import ProductVariant
-    from .models import FulfillmentLine, OrderLine
+    from .models import FulfillmentLine
 
 
 class OrderStatus:
@@ -203,15 +202,6 @@ class OrderEventsEmails:
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
         (DIGITAL_LINKS, "The email containing the digital links was sent"),
     ]
-
-
-@dataclass
-class OrderLineData:
-    line: "OrderLine"
-    quantity: int
-    variant: Optional["ProductVariant"] = None
-    replace: bool = False
-    warehouse_pk: Optional[str] = None
 
 
 @dataclass

@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union, cast
 from urllib.parse import urljoin
 
 import opentracing
@@ -439,12 +439,13 @@ def generate_request_data_from_checkout(
     lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
 
     currency = checkout_info.checkout.currency
+    customer_email = cast(str, checkout_info.get_customer_email())
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
         transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
-        customer_email=checkout_info.get_customer_email(),
+        customer_email=customer_email,
         config=config,
         currency=currency,
     )

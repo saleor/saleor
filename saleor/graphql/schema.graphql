@@ -1025,7 +1025,7 @@ type Checkout implements Node & ObjectWithMetadata {
   availableShippingMethods: [ShippingMethod]!
   availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
-  email: String!
+  email: String
   isShippingRequired: Boolean!
   quantity: Int!
   stockReservationExpires: DateTime
@@ -1144,6 +1144,7 @@ enum CheckoutErrorCode {
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
+  EMAIL_NOT_SET
 }
 
 input CheckoutFilterInput {
@@ -4966,6 +4967,7 @@ enum PaymentErrorCode {
   NOT_SUPPORTED_GATEWAY
   CHANNEL_INACTIVE
   BALANCE_CHECK_ERROR
+  CHECKOUT_EMAIL_NOT_SET
 }
 
 input PaymentFilterInput {

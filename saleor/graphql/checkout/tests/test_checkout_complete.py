@@ -480,6 +480,24 @@ def test_checkout_complete_gift_card_bought(
     assert Fulfillment.objects.count() == 1
 
 
+def test_checkout_complete_no_checkout_email(
+    user_api_client,
+    checkout_with_gift_card,
+):
+    checkout = checkout_with_gift_card
+    checkout.email = None
+    checkout.save(update_fields=["email"])
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
+
+
 def test_checkout_complete_with_variant_without_sku(
     site_settings,
     user_api_client,

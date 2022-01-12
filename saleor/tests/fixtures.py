@@ -59,13 +59,14 @@ from ..discount.models import (
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
     order_added_products_event,
 )
+from ..order.fetch import OrderLineInfo
 from ..order.models import (
     FulfillmentLine,
     FulfillmentStatus,
@@ -102,6 +103,7 @@ from ..product.models import (
     ProductVariantTranslation,
     VariantMedia,
 )
+from ..product.search import prepare_product_search_document_value
 from ..product.tests.utils import create_image
 from ..shipping.models import (
     ShippingMethod,
@@ -282,7 +284,7 @@ def site_settings_with_reservations(site_settings):
 @pytest.fixture
 def checkout(db, channel_USD):
     checkout = Checkout.objects.create(
-        currency=channel_USD.currency_code, channel=channel_USD
+        currency=channel_USD.currency_code, channel=channel_USD, email="user@email.com"
     )
     checkout.set_country("US", commit=True)
     return checkout
@@ -682,6 +684,7 @@ def user_checkout(customer_user, channel_USD):
 def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
     checkout = Checkout.objects.create(
         user=customer_user,
+        email=customer_user.email,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=warehouse_for_cc.address,
@@ -1467,7 +1470,9 @@ def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+                Attribute(
+                    slug="height", name="Height", type=AttributeType.PRODUCT_TYPE
+                ),
                 Attribute(
                     slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
                 ),
@@ -1732,6 +1737,7 @@ def product(product_type, category, warehouse, channel_USD):
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+
     return product
 
 
@@ -1973,6 +1979,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
 
     return product
 
@@ -2186,6 +2194,10 @@ def product_with_default_variant(
         currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
+
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
+
     return product
 
 
@@ -2587,6 +2599,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
+        product.search_document = prepare_product_search_document_value(product)
+
+    Product.objects.bulk_update(products, ["search_document"])
 
     return products
 
@@ -3498,7 +3513,7 @@ def order_fulfill_data(order_with_lines, warehouse):
 @pytest.fixture
 def lines_info(order_with_lines):
     return [
-        OrderLineData(
+        OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -3805,10 +3820,10 @@ def fulfilled_order(order_with_lines):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=line_1, quantity=line_1.quantity, warehouse_pk=warehouse_1_pk
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
@@ -3830,7 +3845,7 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
@@ -5237,6 +5252,7 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+        email=customer_user.email,
     )
 
 
