@@ -6,7 +6,7 @@ setup(
     name="checkout-payment-gateway",
     entry_points={
         "saleor.plugins": [
-            f"{PLUGIN_PATH} = {PLUGIN_PATH}.plugin: CheckoutGatewayPlugin",
+            f"{PLUGIN_PATH} = {PLUGIN_PATH}.plugin:CheckoutGatewayPlugin",
         ],
     },
 )
