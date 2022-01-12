@@ -7,8 +7,9 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...checkout.interface import TaxedPricesData
+from ...checkout.interface import CheckoutTaxedPricesData
 from ...core.taxes import TaxType
+from ...order.interface import OrderTaxedPricesData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -95,10 +96,10 @@ class PluginSample(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: TaxedMoney,
+        previous_value: CheckoutTaxedPricesData,
     ):
         price = Money("1.0", currency=checkout_info.checkout.currency)
-        return TaxedPricesData(
+        return CheckoutTaxedPricesData(
             price_with_sale=TaxedMoney(price, price),
             price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
@@ -110,10 +111,13 @@ class PluginSample(BasePlugin):
         order_line: "OrderLine",
         variant: "ProductVariant",
         product: "Product",
-        previous_value: TaxedMoney,
+        previous_value: OrderTaxedPricesData,
     ) -> TaxedMoney:
         price = Money("1.0", currency=order.currency)
-        return TaxedMoney(price, price)
+        return OrderTaxedPricesData(
+            price_with_discounts=TaxedMoney(price, price),
+            undiscounted_price=TaxedMoney(price, price),
+        )
 
     def calculate_checkout_line_unit_price(
         self,
@@ -122,11 +126,11 @@ class PluginSample(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: TaxedMoney,
+        previous_value: CheckoutTaxedPricesData,
     ):
         currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
-        return TaxedPricesData(
+        return CheckoutTaxedPricesData(
             price_with_sale=TaxedMoney(price, price),
             price_with_discounts=TaxedMoney(price, price),
             undiscounted_price=TaxedMoney(price, price),
@@ -138,11 +142,14 @@ class PluginSample(BasePlugin):
         order_line: "OrderLine",
         variant: "ProductVariant",
         product: "Product",
-        previous_value: TaxedMoney,
+        previous_value: OrderTaxedPricesData,
     ):
         currency = order_line.unit_price.currency
         price = Money("1.0", currency)
-        return TaxedMoney(price, price)
+        return OrderTaxedPricesData(
+            price_with_discounts=TaxedMoney(price, price),
+            undiscounted_price=TaxedMoney(price, price),
+        )
 
     def get_tax_rate_type_choices(self, previous_value):
         return [TaxType(code="123", description="abc")]

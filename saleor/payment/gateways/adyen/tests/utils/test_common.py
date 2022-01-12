@@ -19,7 +19,7 @@ from saleor.payment.gateways.adyen.utils.common import (
 from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 
-from ......checkout.interface import TaxedPricesData
+from ......checkout.interface import CheckoutTaxedPricesData
 from ...utils.common import prepare_address_request_data
 
 
@@ -147,7 +147,7 @@ def test_append_checkout_details_tax_included(
 
     country_code = checkout_ready_to_complete.get_country()
 
-    mocked_calculate_checkout_line_unit_price.return_value = TaxedPricesData(
+    mocked_calculate_checkout_line_unit_price.return_value = CheckoutTaxedPricesData(
         price_with_sale=unit_price,
         undiscounted_price=unit_price,
         price_with_discounts=unit_price,

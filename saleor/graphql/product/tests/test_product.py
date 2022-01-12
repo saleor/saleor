@@ -23,7 +23,8 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.taxes import TaxType
-from ....core.units import WeightUnits
+from ....core.units import MeasurementUnits, WeightUnits
+from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import PluginsManager, get_plugins_manager
@@ -40,6 +41,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....product.search import prepare_product_search_document_value
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
@@ -2275,6 +2277,10 @@ def test_products_query_with_filter_category_and_search(
     second_product.save()
     product.save()
 
+    for pr in [product, second_product]:
+        pr.search_document = prepare_product_search_document_value(pr)
+    Product.objects.bulk_update([product, second_product], ["search_document"])
+
     category_id = graphene.Node.to_global_id("Category", category.id)
     variables = {"filter": {"categories": [category_id], "search": product.name}}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2404,6 +2410,10 @@ def test_products_query_with_filter(
         channel=channel_USD,
         is_published=False,
     )
+    second_product.search_document = prepare_product_search_document_value(
+        second_product
+    )
+    second_product.save(update_fields=["search_document"])
     variables = {"filter": products_filter, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
@@ -2485,6 +2495,311 @@ def test_products_query_with_filter_search_by_sku(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product_with_default_variant.name
+
+
+@pytest.mark.parametrize("search_value", ["new", "NEW color", "Color"])
+def test_products_query_with_filter_search_by_dropdown_attribute_value(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    color_attribute,
+):
+    # given
+    product_with_dropdown_attr = product_list[1]
+
+    product_type = product_with_dropdown_attr.product_type
+    product_type.product_attributes.add(color_attribute)
+
+    dropdown_attr_value = color_attribute.values.first()
+    dropdown_attr_value.name = "New color"
+    dropdown_attr_value.save(update_fields=["name"])
+
+    associate_attribute_values_to_instance(
+        product_with_dropdown_attr, color_attribute, dropdown_attr_value
+    )
+
+    product_with_dropdown_attr.refresh_from_db()
+
+    product_with_dropdown_attr.search_document = prepare_product_search_document_value(
+        product_with_dropdown_attr
+    )
+    product_with_dropdown_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_dropdown_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_dropdown_attr.name
+
+
+@pytest.mark.parametrize(
+    "search_value", ["eco mode", "ECO Performance", "performa", "mod"]
+)
+def test_products_query_with_filter_search_by_multiselect_attribute_value(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    product_with_multiselect_attr = product_list[2]
+
+    multiselect_attribute = Attribute.objects.create(
+        slug="modes",
+        name="Available Modes",
+        input_type=AttributeInputType.MULTISELECT,
+        type=AttributeType.PRODUCT_TYPE,
+    )
+
+    multiselect_attr_val_1 = AttributeValue.objects.create(
+        attribute=multiselect_attribute, name="Eco Mode", slug="eco"
+    )
+    multiselect_attr_val_2 = AttributeValue.objects.create(
+        attribute=multiselect_attribute, name="Performance Mode", slug="power"
+    )
+
+    product_type = product_with_multiselect_attr.product_type
+    product_type.product_attributes.add(multiselect_attribute)
+
+    associate_attribute_values_to_instance(
+        product_with_multiselect_attr,
+        multiselect_attribute,
+        multiselect_attr_val_1,
+        multiselect_attr_val_2,
+    )
+
+    product_with_multiselect_attr.refresh_from_db()
+
+    product_with_multiselect_attr.search_document = (
+        prepare_product_search_document_value(product_with_multiselect_attr)
+    )
+    product_with_multiselect_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_multiselect_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_multiselect_attr.name
+
+
+@pytest.mark.parametrize("search_value", ["rich", "test rich", "RICH text"])
+def test_products_query_with_filter_search_by_rich_text_attribute(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    rich_text_attribute,
+):
+    # given
+    product_with_rich_text_attr = product_list[1]
+
+    product_type = product_with_rich_text_attr.product_type
+    product_type.product_attributes.add(rich_text_attribute)
+
+    rich_text_value = rich_text_attribute.values.first()
+    rich_text_value.rich_text = dummy_editorjs("Test rich text.")
+    rich_text_value.save(update_fields=["rich_text"])
+
+    associate_attribute_values_to_instance(
+        product_with_rich_text_attr, rich_text_attribute, rich_text_value
+    )
+
+    product_with_rich_text_attr.refresh_from_db()
+
+    product_with_rich_text_attr.search_document = prepare_product_search_document_value(
+        product_with_rich_text_attr
+    )
+    product_with_rich_text_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_rich_text_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_rich_text_attr.name
+
+
+@pytest.mark.parametrize("search_value", ["134", "134", "134 cm"])
+def test_products_query_with_filter_search_by_numeric_attribute_value(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    numeric_attribute,
+):
+    # given
+    product_with_numeric_attr = product_list[1]
+
+    product_type = product_with_numeric_attr.product_type
+    product_type.product_attributes.add(numeric_attribute)
+
+    numeric_attribute.unit = MeasurementUnits.CM
+    numeric_attribute.save(update_fields=["unit"])
+
+    numeric_attr_value = numeric_attribute.values.first()
+    numeric_attr_value.name = "134"
+    numeric_attr_value.save(update_fields=["name"])
+
+    associate_attribute_values_to_instance(
+        product_with_numeric_attr, numeric_attribute, numeric_attr_value
+    )
+
+    product_with_numeric_attr.refresh_from_db()
+
+    product_with_numeric_attr.search_document = prepare_product_search_document_value(
+        product_with_numeric_attr
+    )
+    product_with_numeric_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_numeric_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_numeric_attr.name
+
+
+@pytest.mark.parametrize("search_value", ["2020", "2020 10 10", "2020-10-10"])
+def test_products_query_with_filter_search_by_date_attribute_value(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    date_attribute,
+):
+    # given
+    product_with_date_attr = product_list[2]
+
+    product_type = product_with_date_attr.product_type
+    product_type.product_attributes.add(date_attribute)
+
+    date_attr_value = date_attribute.values.first()
+    date_attr_value.date_time = datetime(2020, 10, 10, tzinfo=pytz.utc)
+    date_attr_value.save(update_fields=["date_time"])
+
+    associate_attribute_values_to_instance(
+        product_with_date_attr, date_attribute, date_attr_value
+    )
+
+    product_with_date_attr.refresh_from_db()
+
+    product_with_date_attr.search_document = prepare_product_search_document_value(
+        product_with_date_attr
+    )
+    product_with_date_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_date_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_date_attr.name
+
+
+@pytest.mark.parametrize("search_value", ["2020", "2020 10 10", "2020-10-10", "22:20"])
+def test_products_query_with_filter_search_by_date_time_attribute_value(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    date_time_attribute,
+):
+    # given
+    product_with_date_time_attr = product_list[0]
+
+    product_type = product_with_date_time_attr.product_type
+    product_type.product_attributes.add(date_time_attribute)
+
+    date_time_attr_value = date_time_attribute.values.first()
+    date_time_attr_value.date_time = datetime(2020, 10, 10, 22, 20, tzinfo=pytz.utc)
+    date_time_attr_value.save(update_fields=["date_time"])
+
+    associate_attribute_values_to_instance(
+        product_with_date_time_attr, date_time_attribute, date_time_attr_value
+    )
+
+    product_with_date_time_attr.refresh_from_db()
+
+    product_with_date_time_attr.search_document = prepare_product_search_document_value(
+        product_with_date_time_attr
+    )
+    product_with_date_time_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_date_time_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_date_time_attr.name
 
 
 def test_products_query_with_is_published_filter_variants_without_prices(
@@ -3591,7 +3906,10 @@ def test_create_product(
 
     product = Product.objects.first()
     created_webhook_mock.assert_called_once_with(product)
-
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert color_value_slug.lower() in product.search_document
+    assert non_existent_attr_value.lower() in product.search_document
     updated_webhook_mock.assert_not_called()
 
 
@@ -3642,6 +3960,7 @@ def test_create_product_description_plaintext(
 
     product = Product.objects.all().first()
     assert product.description_plaintext == description
+    assert description in product.search_document
 
 
 def test_create_product_with_rich_text_attribute(
@@ -3651,7 +3970,6 @@ def test_create_product_with_rich_text_attribute(
     rich_text_attribute,
     color_attribute,
     permission_manage_products,
-    product,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -3665,7 +3983,8 @@ def test_create_product_with_rich_text_attribute(
     rich_text_attribute_id = graphene.Node.to_global_id(
         "Attribute", rich_text_attribute.id
     )
-    rich_text = json.dumps(dummy_editorjs("test product" * 5))
+    rich_text_value = dummy_editorjs("test product" * 5)
+    rich_text = json.dumps(rich_text_value)
 
     # test creating root product
     variables = {
@@ -3718,6 +4037,13 @@ def test_create_product_with_rich_text_attribute(
 
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
+    product = Product.objects.first()
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert (
+        clean_editor_js(rich_text_value, to_string=True).lower()
+        in product.search_document
+    )
 
 
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
@@ -3727,7 +4053,6 @@ def test_create_product_with_date_time_attribute(
     date_time_attribute,
     color_attribute,
     permission_manage_products,
-    product,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -3782,6 +4107,10 @@ def test_create_product_with_date_time_attribute(
     }
 
     assert expected_attributes_data in data["product"]["attributes"]
+    product = Product.objects.first()
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert str(value.isoformat()).lower() in product.search_document
 
 
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
@@ -3791,7 +4120,6 @@ def test_create_product_with_date_attribute(
     date_attribute,
     color_attribute,
     permission_manage_products,
-    product,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -3844,6 +4172,10 @@ def test_create_product_with_date_attribute(
     }
 
     assert expected_attributes_data in data["product"]["attributes"]
+    product = Product.objects.first()
+    assert product.search_document
+    assert product_name.lower() in product.search_document
+    assert str(value).lower() in product.search_document
 
 
 def test_create_product_with_boolean_attribute(
@@ -3948,24 +4280,27 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
 def test_search_product_by_description_and_name(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    product.description_plaintext = "red big red product"
-    product.save()
+    product.description_plaintext = "new big new product"
 
     product_2 = product_list[1]
-    product_2.name = "red product"
-    product_2.save()
+    product_2.name = "new product"
     product_1 = product_list[0]
-    product_1.description_plaintext = "some red product"
-    product_1.save()
+    product_1.description_plaintext = "some new product"
     product_3 = product_list[2]
     product_3.description_plaintext = "desc without searched word"
-    product_3.save()
+
+    product_list.append(product)
+    for prod in product_list:
+        prod.search_document = prepare_product_search_document_value(prod)
+
+    Product.objects.bulk_update(
+        product_list, ["search_document", "name", "description_plaintext"]
+    )
 
     variables = {
         "filters": {
-            "search": "red",
+            "search": "new",
         },
-        "sortBy": {"field": "RANK", "direction": "DESC"},
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
@@ -3973,89 +4308,49 @@ def test_search_product_by_description_and_name(
     data = content["data"]["products"]["edges"]
 
     assert len(data) == 3
-    assert data[0]["node"]["name"] == product_2.name
-    assert data[1]["node"]["name"] == product.name
-    assert data[2]["node"]["name"] == product_1.name
+    assert {node["node"]["name"] for node in data} == {
+        product.name,
+        product_1.name,
+        product_2.name,
+    }
 
 
 def test_sort_product_by_rank_without_search(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    product.description_plaintext = "red big red product"
-    product.save()
-
-    product_2 = product_list[1]
-    product_2.name = "red product"
-    product_2.save()
-    product_1 = product_list[0]
-    product_1.description_plaintext = "some red product"
-    product_1.save()
+    product_count = Product.objects.count()
 
     variables = {
         "sortBy": {"field": "RANK", "direction": "DESC"},
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
-    data = get_graphql_content(response, ignore_errors=True)
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["message"]
-        == "Sorting by Rank is available only with searching."
-    )
-
-
-@pytest.mark.parametrize("search_value", ["", "  ", None])
-def test_sort_product_by_rank_with_empty_search_value(
-    search_value,
-    user_api_client,
-    product_list,
-    product,
-    channel_USD,
-    category,
-    product_type,
-):
-    product.description_plaintext = "red big red product"
-    product.save()
-
-    product_2 = product_list[1]
-    product_2.name = "red product"
-    product_2.save()
-    product_1 = product_list[0]
-    product_1.description_plaintext = "some red product"
-    product_1.save()
-
-    variables = {
-        "filters": {
-            "search": search_value,
-        },
-        "sortBy": {"field": "RANK", "direction": "DESC"},
-        "channel": channel_USD.slug,
-    }
-    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
-    data = get_graphql_content(response, ignore_errors=True)
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["message"]
-        == "Sorting by Rank is available only with searching."
-    )
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+    assert len(data) == product_count
 
 
 def test_search_product_by_description_and_name_without_sort_by(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    product.description_plaintext = "red big red product"
-    product.save()
+    product.description_plaintext = "new big new product"
 
     product_2 = product_list[1]
-    product_2.name = "red product"
-    product_2.save()
+    product_2.name = "new product"
     product_1 = product_list[0]
-    product_1.description_plaintext = "some red product"
-    product_1.save()
+    product_1.description_plaintext = "some new product"
+
+    product_list.append(product)
+    for prod in product_list:
+        prod.search_document = prepare_product_search_document_value(prod)
+
+    Product.objects.bulk_update(
+        product_list, ["search_document", "name", "description_plaintext"]
+    )
 
     variables = {
         "filters": {
-            "search": "red",
+            "search": "new",
         },
         "channel": channel_USD.slug,
     }
@@ -4063,27 +4358,35 @@ def test_search_product_by_description_and_name_without_sort_by(
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
-    assert data[0]["node"]["name"] == product_2.name
-    assert data[1]["node"]["name"] == product.name
-    assert data[2]["node"]["name"] == product_1.name
+    assert len(data) == 3
+    assert {node["node"]["name"] for node in data} == {
+        product.name,
+        product_1.name,
+        product_2.name,
+    }
 
 
 def test_search_product_by_description_and_name_and_use_cursor(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    product.description_plaintext = "red big red product"
-    product.save()
+    product.description_plaintext = "new big new product"
 
     product_2 = product_list[1]
-    product_2.name = "red product"
-    product_2.save()
+    product_2.name = "new product"
     product_1 = product_list[0]
-    product_1.description_plaintext = "some red product"
-    product_1.save()
+    product_1.description_plaintext = "some new product"
+
+    product_list.append(product)
+    for prod in product_list:
+        prod.search_document = prepare_product_search_document_value(prod)
+
+    Product.objects.bulk_update(
+        product_list, ["search_document", "name", "description_plaintext"]
+    )
 
     variables = {
         "filters": {
-            "search": "red",
+            "search": "new",
         },
         "channel": channel_USD.slug,
     }
@@ -4093,7 +4396,7 @@ def test_search_product_by_description_and_name_and_use_cursor(
 
     variables = {
         "filters": {
-            "search": "red",
+            "search": "new",
         },
         "after": cursor,
         "channel": channel_USD.slug,
@@ -4102,8 +4405,8 @@ def test_search_product_by_description_and_name_and_use_cursor(
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
-    assert data[0]["node"]["name"] == product.name
-    assert data[1]["node"]["name"] == product_1.name
+    assert len(data) == 2
+    assert {node["node"]["name"] for node in data} == {product_1.name, product_2.name}
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -5170,6 +5473,7 @@ def test_reorder_variants(
     content = get_graphql_content(response)
     data = content["data"]["productVariantReorder"]
     assert not data["errors"]
+    product_with_two_variants.refresh_from_db()
     assert list(product_with_two_variants.variants.all()) == new_variants
 
 
@@ -5695,6 +5999,7 @@ def test_update_product(
     )
 
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    attr_value = "Rainbow"
 
     variables = {
         "productId": product_id,
@@ -5705,7 +6010,7 @@ def test_update_product(
             "description": other_description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
-            "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+            "attributes": [{"id": attribute_id, "values": [attr_value]}],
         },
     }
 
@@ -5733,6 +6038,10 @@ def test_update_product(
 
     updated_webhook_mock.assert_called_once_with(product)
     created_webhook_mock.assert_not_called()
+    product.refresh_from_db()
+    assert product.search_document
+    assert attr_value.lower() in product.search_document
+    assert product_name.lower() in product.search_document
 
 
 def test_update_and_search_product_by_description(
@@ -6043,6 +6352,10 @@ def test_update_product_with_numeric_attribute_value(
     assert expected_att_data in attributes
 
     updated_webhook_mock.assert_called_once_with(product)
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert f"{new_value}{numeric_attribute.unit}" in product.search_document
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -8274,7 +8587,10 @@ mutation updateProductType(
 
 
 def test_product_type_update_mutation(
-    staff_api_client, product_type, permission_manage_product_types_and_attributes
+    staff_api_client,
+    product_type,
+    product,
+    permission_manage_product_types_and_attributes,
 ):
     query = PRODUCT_TYPE_UPDATE_MUTATION
     product_type_name = "test type updated"
@@ -8282,6 +8598,9 @@ def test_product_type_update_mutation(
     has_variants = True
     require_shipping = False
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+
+    product_attr = product.attributes.first()
+    value = product_attr.values.first()
 
     # Test scenario: remove all product attributes using [] as input
     # but do not change variant attributes
@@ -8309,6 +8628,10 @@ def test_product_type_update_mutation(
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
     assert len(data["variantAttributes"]) == (variant_attributes.count())
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert value.name not in product.search_document
 
 
 def test_product_type_update_mutation_not_valid_attributes(
@@ -8388,7 +8711,9 @@ UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """
         (None, "", "Slug value cannot be blank."),
     ],
 )
+@patch("saleor.product.search.update_products_search_document")
 def test_update_product_type_slug(
+    update_products_search_document_mock,
     staff_api_client,
     product_type,
     permission_manage_product_types_and_attributes,
@@ -8412,6 +8737,7 @@ def test_update_product_type_slug(
     if not error_message:
         assert not errors
         assert data["productType"]["slug"] == expected_slug
+        update_products_search_document_mock.assert_not_called()
     else:
         assert errors
         assert errors[0]["field"] == "slug"
@@ -8637,6 +8963,8 @@ def test_product_type_delete_mutation_deletes_also_images(
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
     delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+    with pytest.raises(product_with_image._meta.model.DoesNotExist):
+        product_with_image.refresh_from_db()
 
 
 @patch("saleor.attribute.signals.delete_from_storage_task.delay")
@@ -8674,6 +9002,10 @@ def test_product_type_delete_with_file_attributes(
     assert set(
         data.args[0] for data in delete_from_storage_task_mock.call_args_list
     ) == {v.file_url for v in values}
+    with pytest.raises(
+        product_with_variant_with_file_attribute._meta.model.DoesNotExist
+    ):
+        product_with_variant_with_file_attribute.refresh_from_db()
 
 
 def test_product_type_delete_mutation_variants_in_draft_order(
