@@ -8,8 +8,13 @@ from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+)
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.fields import ConnectionField
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -60,6 +65,10 @@ class Warehouse(CountableDjangoObjectType):
         description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
         required=True,
     )
+    shipping_zones = ConnectionField(
+        "saleor.graphql.shipping.types.ShippingZoneCountableConnection",
+        required=True,
+    )
 
     class Meta:
         description = "Represents warehouse."
@@ -69,20 +78,28 @@ class Warehouse(CountableDjangoObjectType):
             "id",
             "name",
             "slug",
-            "shipping_zones",
             "address",
             "email",
             "is_private",
         ]
 
     @staticmethod
-    def resolve_shipping_zones(root, *_args, **_kwargs):
+    def resolve_shipping_zones(root, info, *_args, **kwargs):
+        from ..shipping.types import ShippingZoneCountableConnection
+
         instances = root.shipping_zones.all()
-        shipping_zones = [
-            ChannelContext(node=shipping_zone, channel_slug=None)
-            for shipping_zone in instances
-        ]
-        return shipping_zones
+        slice = create_connection_slice(
+            instances, info, kwargs, ShippingZoneCountableConnection
+        )
+
+        edges_with_context = []
+        for edge in slice.edges:
+            node = edge.node
+            edge.node = ChannelContext(node=node, channel_slug=None)
+            edges_with_context.append(edge)
+        slice.edges = edges_with_context
+
+        return slice
 
     @staticmethod
     def resolve_company_name(root, info, *_args, **_kwargs):
@@ -94,6 +111,11 @@ class Warehouse(CountableDjangoObjectType):
             .load(root.address_id)
             .then(_resolve_company_name)
         )
+
+
+class WarehouseCountableConnection(CountableConnection):
+    class Meta:
+        node = Warehouse
 
 
 class Stock(CountableDjangoObjectType):
@@ -158,6 +180,11 @@ class Stock(CountableDjangoObjectType):
     @staticmethod
     def resolve_product_variant(root, *_args):
         return ChannelContext(node=root.product_variant, channel_slug=None)
+
+
+class StockCountableConnection(CountableConnection):
+    class Meta:
+        node = Stock
 
 
 class Allocation(CountableDjangoObjectType):

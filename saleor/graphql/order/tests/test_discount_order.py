@@ -10,6 +10,7 @@ from ....core.prices import quantize_price
 from ....discount import DiscountValueType
 from ....order import OrderEvents, OrderStatus
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderTaxedPricesData
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
@@ -418,7 +419,14 @@ def test_delete_order_discount_from_order(
     order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
+
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
+    name = "discount translated"
+    translated_name = "discount translated name"
+    order_discount.name = name
+    order_discount.translated_name = translated_name
+    order_discount.save(update_fields=["name", "translated_name"])
+
     current_undiscounted_total = order.undiscounted_total
 
     variables = {
@@ -439,6 +447,10 @@ def test_delete_order_discount_from_order(
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
+
+    assert order.search_document
+    assert name not in order.search_document
+    assert translated_name not in order.search_document
 
 
 def test_delete_order_discount_order_is_not_draft(
@@ -708,8 +720,14 @@ def test_delete_discount_from_order_line(
     line_undiscounted_price = line.undiscounted_unit_price
     line_undiscounted_total_price = line.undiscounted_total_price
 
-    mocked_calculate_order_line_unit.return_value = line_undiscounted_price
-    mocked_calculate_order_line_total.return_value = line_undiscounted_total_price
+    mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_price,
+        price_with_discounts=line_undiscounted_price,
+    )
+    mocked_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_total_price,
+        price_with_discounts=line_undiscounted_total_price,
+    )
 
     line.unit_discount_amount = Decimal("2.5")
     line.unit_discount_type = DiscountValueType.FIXED

@@ -17,7 +17,7 @@ from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
@@ -137,7 +137,7 @@ class CheckoutLine(CountableDjangoObjectType):
                             checkout_line_info=line_info,
                             address=address,
                             discounts=discounts,
-                        )
+                        ).price_with_sale
                 return None
 
             return Promise.all(
@@ -164,6 +164,11 @@ class CheckoutLine(CountableDjangoObjectType):
             .load(root.variant_id)
             .then(is_shipping_required)
         )
+
+
+class CheckoutLineCountableConnection(CountableConnection):
+    class Meta:
+        node = CheckoutLine
 
 
 class DeliveryMethod(graphene.Union):
@@ -198,7 +203,7 @@ class Checkout(CountableDjangoObjectType):
         description="List of available payment gateways.",
         required=True,
     )
-    email = graphene.String(description="Email of a customer.", required=True)
+    email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = graphene.List(
         GiftCard, description="List of gift cards associated with this checkout."
     )
@@ -447,6 +452,7 @@ class Checkout(CountableDjangoObjectType):
             subtotal = manager.calculate_checkout_subtotal(
                 checkout_info, lines, address, discounts
             )
+            subtotal -= checkout_info.checkout.discount
             if not address:
                 return []
             available = get_valid_shipping_methods_for_checkout(
@@ -611,3 +617,8 @@ class Checkout(CountableDjangoObjectType):
             .load(root.token)
             .then(get_oldest_stock_reservation_expiration_date)
         )
+
+
+class CheckoutCountableConnection(CountableConnection):
+    class Meta:
+        node = Checkout

@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal
 from itertools import chain
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -11,13 +11,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 
 from ..account.models import User
-from ..checkout.calculations import checkout_line_total
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
-from ..order import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from ..order import FulfillmentLineData, FulfillmentStatus
+from ..order.fetch import OrderLineInfo
 from ..order.models import FulfillmentLine, Order, OrderLine
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
@@ -69,23 +69,14 @@ def create_checkout_payment_lines_information(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
-        total = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
         )
-        unit_gross = unit_price.gross.amount
+        unit_gross = unit_price.undiscounted_price.gross.amount
 
         quantity = line_info.line.quantity
         product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
@@ -202,19 +193,27 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    checkout = payment.checkout
-    if checkout:
+    if checkout := payment.checkout:
         billing = checkout.billing_address
         shipping = checkout.shipping_address
-        email = checkout.get_customer_email()
+        email = cast(str, checkout.get_customer_email())
         user_id = checkout.user_id
-    elif payment.order:
-        billing = payment.order.billing_address
-        shipping = payment.order.shipping_address
-        email = payment.order.user_email
-        user_id = payment.order.user_id
+        checkout_token = str(checkout.token)
+        checkout_metadata = checkout.metadata
+    elif order := payment.order:
+        billing = order.billing_address
+        shipping = order.shipping_address
+        email = order.user_email
+        user_id = order.user_id
+        checkout_token = order.checkout_token
+        checkout_metadata = None
     else:
-        billing, shipping, email, user_id = None, None, payment.billing_email, None
+        billing = None
+        shipping = None
+        email = payment.billing_email
+        user_id = None
+        checkout_token = ""
+        checkout_metadata = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -245,6 +244,8 @@ def create_payment_information(
         store_payment_method=StorePaymentMethodEnum[
             payment.store_payment_method.upper()
         ],
+        checkout_token=checkout_token,
+        checkout_metadata=checkout_metadata,
         payment_metadata=payment.metadata,
         psp_reference=payment.psp_reference,
         refund_data=refund_data,
@@ -259,7 +260,7 @@ RefundLines = Iterator[Tuple[Any, OrderLine]]
 
 def _prepare_refund_lines(
     order: Order,
-    order_lines_to_refund: List[OrderLineData],
+    order_lines_to_refund: List[OrderLineInfo],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
 ) -> Iterator[Tuple[int, int]]:
     previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
@@ -300,7 +301,7 @@ def _prepare_refund_lines(
 
 def create_refund_data(
     order: Order,
-    order_lines_to_refund: List[OrderLineData],
+    order_lines_to_refund: List[OrderLineInfo],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     refund_shipping_costs: bool,
 ) -> Dict[int, int]:

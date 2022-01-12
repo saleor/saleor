@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from django.db.models import Q
+from django.db.models import Q, prefetch_related_objects
 
 if TYPE_CHECKING:
     from .models import User
@@ -19,7 +19,9 @@ ADDRESS_SEARCH_FIELDS = [
 ]
 
 
-def prepare_user_search_document_value(user: "User", *, attach_addresses_data=True):
+def prepare_user_search_document_value(
+    user: "User", *, already_prefetched=False, attach_addresses_data=True
+):
     """Prepare `search_document` user value - attach all field used in searching.
 
     Parameter `attach_addresses_data` should be set to False only when user
@@ -28,6 +30,11 @@ def prepare_user_search_document_value(user: "User", *, attach_addresses_data=Tr
     search_document = generate_user_fields_search_document_value(user)
 
     if attach_addresses_data:
+        if not already_prefetched:
+            prefetch_related_objects(
+                [user],
+                "addresses",
+            )
         for address in user.addresses.all():
             search_document += generate_address_search_document_value(address)
 

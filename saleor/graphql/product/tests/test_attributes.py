@@ -13,7 +13,7 @@ from ....attribute.models import (
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import ProductTypeKind
 from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductType
+from ....product.models import Product, ProductType
 from ...attribute.enums import AttributeTypeEnum
 from ...core.utils import snake_to_camel_case
 from ...tests.utils import get_graphql_content
@@ -851,6 +851,53 @@ def test_assignment_attribute_update_assigned_should_modify_variant_selection(
     ).variant_selection
 
 
+def test_assignment_attrib_update_assigned_should_modify_variant_selection_from_ext_app(
+    app_api_client,
+    permission_manage_product_types_and_attributes,
+    size_attribute,
+    color_attribute_without_values,
+):
+    """The productAttributeAssignmentUpdate mutation should modify
+    variant selection from external app when validation successful."""
+
+    product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
+    attribute_1 = color_attribute_without_values
+    attribute_2 = size_attribute
+
+    app_api_client.app.permissions.add(permission_manage_product_types_and_attributes)
+
+    product_type.variant_attributes.add(
+        attribute_1, through_defaults={"variant_selection": False}
+    )
+    product_type.variant_attributes.add(
+        attribute_2, through_defaults={"variant_selection": True}
+    )
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = PRODUCT_ASSIGN_ATTR_UPDATE_QUERY
+    operations = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute_1.pk),
+            "variantSelection": True,
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute_2.pk),
+            "variantSelection": False,
+        },
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    content = get_graphql_content(app_api_client.post_graphql(query, variables))[
+        "data"
+    ]["productAttributeAssignmentUpdate"]
+
+    assert len(content["errors"]) == 0
+    assert AttributeVariant.objects.get(attribute_id=attribute_1.pk).variant_selection
+    assert not AttributeVariant.objects.get(
+        attribute_id=attribute_2.pk
+    ).variant_selection
+
+
 def test_assign_page_attribute_to_product_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
@@ -980,13 +1027,26 @@ def test_unassign_attributes_from_product_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     product_type_attribute_list,
+    category,
 ):
     product_type = ProductType.objects.create(name="Type", kind=ProductTypeKind.NORMAL)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-11",
+        product_type=product_type,
+        category=category,
+    )
 
     variant_attribute, *product_attributes = product_type_attribute_list
     product_type.product_attributes.add(*product_attributes)
     product_type.variant_attributes.add(variant_attribute)
+
+    attribute = product_attributes[1]
+    product_attr_value = AttributeValue.objects.create(
+        attribute=attribute, name="Test value", slug="test-value"
+    )
+    associate_attribute_values_to_instance(product, attribute, product_attr_value)
 
     remaining_attribute_global_id = graphene.Node.to_global_id(
         "Attribute", product_attributes[1].pk
@@ -1017,6 +1077,10 @@ def test_unassign_attributes_from_product_type(
         content["productType"]["productAttributes"][0]["id"]
         == remaining_attribute_global_id
     )
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert product_attr_value.name not in product.search_document
 
 
 def test_unassign_attributes_not_in_product_type(

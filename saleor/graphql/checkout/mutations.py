@@ -1,6 +1,7 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
@@ -18,6 +19,7 @@ from ...checkout.fetch import (
     fetch_checkout_lines,
     get_valid_collection_points_for_checkout_info,
     get_valid_shipping_method_list_for_checkout_info,
+    populate_checkout_info_shippings,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -140,6 +142,7 @@ def check_lines_quantity(
     quantities,
     country,
     channel_slug,
+    global_quantity_limit,
     allow_zero_quantity=False,
     existing_lines=None,
     replace=False,
@@ -173,23 +176,13 @@ def check_lines_quantity(
                     )
                 }
             )
-
-        if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
-            raise ValidationError(
-                {
-                    "quantity": ValidationError(
-                        "Cannot add more than %d times this item."
-                        "" % settings.MAX_CHECKOUT_LINE_QUANTITY,
-                        code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
-                    )
-                }
-            )
     try:
         check_stock_and_preorder_quantity_bulk(
             variants,
             country,
             quantities,
             channel_slug,
+            global_quantity_limit,
             existing_lines=existing_lines,
             replace=replace,
             check_reservations=check_reservations,
@@ -273,6 +266,23 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
     return checkout
 
 
+def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
+    variant_quantity_map: Dict[str, int] = defaultdict(int)
+
+    for quantity, variant_id in (line.values() for line in lines):
+        variant_quantity_map[variant_id] += quantity
+
+    return list(variant_quantity_map.values())
+
+
+def validate_checkout_email(checkout: models.Checkout):
+    if not checkout.email:
+        raise ValidationError(
+            "Checkout email must be set.",
+            code=CheckoutErrorCode.EMAIL_NOT_SET.value,
+        )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -341,7 +351,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        quantities = [line["quantity"] for line in lines]
+        quantities = group_quantity_by_variants(lines)
+
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
         validate_variants_available_in_channel(
@@ -353,6 +364,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             quantities,
             country,
             channel.slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
         return variants, quantities
@@ -429,7 +441,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Set checkout country
         country = cleaned_input["country"]
         instance.set_country(country)
-
         # Create checkout lines
         channel = cleaned_input["channel"]
         variants = cleaned_input.get("variants")
@@ -440,6 +451,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 variants,
                 quantities,
                 channel.slug,
+                info.context.site.settings.limit_quantity_per_checkout,
                 reservation_length=get_reservation_length(info.context),
             )
 
@@ -506,13 +518,20 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def validate_checkout_lines(
-        cls, info, variants, quantities, country, channel_slug, lines=None
+        cls,
+        info,
+        variants,
+        quantities,
+        country,
+        channel_slug,
+        lines=None,
     ):
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
@@ -573,11 +592,7 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         lines = fetch_checkout_lines(checkout)
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
-        )
+        populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
         checkout_info.valid_pick_up_points = (
             get_valid_collection_points_for_checkout_info(
                 checkout_info.shipping_address, lines, checkout_info
@@ -607,32 +622,26 @@ class CheckoutLinesAdd(BaseMutation):
 
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        quantities = [line.get("quantity") for line in lines]
-
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        input_quantities = group_quantity_by_variants(lines)
 
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout,
+            lines,
+            discounts,
+            manager,
+            fetch_delivery_methods=False,
+        )
         lines = cls.clean_input(
             info,
             checkout,
             variants,
-            quantities,
+            input_quantities,
             checkout_info,
             lines,
             manager,
             discounts,
             replace,
-        )
-
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
-        )
-        checkout_info.valid_pick_up_points = (
-            get_valid_collection_points_for_checkout_info(
-                checkout_info.shipping_address, lines, checkout_info
-            )
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
@@ -666,6 +675,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             allow_zero_quantity=True,
             existing_lines=lines,
             replace=True,
@@ -949,6 +959,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             quantities,
             country,
             channel_slug,
+            info.context.site.settings.limit_quantity_per_checkout,
             # Set replace=True to avoid existing_lines and quantities from
             # being counted twice by the check_stock_quantity_bulk
             replace=True,
@@ -1140,12 +1151,26 @@ class CheckoutEmailUpdate(BaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
+    @staticmethod
+    def clean_email(email):
+        if not email:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "This field cannot be blank.",
+                        code=CheckoutErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
     @classmethod
     def perform_mutation(cls, _root, info, email, checkout_id=None, token=None):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        cls.clean_email(email)
 
         if token:
             checkout = get_checkout_by_token(token)
@@ -1176,7 +1201,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method_id = graphene.ID(required=True, description="Shipping method.")
 
     class Meta:
-        description = "Updates the shipping address of the checkout."
+        description = "Updates the shipping method of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -1645,6 +1670,8 @@ class CheckoutComplete(BaseMutation):
                     )
                 raise e
 
+            validate_checkout_email(checkout)
+
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
             validate_variants_in_checkout_lines(lines)
@@ -1718,6 +1745,8 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout = cls.get_node_or_error(
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
+
+        validate_checkout_email(checkout)
 
         manager = info.context.plugins
         discounts = info.context.discounts
