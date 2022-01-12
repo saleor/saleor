@@ -6,7 +6,13 @@ from ...shipping.models import ShippingZone
 
 
 def get_countries_codes_list(in_shipping_zones: Optional[bool] = None):
-    """Return set of countries codes."""
+    """Return set of countries codes.
+
+    If 'True', return countries with shipping zone assigned.
+    If 'False', return countries without any shipping zone assigned."
+    If the argument is not provided (None), return all countries.
+    """
+
     all_countries_codes = {country[0] for country in countries}
     if in_shipping_zones is not None:
         covered_countries_codes = set()

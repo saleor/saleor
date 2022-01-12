@@ -130,7 +130,10 @@ class Shop(graphene.ObjectType):
             ),
         ),
         in_shipping_zones=graphene.Boolean(
-            description="Only countries that have shipping zones assigned",
+            description="If 'true', return countries with shipping zone assigned."
+            "If 'false', return countries without any shipping zone "
+            "assigned."
+            "If the argument is not provided (null), return all countries.",
             required=False,
         ),
         description="List of countries available in the shop.",
