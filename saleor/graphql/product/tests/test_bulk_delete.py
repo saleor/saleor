@@ -832,9 +832,16 @@ def test_delete_product_variants(
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
+    product = product_variant_list[0].product
+
+    variant = product.variants.get(sku="123")
+    variant.sku = "abcd"
+    variant.save(update_fields=["sku"])
+
     assert ProductVariantChannelListing.objects.filter(
         variant_id__in=[variant.id for variant in product_variant_list]
     ).exists()
+    variants_sku = [variant.sku for variant in product_variant_list]
 
     variables = {
         "ids": [
@@ -857,6 +864,10 @@ def test_delete_product_variants(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
+    product.refresh_from_db()
+    assert product.search_document
+    for sku in variants_sku:
+        assert sku not in product.search_document
 
 
 def test_delete_product_variants_invalid_object_typed_of_given_ids(

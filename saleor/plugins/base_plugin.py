@@ -9,6 +9,7 @@ from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
 from ..payment.interface import (
     CustomerSource,
@@ -146,7 +147,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
-        TaxedMoney,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate checkout line unit price.
@@ -159,7 +160,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             Any,
         ],
-        Any,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate the shipping costs for checkout.

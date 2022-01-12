@@ -116,3 +116,38 @@ def stripe_payment_intent(payment_stripe_for_checkout):
     payment_intent["status"] = SUCCESS_STATUS
 
     return payment_intent
+
+
+@pytest.fixture
+def stripe_payment_intent_with_details(stripe_payment_intent):
+    intent = stripe_payment_intent
+
+    intent["charges"] = {
+        "data": [
+            {
+                "payment_method_details": {
+                    "card": {
+                        "brand": "visa",
+                        "country": "IE",
+                        "exp_month": 3,
+                        "exp_year": 2030,
+                        "fingerprint": "ZcPGL2hemVepaHp2",
+                        "funding": "credit",
+                        "installments": None,
+                        "last4": "3220",
+                        "network": "visa",
+                        "three_d_secure": {
+                            "authentication_flow": "challenge",
+                            "result": "authenticated",
+                            "result_reason": None,
+                            "version": "2.1.0",
+                        },
+                        "wallet": None,
+                    },
+                    "type": "card",
+                },
+            }
+        ]
+    }
+
+    return intent

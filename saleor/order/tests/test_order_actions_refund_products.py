@@ -5,8 +5,9 @@ from ...payment import ChargeStatus
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation
-from .. import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from .. import FulfillmentLineData, FulfillmentStatus
 from ..actions import create_refund_fulfillment
+from ..fetch import OrderLineInfo
 from ..models import FulfillmentLine
 
 
@@ -37,7 +38,7 @@ def test_create_refund_fulfillment_only_order_lines(
         order=order_with_lines,
         payment=payment,
         order_lines_to_refund=[
-            OrderLineData(line=line, quantity=2) for line in order_lines_to_refund
+            OrderLineInfo(line=line, quantity=2) for line in order_lines_to_refund
         ],
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),
@@ -96,7 +97,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
         order=order_with_lines,
         payment=payment,
         order_lines_to_refund=[
-            OrderLineData(line=line, quantity=2) for line in order_lines_to_refund
+            OrderLineInfo(line=line, quantity=2) for line in order_lines_to_refund
         ],
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),

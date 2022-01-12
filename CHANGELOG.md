@@ -22,6 +22,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `variant_selection` to `ProductAttributeAssign` operations - #8235 by @kuchichan
 - Add query complexity limit to GraphQL API - #8526 by rafalp
 - Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
+- Optimize products stock availability filter - #8809 by @fowczarek
+- Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
 
 # 3.0.0 [Unreleased]
 
@@ -172,6 +174,22 @@ All notable, unreleased changes to this project will be documented in this file.
   - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
 - Add workaround for failing Avatax when line has price 0 - #8610 by @korycins
 - Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
+- Fix Avalara tax fetching from cache - #8647 by @fowczarek
+- Implement database read replicas - #8516, #8751 by @fowczarek
+- Propagate sale and voucher discounts over specific lines - #8793 by @korycins
+  - The created order lines from checkout will now have fulfilled all undiscounted fields with a default price value
+  (without any discounts).
+  - Order line will now include a voucher discount (in the case when the voucher is for specific products or have a
+  flag apply_once_per_order). In that case `Order.discounts` will not have a relation to `OrderDiscount` object.
+  - Webhook payload for `OrderLine` will now include two new fields `sale_id` (graphql's ID of applied sale) and
+  `voucher_code` (code of the valid voucher applied to this line).
+  - When any sale or voucher discount was applied, `line.discount_reason` will be fulfilled.
+  - New interface for handling more data for prices: `PricesData` and `TaxedPricesData` used in checkout calculations
+  and in plugins/pluginManager.
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+  - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -280,6 +298,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
 - Change metadata mutations to use token for order and checkout as identifier - #8426 by @IKarbowiak
   - After changes, using the order `id` for changing order metadata is deprecated
+- Propagate sale and voucher discounts over specific lines - #8793 by @korycins
+  - Use a new interface for response received from plugins/pluginManager. Methods `calculate_checkout_line_unit_price`
+  and `calculate_checkout_line_total` returns `TaxedPricesData` instead of `TaxedMoney`.
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Use a new interface for the response received from plugins/pluginManager.
+  Methods `calculate_order_line_unit` and `calculate_order_line_total` returns
+  `OrderTaxedPricesData` instead of `TaxedMoney`.
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+- Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
+  - Use `token` instead
 
 ### Other
 

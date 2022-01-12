@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
@@ -15,6 +15,7 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
 from ....order.actions import order_captured, order_refunded, order_voided
+from ....order.fetch import fetch_order_info
 from ....order.models import Order
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
@@ -25,6 +26,7 @@ from ...utils import (
     gateway_postprocess,
     price_from_minor_unit,
     update_payment_charge_status,
+    update_payment_method_details,
 )
 from .consts import (
     WEBHOOK_AUTHORIZED_EVENT,
@@ -34,7 +36,11 @@ from .consts import (
     WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
-from .stripe_api import construct_stripe_event, update_payment_method
+from .stripe_api import (
+    construct_stripe_event,
+    get_payment_method_details,
+    update_payment_method,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -235,6 +241,16 @@ def _update_payment_method_metadata(
         update_payment_method(api_key, payment_intent.payment_method, metadata)
 
 
+def update_payment_method_details_from_intent(
+    payment: Payment, payment_intent: StripeObject
+):
+    if payment_method_info := get_payment_method_details(payment_intent):
+        changed_fields: List[str] = []
+        update_payment_method_details(payment, payment_method_info, changed_fields)
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
+
+
 def handle_authorized_payment_intent(
     payment_intent: StripeObject, gateway_config: "GatewayConfig", channel_slug: str
 ):
@@ -251,6 +267,7 @@ def handle_authorized_payment_intent(
         return
 
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
+    update_payment_method_details_from_intent(payment, payment_intent)
 
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
@@ -346,6 +363,7 @@ def handle_successful_payment_intent(
         return
 
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
+    update_payment_method_details_from_intent(payment, payment_intent)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
@@ -356,8 +374,9 @@ def handle_successful_payment_intent(
                 payment_intent.amount_received,
                 payment_intent.currency,
             )
+            order_info = fetch_order_info(payment.order)  # type: ignore
             order_captured(
-                payment.order,  # type: ignore
+                order_info,
                 None,
                 None,
                 capture_transaction.amount,

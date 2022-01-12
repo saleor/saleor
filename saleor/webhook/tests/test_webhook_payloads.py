@@ -14,8 +14,9 @@ from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
-from ...order import OrderLineData, OrderOrigin
+from ...order import OrderOrigin
 from ...order.actions import fulfill_order_lines
+from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
@@ -135,13 +136,16 @@ def test_generate_order_payload(
 def test_generate_fulfillment_lines_payload(order_with_lines):
     fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
     line = order_with_lines.lines.first()
+    line.sale_id = graphene.Node.to_global_id("Sale", 1)
+    line.voucher_code = "code"
+    line.save()
     stock = line.allocations.get().stock
     warehouse_pk = stock.warehouse.pk
     fulfillment_line = fulfillment.lines.create(
         order_line=line, quantity=line.quantity, stock=stock
     )
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
@@ -176,6 +180,8 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         "warehouse_id": graphene.Node.to_global_id(
             "Warehouse", fulfillment_line.stock.warehouse_id
         ),
+        "sale_id": line.sale_id,
+        "voucher_code": line.voucher_code,
     }
 
 
@@ -187,7 +193,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
 
@@ -203,10 +209,12 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
+    line.voucher_code = "Voucher001"
     line.unit_discount_amount = Decimal("10.0")
     line.unit_discount_type = DiscountValueType.FIXED
     line.undiscounted_unit_price = line.unit_price + line.unit_discount
     line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
+    line.sale_id = graphene.Node.to_global_id("Sale", 1)
     line.save()
 
     payload = json.loads(generate_order_payload(order))[0]
@@ -271,6 +279,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "undiscounted_total_price_gross_amount": str(
             undiscounted_total_price_gross_amount
         ),
+        "voucher_code": line.voucher_code,
+        "sale_id": line.sale_id,
     }
 
 

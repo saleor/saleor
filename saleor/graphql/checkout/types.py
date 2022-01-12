@@ -137,7 +137,7 @@ class CheckoutLine(CountableDjangoObjectType):
                             checkout_line_info=line_info,
                             address=address,
                             discounts=discounts,
-                        )
+                        ).price_with_sale
                 return None
 
             return Promise.all(
@@ -203,7 +203,7 @@ class Checkout(CountableDjangoObjectType):
         description="List of available payment gateways.",
         required=True,
     )
-    email = graphene.String(description="Email of a customer.", required=True)
+    email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = graphene.List(
         GiftCard, description="List of gift cards associated with this checkout."
     )

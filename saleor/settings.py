@@ -11,6 +11,7 @@ import jaeger_client.config
 import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from graphql.utils import schema_printer
@@ -468,6 +469,17 @@ AUTHENTICATION_BACKENDS = [
     "saleor.core.auth_backend.PluginBackend",
 ]
 
+# Expired checkouts settings - defines after what time checkouts will be deleted
+ANONYMOUS_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("ANONYMOUS_CHECKOUTS_TIMEDELTA", "30 days"))
+)
+USER_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("USER_CHECKOUTS_TIMEDELTA", "90 days"))
+)
+EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
+)
+
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
@@ -491,6 +503,10 @@ CELERY_BEAT_SCHEDULE = {
     "delete-expired-reservations": {
         "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
         "schedule": timedelta(days=1),
+    },
+    "delete-expired-checkouts": {
+        "task": "saleor.checkout.tasks.delete_expired_checkouts",
+        "schedule": crontab(hour=0, minute=0),
     },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
@@ -533,8 +549,9 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
     "MIDDLEWARE": [
-        "saleor.graphql.middleware.app_middleware",
+        # Those middlewares are executed from bottom to top
         "saleor.graphql.middleware.JWTMiddleware",
+        "saleor.graphql.middleware.app_middleware",
     ],
 }
 

@@ -21,6 +21,10 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
+from ....product.search import (
+    update_product_search_document,
+    update_products_search_document,
+)
 from ....product.tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
@@ -651,8 +655,10 @@ class ProductCreate(ModelMutation):
             instance.collections.set(collections)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.product_created(instance)
+    def post_save_action(cls, info, instance, _cleaned_input):
+        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+        update_product_search_document(instance)
+        info.context.plugins.product_created(product)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -691,8 +697,10 @@ class ProductUpdate(ProductCreate):
             AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.product_updated(instance)
+    def post_save_action(cls, info, instance, _cleaned_input):
+        product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
+        update_product_search_document(instance)
+        info.context.plugins.product_updated(product)
 
 
 class ProductDelete(ModelDeleteMutation):
@@ -990,6 +998,7 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+        update_product_search_document(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created
             if new_variant
@@ -1073,6 +1082,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         # Update the "discounted_prices" of the parent product
         update_product_discounted_price_task.delay(instance.product_id)
         product = models.Product.objects.get(id=instance.product_id)
+        update_product_search_document(product)
         # if the product default variant has been removed set the new one
         if not product.default_variant:
             product.default_variant = product.variants.first()
@@ -1261,6 +1271,15 @@ class ProductTypeUpdate(ProductTypeCreate):
             update_variants_names.delay(instance.pk, variant_attr_ids)
         super().save(info, instance, cleaned_input)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        if (
+            "product_attributes" in cleaned_input
+            or "variant_attributes" in cleaned_input
+        ):
+            products = models.Product.objects.filter(product_type=instance)
+            update_products_search_document(products)
+
 
 class ProductTypeDelete(ModelDeleteMutation):
     class Arguments:
@@ -1371,7 +1390,11 @@ class ProductMediaCreate(BaseMutation):
         data = data.get("input")
         cls.validate_input(data)
         product = cls.get_node_or_error(
-            info, data["product"], field="product", only_type=Product
+            info,
+            data["product"],
+            field="product",
+            only_type=Product,
+            qs=models.Product.objects.prefetched_for_webhook(),
         )
 
         alt = data.get("alt", "")
@@ -1422,7 +1445,9 @@ class ProductMediaUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         media = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
-        product = media.product
+        product = models.Product.objects.prefetched_for_webhook().get(
+            pk=media.product_id
+        )
         alt = data.get("input").get("alt")
         if alt is not None:
             media.alt = alt
@@ -1456,7 +1481,11 @@ class ProductMediaReorder(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, product_id, media_ids):
         product = cls.get_node_or_error(
-            info, product_id, field="product_id", only_type=Product
+            info,
+            product_id,
+            field="product_id",
+            only_type=Product,
+            qs=models.Product.objects.prefetched_for_webhook(),
         )
         if len(media_ids) != product.media.count():
             raise ValidationError(
@@ -1634,7 +1663,9 @@ class ProductMediaDelete(BaseMutation):
         media_id = media_obj.id
         media_obj.delete()
         media_obj.id = media_id
-        product = media_obj.product
+        product = models.Product.objects.prefetched_for_webhook().get(
+            pk=media_obj.product_id
+        )
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaDelete(product=product, media=media_obj)
