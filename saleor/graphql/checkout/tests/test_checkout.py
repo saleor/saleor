@@ -153,7 +153,7 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_checkout_create_triggers_webhooks(
     mocked_webhook_trigger,
     user_api_client,

@@ -24,6 +24,7 @@ from prices import Money, TaxedMoney
 from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..checkout.interface import CheckoutTaxedPricesData
+from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
@@ -580,6 +581,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "order_created", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def event_delivery_retry(self, event_delivery: "EventDelivery"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "event_delivery_retry", default_value, event_delivery
         )
 
     def order_confirmed(self, order: "Order"):

@@ -508,7 +508,15 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete-outdated-event-data": {
+        "task": "saleor.core.tasks.delete_event_payloads_task",
+        "schedule": timedelta(days=1),
+    },
 }
+
+EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
+)
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR

@@ -261,6 +261,9 @@ class PluginSample(BasePlugin):
     def sample_not_implemented(self, previous_value):
         return NotImplemented
 
+    def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
+        return True
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"

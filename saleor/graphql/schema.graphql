@@ -2040,6 +2040,82 @@ type DraftOrderUpdate {
   order: Order
 }
 
+type EventDelivery implements Node {
+  id: ID!
+  createdAt: DateTime!
+  status: EventDeliveryStatusEnum!
+  eventType: WebhookEventTypeEnum!
+  attempts(sortBy: EventDeliveryAttemptSortingInput, before: String, after: String, first: Int, last: Int): EventDeliveryAttemptCountableConnection
+  payload: String
+}
+
+type EventDeliveryAttempt implements Node {
+  id: ID!
+  createdAt: DateTime!
+  taskId: String
+  duration: Float
+  response: String
+  responseHeaders: String
+  requestHeaders: String
+  status: EventDeliveryStatusEnum!
+}
+
+type EventDeliveryAttemptCountableConnection {
+  pageInfo: PageInfo!
+  edges: [EventDeliveryAttemptCountableEdge!]!
+  totalCount: Int
+}
+
+type EventDeliveryAttemptCountableEdge {
+  node: EventDeliveryAttempt!
+  cursor: String!
+}
+
+enum EventDeliveryAttemptSortField {
+  CREATED_AT
+}
+
+input EventDeliveryAttemptSortingInput {
+  direction: OrderDirection!
+  field: EventDeliveryAttemptSortField!
+}
+
+type EventDeliveryCountableConnection {
+  pageInfo: PageInfo!
+  edges: [EventDeliveryCountableEdge!]!
+  totalCount: Int
+}
+
+type EventDeliveryCountableEdge {
+  node: EventDelivery!
+  cursor: String!
+}
+
+input EventDeliveryFilterInput {
+  status: EventDeliveryStatusEnum
+  eventType: WebhookEventTypeEnum
+}
+
+type EventDeliveryRetry {
+  delivery: EventDelivery
+  errors: [WebhookError!]!
+}
+
+enum EventDeliverySortField {
+  CREATED_AT
+}
+
+input EventDeliverySortingInput {
+  direction: OrderDirection!
+  field: EventDeliverySortField!
+}
+
+enum EventDeliveryStatusEnum {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 type ExportError {
   field: String
   message: String
@@ -3765,6 +3841,7 @@ type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  eventDeliveryRetry(id: ID!): EventDeliveryRetry
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
@@ -7267,6 +7344,7 @@ type Webhook implements Node {
   syncEvents: [WebhookEventSync!]!
   asyncEvents: [WebhookEventAsync!]!
   app: App!
+  eventDeliveries(sortBy: EventDeliverySortingInput, filter: EventDeliveryFilterInput, before: String, after: String, first: Int, last: Int): EventDeliveryCountableConnection
 }
 
 type WebhookCreate {
@@ -7395,6 +7473,8 @@ enum WebhookEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
   PAYMENT_AUTHORIZE
   PAYMENT_CAPTURE
   PAYMENT_CONFIRM
@@ -7403,8 +7483,6 @@ enum WebhookEventTypeEnum {
   PAYMENT_REFUND
   PAYMENT_VOID
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
-  TRANSLATION_CREATED
-  TRANSLATION_UPDATED
 }
 
 enum WebhookEventTypeSyncEnum {
