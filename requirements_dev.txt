@@ -224,5 +224,6 @@ authlib==0.15.5;
 cryptography==36.0.0;
 -e saleor/plugins/oauth2/
 checkout-sdk==2.0b8
+-e saleor/payment/gateways/cod/
 -e saleor/payment/gateways/tabby/
 -e saleor/payment/gateways/checkout_payment/
