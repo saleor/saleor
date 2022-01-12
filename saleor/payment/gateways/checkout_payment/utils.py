@@ -9,6 +9,7 @@ import checkout_sdk.errors as checkout_errors
 import graphene
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
+from saleor.payment import ChargeStatus
 from saleor.payment.interface import (
     GatewayConfig,
     GatewayResponse,
@@ -172,6 +173,28 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig, gateway: str):
                             checkout=payment.checkout,
                             manager=get_plugins_manager(),
                         )
+
+                        # Mark the payment as paid
+                        amount = Decimal(payment_data.get("amount")) / 100
+                        payment.captured_amount = amount
+                        payment.charge_status = (
+                            ChargeStatus.FULLY_CHARGED
+                            if amount >= payment.total
+                            else ChargeStatus.PARTIALLY_CHARGED
+                        )
+                        payment.save(
+                            update_fields=[
+                                "modified",
+                                "charge_status",
+                                "captured_amount",
+                            ]
+                        )
+
+                        # Remove the unneeded payments from the database.
+                        for p in payment.checkout.payments.exclude(id=payment.id):
+                            p.transactions.all().delete()
+                            p.delete()
+
                         logger.info(
                             msg=f"Order #{order.id} created",
                             extra={"order_id": order.id},
