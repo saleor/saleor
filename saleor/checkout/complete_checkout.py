@@ -695,8 +695,6 @@ def complete_checkout(
             gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
-            gateway.payment_refund_or_void(payment)
-            raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
 
         # if the order total value is 0 it is paid from the definition
         if order.total.net.amount == 0:

@@ -1364,3 +1364,54 @@ def test_checkout_complete_0_total_value(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+@pytest.mark.integration
+def test_checkout_complete_0_total_value_no_payment(
+    user_api_client,
+    checkout_with_item_total_0,
+    address,
+):
+    checkout = checkout_with_item_total_0
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    checkout.refresh_from_db()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    orders_count = Order.objects.count()
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.token == order_token
+    assert order.total.gross == total.gross
+    assert order.metadata == checkout.metadata
+    assert order.private_metadata == checkout.private_metadata
+
+    order_line = order.lines.first()
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order.shipping_address is None
+    assert order.shipping_method is None
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"

@@ -281,14 +281,13 @@ def checkout_with_item(checkout, product):
     return checkout
 
 
-# @pytest.fixture
-# def checkout_with_item_total_0(checkout, product):
-#     variant = product.variants.get()
-#     checkout.
-#     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-#     add_variant_to_checkout(checkout_info, variant, 3)
-#     checkout.save()
-#     return checkout
+@pytest.fixture
+def checkout_with_item_total_0(checkout, product_price_0):
+    variant = product_price_0.variants.get()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
+    checkout.save()
+    return checkout
 
 
 @pytest.fixture
@@ -1553,6 +1552,38 @@ def product(product_type, category, warehouse, channel_USD):
 
 
 @pytest.fixture
+def product_price_0(category, warehouse, channel_USD):
+    product_type = ProductType.objects.create(
+        name="Type with no shipping",
+        slug="no-shipping",
+        has_variants=False,
+        is_shipping_required=False,
+    )
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-4",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+    )
+    variant = ProductVariant.objects.create(product=product, sku="SKU_C")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(0),
+        cost_price_amount=Decimal(0),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=1)
+    return product
+
+
+@pytest.fixture
 def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
     ProductChannelListing.objects.create(
         product=product,
@@ -2771,7 +2802,7 @@ def order_with_lines(
         visible_in_listings=True,
         available_for_purchase=datetime.date.today(),
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_C")
+    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     channel_listing = ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
