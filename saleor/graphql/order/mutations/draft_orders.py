@@ -10,9 +10,10 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
+from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
@@ -453,12 +454,15 @@ class DraftOrderComplete(BaseMutation):
         order.search_document = prepare_order_search_document_value(order)
         order.save()
 
+        channel = order.channel
+        channel_slug = channel.slug
+        order_lines_info = []
         for line in order.lines.all():
             if line.variant.track_inventory or line.variant.is_preorder_active():
-                line_data = OrderLineData(
+                line_data = OrderLineInfo(
                     line=line, quantity=line.quantity, variant=line.variant
                 )
-                channel_slug = order.channel.slug
+                order_lines_info.append(line_data)
                 try:
                     with traced_atomic_transaction():
                         allocate_stocks(
@@ -480,8 +484,17 @@ class DraftOrderComplete(BaseMutation):
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
+
+        order_info = OrderInfo(
+            order=order,
+            customer_email=order.get_customer_email(),
+            channel=channel,
+            payment=order.get_last_payment(),
+            lines_data=order_lines_info,
+        )
+
         order_created(
-            order,
+            order_info=order_info,
             user=info.context.user,
             app=info.context.app,
             manager=info.context.plugins,
