@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import graphene
 
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from .....graphql.tests.utils import assert_no_permission, get_graphql_content
 
 WEBHOOK_DELIVERY_RETRY_MUTATION = """
     mutation eventDeliveryRetry($id: ID!){
@@ -28,7 +28,6 @@ def test_delivery_retry_mutation(
     settings,
 ):
     # given
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     query = WEBHOOK_DELIVERY_RETRY_MUTATION
     delivery_id = graphene.Node.to_global_id("EventDelivery", event_delivery.pk)
     variables = {"id": delivery_id}
