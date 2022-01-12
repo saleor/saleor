@@ -5,10 +5,6 @@ const serviceList = [
   {
     name: "saleor",
     url: "https://api.wecre8.ninja/graphql/",
-  },
-  {
-    name: "social-login",
-    url: "https://pr-32.herokuapp.com/plugins/social-login/graphql",
   }
 ];
 
