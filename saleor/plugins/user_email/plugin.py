@@ -421,9 +421,8 @@ class UserEmailPlugin(BasePlugin):
         self, request
     ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
         # Get email templates from the database and merge them with self.configuration.
-        configuration = super().resolve_plugin_configuration(request)
         if not self.db_config:
-            return configuration
+            return self.configuration
 
         def map_templates_to_configuration(
             email_templates: List["EmailTemplate"],
@@ -502,7 +501,6 @@ class UserEmailPlugin(BasePlugin):
 
         plugin_configuration.save()
 
-        # TODO: move this logic to admin email as well
         for et_data in email_templates_data:
             if et_data["value"] != DEFAULT_EMAIL_VALUE:
                 EmailTemplate.objects.update_or_create(

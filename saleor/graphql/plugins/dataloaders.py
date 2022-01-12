@@ -5,7 +5,7 @@ from ..core.dataloaders import DataLoader
 
 
 class EmailTemplatesByPluginConfigurationLoader(DataLoader):
-    """Loads pages by pages type ID."""
+    """Loads email templates by plugin configuration ID."""
 
     context_key = "email_template_by_plugin_configuration"
 

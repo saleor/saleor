@@ -223,9 +223,8 @@ class AdminEmailPlugin(BasePlugin):
         self, request
     ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
         # Get email templates from the database and merge them with self.configuration.
-        configuration = super().resolve_plugin_configuration(request)
         if not self.db_config:
-            return configuration
+            return self.configuration
 
         def map_templates_to_configuration(
             email_templates: List["EmailTemplate"],

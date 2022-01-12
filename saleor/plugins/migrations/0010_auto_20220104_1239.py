@@ -38,7 +38,7 @@ def move_email_templates_to_separate_model(apps, schema):
 
     plugin_configs = PluginConfiguration.objects.filter(identifier__in=EMAIL_PLUGINS)
 
-    for plugin_config_obj in plugin_configs:
+    for plugin_config_obj in plugin_configs.iterator():
         # Move email templates from PluginConfiguration.configuration JSON field to
         # EmailTemplate instances.
         email_templates = []
