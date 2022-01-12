@@ -1076,3 +1076,10 @@ def test_create_plugin_manager_initializes_requestor_lazily(channel_USD):
     assert plugin.requestor.name == "some name"
 
     user_mock.assert_called_once()
+
+
+def test_manager_delivery_retry(event_delivery):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    manager = PluginsManager(plugins=plugins)
+    delivery_retry = manager.event_delivery_retry(event_delivery=event_delivery)
+    assert delivery_retry
