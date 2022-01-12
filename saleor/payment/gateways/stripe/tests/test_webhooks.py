@@ -30,6 +30,7 @@ from ..webhooks import (
     handle_processing_payment_intent,
     handle_refund,
     handle_successful_payment_intent,
+    update_payment_method_details_from_intent,
 )
 
 
@@ -372,10 +373,60 @@ def test_handle_authorized_payment_intent_for_checkout(
 
     assert wrapped_checkout_complete.called
     assert payment.checkout_id is None
+    assert not payment.cc_brand
+    assert not payment.cc_last_digits
+    assert not payment.cc_exp_year
+    assert not payment.cc_exp_month
+    assert not payment.payment_method_type
     assert payment.order
     assert payment.order.checkout_token == str(checkout_with_items.token)
     transaction = payment.transactions.get(kind=TransactionKind.AUTH)
     assert transaction.token == payment_intent.id
+
+
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+def test_handle_authorized_payment_intent_for_checkout_with_payment_details(
+    wrapped_checkout_complete,
+    payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+    stripe_payment_intent_with_details,
+):
+    intent = stripe_payment_intent_with_details
+    payment = payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+    intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    intent["currency"] = payment.currency
+    intent["status"] = AUTHORIZED_STATUS
+    handle_authorized_payment_intent(intent, plugin.config, channel_USD.slug)
+
+    payment.refresh_from_db()
+
+    assert wrapped_checkout_complete.called
+    assert payment.checkout_id is None
+    assert payment.cc_brand == "visa"
+    assert payment.cc_last_digits == "3220"
+    assert payment.cc_exp_year == 2030
+    assert payment.cc_exp_month == 3
+    assert payment.payment_method_type == "card"
+    assert payment.order
+    assert payment.order.checkout_token == str(checkout_with_items.token)
+    transaction = payment.transactions.get(kind=TransactionKind.AUTH)
+    assert transaction.token == intent.id
 
 
 @patch("saleor.checkout.complete_checkout._get_order_data")
@@ -1221,3 +1272,34 @@ def test_finalize_checkout_not_created_order_payment_void(
 
     assert not payment_stripe_for_checkout.order
     assert void_mock.called
+
+
+def test_update_payment_method_details_from_intent_payment_info_does_not_exist(
+    payment_stripe_for_checkout, stripe_payment_intent
+):
+    payment = payment_stripe_for_checkout
+    update_payment_method_details_from_intent(payment, stripe_payment_intent)
+
+    payment.refresh_from_db()
+
+    assert not payment.cc_brand
+    assert not payment.cc_last_digits
+    assert not payment.cc_exp_year
+    assert not payment.cc_exp_month
+    assert not payment.payment_method_type
+
+
+def test_update_payment_method_details_from_intent_payment_info_exists(
+    payment_stripe_for_checkout, stripe_payment_intent_with_details
+):
+    intent = stripe_payment_intent_with_details
+    payment = payment_stripe_for_checkout
+    update_payment_method_details_from_intent(payment, intent)
+
+    payment.refresh_from_db()
+
+    assert payment.cc_brand == "visa"
+    assert payment.cc_last_digits == "3220"
+    assert payment.cc_exp_year == 2030
+    assert payment.cc_exp_month == 3
+    assert payment.payment_method_type == "card"

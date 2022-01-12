@@ -120,7 +120,10 @@ class GraphQLView(View):
         return render(
             request,
             "graphql/playground.html",
-            {"api_url": request.build_absolute_uri(str(API_PATH))},
+            {
+                "api_url": request.build_absolute_uri(str(API_PATH)),
+                "plugins_url": request.build_absolute_uri("/plugins/"),
+            },
         )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
@@ -318,9 +321,14 @@ class GraphQLView(View):
                         if should_use_cache_for_scheme:
                             cache.set(key, response)
 
+                    if app := getattr(request, "app", None):
+                        span.set_tag("app.name", app.name)
+
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
+                if app := getattr(request, "app", None):
+                    span.set_tag("app.name", app.name)
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
                 # As it's a validation error we want to raise GraphQLError instead.

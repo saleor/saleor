@@ -44,7 +44,7 @@ def webhooks_opentracing_trace(span_name, domain, sync=False, app_name=None):
     ) as scope:
         span = scope.span
         if app_name:
-            span.set_tag("webhooks.app", app_name)
+            span.set_tag("app.name", app_name)
         span.set_tag(opentracing.tags.COMPONENT, "webhooks")
         span.set_tag("service.name", "webhooks")
         span.set_tag("webhooks.domain", domain)

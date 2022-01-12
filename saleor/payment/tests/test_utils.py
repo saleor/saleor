@@ -5,10 +5,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from ...checkout.calculations import checkout_line_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...order import FulfillmentLineData, OrderLineData
+from ...order import FulfillmentLineData
 from ...order.actions import create_refund_fulfillment
+from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ..interface import PaymentLineData
@@ -24,7 +24,7 @@ from ..utils import (
 def create_refund_fulfillment_helper(payment_dummy):
     def factory(
         order: Order,
-        order_lines: List[OrderLineData] = None,
+        order_lines: List[OrderLineInfo] = None,
         fulfillment_lines: List[FulfillmentLineData] = None,
         refund_shipping_costs: bool = False,
     ):
@@ -52,8 +52,8 @@ def test_create_refund_data_order_lines(
     # given
     order_lines = order_with_lines.lines.all()
     order_refund_lines = [
-        OrderLineData(line=(line := order_lines[0]), quantity=2, variant=line.variant),
-        OrderLineData(line=(line := order_lines[1]), quantity=1, variant=line.variant),
+        OrderLineInfo(line=(line := order_lines[0]), quantity=2, variant=line.variant),
+        OrderLineInfo(line=(line := order_lines[1]), quantity=1, variant=line.variant),
     ]
     fulfillment_refund_lines = []
 
@@ -157,7 +157,7 @@ def test_create_refund_data_previously_refunded_order_lines(
     # given
     order_lines = order_with_lines.lines.all()
     previous_order_refund_lines = [
-        OrderLineData(line=(line := order_lines[0]), quantity=1, variant=line.variant)
+        OrderLineInfo(line=(line := order_lines[0]), quantity=1, variant=line.variant)
     ]
     create_refund_fulfillment_helper(
         order_with_lines,
@@ -165,8 +165,8 @@ def test_create_refund_data_previously_refunded_order_lines(
         refund_shipping_costs=previous_refund_shipping_costs,
     )
     current_order_refund_lines = [
-        OrderLineData(line=(line := order_lines[0]), quantity=1, variant=line.variant),
-        OrderLineData(line=(line := order_lines[1]), quantity=1, variant=line.variant),
+        OrderLineInfo(line=(line := order_lines[0]), quantity=1, variant=line.variant),
+        OrderLineInfo(line=(line := order_lines[1]), quantity=1, variant=line.variant),
     ]
     fulfillment_refund_lines = []
 
@@ -180,11 +180,11 @@ def test_create_refund_data_previously_refunded_order_lines(
 
     # then
     order_refund_lines = [
-        OrderLineData(line=cl.line, quantity=pl.quantity + cl.quantity)
+        OrderLineInfo(line=cl.line, quantity=pl.quantity + cl.quantity)
         for pl, cl in zip_longest(
             previous_order_refund_lines,
             current_order_refund_lines,
-            fillvalue=Mock(spec=OrderLineData, quantity=0),
+            fillvalue=Mock(spec=OrderLineInfo, quantity=0),
         )
     ]
     assert refund_data == {
@@ -385,22 +385,13 @@ def get_expected_checkout_payment_lines(
     expected_payment_lines = []
 
     for line_info in lines:
-        total_price = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         unit_gross = manager.calculate_checkout_line_unit_price(
-            total_price,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
-        ).gross.amount
+        ).undiscounted_price.gross.amount
         quantity = line_info.line.quantity
         variant_id = line_info.variant.id
         product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"

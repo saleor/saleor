@@ -300,15 +300,17 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
     return prepare_url(params, redirect_url)
 
 
-def send_order_confirmation(order, redirect_url, manager):
+def send_order_confirmation(order_info, redirect_url, manager):
     """Send notification with order confirmation."""
     payload = {
-        "order": get_default_order_payload(order, redirect_url),
-        "recipient_email": order.get_customer_email(),
+        "order": get_default_order_payload(order_info.order, redirect_url),
+        "recipient_email": order_info.customer_email,
         **get_site_context(),
     }
     manager.notify(
-        NotifyEventType.ORDER_CONFIRMATION, payload, channel_slug=order.channel.slug
+        NotifyEventType.ORDER_CONFIRMATION,
+        payload,
+        channel_slug=order_info.channel.slug,
     )
 
     # Prepare staff notification for this order
@@ -359,13 +361,13 @@ def send_fulfillment_update(order, fulfillment, manager):
     )
 
 
-def send_payment_confirmation(order, manager):
+def send_payment_confirmation(order_info, manager):
     """Send notification with the payment confirmation."""
-    payment = order.get_last_payment()
+    payment = order_info.payment
     payment_currency = payment.currency
     payload = {
-        "order": get_default_order_payload(order),
-        "recipient_email": order.get_customer_email(),
+        "order": get_default_order_payload(order_info.order),
+        "recipient_email": order_info.customer_email,
         "payment": {
             "created": payment.created,
             "modified": payment.modified,
@@ -381,7 +383,7 @@ def send_payment_confirmation(order, manager):
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         payload,
-        channel_slug=order.channel.slug,
+        channel_slug=order_info.channel.slug,
     )
 
 

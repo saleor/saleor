@@ -5,9 +5,12 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
+from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..checkout.interface import CheckoutTaxedPricesData
+from ..core.models import EventDelivery
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -23,6 +26,7 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
@@ -36,6 +40,7 @@ if TYPE_CHECKING:
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
+RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
 
 
 class ConfigurationTypeField:
@@ -91,11 +96,15 @@ class BasePlugin:
         *,
         configuration: PluginConfigurationType,
         active: bool,
-        channel: Optional["Channel"] = None
+        channel: Optional["Channel"] = None,
+        requestor_getter: Optional[Callable[[], "Requestor"]] = None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
         self.channel = channel
+        self.requestor: Optional[RequestorOrLazyObject] = (
+            SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
+        )
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -138,7 +147,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
-        TaxedMoney,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate checkout line unit price.
@@ -151,7 +160,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             Any,
         ],
-        Any,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate the shipping costs for checkout.
@@ -351,9 +360,11 @@ class BasePlugin:
     invoice_delete: Callable[["Invoice", Any], Any]
 
     #  Trigger when invoice creation starts.
-    #
+    #  May return Invoice object.
     #  Overwrite to create invoice with proper data, call invoice.update_invoice.
-    invoice_request: Callable[["Order", "Invoice", Union[str, NoneType], Any], Any]
+    invoice_request: Callable[
+        ["Order", "Invoice", Union[str, NoneType], Any], Optional["Invoice"]
+    ]
 
     #  Trigger after invoice is sent.
     invoice_sent: Callable[["Invoice", str, Any], Any]
@@ -503,6 +514,9 @@ class BasePlugin:
     #
     #  Overwrite this method if the plugin expects the incoming requests.
     webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
+
+    # Triggers retry mechanism for event delivery
+    event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
@@ -661,3 +675,6 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def is_event_active(self, event: str, channel=Optional[str]):
+        return hasattr(self, event)

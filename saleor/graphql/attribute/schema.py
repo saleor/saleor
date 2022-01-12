@@ -1,6 +1,7 @@
 import graphene
 
-from ..core.fields import FilterInputConnectionField
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
@@ -20,12 +21,12 @@ from .resolvers import (
     resolve_attributes,
 )
 from .sorters import AttributeSortingInput
-from .types import Attribute
+from .types import Attribute, AttributeCountableConnection
 
 
 class AttributeQueries(graphene.ObjectType):
-    attributes = FilterInputConnectionField(
-        Attribute,
+    attributes = FilterConnectionField(
+        AttributeCountableConnection,
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
@@ -41,7 +42,9 @@ class AttributeQueries(graphene.ObjectType):
     )
 
     def resolve_attributes(self, info, **kwargs):
-        return resolve_attributes(info, **kwargs)
+        qs = resolve_attributes(info, **kwargs)
+        qs = filter_connection_queryset(qs, kwargs, info.context)
+        return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(self, info, id=None, slug=None):
         if id:
