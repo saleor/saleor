@@ -6883,6 +6883,7 @@ enum TranslationErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   REQUIRED
+  TOO_LONG
 }
 
 input TranslationInput {

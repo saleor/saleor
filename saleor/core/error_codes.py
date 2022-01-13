@@ -22,6 +22,7 @@ class TranslationErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
+    TOO_LONG = "too_long"
 
 
 class UploadErrorCode(Enum):

@@ -1,8 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import CharField, Model
 
 from ...attribute import models as attribute_models
+from ...core.error_codes import TranslationErrorCode
 from ...core.permissions import SitePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...discount import models as discount_models
@@ -11,6 +13,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..attribute import types as attribute_types
+from ...site.models import SiteSettings
 from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
@@ -50,6 +53,24 @@ TRANSLATABLE_CONTENT_TO_TYPE = {
 }
 
 
+def validate_input(model: Model, input_data: dict):
+    errors = {}
+    for field_name, value in input_data.items():
+        model_field = model._meta.get_field(field_name)
+        if not isinstance(model_field, CharField):
+            continue
+        if value:
+            print(field_name, len(value), model_field.max_length)
+        if value and len(value) > model_field.max_length:
+            errors[field_name] = ValidationError(
+                f"This value can't be longer than {model_field.max_length}",
+                code=TranslationErrorCode.TOO_LONG,
+            )
+
+    if errors:
+        raise ValidationError(errors)
+
+
 class BaseTranslateMutation(ModelMutation):
     class Meta:
         abstract = True
@@ -58,7 +79,11 @@ class BaseTranslateMutation(ModelMutation):
     def clean_node_id(cls, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(
-                {"id": ValidationError("This field is required", code="required")}
+                {
+                    "id": ValidationError(
+                        "This field is required", code=TranslationErrorCode.REQUIRED
+                    )
+                }
             )
 
         node_id = data["id"]
@@ -76,9 +101,15 @@ class BaseTranslateMutation(ModelMutation):
         return node_id, model_type
 
     @classmethod
+    def validate_input(cls, input_data):
+        validate_input(cls._meta.model, input_data)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id, model_type = cls.clean_node_id(**data)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        cls.validate_input(data["input"])
+
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -158,6 +189,7 @@ class ProductTranslate(BaseTranslateMutation):
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
         product = cls.get_node_or_error(info, node_id, only_type=product_types.Product)
+        cls.validate_input(data["input"])
 
         translation, created = product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -228,6 +260,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
+        cls.validate_input(data["input"])
         translation, created = variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -450,6 +483,7 @@ class ShopSettingsTranslate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
+        validate_input(SiteSettings, data["input"])
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
