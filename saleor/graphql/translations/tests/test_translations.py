@@ -930,7 +930,6 @@ def test_product_create_translation_validates_name_length(
     staff_api_client, product, permission_manage_translations
 ):
     product_id = graphene.Node.to_global_id("Product", product.id)
-    description = dummy_editorjs("description", True)
     variables = {
         "productId": product_id,
         "input": {"description": None, "name": "Long" * 100},
@@ -2237,10 +2236,6 @@ def test_shop_translation_validates_values_lengths(
     settings,
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-
-    translation = site_settings.translations.create(
-        language_code="pl", header_text="Nagłówek"
-    )
 
     response = staff_api_client.post_graphql(
         SHOP_SETTINGS_TRANSLATE_MUTATION,
