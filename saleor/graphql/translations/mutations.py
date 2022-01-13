@@ -78,11 +78,7 @@ class BaseTranslateMutation(ModelMutation):
     def clean_node_id(cls, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "This field is required", code="required"
-                    )
-                }
+                {"id": ValidationError("This field is required", code="required")}
             )
 
         node_id = data["id"]
