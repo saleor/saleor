@@ -116,7 +116,13 @@ class PluginsManager(PaymentInterface):
 
     def _get_db_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
-            qs = PluginConfiguration.objects.all().prefetch_related("channel")
+            qs = (
+                PluginConfiguration.objects.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                )
+                .all()
+                .prefetch_related("channel")
+            )
             channel_configs = defaultdict(dict)
             global_configs = {}
             for db_plugin_config in qs:
