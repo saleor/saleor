@@ -335,6 +335,7 @@ def update_checkout_info_delivery_method_info(
     checkout = checkout_info.checkout
     if shipping_method:
         # Find listing for the currently selected shipping method
+        shipping_channel_listing = None
         for listing in shipping_channel_listings:
             if listing.shipping_method_id == shipping_method.id:
                 shipping_channel_listing = listing
