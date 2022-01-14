@@ -173,6 +173,7 @@ All notable, unreleased changes to this project will be documented in this file.
   and `CheckoutPricesData` instead of `PricesData`
   - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
 - Fix incorrect stock allocation - #8931 by @IKarbowiak
+- Do no allow using id for updating checkout and order metadata - #8944 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -288,6 +289,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
 - Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
+- Do no allow using `id` for updating checkout and order metadata - #8944 by @IKarbowiak
+  - Use `token` instead
 
 ### Other
 
