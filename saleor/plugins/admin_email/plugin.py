@@ -158,7 +158,7 @@ class AdminEmailPlugin(BasePlugin):
         constants.CSV_EXPORT_FAILED_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_HELP_TEXT,
-            "label": "CSV export failed template",
+            "label": "CSV export failed subject",
         },
         constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.MULTILINE,
@@ -229,11 +229,23 @@ class AdminEmailPlugin(BasePlugin):
         def map_templates_to_configuration(
             email_templates: List["EmailTemplate"],
         ) -> PluginConfigurationType:
-            for email_template in email_templates:
-                for index, config_item in enumerate(self.configuration):
-                    if config_item["name"] == email_template.name:
-                        self.configuration[index]["value"] = email_template.value
-            return self.configuration
+
+            email_template_by_name = {
+                email_template.name: email_template
+                for email_template in email_templates
+            }
+
+            # Merge email templates with `self.configuration` items, preserving the
+            # order of keys which is defined in `self.CONFIG_STRUCTURE`.
+            configuration = []
+            for key in self.CONFIG_STRUCTURE:
+                for config_item in self.configuration:
+                    if config_item["name"] == key:
+                        if key in email_template_by_name:
+                            config_item["value"] = email_template_by_name[key].value
+                        configuration.append(config_item)
+
+            return configuration
 
         return (
             EmailTemplatesByPluginConfigurationLoader(request)
