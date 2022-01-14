@@ -3,7 +3,7 @@ from graphql.utils import schema_printer
 from .celeryconf import app as celery_app
 
 __all__ = ["celery_app"]
-__version__ = "3.0.0-b.39"
+__version__ = "3.0.0-b.40"
 
 
 def patched_print_object(type):
