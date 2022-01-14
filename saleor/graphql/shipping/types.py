@@ -79,9 +79,10 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
 
 
 class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
-    """An internal representation of a shipping method used in private API.
+    """Represents internal shipping method managed within Saleor.
 
-    Used to manage and configure available shipping methods.
+    Internal and external (fetched by sync webhooks) shipping methods are later
+    represented by `ShippingMethod` objects as part of orders and checkouts.
     """
 
     id = graphene.ID(required=True, description="Shipping method ID.")
