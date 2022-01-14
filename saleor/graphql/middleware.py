@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.conf import settings
 
 from ..core.exceptions import ReadOnlyException

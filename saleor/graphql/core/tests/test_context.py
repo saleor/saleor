@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 from django.urls import reverse
 
 from ...context import set_app_on_context
