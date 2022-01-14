@@ -756,15 +756,15 @@ def test_update_public_metadata_for_item(api_client, checkout):
 
 
 def test_update_public_metadata_for_non_exist_item(
-    staff_api_client, permission_manage_payments
+    staff_api_client, permission_manage_products
 ):
     # given
-    payment_id = "Payment: 0"
-    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
+    category_id = "Category: 0"
+    category_id = base64.b64encode(str.encode(category_id)).decode("utf-8")
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_payments, payment_id, "Payment"
+        staff_api_client, permission_manage_products, category_id, "Category"
     )
 
     # then
@@ -1453,15 +1453,15 @@ def test_delete_public_metadata_for_menu_item(
 
 
 def test_delete_public_metadata_for_non_exist_item(
-    staff_api_client, permission_manage_payments
+    staff_api_client, permission_manage_products
 ):
     # given
-    payment_id = "Payment: 0"
-    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
+    category_id = "Category: 0"
+    category_id = base64.b64encode(str.encode(category_id)).decode("utf-8")
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_payments, payment_id, "Checkout"
+        staff_api_client, permission_manage_products, category_id, "Category"
     )
 
     # then
@@ -2223,15 +2223,15 @@ def test_update_private_metadata_for_item(
 
 
 def test_update_private_metadata_for_non_exist_item(
-    staff_api_client, permission_manage_payments
+    staff_api_client, permission_manage_products
 ):
     # given
-    payment_id = "Payment: 0"
-    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
+    category_id = "Category: 0"
+    category_id = base64.b64encode(str.encode(category_id)).decode("utf-8")
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_payments, payment_id, "Payment"
+        staff_api_client, permission_manage_products, category_id, "Category"
     )
 
     # then
@@ -2946,15 +2946,15 @@ def test_delete_private_metadata_for_menu_item(
 
 
 def test_delete_private_metadata_for_non_exist_item(
-    staff_api_client, permission_manage_payments
+    staff_api_client, permission_manage_products
 ):
     # given
-    payment_id = "Payment: 0"
-    payment_id = base64.b64encode(str.encode(payment_id)).decode("utf-8")
+    category_id = "Category: 0"
+    category_id = base64.b64encode(str.encode(category_id)).decode("utf-8")
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_payments, payment_id, "Payment"
+        staff_api_client, permission_manage_products, category_id, "Category"
     )
 
     # then
