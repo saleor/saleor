@@ -2655,7 +2655,7 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
     assert products[0]["node"]["name"] == product_with_rich_text_attr.name
 
 
-@pytest.mark.parametrize("search_value", ["134", "134", "134 cm"])
+@pytest.mark.parametrize("search_value", ["13456", "13456 cm"])
 def test_products_query_with_filter_search_by_numeric_attribute_value(
     search_value,
     query_products_with_filter,
@@ -2675,7 +2675,7 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
     numeric_attribute.save(update_fields=["unit"])
 
     numeric_attr_value = numeric_attribute.values.first()
-    numeric_attr_value.name = "134"
+    numeric_attr_value.name = "13456"
     numeric_attr_value.save(update_fields=["name"])
 
     associate_attribute_values_to_instance(

@@ -457,14 +457,12 @@ class AttributeAssignmentMixin:
 
         :raises ValidationError: when an invalid operation was found.
         """
-        errors = validate_attributes_input(
+        if errors := validate_attributes_input(
             cleaned_input,
             attribute_qs,
             is_page_attributes=is_page_attributes,
             creation=creation,
-        )
-
-        if errors:
+        ):
             raise ValidationError(errors)
 
     @classmethod
