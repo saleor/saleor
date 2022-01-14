@@ -66,42 +66,45 @@ class PluginsManager(PaymentInterface):
     def _load_plugin(
         self,
         PluginClass: Type["BasePlugin"],
-        config,
+        db_configs_map: dict,
         channel: Optional["Channel"] = None,
     ) -> "BasePlugin":
-
-        if PluginClass.PLUGIN_ID in config:
-            existing_config = config[PluginClass.PLUGIN_ID]
-            plugin_config = existing_config.configuration
-            active = existing_config.active
-            channel = existing_config.channel
+        db_config = None
+        if PluginClass.PLUGIN_ID in db_configs_map:
+            db_config = db_configs_map[PluginClass.PLUGIN_ID]
+            plugin_config = db_config.configuration
+            active = db_config.active
+            channel = db_config.channel
         else:
             plugin_config = PluginClass.DEFAULT_CONFIGURATION
             active = PluginClass.get_default_active()
 
-        return PluginClass(configuration=plugin_config, active=active, channel=channel)
+        return PluginClass(
+            configuration=plugin_config,
+            active=active,
+            channel=channel,
+            db_config=db_config,
+        )
 
     def __init__(self, plugins: List[str]):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
-            self.plugins_per_channel = defaultdict(list)
             self.all_plugins = []
-            (
-                self._global_config,
-                self._configs_per_channel,
-            ) = self._get_all_plugin_configs()
             self.global_plugins = []
-            channels = Channel.objects.all()
-            for plugin_path in plugins:
+            self.plugins_per_channel = defaultdict(list)
 
+            global_db_configs, channel_db_configs = self._get_db_plugin_configs()
+            channels = Channel.objects.all()
+
+            for plugin_path in plugins:
                 with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
                     PluginClass = import_string(plugin_path)
                     if not getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
-                        plugin = self._load_plugin(PluginClass, self._global_config)
+                        plugin = self._load_plugin(PluginClass, global_db_configs)
                         self.global_plugins.append(plugin)
                         self.all_plugins.append(plugin)
                     else:
                         for channel in channels:
-                            channel_configs = self._configs_per_channel.get(channel, {})
+                            channel_configs = channel_db_configs.get(channel, {})
                             plugin = self._load_plugin(
                                 PluginClass, channel_configs, channel
                             )
@@ -110,6 +113,27 @@ class PluginsManager(PaymentInterface):
 
             for channel in channels:
                 self.plugins_per_channel[channel.slug].extend(self.global_plugins)
+
+    def _get_db_plugin_configs(self):
+        with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
+            qs = (
+                PluginConfiguration.objects.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                )
+                .all()
+                .prefetch_related("channel")
+            )
+            channel_configs = defaultdict(dict)
+            global_configs = {}
+            for db_plugin_config in qs:
+                channel = db_plugin_config.channel
+                if channel is None:
+                    global_configs[db_plugin_config.identifier] = db_plugin_config
+                else:
+                    channel_configs[channel][
+                        db_plugin_config.identifier
+                    ] = db_plugin_config
+            return global_configs, channel_configs
 
     def __run_method_on_plugins(
         self,
@@ -865,22 +889,6 @@ class PluginsManager(PaymentInterface):
             f"Payment plugin {gateway} for {method_name}"
             " payment method is inaccessible!"
         )
-
-    def _get_all_plugin_configs(self):
-        with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):
-            if not hasattr(self, "_plugin_configs"):
-                plugin_configurations = PluginConfiguration.objects.prefetch_related(
-                    "channel"
-                ).all()
-                self._plugin_configs_per_channel = defaultdict(dict)
-                self._global_plugin_configs = {}
-                for pc in plugin_configurations:
-                    channel = pc.channel
-                    if channel is None:
-                        self._global_plugin_configs[pc.identifier] = pc
-                    else:
-                        self._plugin_configs_per_channel[channel][pc.identifier] = pc
-            return self._global_plugin_configs, self._plugin_configs_per_channel
 
     # FIXME these methods should be more generic
 

@@ -23,4 +23,15 @@ class PluginConfiguration(models.Model):
         permissions = ((PluginsPermissions.MANAGE_PLUGINS.codename, "Manage plugins"),)
 
     def __str__(self):
-        return f"Configuration of {self.name}, active: {self.active}"
+        return f"{self.identifier}, active: {self.active}"
+
+
+class EmailTemplate(models.Model):
+    plugin_configuration = models.ForeignKey(
+        PluginConfiguration, related_name="email_templates", on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=255)
+    value = models.TextField()
+
+    def __str__(self):
+        return self.name
