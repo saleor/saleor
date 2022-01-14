@@ -927,10 +927,14 @@ class ProductVariantCreate(ModelMutation):
                         cleaned_attributes, used_attribute_values, instance
                     )
                     cleaned_input["attributes"] = cleaned_attributes
-                elif not instance.pk and not attributes:
+                # elif not instance.pk and not attributes:
+                elif not instance.pk and (
+                    not attributes
+                    and product_type.variant_attributes.filter(value_required=True)
+                ):
                     # if attributes were not provided on creation
                     raise ValidationError(
-                        "All attributes must take a value.",
+                        "All required attributes must take a value.",
                         ProductErrorCode.REQUIRED.value,
                     )
             except ValidationError as exc:
@@ -1002,8 +1006,8 @@ class ProductVariantCreate(ModelMutation):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+        generate_and_set_variant_name(instance, cleaned_input.get("sku"))
         update_product_search_document(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created

@@ -566,7 +566,7 @@ def test_create_variant(
     sku = "1"
     weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
-    variant_id = graphene.Node.to_global_id(
+    attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
@@ -582,7 +582,7 @@ def test_create_variant(
         "sku": sku,
         "stocks": stocks,
         "weight": weight,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
@@ -622,7 +622,7 @@ def test_create_variant_preorder(
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    variant_id = graphene.Node.to_global_id(
+    attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
@@ -638,7 +638,7 @@ def test_create_variant_preorder(
         "productId": product_id,
         "sku": "1",
         "weight": 10.22,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
         "preorder": {
             "globalThreshold": global_threshold,
             "endDate": end_date,
@@ -659,6 +659,65 @@ def test_create_variant_preorder(
     assert data["preorder"]["endDate"] == end_date
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_create_variant_no_required_attributes(
+    updated_webhook_mock,
+    created_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+
+    attribute = product_type.variant_attributes.first()
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
+    assert not content["errors"]
+    data = content["productVariant"]
+    assert data["name"] == sku
+    assert data["sku"] == sku
+    assert not data["attributes"][0]["values"]
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+    updated_webhook_mock.assert_not_called()
+
+    product.refresh_from_db()
+    assert product.search_document
+    assert sku in product.search_document
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
@@ -1243,7 +1302,7 @@ def test_create_variant_with_numeric_attribute(
     weight = 10.22
     product_type.variant_attributes.set([numeric_attribute])
     variant_slug = numeric_attribute.slug
-    variant_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     variant_value = "22.31"
     stocks = [
         {
@@ -1257,7 +1316,7 @@ def test_create_variant_with_numeric_attribute(
         "sku": sku,
         "stocks": stocks,
         "weight": weight,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
@@ -1297,7 +1356,7 @@ def test_create_variant_with_numeric_attribute_not_numeric_value_given(
     sku = "1"
     weight = 10.22
     product_type.variant_attributes.set([numeric_attribute])
-    variant_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     variant_value = "abd"
     stocks = [
         {
@@ -1311,7 +1370,7 @@ def test_create_variant_with_numeric_attribute_not_numeric_value_given(
         "sku": sku,
         "stocks": stocks,
         "weight": weight,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
@@ -1333,7 +1392,7 @@ def test_create_product_variant_with_negative_weight(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
 
-    variant_id = graphene.Node.to_global_id(
+    attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
@@ -1341,7 +1400,7 @@ def test_create_product_variant_with_negative_weight(
     variables = {
         "productId": product_id,
         "weight": -1,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -1353,12 +1412,17 @@ def test_create_product_variant_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-def test_create_product_variant_without_attributes(
+def test_create_product_variant_required_without_attributes(
     staff_api_client, product, permission_manage_products
 ):
     # given
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute = product.product_type.variant_attributes.first()
+    attribute.value_required = True
+    attribute.save(update_fields=["value_required"])
+
     variables = {
         "productId": product_id,
         "sku": "test-sku",
@@ -1386,7 +1450,7 @@ def test_create_product_variant_missing_required_attributes(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
-    variant_id = graphene.Node.to_global_id(
+    attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
@@ -1401,7 +1465,7 @@ def test_create_product_variant_missing_required_attributes(
     variables = {
         "productId": product_id,
         "sku": sku,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -1739,7 +1803,7 @@ def test_create_variant_with_empty_string_for_sku(
     sku = ""
     weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
-    variant_id = graphene.Node.to_global_id(
+    attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
@@ -1755,7 +1819,7 @@ def test_create_variant_with_empty_string_for_sku(
         "sku": sku,
         "stocks": stocks,
         "weight": weight,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
@@ -1794,7 +1858,7 @@ def test_create_variant_without_sku(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
-    variant_id = graphene.Node.to_global_id(
+    attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
@@ -1809,7 +1873,7 @@ def test_create_variant_without_sku(
         "productId": product_id,
         "stocks": stocks,
         "weight": weight,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "attributes": [{"id": attribute_id, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
