@@ -346,7 +346,8 @@ def update_checkout_info_delivery_method_info(
         )
 
     elif external_shipping_method_id := get_external_shipping_id(checkout):
-
+        # A local function is used to delay evaluation
+        # of the lazy `all_shipping_methods` attribute
         def _resolve_external_method():
             methods = {
                 method.id: method for method in checkout_info.all_shipping_methods
