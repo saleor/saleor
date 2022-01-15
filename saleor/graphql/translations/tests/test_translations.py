@@ -1263,7 +1263,6 @@ def test_collection_translation_mutation_validates_inputs_length(
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["collectionTranslate"]
-    print(data)
 
     assert data["collection"] is None
     assert data["errors"] == [{"field": "name", "code": "TOO_LONG"}]

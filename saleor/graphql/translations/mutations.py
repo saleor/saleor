@@ -58,8 +58,6 @@ def validate_input(model: Model, input_data: dict):
         model_field = model._meta.get_field(field_name)
         if not isinstance(model_field, CharField):
             continue
-        if value:
-            print(field_name, len(value), model_field.max_length)
         if value and len(value) > model_field.max_length:
             errors[field_name] = ValidationError(
                 f"This value can't be longer than {model_field.max_length}",
