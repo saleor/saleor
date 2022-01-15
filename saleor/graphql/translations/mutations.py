@@ -52,7 +52,7 @@ TRANSLATABLE_CONTENT_TO_TYPE = {
 }
 
 
-def validate_input(model: Model, input_data: dict):
+def validate_input_against_model(model: Model, input_data: dict):
     errors = {}
     for field_name, value in input_data.items():
         model_field = model._meta.get_field(field_name)
@@ -95,7 +95,7 @@ class BaseTranslateMutation(ModelMutation):
 
     @classmethod
     def validate_input(cls, input_data):
-        validate_input(cls._meta.model, input_data)
+        validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -476,7 +476,7 @@ class ShopSettingsTranslate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
-        validate_input(SiteSettings, data["input"])
+        validate_input_against_model(SiteSettings, data["input"])
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
