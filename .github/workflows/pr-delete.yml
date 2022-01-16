@@ -27,7 +27,7 @@ jobs:
           HEROKU_EMAIL: "hazem.khaled@gmail.com"
 
       - name: Delete Saleor App
-        run: heroku apps:destroy w8-saleor-pr-${{ github.event.pull_request.number }}
+        run: heroku apps:destroy w8-saleor-pr-${{ github.event.pull_request.number }} --confirm
 
       - name: Delete Federation App
-        run: heroku apps:destroy w8-pr-${{ github.event.pull_request.number }}
+        run: heroku apps:destroy w8-pr-${{ github.event.pull_request.number }} --confirm
