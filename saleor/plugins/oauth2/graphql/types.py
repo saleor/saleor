@@ -34,7 +34,4 @@ class OAuth2Input(graphene.InputObjectType):
 
 class OAuth2TokenInput(graphene.InputObjectType):
     provider = ProviderEnum(required=True, description="Provider name.")
-    state = graphene.String(
-        required=True, description="The state that was provided initially."
-    )
     code = graphene.String(required=True, description="Provider access token.")
