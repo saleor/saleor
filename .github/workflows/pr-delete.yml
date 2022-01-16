@@ -1,0 +1,21 @@
+name: Cleanup PR
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Delete Saleor
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_email: "hazem.khaled@gmail.com"
+          team: "wecre8"
+
+      - run: heroku apps:destroy w8-saleor-pr-${{ github.event.pull_request.number }}
+      - run: heroku apps:destroy w8-pr-${{ github.event.pull_request.number }}
