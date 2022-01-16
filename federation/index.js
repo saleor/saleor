@@ -6,10 +6,10 @@ const serviceList = [
     name: "saleor",
     url: "https://w8-saleor-staging.herokuapp.com/graphql/",
   },
-  // {
-  //   name: "social-login",
-  //   url: `https://w8-saleor-pr-${process.env.PR_NUMBER}.herokuapp.com/plugins/social-login/graphql`,
-  // }
+  {
+    name: "countries",
+    url: `https://w8-saleor-pr-${process.env.PR_NUMBER}.herokuapp.com/plugins/countries/graphql`,
+  }
 ];
 
 const gateway = new ApolloGateway({ serviceList });
