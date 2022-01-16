@@ -3,6 +3,7 @@ import uuid
 from collections import defaultdict
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
+from uuid import uuid4
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
@@ -1015,6 +1016,7 @@ def generate_api_call_payload(request, response):
         pass
 
     payload = {
+        "request_id": str(uuid4()),
         "request_time": request.request_time.timestamp(),
         "request_headers": dict(request.headers),
         "request_body": request_body,
@@ -1025,9 +1027,13 @@ def generate_api_call_payload(request, response):
         "response_content": response_body,
     }
     if request.app:
-        payload["request_app_id"] = request.app.id
-        payload["request_app_name"] = request.app.name
+        payload["saleor_app"] = dict(
+            saleor_app_id=graphene.Node.to_global_id("App", request.app.id),
+            name=request.app.name,
+        )
     if request.user.is_authenticated:
-        payload["request_user_id"] = request.user.id
-        payload["request_user_email"] = request.user.email
+        payload["user"] = dict(
+            id=graphene.Node.to_global_id("User", request.user.id),
+            email=request.user.email,
+        )
     return json.dumps([payload])
