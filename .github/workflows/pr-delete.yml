@@ -5,17 +5,29 @@ on:
     types: [closed]
 
 jobs:
-  build:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Delete Saleor
-        uses: akhileshns/heroku-deploy@v3.12.12
+      - name: Check out repository
+        uses: actions/checkout@v2
         with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_email: "hazem.khaled@gmail.com"
-          team: "wecre8"
+          fetch-depth: 0
+      - name: Heroku login credentials
+        run: |
+          cat > ~/.netrc <<EOF
+            machine api.heroku.com
+              login $HEROKU_EMAIL
+              password $HEROKU_API_KEY
+            machine git.heroku.com
+              login $HEROKU_EMAIL
+              password $HEROKU_API_KEY
+          EOF
+        env:
+          HEROKU_API_KEY: ${{secrets.HEROKU_API_KEY}}
+          HEROKU_EMAIL: "hazem.khaled@gmail.com"
 
-      - run: heroku apps:destroy w8-saleor-pr-${{ github.event.pull_request.number }}
-      - run: heroku apps:destroy w8-pr-${{ github.event.pull_request.number }}
+      - name: Delete Saleor App
+        run: heroku apps:destroy w8-saleor-pr-${{ github.event.pull_request.number }}
+
+      - name: Delete Federation App
+        run: heroku apps:destroy w8-pr-${{ github.event.pull_request.number }}
