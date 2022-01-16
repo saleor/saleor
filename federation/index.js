@@ -5,6 +5,10 @@ const serviceList = [
   {
     name: "saleor",
     url: "https://api.wecre8.ninja/graphql/",
+  },
+  {
+    name: "social-login",
+    url: "https://api.wecre8.ninja/plugins/social-login/",
   }
 ];
 
