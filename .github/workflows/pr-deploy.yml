@@ -45,7 +45,8 @@ jobs:
           HD_NODE_ENV: development
           HD_PR_NUMBER: ${{ github.event.pull_request.number }}
 
-      - uses: mshick/add-pr-comment@v1
+      - name: Comment deploy links
+        uses: mshick/add-pr-comment@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
