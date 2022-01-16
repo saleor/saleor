@@ -4,7 +4,6 @@ import hmac
 import json
 import logging
 
-import requests
 from django.contrib.sites.models import Site
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
@@ -89,38 +88,6 @@ def generate_cancel_order_and_return_link_data(fulfillment):
     return dict(
         orderId=get_oto_order_id(fulfillment=fulfillment),
     )
-
-
-def generate_oto_request_data(fulfillment, **kwargs):
-    destination_url = kwargs.get("destination_url")
-    if destination_url == "createOrder":
-        return generate_create_order_data(fulfillment=fulfillment)
-    elif destination_url == "cancelOrder":
-        return generate_cancel_order_and_return_link_data(fulfillment=fulfillment)
-    elif destination_url == "getReturnLink":
-        return generate_cancel_order_and_return_link_data(fulfillment=fulfillment)
-
-
-def get_oto_url(destination_url):
-    return "https://api.tryoto.com/rest/v2/{0}".format(destination_url)
-
-
-def send_oto_request(fulfillment, config: "dict", destination_url: str, data=None):
-    """Send request to OTO API."""
-    url = get_oto_url(destination_url=destination_url)
-    if not data:
-        data = generate_oto_request_data(
-            fulfillment=fulfillment, destination_url=destination_url
-        )
-    response = requests.post(
-        url=url,
-        json=data,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {config.get('ACCESS_TOKEN')}",
-        },
-    )
-    return response.json()
 
 
 def verify_webhook(request: HttpRequest, config: "dict"):

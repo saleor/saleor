@@ -10,8 +10,9 @@ from ...order.models import Fulfillment, Order
 from ...payment.gateways.utils import require_active_plugin
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
+from .client import OTOApiClient
 from .constants import PLUGIN_ID
-from .utils import get_oto_order_id, handle_webhook, send_oto_request
+from .utils import generate_create_order_data, handle_webhook
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class OTOPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = {item["name"]: item["value"] for item in self.configuration}
+        self.oto_client = OTOApiClient(access_token=self.config["ACCESS_TOKEN"])
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -81,17 +83,22 @@ class OTOPlugin(BasePlugin):
                 },
             )
 
+    @staticmethod
+    def get_oto_order_id(fulfillment: Fulfillment) -> str:
+        return str(f"#{fulfillment.composed_id}")
+
     @require_active_plugin
     def fulfillment_created(
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         # Create an OTO order.
-        response = send_oto_request(fulfillment, self.config, "createOrder")
+        order_data = generate_create_order_data(fulfillment=fulfillment)
+        response = self.oto_client.create_oto_order(order_data=order_data)
         if response.get("success") is True:
             fulfillment_ids = fulfillment.order.get_value_from_private_metadata(
                 "oto_fulfillment_ids", []
             )
-            fulfillment_ids.extend([get_oto_order_id(fulfillment=fulfillment)])
+            fulfillment_ids.extend([self.get_oto_order_id(fulfillment=fulfillment)])
             fulfillment.order.store_value_in_private_metadata(
                 items=dict(oto_fulfillment_ids=fulfillment_ids)
             )
@@ -114,7 +121,10 @@ class OTOPlugin(BasePlugin):
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:
         # Cancel an OTO order.
-        response = send_oto_request(fulfillment, self.config, "cancelOrder")
+        order_data = dict(
+            orderId=self.get_oto_order_id(fulfillment=fulfillment),
+        )
+        response = self.oto_client.cancel_oto_order(order_data=order_data)
         if not response.get("success") is True:
             msg = (
                 response.get("errorMsg").capitalize()
@@ -143,11 +153,11 @@ class OTOPlugin(BasePlugin):
                     "oto_fulfillment_ids", []
                 )
                 for oto_order_id in oto_fulfillment_ids:
-                    data = {
+                    order_data = {
                         "orderId": oto_order_id,
                     }
-                    response = send_oto_request(
-                        returned_fulfillment, self.config, "getReturnLink", data
+                    response = self.oto_client.get_oto_order_return_link(
+                        order_data=order_data
                     )
                     if response.get("success") is True:
                         returned_fulfillment.store_value_in_private_metadata(
