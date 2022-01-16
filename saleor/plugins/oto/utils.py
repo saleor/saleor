@@ -84,7 +84,7 @@ def generate_create_order_data(fulfillment):
     return data
 
 
-def generate_cancel_order_and_return_link_data(fulfillment):
+def generate_cancel_order_and_return_link_data(fulfillment: "Fulfillment"):
     return dict(
         orderId=get_oto_order_id(fulfillment=fulfillment),
     )

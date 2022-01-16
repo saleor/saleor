@@ -50,7 +50,11 @@ class OTOPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = {item["name"]: item["value"] for item in self.configuration}
-        self.oto_client = OTOApiClient(access_token=self.config["ACCESS_TOKEN"])
+
+    def get_client(self):
+        return OTOApiClient(
+            access_token=self.config["ACCESS_TOKEN"],
+        )
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -93,7 +97,7 @@ class OTOPlugin(BasePlugin):
     ) -> Any:
         # Create an OTO order.
         order_data = generate_create_order_data(fulfillment=fulfillment)
-        response = self.oto_client.create_oto_order(order_data=order_data)
+        response = self.get_client().create_order(order_data=order_data)
         if response.get("success") is True:
             fulfillment_ids = fulfillment.order.get_value_from_private_metadata(
                 "oto_fulfillment_ids", []
@@ -124,7 +128,7 @@ class OTOPlugin(BasePlugin):
         order_data = dict(
             orderId=self.get_oto_order_id(fulfillment=fulfillment),
         )
-        response = self.oto_client.cancel_oto_order(order_data=order_data)
+        response = self.get_client().cancel_order(order_data=order_data)
         if not response.get("success") is True:
             msg = (
                 response.get("errorMsg").capitalize()
@@ -156,7 +160,7 @@ class OTOPlugin(BasePlugin):
                     order_data = {
                         "orderId": oto_order_id,
                     }
-                    response = self.oto_client.get_oto_order_return_link(
+                    response = self.get_client().get_order_return_link(
                         order_data=order_data
                     )
                     if response.get("success") is True:

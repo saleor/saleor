@@ -14,17 +14,17 @@ class OTOApiClient(metaclass=Singleton):
         )
 
     @staticmethod
-    def get_oto_url(path):
+    def get_base_url(path):
         return f"https://api.tryoto.com/rest/v2/{path}"
 
-    def create_oto_order(self, order_data):
-        url = self.get_oto_url("createOrder")
+    def create_order(self, order_data):
+        url = self.get_base_url("createOrder")
         return self.session.post(url, json=order_data).json()
 
-    def cancel_oto_order(self, order_data):
-        url = self.get_oto_url("cancelOrder")
+    def cancel_order(self, order_data):
+        url = self.get_base_url("cancelOrder")
         return self.session.post(url, json=order_data).json()
 
-    def get_oto_order_return_link(self, order_data):
-        url = self.get_oto_url("getReturnLink")
+    def get_order_return_link(self, order_data):
+        url = self.get_base_url("getReturnLink")
         return self.session.post(url, json=order_data).json()
