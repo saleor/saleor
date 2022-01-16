@@ -45,7 +45,7 @@ jobs:
           HD_NODE_ENV: development
           HD_PR_NUMBER: ${{ github.event.pull_request.number }}
 
-      - name: Comment deploy links
+      - name: Comment Deploy Links
         uses: mshick/add-pr-comment@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,3 +53,12 @@ jobs:
           message: |
             Federation: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com/
             Backend   : https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
+
+      - name: Comment Build Fail
+        if: ${{ failure() }}
+        uses: mshick/add-pr-comment@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          message: |
+            🐞	🐞	🐞	🐞	🐞	🐞	🐞	🐞	BUILD FAIL 🐞	🐞	🐞	🐞	🐞	🐞	🐞	🐞
