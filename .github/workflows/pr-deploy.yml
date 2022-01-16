@@ -41,7 +41,6 @@ jobs:
           team: "wecre8"
           buildpack: heroku/nodejs
           appdir: "federation"
-          procfile: "web: npm start"
         env:
           HD_NODE_ENV: development
           HD_PR_NUMBER: ${{ github.event.pull_request.number }}
