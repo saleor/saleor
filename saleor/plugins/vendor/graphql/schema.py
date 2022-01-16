@@ -9,7 +9,7 @@ from . import types
 from .mutations import VendorCreate, VendorDelete, VendorUpdate
 
 
-class VendorQueries(graphene.ObjectType):
+class Query(graphene.ObjectType):
 
     vendor = graphene.Field(
         types.Vendor,
@@ -31,14 +31,14 @@ class VendorQueries(graphene.ObjectType):
         return Vendor.objects.get(id=id)
 
 
-class VendorMutations(graphene.ObjectType):
+class Mutation(graphene.ObjectType):
     vendor_create = VendorCreate.Field()
     vendor_update = VendorUpdate.Field()
     vendor_delete = VendorDelete.Field()
 
 
 schema = graphene.Schema(
-    query=VendorQueries,
-    mutation=VendorMutations,
+    query=Query,
+    mutation=Mutation,
     types=[types.Vendor],
 )
