@@ -7,8 +7,8 @@ const serviceList = [
     url: "https://api.wecre8.ninja/graphql/",
   },
   {
-    name: "social-login",
-    url: "https://api.wecre8.ninja/plugins/social-login/",
+    name: `graph-for-pr-${process.env.PR_NUMBER}`,
+    url: `https://w8-saleor-pr-${process.env.PR_NUMBER}.herokuapp.com/`,
   }
 ];
 
