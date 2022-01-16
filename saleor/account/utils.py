@@ -2,11 +2,10 @@ from typing import TYPE_CHECKING
 
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
-from .models import User
+from .models import Address, User
 
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
-    from .models import Address
 
 
 def store_user_address(
@@ -84,3 +83,9 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
+
+
+def address_owned_by_user(pk, user):
+    if user.is_anonymous:
+        return False
+    return user.addresses.filter(pk=pk).exists()

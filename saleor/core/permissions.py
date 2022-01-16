@@ -17,6 +17,10 @@ class AccountPermissions(BasePermissionEnum):
     IMPERSONATE_USER = "account.impersonate_user"
 
 
+class AddressPermissions(BasePermissionEnum):
+    MANAGE_ADDRESSES = "address.manage_addresses"
+
+
 class AppPermission(BasePermissionEnum):
     MANAGE_APPS = "app.manage_apps"
 

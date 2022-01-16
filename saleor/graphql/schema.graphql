@@ -116,7 +116,7 @@ type AccountUpdate {
   user: User
 }
 
-type Address implements Node {
+type Address implements Node & ObjectWithMetadata {
   id: ID!
   firstName: String!
   lastName: String!
@@ -129,6 +129,8 @@ type Address implements Node {
   country: CountryDisplay!
   countryArea: String!
   phone: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   isDefaultShippingAddress: Boolean
   isDefaultBillingAddress: Boolean
 }

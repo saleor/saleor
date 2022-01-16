@@ -68,7 +68,7 @@ class Address(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents user address data."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
         only_fields = [
             "city",
