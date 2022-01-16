@@ -3,7 +3,7 @@ name: Deploy PR
 on: pull_request
 
 jobs:
-  build:
+  deploy-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

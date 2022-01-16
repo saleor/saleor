@@ -14,7 +14,7 @@ env:
   SECRET_KEY: ci-test
 
 jobs:
-  build:
+  build-n-test:
     runs-on: ubuntu-latest
     container: python:3.8
     if: github.event.pull_request.draft == 'false'
