@@ -1,8 +1,3 @@
-from saleor.settings import *  # noqa F403
-
-LANGUAGES = [
-    ("ar", "Arabic"),
-    ("en", "English"),
-]
+from saleor.settings import *  # noqa F405
 
 INSTALLED_APPS.append("django_celery_results")  # noqa F405
