@@ -4,7 +4,7 @@ const { ApolloGateway } = require("@apollo/gateway");
 const serviceList = [
   {
     name: "saleor",
-    url: "https://api.wecre8.ninja/graphql/",
+    url: "https://w8-saleor-staging.herokuapp.com/graphql/",
   },
   // {
   //   name: "social-login",
