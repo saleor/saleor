@@ -46,9 +46,10 @@ app.get("/", (request, reply) => {
 server
   .start()
   .then(() => app.register(server.createHandler()))
-  .then(() => app.listen(process.env.PORT || 4000))
+  .then(() => app.listen(process.env.PORT, '0.0.0.0'))
   .then(() => {
-    console.log(`🚀  Gateway is ready at ${server.graphqlPath}`);
+    const { port, address } = app.server.address();
+    console.log(`🚀  Gateway is ready at http://${address}:${port}${server.graphqlPath}`);
   })
   .catch((err) => {
     console.error(err);
