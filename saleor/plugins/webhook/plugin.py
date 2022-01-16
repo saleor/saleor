@@ -388,9 +388,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         api_call_data = generate_api_call_payload(request, response)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.REPORT_API_CALL, api_call_data
-        )
+        trigger_webhooks_async(api_call_data, WebhookEventAsyncType.REPORT_API_CALL)
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
