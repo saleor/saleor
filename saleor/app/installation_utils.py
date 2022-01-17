@@ -4,7 +4,7 @@ from django.contrib.sites.models import Site
 from ..core.permissions import get_permission_names
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
-from .types import AppType
+from .types import AppExtensionOpenAs, AppType
 
 REQUEST_TIMEOUT = 25
 
@@ -60,6 +60,7 @@ def install_app(
             view=extension_data.get("view"),
             type=extension_data.get("type"),
             target=extension_data.get("target"),
+            open_as=extension_data.get("open_as") or AppExtensionOpenAs.POPUP,
         )
         extension.permissions.set(extension_data.get("permissions", []))
 

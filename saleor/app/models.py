@@ -7,7 +7,13 @@ from oauthlib.common import generate_token
 from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
+from .types import (
+    AppExtensionOpenAs,
+    AppExtensionTarget,
+    AppExtensionType,
+    AppExtensionView,
+    AppType,
+)
 
 
 class AppQueryset(models.QuerySet):
@@ -112,6 +118,11 @@ class AppExtension(models.Model):
     view = models.CharField(choices=AppExtensionView.CHOICES, max_length=128)
     type = models.CharField(choices=AppExtensionType.CHOICES, max_length=128)
     target = models.CharField(choices=AppExtensionTarget.CHOICES, max_length=128)
+    open_as = models.CharField(
+        choices=AppExtensionOpenAs.CHOICES,
+        max_length=128,
+        default=AppExtensionOpenAs.POPUP,
+    )
     permissions = models.ManyToManyField(
         Permission,
         blank=True,

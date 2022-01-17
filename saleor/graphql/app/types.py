@@ -1,9 +1,11 @@
 from typing import List
+from urllib.parse import urljoin, urlparse
 
 import graphene
 from graphene_federation import key
 
 from ...app import models
+from ...app.types import AppExtensionOpenAs
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableConnection, CountableDjangoObjectType
@@ -17,6 +19,7 @@ from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
 from .enums import (
+    AppExtensionOpenAsEnum,
     AppExtensionTargetEnum,
     AppExtensionTypeEnum,
     AppExtensionViewEnum,
@@ -51,6 +54,31 @@ class AppManifestExtension(graphene.ObjectType):
     target = AppExtensionTargetEnum(
         description="Place where extension's iframe will be mounted.", required=True
     )
+    open_as = AppExtensionOpenAsEnum(
+        description="Type of way how app extension will be opened.", required=True
+    )
+
+    @staticmethod
+    def resolve_open_as(root, info):
+        return root.get("open_as") or AppExtensionOpenAs.POPUP
+
+    @staticmethod
+    def resolve_url(root, info):
+        """Return an extension url.
+
+        Apply url stitching when these 3 conditions are met:
+            - url starts with /
+            - openAs == "POPUP"
+            - appUrl is defined
+        """
+        open_as = root.get("open_as", AppExtensionOpenAs.POPUP)
+        app_url = root["app_url"]
+        url = root["url"]
+        if url.startswith("/") and app_url and open_as == AppExtensionOpenAs.POPUP:
+            parsed_url = urlparse(app_url)
+            new_path = urljoin(parsed_url.path, url[1:])
+            return parsed_url._replace(path=new_path).geturl()
+        return url
 
 
 class AppExtension(AppManifestExtension, CountableDjangoObjectType):
@@ -63,6 +91,23 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node]
         model = models.AppExtension
+
+    @staticmethod
+    def resolve_url(root, info):
+        return (
+            AppByIdLoader(info.context)
+            .load(root.app_id)
+            .then(
+                lambda app: AppManifestExtension.resolve_url(
+                    {"open_as": root.open_as, "app_url": app.app_url, "url": root.url},
+                    info,
+                )
+            )
+        )
+
+    @staticmethod
+    def resolve_open_as(root, info):
+        return root.open_as
 
     @staticmethod
     def resolve_app(root, info):
@@ -113,6 +158,12 @@ class Manifest(graphene.ObjectType):
 
     class Meta:
         description = "The manifest definition."
+
+    @staticmethod
+    def resolve_extensions(root, info):
+        for extension in root.extensions:
+            extension["app_url"] = root.app_url
+        return root.extensions
 
 
 class AppToken(CountableDjangoObjectType):
