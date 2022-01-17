@@ -531,12 +531,6 @@ def test_order_query(
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
-@pytest.mark.skip(
-    "Shipping method is cleared when channel listings are edited, "
-    "see: drop_invalid_shipping_methods_relations_for_given_channels."
-    "However, a solution that returns price for non editable orders "
-    "should be added."
-)
 def test_order_query_shipping_method_channel_listing_does_not_exist(
     staff_api_client,
     permission_manage_orders,
@@ -562,9 +556,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
-        "ShippingMethod", order.shipping_method.id
-    )
+    assert order_data["shippingMethod"] is None
 
 
 def test_order_query_external_shipping_method(

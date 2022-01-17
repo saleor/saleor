@@ -1325,7 +1325,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             shipping_models.ShippingMethodChannelListing.objects.filter(
                 shipping_method=shipping_method,
                 channel=checkout_info.channel,
-            ).get(),
+            ).first(),
         )
 
         cls._check_delivery_method(
@@ -1407,7 +1407,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_models.ShippingMethodChannelListing.objects.filter(
                 shipping_method=shipping_method,
                 channel=checkout_info.channel,
-            ).get(),
+            ).first(),
         )
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
