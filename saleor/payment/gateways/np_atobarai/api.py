@@ -112,7 +112,7 @@ def change_transaction(
     payment_information: PaymentData,
     refund_data: Optional[Dict[int, int]],
 ) -> Optional[PaymentResult]:
-    """Partial refund.
+    """Change transaction.
 
     If the fulfillment was reported prior to changing given transaction,
     then this function is a noop and return value is None.
@@ -177,7 +177,11 @@ def reregister_transaction_for_partial_return(
     tracking_number: Optional[str],
     refund_data: Optional[Dict[int, int]],
 ) -> PaymentResult:
-    """Partial refund after fulfillment report."""
+    """Change transaction.
+
+    Use it after capturing the payment, otherwise `change_transaction`
+    is the preferred function.
+    """
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.reregister"):
         psp_reference = payment.psp_reference
         action = TRANSACTION_REGISTRATION
@@ -231,6 +235,10 @@ def reregister_transaction_for_partial_return(
 def report_fulfillment(
     config: ApiConfig, payment: Payment, fulfillment: Fulfillment
 ) -> Tuple[Union[str, int], List[str], bool]:
+    """Report fulfillment.
+
+    After this action, given payment is captured in NP Atobarai.
+    """
     with np_atobarai_opentracing_trace(
         "np-atobarai.checkout.payments.report-fulfillment"
     ):

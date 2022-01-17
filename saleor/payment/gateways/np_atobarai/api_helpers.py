@@ -8,7 +8,7 @@ from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
 from ....order.models import Order
-from ...interface import AddressData, PaymentData
+from ...interface import AddressData, PaymentData, PaymentLineData
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, REQUEST_TIMEOUT
@@ -120,6 +120,15 @@ def format_price(price: Decimal, currency: str) -> int:
     return int(price_to_minor_unit(price, currency))
 
 
+def _get_goods_name(line: PaymentLineData, config: "ApiConfig") -> str:
+    if not config.sku_as_name:
+        return line.product_name
+    elif sku := line.product_sku:
+        return sku
+    else:
+        return str(line.variant_id)
+
+
 def get_refunded_goods(
     config: "ApiConfig",
     refund_data: Dict[int, int],
@@ -127,7 +136,7 @@ def get_refunded_goods(
 ) -> List[dict]:
     return [
         {
-            "goods_name": line.product_sku if config.sku_as_name else line.product_name,
+            "goods_name": _get_goods_name(line, config),
             "goods_price": format_price(line.gross, payment_information.currency),
             "quantity": quantity,
         }
@@ -140,7 +149,7 @@ def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dic
     return [
         {
             "quantity": line.quantity,
-            "goods_name": line.product_sku if config.sku_as_name else line.product_name,
+            "goods_name": _get_goods_name(line, config),
             "goods_price": format_price(line.gross, payment_information.currency),
         }
         for line in payment_information.lines

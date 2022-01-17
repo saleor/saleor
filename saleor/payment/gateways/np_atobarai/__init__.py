@@ -30,6 +30,13 @@ def parse_errors(errors: List[str]) -> str:
 def process_payment(
     payment_information: PaymentData, config: ApiConfig
 ) -> GatewayResponse:
+    """Create new transaction in NP Atobarai.
+
+    Returns unsuccessful response if payment status from
+    NP response is PENDING or FAILED.
+
+    :raises PaymentError: When the specified payment does not exist.
+    """
     payment_id = payment_information.payment_id
     payment = Payment.objects.filter(pk=payment_id).first()
 
@@ -64,6 +71,10 @@ def void(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse
 
 
 def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None:
+    """Event callback on updating order tracking number.
+
+    Captures payment in NP Atobarai and sends dashboard notification of the result.
+    """
     order = fulfillment.order
     payments = order.payments.filter(gateway=NP_PLUGIN_ID, is_active=True)
 
@@ -91,6 +102,11 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
 
 
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
+    """Refund an existing transaction.
+
+    A new psp reference may be issued,
+    which will be saved in payment object.
+    """
     payment_id = payment_information.payment_id
     payment = Payment.objects.filter(pk=payment_id).first()
 
@@ -127,7 +143,6 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     else:
         result = api.cancel_transaction(config, payment_information)
 
-    # NP may issue a new psp reference on partial refunds
     if psp_reference := result.psp_reference:
         payment.psp_reference = psp_reference
         payment.save(update_fields=["psp_reference"])
