@@ -24,7 +24,7 @@ from prices import Money, TaxedMoney
 from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..checkout.interface import CheckoutTaxedPricesData
-from ..core.models import EventDelivery
+from ..core.models import EventDelivery, EventDeliveryAttempt
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
@@ -600,6 +600,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "report_api_call", default_value, request, response
+        )
+
+    def report_event_delivery_attempt(self, delivery_attempt: "EventDeliveryAttempt"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "report_event_delivery_attempt", default_value, delivery_attempt
         )
 
     def order_created(self, order: "Order"):
