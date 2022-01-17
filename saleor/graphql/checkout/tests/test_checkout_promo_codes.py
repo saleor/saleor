@@ -168,7 +168,7 @@ def test_checkout_totals_use_discounts(
         lines=lines,
         checkout_line_info=checkout_line_info,
         discounts=discounts,
-    )
+    ).price_with_sale
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount
 
 
@@ -849,6 +849,19 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     )
     assert data["checkout"]["shippingMethod"] is None
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
+
+
+def test_checkout_add_promo_code_no_checkout_email(
+    api_client, checkout_with_item, voucher
+):
+    checkout_with_item.email = None
+    checkout_with_item.save(update_fields=["email"])
+
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
 
 
 MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """

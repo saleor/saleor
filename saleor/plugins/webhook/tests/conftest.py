@@ -10,7 +10,7 @@ from ....app.models import App
 from ....plugins.manager import get_plugins_manager
 from ....plugins.webhook.plugin import WebhookPlugin
 from ....shipping.interface import ShippingMethodData
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
 
 
@@ -61,11 +61,11 @@ def shipping_app_factory(db, permission_manage_orders, permission_manage_checkou
         webhook.events.bulk_create(
             [
                 WebhookEvent(
-                    event_type=WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                    event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
                     webhook=webhook,
                 ),
                 WebhookEvent(
-                    event_type=WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
+                    event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
                     webhook=webhook,
                 ),
             ]

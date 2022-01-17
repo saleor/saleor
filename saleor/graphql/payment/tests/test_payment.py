@@ -325,6 +325,37 @@ def test_checkout_add_payment_bad_amount(
     )
 
 
+def test_checkout_add_payment_no_checkout_email(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    checkout = checkout_without_shipping_required
+    checkout.email = None
+    checkout.save(update_fields=["email"])
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == PaymentErrorCode.CHECKOUT_EMAIL_NOT_SET.name
+
+
 def test_checkout_add_payment_not_supported_gateways(
     user_api_client, checkout_without_shipping_required, address
 ):

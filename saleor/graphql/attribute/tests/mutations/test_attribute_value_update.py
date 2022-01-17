@@ -3,6 +3,7 @@ import pytest
 from django.utils.text import slugify
 
 from .....attribute.error_codes import AttributeErrorCode
+from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
 
 UPDATE_ATTRIBUTE_VALUE_MUTATION = """
@@ -91,6 +92,85 @@ def test_update_attribute_value_name_not_unique(
     assert data["errors"][0]["message"]
     assert data["errors"][0]["field"] == "name"
     assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+
+
+def test_update_attribute_value_product_search_document_updated(
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
+    product,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    attribute = pink_attribute_value.attribute
+    value = pink_attribute_value
+
+    product_type = product.product_type
+    product_type.product_attributes.add(attribute)
+
+    associate_attribute_values_to_instance(product, attribute, value)
+
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    name = "Crimson name"
+    variables = {"input": {"name": name}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert data["attributeValue"]["name"] == name == value.name
+    assert data["attributeValue"]["slug"] == slugify(name)
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+
+    product.refresh_from_db()
+    assert name.lower() in product.search_document
+
+
+def test_update_attribute_value_product_search_document_updated_variant_attribute(
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
+    variant,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_VALUE_MUTATION
+    attribute = pink_attribute_value.attribute
+    value = pink_attribute_value
+
+    product = variant.product
+    product_type = product.product_type
+    product_type.variant_attributes.add(attribute)
+
+    associate_attribute_values_to_instance(variant, attribute, value)
+
+    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
+    name = "Crimson name"
+    variables = {"input": {"name": name}, "id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    value.refresh_from_db()
+    assert data["attributeValue"]["name"] == name == value.name
+    assert data["attributeValue"]["slug"] == slugify(name)
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+
+    product.refresh_from_db()
+    assert name.lower() in product.search_document
 
 
 def test_update_swatch_attribute_value(

@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
+from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
 from ..channel import ChannelQsContext
@@ -15,13 +16,19 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
     ChannelContextTypeWithMetadataForObjectType,
 )
-from ..core.connection import CountableDjangoObjectType
-from ..core.fields import ChannelContextFilterConnectionField
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+)
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.fields import ConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
+from ..translations.resolvers import resolve_translation
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
@@ -72,9 +79,10 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
 
 
 class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
-    """An internal representation of a shipping method used in private API.
+    """Represents internal shipping method managed within Saleor.
 
-    Used to manage and configure available shipping methods.
+    Internal and external (fetched by sync webhooks) shipping methods are later
+    represented by `ShippingMethod` objects as part of orders and checkouts.
     """
 
     id = graphene.ID(required=True, description="Shipping method ID.")
@@ -102,8 +110,8 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             "Postal code ranges rule of exclusion or inclusion of the shipping method."
         ),
     )
-    excluded_products = ChannelContextFilterConnectionField(
-        "saleor.graphql.product.types.products.Product",
+    excluded_products = ConnectionField(
+        "saleor.graphql.product.types.products.ProductCountableConnection",
         description="List of excluded products for the shipping method.",
     )
     minimum_order_weight = graphene.Field(
@@ -215,14 +223,18 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
-        root: ChannelContext[models.ShippingMethod], _info, **_kwargs
+        root: ChannelContext[models.ShippingMethod], info, **kwargs
     ):
-        if root.node.excluded_products is None:
-            return None
+        from ..product.types import ProductCountableConnection
 
-        return ChannelQsContext(
-            qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
-        )
+        if not root.node.excluded_products:
+            qs = product_models.Product.objects.none()
+        else:
+            qs = ChannelQsContext(
+                qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
+            )
+
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
@@ -312,6 +324,10 @@ class ShippingMethod(graphene.ObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
+    type = ShippingMethodTypeEnum(
+        description="Type of the shipping method.",
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+    )
     name = graphene.String(required=True, description="Shipping method name.")
     description = graphene.JSONString(description="Shipping method description (JSON).")
     maximum_delivery_days = graphene.Int(
@@ -320,13 +336,26 @@ class ShippingMethod(graphene.ObjectType):
     minimum_delivery_days = graphene.Int(
         description="Minimum delivery days for this shipping method."
     )
+    maximum_order_weight = graphene.Field(
+        Weight,
+        description="Maximum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
+    minimum_order_weight = graphene.Field(
+        Weight,
+        description="Minimum order weight for this shipping method.",
+        deprecation_reason="This field will be removed in Saleor 4.0.",
+    )
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=resolve_translation,
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
+    )
+    maximum_order_price = graphene.Field(
+        Money, description="Maximum order price for this shipping method."
     )
     minimum_order_price = graphene.Field(
         Money, description="Minimal order price for this shipping method."
@@ -347,35 +376,20 @@ class ShippingMethod(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_minimum_order_price(root: ShippingMethodData, info, **_kwargs):
-        return root.minimum_order_price
-
-    @staticmethod
-    def resolve_price(root: ShippingMethodData, info, **_kwargs):
-        return root.price
-
-    @staticmethod
-    def resolve_name(root: ShippingMethodData, info, **kwargs):
-        return root.name
-
-    @staticmethod
     def resolve_id(root: ShippingMethodData, _info):
         if getattr(root, "is_external", False):
             return root.id
         return graphene.Node.to_global_id("ShippingMethod", root.id)
 
     @staticmethod
-    def resolve_message(root: ShippingMethodData, _info):
-        return root.message
+    def resolve_maximum_order_weight(root: ShippingMethodData, *_args):
+        return convert_weight_to_default_weight_unit(root.maximum_order_weight)
 
     @staticmethod
-    def resolve_active(root: ShippingMethodData, _info):
-        return root.active
+    def resolve_minimum_order_weight(root: ShippingMethodData, *_args):
+        return convert_weight_to_default_weight_unit(root.minimum_order_weight)
 
-    @staticmethod
-    def resolve_minimum_delivery_days(root: ShippingMethodData, _info):
-        return root.minimum_delivery_days
 
-    @staticmethod
-    def resolve_maximum_delivery_days(root: ShippingMethodData, _info):
-        return root.maximum_delivery_days
+class ShippingZoneCountableConnection(CountableConnection):
+    class Meta:
+        node = ShippingZone

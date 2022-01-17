@@ -7,11 +7,16 @@ from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
 from ...page import models
 from ..attribute.filters import AttributeFilterInput
-from ..attribute.types import Attribute, SelectedAttribute
-from ..core.connection import CountableDjangoObjectType
+from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
+from ..core.connection import (
+    CountableConnection,
+    CountableDjangoObjectType,
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import resolve_federation_references
-from ..core.fields import FilterInputConnectionField
+from ..core.fields import FilterConnectionField
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -71,13 +76,18 @@ class Page(CountableDjangoObjectType):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
 
+class PageCountableConnection(CountableConnection):
+    class Meta:
+        node = Page
+
+
 @key(fields="id")
 class PageType(CountableDjangoObjectType):
     attributes = graphene.List(
         Attribute, description="Page attributes of that page type."
     )
-    available_attributes = FilterInputConnectionField(
-        Attribute,
+    available_attributes = FilterConnectionField(
+        AttributeCountableConnection,
         filter=AttributeFilterInput(),
         description="Attributes that can be assigned to the page type.",
     )
@@ -99,9 +109,11 @@ class PageType(CountableDjangoObjectType):
     @staticmethod
     @permission_required(PagePermissions.MANAGE_PAGES)
     def resolve_available_attributes(root: models.PageType, info, **kwargs):
-        return attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
+        qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         )
+        qs = filter_connection_queryset(qs, kwargs, info.context)
+        return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
     @permission_required(PagePermissions.MANAGE_PAGES)
@@ -115,3 +127,8 @@ class PageType(CountableDjangoObjectType):
     @staticmethod
     def __resolve_references(roots: List["PageType"], info, **_kwargs):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
+
+
+class PageTypeCountableConnection(CountableConnection):
+    class Meta:
+        node = PageType

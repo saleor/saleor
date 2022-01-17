@@ -5,7 +5,7 @@ import graphene
 import pytest
 
 from ....graphql.tests.utils import get_graphql_content
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
@@ -115,7 +115,7 @@ def test_excluded_shipping_methods_for_order(
         shipping_app.name,
         mock.ANY,
         mock.ANY,
-        WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
@@ -196,7 +196,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         shipping_app.name,
         mock.ANY,
         mock.ANY,
-        WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
@@ -204,7 +204,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         second_shipping_app.name,
         mock.ANY,
         mock.ANY,
-        WebhookEventType.ORDER_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
@@ -451,7 +451,7 @@ def test_excluded_shipping_methods_for_checkout(
         shipping_app.name,
         mock.ANY,
         mock.ANY,
-        WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
         timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
@@ -533,7 +533,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         shipping_app.name,
         mock.ANY,
         mock.ANY,
-        WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
         timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
@@ -541,7 +541,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         second_shipping_app.name,
         mock.ANY,
         mock.ANY,
-        WebhookEventType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
         timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )

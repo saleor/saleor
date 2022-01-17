@@ -8,8 +8,8 @@ from ...page.models import Page
 from ...product.models import Category, Collection, Product, ProductVariant
 from ...shipping.models import ShippingMethod
 from ..attribute.resolvers import resolve_attributes
-from ..core.connection import CountableConnection
-from ..core.fields import BaseConnectionField
+from ..core.connection import CountableConnection, create_connection_slice
+from ..core.fields import ConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..menu.resolvers import resolve_menu_items
@@ -64,7 +64,7 @@ class TranslatableKinds(graphene.Enum):
 
 
 class TranslationQueries(graphene.ObjectType):
-    translations = BaseConnectionField(
+    translations = ConnectionField(
         TranslatableItemConnection,
         description="Returns a list of all translatable items of a given kind.",
         kind=graphene.Argument(
@@ -84,29 +84,31 @@ class TranslationQueries(graphene.ObjectType):
     )
 
     @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
-    def resolve_translations(self, info, kind, **_kwargs):
+    def resolve_translations(self, info, kind, **kwargs):
         if kind == TranslatableKinds.PRODUCT:
-            return resolve_products(info)
+            qs = resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
-            return resolve_collections(info)
+            qs = resolve_collections(info)
         elif kind == TranslatableKinds.CATEGORY:
-            return resolve_categories(info)
+            qs = resolve_categories(info)
         elif kind == TranslatableKinds.PAGE:
-            return resolve_pages(info)
+            qs = resolve_pages(info)
         elif kind == TranslatableKinds.SHIPPING_METHOD:
-            return resolve_shipping_methods(info)
+            qs = resolve_shipping_methods(info)
         elif kind == TranslatableKinds.VOUCHER:
-            return resolve_vouchers(info)
+            qs = resolve_vouchers(info)
         elif kind == TranslatableKinds.ATTRIBUTE:
-            return resolve_attributes(info)
+            qs = resolve_attributes(info)
         elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
-            return resolve_attribute_values(info)
+            qs = resolve_attribute_values(info)
         elif kind == TranslatableKinds.VARIANT:
-            return resolve_product_variants(info)
+            qs = resolve_product_variants(info)
         elif kind == TranslatableKinds.MENU_ITEM:
-            return resolve_menu_items(info)
+            qs = resolve_menu_items(info)
         elif kind == TranslatableKinds.SALE:
-            return resolve_sales(info)
+            qs = resolve_sales(info)
+
+        return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
     @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translation(self, info, id, kind, **_kwargs):

@@ -37,7 +37,7 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
@@ -59,13 +59,14 @@ from ..discount.models import (
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
     order_added_products_event,
 )
+from ..order.fetch import OrderLineInfo
 from ..order.models import (
     FulfillmentLine,
     FulfillmentStatus,
@@ -73,6 +74,7 @@ from ..order.models import (
     OrderEvent,
     OrderLine,
 )
+from ..order.search import prepare_order_search_document_value
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -101,6 +103,7 @@ from ..product.models import (
     ProductVariantTranslation,
     VariantMedia,
 )
+from ..product.search import prepare_product_search_document_value
 from ..product.tests.utils import create_image
 from ..shipping.models import (
     ShippingMethod,
@@ -115,11 +118,12 @@ from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
     PreorderAllocation,
+    PreorderReservation,
     Reservation,
     Stock,
     Warehouse,
 )
-from ..webhook.event_types import WebhookEventType
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
@@ -281,9 +285,18 @@ def site_settings_with_reservations(site_settings):
 @pytest.fixture
 def checkout(db, channel_USD):
     checkout = Checkout.objects.create(
-        currency=channel_USD.currency_code, channel=channel_USD
+        currency=channel_USD.currency_code, channel=channel_USD, email="user@email.com"
     )
     checkout.set_country("US", commit=True)
+    return checkout
+
+
+@pytest.fixture
+def checkout_JPY(channel_JPY):
+    checkout = Checkout.objects.create(
+        currency=channel_JPY.currency_code, channel=channel_JPY
+    )
+    checkout.set_country("JP", commit=True)
     return checkout
 
 
@@ -299,6 +312,15 @@ def checkout_with_item(checkout, product):
 @pytest.fixture
 def checkout_line(checkout_with_item):
     return checkout_with_item.lines.first()
+
+
+@pytest.fixture
+def checkout_JPY_with_item(checkout_JPY, product_in_channel_JPY):
+    variant = product_in_channel_JPY.variants.get()
+    checkout_info = fetch_checkout_info(checkout_JPY, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 3)
+    checkout_JPY.save()
+    return checkout_JPY
 
 
 @pytest.fixture
@@ -479,6 +501,35 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
     return checkout_with_item
 
 
+@pytest.fixture()
+def checkout_with_preorders_only(
+    checkout,
+    stocks_for_cc,
+    preorder_variant_with_end_date,
+    preorder_variant_channel_threshold,
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture()
+def checkout_with_preorders_and_regular_variant(
+    checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
+):
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
+    add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
+
+    checkout.save()
+    return checkout
+
+
 @pytest.fixture
 def checkout_with_gift_card_items(
     checkout, non_shippable_gift_card_product, shippable_gift_card_product
@@ -651,6 +702,7 @@ def user_checkout(customer_user, channel_USD):
 def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
     checkout = Checkout.objects.create(
         user=customer_user,
+        email=customer_user.email,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=warehouse_for_cc.address,
@@ -709,10 +761,32 @@ def user_checkouts(request, user_checkout_with_items, user_checkout_with_items_f
 @pytest.fixture
 def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
+    order = Order.objects.create(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+    return order
+
+
+@pytest.fixture
+def order_with_search_document_value(order):
+    order.search_document = prepare_order_search_document_value(order)
+    order.save(update_fields=["search_document"])
+    return order
+
+
+@pytest.fixture
+def order_JPY(customer_user, channel_JPY):
+    address = customer_user.default_billing_address.get_copy()
+    return Order.objects.create(
+        billing_address=address,
+        channel=channel_JPY,
+        currency=channel_JPY.currency_code,
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,
@@ -783,6 +857,20 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         shipping_method=method,
         minimum_order_price=Money(0, channel_USD.currency_code),
         price=Money(10, channel_USD.currency_code),
+    )
+    return shipping_zone
+
+
+@pytest.fixture
+def shipping_zone_JPY(shipping_zone, channel_JPY):
+    shipping_zone.channels.add(channel_JPY)
+    method = shipping_zone.shipping_methods.get()
+    ShippingMethodChannelListing.objects.create(
+        channel=channel_JPY,
+        currency=channel_JPY.currency_code,
+        shipping_method=method,
+        minimum_order_price=Money(0, channel_JPY.currency_code),
+        price=Money(700, channel_JPY.currency_code),
     )
     return shipping_zone
 
@@ -1408,7 +1496,9 @@ def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+                Attribute(
+                    slug="height", name="Height", type=AttributeType.PRODUCT_TYPE
+                ),
                 Attribute(
                     slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
                 ),
@@ -1673,6 +1763,7 @@ def product(product_type, category, warehouse, channel_USD):
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+
     return product
 
 
@@ -1710,6 +1801,29 @@ def shippable_gift_card_product(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
 
+    return product
+
+
+@pytest.fixture
+def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_JPY,
+        is_published=True,
+        discounted_price_amount="1200",
+        currency=channel_JPY.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+    variant = product.variants.get()
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_JPY,
+        price_amount=Decimal(1200),
+        cost_price_amount=Decimal(300),
+        currency=channel_JPY.currency_code,
+    )
+    Stock.objects.create(warehouse=warehouse_JPY, product_variant=variant, quantity=10)
     return product
 
 
@@ -1891,6 +2005,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
 
     return product
 
@@ -2104,6 +2220,10 @@ def product_with_default_variant(
         currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
+
+    product.search_document = prepare_product_search_document_value(product)
+    product.save(update_fields=["search_document"])
+
     return product
 
 
@@ -2505,6 +2625,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
+        product.search_document = prepare_product_search_document_value(product)
+
+    Product.objects.bulk_update(products, ["search_document"])
 
     return products
 
@@ -2935,6 +3058,33 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
 
 
 @pytest.fixture
+def order_line_JPY(order_JPY, product_in_channel_JPY):
+    product = product_in_channel_JPY
+    variant = product_in_channel_JPY.variants.get()
+    channel = order_JPY.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    return order_JPY.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+
+
+@pytest.fixture
 def order_line_with_allocation_in_many_stocks(
     customer_user, variant_with_many_stocks, channel_USD
 ):
@@ -3080,6 +3230,35 @@ def checkout_line_with_one_reservation(
     Reservation.objects.create(
         checkout_line=checkout_line,
         stock=stocks[0],
+        quantity_reserved=2,
+        reserved_until=reserved_until,
+    )
+
+    return checkout_line
+
+
+@pytest.fixture
+def checkout_line_with_preorder_item(
+    checkout, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
+    return checkout.lines.last()
+
+
+@pytest.fixture
+def checkout_line_with_reserved_preorder_item(
+    checkout, product, preorder_variant_channel_threshold
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
+    checkout_line = checkout.lines.last()
+
+    reserved_until = timezone.now() + timedelta(minutes=5)
+
+    PreorderReservation.objects.create(
+        checkout_line=checkout_line,
+        product_variant_channel_listing=checkout_line.variant.channel_listings.first(),
         quantity_reserved=2,
         reserved_until=reserved_until,
     )
@@ -3360,7 +3539,7 @@ def order_fulfill_data(order_with_lines, warehouse):
 @pytest.fixture
 def lines_info(order_with_lines):
     return [
-        OrderLineData(
+        OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -3667,10 +3846,10 @@ def fulfilled_order(order_with_lines):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=line_1, quantity=line_1.quantity, warehouse_pk=warehouse_1_pk
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
@@ -3692,7 +3871,7 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
@@ -3728,19 +3907,23 @@ def fulfillment(fulfilled_order):
 
 @pytest.fixture
 def fulfillment_awaiting_approval(fulfilled_order):
-    order_line = fulfilled_order.lines.first()
-    order_line.quantity_fulfilled = 0
-    order_line.save(update_fields=["quantity_fulfilled"])
-
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
 
+    quantity = 1
     fulfillment_lines_to_update = []
+    order_lines_to_update = []
     for f_line in fulfillment.lines.all():
-        f_line.quantity = 1
+        f_line.quantity = quantity
         fulfillment_lines_to_update.append(f_line)
+
+        order_line = f_line.order_line
+        order_line.quantity_fulfilled = quantity
+        order_lines_to_update.append(order_line)
+
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+    OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
 
     return fulfillment
 
@@ -4817,7 +5000,7 @@ def payment_app(db, permission_manage_payments):
     webhook.events.bulk_create(
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in WebhookEventType.PAYMENT_EVENTS
+            for event_type in WebhookEventSyncType.PAYMENT_EVENTS
         ]
     )
     return app
@@ -4838,8 +5021,8 @@ def shipping_app(db, permission_manage_shipping):
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
             for event_type in [
-                WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                WebhookEventType.FULFILLMENT_CREATED,
+                WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                WebhookEventAsyncType.FULFILLMENT_CREATED,
             ]
         ]
     )
@@ -4870,7 +5053,7 @@ def webhook(app):
     webhook = Webhook.objects.create(
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
     )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
 
 
@@ -4919,6 +5102,19 @@ def warehouse(address, shipping_zone):
         email="test@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone)
+    warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
+def warehouse_JPY(address, shipping_zone_JPY):
+    warehouse = Warehouse.objects.create(
+        address=address,
+        name="Example Warehouse JPY",
+        slug="example-warehouse-jpy",
+        email="test-jpy@example.com",
+    )
+    warehouse.shipping_zones.add(shipping_zone_JPY)
     warehouse.save()
     return warehouse
 
@@ -5083,6 +5279,7 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+        email=customer_user.email,
     )
 
 
@@ -5207,6 +5404,11 @@ def allocations(order_list, stock, channel_USD):
             ),
         ]
     )
+
+    for order in order_list:
+        order.search_document = prepare_order_search_document_value(order)
+    Order.objects.bulk_update(order_list, ["search_document"])
+
     return Allocation.objects.bulk_create(
         [
             Allocation(

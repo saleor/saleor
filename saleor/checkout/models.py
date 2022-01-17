@@ -46,7 +46,7 @@ class Checkout(ModelWithMetadata):
         related_name="checkouts",
         on_delete=models.CASCADE,
     )
-    email = models.EmailField()
+    email = models.EmailField(blank=True, null=True)
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     channel = models.ForeignKey(
         Channel,
@@ -116,7 +116,7 @@ class Checkout(ModelWithMetadata):
     def __iter__(self):
         return iter(self.lines.all())
 
-    def get_customer_email(self) -> str:
+    def get_customer_email(self) -> Optional[str]:
         return self.user.email if self.user else self.email
 
     def is_shipping_required(self) -> bool:

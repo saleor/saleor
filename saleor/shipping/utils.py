@@ -31,31 +31,28 @@ def get_countries_without_shipping_zone():
 
 def convert_to_shipping_method_data(
     shipping_method: "ShippingMethod", listing: Optional["ShippingMethodChannelListing"]
-) -> "ShippingMethodData":
+) -> Optional["ShippingMethodData"]:
     if listing:
         price = listing.price
         minimum_order_price = listing.minimum_order_price
+        maximum_order_price = listing.maximum_order_price
     else:
-        price = minimum_order_price = None
-        logger.error(
-            f"Selected shipping method {shipping_method.id} has no channel listing."
-        )
+        return None
 
     return ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
-        price=price,
         description=shipping_method.description,
         type=shipping_method.type,
-        excluded_products=shipping_method.excluded_products,
-        channel_listings=shipping_method.channel_listings,
         minimum_order_weight=shipping_method.minimum_order_weight,
         maximum_order_weight=shipping_method.maximum_order_weight,
         maximum_delivery_days=shipping_method.maximum_delivery_days,
         minimum_delivery_days=shipping_method.minimum_delivery_days,
         metadata=shipping_method.metadata,
         private_metadata=shipping_method.private_metadata,
+        price=price,
         minimum_order_price=minimum_order_price,
+        maximum_order_price=maximum_order_price,
     )
 
 

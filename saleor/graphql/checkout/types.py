@@ -17,7 +17,7 @@ from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
@@ -137,7 +137,7 @@ class CheckoutLine(CountableDjangoObjectType):
                             checkout_line_info=line_info,
                             address=address,
                             discounts=discounts,
-                        )
+                        ).price_with_sale
                 return None
 
             return Promise.all(
@@ -166,12 +166,17 @@ class CheckoutLine(CountableDjangoObjectType):
         )
 
 
+class CheckoutLineCountableConnection(CountableConnection):
+    class Meta:
+        node = CheckoutLine
+
+
 class DeliveryMethod(graphene.Union):
     class Meta:
         description = (
             "Represents a delivery method chosen for the checkout. `Warehouse` "
             'type is used when checkout is marked as "click and collect" and '
-            "`ShippingMethodType` otherwise."
+            "`ShippingMethod` otherwise."
         )
         types = (Warehouse, ShippingMethod)
 
@@ -204,7 +209,7 @@ class Checkout(CountableDjangoObjectType):
         description="List of available payment gateways.",
         required=True,
     )
-    email = graphene.String(description="Email of a customer.", required=True)
+    email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = graphene.List(
         GiftCard, description="List of gift cards associated with this checkout."
     )
@@ -326,7 +331,7 @@ class Checkout(CountableDjangoObjectType):
                         break
 
                 return convert_to_shipping_method_data(
-                    shipping_method, shipping_method_channel_listing
+                    shipping_method, shipping_method_channel_listing  # type: ignore
                 )
 
             return (
@@ -347,7 +352,11 @@ class Checkout(CountableDjangoObjectType):
     @classmethod
     @traced_resolver
     def resolve_shipping_methods(cls, root: models.Checkout, info):
-        return cls.resolve_available_shipping_methods(root, info, only_active=False)
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+        )
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):
@@ -461,28 +470,11 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_available_shipping_methods(
-        root: models.Checkout, info, only_active=True
-    ):
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-
-        def calculate_available_shipping_methods(data):
-            lines, checkout_info, discounts, channel = data
-            if only_active:
-                return [
-                    method
-                    for method in checkout_info.valid_shipping_methods
-                    if method.active
-                ]
-            return checkout_info.valid_shipping_methods
-
-        return Promise.all([lines, checkout_info, discounts, channel]).then(
-            calculate_available_shipping_methods
+    def resolve_available_shipping_methods(root: models.Checkout, info):
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.valid_shipping_methods)
         )
 
     @staticmethod
@@ -563,3 +555,8 @@ class Checkout(CountableDjangoObjectType):
             .load(root.token)
             .then(get_oldest_stock_reservation_expiration_date)
         )
+
+
+class CheckoutCountableConnection(CountableConnection):
+    class Meta:
+        node = Checkout

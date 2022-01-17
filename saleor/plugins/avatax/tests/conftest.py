@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from ....account.models import Address
@@ -17,9 +19,12 @@ def vcr_config():
 
 @pytest.fixture
 def plugin_configuration(db, channel_USD):
+    default_username = os.environ.get("AVALARA_USERNAME", "test")
+    default_password = os.environ.get("AVALARA_PASSWORD", "test")
+
     def set_configuration(
-        username="test",
-        password="test",
+        username=default_username,
+        password=default_password,
         sandbox=False,
         channel=None,
         active=True,
@@ -28,6 +33,7 @@ def plugin_configuration(db, channel_USD):
         from_country="PL",
         from_country_area="",
         from_postal_code="53-601",
+        shipping_tax_code="FR000000",
     ):
         channel = channel or channel_USD
         data = {
@@ -45,6 +51,7 @@ def plugin_configuration(db, channel_USD):
                 {"name": "from_country", "value": from_country},
                 {"name": "from_country_area", "value": from_country_area},
                 {"name": "from_postal_code", "value": from_postal_code},
+                {"name": "shipping_tax_code", "value": shipping_tax_code},
             ],
         }
         configuration = PluginConfiguration.objects.create(
@@ -97,9 +104,8 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
             convert_to_shipping_method_data(shipping_method, shipping_channel_listing),
             shipping_address,
         ),
-        shipping_method_channel_listing=shipping_channel_listing,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     return checkout_info
 

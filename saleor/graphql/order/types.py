@@ -43,6 +43,7 @@ from ...payment.model_helpers import (
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
+from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -52,7 +53,7 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
@@ -77,6 +78,7 @@ from ..product.dataloaders import (
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
@@ -227,7 +229,12 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_app(root: models.OrderEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
+        if requestor_has_access(
+            requestor,
+            root.user,
+            AppPermission.MANAGE_APPS,
+            OrderPermissions.MANAGE_ORDERS,
+        ):
             return (
                 AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
             )
@@ -353,6 +360,11 @@ class OrderEvent(CountableDjangoObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+
+class OrderEventCountableConnection(CountableConnection):
+    class Meta:
+        node = OrderEvent
 
 
 class FulfillmentLine(CountableDjangoObjectType):
@@ -1042,7 +1054,12 @@ class Order(CountableDjangoObjectType):
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
+            if requestor_has_access(
+                requester,
+                user,
+                AccountPermissions.MANAGE_USERS,
+                OrderPermissions.MANAGE_ORDERS,
+            ):
                 return user
             raise PermissionDenied()
 
@@ -1056,13 +1073,13 @@ class Order(CountableDjangoObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            shipping_method = info.context.plugins.get_shipping_method(
-                checkout=root,
-                channel_slug=root.channel.slug,
-                shipping_method_id=external_app_shipping_id,
+            keep_gross = info.context.site.settings.include_taxes_in_prices
+            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
+            return ShippingMethodData(
+                id=external_app_shipping_id,
+                name=root.shipping_method_name,
+                price=price,
             )
-            if shipping_method:
-                return shipping_method
 
         if not root.shipping_method_id:
             return None
@@ -1091,7 +1108,7 @@ class Order(CountableDjangoObjectType):
 
     @classmethod
     def resolve_delivery_method(cls, root: models.Order, info):
-        if root.shipping_method_id:
+        if root.shipping_method_id or get_external_shipping_id(root):
             return cls.resolve_shipping_method(root, info)
         if root.collection_point_id:
             collection_point = WarehouseByIdLoader(info.context).load(
@@ -1100,23 +1117,31 @@ class Order(CountableDjangoObjectType):
             return collection_point
         return None
 
-    @staticmethod
+    @classmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
-    def resolve_shipping_methods(root: models.Order, info):
-        return get_valid_shipping_methods_for_order(root, info.context.plugins)
+    def resolve_shipping_methods(cls, root: models.Order, info):
+        def with_channel(channel):
+            def with_listings(channel_listings):
+                return get_valid_shipping_methods_for_order(
+                    root, channel_listings, info.context.plugins
+                )
 
-    @staticmethod
+            return (
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
+                .then(with_listings)
+            )
+
+        return ChannelByIdLoader(info.context).load(root.channel_id).then(with_channel)
+
+    @classmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
-    def resolve_available_shipping_methods(root: models.Order, info):
-        return [
-            method
-            for method in get_valid_shipping_methods_for_order(
-                root, info.context.plugins
-            )
-            if method.active
-        ]
+    def resolve_available_shipping_methods(cls, root: models.Order, info):
+        return cls.resolve_shipping_methods(root, info).then(
+            lambda methods: [method for method in methods if method.active]
+        )
 
     @classmethod
     @traced_resolver
@@ -1178,3 +1203,8 @@ class Order(CountableDjangoObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+
+class OrderCountableConnection(CountableConnection):
+    class Meta:
+        node = Order
