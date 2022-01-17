@@ -504,9 +504,9 @@ class BasePlugin:
     #  Overwrite this method if you need log api call.
     report_api_call: Callable[[WSGIRequest, HttpResponse, Any], Any]
 
-    #  Trigger when api call is made.
+    #  Trigger when event delivery attempt is made
     #
-    #  Overwrite this method if you need log api call.
+    #  Overwrite this method if you need log webhook delivery attempt.
     report_event_delivery_attempt: Callable[["EventDeliveryAttempt", Any], Any]
 
     #  Trigger when sale is created.
