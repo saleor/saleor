@@ -19,7 +19,6 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
 from ...payment import PaymentError
-from ...plugins.manager import get_plugins_manager
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -32,6 +31,7 @@ from .utils import (
     create_attempt,
     create_event_delivery_list_for_webhooks,
     delivery_update,
+    report_event_delivery_attempt,
 )
 
 if TYPE_CHECKING:
@@ -288,10 +288,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 )
                 delivery_status = EventDeliveryStatus.FAILED
         delivery_update(delivery, delivery_status)
-        if delivery.event_type not in [
-            WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
-        ]:
-            get_plugins_manager().report_event_delivery_attempt(attempt)
+        report_event_delivery_attempt(delivery.event_type, attempt)
         task_logger.info(
             "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
             webhook.id,

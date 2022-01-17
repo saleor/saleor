@@ -16,7 +16,9 @@ from ...core.models import (
     EventPayload,
 )
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
+from ...plugins.manager import get_plugins_manager
 from ...shipping.interface import ShippingMethodData
+from ...webhook.event_types import WebhookEventAsyncType
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -222,3 +224,8 @@ def delivery_update(delivery: "EventDelivery", status: str):
 def clear_successful_delivery(delivery: "EventDelivery"):
     if delivery.status == EventDeliveryStatus.SUCCESS:
         delivery.delete()
+
+
+def report_event_delivery_attempt(event_type: str, attempt: "EventDeliveryAttempt"):
+    if event_type not in [WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT]:
+        get_plugins_manager().report_event_delivery_attempt(attempt)
