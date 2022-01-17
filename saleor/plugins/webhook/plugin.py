@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from ...app.models import App
 from ...core import EventDeliveryStatus
-from ...core.models import EventDelivery
+from ...core.models import EventDelivery, EventDeliveryAttempt
 from ...core.notify_events import NotifyEventType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
@@ -14,6 +14,7 @@ from ...webhook.payloads import (
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_event_delivery_attempt_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -389,6 +390,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         api_call_data = generate_api_call_payload(request, response)
         trigger_webhooks_async(api_call_data, WebhookEventAsyncType.REPORT_API_CALL)
+
+    def report_event_delivery_attempt(
+        self, attempt: "EventDeliveryAttempt", previous_value: Any
+    ):
+        if not self.active:
+            return previous_value
+        attempt_data = generate_event_delivery_attempt_payload(attempt)
+        trigger_webhooks_async(
+            attempt_data, WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
+        )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
