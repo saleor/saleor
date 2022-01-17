@@ -1,10 +1,20 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .....app.types import (
+    AppExtensionOpenAs,
+    AppExtensionTarget,
+    AppExtensionType,
+    AppExtensionView,
+)
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AppExtensionTargetEnum, AppExtensionTypeEnum, AppExtensionViewEnum
+from ...enums import (
+    AppExtensionOpenAsEnum,
+    AppExtensionTargetEnum,
+    AppExtensionTypeEnum,
+    AppExtensionViewEnum,
+)
 
 QUERY_APP_EXTENSIONS = """
 query ($filter: AppExtensionFilterInput){
@@ -156,6 +166,15 @@ def test_app_extensions_user_not_staff(
             },
             1,
         ),
+        ({"openAs": AppExtensionOpenAsEnum.APP_PAGE.name}, 1),
+        ({"openAs": AppExtensionOpenAsEnum.POPUP.name}, 2),
+        (
+            {
+                "openAs": AppExtensionOpenAsEnum.POPUP.name,
+                "type": AppExtensionTypeEnum.DETAILS.name,
+            },
+            1,
+        ),
     ],
 )
 def test_app_extensions_with_filter(
@@ -171,6 +190,7 @@ def test_app_extensions_with_filter(
                 view=AppExtensionView.PRODUCT,
                 type=AppExtensionType.OVERVIEW,
                 target=AppExtensionTarget.MORE_ACTIONS,
+                open_as=AppExtensionOpenAs.APP_PAGE,
             ),
             AppExtension(
                 app=app,
@@ -179,6 +199,7 @@ def test_app_extensions_with_filter(
                 view=AppExtensionView.PRODUCT,
                 type=AppExtensionType.DETAILS,
                 target=AppExtensionTarget.MORE_ACTIONS,
+                open_as=AppExtensionOpenAs.POPUP,
             ),
             AppExtension(
                 app=app,

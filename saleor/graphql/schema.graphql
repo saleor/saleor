@@ -301,6 +301,7 @@ type AppExtension implements Node {
   view: AppExtensionViewEnum!
   type: AppExtensionTypeEnum!
   target: AppExtensionTargetEnum!
+  openAs: AppExtensionOpenAsEnum!
   permissions: [Permission!]!
   accessToken: String
 }
@@ -320,20 +321,34 @@ input AppExtensionFilterInput {
   view: AppExtensionViewEnum
   type: AppExtensionTypeEnum
   target: AppExtensionTargetEnum
+  openAs: AppExtensionOpenAsEnum
+}
+
+enum AppExtensionOpenAsEnum {
+  POPUP
+  APP_PAGE
 }
 
 enum AppExtensionTargetEnum {
   MORE_ACTIONS
   CREATE
+  CATALOG
+  ORDERS
+  CUSTOMERS
+  DISCOUNTS
+  TRANSLATIONS
+  PAGES
 }
 
 enum AppExtensionTypeEnum {
   OVERVIEW
   DETAILS
+  NAVIGATION
 }
 
 enum AppExtensionViewEnum {
   PRODUCT
+  ALL
 }
 
 type AppFetchManifest {
@@ -383,6 +398,7 @@ type AppManifestExtension {
   view: AppExtensionViewEnum!
   type: AppExtensionTypeEnum!
   target: AppExtensionTargetEnum!
+  openAs: AppExtensionOpenAsEnum!
 }
 
 type AppRetryInstall {

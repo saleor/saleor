@@ -1,10 +1,17 @@
 import django_filters
 
 from ...app import models
-from ...app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
+from ...app.types import (
+    AppExtensionOpenAs,
+    AppExtensionTarget,
+    AppExtensionType,
+    AppExtensionView,
+    AppType,
+)
 from ..core.filters import EnumFilter
 from ..utils.filters import filter_by_query_param
 from .enums import (
+    AppExtensionOpenAsEnum,
     AppExtensionTargetEnum,
     AppExtensionTypeEnum,
     AppExtensionViewEnum,
@@ -42,6 +49,12 @@ def filter_app_extension_target(qs, _, value):
     return qs
 
 
+def filter_app_extension_open_as(qs, _, value):
+    if value in [target for target, _ in AppExtensionOpenAs.CHOICES]:
+        qs = qs.filter(open_as=value)
+    return qs
+
+
 class AppFilter(django_filters.FilterSet):
     type = EnumFilter(input_class=AppTypeEnum, method=filter_app_type)
     search = django_filters.CharFilter(method=filter_app_search)
@@ -62,11 +75,10 @@ class AppExtensionFilter(django_filters.FilterSet):
     target = EnumFilter(
         input_class=AppExtensionTargetEnum, method=filter_app_extension_target
     )
+    open_as = EnumFilter(
+        input_class=AppExtensionOpenAsEnum, method=filter_app_extension_open_as
+    )
 
     class Meta:
         model = models.AppExtension
-        fields = [
-            "view",
-            "type",
-            "target",
-        ]
+        fields = ["view", "type", "target", "open_as"]

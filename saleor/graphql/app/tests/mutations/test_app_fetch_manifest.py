@@ -4,7 +4,12 @@ import pytest
 import requests
 
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AppExtensionTargetEnum, AppExtensionTypeEnum, AppExtensionViewEnum
+from ...enums import (
+    AppExtensionOpenAsEnum,
+    AppExtensionTargetEnum,
+    AppExtensionTypeEnum,
+    AppExtensionViewEnum,
+)
 
 APP_FETCH_MANIFEST_MUTATION = """
 mutation AppFetchManifest($manifest_url: String!){
@@ -30,6 +35,7 @@ mutation AppFetchManifest($manifest_url: String!){
         view
         type
         target
+        openAs
         permissions{
           code
           name
@@ -380,17 +386,71 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
 
 
 @pytest.mark.parametrize(
-    "url",
+    "url, open_as, app_url",
     [
-        "http:/127.0.0.1:8080/app",
-        "127.0.0.1:8080/app",
-        "",
-        "/app",
-        "www.example.com/app",
+        ("/app", AppExtensionOpenAsEnum.APP_PAGE.name, ""),
+        ("/app", AppExtensionOpenAsEnum.APP_PAGE.name, "https://www.example.com/app"),
+        ("/app", AppExtensionOpenAsEnum.POPUP.name, "https://www.example.com/app"),
+    ],
+)
+def test_app_fetch_manifest_extensions_correct_url(
+    url,
+    open_as,
+    app_url,
+    app_manifest,
+    monkeypatch,
+    staff_api_client,
+    permission_manage_apps,
+):
+    # given
+    app_manifest["appUrl"] = app_url
+    app_manifest["extensions"] = [
+        {
+            "permissions": ["MANAGE_PRODUCTS"],
+            "label": "Create product with App",
+            "url": url,
+            "view": AppExtensionViewEnum.PRODUCT.name,
+            "type": AppExtensionTypeEnum.OVERVIEW.name,
+            "target": AppExtensionTargetEnum.CREATE.name,
+            "openAs": open_as,
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    query = APP_FETCH_MANIFEST_MUTATION
+    manifest_url = "http://localhost:3000/configuration/manifest"
+    variables = {
+        "manifest_url": manifest_url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    assert len(errors) == 0
+
+
+@pytest.mark.parametrize(
+    "url, open_as",
+    [
+        ("http:/127.0.0.1:8080/app", AppExtensionOpenAsEnum.POPUP.name),
+        ("127.0.0.1:8080/app", AppExtensionOpenAsEnum.POPUP.name),
+        ("", AppExtensionOpenAsEnum.POPUP.name),
+        ("/app", AppExtensionOpenAsEnum.POPUP.name),
+        ("www.example.com/app", AppExtensionOpenAsEnum.POPUP.name),
+        ("https://www.example.com/app", AppExtensionOpenAsEnum.APP_PAGE.name),
+        ("http://www.example.com/app", AppExtensionOpenAsEnum.APP_PAGE.name),
     ],
 )
 def test_app_fetch_manifest_extensions_incorrect_url(
-    url, app_manifest, monkeypatch, staff_api_client, permission_manage_apps
+    url, open_as, app_manifest, monkeypatch, staff_api_client, permission_manage_apps
 ):
     # given
     app_manifest["extensions"] = [
@@ -401,6 +461,7 @@ def test_app_fetch_manifest_extensions_incorrect_url(
             "view": AppExtensionViewEnum.PRODUCT.name,
             "type": AppExtensionTypeEnum.OVERVIEW.name,
             "target": AppExtensionTargetEnum.CREATE.name,
+            "openAs": open_as,
         }
     ]
 
@@ -579,3 +640,4 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["view"] == AppExtensionViewEnum.PRODUCT.name
     assert extension["type"] == AppExtensionTypeEnum.OVERVIEW.name
     assert extension["target"] == AppExtensionTargetEnum.CREATE.name
+    assert extension["openAs"] == AppExtensionOpenAsEnum.POPUP.name

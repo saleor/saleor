@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from typing import Dict, Iterable, List
 
@@ -11,32 +12,54 @@ from ..core.permissions import (
     get_permissions_enum_list,
     split_permission_codename,
 )
+from .const import (
+    AVAILABLE_APP_EXTENSION_CONFIGS,
+    EXTENSION_ENUM_MAP,
+    EXTENSION_FIELDS_MAP,
+)
 from .error_codes import AppErrorCode
-from .types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .types import AppExtensionOpenAs
 from .validators import AppURLValidator
 
+logger = logging.getLogger(__name__)
+
 T_ERRORS = Dict[str, List[ValidationError]]
-
-
-AVAILABLE_APP_EXTENSION_CONFIGS = {
-    AppExtensionType.DETAILS: {
-        AppExtensionView.PRODUCT: [
-            AppExtensionTarget.CREATE,
-            AppExtensionTarget.MORE_ACTIONS,
-        ]
-    },
-    AppExtensionType.OVERVIEW: {
-        AppExtensionView.PRODUCT: [
-            AppExtensionTarget.CREATE,
-            AppExtensionTarget.MORE_ACTIONS,
-        ]
-    },
-}
 
 
 def _clean_app_url(url):
     url_validator = AppURLValidator()
     url_validator(url)
+
+
+def clean_extension_url(extension: dict, manifest_data: dict):
+    """Clean assigned extension url.
+
+    Make sure that format of url is correct based on the rest of manifest fields.
+    - url can start with '/' when one of these conditions is true:
+        a) extension.open_as == APP_PAGE
+        b) appUrl is provided
+    - url cannot start with protocol when openAs == "APP_PAGE"
+    """
+    extension_url = extension["url"]
+    open_as = extension.get("open_as") or AppExtensionOpenAs.POPUP
+    if extension_url.startswith("/"):
+        if open_as == AppExtensionOpenAs.APP_PAGE:
+            pass
+        elif manifest_data["appUrl"]:
+            _clean_app_url(manifest_data["appUrl"])
+        else:
+            msg = (
+                "Incorect relation between extension's openAs and url fields. "
+                "APP_PAGE can be used only with relative url path."
+            )
+            logger.warning(msg, extra={"open_as": open_as, "url": extension_url})
+            raise ValidationError(msg)
+    elif open_as == AppExtensionOpenAs.APP_PAGE:
+        msg = "Url cannot start with protocol when openAs == APP_PAGE"
+        logger.warning(msg)
+        raise ValidationError(msg)
+    else:
+        _clean_app_url(extension_url)
 
 
 def clean_manifest_url(manifest_url):
@@ -122,7 +145,6 @@ def _clean_extension_permissions(extension, app_permissions, errors):
 
 
 def _validate_configuration(extension, errors):
-
     available_config_for_type = AVAILABLE_APP_EXTENSION_CONFIGS.get(
         extension["type"], {}
     )
@@ -145,13 +167,15 @@ def _validate_configuration(extension, errors):
 
 def clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
-    enum_map = [
-        (AppExtensionView, "view"),
-        (AppExtensionType, "type"),
-        (AppExtensionTarget, "target"),
-    ]
     for extension in extensions:
-        for extension_enum, key in enum_map:
+        for manifest_field_name, expected_field_name in EXTENSION_FIELDS_MAP:
+            if manifest_field_name in extension:
+                extension[expected_field_name] = extension[manifest_field_name]
+                del extension[manifest_field_name]
+
+        for extension_enum, key, is_optional in EXTENSION_ENUM_MAP:
+            if extension.get(key) is None and is_optional:
+                continue
             if extension[key] in [code.upper() for code, _ in extension_enum.CHOICES]:
                 extension[key] = getattr(extension_enum, extension[key])
             else:
@@ -163,7 +187,7 @@ def clean_extensions(manifest_data, app_permissions, errors):
                 )
 
         try:
-            _clean_app_url(extension["url"])
+            clean_extension_url(extension, manifest_data)
         except (ValidationError, AttributeError):
             errors["extensions"].append(
                 ValidationError(
