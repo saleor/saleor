@@ -18,7 +18,7 @@ class MetadataErrorCode(Enum):
     REQUIRED = "required"
 
 
-class TranslationErrorCode(Enum):
+class TranslationErrorCode(str, Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
