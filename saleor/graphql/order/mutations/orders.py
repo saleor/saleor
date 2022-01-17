@@ -374,7 +374,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             shipping_models.ShippingMethodChannelListing.objects.filter(
                 shipping_method=method,
                 channel=order.channel,
-            ).get(),
+            ).first(),
         )
         clean_order_update_shipping(order, shipping_method_data)
 
