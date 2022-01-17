@@ -42,7 +42,7 @@ def test_trigger_tax_webhook_sync(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_tax_webhook_sync(event_type, data, parse_tax_data)
 
     # then
     mock_request.assert_called_once_with(
@@ -68,7 +68,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_tax_webhook_sync(event_type, data, parse_tax_data)
 
     # then
     successful_webhook = tax_checkout_webhooks[0]
@@ -95,7 +95,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_tax_webhook_sync(event_type, data, parse_tax_data)
 
     # then
     assert mock_request.call_count == 3
@@ -126,7 +126,7 @@ def test_trigger_tax_webhook_sync_invalid_webhooks(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_tax_webhook_sync(event_type, data, parse_tax_data)
 
     # then
     assert mock_request.call_count == len(tax_checkout_webhooks)

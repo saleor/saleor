@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from prices import Money
 
-from ...core.taxes import TaxData, TaxLineData
+from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...shipping.interface import ShippingMethodData
 
@@ -209,3 +209,20 @@ def parse_list_shipping_methods_response(
             )
         )
     return shipping_methods
+
+
+def parse_tax_codes(
+    response_tax_data: Any,
+) -> Optional[List[TaxType]]:
+    if not isinstance(response_tax_data, list):
+        return None
+    try:
+        return [
+            TaxType(
+                code=tax["code"],
+                description=tax["description"],
+            )
+            for tax in response_tax_data
+        ]
+    except KeyError:
+        return None

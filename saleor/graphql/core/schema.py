@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.taxes import fetch_tax_codes
 from .mutations import FileUpload
 from .types.common import TaxType
 
@@ -13,7 +14,7 @@ class CoreQueries(graphene.ObjectType):
         manager = info.context.plugins
         return [
             TaxType(description=tax.description, tax_code=tax.code)
-            for tax in manager.get_tax_rate_type_choices()
+            for tax in fetch_tax_codes(manager)
         ]
 
 

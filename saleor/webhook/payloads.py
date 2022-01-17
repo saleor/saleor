@@ -135,7 +135,7 @@ def _charge_taxes(order_line: OrderLine) -> Optional[bool]:
 
 
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
-    prefetch_related_objects(lines, "variant__product")
+    prefetch_related_objects(lines, "variant__product__product_type")
     line_fields = (
         "product_name",
         "variant_name",
@@ -183,7 +183,21 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
             "charge_taxes": (lambda l: _charge_taxes(l)),
+            "product_metadata": (lambda l: get_product_metadata_for_order_line(l)),
+            "product_type_metadata": (
+                lambda l: get_product_type_metadata_for_order_line(l)
+            ),
         },
+    )
+
+
+def get_product_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
+    return None if not (variant := line.variant) else variant.product.metadata
+
+
+def get_product_type_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
+    return (
+        None if not (variant := line.variant) else variant.product.product_type.metadata
     )
 
 

@@ -68,6 +68,7 @@ class WebhookEventType:
 
     CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
     ORDER_CALCULATE_TAXES = "order_calculate_taxes"
+    FETCH_TAX_CODES = "fetch_tax_codes"
 
     SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
 
@@ -228,6 +229,7 @@ class WebhookEventType:
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
         CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
+        FETCH_TAX_CODES: CheckoutPermissions.HANDLE_TAXES,
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,

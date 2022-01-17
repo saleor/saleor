@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -20,7 +20,6 @@ from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
 from . import signature_for_payload
-from .utils import parse_tax_data
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -49,7 +48,7 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     if webhooks is None:
         webhooks = Webhook.objects.all()
 
-    webhooks = webhooks.filter(
+    webhooks = webhooks.order_by("app_id").filter(
         is_active=True,
         app__is_active=True,
         events__event_type__in=[event_type, WebhookEventType.ANY],
@@ -88,7 +87,12 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     )
 
 
-def trigger_tax_webhook_sync(event_type: str, data: str):
+R = TypeVar("R")
+
+
+def trigger_tax_webhook_sync(
+    event_type: str, data: str, parse_response: Callable[[Any], Optional[R]]
+) -> Optional[R]:
     """Send a synchronous tax webhook request."""
     webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
@@ -100,9 +104,9 @@ def trigger_tax_webhook_sync(event_type: str, data: str):
             event_type,
             data,
         )
-        tax_data = parse_tax_data(response_data)
-        if tax_data:
-            return tax_data
+        parsed_response = parse_response(response_data)
+        if parsed_response:
+            return parsed_response
     return None
 
 

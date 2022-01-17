@@ -443,6 +443,10 @@ class PluginsManager(PaymentInterface):
         default_value: list = []
         return self.__run_method_on_plugins("get_tax_rate_type_choices", default_value)
 
+    def get_tax_codes(self) -> List[TaxType]:
+        default_value: list = []
+        return self.__run_method_on_plugins("get_tax_codes", default_value)
+
     def show_taxes_on_storefront(self) -> bool:
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)

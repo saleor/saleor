@@ -36,12 +36,14 @@ from .utils import (
     parse_list_payment_gateways_response,
     parse_list_shipping_methods_response,
     parse_payment_action_response,
+    parse_tax_codes,
+    parse_tax_data,
 )
 
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
-    from ...core.taxes import TaxData
+    from ...core.taxes import TaxData, TaxType
     from ...discount.models import Sale
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
@@ -523,14 +525,16 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         payload = generate_checkout_payload(checkout)
         return trigger_tax_webhook_sync(
-            WebhookEventType.CHECKOUT_CALCULATE_TAXES, payload
+            WebhookEventType.CHECKOUT_CALCULATE_TAXES, payload, parse_tax_data
         )
 
     def get_taxes_for_order(
         self, order: "Order", previous_value
     ) -> Optional["TaxData"]:
         payload = generate_order_payload(order)
-        return trigger_tax_webhook_sync(WebhookEventType.ORDER_CALCULATE_TAXES, payload)
+        return trigger_tax_webhook_sync(
+            WebhookEventType.ORDER_CALCULATE_TAXES, payload, parse_tax_data
+        )
 
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any
@@ -553,3 +557,11 @@ class WebhookPlugin(BasePlugin):
                     )
                     methods.extend(shipping_methods)
         return methods
+
+    def get_tax_codes(self, previous_value) -> List["TaxType"]:
+        return (
+            trigger_tax_webhook_sync(
+                WebhookEventType.FETCH_TAX_CODES, "", parse_tax_codes
+            )
+            or []
+        )
