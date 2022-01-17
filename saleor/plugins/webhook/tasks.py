@@ -369,6 +369,7 @@ def send_webhook_request_sync(app_name, delivery):
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     delivery_update(delivery, response.status)
+    report_event_delivery_attempt(delivery.event_type, attempt)
     clear_successful_delivery(delivery)
     return response_data
 
