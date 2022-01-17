@@ -14,6 +14,7 @@ from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
+from ..core.models import EventDeliveryAttempt
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -1037,3 +1038,32 @@ def generate_api_call_payload(request, response):
             email=request.user.email,
         )
     return json.dumps([payload])
+
+
+def generate_event_delivery_attempt_payload(attempt: EventDeliveryAttempt):
+    data = {
+        "time": attempt.created_at.timestamp(),
+        "id": graphene.Node.to_global_id("EventDeliveryAttempt", attempt.pk),
+        "duration": attempt.duration,
+        "status": attempt.status,
+        "request_headers": attempt.request_headers,
+        "response_headers": attempt.response_headers,
+        "response_body": attempt.response,
+    }
+    if delivery := attempt.delivery:
+        data.update(
+            event_id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
+            event_status=delivery.status,
+            event_type=delivery.event_type,
+        )
+        if webhook := delivery.webhook:
+            data.update(
+                app_id=graphene.Node.to_global_id("App", webhook.app.pk),
+                app_name=webhook.app.name,
+                webhook_id=graphene.Node.to_global_id("Webhook", webhook.pk),
+                webhook_name=webhook.name,
+                webhook_target_url=webhook.target_url,
+            )
+        if payload := delivery.payload:
+            data.update(event_payload=payload.payload)
+    return json.dumps([data])
