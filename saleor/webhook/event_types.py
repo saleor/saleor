@@ -66,6 +66,7 @@ class WebhookEventAsyncType:
     TRANSLATION_UPDATED = "translation_updated"
 
     REPORT_API_CALL = "report_api_call"
+    REPORT_EVENT_DELIVERY_ATTEMPT = "report_event_delivery_attempt"
 
     DISPLAY_LABELS = {
         ANY: "Any events",
@@ -108,6 +109,7 @@ class WebhookEventAsyncType:
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
         REPORT_API_CALL: "Report API call",
+        REPORT_EVENT_DELIVERY_ATTEMPT: "Report event delivery attempt",
     }
 
     CHOICES = [
@@ -151,6 +153,7 @@ class WebhookEventAsyncType:
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
         (REPORT_API_CALL, DISPLAY_LABELS[REPORT_API_CALL]),
+        (REPORT_EVENT_DELIVERY_ATTEMPT, DISPLAY_LABELS[REPORT_EVENT_DELIVERY_ATTEMPT]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -195,6 +198,7 @@ class WebhookEventAsyncType:
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
         REPORT_API_CALL: ProductPermissions.MANAGE_PRODUCTS,
+        REPORT_EVENT_DELIVERY_ATTEMPT: ProductPermissions.MANAGE_PRODUCTS,
     }
 
 
