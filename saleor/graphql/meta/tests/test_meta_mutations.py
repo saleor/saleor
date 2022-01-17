@@ -11,6 +11,7 @@ from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
 from ....payment.utils import payment_owned_by_user
+from ....webhook.models import Webhook
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
@@ -2389,16 +2390,16 @@ def test_update_private_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_private_metadata_for_item_without_meta(api_client, address):
+def test_update_private_metadata_for_item_without_meta(api_client, webhook):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(Webhook), ModelWithMetadata)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse UPDATE_PRIVATE_METADATA_MUTATION
     response = execute_update_private_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, webhook_id, "User"
     )
 
     # then
