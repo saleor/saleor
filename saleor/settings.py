@@ -534,6 +534,7 @@ CELERY_BEAT_SCHEDULE = {
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+REPORTER_LOG_ALL_API_CALLS = get_bool_from_env("REPORTER_LOG_ALL_API_CALLS", False)
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
