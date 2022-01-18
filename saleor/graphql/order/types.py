@@ -1117,10 +1117,10 @@ class Order(CountableDjangoObjectType):
             return collection_point
         return None
 
-    @staticmethod
+    @classmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
-    def resolve_available_shipping_methods(root: models.Order, info):
+    def resolve_shipping_methods(cls, root: models.Order, info):
         def with_channel(channel):
             def with_listings(channel_listings):
                 return get_valid_shipping_methods_for_order(root, channel_listings)
@@ -1132,6 +1132,14 @@ class Order(CountableDjangoObjectType):
             )
 
         return ChannelByIdLoader(info.context).load(root.channel_id).then(with_channel)
+
+    @classmethod
+    @traced_resolver
+    # TODO: We should optimize it in/after PR#5819
+    def resolve_available_shipping_methods(cls, root: models.Order, info):
+        return cls.resolve_shipping_methods(root, info).then(
+            lambda methods: [method for method in methods if method.active]
+        )
 
     @classmethod
     @traced_resolver
