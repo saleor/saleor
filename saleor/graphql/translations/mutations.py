@@ -4,6 +4,7 @@ from django.db import transaction
 from django.db.models import CharField, Model
 
 from ...attribute import models as attribute_models
+from ...core.error_codes import TranslationErrorCode
 from ...core.permissions import SitePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...discount import models as discount_models
@@ -61,7 +62,7 @@ def validate_input_against_model(model: Model, input_data: dict):
         if value and len(value) > model_field.max_length:
             errors[field_name] = ValidationError(
                 f"This value can't be longer than {model_field.max_length}",
-                code="too_long",
+                code=TranslationErrorCode.TOO_LONG.value,
             )
 
     if errors:
