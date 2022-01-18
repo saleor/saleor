@@ -31,12 +31,12 @@ def get_countries_without_shipping_zone():
 def convert_to_shipping_method_data(
     shipping_method: "ShippingMethod", listing: Optional["ShippingMethodChannelListing"]
 ) -> Optional["ShippingMethodData"]:
-    if listing:
-        price = listing.price
-        minimum_order_price = listing.minimum_order_price
-        maximum_order_price = listing.maximum_order_price
-    else:
+    if not listing:
         return None
+
+    price = listing.price
+    minimum_order_price = listing.minimum_order_price
+    maximum_order_price = listing.maximum_order_price
 
     return ShippingMethodData(
         id=str(shipping_method.id),
