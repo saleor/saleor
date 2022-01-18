@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Type
@@ -23,6 +24,7 @@ from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.models import Webhook
+from ...webhook.payloads import TaskParams
 from . import signature_for_payload
 from .utils import (
     attempt_update,
@@ -265,6 +267,13 @@ def send_webhook_request_async(self, event_delivery_id):
                 data,
             )
         attempt_update(attempt, response)
+        countdown = self.retry_backoff * (2 ** self.request.retries)
+        task_params = TaskParams(
+            retry_number=self.request.retries,
+            max_retries=self.retry_kwargs["max_retries"],
+            next_retry=datetime.now() + timedelta(seconds=countdown),
+        )
+        report_event_delivery_attempt(delivery.event_type, attempt, task_params)
         if response.status == EventDeliveryStatus.FAILED:
             task_logger.info(
                 "[Webhook ID: %r] Failed request to %r: %r for event: %r."
@@ -276,7 +285,6 @@ def send_webhook_request_async(self, event_delivery_id):
                 attempt.id,
             )
             try:
-                countdown = self.retry_backoff * (2 ** self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except MaxRetriesExceededError:
                 task_logger.warning(
@@ -288,7 +296,6 @@ def send_webhook_request_async(self, event_delivery_id):
                 )
                 delivery_status = EventDeliveryStatus.FAILED
         delivery_update(delivery, delivery_status)
-        report_event_delivery_attempt(delivery.event_type, attempt)
         task_logger.info(
             "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
             webhook.id,
@@ -300,6 +307,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        report_event_delivery_attempt(delivery.event_type, attempt, TaskParams())
     clear_successful_delivery(delivery)
 
 
@@ -369,7 +377,7 @@ def send_webhook_request_sync(app_name, delivery):
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     delivery_update(delivery, response.status)
-    report_event_delivery_attempt(delivery.event_type, attempt)
+    report_event_delivery_attempt(delivery.event_type, attempt, TaskParams())
     clear_successful_delivery(delivery)
     return response_data
 

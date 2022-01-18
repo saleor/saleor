@@ -23,6 +23,7 @@ from ...webhook.event_types import WebhookEventAsyncType
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData
+    from ...webhook.payloads import TaskParams
     from .tasks import WebhookResponse
 
 
@@ -226,9 +227,11 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         delivery.delete()
 
 
-def report_event_delivery_attempt(event_type: str, attempt: "EventDeliveryAttempt"):
+def report_event_delivery_attempt(
+    event_type: str, attempt: "EventDeliveryAttempt", task_params: "TaskParams"
+):
     if event_type not in [
         WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT,
         WebhookEventAsyncType.REPORT_API_CALL,
     ]:
-        get_plugins_manager().report_event_delivery_attempt(attempt)
+        get_plugins_manager().report_event_delivery_attempt(attempt, task_params)

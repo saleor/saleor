@@ -61,6 +61,7 @@ if TYPE_CHECKING:
     from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
+    from ...webhook.payloads import TaskParams
 
 
 logger = logging.getLogger(__name__)
@@ -392,11 +393,14 @@ class WebhookPlugin(BasePlugin):
         trigger_webhooks_async(api_call_data, WebhookEventAsyncType.REPORT_API_CALL)
 
     def report_event_delivery_attempt(
-        self, attempt: "EventDeliveryAttempt", previous_value: Any
+        self,
+        attempt: "EventDeliveryAttempt",
+        task_params: "TaskParams",
+        previous_value: Any,
     ):
         if not self.active:
             return previous_value
-        attempt_data = generate_event_delivery_attempt_payload(attempt)
+        attempt_data = generate_event_delivery_attempt_payload(attempt, task_params)
         trigger_webhooks_async(
             attempt_data, WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
         )

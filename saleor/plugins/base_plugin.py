@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from ..page.models import Page
     from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..shipping.interface import ShippingMethodData
+    from ..webhook.payloads import TaskParams
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
@@ -507,7 +508,9 @@ class BasePlugin:
     #  Trigger when event delivery attempt is made
     #
     #  Overwrite this method if you need log webhook delivery attempt.
-    report_event_delivery_attempt: Callable[["EventDeliveryAttempt", Any], Any]
+    report_event_delivery_attempt: Callable[
+        ["EventDeliveryAttempt", "TaskParams", Any], Any
+    ]
 
     #  Trigger when sale is created.
     #

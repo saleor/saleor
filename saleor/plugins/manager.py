@@ -55,6 +55,7 @@ if TYPE_CHECKING:
     from ..shipping.interface import ShippingMethodData
     from ..translation.models import Translation
     from ..warehouse.models import Stock
+    from ..webhook.payloads import TaskParams
     from .base_plugin import BasePlugin
 
 
@@ -602,10 +603,15 @@ class PluginsManager(PaymentInterface):
             "report_api_call", default_value, request, response
         )
 
-    def report_event_delivery_attempt(self, delivery_attempt: "EventDeliveryAttempt"):
+    def report_event_delivery_attempt(
+        self, delivery_attempt: "EventDeliveryAttempt", task_params: "TaskParams"
+    ):
         default_value = None
         return self.__run_method_on_plugins(
-            "report_event_delivery_attempt", default_value, delivery_attempt
+            "report_event_delivery_attempt",
+            default_value,
+            delivery_attempt,
+            task_params,
         )
 
     def order_created(self, order: "Order"):
