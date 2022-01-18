@@ -44,7 +44,7 @@ def allocate_stocks(
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")
     )
-    stocks_id = [stock.pop("id") for stock in stocks]
+    stocks_id = (stock.pop("id") for stock in stocks)
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
@@ -82,9 +82,14 @@ def allocate_stocks(
         raise InsufficientStock(insufficient_stock)
 
     if allocations:
-        Allocation.objects.bulk_create(allocations)
-        for stock in Stock.objects.filter(id__in=stocks_id):
-            stock.recalculate_quantity_allocated()
+        stocks_to_update = []
+        for alloc in Allocation.objects.bulk_create(allocations):
+            stock = alloc.stock
+            stock.quantity_allocated = (
+                F("quantity_allocated") + alloc.quantity_allocated
+            )
+            stocks_to_update.append(stock)
+        Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
 
 def _create_allocations(
@@ -169,6 +174,11 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
                 allocation.quantity_allocated = (
                     allocation.quantity_allocated - quantity_to_deallocate
                 )
+                stock = allocation.stock
+                stock.quantity_allocated = (
+                    F("quantity_allocated") - quantity_to_deallocate
+                )
+                stock.save(update_fields=["quantity_allocated"])
                 quantity_dealocated += quantity_to_deallocate
                 allocations_to_update.append(allocation)
                 if quantity_dealocated == quantity:
@@ -177,10 +187,6 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
             not_dellocated_lines.append(order_line)
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
-
-    stock_ids = [alloc.stock_id for alloc in lines_allocations]
-    for stock in Stock.objects.filter(id__in=stock_ids):
-        stock.recalculate_quantity_allocated()
 
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
@@ -248,7 +254,13 @@ def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: st
         # line_info.quantity resembles amount to add, sum it with already allocated.
         line_info.quantity += allocated
 
+    stocks_to_update = []
+    for alloc in allocations:
+        stock = alloc.stock
+        stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
+        stocks_to_update.append(stock)
     Allocation.objects.filter(pk__in=allocation_pks_to_delete).delete()
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     allocate_stocks(
         lines_info,

@@ -143,14 +143,6 @@ class Stock(models.Model):
         if commit:
             self.save(update_fields=["quantity"])
 
-    def recalculate_quantity_allocated(self):
-        """Set quantity_allocated based on allocations."""
-        quantity_allocated = self.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
-        self.quantity_allocated = quantity_allocated
-        self.save(update_fields=["quantity_allocated"])
-
 
 class Allocation(models.Model):
     order_line = models.ForeignKey(
