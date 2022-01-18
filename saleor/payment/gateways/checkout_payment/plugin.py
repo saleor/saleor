@@ -10,7 +10,7 @@ from saleor.plugins.models import PluginConfiguration
 from ...interface import GatewayResponse, PaymentData
 from ..utils import get_supported_currencies, require_active_plugin
 from . import GatewayConfig, capture, confirm_payment, process_payment, refund
-from .utils import handle_webhook
+from .utils import handle_webhook, validate_apple_pay_session
 
 GATEWAY_NAME = _("Credit Card")
 
@@ -134,10 +134,16 @@ class CheckoutGatewayPlugin(BasePlugin):
 
     def webhook(self, request: HttpRequest, path: str, *args, **kwargs):
         if path == "/paid/" and request.method == "POST":
-            handle_webhook(
+            response = handle_webhook(
                 request=request,
                 gateway=self.PLUGIN_ID,
                 config=self._get_gateway_config(),
             )
             logger.info(msg="Finish handling webhook")
+            return response
+        elif path == "/apple-pay/validate-session/" and request.method == "POST":
+            # Validate Apple Pay session
+            response = validate_apple_pay_session(request=request)
+            logger.info(msg="Finish validating Apple Pay session")
+            return response
         return HttpResponseNotFound("This path is not valid!")
