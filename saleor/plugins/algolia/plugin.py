@@ -53,7 +53,10 @@ class AlgoliaPlugin(BasePlugin):
             "ALGOLIA_LOCALES": configuration["ALGOLIA_LOCALES"],
             "ALGOLIA_APPLICATION_ID": configuration["ALGOLIA_APPLICATION_ID"],
         }
-        self.api_client = AlgoliaApiClient(
+
+    def get_client(self):
+        """Return Algolia client."""
+        return AlgoliaApiClient(
             api_key=self.config["ALGOLIA_API_KEY"],
             app_id=self.config["ALGOLIA_APPLICATION_ID"],
             locales=self.config["ALGOLIA_LOCALES"].split(","),
@@ -89,7 +92,7 @@ class AlgoliaPlugin(BasePlugin):
     @require_active_plugin
     def product_created(self, product: "Product", previous_value: Any):
         """Index product to Algolia."""
-        for locale, index in self.api_client.list_indexes().items():
+        for locale, index in self.get_client().list_indexes().items():
             product_data = get_product_data(
                 product_pk=product.pk,
                 language_code=locale.upper(),
@@ -104,7 +107,7 @@ class AlgoliaPlugin(BasePlugin):
     @require_active_plugin
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         """Index product to Algolia."""
-        for locale, index in self.api_client.list_indexes().items():
+        for locale, index in self.get_client().list_indexes().items():
             product_data = get_product_data(
                 product_pk=product.pk,
                 language_code=locale.upper(),
@@ -120,6 +123,6 @@ class AlgoliaPlugin(BasePlugin):
         self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
         """Delete product from Algolia."""
-        for locale, index in self.api_client.list_indexes().items():
+        for locale, index in self.get_client().list_indexes().items():
             index.delete_object(object_id=product.slug)
             logger.info("Product %s deleted from Algolia", product.slug)

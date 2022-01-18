@@ -1,8 +1,6 @@
 from decimal import Decimal
-from typing import Dict
 
 import graphene
-from algoliasearch.search_client import SearchClient
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.http import HttpRequest
@@ -94,7 +92,7 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
 )
 
 
-def hierarchical_categories(product: Product):
+def get_hierarchical_categories(product: Product):
     hierarchical = {}
     hierarchical_list = []
     if product.category:
@@ -246,29 +244,10 @@ def get_product_data(product_pk: int, language_code="EN"):
                 "description": description,
                 "images": map_product_media(media=media),
                 "gender": product.get_value_from_metadata("gender"),
-                "categories": hierarchical_categories(product=product),
+                "categories": get_hierarchical_categories(product=product),
                 "collections": map_product_collections(
                     product=product, language_code=language_code.lower()
                 ),
             }
         )
         return product_dict
-
-
-def get_algolia_indices(config: Dict, locale: str):
-    client = SearchClient.create(
-        api_key=config["ALGOLIA_API_KEY"],
-        app_id=config["ALGOLIA_APPLICATION_ID"],
-    )
-
-    index = client.init_index(name=f"products_{locale}")
-    index.set_settings(
-        settings={
-            "searchableAttributes": [
-                "name",
-                "channels",
-                "description",
-            ]
-        }
-    )
-    return index
