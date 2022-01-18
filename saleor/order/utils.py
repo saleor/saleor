@@ -26,13 +26,11 @@ from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.management import (
-    deallocate_stock,
     decrease_allocations,
     get_order_lines_with_track_inventory,
     increase_allocations,
     increase_stock,
 )
-from ..warehouse.models import Warehouse
 from . import events
 
 if TYPE_CHECKING:
@@ -195,6 +193,8 @@ def update_taxes_for_order_line(
     line: "OrderLine", order: "Order", manager, tax_included
 ):
     variant = line.variant
+    if not variant:
+        return
     product = variant.product  # type: ignore
 
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
@@ -564,35 +564,6 @@ def delete_order_line(line_info):
     if line_info.line.order.is_unconfirmed():
         decrease_allocations([line_info])
     line_info.line.delete()
-
-
-def restock_order_lines(order):
-    """Return ordered products to corresponding stocks."""
-    country = get_order_country(order)
-    default_warehouse = Warehouse.objects.filter(
-        shipping_zones__countries__contains=country
-    ).first()
-
-    dellocating_stock_lines: List[OrderLineData] = []
-    for line in order.lines.all():
-        if line.variant and line.variant.track_inventory:
-            if line.quantity_unfulfilled > 0:
-                dellocating_stock_lines.append(
-                    OrderLineData(line=line, quantity=line.quantity_unfulfilled)
-                )
-            if line.quantity_fulfilled > 0:
-                allocation = line.allocations.first()
-                warehouse = (
-                    allocation.stock.warehouse if allocation else default_warehouse
-                )
-                increase_stock(line, warehouse, line.quantity_fulfilled)
-
-        if line.quantity_fulfilled > 0:
-            line.quantity_fulfilled = 0
-            line.save(update_fields=["quantity_fulfilled"])
-
-    if dellocating_stock_lines:
-        deallocate_stock(dellocating_stock_lines)
 
 
 def restock_fulfillment_lines(fulfillment, warehouse):

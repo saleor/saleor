@@ -128,7 +128,6 @@ def _create_allocations(
         return insufficient_stock, []
 
 
-@traced_atomic_transaction()
 def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
     """Deallocate stocks for given `order_lines`.
 
@@ -176,6 +175,8 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
                     break
         if not quantity_dealocated == quantity:
             not_dellocated_lines.append(order_line)
+
+    Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
 
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
