@@ -178,13 +178,12 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
 
-    if not_dellocated_lines:
-        raise AllocationError(not_dellocated_lines)
-
-    Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
     stock_ids = [alloc.stock_id for alloc in lines_allocations]
     for stock in Stock.objects.filter(id__in=stock_ids):
         stock.recalculate_quantity_allocated()
+
+    if not_dellocated_lines:
+        raise AllocationError(not_dellocated_lines)
 
 
 @traced_atomic_transaction()
@@ -288,18 +287,9 @@ def decrease_stock(
     try:
         deallocate_stock(order_lines_info)
     except AllocationError as exc:
-        allocations = Allocation.objects.filter(
-            order_line__in=exc.order_lines
-        ).select_related("stock")
-        stocks = []
-        for alloc in allocations:
-            stock = alloc.stock
-            stock.quantity_allocated = (
-                F("quantity_allocated") - alloc.quantity_allocated
-            )
-            stocks.append(stock)
-        Stock.objects.bulk_update(stocks, ["quantity_allocated"])
-        allocations.update(quantity_allocated=0)
+        Allocation.objects.filter(order_line__in=exc.order_lines).update(
+            quantity_allocated=0
+        )
 
     stocks = (
         Stock.objects.select_for_update(of=("self",))

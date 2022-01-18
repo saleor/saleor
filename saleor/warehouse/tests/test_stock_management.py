@@ -409,7 +409,7 @@ def test_decrease_stock_without_stock_update(quantity, expected_allocated, alloc
 
     stock.refresh_from_db()
     assert stock.quantity == 100
-    assert stock.quantity_allocated == 80
+    assert stock.quantity_allocated == expected_allocated
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == expected_allocated
 
