@@ -1027,15 +1027,10 @@ def generate_api_call_payload(request, response):
         "response_headers": dict(response.headers),
         "response_content": response_body,
     }
-    if request.app:
+    if hasattr(request, "app") and request.app:
         payload["saleor_app"] = dict(
             saleor_app_id=graphene.Node.to_global_id("App", request.app.id),
             name=request.app.name,
-        )
-    if request.user.is_authenticated:
-        payload["user"] = dict(
-            id=graphene.Node.to_global_id("User", request.user.id),
-            email=request.user.email,
         )
     return json.dumps([payload])
 
