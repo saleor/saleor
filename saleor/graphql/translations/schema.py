@@ -26,7 +26,6 @@ from .resolvers import (
     resolve_vouchers,
 )
 
-
 TYPES_TRANSLATIONS_MAP = {
     Product: translation_types.ProductTranslatableContent,
     Collection: translation_types.CollectionTranslatableContent,
