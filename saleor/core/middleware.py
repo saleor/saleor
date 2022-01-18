@@ -69,21 +69,6 @@ def discounts(get_response):
     return _discounts_middleware
 
 
-def api_reporter(get_response):
-    """Report API call."""
-
-    def _report(request):
-        response = get_response(request)
-        if request.path == API_PATH and request.method == "POST":
-            if settings.REPORTER_LOG_ALL_API_CALLS or (
-                hasattr(request, "app") and request.app
-            ):
-                request.plugins.report_api_call(request, response)
-        return response
-
-    return _report
-
-
 def site(get_response):
     """Clear the Sites cache and assign the current site to `request.site`.
 
@@ -149,3 +134,18 @@ def jwt_refresh_token_middleware(get_response):
         return response
 
     return middleware
+
+
+def api_reporter(get_response):
+    """Report API call."""
+
+    def _report(request):
+        response = get_response(request)
+        if request.path == API_PATH and request.method == "POST":
+            if settings.REPORTER_LOG_ALL_API_CALLS or (
+                hasattr(request, "app") and request.app
+            ):
+                request.plugins.report_api_call(request, response)
+        return response
+
+    return _report
