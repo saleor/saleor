@@ -710,9 +710,9 @@ def get_valid_shipping_methods_for_order(
 
     for method in shipping_methods:
         listing = listing_map.get(method.id)
-        if not listing:
-            continue
-        valid_methods.append(convert_to_shipping_method_data(method, listing))
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            valid_methods.append(shipping_method_data)
 
     return valid_methods
 
