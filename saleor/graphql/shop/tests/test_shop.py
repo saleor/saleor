@@ -1334,3 +1334,55 @@ def test_get_shop_limit_info_returns_null_by_default(staff_api_client):
             }
         }
     }
+
+
+COUNTRY_FILTER_QUERY = """
+    query($filter: CountryFilterInput!) {
+        shop {
+            countries(filter: $filter){
+            code
+            }
+        }
+    }
+
+"""
+
+
+def test_query_countries_filter_shiping_zones_attached_true(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": True}}
+    fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+    countries_codes_results = {country["code"] for country in data}
+
+    # then
+    assert countries_codes_results == fixture_countries_code_set
+    assert len(data) == len(shipping_zones)
+
+
+def test_query_countries_filter_shiping_zones_attached_false(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": False}}
+    fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+    countries_codes_results = {country["code"] for country in data}
+
+    # then
+    assert not any(
+        code in countries_codes_results for code in fixture_countries_code_set
+    )
+    assert len(data) == (len(countries) - len(shipping_zones))

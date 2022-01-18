@@ -1634,7 +1634,7 @@ type CountryDisplay {
 }
 
 input CountryFilterInput {
-  inShippingZones: Boolean
+  attachedToShippingZones: Boolean
 }
 
 type CreateToken {

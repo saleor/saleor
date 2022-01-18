@@ -33,7 +33,7 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
 
 def resolve_countries(**kwargs):
     countries_filter = kwargs.get("filter", {})
-    in_shipping_zones = countries_filter.get("in_shipping_zones")
+    attached_to_shipping_zones = countries_filter.get("attached_to_shipping_zones")
     language_code = kwargs.get("language_code")
     taxes = {vat.country_code: vat for vat in VAT.objects.all()}
     # DEPRECATED: translation.override will be dropped in Saleor 4.0
@@ -43,7 +43,7 @@ def resolve_countries(**kwargs):
                 code=country[0], country=country[1], vat=taxes.get(country[0])
             )
             for country in countries
-            if country[0] in get_countries_codes_list(in_shipping_zones)
+            if country[0] in get_countries_codes_list(attached_to_shipping_zones)
         ]
 
 

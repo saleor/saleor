@@ -19,7 +19,7 @@ def test_get_countries_codes_list_true(shipping_zones):
     fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
 
     # when
-    countries_list_true = get_countries_codes_list(in_shipping_zones=True)
+    countries_list_true = get_countries_codes_list(attached_to_shipping_zones=True)
 
     # then
     assert countries_list_true == fixture_countries_code_set
