@@ -74,8 +74,11 @@ def api_reporter(get_response):
 
     def _report(request):
         response = get_response(request)
-        if request.method == "POST" and request.path == API_PATH:
-            get_plugins_manager().report_api_call(request, response)
+        if request.path == API_PATH and request.method == "POST":
+            if settings.REPORTER_LOG_ALL_API_CALLS or (
+                hasattr(request, "app") and request.app
+            ):
+                request.plugins.report_api_call(request, response)
         return response
 
     return _report

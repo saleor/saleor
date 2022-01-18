@@ -227,5 +227,8 @@ def clear_successful_delivery(delivery: "EventDelivery"):
 
 
 def report_event_delivery_attempt(event_type: str, attempt: "EventDeliveryAttempt"):
-    if event_type not in [WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT]:
+    if event_type not in [
+        WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT,
+        WebhookEventAsyncType.REPORT_API_CALL,
+    ]:
         get_plugins_manager().report_event_delivery_attempt(attempt)
