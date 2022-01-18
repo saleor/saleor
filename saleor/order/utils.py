@@ -715,9 +715,9 @@ def get_valid_shipping_methods_for_order(
 
     for method in shipping_methods:
         listing = listing_map.get(method.id)
-        method_data = convert_to_shipping_method_data(method, listing)
-        if method_data:
-            valid_methods.append(method_data)
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            valid_methods.append(shipping_method_data)
 
     excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
     annotate_active_shipping_methods(valid_methods, excluded_methods)

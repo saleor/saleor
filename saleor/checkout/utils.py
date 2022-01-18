@@ -671,10 +671,9 @@ def get_valid_internal_shipping_methods_for_checkout(
     internal_methods = []
     for method in shipping_methods:
         listing = channel_listings_map.get(method.pk)
-        if not listing:
-            continue
-
-        internal_methods.append(convert_to_shipping_method_data(method, listing))
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            internal_methods.append(shipping_method_data)
 
     return internal_methods
 
