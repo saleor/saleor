@@ -244,6 +244,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     global_warehouse_id = graphene.Node.to_global_id(
         "Warehouse", allocation.stock.warehouse_id
     )
+    product = line.variant.product
+    product_type = product.product_type
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",
@@ -280,6 +282,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "undiscounted_total_price_gross_amount": str(
             undiscounted_total_price_gross_amount
         ),
+        "product_metadata": product.metadata,
+        "product_type_metadata": product_type.metadata,
     }
 
 
