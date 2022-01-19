@@ -11,6 +11,7 @@ from ...core.taxes import TaxData, TaxLineData
 from ...plugins.manager import get_plugins_manager
 from ..calculations import _apply_tax_data, fetch_checkout_prices_if_expired
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
+from ..interface import CheckoutTaxedPricesData
 
 
 @pytest.fixture
@@ -114,6 +115,19 @@ def fetch_kwargs(checkout_with_items, manager):
     }
 
 
+def get_checkout_taxed_prices_data(
+    obj: Union[TaxData, TaxLineData],
+    attr: Literal["unit", "total", "subtotal", "shipping_price"],
+) -> CheckoutTaxedPricesData:
+    price = TaxedMoney(
+        Money(getattr(obj, f"{attr}_net_amount"), obj.currency),
+        Money(getattr(obj, f"{attr}_gross_amount"), obj.currency),
+    )
+    return CheckoutTaxedPricesData(
+        undiscounted_price=price, price_with_sale=price, price_with_discounts=price
+    )
+
+
 def get_taxed_money(
     obj: Union[TaxData, TaxLineData],
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
@@ -139,8 +153,8 @@ def test_fetch_checkout_prices_if_expired_plugins(
     unit_prices, totals, tax_rates = zip(
         *[
             (
-                get_taxed_money(line, "unit"),
-                get_taxed_money(line, "total"),
+                get_checkout_taxed_prices_data(line, "unit"),
+                get_checkout_taxed_prices_data(line, "total"),
                 line.tax_rate,
             )
             for line in tax_data.lines

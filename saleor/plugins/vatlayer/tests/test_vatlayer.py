@@ -538,7 +538,9 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
     manager.assign_tax_code_to_object_meta(product, "standard")
     product.save()
 
-    line_price = manager.calculate_order_line_unit(order, order_line, variant, product)
+    line_price = manager.calculate_order_line_unit(
+        order, order_line, variant, product
+    ).price_with_discounts
     line_price = quantize_price(line_price, line_price.currency)
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
@@ -570,7 +572,9 @@ def test_calculate_order_line_unit_from_origin_country(
     manager.assign_tax_code_to_object_meta(product, "standard")
     product.save()
 
-    line_price = manager.calculate_order_line_unit(order, order_line, variant, product)
+    line_price = manager.calculate_order_line_unit(
+        order, order_line, variant, product
+    ).price_with_discounts
     line_price = quantize_price(line_price, line_price.currency)
 
     # make sure that we applied DE taxes (19%)
@@ -602,7 +606,9 @@ def test_calculate_order_line_unit_with_excluded_country(
     manager.assign_tax_code_to_object_meta(product, "standard")
     product.save()
 
-    line_price = manager.calculate_order_line_unit(order, order_line, variant, product)
+    line_price = manager.calculate_order_line_unit(
+        order, order_line, variant, product
+    ).price_with_discounts
     line_price = quantize_price(line_price, line_price.currency)
 
     assert line_price == TaxedMoney(
@@ -640,7 +646,7 @@ def test_calculate_checkout_line_total(
         checkout_line_info,
         address,
         [],
-    )
+    ).price_with_sale
 
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD") * line.quantity,
@@ -680,7 +686,7 @@ def test_calculate_checkout_line_total_from_origin_country(
         checkout_line_info,
         address,
         [],
-    )
+    ).price_with_sale
 
     # make sure that we applied DE taxes (19%)
     assert line_price == TaxedMoney(
@@ -719,7 +725,7 @@ def test_calculate_checkout_line_total_with_excluded_country(
         checkout_line_info,
         address,
         [],
-    )
+    ).price_with_sale
 
     assert line_price == TaxedMoney(
         net=Money("10.00", "USD") * line.quantity,
@@ -752,7 +758,7 @@ def test_calculate_order_line_total(vatlayer, order_line, site_settings):
         order_line,
         variant,
         product,
-    )
+    ).price_with_discounts
 
     total_price_amount = total_price.net.amount
     currency = total_price.currency
@@ -771,7 +777,6 @@ def test_calculate_checkout_line_unit_price(
     vatlayer, checkout_with_item, shipping_zone, address, site_settings
 ):
     manager = get_plugins_manager()
-    total_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("10.00", "USD"))
 
     line = checkout_with_item.lines.first()
 
@@ -791,14 +796,12 @@ def test_calculate_checkout_line_unit_price(
     checkout_line_info = lines[0]
 
     line_price = manager.calculate_checkout_line_unit_price(
-        total_price,
-        line.quantity,
         checkout_info,
         lines,
         checkout_line_info,
         address,
         [],
-    )
+    ).price_with_sale
 
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")

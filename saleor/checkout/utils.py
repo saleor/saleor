@@ -1,5 +1,5 @@
 """Checkout-related utility functions."""
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -354,18 +354,26 @@ def _get_products_voucher_discount(
 def get_discounted_lines(
     lines: Iterable["CheckoutLineInfo"], voucher
 ) -> Iterable["CheckoutLineInfo"]:
+    discounted_variants = voucher.variants.all()
     discounted_products = voucher.products.all()
     discounted_categories = set(voucher.categories.all())
     discounted_collections = set(voucher.collections.all())
 
     discounted_lines = []
-    if discounted_products or discounted_collections or discounted_categories:
+    if (
+        discounted_products
+        or discounted_collections
+        or discounted_categories
+        or discounted_variants
+    ):
         for line_info in lines:
+            line_variant = line_info.variant
             line_product = line_info.product
             line_category = line_info.product.category
             line_collections = set(line_info.collections)
             if line_info.variant and (
-                line_product in discounted_products
+                line_variant in discounted_variants
+                or line_product in discounted_products
                 or line_category in discounted_categories
                 or line_collections.intersection(discounted_collections)
             ):
@@ -405,7 +413,7 @@ def get_prices_of_discounted_specific_product(
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        )
+        ).price_with_sale
         line_unit_price = get_base_price_from_taxed_money(
             line_unit_price, taxes_included
         )
@@ -461,14 +469,20 @@ def get_voucher_discount_for_checkout(
 
 
 def get_voucher_for_checkout(
-    checkout_info: "CheckoutInfo", vouchers=None, with_lock: bool = False
+    checkout: "Checkout",
+    channel_slug: str,
+    with_lock: bool = False,
+    with_prefetch: bool = False,
 ) -> Optional[Voucher]:
-    """Return voucher with voucher code saved in checkout if active or None."""
-    checkout = checkout_info.checkout
+    """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
-        if vouchers is None:
-            vouchers = Voucher.objects.active_in_channel(
-                date=timezone.now(), channel_slug=checkout_info.channel.slug
+        vouchers = Voucher.objects
+        vouchers = vouchers.active_in_channel(
+            date=timezone.now(), channel_slug=channel_slug
+        )
+        if with_prefetch:
+            vouchers.prefetch_related(
+                "products", "collections", "categories", "variants", "channel_listings"
             )
         try:
             qs = vouchers
@@ -479,6 +493,19 @@ def get_voucher_for_checkout(
         except Voucher.DoesNotExist:
             return None
     return None
+
+
+def get_voucher_for_checkout_info(
+    checkout_info: "CheckoutInfo", with_lock: bool = False, with_prefetch: bool = False
+) -> Optional[Voucher]:
+    """Return voucher with voucher code saved in checkout if active or None."""
+    checkout = checkout_info.checkout
+    return get_voucher_for_checkout(
+        checkout,
+        channel_slug=checkout_info.channel.slug,
+        with_lock=with_lock,
+        with_prefetch=with_prefetch,
+    )
 
 
 def recalculate_checkout_discount(
@@ -494,7 +521,7 @@ def recalculate_checkout_discount(
     applicable.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout(checkout_info)
+    voucher = get_voucher_for_checkout_info(checkout_info)
     if voucher is not None:
         address = checkout_info.shipping_address or checkout_info.billing_address
         try:
@@ -563,9 +590,10 @@ def add_promo_code_to_checkout(
             discounts,
         )
     elif promo_code_is_gift_card(promo_code):
+        user_email = cast(str, checkout_info.get_customer_email())
         add_gift_card_code_to_checkout(
             checkout_info.checkout,
-            checkout_info.get_customer_email(),
+            user_email,
             promo_code,
             checkout_info.channel.currency_code,
         )
@@ -660,7 +688,7 @@ def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: s
 
 def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
     """Remove voucher data from checkout by code."""
-    existing_voucher = get_voucher_for_checkout(checkout_info)
+    existing_voucher = get_voucher_for_checkout_info(checkout_info)
     if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout_info.checkout)
 
