@@ -3473,7 +3473,7 @@ def test_checkout_shipping_method_update(
         assert (
             errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
         )
-        assert checkout.shipping_method is None
+        assert checkout.shipping_method == old_shipping_method
         assert checkout.last_change == previous_last_change
 
 
