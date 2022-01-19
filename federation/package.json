@@ -9,7 +9,6 @@
   "homepage": "http://saleor.io/",
   "dependencies": {
     "@apollo/gateway": "^0.46.0",
-    "apollo-server": "^3.6.2",
     "apollo-server-core": "^3.6.2",
     "apollo-server-express": "^3.6.2",
     "express": "^4.17.2",
