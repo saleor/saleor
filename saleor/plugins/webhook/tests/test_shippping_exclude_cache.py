@@ -7,9 +7,9 @@ from ...base_plugin import ExcludedShippingMethod
 from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
 
 
-@mock.patch("saleor.plugins.webhook.utils.cache.get")
-@mock.patch("saleor.plugins.webhook.utils.cache.set")
-@mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.shipping.cache.get")
+@mock.patch("saleor.plugins.webhook.shipping.cache.set")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
@@ -60,9 +60,9 @@ def test_excluded_shipping_methods_for_order_use_cache(
     assert not mocked_cache_set.called
 
 
-@mock.patch("saleor.plugins.webhook.utils.cache.get")
-@mock.patch("saleor.plugins.webhook.utils.cache.set")
-@mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.shipping.cache.get")
+@mock.patch("saleor.plugins.webhook.shipping.cache.set")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
@@ -121,9 +121,9 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_empty(
     )
 
 
-@mock.patch("saleor.plugins.webhook.utils.cache.get")
-@mock.patch("saleor.plugins.webhook.utils.cache.set")
-@mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.shipping.cache.get")
+@mock.patch("saleor.plugins.webhook.shipping.cache.set")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
@@ -185,9 +185,9 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_payload_is_dif
     )
 
 
-@mock.patch("saleor.plugins.webhook.utils.cache.get")
-@mock.patch("saleor.plugins.webhook.utils.cache.set")
-@mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.shipping.cache.get")
+@mock.patch("saleor.plugins.webhook.shipping.cache.set")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
@@ -239,9 +239,9 @@ def test_excluded_shipping_methods_for_checkout_use_cache(
     assert not mocked_cache_set.called
 
 
-@mock.patch("saleor.plugins.webhook.utils.cache.get")
-@mock.patch("saleor.plugins.webhook.utils.cache.set")
-@mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.shipping.cache.get")
+@mock.patch("saleor.plugins.webhook.shipping.cache.set")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
@@ -301,9 +301,9 @@ def test_excluded_shipping_methods_for_checkout_stores_in_cache_when_empty(
     )
 
 
-@mock.patch("saleor.plugins.webhook.utils.cache.get")
-@mock.patch("saleor.plugins.webhook.utils.cache.set")
-@mock.patch("saleor.plugins.webhook.utils.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.shipping.cache.get")
+@mock.patch("saleor.plugins.webhook.shipping.cache.set")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch(
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
