@@ -100,7 +100,7 @@ class SocialLoginByAccessToken(BaseMutation):
 
         if email is None:
             raise ValidationError(
-                "Missing email in provider response, have you added the necessary scopes?",  # noqa: E501
+                "Missing email in provider response, did you add the necessary scopes",  # noqa: E501
                 code=enums.OAuth2ErrorCode.OAUTH2_ERROR,
             )
 
