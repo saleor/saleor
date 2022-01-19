@@ -15,8 +15,11 @@ User = get_user_model()
 
 class SocialLogin(BaseMutation):
     class Arguments:
-        provider = types.ProviderEnum(required=True)
-        redirect_url = graphene.String(required=True)
+        provider = types.ProviderEnum(required=True, description="Provider name.")
+        redirect_url = graphene.String(
+            required=True,
+            description="A url to redirect to after authorization is done.",
+        )
 
     class Meta:
         description = "Initiate OAuth2 and get back the authorization URL"
@@ -80,7 +83,7 @@ class SocialLoginByAccessToken(BaseMutation):
     )
 
     class Arguments:
-        input = types.OAuth2TokenInput(description="OAuth2 data.", required=True)
+        input = types.OAuth2TokenInput(description="The OAuth2 data.", required=True)
 
     class Meta:
         description = "Perform an OAuth2 callback"
@@ -99,8 +102,7 @@ class SocialLoginByAccessToken(BaseMutation):
             created = False
         except User.DoesNotExist:
             password = User.objects.make_random_password()
-            language_code = input.language_code
-            user = User(email=email, is_active=True, language_code=language_code)
+            user = User(email=email, is_active=True)
             user.set_password(password)
             user.search_document = search.prepare_user_search_document_value(
                 user, attach_addresses_data=False
@@ -139,7 +141,7 @@ class SocialLoginByAccessToken(BaseMutation):
 
 class SocialLoginConfirm(SocialLoginByAccessToken):
     class Arguments:
-        input = types.OAuth2Input(description="OAuth2 data.", required=True)
+        input = types.OAuth2Input(description="The OAuth2 data.", required=True)
 
     class Meta:
         description = "Perform an OAuth2 callback with the provider access token."
