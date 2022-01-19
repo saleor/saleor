@@ -184,6 +184,9 @@ def request_data_for_payment(
     # klarna in method - because there is a lot of variable klarna methods - like pay
     # later with klarna or pay with klarna etc
     if "klarna" in method or method in methods_that_require_checkout_details:
+        # Some payment methods like afterpay or klarna, requires more context for
+        # processing a payment. If user pick up such payment method we add more
+        # checkout details to request
         request_data = append_checkout_details(payment_information, request_data)
     return request_data
 
@@ -247,7 +250,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        )
+        ).price_with_sale
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
         tax_amount = unit_price.tax.amount

@@ -14,7 +14,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
-from ....core.taxes import zero_money, zero_taxed_money
+from ....core.taxes import TaxError, zero_money, zero_taxed_money
 from ....giftcard import GiftCardEvents
 from ....giftcard.models import GiftCard, GiftCardEvent
 from ....order import OrderOrigin, OrderStatus
@@ -480,6 +480,24 @@ def test_checkout_complete_gift_card_bought(
     assert Fulfillment.objects.count() == 1
 
 
+def test_checkout_complete_no_checkout_email(
+    user_api_client,
+    checkout_with_gift_card,
+):
+    checkout = checkout_with_gift_card
+    checkout.email = None
+    checkout.save(update_fields=["email"])
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
+
+
 def test_checkout_complete_with_variant_without_sku(
     site_settings,
     user_api_client,
@@ -674,6 +692,51 @@ def test_checkout_with_voucher_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+@patch.object(PluginsManager, "preprocess_order_creation")
+@pytest.mark.integration
+def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_failure(
+    mocked_preprocess_order_creation,
+    user_api_client,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    mocked_preprocess_order_creation.side_effect = TaxError("tax error!")
+    voucher_percentage.used = 0
+    voucher_percentage.usage_limit = 1
+    voucher_percentage.save(update_fields=["used", "usage_limit"])
+
+    checkout = checkout_with_voucher_percentage
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    variables = {"token": checkout.token, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
+
+    voucher_percentage.refresh_from_db()
+    assert voucher_percentage.used == 0
+
+    assert Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout shouldn't have been deleted"
 
 
 @pytest.mark.integration

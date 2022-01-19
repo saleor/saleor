@@ -10,6 +10,7 @@ from ....core.prices import quantize_price
 from ....discount import DiscountValueType
 from ....order import OrderEvents, OrderStatus
 from ....order.error_codes import OrderErrorCode
+from ....order.interface import OrderTaxedPricesData
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
@@ -719,8 +720,14 @@ def test_delete_discount_from_order_line(
     line_undiscounted_price = line.undiscounted_unit_price
     line_undiscounted_total_price = line.undiscounted_total_price
 
-    mocked_calculate_order_line_unit.return_value = line_undiscounted_price
-    mocked_calculate_order_line_total.return_value = line_undiscounted_total_price
+    mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_price,
+        price_with_discounts=line_undiscounted_price,
+    )
+    mocked_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_total_price,
+        price_with_discounts=line_undiscounted_total_price,
+    )
 
     line.unit_discount_amount = Decimal("2.5")
     line.unit_discount_type = DiscountValueType.FIXED

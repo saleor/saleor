@@ -13,34 +13,49 @@ from saleor.core.taxes import (
     get_tax_code,
     set_tax_code,
 )
-from saleor.webhook.event_types import WebhookEventType
+from saleor.webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from saleor.webhook.models import Webhook, WebhookEvent
 
 
 @pytest.fixture
 def app_factory():
-    def factory(name, is_active, webhook_event_type):
+    def factory(name, is_active, webhook_event_types):
         app = App.objects.create(name=name, is_active=is_active)
         webhook = Webhook.objects.create(
             name=f"{name} Webhook",
             app=app,
             target_url="https://test.webhook.url",
         )
-        WebhookEvent.objects.create(
-            webhook=webhook,
-            event_type=webhook_event_type,
-        )
+        for event_type in webhook_event_types:
+            WebhookEvent.objects.create(
+                webhook=webhook,
+                event_type=event_type,
+            )
         return app
 
     return factory
 
 
 @pytest.fixture
-def tax_app(app_factory):
-    return app_factory(
+def tax_app_factory(app_factory):
+    def factory(name, is_active):
+        return app_factory(
+            name=name,
+            is_active=is_active,
+            webhook_event_types=[
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+            ],
+        )
+
+    return factory
+
+
+@pytest.fixture
+def tax_app(tax_app_factory):
+    return tax_app_factory(
         name="Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
     )
 
 
@@ -55,27 +70,33 @@ def test_get_current_tax_app(tax_app):
     assert expected_app == app
 
 
-def test_get_current_tax_app_multiple_apps(app_factory):
+def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
     # given
-    app_factory(
+    tax_app_factory(
         name="Another Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
     )
-    expected_app = app_factory(
+    expected_app = tax_app_factory(
         name="Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
     )
     app_factory(
         name="Non Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.ORDER_UPDATED,
+        webhook_event_types=[
+            WebhookEventAsyncType.ORDER_UPDATED,
+        ],
     )
     app_factory(
+        name="Partial Tax App",
+        is_active=True,
+        webhook_event_types=[
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+        ],
+    )
+    tax_app_factory(
         name="Inactive Tax App",
         is_active=False,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
     )
 
     # when

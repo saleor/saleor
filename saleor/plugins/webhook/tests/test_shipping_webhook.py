@@ -3,7 +3,9 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....webhook.event_types import WebhookEventType
+from ....core import EventDeliveryStatus
+from ....core.models import EventDelivery, EventPayload
+from ....webhook.event_types import WebhookEventSyncType
 from ...manager import get_plugins_manager
 from ..tasks import trigger_webhook_sync
 from ..utils import parse_list_shipping_methods_response
@@ -26,19 +28,22 @@ def webhook_plugin(plugin_manager):
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_webhook_sync(mock_request, shipping_app):
-    data = {"key": "value"}
+    data = '{"key": "value"}'
     trigger_webhook_sync(
-        WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, shipping_app
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, shipping_app
     )
     webhook = shipping_app.webhooks.first()
-    mock_request.assert_called_once_with(
-        shipping_app.name,
-        webhook.pk,
-        webhook.target_url,
-        webhook.secret_key,
-        WebhookEventType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-        data,
+    payload = EventPayload.objects.first()
+    delivery = EventDelivery.objects.first()
+    assert payload.payload == data
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert (
+        delivery.event_type == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
     )
+    assert delivery.payload == payload
+    assert delivery.webhook == webhook
+
+    mock_request.assert_called_once_with(shipping_app.name, delivery)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

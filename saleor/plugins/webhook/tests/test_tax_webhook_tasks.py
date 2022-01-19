@@ -2,7 +2,9 @@ from unittest import mock
 
 import pytest
 
-from ....webhook.event_types import WebhookEventType
+from ....core import EventDeliveryStatus
+from ....core.models import EventDelivery, EventPayload
+from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
 from ..tasks import trigger_tax_webhook_sync
 from ..utils import parse_tax_data
@@ -21,7 +23,7 @@ def tax_checkout_webhooks(tax_app):
     Webhook.objects.bulk_create(webhooks)
     WebhookEvent.objects.bulk_create(
         WebhookEvent(
-            event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+            event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
             webhook=webhook,
         )
         for webhook in webhooks
@@ -38,21 +40,22 @@ def test_trigger_tax_webhook_sync(
 ):
     # given
     mock_request.return_value = tax_data_response
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when
     tax_data = trigger_tax_webhook_sync(event_type, data, parse_tax_data)
 
     # then
-    mock_request.assert_called_once_with(
-        tax_checkout_webhook.app.name,
-        tax_checkout_webhook.pk,
-        tax_checkout_webhook.target_url,
-        tax_checkout_webhook.secret_key,
-        event_type,
-        data,
-    )
+    payload = EventPayload.objects.first()
+    delivery = EventDelivery.objects.first()
+    assert payload.payload == data
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == event_type
+    assert delivery.payload == payload
+    assert delivery.webhook == tax_checkout_webhook
+
+    mock_request.assert_called_once_with(tax_checkout_webhook.app.name, delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -64,7 +67,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
 ):
     # given
     mock_request.side_effect = [tax_data_response, {}, {}]
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when
@@ -72,14 +75,15 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
 
     # then
     successful_webhook = tax_checkout_webhooks[0]
-    mock_request.assert_called_once_with(
-        successful_webhook.app.name,
-        successful_webhook.pk,
-        successful_webhook.target_url,
-        successful_webhook.secret_key,
-        event_type,
-        data,
-    )
+    payload = EventPayload.objects.first()
+    delivery = EventDelivery.objects.first()
+    assert payload.payload == data
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == event_type
+    assert delivery.payload == payload
+    assert delivery.webhook == successful_webhook
+
+    mock_request.assert_called_once_with(successful_webhook.app.name, delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -91,7 +95,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
 ):
     # given
     mock_request.side_effect = [{}, {}, tax_data_response]
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when
@@ -99,18 +103,21 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
 
     # then
     assert mock_request.call_count == 3
-    for call, webhook in zip(mock_request.call_args_list, tax_checkout_webhooks):
-        assert call == (
-            (
-                webhook.app.name,
-                webhook.pk,
-                webhook.target_url,
-                webhook.secret_key,
-                event_type,
-                data,
-            ),
-            {},
-        )
+    payload = EventPayload.objects.first()
+    deliveries = EventDelivery.objects.order_by("pk")
+    assert payload.payload == data
+
+    for delivery, webhook in zip(deliveries, tax_checkout_webhooks):
+        delivery.status = EventDeliveryStatus.PENDING
+        delivery.event_type = event_type
+        delivery.payload = payload
+        delivery.webhook = webhook
+
+    for call, webhook, delivery in zip(
+        mock_request.call_args_list, tax_checkout_webhooks, deliveries
+    ):
+        assert call == ((webhook.app.name, delivery), {})
+
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -122,7 +129,7 @@ def test_trigger_tax_webhook_sync_invalid_webhooks(
 ):
     # given
     mock_request.return_value = {}
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when

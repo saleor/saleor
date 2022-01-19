@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union, cast
 from urllib.parse import urljoin
 
 import opentracing
@@ -188,26 +188,32 @@ def taxes_need_new_fetch(data: Dict[str, Any], cached_data) -> bool:
 
 
 def append_line_to_data(
-    data: List[Dict[str, Union[str, int, bool, None]]],
+    data: List[Dict[str, Union[Any]]],
     quantity: int,
     amount: Decimal,
     tax_code: str,
     item_code: str,
     name: str = None,
     tax_included: Optional[bool] = None,
+    ref1: Optional[str] = None,
+    ref2: Optional[str] = None,
 ):
     if tax_included is None:
         tax_included = Site.objects.get_current().settings.include_taxes_in_prices
-    data.append(
-        {
-            "quantity": quantity,
-            "amount": str(amount),
-            "taxCode": tax_code,
-            "taxIncluded": tax_included,
-            "itemCode": item_code,
-            "description": name,
-        }
-    )
+    line_data = {
+        "quantity": quantity,
+        "amount": str(amount),
+        "taxCode": tax_code,
+        "taxIncluded": tax_included,
+        "itemCode": item_code,
+        "description": name,
+    }
+
+    if ref1:
+        line_data["ref1"] = ref1
+    if ref2:
+        line_data["ref2"] = ref2
+    data.append(line_data)
 
 
 def append_shipping_to_data(
@@ -237,6 +243,7 @@ def get_checkout_lines_data(
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
+    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
     for line_info in lines_info:
         if not line_info.product.charge_taxes:
             continue
@@ -246,24 +253,50 @@ def get_checkout_lines_data(
         item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        amount = base_calculations.base_checkout_line_total(
+        prices_data = base_calculations.base_checkout_line_total(
             line_info,
             channel,
             discounts,
-        ).gross.amount
-        append_line_to_data(
-            data=data,
-            quantity=line_info.line.quantity,
-            amount=amount,
+        )
+
+        if tax_included:
+            undiscounted_amount = prices_data.undiscounted_price.gross.amount
+            price_amount = prices_data.price_with_sale.gross.amount
+            price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
+        else:
+            undiscounted_amount = prices_data.undiscounted_price.net.amount
+            price_amount = prices_data.price_with_sale.net.amount
+            price_with_discounts_amount = prices_data.price_with_discounts.net.amount
+
+        append_line_to_data_kwargs = {
+            "data": data,
+            "quantity": line_info.line.quantity,
             # This is a workaround for Avatax and sending a lines with amount 0. Like
             # order lines which are fully discounted for some reason. If we use a
             # standard tax_code, Avatax will raise an exception: "When shipping
             # cross-border into CIF countries, Tax Included is not supported with mixed
             # positive and negative line amounts."
-            tax_code=tax_code if amount else DEFAULT_TAX_CODE,
-            item_code=item_code,
-            name=name,
+            "tax_code": tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
+            "item_code": item_code,
+            "name": name,
+            "tax_included": tax_included,
+        }
+        append_line_to_data(
+            **append_line_to_data_kwargs,
+            amount=undiscounted_amount,
         )
+        if undiscounted_amount != price_amount:
+            append_line_to_data(
+                **append_line_to_data_kwargs,
+                amount=price_amount,
+                ref1=line_info.variant.sku,
+            )
+        if price_amount != price_with_discounts_amount:
+            append_line_to_data(
+                **append_line_to_data_kwargs,
+                amount=price_with_discounts_amount,
+                ref2=line_info.variant.sku,
+            )
 
     append_shipping_to_data(
         data, checkout_info.shipping_method_channel_listings, config.shipping_tax_code
@@ -288,6 +321,7 @@ def get_order_lines_data(
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
+        prices_data = base_calculations.base_order_line_total(line)
 
         # Confirm if line doesn't have included taxes in the price. If not then, we
         # check if the current Saleor config doesn't assume that taxes are included in
@@ -296,21 +330,38 @@ def get_order_lines_data(
             line.unit_price_gross_amount != line.unit_price_net_amount
         )
         tax_included = line_has_included_taxes or system_tax_included
-        amount = line.unit_price_gross_amount * line.quantity
-        append_line_to_data(
-            data=data,
-            quantity=line.quantity,
-            amount=amount,
+
+        if tax_included:
+            undiscounted_amount = prices_data.undiscounted_price.gross.amount
+            price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
+        else:
+            undiscounted_amount = prices_data.undiscounted_price.net.amount
+            price_with_discounts_amount = prices_data.price_with_discounts.net.amount
+
+        append_line_to_data_kwargs = {
+            "data": data,
+            "quantity": line.quantity,
             # This is a workaround for Avatax and sending a lines with amount 0. Like
             # order lines which are fully discounted for some reason. If we use a
             # standard tax_code, Avatax will raise an exception: "When shipping
             # cross-border into CIF countries, Tax Included is not supported with mixed
             # positive and negative line amounts."
-            tax_code=tax_code if amount else DEFAULT_TAX_CODE,
-            item_code=line.variant.sku or line.variant.get_global_id(),
-            name=line.variant.product.name,
-            tax_included=tax_included,
+            "tax_code": tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
+            "item_code": line.variant.sku or line.variant.get_global_id(),
+            "name": line.variant.product.name,
+            "tax_included": tax_included,
+        }
+        append_line_to_data(
+            **append_line_to_data_kwargs,
+            amount=undiscounted_amount,
         )
+
+        if undiscounted_amount != price_with_discounts_amount:
+            append_line_to_data(
+                **append_line_to_data_kwargs,
+                amount=price_with_discounts_amount,
+                ref1=line.variant.sku,
+            )
 
     discount_amount = get_total_order_discount(order)
     if discount_amount:
@@ -323,6 +374,7 @@ def get_order_lines_data(
             name="Order discount",
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
+
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id
     ).first()
@@ -387,12 +439,13 @@ def generate_request_data_from_checkout(
     lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
 
     currency = checkout_info.checkout.currency
+    customer_email = cast(str, checkout_info.get_customer_email())
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
         transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
-        customer_email=checkout_info.get_customer_email(),
+        customer_email=customer_email,
         config=config,
         currency=currency,
     )
