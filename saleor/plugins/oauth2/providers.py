@@ -26,9 +26,9 @@ class Provider:
         validator = getattr(self, f"validate_{_for}_url", None)
 
         if validator:
-            url = validator()
+            return validator()
 
-        return url or self.urls[_for]
+        return self.urls[_for]
 
     def get_scope(self):
         return " ".join(self.scope)
@@ -151,7 +151,7 @@ class Google(Provider):
 class Apple(Provider):
     name = "apple"
     urls = {
-        "auth": "",
+        "auth": "https://appleid.apple.com/auth/authorize",
         "token": "https://appleid.apple.com/auth/token",
         "userinfo": "",
     }
