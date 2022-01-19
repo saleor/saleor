@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
-    from ..product.models import Product, ProductType, ProductVariant
+    from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..shipping.interface import ShippingMethodData
 
 PluginConfigurationType = List[dict]
@@ -237,6 +237,24 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic when a checkout is
     #  updated.
     checkout_updated: Callable[["Checkout", Any], Any]
+
+    #  Trigger when collection is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection is
+    #  created.
+    collection_created: Callable[["Collection", Any], Any]
+
+    #  Trigger when collection is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection is
+    #  deleted.
+    collection_deleted: Callable[["Collection", Any], Any]
+
+    #  Trigger when collection is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection is
+    #  updated.
+    collection_updated: Callable[["Collection", Any], Any]
 
     confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
 

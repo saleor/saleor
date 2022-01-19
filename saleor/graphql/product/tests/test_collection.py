@@ -459,8 +459,16 @@ CREATE_COLLECTION_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.collection_updated")
+@patch("saleor.plugins.manager.PluginsManager.collection_created")
 def test_create_collection(
-    monkeypatch, staff_api_client, product_list, media_root, permission_manage_products
+    created_webhook_mock,
+    updated_webhook_mock,
+    monkeypatch,
+    staff_api_client,
+    product_list,
+    media_root,
+    permission_manage_products,
 ):
     query = CREATE_COLLECTION_MUTATION
 
@@ -506,6 +514,9 @@ def test_create_collection(
     assert file_name.endswith(format)
     mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["backgroundImage"]["alt"] == image_alt
+
+    created_webhook_mock.assert_called_once()
+    updated_webhook_mock.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -604,8 +615,15 @@ def test_create_collection_name_with_unicode(
     assert data["collection"]["slug"] == "わたし-わ-にっぽん-です"
 
 
+@patch("saleor.plugins.manager.PluginsManager.collection_updated")
+@patch("saleor.plugins.manager.PluginsManager.collection_created")
 def test_update_collection(
-    monkeypatch, staff_api_client, collection, permission_manage_products
+    created_webhook_mock,
+    updated_webhook_mock,
+    monkeypatch,
+    staff_api_client,
+    collection,
+    permission_manage_products,
 ):
     query = """
         mutation updateCollection(
@@ -649,6 +667,9 @@ def test_update_collection(
     assert data["name"] == name
     assert data["slug"] == slug
     assert mock_create_thumbnails.call_count == 0
+
+    created_webhook_mock.assert_not_called()
+    updated_webhook_mock.assert_called_once()
 
 
 MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
@@ -908,9 +929,11 @@ DELETE_COLLECTION_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.collection_deleted")
 @patch("saleor.product.signals.delete_versatile_image")
 def test_delete_collection(
     delete_versatile_image_mock,
+    deleted_webhook_mock,
     staff_api_client,
     collection,
     permission_manage_products,
@@ -927,6 +950,8 @@ def test_delete_collection(
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
     delete_versatile_image_mock.assert_not_called()
+
+    deleted_webhook_mock.assert_called_once()
 
 
 @patch("saleor.product.signals.delete_versatile_image")

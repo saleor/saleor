@@ -26,6 +26,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_checkout_payload,
+    generate_collection_payload,
     generate_customer_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
@@ -302,6 +303,29 @@ def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocati
     line_payload = lines_payload[0]
     assert line_payload["product_sku"] is None
     assert line_payload["product_variant_id"] == line.product_variant_id
+
+
+def test_generate_collection_payload(collection):
+    payload = json.loads(generate_collection_payload(collection))
+    expected_payload = [
+        {
+            "type": "Collection",
+            "id": graphene.Node.to_global_id("Collection", collection.id),
+            "name": collection.name,
+            "description": collection.description,
+            "background_image": None,
+            "background_image_alt": "",
+            "private_metadata": {},
+            "metadata": {},
+            "meta": {
+                "issued_at": ANY,
+                "version": __version__,
+                "issuing_principal": {"id": None, "type": None},
+            },
+        }
+    ]
+
+    assert payload == expected_payload
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
