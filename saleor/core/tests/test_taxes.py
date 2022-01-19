@@ -10,7 +10,7 @@ from saleor.core.taxes import (
     TaxType,
     _get_cached_tax_codes_or_fetch,
     _get_current_tax_app,
-    get_tax_code,
+    get_tax_type,
     set_tax_code,
 )
 from saleor.webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -240,7 +240,7 @@ def test_get_tax_code(tax_app, product, tax_type):
     }
 
     # when
-    fetched_tax_type = get_tax_code(Mock(), product)
+    fetched_tax_type = get_tax_type(Mock(), product)
 
     # then
     assert fetched_tax_type == tax_type
@@ -248,7 +248,7 @@ def test_get_tax_code(tax_app, product, tax_type):
 
 def test_get_tax_code_defaults(tax_app, product):
     # when
-    fetched_tax_type = get_tax_code(Mock(), product)
+    fetched_tax_type = get_tax_type(Mock(), product)
 
     # then
     assert fetched_tax_type == TaxType(
@@ -263,7 +263,7 @@ def test_get_tax_code_old_method(product, tax_type):
     manager = Mock(get_tax_code_from_object_meta=mocked_get_tax_code_from_object_meta)
 
     # when
-    fetched_tax_type = get_tax_code(manager, product)
+    fetched_tax_type = get_tax_type(manager, product)
 
     # then
     assert fetched_tax_type == tax_type
