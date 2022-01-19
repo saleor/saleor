@@ -63,7 +63,7 @@ def filter_range_field(qs, field, value):
 
 
 def filter_by_id(object_type):
-    from saleor.graphql.utils import resolve_global_ids_to_primary_keys
+    from . import resolve_global_ids_to_primary_keys
 
     def inner(qs, _, value):
         if not value:
