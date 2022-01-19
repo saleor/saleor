@@ -119,6 +119,7 @@ class WebhookEventType:
         PAYMENT_VOID: "Void payment",
         CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
         ORDER_CALCULATE_TAXES: "Order calculate taxes",
+        FETCH_TAX_CODES: "Fetch tax codes",
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
@@ -168,6 +169,7 @@ class WebhookEventType:
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
         (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
         (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
+        (FETCH_TAX_CODES, DISPLAY_LABELS[FETCH_TAX_CODES]),
         (
             SHIPPING_LIST_METHODS_FOR_CHECKOUT,
             DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
