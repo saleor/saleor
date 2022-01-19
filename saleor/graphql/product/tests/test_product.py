@@ -2655,7 +2655,7 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
     assert products[0]["node"]["name"] == product_with_rich_text_attr.name
 
 
-@pytest.mark.parametrize("search_value", ["134", "134", "134 cm"])
+@pytest.mark.parametrize("search_value", ["13456", "13456 cm"])
 def test_products_query_with_filter_search_by_numeric_attribute_value(
     search_value,
     query_products_with_filter,
@@ -2675,7 +2675,7 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
     numeric_attribute.save(update_fields=["unit"])
 
     numeric_attr_value = numeric_attribute.values.first()
-    numeric_attr_value.name = "134"
+    numeric_attr_value.name = "13456"
     numeric_attr_value.save(update_fields=["name"])
 
     associate_attribute_values_to_instance(
@@ -6558,6 +6558,61 @@ def test_update_product_with_page_reference_attribute_value(
     assert product_type_page_reference_attribute.values.count() == values_count + 1
 
 
+def test_update_product_without_supplying_required_product_attribute(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = product.product_type
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+
+    # Create and assign a new attribute requiring a value to be always supplied
+    required_attribute = Attribute.objects.create(
+        name="Required One", slug="required-one", value_required=True
+    )
+    product_type.product_attributes.add(required_attribute)
+    required_attribute_id = graphene.Node.to_global_id(
+        "Attribute", required_attribute.id
+    )
+
+    value = "Blue"
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "input": {"attributes": [{"id": color_attribute_id, "values": [value]}]},
+    }
+
+    # when
+    data = get_graphql_content(
+        staff_api_client.post_graphql(MUTATION_UPDATE_PRODUCT, variables)
+    )["data"]["productUpdate"]
+
+    # then
+    assert not data["errors"]
+    attributes_data = data["product"]["attributes"]
+    assert len(attributes_data) == 2
+    assert {
+        "attribute": {"id": required_attribute_id, "name": required_attribute.name},
+        "values": [],
+    } in attributes_data
+    assert {
+        "attribute": {"id": color_attribute_id, "name": color_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": value,
+                "slug": value.lower(),
+                "file": None,
+                "reference": None,
+                "boolean": None,
+            }
+        ],
+    } in attributes_data
+
+
 def test_update_product_with_empty_input_collections(
     product, permission_manage_products, staff_api_client
 ):
@@ -7220,45 +7275,6 @@ def test_update_product_with_existing_attribute_value(
     assert (
         color_attribute.values.count() == expected_attribute_values_count
     ), "A new attribute value shouldn't have been created"
-
-
-def test_update_product_without_supplying_required_product_attribute(
-    staff_api_client, product, permission_manage_products, color_attribute
-):
-    """Ensure assigning an existing value to a product doesn't create a new
-    attribute value."""
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-
-    product_type = product.product_type
-    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
-
-    # Create and assign a new attribute requiring a value to be always supplied
-    required_attribute = Attribute.objects.create(
-        name="Required One", slug="required-one", value_required=True
-    )
-    product_type.product_attributes.add(required_attribute)
-    required_attribute_id = graphene.Node.to_global_id(
-        "Attribute", required_attribute.id
-    )
-
-    # Try to assign multiple values from an attribute that does not support such things
-    variables = {
-        "productId": graphene.Node.to_global_id("Product", product.pk),
-        "attributes": [{"id": color_attribute_id, "values": ["Blue"]}],
-    }
-
-    data = get_graphql_content(
-        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
-    )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {
-            "field": "attributes",
-            "code": ProductErrorCode.REQUIRED.name,
-            "message": ANY,
-            "attributes": [required_attribute_id],
-        }
-    ]
 
 
 def test_update_product_with_non_existing_attribute(
