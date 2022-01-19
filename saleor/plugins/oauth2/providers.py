@@ -1,5 +1,3 @@
-import json
-
 import requests
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.requests_client import OAuth2Session
@@ -25,7 +23,12 @@ class Provider:
             self.scope = scope
 
     def get_url_for(self, _for):
-        return self.urls[_for]
+        validator = getattr(self, f"validate_{_for}_url", None)
+
+        if validator:
+            url = validator()
+
+        return url or self.urls[_for]
 
     def get_scope(self):
         return " ".join(self.scope)
@@ -33,12 +36,16 @@ class Provider:
     def validate(self):
         if not isinstance(self.client_id, str):
             raise TypeError(
-                "client_id cannot be of type {t}".format(t=type(self.client_secret))
+                "client_id cannot be of type {t}".format(
+                    t=type(self.client_secret).__name__
+                )
             )
 
         if not isinstance(self.client_secret, str):
             raise TypeError(
-                "client_secret cannot be of type {t}".format(t=type(self.client_secret))
+                "client_secret cannot be of type {t}".format(
+                    t=type(self.client_secret).__name__
+                )
             )
 
     def get_session(self, error_message="Invalid session", **kwargs):
@@ -104,7 +111,7 @@ class Provider:
 
         raise ValidationError(
             message="An error occured while requesting {}: {}".format(
-                self.name, json.dumps(response)
+                self.name, str(response)
             ),
             code=OAuth2ErrorCode.USER_NOT_FOUND,
         )
@@ -122,6 +129,9 @@ class Facebook(Provider):
         "public_profile",
         "openid",
     ]
+
+    def validate_userinfo_url(self):
+        return self.urls["userinfo"] + "?fields=email"
 
 
 class Google(Provider):
