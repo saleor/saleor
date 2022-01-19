@@ -1055,7 +1055,10 @@ def generate_event_delivery_attempt_payload(
         "request_headers": attempt.request_headers,
         "response_headers": attempt.response_headers,
         "response_body": attempt.response,
+        "task_params": {"next_retry": None},
     }
+    if task_params.next_retry:
+        data["task_params"]["next_retry"] = task_params.next_retry.timestamp()
     if delivery := attempt.delivery:
         delivery_status = delivery.status
         if task_params.retry_number >= task_params.max_retries:
