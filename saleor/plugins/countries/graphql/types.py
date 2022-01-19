@@ -1,34 +1,19 @@
 from ....graphql.core.connection import CountableConnection, CountableDjangoObjectType
 from ....graphql.translations.fields import TranslationField
 from .. import models
-from .translations import CityTranslation, CountryAreaTranslation
+from .translations import ProvinceTranslation
 
 
-class City(CountableDjangoObjectType):
+class Province(CountableDjangoObjectType):
     translation = TranslationField(
-        CityTranslation,
-        type_name="city",
+        ProvinceTranslation,
+        type_name="province",
     )
 
     class Meta:
-        model = models.City
+        model = models.Province
 
 
-class CityCountableConnection(CountableConnection):
+class ProvinceCountableConnection(CountableConnection):
     class Meta:
-        node = City
-
-
-class CountryArea(CountableDjangoObjectType):
-    translation = TranslationField(
-        CountryAreaTranslation,
-        type_name="country area",
-    )
-
-    class Meta:
-        model = models.CountryArea
-
-
-class CountryAreaCountableConnection(CountableConnection):
-    class Meta:
-        node = CountryArea
+        node = Province

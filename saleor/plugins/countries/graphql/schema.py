@@ -6,42 +6,22 @@ from ....graphql.core.federation import build_federated_schema
 from ....graphql.core.fields import ConnectionField
 from .. import models
 from . import types
-from .mutations import CityCreate, CountryAreaCreate
 
 
-class Queries(graphene.ObjectType):
-    cities = ConnectionField(
-        types.CityCountableConnection,
+class Query(graphene.ObjectType):
+    provinces = ConnectionField(
+        types.ProvinceCountableConnection,
         description="Query cities by country code.",
-        code=graphene.Argument(
+        country_code=graphene.Argument(
             CountryCodeEnum, description="Country code.", required=True
         ),
     )
 
-    country_areas = ConnectionField(
-        types.CountryAreaCountableConnection,
-        description="Query country areas by country code.",
-        code=graphene.Argument(
-            CountryCodeEnum, description="Country code.", required=True
-        ),
-    )
-
-    def resolve_cities(root, info, code, **data):
+    def resolve_provinces(root, info, code, **data):
         qs = models.City.objects.filter(country=code)
-        return create_connection_slice(qs, info, data, types.CityCountableConnection)
-
-    def resolve_country_areas(root, info, code, **data):
-        qs = models.CountryArea.objects.filter(country=code)
         return create_connection_slice(
-            qs, info, data, types.CountryAreaCountableConnection
+            qs, info, data, types.ProvinceCountableConnection
         )
 
 
-class Mutations(graphene.ObjectType):
-    city_create = CityCreate.Field()
-    country_area_create = CountryAreaCreate.Field()
-
-
-schema = build_federated_schema(
-    query=Queries, mutation=Mutations, types=[types.City, types.CountryArea]
-)
+schema = build_federated_schema(query=Query, types=[types.Province])
