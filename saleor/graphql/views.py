@@ -13,8 +13,6 @@ from django.db import connection
 from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
-from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
@@ -27,9 +25,10 @@ from jwt.exceptions import PyJWTError
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from .api import API_PATH
+from .context import get_context_value
 from .utils import query_fingerprint
 
-API_PATH = SimpleLazyObject(lambda: reverse("api"))
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
@@ -293,7 +292,7 @@ class GraphQLView(View):
                             root=self.get_root_value(),
                             variables=variables,
                             operation_name=operation_name,
-                            context=request,
+                            context=get_context_value(request),
                             middleware=self.middleware,
                             **extra_options,
                         )
