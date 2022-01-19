@@ -223,8 +223,8 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 
 def base_tax_rate(price: TaxedMoney):
     tax_rate = Decimal("0.0")
-    # The condition will return False when unit_price.gross is 0.0
-    if not isinstance(price, Decimal) and price.gross:
+    # The condition will return False when unit_price.gross or unit_price.net is 0.0
+    if not isinstance(price, Decimal) and all((price.gross, price.net)):
         tax_rate = price.tax / price.net
     return tax_rate
 
