@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
 - Optimize products stock availability filter - #8809 by @fowczarek
 - Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
+- Fix crash when querying external shipping method's `translation` field - #8971 by @rafalp
 
 # 3.0.0 [Unreleased]
 
