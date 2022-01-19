@@ -318,49 +318,11 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
-    def _validate_attributes_input(
-        cls,
-        cleaned_input: T_INPUT_MAP,
-        attribute_qs: "QuerySet",
-        *,
-        is_variant: bool,
-        is_page_attributes: bool
-    ):
-        """Check the cleaned attribute input.
-
-        An Attribute queryset is supplied.
-
-        - ensure all required attributes are passed
-        - ensure the values are correct
-
-        :raises ValidationError: when an invalid operation was found.
-        """
-        variant_validation = False
-        if is_variant:
-            qs = get_variant_selection_attributes(attribute_qs)
-            if len(cleaned_input) < qs.count():
-                raise ValidationError(
-                    "All variant selection attributes must take a value.",
-                    code=ProductErrorCode.REQUIRED.value,
-                )
-            variant_validation = True
-
-        errors = validate_attributes_input(
-            cleaned_input,
-            attribute_qs,
-            is_page_attributes=is_page_attributes,
-            variant_validation=variant_validation,
-        )
-
-        if errors:
-            raise ValidationError(errors)
-
-    @classmethod
     def clean_input(
         cls,
         raw_input: dict,
         attributes_qs: "QuerySet",
-        is_variant: bool = False,
+        creation: bool = True,
         is_page_attributes: bool = False,
     ) -> T_INPUT_MAP:
         """Resolve and prepare the input for further checks.
@@ -369,8 +331,8 @@ class AttributeAssignmentMixin:
         :param attributes_qs:
             A queryset of attributes, the attribute values must be prefetched.
             Prefetch is needed by ``_pre_save_values`` during save.
-        :param page_attributes: Whether the input is for page type or not.
-        :param is_variant: Whether the input is for a variant or a product.
+        :param creation: Whether the input is from creation mutation.
+        :param is_page_attributes: Whether the input is for page type or not.
 
         :raises ValidationError: contain the message.
         :return: The resolved data
@@ -447,7 +409,7 @@ class AttributeAssignmentMixin:
         cls._validate_attributes_input(
             cleaned_input,
             attributes_qs,
-            is_variant=is_variant,
+            creation=creation,
             is_page_attributes=is_page_attributes,
         )
 
@@ -476,6 +438,32 @@ class AttributeAssignmentMixin:
         ref_instances = get_nodes(references, attribute.entity_type, model=entity_model)
         values.references = ref_instances
         return values
+
+    @classmethod
+    def _validate_attributes_input(
+        cls,
+        cleaned_input: T_INPUT_MAP,
+        attribute_qs: "QuerySet",
+        *,
+        creation: bool,
+        is_page_attributes: bool
+    ):
+        """Check the cleaned attribute input.
+
+        An Attribute queryset is supplied.
+
+        - ensure all required attributes are passed
+        - ensure the values are correct
+
+        :raises ValidationError: when an invalid operation was found.
+        """
+        if errors := validate_attributes_input(
+            cleaned_input,
+            attribute_qs,
+            is_page_attributes=is_page_attributes,
+            creation=creation,
+        ):
+            raise ValidationError(errors)
 
     @classmethod
     def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
@@ -575,7 +563,7 @@ def validate_attributes_input(
     attribute_qs: "QuerySet",
     *,
     is_page_attributes: bool,
-    variant_validation: bool,
+    creation: bool,
 ):
     """Validate attribute input.
 
@@ -611,7 +599,9 @@ def validate_attributes_input(
     errors = prepare_error_list_from_error_attribute_mapping(
         attribute_errors, error_code_enum
     )
-    if not variant_validation:
+    # Check if all required attributes are in input only when instance is created.
+    # We should allow updating any instance attributes.
+    if creation:
         errors = validate_required_attributes(
             input_data, attribute_qs, errors, error_code_enum
         )

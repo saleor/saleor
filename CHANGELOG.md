@@ -23,6 +23,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add query complexity limit to GraphQL API - #8526 by rafalp
 - Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
 - Optimize products stock availability filter - #8809 by @fowczarek
+- Refactor attributes validation - #8905 by @IKarbowiak
+  - in create mutations: require all required attributes
+  - in update mutations: do not require providing any attributes; when any attribute is given, validate provided values.
 - Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
 
 # 3.0.0 [Unreleased]
