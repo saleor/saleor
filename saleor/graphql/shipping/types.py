@@ -29,6 +29,7 @@ from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
+from ..translations.resolvers import resolve_translation
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
@@ -86,7 +87,7 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=None,  # Disable default resolver
     )
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
@@ -138,6 +139,17 @@ class ShippingMethod(ChannelContextTypeWithMetadataForObjectType):
             # todo external shipping to base64
             return root.node.id
         return graphene.Node.to_global_id("ShippingMethod", root.node.id)
+
+    @staticmethod
+    def resolve_translation(
+        root: ChannelContext[Union[ShippingMethodData, models.ShippingMethod]],
+        info,
+        language_code,
+    ):
+        if getattr(root.node, "is_external", False):
+            return None
+
+        return ChannelContextType.resolve_translation(root, info, language_code)
 
     @staticmethod
     def resolve_price(
