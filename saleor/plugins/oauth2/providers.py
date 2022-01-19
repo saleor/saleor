@@ -23,7 +23,12 @@ class Provider:
             self.scope = scope
 
     def get_url_for(self, _for):
-        return self.urls[_for]
+        validator = getattr(self, f"validate_{_for}_url", None)
+
+        if validator:
+            url = validator()
+
+        return url or self.urls[_for]
 
     def get_scope(self):
         return " ".join(self.scope)
@@ -124,6 +129,9 @@ class Facebook(Provider):
         "public_profile",
         "openid",
     ]
+
+    def validate_userinfo_url(self):
+        return self.urls["userinfo"] + "?fields=email"
 
 
 class Google(Provider):
