@@ -46,7 +46,6 @@ from ..utils import (
     get_voucher_discount_for_order,
     recalculate_order,
     restock_fulfillment_lines,
-    restock_order_lines,
     update_order_prices,
     update_order_status,
 )
@@ -300,77 +299,6 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     assert get_quantity_allocated_for_stock(stock) == stock_before
     assert existing_line.quantity == quantity_before + 1
     assert existing_line.quantity_unfulfilled == quantity_unfulfilled_before + 1
-
-
-@pytest.mark.parametrize("track_inventory", (True, False))
-def test_restock_order_lines(order_with_lines, track_inventory):
-
-    order = order_with_lines
-    line_1 = order.lines.first()
-    line_2 = order.lines.last()
-
-    line_1.variant.track_inventory = track_inventory
-    line_2.variant.track_inventory = track_inventory
-
-    line_1.variant.save()
-    line_2.variant.save()
-    stock_1 = Stock.objects.get(product_variant=line_1.variant)
-    stock_2 = Stock.objects.get(product_variant=line_2.variant)
-
-    stock_1_quantity_allocated_before = get_quantity_allocated_for_stock(stock_1)
-    stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
-
-    stock_1_quantity_before = stock_1.quantity
-    stock_2_quantity_before = stock_2.quantity
-
-    restock_order_lines(order, get_plugins_manager())
-
-    stock_1.refresh_from_db()
-    stock_2.refresh_from_db()
-
-    if track_inventory:
-        assert get_quantity_allocated_for_stock(stock_1) == (
-            stock_1_quantity_allocated_before - line_1.quantity
-        )
-        assert get_quantity_allocated_for_stock(stock_2) == (
-            stock_2_quantity_allocated_before - line_2.quantity
-        )
-    else:
-        assert get_quantity_allocated_for_stock(stock_1) == (
-            stock_1_quantity_allocated_before
-        )
-        assert get_quantity_allocated_for_stock(stock_2) == (
-            stock_2_quantity_allocated_before
-        )
-
-    assert stock_1.quantity == stock_1_quantity_before
-    assert stock_2.quantity == stock_2_quantity_before
-    assert line_1.quantity_fulfilled == 0
-    assert line_2.quantity_fulfilled == 0
-
-
-def test_restock_fulfilled_order_lines(fulfilled_order):
-    line_1 = fulfilled_order.lines.first()
-    line_2 = fulfilled_order.lines.last()
-    stock_1 = Stock.objects.get(product_variant=line_1.variant)
-    stock_2 = Stock.objects.get(product_variant=line_2.variant)
-    stock_1_quantity_allocated_before = get_quantity_allocated_for_stock(stock_1)
-    stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
-    stock_1_quantity_before = stock_1.quantity
-    stock_2_quantity_before = stock_2.quantity
-
-    restock_order_lines(fulfilled_order, get_plugins_manager())
-
-    stock_1.refresh_from_db()
-    stock_2.refresh_from_db()
-    assert (
-        get_quantity_allocated_for_stock(stock_1) == stock_1_quantity_allocated_before
-    )
-    assert (
-        get_quantity_allocated_for_stock(stock_2) == stock_2_quantity_allocated_before
-    )
-    assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
-    assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
 def test_restock_fulfillment_lines(fulfilled_order, warehouse):

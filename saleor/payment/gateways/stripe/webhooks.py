@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
 from stripe.stripe_object import StripeObject
 
+from ....checkout.calculations import calculate_checkout_total_with_gift_cards
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -19,6 +20,7 @@ from ....order.fetch import fetch_order_info
 from ....order.models import Order
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
+from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
 from ...utils import (
@@ -173,8 +175,23 @@ def _finalize_checkout(
     checkout_info = fetch_checkout_info(
         checkout, lines, discounts, manager  # type: ignore
     )
+    checkout_total = calculate_checkout_total_with_gift_cards(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address or checkout.billing_address,
+        discounts=discounts,
+    )
 
     try:
+        # when checkout total value is different than total amount from payments
+        # it means that some products has been removed during the payment was completed
+        if checkout_total.gross.amount != payment.total:
+            payment_refund_or_void(payment, manager, checkout_info.channel.slug)
+            raise ValidationError(
+                "Cannot complete checkout - some products do not exist anymore."
+            )
+
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,

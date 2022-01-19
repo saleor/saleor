@@ -1245,6 +1245,34 @@ def test_finalize_checkout_not_created_order_payment_refund(
     assert refund_mock.called
 
 
+@patch("saleor.payment.gateway.refund")
+def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_refund(
+    refund_mock,
+    stripe_plugin,
+    channel_USD,
+    payment_stripe_for_checkout,
+    stripe_payment_intent,
+):
+    stripe_plugin()
+    checkout = payment_stripe_for_checkout.checkout
+
+    checkout.lines.first().delete()
+
+    _finalize_checkout(
+        checkout,
+        payment_stripe_for_checkout,
+        stripe_payment_intent,
+        TransactionKind.CAPTURE,
+        payment_stripe_for_checkout.total,
+        payment_stripe_for_checkout.currency,
+    )
+
+    payment_stripe_for_checkout.refresh_from_db()
+
+    assert not payment_stripe_for_checkout.order
+    assert refund_mock.called
+
+
 @patch("saleor.payment.gateway.void")
 @patch("saleor.checkout.complete_checkout._get_order_data")
 def test_finalize_checkout_not_created_order_payment_void(
@@ -1258,6 +1286,34 @@ def test_finalize_checkout_not_created_order_payment_void(
     order_data_mock.side_effect = ValidationError("Test error")
     stripe_plugin()
     checkout = payment_stripe_for_checkout.checkout
+
+    _finalize_checkout(
+        checkout,
+        payment_stripe_for_checkout,
+        stripe_payment_intent,
+        TransactionKind.AUTH,
+        payment_stripe_for_checkout.total,
+        payment_stripe_for_checkout.currency,
+    )
+
+    payment_stripe_for_checkout.refresh_from_db()
+
+    assert not payment_stripe_for_checkout.order
+    assert void_mock.called
+
+
+@patch("saleor.payment.gateway.void")
+def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_void(
+    void_mock,
+    stripe_plugin,
+    channel_USD,
+    payment_stripe_for_checkout,
+    stripe_payment_intent,
+):
+    stripe_plugin()
+    checkout = payment_stripe_for_checkout.checkout
+
+    checkout.lines.first().delete()
 
     _finalize_checkout(
         checkout,

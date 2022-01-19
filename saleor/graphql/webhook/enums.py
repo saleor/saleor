@@ -1,6 +1,5 @@
 import graphene
 
-from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.utils import str_to_enum
 
@@ -74,10 +73,12 @@ def description(enum):
     return None
 
 
-# deprecated, use WebhookEventTypeAsyncEnum or WebhookEventTypeSyncEnum
 WebhookEventTypeEnum = graphene.Enum(
     "WebhookEventTypeEnum",
-    [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventType.CHOICES],
+    [
+        (str_to_enum(e_type[0]), e_type[0])
+        for e_type in (WebhookEventAsyncType.CHOICES + WebhookEventSyncType.CHOICES)
+    ],
     description=description,
 )
 
@@ -102,3 +103,9 @@ WebhookSampleEventTypeEnum = graphene.Enum(
         if e_type[0] != WebhookEventAsyncType.ANY
     ],
 )
+
+
+class EventDeliveryStatusEnum(graphene.Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"

@@ -297,8 +297,9 @@ def get_checkout_lines_data(
                 ref2=line_info.variant.sku,
             )
 
-    if checkout_info.delivery_method_info.delivery_method:
-        price = checkout_info.delivery_method_info.delivery_method.price
+    delivery_method = checkout_info.delivery_method_info.delivery_method
+    if delivery_method:
+        price = getattr(delivery_method, "price", None)
         append_shipping_to_data(
             data,
             price.amount if price else None,
