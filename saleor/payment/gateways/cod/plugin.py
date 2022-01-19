@@ -57,12 +57,14 @@ class CashGatewayPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        configuration = {item["name"]: item["value"] for item in self.configuration}
+        self.configuration = {
+            item["name"]: item["value"] for item in self.configuration
+        }
         self.config = GatewayConfig(
             connection_params={},
             gateway_name=GATEWAY_NAME,
-            auto_capture=configuration["automatic_payment_capture"],
-            supported_currencies=configuration["supported_currencies"],
+            auto_capture=self.configuration["automatic_payment_capture"],
+            supported_currencies=self.configuration["supported_currencies"],
         )
 
     def _get_gateway_config(self):
