@@ -1,5 +1,6 @@
 import graphene
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from ....account import events as account_events
@@ -8,7 +9,7 @@ from ....core.utils.url import validate_storefront_url
 from ....graphql.core.mutations import BaseMutation
 from ..providers import Provider
 from ..utils import get_oauth_provider, get_user_tokens
-from . import types
+from . import enums, types
 
 User = get_user_model()
 
@@ -95,7 +96,13 @@ class SocialLoginByAccessToken(BaseMutation):
         access_token = data["access_token"]
 
         profile_info = provider.fetch_profile_info(access_token=access_token)
-        email = profile_info["email"]
+        email = profile_info.get("email", None)
+
+        if email is None:
+            raise ValidationError(
+                "Missing email in provider response, have you added the necessary scopes?",  # noqa: E501
+                code=enums.OAuth2ErrorCode.OAUTH2_ERROR,
+            )
 
         try:
             user = User.objects.get(email=email)
