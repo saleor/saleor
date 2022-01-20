@@ -8,7 +8,7 @@ from ...core.search_tasks import set_product_search_document_values
 def update_product_search_document_values(apps, _schema_editor):
     Product = apps.get_model("product", "Product")
     total_count = Product.objects.filter(search_document="").count()
-    set_product_search_document_values.delay(total_count, 0)
+    set_product_search_document_values(total_count, 0, Product)
 
 
 class Migration(migrations.Migration):
