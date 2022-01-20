@@ -1,5 +1,5 @@
 from celery.utils.log import get_task_logger
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..celeryconf import app
@@ -17,24 +17,22 @@ def delete_empty_allocations_task():
 
 @app.task
 def update_stocks_quantity_allocated_task():
-    count = 0
-    corrected_count = 0
-    for stock in Stock.objects.iterator():
-        count += 1
-        quantity_allocated = stock.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
-        if stock.quantity_allocated != quantity_allocated:
-            task_logger.info(
-                "Mismatch updating quantity_allocated: stock {} had "
-                "{} allocated, but should have {}.".format(
-                    stock.pk, stock.quantity_allocated, quantity_allocated
-                )
-            )
-            stock.quantity_allocated = quantity_allocated
-            stock.save(update_fields=["quantity_allocated"])
-            corrected_count += 1
+    stocks_to_udpate = []
+    for mismatched_stock in Stock.objects.annotate(
+        allocations_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
+    ).exclude(quantity_allocated=F("allocations_allocated")):
+        task_logger.info(
+            "Mismatch updating quantity_allocated: stock %d had "
+            "%d allocated, but should have %d.",
+            mismatched_stock.pk,
+            mismatched_stock.quantity_allocated,
+            mismatched_stock.allocations_allocated,
+        )
+        mismatched_stock.quantity_allocated = mismatched_stock.allocations_allocated
+        stocks_to_udpate.append(mismatched_stock)
+
+    Stock.objects.bulk_update(stocks_to_udpate, ["quantity_allocated"])
     task_logger.info(
-        "Finished updating quantity_allocated on stocks, from {}, "
-        "{} were corrected.".format(count, corrected_count)
+        "Finished updating quantity_allocated on stocks, %d were corrected.",
+        len(stocks_to_udpate),
     )

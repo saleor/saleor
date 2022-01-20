@@ -160,6 +160,7 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
         line_to_allocations[allocation.order_line_id].append(allocation)
 
     allocations_to_update = []
+    stocks_to_update = []
     not_dellocated_lines = []
     for line_info in order_lines_data:
         order_line = line_info.line
@@ -178,7 +179,7 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
                 stock.quantity_allocated = (
                     F("quantity_allocated") - quantity_to_deallocate
                 )
-                stock.save(update_fields=["quantity_allocated"])
+                stocks_to_update.append(stock)
                 quantity_dealocated += quantity_to_deallocate
                 allocations_to_update.append(allocation)
                 if quantity_dealocated == quantity:
@@ -187,6 +188,7 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
             not_dellocated_lines.append(order_line)
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
@@ -406,10 +408,10 @@ def deallocate_stock_for_order(order: "Order"):
         .select_related("stock")
         .select_for_update(of=("self",))
     )
-    stocks = []
+    stocks_to_update = []
     for alloc in allocations:
         stock = alloc.stock
         stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
-        stocks.append(stock)
+        stocks_to_update.append(stock)
     allocations.update(quantity_allocated=0)
-    Stock.objects.bulk_update(stocks, ["quantity_allocated"])
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
