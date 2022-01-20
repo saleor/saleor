@@ -2,15 +2,17 @@ from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
 from django.db.models import F, Sum
+from django.db.models.expressions import Exists, OuterRef
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..order import OrderLineData
+from ..order.models import OrderLine
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
-    from ..order.models import Order, OrderLine
+    from ..order.models import Order
 
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -196,7 +198,7 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
 
 @traced_atomic_transaction()
 def increase_stock(
-    order_line: "OrderLine",
+    order_line: OrderLine,
     warehouse: Warehouse,
     quantity: int,
     allocate: bool = False,
@@ -403,8 +405,11 @@ def get_order_lines_with_track_inventory(
 @traced_atomic_transaction()
 def deallocate_stock_for_order(order: "Order"):
     """Remove all allocations for given order."""
+    lines = OrderLine.objects.filter(order_id=order.id)
     allocations = (
-        Allocation.objects.filter(order_line__order=order, quantity_allocated__gt=0)
+        Allocation.objects.filter(
+            Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
+        )
         .select_related("stock")
         .select_for_update(of=("self",))
     )
