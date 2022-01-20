@@ -27,7 +27,6 @@ from ...checkout.utils import (
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
-    validate_variants_in_checkout_lines,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied
@@ -1278,8 +1277,12 @@ class CheckoutComplete(BaseMutation):
                 raise e
 
             manager = info.context.plugins
-            lines = fetch_checkout_lines(checkout)
-            validate_variants_in_checkout_lines(lines)
+            try:
+                lines = fetch_checkout_lines(checkout, validate_variants=True)
+            except ValidationError as e:
+                e.code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
+                raise ValidationError({"lines": e})
+
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
