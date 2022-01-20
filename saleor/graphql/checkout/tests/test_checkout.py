@@ -1758,11 +1758,13 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @pytest.mark.parametrize(
     "expected_price_type, expected_price, display_gross_prices",
     (("gross", 13, True), ("net", 10, False)),
 )
 def test_checkout_available_shipping_methods_with_price_displayed(
+    send_webhook_request_sync,
     expected_price_type,
     expected_price,
     display_gross_prices,
@@ -1772,6 +1774,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     address,
     shipping_zone,
     site_settings,
+    shipping_app,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_price = shipping_method.channel_listings.get(
@@ -3190,6 +3193,9 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
                 ... on ShippingMethod {
                     name
                     id
+                    translation(languageCode: EN_US) {
+                        name
+                    }
                 }
                 ... on Warehouse {
                    name

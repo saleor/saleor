@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - in create mutations: require all required attributes
   - in update mutations: do not require providing any attributes; when any attribute is given, validate provided values.
 - Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
+- Fix crash when querying external shipping method's `translation` field - #8971 by @rafalp
 
 # 3.0.0 [Unreleased]
 
