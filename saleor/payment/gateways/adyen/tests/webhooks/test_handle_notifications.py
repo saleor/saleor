@@ -196,6 +196,57 @@ def test_handle_authorization_for_checkout(
     assert external_events.count() == 1
 
 
+@patch("saleor.payment.gateway.void")
+def test_handle_authorization_for_checkout_one_of_variants_deleted(
+    void_mock,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    checkout.lines.first().delete()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    handle_authorization(notification, config)
+
+    payment.refresh_from_db()
+    assert void_mock.call_count == 1
+    assert not payment.order
+    assert payment.checkout
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.exclude(
+        kind=TransactionKind.ACTION_TO_CONFIRM
+    ).get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
+
+
 def test_handle_authorization_with_adyen_auto_capture(
     notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method
 ):
@@ -435,6 +486,66 @@ def test_handle_capture_for_checkout(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+@patch("saleor.payment.gateway.void")
+def test_handle_capture_for_checkout_order_not_created_checkout_line_variant_deleted(
+    void_mock,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    """
+    Ensure that payment is not captured when one of checkout line variant is deleted.
+    """
+
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    checkout.lines.first().delete()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+
+    # when
+    handle_capture(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    assert void_mock.call_count == 1
+    assert not payment.order
+    assert payment.checkout
+
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.exclude(
+        kind=TransactionKind.ACTION_TO_CONFIRM
+    ).get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
 
 
 def test_handle_capture_invalid_payment_id(
@@ -1016,6 +1127,41 @@ def test_handle_not_created_order_order_created(
 
 
 @patch("saleor.payment.gateway.refund")
+def test_handle_not_created_order_order_not_created_checkout_line_variant_deleted(
+    refund_mock,
+    checkout_ready_to_complete,
+    payment_adyen_for_checkout,
+    adyen_plugin,
+    notification,
+):
+    """Validate if order is not created when one of checkout line variant is deleted."""
+
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.lines.first().variant.delete()
+
+    payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_adyen_for_checkout.captured_amount = payment_adyen_for_checkout.total
+    payment_adyen_for_checkout.save(update_fields=["charge_status", "captured_amount"])
+
+    adyen_plugin()
+
+    # when
+    handle_not_created_order(
+        notification(),
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        TransactionKind.CAPTURE,
+        get_plugins_manager(),
+    )
+
+    # then
+    assert refund_mock.call_count == 1
+    payment_adyen_for_checkout.refresh_from_db()
+    assert not payment_adyen_for_checkout.order
+
+
+@patch("saleor.payment.gateway.refund")
 @patch("saleor.checkout.complete_checkout._get_order_data")
 def test_handle_not_created_order_refund_when_create_order_raises(
     order_data_mock, refund_mock, payment_adyen_for_checkout, adyen_plugin, notification
@@ -1035,7 +1181,7 @@ def test_handle_not_created_order_refund_when_create_order_raises(
     )
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -1058,7 +1204,7 @@ def test_handle_not_created_order_void_when_create_order_raises(
     )
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 @pytest.mark.parametrize(
@@ -1139,7 +1285,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_re
     assert all_payment_transactions[1].kind == TransactionKind.AUTH
 
     assert payment_adyen_for_checkout.can_refund()
-    assert refund_mock.call_count == 2
+    assert refund_mock.call_count == 1
 
 
 @patch("saleor.payment.gateway.void")
@@ -1171,7 +1317,7 @@ def test_handle_not_created_order_success_transaction_create_order_raises_and_vo
     assert all_payment_transactions[1].kind == TransactionKind.AUTH
 
     assert payment_adyen_for_checkout.can_void()
-    assert void_mock.call_count == 2
+    assert void_mock.call_count == 1
 
 
 def test_confirm_payment_and_set_back_to_confirm(

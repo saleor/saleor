@@ -172,7 +172,7 @@ def test_checkout_totals_use_discounts(
         lines=lines,
         checkout_line_info=checkout_line_info,
         discounts=discounts,
-    )
+    ).price_with_sale
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount
 
 
@@ -328,6 +328,8 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     site_settings.display_gross_prices = True
     site_settings.save()
 
+    previous_checkout_last_change = checkout_with_item.last_change
+
     voucher = voucher
     voucher_channel_listing = voucher.channel_listings.first()
     voucher_channel_listing.min_spent_amount = 100
@@ -346,6 +348,8 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["voucherCode"] == voucher.code
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.last_change != previous_checkout_last_change
 
 
 def test_checkout_add_voucher_code_without_display_gross_prices(
@@ -353,6 +357,8 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
 ):
     site_settings.display_gross_prices = False
     site_settings.save()
+
+    previous_checkout_last_change = checkout_with_item.last_change
 
     voucher = voucher
     voucher_channel_listing = voucher.channel_listings.first()
@@ -371,6 +377,9 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
 
     assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
     assert data["errors"][0]["field"] == "promoCode"
+
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.last_change == previous_checkout_last_change
 
 
 def test_checkout_add_voucher_code_checkout_with_sale(
@@ -391,6 +400,8 @@ def test_checkout_add_voucher_code_checkout_with_sale(
         discounts=[discount_info],
     )
     assert subtotal > subtotal_discounted
+    previous_checkout_last_change = checkout_with_item.last_change
+
     variables = {
         "token": checkout_with_item.token,
         "promoCode": voucher_percentage.code,
@@ -401,6 +412,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     assert not data["errors"]
     assert checkout_with_item.voucher_code == voucher_percentage.code
     assert checkout_with_item.discount_amount == Decimal(1.5)
+    assert checkout_with_item.last_change != previous_checkout_last_change
 
 
 def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
@@ -849,6 +861,19 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
 
 
+def test_checkout_add_promo_code_no_checkout_email(
+    api_client, checkout_with_item, voucher
+):
+    checkout_with_item.email = None
+    checkout_with_item.save(update_fields=["email"])
+
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
+
+
 MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
     mutation($token: UUID, $promoCode: String, $promoCodeId: ID) {
         checkoutRemovePromoCode(
@@ -879,6 +904,7 @@ def _mutate_checkout_remove_promo_code(client, variables):
 
 def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
 
     variables = {
         "token": checkout_with_voucher.token,
@@ -892,6 +918,7 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert data["checkout"]["token"] == str(checkout_with_voucher.token)
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
 
 
 def test_checkout_remove_voucher_code_with_inactive_channel(
@@ -900,6 +927,7 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     channel = checkout_with_voucher.channel
     channel.is_active = False
     channel.save()
+    previous_checkout_last_change = checkout_with_voucher.last_change
 
     variables = {
         "token": checkout_with_voucher.token,
@@ -912,10 +940,12 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_voucher.token)
     assert data["checkout"]["voucherCode"] == checkout_with_voucher.voucher_code
+    assert checkout_with_voucher.last_change == previous_checkout_last_change
 
 
 def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
     assert checkout_with_gift_card.gift_cards.count() == 1
+    previous_checkout_last_change = checkout_with_gift_card.last_change
 
     variables = {
         "token": checkout_with_gift_card.token,
@@ -927,6 +957,8 @@ def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
     assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert data["checkout"]["giftCards"] == []
     assert not checkout_with_gift_card.gift_cards.all().exists()
+    checkout_with_gift_card.refresh_from_db()
+    assert checkout_with_gift_card.last_change != previous_checkout_last_change
 
 
 def test_checkout_remove_one_of_gift_cards(
@@ -934,6 +966,7 @@ def test_checkout_remove_one_of_gift_cards(
 ):
     checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
     checkout_with_gift_card.save()
+    previous_checkout_last_change = checkout_with_gift_card.last_change
     gift_card_first = checkout_with_gift_card.gift_cards.first()
     gift_card_last = checkout_with_gift_card.gift_cards.last()
 
@@ -948,15 +981,20 @@ def test_checkout_remove_one_of_gift_cards(
     assert data["checkout"]["token"] == str(checkout_with_gift_card.token)
     assert checkout_gift_cards.filter(code=gift_card_last.code).exists()
     assert not checkout_gift_cards.filter(code=gift_card_first.code).exists()
+    checkout_with_gift_card.refresh_from_db()
+    assert checkout_with_gift_card.last_change != previous_checkout_last_change
 
 
 def test_checkout_remove_promo_code_invalid_promo_code(api_client, checkout_with_item):
+    previous_checkout_last_change = checkout_with_item.last_change
     variables = {"token": checkout_with_item.token, "promoCode": "unexisting_code"}
 
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.last_change == previous_checkout_last_change
 
 
 def test_checkout_remove_promo_code_invalid_checkout(api_client, voucher):

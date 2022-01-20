@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from ....account.models import Address
@@ -17,9 +19,12 @@ def vcr_config():
 
 @pytest.fixture
 def plugin_configuration(db, channel_USD):
+    default_username = os.environ.get("AVALARA_USERNAME", "test")
+    default_password = os.environ.get("AVALARA_PASSWORD", "test")
+
     def set_configuration(
-        username="test",
-        password="test",
+        username=default_username,
+        password=default_password,
         sandbox=False,
         channel=None,
         active=True,

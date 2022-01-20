@@ -314,7 +314,7 @@ def test_calculate_checkout_line_total_use_cache(
     # then
     result = manager.calculate_checkout_line_total(
         checkout_info, lines, checkout_line_info, checkout_info.shipping_address, []
-    )
+    ).price_with_sale
 
     # when
     assert result == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5", "USD"))
@@ -353,7 +353,7 @@ def test_calculate_checkout_line_save_avatax_response_in_cache(
     # then
     result = manager.calculate_checkout_line_total(
         checkout_info, lines, checkout_line_info, checkout_info.shipping_address, []
-    )
+    ).price_with_sale
     manager.calculate_checkout_line_total(
         checkout_info, lines, checkout_line_info, checkout_info.shipping_address, []
     )
@@ -401,19 +401,15 @@ def test_calculate_checkout_line_unit_price_use_cache(
         )
     )
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", mocked_cache)
-    quantity = checkout_line_info.line.quantity
-    total_line_price = checkout_line_info.channel_listing.price * quantity
 
     # then
     result = manager.calculate_checkout_line_unit_price(
-        total_line_price,
-        quantity,
         checkout_info,
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
         [],
-    )
+    ).price_with_sale
 
     # when
     assert result == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5", "USD"))
@@ -448,22 +444,16 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
         return_value=avalara_response_for_checkout_with_items_and_shipping
     )
     monkeypatch.setattr("saleor.plugins.avatax.api_post_request", mocked_avalara)
-    quantity = checkout_line_info.line.quantity
-    total_line_price = checkout_line_info.channel_listing.price * quantity
 
     # then
     result = manager.calculate_checkout_line_unit_price(
-        total_line_price,
-        quantity,
         checkout_info,
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
         [],
-    )
+    ).price_with_sale
     manager.calculate_checkout_line_unit_price(
-        total_line_price,
-        quantity,
         checkout_info,
         lines,
         checkout_line_info,

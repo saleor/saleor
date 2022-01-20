@@ -7,7 +7,7 @@ from django.core.cache import cache
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.app.models import App
-from saleor.webhook.event_types import WebhookEventType
+from saleor.webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
     from saleor.plugins.manager import PluginsManager
@@ -104,7 +104,7 @@ def _get_current_tax_app() -> App:
         App.objects.order_by("pk")
         .filter(
             is_active=True,
-            webhooks__events__event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+            webhooks__events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         )
         .last()
     )

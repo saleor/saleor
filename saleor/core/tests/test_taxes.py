@@ -13,7 +13,7 @@ from saleor.core.taxes import (
     get_tax_code,
     set_tax_code,
 )
-from saleor.webhook.event_types import WebhookEventType
+from saleor.webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from saleor.webhook.models import Webhook, WebhookEvent
 
 
@@ -40,7 +40,7 @@ def tax_app(app_factory):
     return app_factory(
         name="Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+        webhook_event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
 
 
@@ -60,22 +60,22 @@ def test_get_current_tax_app_multiple_apps(app_factory):
     app_factory(
         name="Another Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+        webhook_event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     expected_app = app_factory(
         name="Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+        webhook_event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
     app_factory(
         name="Non Tax App",
         is_active=True,
-        webhook_event_type=WebhookEventType.ORDER_UPDATED,
+        webhook_event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
     app_factory(
         name="Inactive Tax App",
         is_active=False,
-        webhook_event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+        webhook_event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
     )
 
     # when

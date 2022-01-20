@@ -9,6 +9,8 @@ from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..checkout.interface import CheckoutTaxedPricesData
+from ..core.models import EventDelivery
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -145,7 +147,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
-        TaxedMoney,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate checkout line unit price.
@@ -158,7 +160,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             Any,
         ],
-        Any,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate the shipping costs for checkout.
@@ -362,9 +364,11 @@ class BasePlugin:
     invoice_delete: Callable[["Invoice", Any], Any]
 
     #  Trigger when invoice creation starts.
-    #
+    #  May return Invoice object.
     #  Overwrite to create invoice with proper data, call invoice.update_invoice.
-    invoice_request: Callable[["Order", "Invoice", Union[str, NoneType], Any], Any]
+    invoice_request: Callable[
+        ["Order", "Invoice", Union[str, NoneType], Any], Optional["Invoice"]
+    ]
 
     #  Trigger after invoice is sent.
     invoice_sent: Callable[["Invoice", str, Any], Any]
@@ -511,6 +515,9 @@ class BasePlugin:
     #
     #  Overwrite this method if the plugin expects the incoming requests.
     webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
+
+    # Triggers retry mechanism for event delivery
+    event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
@@ -669,3 +676,6 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def is_event_active(self, event: str, channel=Optional[str]):
+        return hasattr(self, event)
