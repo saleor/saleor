@@ -51,7 +51,7 @@ if TYPE_CHECKING:
         PaymentGateway,
         TokenConfig,
     )
-    from ..product.models import Product, ProductType, ProductVariant
+    from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..shipping.interface import ShippingMethodData
     from ..translation.models import Translation
     from ..warehouse.models import Stock
@@ -544,6 +544,24 @@ class PluginsManager(PaymentInterface):
     def customer_updated(self, customer: "User"):
         default_value = None
         return self.__run_method_on_plugins("customer_updated", default_value, customer)
+
+    def collection_created(self, collection: "Collection"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "collection_created", default_value, collection
+        )
+
+    def collection_updated(self, collection: "Collection"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "collection_updated", default_value, collection
+        )
+
+    def collection_deleted(self, collection: "Collection"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "collection_deleted", default_value, collection
+        )
 
     def product_created(self, product: "Product"):
         default_value = None

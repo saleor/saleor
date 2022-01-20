@@ -11,6 +11,7 @@ from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
+    generate_collection_payload,
     generate_customer_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
@@ -51,7 +52,7 @@ if TYPE_CHECKING:
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
-    from ...product.models import Product, ProductVariant
+    from ...product.models import Collection, Product, ProductVariant
     from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
@@ -220,6 +221,30 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         customer_data = generate_customer_payload(customer, self.requestor)
         trigger_webhooks_async(customer_data, WebhookEventAsyncType.CUSTOMER_UPDATED)
+
+    def collection_created(self, collection: "Collection", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        collection_data = generate_collection_payload(collection, self.requestor)
+        trigger_webhooks_async(
+            collection_data, WebhookEventAsyncType.COLLECTION_CREATED
+        )
+
+    def collection_updated(self, collection: "Collection", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        collection_data = generate_collection_payload(collection, self.requestor)
+        trigger_webhooks_async(
+            collection_data, WebhookEventAsyncType.COLLECTION_UPDATED
+        )
+
+    def collection_deleted(self, collection: "Collection", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        collection_data = generate_collection_payload(collection, self.requestor)
+        trigger_webhooks_async(
+            collection_data, WebhookEventAsyncType.COLLECTION_DELETED
+        )
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
