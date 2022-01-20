@@ -155,7 +155,11 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_gateway(manager, gateway, checkout.currency)
         cls.validate_return_url(data)
 
-        lines = fetch_checkout_lines(checkout)
+        try:
+            lines = fetch_checkout_lines(checkout, validate_variants=True)
+        except ValidationError as e:
+            e.code = PaymentErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
+            raise ValidationError({"token": e})
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )

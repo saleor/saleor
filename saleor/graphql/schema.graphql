@@ -4635,6 +4635,7 @@ type PaymentError {
   field: String
   message: String
   code: PaymentErrorCode!
+  variants: [ID!]
 }
 
 enum PaymentErrorCode {
@@ -4652,6 +4653,7 @@ enum PaymentErrorCode {
   NOT_SUPPORTED_GATEWAY
   CHANNEL_INACTIVE
   BALANCE_CHECK_ERROR
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 input PaymentFilterInput {
