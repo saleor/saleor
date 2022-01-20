@@ -23,7 +23,17 @@ class Provider:
             self.scope = scope
 
     def get_url_for(self, _for):
-        return self.urls[_for]
+        validator = getattr(self, f"validate_{_for}_url", None)
+
+        if validator:
+            return validator(_for)
+
+        url = self.urls[_for]
+
+        if url is None:
+            raise TypeError(f"Missing URL in {self.__class__.__name__} urls map")
+
+        return url
 
     def get_scope(self):
         return " ".join(self.scope)
@@ -79,9 +89,9 @@ class Provider:
                 grant_type="authorization_code",
                 redirect_uri=redirect_uri,
             )
-        except OAuthError:
+        except OAuthError as e:
             raise ValidationError(
-                "Invalid authentication details",
+                str(e),
                 code=OAuth2ErrorCode.OAUTH2_ERROR,
             )
 
@@ -95,7 +105,6 @@ class Provider:
             raise TypeError("access_token must not be None")
 
         profile_url = self.get_url_for("userinfo")
-
         response = requests.get(
             profile_url,
             headers={"Authorization": f"Bearer {access_token}"},
@@ -125,6 +134,9 @@ class Facebook(Provider):
         "openid",
     ]
 
+    def validate_userinfo_url(self, _for):
+        return self.urls["userinfo"] + "?fields=email"
+
 
 class Google(Provider):
     name = "google"
@@ -143,7 +155,7 @@ class Google(Provider):
 class Apple(Provider):
     name = "apple"
     urls = {
-        "auth": "",
+        "auth": "https://appleid.apple.com/auth/authorize",
         "token": "https://appleid.apple.com/auth/token",
-        "userinfo": "",
+        "userinfo": "https://appleid.apple.com/auth/authorize",
     }
