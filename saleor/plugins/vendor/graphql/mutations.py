@@ -1,9 +1,12 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from saleor.graphql.account.enums import CountryCodeEnum
 
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
+from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from ..models import Billing, Vendor
+from . import enums
 from .custom_permissions import BillingPermissions, VendorPermissions
 from .errors import BillingError, VendorError
 
@@ -20,6 +23,11 @@ class VendorInput(graphene.InputObjectType):
         description="Users IDs to add to the vendor",
         name="users",
     )
+    commercial_info = enums.CommercialInfo()
+    commercial_description = graphene.String(
+        description="description of commercial info"
+    )
+    sells_gender = enums.SellsGender()
 
 
 class VendorCreateInput(VendorInput):
@@ -41,7 +49,19 @@ class VendorCreate(ModelMutation):
         description = "create new vendor"
         model = Vendor
         error_type_class = VendorError
-        permutations = (VendorPermissions.MANAGE_VENDOR,)
+        permissions = (VendorPermissions.MANAGE_VENDOR,)
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError as error:
+            error.code = enums.VendorErrorCode.VENDOR_SLUG.value
+            raise ValidationError({"slug": error})
+        return cleaned_input
 
 
 class VendorUpdateInput(VendorInput):
