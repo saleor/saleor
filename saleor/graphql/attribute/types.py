@@ -107,15 +107,29 @@ class AttributeValue(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_date_time(root: models.AttributeValue, info, **_kwargs):
-        if root.attribute.input_type == AttributeInputType.DATE_TIME:
-            return root.date_time
-        return None
+        def _resolve_date(attribute):
+            if attribute.input_type == AttributeInputType.DATE_TIME:
+                return root.date_time
+            return None
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(_resolve_date)
+        )
 
     @staticmethod
     def resolve_date(root: models.AttributeValue, info, **_kwargs):
-        if root.attribute.input_type == AttributeInputType.DATE:
-            return root.date_time
-        return None
+        def _resolve_date(attribute):
+            if attribute.input_type == AttributeInputType.DATE:
+                return root.date_time
+            return None
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(_resolve_date)
+        )
 
 
 class AttributeValueCountableConnection(CountableConnection):

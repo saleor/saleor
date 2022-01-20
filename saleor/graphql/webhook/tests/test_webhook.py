@@ -4,24 +4,26 @@ import graphene
 import pytest
 
 from ....app.models import App
-from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from ..enums import WebhookEventTypeEnum, WebhookSampleEventTypeEnum
+from ..enums import (
+    WebhookEventTypeAsyncEnum,
+    WebhookEventTypeSyncEnum,
+    WebhookSampleEventTypeEnum,
+)
 
-WEBHOOK_CREATE_BY_APP = """
-    mutation webhookCreate($name: String, $target_url: String,
-            $events: [WebhookEventTypeEnum]){
-      webhookCreate(input:{name: $name, targetUrl:$target_url, events:$events}){
-        errors{
+WEBHOOK_CREATE = """
+    mutation webhookCreate($input: WebhookCreateInput!){
+      webhookCreate(input: $input) {
+        errors {
           field
           message
         }
-        webhook{
+        webhook {
           id
         }
       }
@@ -30,14 +32,16 @@ WEBHOOK_CREATE_BY_APP = """
 
 
 def test_webhook_create_by_app(app_api_client, permission_manage_orders):
-    query = WEBHOOK_CREATE_BY_APP
+    query = WEBHOOK_CREATE
     variables = {
-        "name": "New integration",
-        "target_url": "https://www.example.com",
-        "events": [
-            WebhookEventTypeEnum.ORDER_CREATED.name,
-            WebhookEventTypeEnum.ORDER_CREATED.name,
-        ],
+        "input": {
+            "name": "New integration",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+            ],
+        }
     }
     response = app_api_client.post_graphql(
         query,
@@ -51,17 +55,19 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
     assert new_webhook.target_url == "https://www.example.com"
     events = new_webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
 
 
 def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orders):
     app.is_active = False
     app.save()
-    query = WEBHOOK_CREATE_BY_APP
+    query = WEBHOOK_CREATE
     variables = {
-        "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "name": "",
+        "input": {
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "name": "",
+        }
     }
 
     response = app_api_client.post_graphql(
@@ -73,11 +79,13 @@ def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orde
 def test_webhook_create_without_app(app_api_client, app):
     app_api_client.app = None
     app_api_client.app_token = None
-    query = WEBHOOK_CREATE_BY_APP
+    query = WEBHOOK_CREATE
     variables = {
-        "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "name": "",
+        "input": {
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "name": "",
+        }
     }
     response = app_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
@@ -86,31 +94,16 @@ def test_webhook_create_without_app(app_api_client, app):
 def test_webhook_create_app_doesnt_exist(app_api_client, app):
     app.delete()
 
-    query = WEBHOOK_CREATE_BY_APP
+    query = WEBHOOK_CREATE
     variables = {
-        "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "name": "",
+        "input": {
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "name": "",
+        }
     }
     response = app_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
-
-
-WEBHOOK_CREATE_BY_STAFF = """
-    mutation webhookCreate(
-        $target_url: String, $events: [WebhookEventTypeEnum], $app: ID){
-      webhookCreate(input:{
-            targetUrl:$target_url, events:$events, app: $app}){
-        errors{
-          field
-          message
-        }
-        webhook{
-          id
-        }
-      }
-    }
-"""
 
 
 def test_webhook_create_by_staff(
@@ -119,13 +112,16 @@ def test_webhook_create_by_staff(
     permission_manage_apps,
     permission_manage_orders,
 ):
-    query = WEBHOOK_CREATE_BY_STAFF
+    query = WEBHOOK_CREATE
     app.permissions.add(permission_manage_orders)
     app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
-        "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "app": app_id,
+        "input": {
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "syncEvents": [WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.name],
+            "app": app_id,
+        }
     }
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query, variables=variables)
@@ -134,18 +130,23 @@ def test_webhook_create_by_staff(
     assert new_webhook.target_url == "https://www.example.com"
     assert new_webhook.app == app
     events = new_webhook.events.all()
-    assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert len(events) == 2
+
+    created_event_types = [events[0].event_type, events[1].event_type]
+    assert WebhookEventTypeAsyncEnum.ORDER_CREATED.value in created_event_types
+    assert WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.value in created_event_types
 
 
 def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
     app.is_active = False
-    query = WEBHOOK_CREATE_BY_STAFF
+    query = WEBHOOK_CREATE
     app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
-        "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "app": app_id,
+        "input": {
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "app": app_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
@@ -153,12 +154,14 @@ def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
 
 
 def test_webhook_create_by_staff_without_permission(staff_api_client, app):
-    query = WEBHOOK_CREATE_BY_STAFF
+    query = WEBHOOK_CREATE
     app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
-        "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "app": app_id,
+        "input": {
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "app": app_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
@@ -166,9 +169,9 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
 
 
 WEBHOOK_DELETE_BY_APP = """
-    mutation webhookDelete($id: ID!){
-      webhookDelete(id: $id){
-        errors{
+    mutation webhookDelete($id: ID!) {
+      webhookDelete(id: $id) {
+        errors {
           field
           message
           code
@@ -238,15 +241,17 @@ def test_webhook_delete_when_app_doesnt_exist(app_api_client, app):
 
 
 WEBHOOK_UPDATE = """
-    mutation webhookUpdate(
-        $id: ID!, $events: [WebhookEventTypeEnum], $is_active: Boolean){
-      webhookUpdate(id: $id, input:{events: $events, isActive: $is_active}){
-        errors{
+    mutation webhookUpdate ($id: ID!, $input: WebhookUpdateInput!) {
+      webhookUpdate(id: $id, input: $input) {
+        errors {
           field
           message
         }
-        webhook{
-          events{
+        webhook {
+          syncEvents {
+            eventType
+          }
+          asyncEvents {
             eventType
           }
           isActive
@@ -261,8 +266,10 @@ def test_webhook_update_not_allowed_by_app(app_api_client, app, webhook):
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {
         "id": webhook_id,
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "is_active": False,
+        "input": {
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+            "isActive": False,
+        },
     }
     response = app_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
@@ -275,11 +282,13 @@ def test_webhook_update_by_staff(
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {
         "id": webhook_id,
-        "events": [
-            WebhookEventTypeEnum.CUSTOMER_CREATED.name,
-            WebhookEventTypeEnum.CUSTOMER_CREATED.name,
-        ],
-        "is_active": False,
+        "input": {
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
+            ],
+            "isActive": False,
+        },
     }
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query, variables=variables)
@@ -288,7 +297,7 @@ def test_webhook_update_by_staff(
     assert webhook.is_active is False
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.CUSTOMER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.value
 
 
 def test_webhook_update_by_staff_without_permission(staff_api_client, app, webhook):
@@ -296,22 +305,27 @@ def test_webhook_update_by_staff_without_permission(staff_api_client, app, webho
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {
         "id": webhook_id,
-        "events": [
-            WebhookEventTypeEnum.ORDER_CREATED.name,
-            WebhookEventTypeEnum.CUSTOMER_CREATED.name,
-        ],
-        "is_active": False,
+        "input": {
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+                WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.name,
+            ],
+            "isActive": False,
+        },
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
 
 
 QUERY_WEBHOOK = """
-    query webhook($id: ID!){
-      webhook(id: $id){
+    query webhook($id: ID!) {
+      webhook(id: $id) {
         id
         isActive
-        events{
+        asyncEvents {
+          eventType
+        }
+        syncEvents {
           eventType
         }
       }
@@ -333,7 +347,7 @@ def test_query_webhook_by_staff(staff_api_client, webhook, permission_manage_app
     assert webhook_response["isActive"] == webhook.is_active
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
 
 
 def test_query_webhook_by_staff_without_permission(staff_api_client, webhook):
@@ -357,7 +371,7 @@ def test_query_webhook_by_app(app_api_client, webhook):
     assert webhook_response["isActive"] == webhook.is_active
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
 
 
 def test_query_webhook_by_app_without_permission(app_api_client):
@@ -374,6 +388,36 @@ def test_query_webhook_by_app_without_permission(app_api_client):
     content = get_graphql_content(response)
     webhook_response = content["data"]["webhook"]
     assert webhook_response is None
+
+
+def test_query_webhook_sync_and_async_events(
+    staff_api_client, webhook, permission_manage_apps
+):
+    # given
+    webhook.events.all().delete()
+    webhook.events.create(event_type=WebhookEventTypeAsyncEnum.ORDER_CREATED.value)
+    webhook.events.create(
+        event_type=WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.value
+    )
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    webhook_response = content["data"]["webhook"]
+
+    assert (
+        webhook_response["asyncEvents"][0]["eventType"]
+        == WebhookEventTypeAsyncEnum.ORDER_CREATED.name
+    )
+    assert (
+        webhook_response["syncEvents"][0]["eventType"]
+        == WebhookEventTypeSyncEnum.PAYMENT_LIST_GATEWAYS.name
+    )
 
 
 def test_webhook_query_invalid_id(staff_api_client, webhook, permission_manage_apps):
@@ -411,35 +455,8 @@ def test_webhook_with_invalid_object_type(
     assert content["data"]["webhook"] is None
 
 
-WEBHOOK_EVENTS_QUERY = """
-{
-  webhookEvents{
-    eventType
-    name
-  }
-}
-"""
-
-
-def test_query_webhook_events(staff_api_client, permission_manage_apps):
-    query = WEBHOOK_EVENTS_QUERY
-    staff_api_client.user.user_permissions.add(permission_manage_apps)
-    response = staff_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    webhook_events = content["data"]["webhookEvents"]
-
-    assert len(webhook_events) == len(WebhookEventType.CHOICES)
-
-
-def test_query_webhook_events_without_permissions(staff_api_client):
-
-    query = WEBHOOK_EVENTS_QUERY
-    response = staff_api_client.post_graphql(query)
-    assert_no_permission(response)
-
-
 SAMPLE_PAYLOAD_QUERY = """
-  query webhookSamplePayload($event_type: WebhookSampleEventTypeEnum!){
+  query webhookSamplePayload($event_type: WebhookSampleEventTypeEnum!) {
     webhookSamplePayload(eventType: $event_type)
   }
 """

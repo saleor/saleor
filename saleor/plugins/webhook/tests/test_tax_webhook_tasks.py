@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
 from ..tasks import trigger_tax_webhook_sync
 from ..utils import parse_tax_data
@@ -21,7 +21,7 @@ def tax_checkout_webhooks(tax_app):
     Webhook.objects.bulk_create(webhooks)
     WebhookEvent.objects.bulk_create(
         WebhookEvent(
-            event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+            event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
             webhook=webhook,
         )
         for webhook in webhooks
@@ -38,7 +38,7 @@ def test_trigger_tax_webhook_sync(
 ):
     # given
     mock_request.return_value = tax_data_response
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when
@@ -64,7 +64,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
 ):
     # given
     mock_request.side_effect = [tax_data_response, {}, {}]
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when
@@ -91,7 +91,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
 ):
     # given
     mock_request.side_effect = [{}, {}, tax_data_response]
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when
@@ -122,7 +122,7 @@ def test_trigger_tax_webhook_sync_invalid_webhooks(
 ):
     # given
     mock_request.return_value = {}
-    event_type = WebhookEventType.CHECKOUT_CALCULATE_TAXES
+    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
 
     # when

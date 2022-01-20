@@ -155,7 +155,7 @@ class ShippingZoneMixin:
                 )
             else:
                 countries = get_countries_without_shipping_zone()
-                data["countries"] = countries
+                data["countries"].extend([country for country in countries])
         else:
             data["default"] = False
         return data

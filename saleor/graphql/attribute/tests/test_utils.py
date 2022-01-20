@@ -8,8 +8,9 @@ from ...product.mutations.products import AttrValuesInput
 from ..utils import AttributeAssignmentMixin, validate_attributes_input
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_product(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -46,15 +47,16 @@ def test_validate_attributes_input_for_product(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
     assert not errors
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_product_no_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -91,7 +93,7 @@ def test_validate_attributes_input_for_product_no_values_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -104,8 +106,9 @@ def test_validate_attributes_input_for_product_no_values_given(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_product_too_many_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.input_type = AttributeInputType.DROPDOWN
@@ -144,7 +147,7 @@ def test_validate_attributes_input_for_product_too_many_values_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -156,8 +159,9 @@ def test_validate_attributes_input_for_product_too_many_values_given(
     ]
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_product_empty_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.input_type = AttributeInputType.DROPDOWN
@@ -196,7 +200,7 @@ def test_validate_attributes_input_for_product_empty_values_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -239,7 +243,7 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
         input_data,
         product_attributes,
         is_page_attributes=False,
-        variant_validation=None,
+        creation=True,
     )
 
     # then
@@ -251,8 +255,9 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
     }
 
 
-def test_validate_attributes_input_for_product_multiple_errors(
-    weight_attribute, color_attribute, product_type
+@pytest.mark.parametrize("creation", [True, False])
+def test_validate_attributes_input_for_product_creation_multiple_errors(
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.input_type = AttributeInputType.DROPDOWN
@@ -291,7 +296,7 @@ def test_validate_attributes_input_for_product_multiple_errors(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -306,8 +311,9 @@ def test_validate_attributes_input_for_product_multiple_errors(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_page(
-    weight_attribute, color_attribute, page_type
+    creation, weight_attribute, color_attribute, page_type
 ):
     # given
     color_attribute.value_required = True
@@ -344,15 +350,16 @@ def test_validate_attributes_input_for_page(
         input_data,
         page_type.page_attributes.all(),
         is_page_attributes=True,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
     assert not errors
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_page_no_values_given(
-    weight_attribute, color_attribute, page_type
+    creation, weight_attribute, color_attribute, page_type
 ):
     # given
     color_attribute.value_required = True
@@ -389,7 +396,7 @@ def test_validate_attributes_input_for_page_no_values_given(
         input_data,
         page_type.page_attributes.all(),
         is_page_attributes=True,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -402,8 +409,9 @@ def test_validate_attributes_input_for_page_no_values_given(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_page_too_many_values_given(
-    weight_attribute, color_attribute, page_type
+    creation, weight_attribute, color_attribute, page_type
 ):
     # given
     color_attribute.input_type = AttributeInputType.DROPDOWN
@@ -442,7 +450,7 @@ def test_validate_attributes_input_for_page_too_many_values_given(
         input_data,
         page_type.page_attributes.all(),
         is_page_attributes=True,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -454,8 +462,9 @@ def test_validate_attributes_input_for_page_too_many_values_given(
     ]
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_for_page_empty_values_given(
-    weight_attribute, color_attribute, page_type
+    creation, weight_attribute, color_attribute, page_type
 ):
     # given
     color_attribute.input_type = AttributeInputType.DROPDOWN
@@ -494,7 +503,7 @@ def test_validate_attributes_input_for_page_empty_values_given(
         input_data,
         page_type.page_attributes.all(),
         is_page_attributes=True,
-        variant_validation=False,
+        creation=creation,
     )
 
     # then
@@ -534,7 +543,7 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
 
     # when
     errors = validate_attributes_input(
-        input_data, page_attributes, is_page_attributes=True, variant_validation=None
+        input_data, page_attributes, is_page_attributes=True, creation=True
     )
 
     # then
@@ -586,7 +595,7 @@ def test_validate_attributes_input_for_page_multiple_errors(
         input_data,
         page_type.page_attributes.all(),
         is_page_attributes=True,
-        variant_validation=False,
+        creation=True,
     )
 
     # then
@@ -601,7 +610,10 @@ def test_validate_attributes_input_for_page_multiple_errors(
     }
 
 
-def test_validate_attributes_input(weight_attribute, color_attribute, product_type):
+@pytest.mark.parametrize("creation", [True, False])
+def test_validate_attributes_input(
+    creation, weight_attribute, color_attribute, product_type
+):
     # given
     color_attribute.value_required = True
     color_attribute.save(update_fields=["value_required"])
@@ -636,15 +648,16 @@ def test_validate_attributes_input(weight_attribute, color_attribute, product_ty
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, is_page_attributes=False, variant_validation=True
+        input_data, attributes, is_page_attributes=False, creation=creation
     )
 
     # then
     assert not errors
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_no_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -680,7 +693,7 @@ def test_validate_attributes_input_no_values_given(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, is_page_attributes=False, variant_validation=True
+        input_data, attributes, is_page_attributes=False, creation=creation
     )
 
     # then
@@ -693,8 +706,9 @@ def test_validate_attributes_input_no_values_given(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_not_required_variant_selection_attributes_input_no_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = False
@@ -738,17 +752,16 @@ def test_validate_not_required_variant_selection_attributes_input_no_values_give
         input_data,
         attributes,
         is_page_attributes=False,
-        variant_validation=attributes.values(
-            "id", "attributevariant__variant_selection"
-        ),
+        creation=creation,
     )
 
     # then
     assert not errors
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_too_many_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -787,9 +800,7 @@ def test_validate_attributes_input_too_many_values_given(
         input_data,
         attributes,
         is_page_attributes=False,
-        variant_validation=attributes.values(
-            "id", "attributevariant__variant_selection"
-        ),
+        creation=creation,
     )
 
     # then
@@ -802,8 +813,9 @@ def test_validate_attributes_input_too_many_values_given(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_input_empty_values_given(
-    weight_attribute, color_attribute, product_type
+    creation, weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -839,7 +851,7 @@ def test_validate_attributes_input_empty_values_given(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, is_page_attributes=False, variant_validation=True
+        input_data, attributes, is_page_attributes=False, creation=creation
     )
 
     # then
@@ -889,7 +901,7 @@ def test_validate_attributes_input_multiple_errors(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, is_page_attributes=False, variant_validation=True
+        input_data, attributes, is_page_attributes=False, creation=True
     )
 
     # then
@@ -904,8 +916,9 @@ def test_validate_attributes_input_multiple_errors(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_with_file_input_type_for_product(
-    weight_attribute, file_attribute, product_type
+    creation, weight_attribute, file_attribute, product_type
 ):
     # given
     file_attribute.value_required = True
@@ -942,15 +955,16 @@ def test_validate_attributes_with_file_input_type_for_product(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
     assert not errors
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_with_file_input_type_for_product_no_file_given(
-    weight_attribute, file_attribute, product_type
+    creation, weight_attribute, file_attribute, product_type
 ):
     # given
     file_attribute.value_required = True
@@ -987,7 +1001,7 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
@@ -999,8 +1013,9 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_not_required_attrs_with_file_input_type_for_product_no_file_given(
-    weight_attribute, file_attribute, product_type
+    creation, weight_attribute, file_attribute, product_type
 ):
     # given
     file_attribute.value_required = False
@@ -1037,15 +1052,16 @@ def test_validate_not_required_attrs_with_file_input_type_for_product_no_file_gi
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
     assert not errors
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
-    weight_attribute, file_attribute, product_type
+    creation, weight_attribute, file_attribute, product_type
 ):
     # given
     file_attribute.value_required = True
@@ -1082,7 +1098,7 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
@@ -1094,7 +1110,10 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
     }
 
 
-def test_validate_numeric_attributes_input_for_product(numeric_attribute, product_type):
+@pytest.mark.parametrize("creation", [True, False])
+def test_validate_numeric_attributes_input_for_product(
+    creation, numeric_attribute, product_type
+):
     # given
     numeric_attribute.value_required = True
     numeric_attribute.save(update_fields=["value_required"])
@@ -1117,7 +1136,7 @@ def test_validate_numeric_attributes_input_for_product(numeric_attribute, produc
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
@@ -1125,8 +1144,9 @@ def test_validate_numeric_attributes_input_for_product(numeric_attribute, produc
 
 
 @pytest.mark.parametrize("value", ["qvd", "12.se", "  "])
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_numeric_attributes_input_for_product_not_numeric_value_given(
-    value, numeric_attribute, product_type
+    creation, value, numeric_attribute, product_type
 ):
     # given
     numeric_attribute.value_required = True
@@ -1150,7 +1170,7 @@ def test_validate_numeric_attributes_input_for_product_not_numeric_value_given(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
@@ -1162,8 +1182,9 @@ def test_validate_numeric_attributes_input_for_product_not_numeric_value_given(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_numeric_attributes_input_for_product_blank_value(
-    numeric_attribute, product_type
+    creation, numeric_attribute, product_type
 ):
     # given
     numeric_attribute.value_required = True
@@ -1187,7 +1208,7 @@ def test_validate_numeric_attributes_input_for_product_blank_value(
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then
@@ -1199,8 +1220,9 @@ def test_validate_numeric_attributes_input_for_product_blank_value(
     }
 
 
+@pytest.mark.parametrize("creation", [True, False])
 def test_validate_numeric_attributes_input_for_product_more_than_one_value_given(
-    numeric_attribute, product_type
+    creation, numeric_attribute, product_type
 ):
     # given
     numeric_attribute.value_required = True
@@ -1224,7 +1246,7 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
         input_data,
         product_type.product_attributes.all(),
         is_page_attributes=False,
-        variant_validation=None,
+        creation=creation,
     )
 
     # then

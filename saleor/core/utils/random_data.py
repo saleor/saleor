@@ -79,6 +79,7 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
+from ...product.search import update_products_search_document
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
@@ -461,6 +462,8 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
+    update_products_search_document(Product.objects.all())
+
 
 class SaleorProvider(BaseProvider):
     def money(self):
@@ -602,17 +605,20 @@ def create_order_lines(order, discounts, how_many=10):
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
         variant = line.variant
-        unit_price = manager.calculate_order_line_unit(
+        unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
-        total_price = manager.calculate_order_line_total(
+        total_price_data = manager.calculate_order_line_total(
             order, line, variant, variant.product
         )
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
@@ -653,17 +659,20 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
     preorder_allocations = []
     for line in lines:
         variant = line.variant
-        unit_price = manager.calculate_order_line_unit(
+        unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
-        total_price = manager.calculate_order_line_total(
+        total_price_data = manager.calculate_order_line_total(
             order, line, variant, variant.product
         )
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
         variant_channel_listing = variant.channel_listings.get(channel=channel)
         preorder_allocations.append(
             PreorderAllocation(

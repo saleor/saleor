@@ -2,7 +2,7 @@ from unittest import mock
 
 from freezegun import freeze_time
 
-from ....webhook.event_types import WebhookEventType
+from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import generate_checkout_payload, generate_order_payload
 from ..utils import parse_tax_data
 
@@ -31,7 +31,7 @@ def test_get_taxes_for_checkout(
         tax_checkout_webhook.pk,
         tax_checkout_webhook.target_url,
         tax_checkout_webhook.secret_key,
-        WebhookEventType.CHECKOUT_CALCULATE_TAXES,
+        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         generate_checkout_payload(checkout),
     )
     assert tax_data == parse_tax_data(tax_data_response)
@@ -78,7 +78,7 @@ def test_get_taxes_for_order(
         tax_order_webhook.pk,
         tax_order_webhook.target_url,
         tax_order_webhook.secret_key,
-        WebhookEventType.ORDER_CALCULATE_TAXES,
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
         generate_order_payload(order),
     )
     assert tax_data == parse_tax_data(tax_data_response)

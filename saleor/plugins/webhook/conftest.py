@@ -1,6 +1,6 @@
 import pytest
 
-from ...webhook.event_types import WebhookEventType
+from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.models import Webhook
 from ..manager import get_plugins_manager
 
@@ -46,7 +46,7 @@ def tax_checkout_webhook(tax_app):
         app=tax_app,
         target_url="https://www.example.com/tax-checkout",
     )
-    webhook.events.create(event_type=WebhookEventType.CHECKOUT_CALCULATE_TAXES)
+    webhook.events.create(event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
     return webhook
 
 
@@ -57,7 +57,7 @@ def tax_order_webhook(tax_app):
         app=tax_app,
         target_url="https://www.example.com/tax-order",
     )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CALCULATE_TAXES)
+    webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
     return webhook
 
 

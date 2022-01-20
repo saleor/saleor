@@ -11,7 +11,6 @@ from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_
 from ....order import (
     ORDER_EDITABLE_STATUS,
     FulfillmentStatus,
-    OrderLineData,
     OrderStatus,
     events,
     models,
@@ -27,6 +26,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderLineInfo, fetch_order_info
 from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
@@ -558,7 +558,8 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
         clean_order_capture(payment)
 
         transaction = try_payment_action(
@@ -572,11 +573,12 @@ class OrderCapture(BaseMutation):
             amount=amount,
             channel_slug=order.channel.slug,
         )
+        order_info.payment.refresh_from_db()
         # Confirm that we changed the status to capture. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.CAPTURE:
             order_captured(
-                order,
+                order_info,
                 info.context.user,
                 info.context.app,
                 amount,
@@ -732,14 +734,15 @@ class OrderConfirm(ModelMutation):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
-        payment = order.get_last_payment()
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
         manager = info.context.plugins
         if payment and payment.is_authorized and payment.can_capture():
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
             order_captured(
-                order,
+                order_info,
                 info.context.user,
                 info.context.app,
                 payment.total,
@@ -816,7 +819,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_to_add, user, app, manager):
+    def add_lines_to_order(
+        order, lines_to_add, user, app, manager, settings, discounts
+    ):
         try:
             return [
                 add_variant_to_order(
@@ -826,6 +831,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
+                    settings,
+                    discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
                 for quantity, variant in lines_to_add
@@ -851,6 +858,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
+            info.context.site.settings,
+            info.context.discounts,
         )
 
         # Create the products added event
@@ -903,7 +912,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             if order.is_unconfirmed()
             else None
         )
-        line_info = OrderLineData(
+        line_info = OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -983,7 +992,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             if instance.order.is_unconfirmed()
             else None
         )
-        line_info = OrderLineData(
+        line_info = OrderLineInfo(
             line=instance,
             quantity=instance.quantity,
             variant=instance.variant,
