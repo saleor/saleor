@@ -21,7 +21,7 @@ def set_user_search_document_values(total_count, updated_count, user_model):
         task_logger.info("No users to update.")
         return
 
-    set_search_document_all_values(
+    set_search_document_all_values.delay(
         qs,
         total_count,
         updated_count,
@@ -42,7 +42,7 @@ def set_order_search_document_values(total_count, updated_count, order_model):
         task_logger.info("No orders to update.")
         return
 
-    set_search_document_all_values(
+    set_search_document_all_values.delay(
         qs,
         total_count,
         updated_count,
@@ -58,7 +58,7 @@ def set_product_search_document_values(total_count, updated_count, product_model
         task_logger.info("No products to update.")
         return
 
-    set_search_document_all_values(
+    set_search_document_all_values.delay(
         qs,
         total_count,
         updated_count,
