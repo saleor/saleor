@@ -15,6 +15,15 @@ class PossiblePhoneNumberField(PhoneNumberField):
 
 class Vendor(models.Model):
 
+    COMMERCIAL_INFO_CHOICES = (
+        ("cr", "CR"),
+        ("maroof", "MAROOF"),
+    )
+    SELLS_GENDER_CHOICES = (
+        ("men", "MEN"),
+        ("women", "WOMEN"),
+        ("unisex", "UNISEX"),
+    )
     name = models.CharField(max_length=256, db_index=True)
     slug = models.SlugField(max_length=255, unique=True)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL)
@@ -23,6 +32,13 @@ class Vendor(models.Model):
     phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
     national_id = models.CharField(max_length=256)
     is_active = models.BooleanField(default=True)
+    commercial_info = models.CharField(
+        max_length=6, choices=COMMERCIAL_INFO_CHOICES, default="cr"
+    )
+    commercial_description = models.TextField(blank=True, default="")
+    sells_gender = models.CharField(
+        max_length=6, choices=SELLS_GENDER_CHOICES, default="men"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
