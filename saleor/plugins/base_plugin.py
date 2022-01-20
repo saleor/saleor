@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
+from promise.promise import Promise
 
 from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
@@ -97,7 +98,8 @@ class BasePlugin:
         configuration: PluginConfigurationType,
         active: bool,
         channel: Optional["Channel"] = None,
-        requestor_getter: Optional[Callable[[], "Requestor"]] = None
+        requestor_getter: Optional[Callable[[], "Requestor"]] = None,
+        db_config: Optional["PluginConfiguration"] = None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
@@ -105,6 +107,7 @@ class BasePlugin:
         self.requestor: Optional[RequestorOrLazyObject] = (
             SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
         )
+        self.db_config = db_config
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -576,7 +579,9 @@ class BasePlugin:
             )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct.
 
         Raise django.core.exceptions.ValidationError otherwise.
@@ -599,11 +604,14 @@ class BasePlugin:
         configuration_to_update = cleaned_data.get("configuration")
         if configuration_to_update:
             cls._update_config_items(configuration_to_update, current_config)
+
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
+
         cls.validate_plugin_configuration(plugin_configuration)
         cls.pre_save_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
+
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
@@ -672,6 +680,12 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Override this function to customize resolving plugin configuration in API.
+        return self.configuration
 
     def is_event_active(self, event: str, channel=Optional[str]):
         return hasattr(self, event)
