@@ -347,7 +347,6 @@ def test_checkouts_query_with_filter_search(
     response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
     content = get_graphql_content(response)
 
-    print(content)
     assert content["data"]["checkouts"]["totalCount"] == count
 
 

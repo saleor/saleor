@@ -68,6 +68,7 @@ class AvataxPlugin(BasePlugin):
         {"name": "from_country", "value": None},
         {"name": "from_country_area", "value": None},
         {"name": "from_postal_code", "value": None},
+        {"name": "shipping_tax_code", "value": "FR000000"},
     ]
     CONFIG_STRUCTURE = {
         "Username or account": {
@@ -125,6 +126,14 @@ class AvataxPlugin(BasePlugin):
             "help_text": "To calculate taxes we need to provide `ship from` details.",
             "label": "Ship from - postal code",
         },
+        "shipping_tax_code": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "Provide Avatax's tax code that will be included in the shipping line "
+                "sent to Avatax."
+            ),
+            "label": "Shipping tax code",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -146,6 +155,7 @@ class AvataxPlugin(BasePlugin):
             from_country=from_country,
             from_country_area=configuration["from_country_area"],
             from_postal_code=configuration["from_postal_code"],
+            shipping_tax_code=configuration["shipping_tax_code"],
         )
 
     def _skip_plugin(
@@ -392,7 +402,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         if not _validate_order(order):
-            return zero_taxed_money(order.total.currency)
+            return previous_value
 
         taxes_data = self._get_order_tax_data(order, previous_value)
         return self._calculate_line_total_price(
@@ -507,7 +517,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         if not _validate_order(order):
-            return zero_taxed_money(order.total.currency)
+            return previous_value
         taxes_data = get_order_tax_data(order, self.config, False)
 
         tax_included = (

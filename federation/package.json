@@ -1,0 +1,20 @@
+{
+  "name": "saleor-federation",
+  "version": "1.0.0",
+  "author": "Mirumee Software",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/mirumee/saleor/issues"
+  },
+  "homepage": "http://saleor.io/",
+  "dependencies": {
+    "@apollo/gateway": "^0.46.0",
+    "apollo-server-core": "^3.6.1",
+    "apollo-server-fastify": "^3.6.1",
+    "fastify": "^3.25.3",
+    "graphql": "^15.8.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

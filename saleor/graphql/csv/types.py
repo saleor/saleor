@@ -7,7 +7,7 @@ from ..account.types import User
 from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection, CountableDjangoObjectType
 from ..core.types.common import Job
 from ..utils import get_user_or_app_from_context
 from .enums import ExportEventEnum
@@ -85,7 +85,7 @@ class ExportFile(CountableDjangoObjectType):
     @staticmethod
     def resolve_app(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
+        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
             return (
                 AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
             )
@@ -94,3 +94,8 @@ class ExportFile(CountableDjangoObjectType):
     @staticmethod
     def resolve_events(root: models.ExportFile, _info):
         return root.events.all().order_by("pk")
+
+
+class ExportFileCountableConnection(CountableConnection):
+    class Meta:
+        node = ExportFile

@@ -5,7 +5,7 @@ interactions:
       true, "itemCode": "SKU_AA", "description": "Test product"}, {"quantity": 2,
       "amount": "49.200", "taxCode": "O9999999", "taxIncluded": true, "itemCode":
       "SKU_B", "description": "Test product 2"}, {"quantity": 1, "amount": "10.000",
-      "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping", "description":
+      "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping", "description":
       null}], "code": "ed3eb46f-cd75-41d8-ba4d-f03394a20f28", "date": "2021-03-02",
       "customerCode": 0, "addresses": {"shipFrom": {"line1": "2000 Main Street", "line2":
       "", "city": "Irvine", "region": "CA", "country": "US", "postalCode": "92614"},
