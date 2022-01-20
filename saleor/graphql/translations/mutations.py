@@ -1,10 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import CharField, Model
+from django.db.models import Model
 
 from ...attribute import models as attribute_models
-from ...core.error_codes import TranslationErrorCode
 from ...core.permissions import SitePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...discount import models as discount_models
