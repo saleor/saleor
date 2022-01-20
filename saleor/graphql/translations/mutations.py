@@ -54,19 +54,11 @@ TRANSLATABLE_CONTENT_TO_TYPE = {
 
 
 def validate_input_against_model(model: Model, input_data: dict):
-    errors = {}
-    for field_name, value in input_data.items():
-        model_field = model._meta.get_field(field_name)
-        if not isinstance(model_field, CharField):
-            continue
-        if value and len(value) > model_field.max_length:
-            errors[field_name] = ValidationError(
-                f"This value can't be longer than {model_field.max_length}",
-                code=TranslationErrorCode.TOO_LONG.value,
-            )
-
-    if errors:
-        raise ValidationError(errors)
+    data_to_validate = {key: value for key, value in input_data.items() if value}
+    instance = model(**data_to_validate)
+    all_fields = [field.name for field in model._meta.fields]
+    exclude_fields = set(all_fields) - set(data_to_validate)
+    instance.full_clean(exclude=exclude_fields, validate_unique=False)
 
 
 class BaseTranslateMutation(ModelMutation):

@@ -943,7 +943,7 @@ def test_product_create_translation_validates_name_length(
 
     assert data["product"] is None
     assert data["errors"] == [
-        {"field": "name", "code": "TOO_LONG"},
+        {"field": "name", "code": "INVALID"},
     ]
 
 
@@ -1104,7 +1104,7 @@ def test_product_variant_translation_mutation_validates_inputs_length(
     assert data["errors"] == [
         {
             "field": "name",
-            "code": "TOO_LONG",
+            "code": "INVALID",
         }
     ]
 
@@ -1265,7 +1265,7 @@ def test_collection_translation_mutation_validates_inputs_length(
     data = get_graphql_content(response)["data"]["collectionTranslate"]
 
     assert data["collection"] is None
-    assert data["errors"] == [{"field": "name", "code": "TOO_LONG"}]
+    assert data["errors"] == [{"field": "name", "code": "INVALID"}]
 
 
 CATEGORY_TRANSLATE_MUTATION = """
@@ -2244,7 +2244,7 @@ def test_shop_translation_validates_values_lengths(
     data = get_graphql_content(response)["data"]["shopSettingsTranslate"]
 
     assert data["shop"] is None
-    assert data["errors"] == [{"field": "headerText", "code": "TOO_LONG"}]
+    assert data["errors"] == [{"field": "headerText", "code": "INVALID"}]
 
 
 @pytest.mark.parametrize(

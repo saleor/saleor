@@ -6881,9 +6881,9 @@ type TranslationError {
 
 enum TranslationErrorCode {
   GRAPHQL_ERROR
+  INVALID
   NOT_FOUND
   REQUIRED
-  TOO_LONG
 }
 
 input TranslationInput {

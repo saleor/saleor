@@ -20,9 +20,9 @@ class MetadataErrorCode(Enum):
 
 class TranslationErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
-    TOO_LONG = "too_long"
 
 
 class UploadErrorCode(Enum):
