@@ -536,10 +536,16 @@ class BasePlugin:
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
-        payment_config = self.get_payment_config(previous_value)  # type: ignore
-        payment_config = payment_config if payment_config != NotImplemented else []
-        currencies = self.get_supported_currencies(previous_value=[])  # type: ignore
-        currencies = currencies if currencies != NotImplemented else []
+        payment_config = (
+            self.get_payment_config(previous_value)  # type: ignore
+            if hasattr(self, "get_payment_config")
+            else []
+        )
+        currencies = (
+            self.get_supported_currencies(previous_value=[])  # type: ignore
+            if hasattr(self, "get_supported_currencies")
+            else []
+        )
         if currency and currency not in currencies:
             return []
         gateway = PaymentGateway(
