@@ -14,7 +14,7 @@ from ....core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ....core.taxes import get_tax_code
+from ....core.taxes import get_tax_type
 from ....core.tracing import traced_resolver
 from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
@@ -854,7 +854,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        tax_data = get_tax_code(info.context.plugins, root.node)
+        tax_data = get_tax_type(info.context.plugins, root.node)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -1262,7 +1262,7 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = get_tax_code(info.context.plugins, root)
+        tax_data = get_tax_type(info.context.plugins, root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod

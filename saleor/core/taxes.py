@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from django.contrib.sites.models import Site
 from django.core.cache import cache
+from django.db.models import Q
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.app.models import App
@@ -100,12 +101,14 @@ DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
 
 def _get_current_tax_app() -> App:
     """Return currently used tax app or None, if there aren't any."""
+    q_app_is_not_tax = ~(
+        Q(webhooks__events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+        & Q(webhooks__events__event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+    )
     return (
         App.objects.order_by("pk")
-        .filter(
-            is_active=True,
-            webhooks__events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-        )
+        .filter(is_active=True)
+        .exclude(q_app_is_not_tax)
         .last()
     )
 
@@ -128,7 +131,11 @@ def _get_cached_tax_codes_or_fetch(manager: "PluginsManager") -> List[TaxType]:
     return []
 
 
-def fetch_tax_codes(manager: "PluginsManager") -> List[TaxType]:
+def fetch_tax_types(manager: "PluginsManager") -> List[TaxType]:
+    """Get all tax types.
+
+    Result is either from tax app if there is one active, or from tax plugin.
+    """
     return (
         _get_cached_tax_codes_or_fetch(manager) or manager.get_tax_rate_type_choices()
     )
@@ -149,6 +156,14 @@ def set_tax_code(
     obj: Union["Product", "ProductType"],
     tax_code: Optional[str],
 ) -> None:
+    """Update tax code for a product or product type.
+
+    If there is no active tax app, then the operation is delegated to a tax plugin.
+    If parameter `tax_code` is None, then currently saved tax code is deleted from
+    product/product type.
+    if all tax codes for a current tax app cannot be fetched
+    (either from cache or by sync webhook), then the code is not saved.
+    """
     if not (tax_app := _get_current_tax_app()):
         manager.assign_tax_code_to_object_meta(obj, tax_code)
         return
@@ -174,9 +189,15 @@ def set_tax_code(
     obj.store_value_in_metadata(items=tax_item)
 
 
-def get_tax_code(
+def get_tax_type(
     manager: "PluginsManager", obj: Union["Product", "ProductType"]
 ) -> TaxType:
+    """Get tax code and description for a product or product type.
+
+    If there is no active tax app, returns tax code from tax plugin.
+    If there is no tax code defined for the product/product type,
+    then return dummy values.
+    """
     if not (tax_app := _get_current_tax_app()):
         return manager.get_tax_code_from_object_meta(obj)
 
