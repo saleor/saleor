@@ -8,13 +8,12 @@ from ...core.search_tasks import set_order_search_document_values
 def update_order_search_document_values(apps, _schema_editor):
     Order = apps.get_model("order", "Order")
     total_count = Order.objects.filter(search_document="").count()
-    set_order_search_document_values.delay(total_count, 0)
+    set_order_search_document_values(total_count, 0, Order)
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0118_order_price_expiration_for_unconfirmed"),
         ("order", "0122_merge_20211220_1641"),
         ("payment", "0030_auto_20210908_1346"),
     ]

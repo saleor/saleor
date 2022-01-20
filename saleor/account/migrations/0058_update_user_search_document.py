@@ -8,7 +8,7 @@ from ...core.search_tasks import set_user_search_document_values
 def update_user_search_document_values(apps, _schema_editor):
     User = apps.get_model("account", "User")
     total_count = User.objects.filter(search_document="").count()
-    set_user_search_document_values.delay(total_count, 0)
+    set_user_search_document_values(total_count, 0, User)
 
 
 class Migration(migrations.Migration):
