@@ -2,6 +2,8 @@ from unittest import mock
 
 from freezegun import freeze_time
 
+from ....core import EventDeliveryStatus
+from ....core.models import EventDelivery, EventPayload
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import generate_checkout_payload, generate_order_payload
 from ..utils import parse_tax_data
@@ -26,14 +28,14 @@ def test_get_taxes_for_checkout(
     tax_data = plugin.get_taxes_for_checkout(checkout, None)
 
     # then
-    mock_request.assert_called_once_with(
-        tax_checkout_webhook.app.name,
-        tax_checkout_webhook.pk,
-        tax_checkout_webhook.target_url,
-        tax_checkout_webhook.secret_key,
-        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-        generate_checkout_payload(checkout),
-    )
+    payload = EventPayload.objects.get()
+    assert payload.payload == generate_checkout_payload(checkout)
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+    assert delivery.payload == payload
+    assert delivery.webhook == tax_checkout_webhook
+    mock_request.assert_called_once_with(tax_checkout_webhook.app.name, delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -73,14 +75,14 @@ def test_get_taxes_for_order(
     tax_data = plugin.get_taxes_for_order(order, None)
 
     # then
-    mock_request.assert_called_once_with(
-        tax_order_webhook.app.name,
-        tax_order_webhook.pk,
-        tax_order_webhook.target_url,
-        tax_order_webhook.secret_key,
-        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-        generate_order_payload(order),
-    )
+    payload = EventPayload.objects.get()
+    assert payload.payload == generate_order_payload(order)
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
+    assert delivery.payload == payload
+    assert delivery.webhook == tax_order_webhook
+    mock_request.assert_called_once_with(tax_order_webhook.app.name, delivery)
     assert tax_data == parse_tax_data(tax_data_response)
 
 

@@ -14,6 +14,7 @@ def update_order_search_document_values(apps, _schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ("order", "0118_order_price_expiration_for_unconfirmed"),
         ("order", "0122_merge_20211220_1641"),
         ("payment", "0030_auto_20210908_1346"),
     ]
