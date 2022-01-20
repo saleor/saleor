@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
 - Fix crash when querying external shipping method's `translation` field - #8971 by @rafalp
 - Add `COLLECTION_CREATED`, `COLLECTION_UPDATED`, `COLLECTION_DELETED` events and webhooks - #8974 by @rafalp
+- Fix crash when too long translation strings were passed to `translate` mutations - #8942 by rafalp
 
 # 3.0.0 [Unreleased]
 
