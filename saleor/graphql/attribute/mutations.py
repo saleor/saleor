@@ -14,6 +14,7 @@ from ...core.permissions import (
     ProductTypePermissions,
 )
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils import generate_unique_slug
 from ..attribute.types import Attribute, AttributeValue
 from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
@@ -569,7 +570,7 @@ class AttributeValueCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        cleaned_input["slug"] = slugify(cleaned_input["name"], allow_unicode=True)
+        cleaned_input["slug"] = generate_unique_slug(instance, cleaned_input["name"])
         return cleaned_input
 
     @classmethod
