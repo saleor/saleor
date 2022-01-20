@@ -173,6 +173,7 @@ All notable, unreleased changes to this project will be documented in this file.
   and `CheckoutPricesData` instead of `PricesData`
   - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
 - Fix incorrect stock allocation - #8931 by @IKarbowiak
+- Fix incorrect handling of unavailable products in checkout - #8978 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
