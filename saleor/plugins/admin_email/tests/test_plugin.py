@@ -7,6 +7,9 @@ from django.core.exceptions import ValidationError
 from django.core.mail.backends.smtp import EmailBackend
 
 from ....core.notify_events import NotifyEventType
+from ....graphql.tests.utils import get_graphql_content
+from ...email_common import DEFAULT_EMAIL_VALUE, get_email_template
+from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from ..constants import (
     CSV_EXPORT_FAILED_TEMPLATE_FIELD,
@@ -56,9 +59,7 @@ def test_notify(mocked_get_event_map, event_type, admin_email_plugin):
     plugin = admin_email_plugin()
     plugin.notify(event_type, payload, previous_value=None)
 
-    mocked_event.assert_called_with(
-        payload, asdict(plugin.config), plugin.configuration
-    )
+    mocked_event.assert_called_with(payload, asdict(plugin.config), plugin)
 
 
 @patch("saleor.plugins.admin_email.plugin.get_admin_event_map")
@@ -195,3 +196,99 @@ def test_save_plugin_configuration_incorrect_template(mocked_open, admin_email_p
         plugin.save_plugin_configuration(configuration, data_to_save)
 
     mocked_open.assert_called_with()
+
+
+def test_get_email_template(admin_email_plugin, admin_email_template):
+    plugin = admin_email_plugin()
+    default = "Default template"
+    template = get_email_template(plugin, admin_email_template.name, default)
+    assert template == admin_email_template.value
+
+    admin_email_template.delete()
+    template = get_email_template(plugin, admin_email_template.name, default)
+    assert template == default
+
+
+@patch.object(EmailBackend, "open")
+def test_save_plugin_configuration_creates_email_template_instance(
+    mocked_open, admin_email_plugin
+):
+    template_str = """Thank you for your order."""
+
+    plugin = admin_email_plugin()
+    configuration = PluginConfiguration.objects.get()
+
+    data_to_save = {
+        "configuration": [
+            {
+                "name": STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
+                "value": template_str,
+            }
+        ]
+    }
+
+    plugin.save_plugin_configuration(configuration, data_to_save)
+    configuration.refresh_from_db()
+
+    email_template = configuration.email_templates.get()
+    assert email_template
+    assert email_template.name == STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD
+    assert email_template.value == template_str
+
+
+QUERY_GET_PLUGIN = """
+  query Plugin($id: ID!) {
+    plugin(id: $id) {
+      id
+      name
+      globalConfiguration {
+        configuration {
+          name
+          value
+        }
+      }
+    }
+  }
+"""
+
+
+def test_configuration_resolver_returns_email_template_value(
+    staff_api_client,
+    admin_email_plugin,
+    admin_email_template,
+    permission_manage_plugins,
+):
+    plugin = admin_email_plugin()
+    response = staff_api_client.post_graphql(
+        QUERY_GET_PLUGIN,
+        {"id": plugin.PLUGIN_ID},
+        permissions=(permission_manage_plugins,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["plugin"]
+
+    email_config_item = None
+    for config_item in data["globalConfiguration"]["configuration"]:
+        if config_item["name"] == admin_email_template.name:
+            email_config_item = config_item
+
+    assert email_config_item
+    assert email_config_item["value"] == admin_email_template.value
+
+
+def test_plugin_manager_doesnt_load_email_templates_from_db(
+    admin_email_plugin, admin_email_template, settings
+):
+    settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
+    manager = get_plugins_manager()
+    plugin = manager.all_plugins[0]
+
+    email_config_item = None
+    for config_item in plugin.configuration:
+        if config_item["name"] == admin_email_template.name:
+            email_config_item = config_item
+
+    # Assert that accessing plugin configuration directly from manager doesn't load
+    # email template from DB but returns default email value.
+    assert email_config_item
+    assert email_config_item["value"] == DEFAULT_EMAIL_VALUE
