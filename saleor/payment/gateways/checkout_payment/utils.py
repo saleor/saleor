@@ -208,6 +208,16 @@ def validate_apple_pay_session(request: HttpRequest) -> HttpResponse:
     url = json.loads(request.body.decode("utf-8").replace("'", '"'))
 
     if url:
-        requests.post(url=url, headers={"Content-Type": "application/json"})
-        return HttpResponse(url)
+        data = {
+            "displayName": "WeCre8",
+            "domainName": "domainName",
+            "merchantIdentifier": "merchant.ninja.wecrea8",
+        }
+        key = "./certificate_sandbox.key"
+        cert = "./certificate_sandbox.pem"
+        response = requests.post(url=url, json=data, cert=(cert, key))
+        logger.info(
+            msg=f"Apple Pay session validated{response.json()}", extra={"url": url}
+        )
+        return HttpResponse(response.json(), status=200)
     raise Http404()
