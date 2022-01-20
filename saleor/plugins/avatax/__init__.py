@@ -310,7 +310,7 @@ def get_checkout_lines_data(
 
 
 def get_order_lines_data(
-    order: "Order", config: AvataxConfiguration
+    order: "Order", config: AvataxConfiguration, invoice_transaction_type: bool = False
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     lines = order.lines.prefetch_related(
@@ -361,24 +361,29 @@ def get_order_lines_data(
             amount=undiscounted_amount,
         )
 
-        if undiscounted_amount != price_with_discounts_amount:
+        # for invoice transaction we want to include only undiscounted price
+        if (
+            not invoice_transaction_type
+            and undiscounted_amount != price_with_discounts_amount
+        ):
             append_line_to_data(
                 **append_line_to_data_kwargs,
                 amount=price_with_discounts_amount,
                 ref1=line.variant.sku,
             )
 
-    discount_amount = get_total_order_discount(order)
-    if discount_amount:
-        append_line_to_data(
-            data=data,
-            quantity=1,
-            amount=discount_amount.amount * -1,
-            tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
-            item_code="Voucher",
-            name="Order discount",
-            tax_included=True,  # Voucher should be always applied as a gross amount
-        )
+    if not invoice_transaction_type:
+        discount_amount = get_total_order_discount(order)
+        if discount_amount:
+            append_line_to_data(
+                data=data,
+                quantity=1,
+                amount=discount_amount.amount * -1,
+                tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
+                item_code="Voucher",
+                name="Order discount",
+                tax_included=True,  # Voucher should be always applied as a gross amount
+            )
 
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id
@@ -514,12 +519,13 @@ def get_checkout_tax_data(
 
 def get_order_request_data(order: "Order", config: AvataxConfiguration):
     address = order.shipping_address or order.billing_address
-    lines = get_order_lines_data(order, config)
     transaction = (
         TransactionType.INVOICE
         if not (order.is_draft() or order.is_unconfirmed())
         else TransactionType.ORDER
     )
+    is_invoice_transaction = transaction == TransactionType.INVOICE
+    lines = get_order_lines_data(order, config, is_invoice_transaction)
     data = generate_request_data(
         transaction_type=transaction,
         lines=lines,
