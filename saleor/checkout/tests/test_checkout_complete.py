@@ -18,7 +18,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
-from ..complete_checkout import _create_order, _prepare_order_data
+from ..complete_checkout import _create_order, _prepare_order_data, complete_checkout
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..utils import add_variant_to_checkout
 
@@ -1089,3 +1089,105 @@ def test_create_order_use_translations(
 
     assert order_line.translated_product_name == translated_product_name
     assert order_line.translated_variant_name == translated_variant_name
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_complete_checkout_0_total_captured_payment_creates_expected_events(
+    mock_notify, checkout_with_item_total_0, customer_user, channel_USD, app
+):
+    checkout = checkout_with_item_total_0
+    checkout_user = customer_user
+
+    # Ensure not events are existing prior
+    assert not OrderEvent.objects.exists()
+    assert not CustomerEvent.objects.exists()
+
+    # Prepare valid checkout
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    # Place checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    order, action_required, action_data = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=app,
+    )
+
+    flush_post_commit_hooks()
+    (
+        order_marked_as_paid,
+        order_placed_event,
+        order_confirmed_event,
+    ) = order.events.all()  # type: OrderEvent
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_placed_event.type == OrderEvents.PLACED
+    # is the user anonymous/ the customer
+    assert order_placed_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_placed_event.order is order
+    # ensure a date was set
+    assert order_placed_event.date
+    # should not have any additional parameters
+    assert not order_placed_event.parameters
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_marked_as_paid.type == OrderEvents.ORDER_MARKED_AS_PAID
+    # is the user anonymous/ the customer
+    assert order_marked_as_paid.user == checkout_user
+    # is the associated backref order valid
+    assert order_marked_as_paid.order is order
+    # ensure a date was set
+    assert order_marked_as_paid.date
+    # should not have any additional parameters
+    assert not order_marked_as_paid.parameters
+
+    expected_order_payload = {
+        "order": get_default_order_payload(order, checkout.redirect_url),
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
+
+    mock_notify.assert_has_calls(
+        [
+            mock.call(
+                NotifyEventType.ORDER_CONFIRMATION,
+                expected_order_payload,
+                channel_slug=channel_USD.slug,
+            )
+        ],
+        any_order=True,
+    )
+
+    # Ensure the correct customer event was created if the user was not anonymous
+    placement_event = customer_user.events.get()  # type: CustomerEvent
+    assert placement_event.type == CustomerEvents.PLACED_ORDER  # check the event type
+    assert placement_event.user == customer_user  # check the backref is valid
+    assert placement_event.order == order  # check the associated order is valid
+    assert placement_event.date  # ensure a date was set
+    assert not placement_event.parameters  # should not have any additional parameters
