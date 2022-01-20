@@ -1,4 +1,5 @@
 import graphene
+from graphene_federation import build_schema
 
 from saleor.graphql.core.connection import create_connection_slice
 from saleor.graphql.core.fields import FilterConnectionField
@@ -6,7 +7,14 @@ from saleor.graphql.core.utils import from_global_id_or_error
 
 from .. import models
 from . import types
-from .mutations import BillingCreate, VendorCreate, VendorDelete, VendorUpdate
+from .mutations import (
+    BillingCreate,
+    BillingDelete,
+    BillingUpdate,
+    VendorCreate,
+    VendorDelete,
+    VendorUpdate,
+)
 
 
 class Query(graphene.ObjectType):
@@ -51,9 +59,11 @@ class Mutation(graphene.ObjectType):
     vendor_update = VendorUpdate.Field()
     vendor_delete = VendorDelete.Field()
     billing_create = BillingCreate.Field()
+    billing_update = BillingUpdate.Field()
+    billing_delete = BillingDelete.Field()
 
 
-schema = graphene.Schema(
+schema = build_schema(
     query=Query,
     mutation=Mutation,
     types=[types.Vendor],
