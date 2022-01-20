@@ -53,11 +53,3 @@ repos:
         entry: sh -c "./manage.py makemigrations --check --dry-run"
         files: "models\\.py$"
         stages: [commit]
-
-  - repo: local
-    hooks:
-      - id: gql-schema-check
-        language: system
-        name: Check GraphQL schema is up to date.
-        entry: sh -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
-        stages: [commit]
