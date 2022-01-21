@@ -42,6 +42,7 @@ from ....webhook.payloads import (
 from ...manager import get_plugins_manager
 from ...webhook.tasks import (
     WebhookResponse,
+    _get_webhooks_for_event,
     send_webhook_request_async,
     trigger_webhooks_async,
 )
@@ -662,3 +663,17 @@ def test_send_webhook_request_async(
     assert attempt.request_headers == json.dumps(TEST_WEBHOOK_RESPONSE.request_headers)
     assert attempt.duration == TEST_WEBHOOK_RESPONSE.duration
     assert delivery.status == EventDeliveryStatus.SUCCESS
+
+
+def test_get_webhook_for_event(webhook, permission_manage_orders):
+    # given
+    webhook.events.all().delete()
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    webhook.events.create(event_type=WebhookEventAsyncType.ANY)
+    webhook.app.permissions.add(permission_manage_orders)
+
+    # when
+    webhooks = _get_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED)
+
+    # then
+    assert len(webhooks) == 1
