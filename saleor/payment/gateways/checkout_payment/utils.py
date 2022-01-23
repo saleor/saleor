@@ -7,8 +7,7 @@ from decimal import Decimal
 import checkout_sdk as checkout
 import checkout_sdk.errors as checkout_errors
 import graphene
-import requests
-from django.http import Http404, HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 
 from saleor.payment import ChargeStatus
 from saleor.payment.interface import (
@@ -202,22 +201,3 @@ def handle_webhook(request: HttpRequest, config: GatewayConfig, gateway: str):
                         )
                         return HttpResponse("OK", status=200)
                 return HttpResponse("Payment not found", status=200)
-
-
-def validate_apple_pay_session(request: HttpRequest) -> HttpResponse:
-    url = json.loads(request.body.decode("utf-8").replace("'", '"'))
-
-    if url:
-        data = {
-            "displayName": "WeCre8",
-            "domainName": "domainName",
-            "merchantIdentifier": "merchant.ninja.wecrea8",
-        }
-        key = "./certificate_sandbox.key"
-        cert = "./certificate_sandbox.pem"
-        response = requests.post(url=url, json=data, cert=(cert, key))
-        logger.info(
-            msg=f"Apple Pay session validated{response.json()}", extra={"url": url}
-        )
-        return HttpResponse(response.json(), status=200)
-    raise Http404()
