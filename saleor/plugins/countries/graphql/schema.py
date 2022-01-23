@@ -17,8 +17,8 @@ class Query(graphene.ObjectType):
         ),
     )
 
-    def resolve_provinces(root, info, code, **data):
-        qs = models.City.objects.filter(country=code)
+    def resolve_provinces(root, info, country_code, **data):
+        qs = models.Province.objects.filter(country=country_code)
         return create_connection_slice(
             qs, info, data, types.ProvinceCountableConnection
         )
