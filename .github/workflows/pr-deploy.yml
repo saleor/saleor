@@ -45,6 +45,9 @@ jobs:
           HD_NODE_ENV: development
           HD_PR_NUMBER: ${{ github.event.pull_request.number }}
 
+      - name: Seed Data
+        run: heroku run python manage.py populatedb --createsuperuser
+
       - name: Comment Deploy Links
         uses: mshick/add-pr-comment@v1
         env:
