@@ -38,10 +38,6 @@ urlpatterns = [
     ),
 ]
 
-urlpatterns += [
-    url(r"", include("wecre8.urls")),  # type: ignore
-]
-
 if settings.DEBUG:
     import warnings
 
