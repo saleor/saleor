@@ -88,10 +88,8 @@ def test_update_attribute_value_name_not_unique(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeValueUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["message"]
-    assert data["errors"][0]["field"] == "name"
-    assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+    assert not data["errors"]
+    assert data["attributeValue"]["slug"] == "pink-2"
 
 
 def test_update_attribute_value_product_search_document_updated(
