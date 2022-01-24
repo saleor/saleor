@@ -47,7 +47,7 @@ jobs:
     needs: deploy-saleor-pr
     runs-on: ubuntu-latest
     steps:
-      - name: Check out my other private repo
+      - name: Check out Federation repo
         uses: actions/checkout@master
         with:
           repository: wecre8-ecommerce/gql-federation-gateway
@@ -63,8 +63,7 @@ jobs:
           buildpack: heroku/nodejs
         env:
           HD_NODE_ENV: development
-          HD_PR_NUMBER: ${{ github.event.pull_request.number }}
-          HR_API_URL: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
+          HR_API_URL: "https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/"
           HD_PLUGINS: social-login # ex: social-login,oto,otp
 
   pr-comments:
