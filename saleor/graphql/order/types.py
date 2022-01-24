@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from operator import attrgetter
 from typing import Optional
@@ -20,7 +21,6 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
-from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -44,6 +44,8 @@ from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
 from ...shipping.interface import ShippingMethodData
+from ...shipping.models import ShippingMethodChannelListing
+from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -74,7 +76,11 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..product.types import ProductVariant
-from ..shipping.dataloaders import ShippingMethodByIdLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
@@ -88,6 +94,8 @@ from .dataloaders import (
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .utils import validate_draft_order
+
+logger = logging.getLogger(__name__)
 
 
 def get_order_discount_event(discount_obj: dict):
@@ -626,6 +634,10 @@ class Order(CountableDjangoObjectType):
         ShippingMethod,
         required=False,
         description="Shipping methods that can be used with this order.",
+        deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
+    )
+    shipping_methods = graphene.List(
+        ShippingMethod, description="Shipping methods related to this order."
     )
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
@@ -657,14 +669,13 @@ class Order(CountableDjangoObjectType):
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
 
-    shipping_method = graphene.Field(
-        ShippingMethod,
-        description="The shipping method related with order.",
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
-    )
-
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
+    )
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="Shipping method for this order.",
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
     subtotal = graphene.Field(
         TaxedMoney,
@@ -1064,19 +1075,27 @@ class Order(CountableDjangoObjectType):
         if external_app_shipping_id:
             keep_gross = info.context.site.settings.include_taxes_in_prices
             price = root.shipping_price_gross if keep_gross else root.shipping_price_net
-            method = ShippingMethodData(
+            return ShippingMethodData(
                 id=external_app_shipping_id,
                 name=root.shipping_method_name,
                 price=price,
             )
-            return ChannelContext(node=method, channel_slug=root.channel.slug)
 
         if not root.shipping_method_id:
             return None
 
         def wrap_shipping_method_with_channel_context(data):
             shipping_method, channel = data
-            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+            listing = (
+                ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    info.context
+                ).load((shipping_method.id, channel.slug))
+            )
+
+            def calculate_price(listing: Optional[ShippingMethodChannelListing]):
+                return convert_to_shipping_method_data(shipping_method, listing)
+
+            return listing.then(calculate_price)
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
             root.shipping_method_id
@@ -1098,40 +1117,29 @@ class Order(CountableDjangoObjectType):
             return collection_point
         return None
 
-    @staticmethod
+    @classmethod
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
-    def resolve_available_shipping_methods(root: models.Order, info):
-        instances = []
-        manager = info.context.plugins
-        available = get_valid_shipping_methods_for_order(root)
-        if available is not None:
-            available_shipping_methods = []
-            display_gross = display_gross_prices()
-            channel_slug = root.channel.slug
-            for shipping_method in available:
-                # Ignore typing check because it is checked in
-                # get_valid_shipping_methods_for_order
-                shipping_channel_listing = shipping_method.channel_listings.filter(
-                    channel=root.channel
-                ).first()
-                if shipping_channel_listing:
-                    taxed_price = manager.apply_taxes_to_shipping(
-                        shipping_channel_listing.price,
-                        root.shipping_address,  # type: ignore
-                        channel_slug,
-                    )
-                    if display_gross:
-                        shipping_method.price = taxed_price.gross
-                    else:
-                        shipping_method.price = taxed_price.net
-                    available_shipping_methods.append(shipping_method)
-            instances = [
-                ChannelContext(node=shipping, channel_slug=channel_slug)
-                for shipping in available_shipping_methods
-            ]
+    def resolve_shipping_methods(cls, root: models.Order, info):
+        def with_channel(channel):
+            def with_listings(channel_listings):
+                return get_valid_shipping_methods_for_order(root, channel_listings)
 
-        return instances
+            return (
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
+                .then(with_listings)
+            )
+
+        return ChannelByIdLoader(info.context).load(root.channel_id).then(with_channel)
+
+    @classmethod
+    @traced_resolver
+    # TODO: We should optimize it in/after PR#5819
+    def resolve_available_shipping_methods(cls, root: models.Order, info):
+        return cls.resolve_shipping_methods(root, info).then(
+            lambda methods: [method for method in methods if method.active]
+        )
 
     @classmethod
     @traced_resolver

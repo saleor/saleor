@@ -17,9 +17,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_valid_collection_points_for_checkout_info,
-    get_valid_shipping_method_list_for_checkout_info,
-    populate_checkout_info_shippings,
+    update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -249,11 +247,17 @@ def validate_variants_are_published(variants_id: set, channel_id: int):
         )
 
 
-def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []):
-    try:
-        checkout = models.Checkout.objects.prefetch_related(*prefetch_lookups).get(
-            token=token
+def get_checkout_by_token(token: uuid.UUID, qs=None):
+    if qs is None:
+        qs = models.Checkout.objects.select_related(
+            "channel",
+            "shipping_method",
+            "collection_point",
+            "billing_address",
+            "shipping_address",
         )
+    try:
+        checkout = qs.get(token=token)
     except ObjectDoesNotExist:
         raise ValidationError(
             {
@@ -592,11 +596,16 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         lines = fetch_checkout_lines(checkout)
-        populate_checkout_info_shippings(checkout_info, lines, discounts, manager)
-        checkout_info.valid_pick_up_points = (
-            get_valid_collection_points_for_checkout_info(
-                checkout_info.shipping_address, lines, checkout_info
-            )
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        update_delivery_method_lists_for_checkout_info(
+            checkout_info,
+            checkout_info.checkout.shipping_method,
+            checkout_info.checkout.collection_point,
+            checkout_info.shipping_address,
+            lines,
+            discounts,
+            manager,
+            shipping_channel_listings,
         )
         return lines
 
@@ -624,14 +633,12 @@ class CheckoutLinesAdd(BaseMutation):
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         input_quantities = group_quantity_by_variants(lines)
 
-        lines = fetch_checkout_lines(checkout)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout,
-            lines,
-            discounts,
-            manager,
-            fetch_delivery_methods=False,
+            checkout, [], discounts, manager, shipping_channel_listings
         )
+
+        lines = fetch_checkout_lines(checkout)
         lines = cls.clean_input(
             info,
             checkout,
@@ -643,7 +650,6 @@ class CheckoutLinesAdd(BaseMutation):
             discounts,
             replace,
         )
-
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
@@ -978,7 +984,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         if token:
             checkout = get_checkout_by_token(
-                token, prefetch_lookups=["lines__variant__product__product_type"]
+                token,
+                qs=models.Checkout.objects.prefetch_related(
+                    "lines__variant__product__product_type"
+                ),
             )
         # DEPRECATED
         if checkout_id:
@@ -1019,7 +1028,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         discounts = info.context.discounts
         manager = info.context.plugins
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        checkout_info = fetch_checkout_info(
+            checkout, lines, discounts, manager, shipping_channel_listings
+        )
 
         country = shipping_address.country.code
         checkout.set_country(country, commit=True)
@@ -1033,7 +1045,12 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         with traced_atomic_transaction():
             shipping_address.save()
             change_shipping_address_in_checkout(
-                checkout_info, shipping_address, lines, discounts, manager
+                checkout_info,
+                shipping_address,
+                lines,
+                discounts,
+                manager,
+                shipping_channel_listings,
             )
         recalculate_checkout_discount(manager, checkout_info, lines, discounts)
 
@@ -1303,7 +1320,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 "postal_code_rules"
             ),
         )
-        delivery_method = convert_to_shipping_method_data(shipping_method)
+        delivery_method = convert_to_shipping_method_data(
+            shipping_method,
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=shipping_method,
+                channel=checkout_info.channel,
+            ).first(),
+        )
 
         cls._check_delivery_method(
             checkout_info, lines, delivery_method=delivery_method
@@ -1379,7 +1402,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             ),
         )
 
-        delivery_method = convert_to_shipping_method_data(shipping_method)
+        delivery_method = convert_to_shipping_method_data(
+            shipping_method,
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=shipping_method,
+                channel=checkout_info.channel,
+            ).first(),
+        )
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
@@ -1751,7 +1780,10 @@ class CheckoutAddPromoCode(BaseMutation):
         manager = info.context.plugins
         discounts = info.context.discounts
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        checkout_info = fetch_checkout_info(
+            checkout, lines, discounts, manager, shipping_channel_listings
+        )
 
         add_promo_code_to_checkout(
             manager,
@@ -1761,10 +1793,15 @@ class CheckoutAddPromoCode(BaseMutation):
             discounts,
         )
 
-        checkout_info.valid_shipping_methods = (
-            get_valid_shipping_method_list_for_checkout_info(
-                checkout_info, checkout_info.shipping_address, lines, discounts, manager
-            )
+        update_delivery_method_lists_for_checkout_info(
+            checkout_info,
+            checkout_info.checkout.shipping_method,
+            checkout_info.checkout.collection_point,
+            checkout_info.shipping_address,
+            lines,
+            discounts,
+            manager,
+            shipping_channel_listings,
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

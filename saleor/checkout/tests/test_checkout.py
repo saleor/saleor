@@ -16,8 +16,8 @@ from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...shipping.models import ShippingMethod, ShippingZone
-from ...shipping.utils import convert_to_shipping_method_data
+from ...shipping.interface import ShippingMethodData
+from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -116,7 +116,6 @@ def test_clear_delivery_method(checkout, shipping_method):
     checkout.refresh_from_db()
     assert not checkout.shipping_method
     assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
-    assert not checkout_info.shipping_method_channel_listings
 
 
 def test_last_change_update(checkout):
@@ -188,10 +187,9 @@ def test_get_discount_for_checkout_value_voucher(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
         delivery_method_info=get_delivery_method_info(None, None),
+        all_shipping_methods=[],
     )
     lines = [
         CheckoutLineInfo(
@@ -284,9 +282,8 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
@@ -398,9 +395,8 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
@@ -428,6 +424,7 @@ def test_get_discount_for_checkout_shipping_voucher(
     monkeypatch,
     channel_USD,
     shipping_method,
+    shipping_method_data,
 ):
     manager = get_plugins_manager()
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
@@ -468,14 +465,13 @@ def test_get_discount_for_checkout_shipping_voucher(
         checkout=checkout,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method), shipping_address
+            shipping_method_data, shipping_address
         ),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
 
     discount = get_voucher_discount_for_checkout(
@@ -485,7 +481,7 @@ def test_get_discount_for_checkout_shipping_voucher(
 
 
 def test_get_discount_for_checkout_shipping_voucher_all_countries(
-    monkeypatch, channel_USD, shipping_method
+    monkeypatch, channel_USD, shipping_method, shipping_method_data
 ):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
@@ -528,16 +524,13 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     manager = get_plugins_manager()
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method), None
-        ),
+        delivery_method_info=get_delivery_method_info(shipping_method_data),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, [], None, None
@@ -581,9 +574,8 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
@@ -591,17 +583,13 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 
 
 @pytest.mark.parametrize(
-    "is_shipping_required, shipping_method, discount_value, discount_type,"
+    "is_shipping_required, shipping_method_data, discount_value, discount_type,"
     "countries, min_spent_amount, min_checkout_items_quantity, subtotal,"
     "total_quantity, error_msg",
     [
         (
             True,
-            Mock(
-                spec=ShippingMethod,
-                get_total=Mock(return_value=Money(10, "USD")),
-                shipping_zone=Mock(countries=["PL"]),
-            ),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             ["US"],
@@ -637,7 +625,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(spec=ShippingMethod, price=Money(10, "USD")),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -649,7 +637,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(spec=ShippingMethod, price=Money(10, "USD")),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -661,7 +649,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         ),
         (
             True,
-            Mock(spec=ShippingMethod, price=Money(10, "USD")),
+            ShippingMethodData("1", "test", Money(10, "USD")),
             10,
             DiscountValueType.FIXED,
             [],
@@ -676,6 +664,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     is_shipping_required,
     shipping_method,
+    shipping_method_data,
     discount_value,
     discount_type,
     countries,
@@ -723,16 +712,13 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
-        delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method)
-        ),
+        delivery_method_info=get_delivery_method_info(shipping_method_data),
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         billing_address=None,
         channel=channel_USD,
         user=None,
-        shipping_method_channel_listings=None,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(
@@ -948,7 +934,14 @@ def test_change_address_in_checkout(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, address, lines, [], manager)
+    change_shipping_address_in_checkout(
+        checkout_info,
+        address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -965,7 +958,14 @@ def test_change_address_in_checkout_to_none(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, None, lines, [], manager)
+    change_shipping_address_in_checkout(
+        checkout_info,
+        None,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
     change_billing_address_in_checkout(checkout, None)
 
     checkout.refresh_from_db()
@@ -984,7 +984,14 @@ def test_change_address_in_checkout_to_same(checkout, address):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    change_shipping_address_in_checkout(checkout_info, address, lines, [], manager)
+    change_shipping_address_in_checkout(
+        checkout_info,
+        address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
+    )
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -1004,7 +1011,12 @@ def test_change_address_in_checkout_to_other(checkout, address):
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     change_shipping_address_in_checkout(
-        checkout_info, other_address, lines, [], manager
+        checkout_info,
+        other_address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
     )
     change_billing_address_in_checkout(checkout, other_address)
 
@@ -1029,7 +1041,12 @@ def test_change_address_in_checkout_from_user_address_to_other(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     change_shipping_address_in_checkout(
-        checkout_info, other_address, lines, [], manager
+        checkout_info,
+        other_address,
+        lines,
+        [],
+        manager,
+        checkout.channel.shipping_method_listings.all(),
     )
     change_billing_address_in_checkout(checkout, other_address)
 

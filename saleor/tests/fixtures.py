@@ -115,6 +115,7 @@ from ..shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
@@ -400,6 +401,14 @@ def checkout_with_shipping_required(checkout_with_item, product):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
+    checkout = checkout_with_item
+    checkout.shipping_method = shipping_method
     checkout.save()
     return checkout
 
@@ -1012,6 +1021,14 @@ def shipping_method(shipping_zone, channel_USD):
         price=Money(10, "USD"),
     )
     return method
+
+
+@pytest.fixture
+def shipping_method_data(shipping_method, channel_USD):
+    listing = ShippingMethodChannelListing.objects.filter(
+        channel=channel_USD, shipping_method=shipping_method
+    ).get()
+    return convert_to_shipping_method_data(shipping_method, listing)
 
 
 @pytest.fixture

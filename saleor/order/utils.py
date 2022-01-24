@@ -25,7 +25,9 @@ from ..order import FulfillmentStatus, OrderStatus
 from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
-from ..shipping.models import ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.management import (
     decrease_allocations,
     get_order_lines_with_track_inventory,
@@ -650,17 +652,39 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(order: Order):
+def get_valid_shipping_methods_for_order(
+    order: Order, shipping_channel_listings: Iterable["ShippingMethodChannelListing"]
+) -> List[ShippingMethodData]:
+    """Return a list of shipping methods according to Saleor's own business logic.
+
+    The resulting methods are not yet filtered by plugins.
+    """
     if not order.is_shipping_required():
-        return None
+        return []
+
     if not order.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    valid_methods = []
+
+    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order,
         channel_id=order.channel_id,
         price=order.get_subtotal().gross,
         country_code=order.shipping_address.country.code,
-    )
+    ).prefetch_related("channel_listings")
+
+    listing_map = {
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
+    }
+
+    for method in shipping_methods:
+        listing = listing_map.get(method.id)
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            valid_methods.append(shipping_method_data)
+
+    return valid_methods
 
 
 def is_shipping_required(lines: Iterable["OrderLine"]):
