@@ -229,7 +229,7 @@ class AvataxPlugin(BasePlugin):
                 taxed_line_total_data.price_with_discounts
             )
 
-        base_shipping_price = base_calculations.base_checkout_shipping_price(
+        base_shipping_price = base_calculations.base_checkout_delivery_price(
             checkout_info, lines
         )
         shipping_price = self._calculate_checkout_shipping(

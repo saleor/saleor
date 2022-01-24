@@ -253,7 +253,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_shipping_price(
+        default_value = base_calculations.base_checkout_delivery_price(
             checkout_info, lines
         )
         return quantize_price(
@@ -499,23 +499,6 @@ class PluginsManager(PaymentInterface):
                 product,
                 price,
                 country,
-                channel_slug=channel_slug,
-            ),
-            price.currency,
-        )
-
-    def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address", channel_slug: str
-    ) -> TaxedMoney:
-        default_value = quantize_price(
-            TaxedMoney(net=price, gross=price), price.currency
-        )
-        return quantize_price(
-            self.__run_method_on_plugins(
-                "apply_taxes_to_shipping",
-                default_value,
-                price,
-                shipping_address,
                 channel_slug=channel_slug,
             ),
             price.currency,

@@ -531,7 +531,7 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
         ShippingMethodTranslation, type_name="shipping method"
     )
     shipping_method = graphene.Field(
-        "saleor.graphql.shipping.types.ShippingMethod",
+        "saleor.graphql.shipping.types.ShippingMethodType",
         description=(
             "Shipping method are the methods you'll use to get customer's orders "
             " to them. They are directly exposed to the customers."

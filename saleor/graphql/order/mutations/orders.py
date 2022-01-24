@@ -35,6 +35,8 @@ from ....order.utils import (
 )
 from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
+from ....shipping.interface import ShippingMethodData
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -56,27 +58,30 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method):
+def clean_order_update_shipping(order, method: ShippingMethodData):
     if not order.shipping_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Cannot choose a shipping method for an order without "
                     "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
                 )
             }
         )
 
-    valid_methods = get_valid_shipping_methods_for_order(order)
-    if valid_methods is None or method.pk not in valid_methods.values_list(
-        "id", flat=True
-    ):
+    valid_methods_ids = {
+        method.id
+        for method in get_valid_shipping_methods_for_order(
+            order, order.channel.shipping_method_listings.all()
+        )
+    }
+    if valid_methods_ids is None or method.id not in valid_methods_ids:
         raise ValidationError(
             {
                 "shipping_method": ValidationError(
                     "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -300,7 +305,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("lines"),
+            qs=models.Order.objects.prefetch_related(
+                "lines", "channel__shipping_method_listings"
+            ),
         )
         cls.validate_order(order)
 
@@ -362,8 +369,14 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
-
-        clean_order_update_shipping(order, method)
+        shipping_method_data = convert_to_shipping_method_data(
+            method,
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method,
+                channel=order.channel,
+            ).first(),
+        )
+        clean_order_update_shipping(order, shipping_method_data)
 
         order.shipping_method = method
         shipping_price = info.context.plugins.calculate_order_shipping(order)
