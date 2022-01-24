@@ -11,8 +11,8 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
-from ..attribute import types as attribute_types
 from ...site.models import SiteSettings
+from ..attribute import types as attribute_types
 from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
