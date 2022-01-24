@@ -1666,3 +1666,71 @@ def test_fetch_channel_currencies_by_customer(api_client, channel_PLN, channel_U
     query = CHANNEL_CURRENCIES_QUERY
     response = api_client.post_graphql(query)
     assert_no_permission(response)
+
+
+COUNTRY_FILTER_QUERY = """
+    query($filter: CountryFilterInput!) {
+        shop {
+            countries(filter: $filter){
+            code
+            }
+        }
+    }
+
+"""
+
+
+def test_query_countries_filter_shiping_zones_attached_true(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": True}}
+    fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+    countries_codes_results = {country["code"] for country in data}
+
+    # then
+    assert countries_codes_results == fixture_countries_code_set
+    assert len(data) == len(shipping_zones)
+
+
+def test_query_countries_filter_shiping_zones_attached_false(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": False}}
+    fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+    countries_codes_results = {country["code"] for country in data}
+
+    # then
+    assert not any(
+        code in countries_codes_results for code in fixture_countries_code_set
+    )
+    assert len(data) == (len(countries) - len(shipping_zones))
+
+
+def test_query_countries_filter_shiping_zones_attached_none(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": None}}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+
+    # then
+    assert len(data) == len(countries)
