@@ -179,22 +179,19 @@ def get_product_data(product_pk: int, language_code="EN"):
     product_data = schema.execute(
         GET_PRODUCT_QUERY, variables=variables, context=UserAdminContext()
     )
-    product_dict = product_data.data.get("products").get("edges")[0].get("node")
+    product_dict = product_data.data["products"]["edges"][0]["node"]
 
     translated_product = product.translations.filter(
         language_code=language_code
     ).first()
 
+    description = {}
     product_name = ""
     if language_code == "EN":
         product_name = product.name
-    elif translated_product and language_code != "EN":
-        product_name = translated_product.name
-
-    description = {}
-    if language_code == "EN":
         description = product.description if product.description else {}
     elif translated_product and language_code != "EN":
+        product_name = translated_product.name
         description = translated_product.description
 
     description = map_product_description(

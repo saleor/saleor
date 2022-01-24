@@ -83,7 +83,7 @@ class AlgoliaPlugin(BasePlugin):
                 {
                     f"{field}": ValidationError(
                         error_msg.format(field),
-                        code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                        code=PluginErrorCode.PLUGIN_MISCONFIGURED,
                     )
                     for field in missing_fields
                 },
