@@ -21,30 +21,50 @@ class CashGatewayPlugin(BasePlugin):
     CONFIGURATION_PER_CHANNEL = False
 
     DEFAULT_CONFIGURATION = [
-        {"name": "Supported Currencies", "value": "SAR,"},
-        {"name": "Automatic payment capture", "value": True},
+        {"name": "cod_fees", "value": 0.0},
+        {"name": "supported_countries", "value": "SA,"},
+        {"name": "maximum_allowed_value", "value": 0.0},
+        {"name": "supported_currencies", "value": "SAR,"},
+        {"name": "automatic_payment_capture", "value": True},
     ]
     CONFIG_STRUCTURE = {
-        "Automatic payment capture": {
+        "automatic_payment_capture": {
             "label": "Automatic payment capture",
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Determines if Saleor should automatically capture payments.",
         },
-        "Supported Currencies": {
+        "supported_currencies": {
             "label": "Supported Currencies",
             "type": ConfigurationTypeField.STRING,
+            "help_text": "Determines currencies that support COD payments.",
+        },
+        "supported_countries": {
+            "label": "Supported Countries",
+            "type": ConfigurationTypeField.STRING,
             "help_text": "Determines countries that support COD payments.",
+        },
+        "cod_fees": {
+            "label": "COD Fees",
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Cash on delivery fees.",
+        },
+        "maximum_allowed_value": {
+            "label": "Maximum Allowed Value",
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Cash maximum allowed value.",
         },
     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        configuration = {item["name"]: item["value"] for item in self.configuration}
+        self.configuration = {
+            item["name"]: item["value"] for item in self.configuration
+        }
         self.config = GatewayConfig(
             connection_params={},
             gateway_name=GATEWAY_NAME,
-            auto_capture=configuration["Automatic payment capture"],
-            supported_currencies=configuration["Supported Currencies"],
+            auto_capture=self.configuration["automatic_payment_capture"],
+            supported_currencies=self.configuration["supported_currencies"],
         )
 
     def _get_gateway_config(self):
@@ -97,7 +117,16 @@ class CashGatewayPlugin(BasePlugin):
 
     @require_active_plugin
     def get_payment_config(self, previous_value):
-        return [{"field": "client_token", "value": self.get_client_token()}]
+        supported_countries = self.configuration["supported_countries"].split(",")
+        return [
+            {"field": "client_token", "value": self.get_client_token()},
+            {"field": "cod_fees", "value": self.configuration["cod_fees"]},
+            {"field": "supported_countries", "value": supported_countries},
+            {
+                "field": "maximum_allowed_value",
+                "value": self.configuration["maximum_allowed_value"],
+            },
+        ]
 
     @require_active_plugin
     def token_is_required_as_payment_input(self, previous_value):
