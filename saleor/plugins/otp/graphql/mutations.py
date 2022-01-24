@@ -40,14 +40,6 @@ def send_password_reset_notification(
         **get_site_context(),
     }
 
-    payload = {
-        "user": get_default_user_payload(user),
-        "recipient_email": user.email,
-        "code": str(otp),
-        "channel_slug": channel_slug,
-        **get_site_context(),
-    }
-
     url_components = urlparse(reset_url)
     url_components = url_components._replace(
         query=urlencode(
