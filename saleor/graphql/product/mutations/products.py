@@ -249,6 +249,8 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.collection_created(instance)
+
         products = instance.products.prefetched_for_webhook(single_object=False)
         for product in products:
             info.context.plugins.product_updated(product)
@@ -278,7 +280,7 @@ class CollectionUpdate(CollectionCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         """Override this method with `pass` to avoid triggering product webhook."""
-        pass
+        info.context.plugins.collection_updated(instance)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -306,8 +308,11 @@ class CollectionDelete(ModelDeleteMutation):
         products = list(instance.products.prefetched_for_webhook(single_object=False))
 
         result = super().perform_mutation(_root, info, **kwargs)
+
+        info.context.plugins.collection_deleted(instance)
         for product in products:
             info.context.plugins.product_updated(product)
+
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
         )

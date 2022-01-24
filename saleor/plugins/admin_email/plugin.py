@@ -1,11 +1,13 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from django.conf import settings
+from promise.promise import Promise
 
 from ...core.notify_events import AdminNotifyEvent, NotifyEventType
-from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ...graphql.plugins.dataloaders import EmailTemplatesByPluginConfigurationLoader
+from ..base_plugin import BasePlugin, ConfigurationTypeField, PluginConfigurationType
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
@@ -16,7 +18,7 @@ from ..email_common import (
     validate_default_email_configuration,
     validate_format_of_provided_templates,
 )
-from ..models import PluginConfiguration
+from ..models import EmailTemplate, PluginConfiguration
 from . import constants
 from .notify_events import (
     send_csv_export_failed,
@@ -156,7 +158,7 @@ class AdminEmailPlugin(BasePlugin):
         constants.CSV_EXPORT_FAILED_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_HELP_TEXT,
-            "label": "CSV export failed template",
+            "label": "CSV export failed subject",
         },
         constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.MULTILINE,
@@ -217,26 +219,64 @@ class AdminEmailPlugin(BasePlugin):
             ],
         )
 
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Get email templates from the database and merge them with self.configuration.
+        if not self.db_config:
+            return self.configuration
+
+        def map_templates_to_configuration(
+            email_templates: List["EmailTemplate"],
+        ) -> PluginConfigurationType:
+
+            email_template_by_name = {
+                email_template.name: email_template
+                for email_template in email_templates
+            }
+
+            # Merge email templates with `self.configuration` items, preserving the
+            # order of keys which is defined in `self.CONFIG_STRUCTURE`.
+            configuration = []
+            for key in self.CONFIG_STRUCTURE:
+                for config_item in self.configuration:
+                    if config_item["name"] == key:
+                        if key in email_template_by_name:
+                            config_item["value"] = email_template_by_name[key].value
+                        configuration.append(config_item)
+
+            return configuration
+
+        return (
+            EmailTemplatesByPluginConfigurationLoader(request)
+            .load(self.db_config.pk)
+            .then(map_templates_to_configuration)
+        )
+
     def notify(self, event: Union[NotifyEventType, str], payload: dict, previous_value):
         if not self.active:
             return previous_value
+
         event_map = get_admin_event_map()
         if event not in AdminNotifyEvent.CHOICES:
             return previous_value
+
         if event not in event_map:
             logger.warning(f"Missing handler for event {event}")
             return previous_value
+
         template_map = get_admin_template_map(self.templates)
         if not template_map.get(event):
             return previous_value
-        event_map[event](
-            payload,
-            asdict(self.config),  # type: ignore
-            self.configuration,
-        )
+
+        event_func = event_map[event]
+        config = asdict(self.config)  # type: ignore
+        event_func(payload, config, self)
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct."""
 
         configuration = plugin_configuration.configuration
@@ -257,6 +297,49 @@ class AdminEmailPlugin(BasePlugin):
         configuration["use_ssl"] = configuration["use_ssl"] or settings.EMAIL_USE_SSL
 
         validate_default_email_configuration(plugin_configuration, configuration)
+
+        email_templates_data = kwargs.get("email_templates_data", [])
         validate_format_of_provided_templates(
-            plugin_configuration, constants.TEMPLATE_FIELDS
+            plugin_configuration, email_templates_data
         )
+
+    @classmethod
+    def save_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", cleaned_data
+    ):
+        current_config = plugin_configuration.configuration
+
+        configuration_to_update = []
+        email_templates_data = []
+
+        for data in cleaned_data.get("configuration", []):
+            if data["name"] in constants.TEMPLATE_FIELDS:
+                email_templates_data.append(data)
+            else:
+                configuration_to_update.append(data)
+
+        if configuration_to_update:
+            cls._update_config_items(configuration_to_update, current_config)
+
+        if "active" in cleaned_data:
+            plugin_configuration.active = cleaned_data["active"]
+
+        cls.validate_plugin_configuration(
+            plugin_configuration, email_templates_data=email_templates_data
+        )
+        cls.pre_save_plugin_configuration(plugin_configuration)
+
+        plugin_configuration.save()
+
+        for et_data in email_templates_data:
+            if et_data["value"] != DEFAULT_EMAIL_VALUE:
+                EmailTemplate.objects.update_or_create(
+                    name=et_data["name"],
+                    plugin_configuration=plugin_configuration,
+                    defaults={"value": et_data["value"]},
+                )
+
+        if plugin_configuration.configuration:
+            # Let's add a translated descriptions and labels
+            cls._append_config_structure(plugin_configuration.configuration)
+        return plugin_configuration

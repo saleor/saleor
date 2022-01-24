@@ -26,9 +26,8 @@ from ..core.fields import ConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
-from ..shipping.resolvers import resolve_price_range
+from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
 from ..translations.fields import TranslationField
-from ..translations.resolvers import resolve_translation
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
@@ -92,7 +91,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=ChannelContextType.resolve_translation,
+        resolver=None,  # Disable default resolver
     )
     channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
@@ -138,9 +137,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_id(root: ChannelContext, _info):
-        if getattr(root.node, "is_external", False):
-            # todo external shipping to base64
-            return root.node.id
         return graphene.Node.to_global_id("ShippingMethodType", root.node.id)
 
     @staticmethod
@@ -152,9 +148,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             return maximum_order_price
 
         if not root.channel_slug:
-            return None
-
-        if getattr(root.node, "is_external", False):
             return None
 
         return (
@@ -176,9 +169,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         if not root.channel_slug:
             return None
 
-        if getattr(root.node, "is_external", False):
-            return None
-
         return (
             ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
                 info.context
@@ -197,9 +187,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     def resolve_postal_code_rules(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        if getattr(root.node, "is_external", False):
-            return None
-
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -213,9 +200,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     def resolve_channel_listings(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        if getattr(root.node, "is_external", False):
-            return None
-
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
             root.node.id
         )
@@ -349,7 +333,7 @@ class ShippingMethod(graphene.ObjectType):
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
-        resolver=resolve_translation,
+        resolver=resolve_shipping_translation,
     )
     price = graphene.Field(
         Money, required=True, description="The price of selected shipping method."
@@ -377,7 +361,7 @@ class ShippingMethod(graphene.ObjectType):
 
     @staticmethod
     def resolve_id(root: ShippingMethodData, _info):
-        if getattr(root, "is_external", False):
+        if root.is_external:
             return root.id
         return graphene.Node.to_global_id("ShippingMethod", root.id)
 

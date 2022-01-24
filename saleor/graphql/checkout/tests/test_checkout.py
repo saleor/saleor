@@ -1972,12 +1972,16 @@ def test_checkout_available_shipping_methods_excluded_postal_codes(
     assert data["availableShippingMethods"] == []
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_checkout_available_shipping_methods_with_price_displayed(
+    send_webhook_request_sync,
     monkeypatch,
     api_client,
     checkout_with_item,
     address,
     shipping_zone,
+    site_settings,
+    shipping_app,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
     listing = shipping_zone.shipping_methods.first().channel_listings.first()
@@ -3426,6 +3430,9 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
                 ... on ShippingMethod {
                     name
                     id
+                    translation(languageCode: EN_US) {
+                        name
+                    }
                 }
                 ... on Warehouse {
                    name
