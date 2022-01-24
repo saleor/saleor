@@ -343,14 +343,18 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert tag_value_slug in values
 
 
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_create_trigger_page_webhook(
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     permission_manage_pages,
     page_type,
     settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     page_slug = "test-slug"
@@ -1258,7 +1262,7 @@ def test_page_delete_trigger_webhook(
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PAGE_DELETED, expected_data, [any_webhook]
+        WebhookEventType.PAGE_DELETED, expected_data
     )
 
 
@@ -1447,7 +1451,7 @@ def test_update_page_trigger_webhook(
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.PAGE_UPDATED, expected_data, [any_webhook]
+        WebhookEventType.PAGE_UPDATED, expected_data
     )
 
 
