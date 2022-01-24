@@ -63,7 +63,7 @@ jobs:
           buildpack: heroku/nodejs
         env:
           HD_NODE_ENV: development
-          HR_API_URL: |
+          HR_BASE_URL: |
             https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
           HD_PLUGINS: social-login
 
