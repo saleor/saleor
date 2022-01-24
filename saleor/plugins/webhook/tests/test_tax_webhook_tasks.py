@@ -29,7 +29,7 @@ def tax_checkout_webhooks(tax_app):
         for webhook in webhooks
     )
 
-    return Webhook.objects.all()
+    return list(Webhook.objects.all())
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -104,7 +104,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
 
     payload = EventPayload.objects.get()
     assert payload.payload == data
-    deliveries = EventDelivery.objects.order_by("pk")
+    deliveries = list(EventDelivery.objects.order_by("pk"))
     for call, delivery, webhook in zip(
         mock_request.call_args_list, deliveries, tax_checkout_webhooks
     ):

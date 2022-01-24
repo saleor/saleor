@@ -70,7 +70,7 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     if webhooks is None:
         webhooks = Webhook.objects.all()
 
-    webhooks = webhooks.order_by("app_id").filter(
+    webhooks = webhooks.order_by("app_id", "pk").filter(
         is_active=True,
         app__is_active=True,
         events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
