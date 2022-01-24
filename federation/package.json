@@ -9,9 +9,9 @@
   "homepage": "http://saleor.io/",
   "dependencies": {
     "@apollo/gateway": "^0.46.0",
-    "apollo-server-core": "^3.6.1",
-    "apollo-server-fastify": "^3.6.1",
-    "fastify": "^3.25.3",
+    "apollo-server-core": "^3.6.2",
+    "apollo-server-express": "^3.6.2",
+    "express": "^4.17.2",
     "graphql": "^15.8.0"
   },
   "scripts": {
