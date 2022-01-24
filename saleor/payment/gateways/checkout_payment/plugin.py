@@ -12,7 +12,7 @@ from ..utils import get_supported_currencies, require_active_plugin
 from . import GatewayConfig, capture, confirm_payment, process_payment, refund
 from .utils import handle_webhook
 
-GATEWAY_NAME = _("Credit Card")
+GATEWAY_NAME = str(_("Credit Card"))
 
 logger = logging.getLogger(__name__)
 
