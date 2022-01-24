@@ -463,6 +463,7 @@ def recalculate_checkout_discount(
                     "discount_amount",
                     "discount_name",
                     "currency",
+                    "last_change",
                 ]
             )
     else:
@@ -548,6 +549,7 @@ def add_voucher_to_checkout(
             "discount_name",
             "translated_discount_name",
             "discount_amount",
+            "last_change",
         ]
     )
 
@@ -580,6 +582,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
             "translated_discount_name",
             "discount_amount",
             "currency",
+            "last_change",
         ]
     )
 

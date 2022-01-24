@@ -1633,6 +1633,10 @@ type CountryDisplay {
   vat: VAT
 }
 
+input CountryFilterInput {
+  attachedToShippingZones: Boolean
+}
+
 type CreateToken {
   token: String
   refreshToken: String
@@ -6053,7 +6057,7 @@ type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
+  countries(languageCode: LanguageCodeEnum, filter: CountryFilterInput): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
