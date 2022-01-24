@@ -3,7 +3,7 @@ name: Deploy PR
 on: pull_request
 
 jobs:
-  deploy-pr:
+  deploy-saleor-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -31,31 +31,8 @@ jobs:
           HD_AWS_STORAGE_BUCKET_NAME: "${{secrets.AWS_STORAGE_BUCKET_NAME}}"
           HD_ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL: "False"
 
-      - name: Deploy Federation
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: w8-pr-${{ github.event.pull_request.number }}
-          heroku_email: "hazem.khaled@gmail.com"
-          region: "eu"
-          team: "wecre8"
-          buildpack: heroku/nodejs
-          appdir: "federation"
-        env:
-          HD_NODE_ENV: development
-          HD_PR_NUMBER: ${{ github.event.pull_request.number }}
-
       - name: Seed Data
         run: heroku run python manage.py populatedb --createsuperuser
-
-      - name: Comment Deploy Links
-        uses: mshick/add-pr-comment@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          message: |
-            Federation: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
-            Backend   : https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
 
       - name: Comment Build Fail
         if: ${{ failure() }}
@@ -65,3 +42,40 @@ jobs:
         with:
           message: |
             🐞	🐞	🐞	🐞	🐞	🐞	🐞	🐞	BUILD FAIL 🐞	🐞	🐞	🐞	🐞	🐞	🐞	🐞
+
+  deploy-federation-pr:
+    needs: deploy-saleor-pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out my other private repo
+        uses: actions/checkout@master
+        with:
+          repository: wecre8-ecommerce/gql-federation-gateway
+
+      - name: Deploy Federation
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: w8-pr-${{ github.event.pull_request.number }}
+          heroku_email: "hazem.khaled@gmail.com"
+          region: "eu"
+          team: "wecre8"
+          buildpack: heroku/nodejs
+        env:
+          HD_NODE_ENV: development
+          HD_PR_NUMBER: ${{ github.event.pull_request.number }}
+          HR_API_URL: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
+          HD_PLUGINS: social-login # ex: social-login,oto,otp
+
+  pr-comments:
+    needs: deploy-federation-pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment Deploy Links
+        uses: mshick/add-pr-comment@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          message: |
+            Federation: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com/
+            Backend   : https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
