@@ -1,4 +1,7 @@
+from urllib.parse import urljoin, urlparse
+
 from ...app import models
+from ...app.types import AppExtensionOpenAs
 from ...core.jwt import (
     create_access_token_for_app,
     create_access_token_for_app_extension,
@@ -51,3 +54,21 @@ def resolve_app(_info, id):
 
 def resolve_app_extensions(_info):
     return models.AppExtension.objects.filter(app__is_active=True)
+
+
+def resolve_app_extension_url(root):
+    """Return an extension url.
+
+    Apply url stitching when these 3 conditions are met:
+        - url starts with /
+        - openAs == "POPUP"
+        - appUrl is defined
+    """
+    open_as = root.get("open_as", AppExtensionOpenAs.POPUP)
+    app_url = root["app_url"]
+    url = root["url"]
+    if url.startswith("/") and app_url and open_as == AppExtensionOpenAs.POPUP:
+        parsed_url = urlparse(app_url)
+        new_path = urljoin(parsed_url.path, url[1:])
+        return parsed_url._replace(path=new_path).geturl()
+    return url
