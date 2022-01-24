@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 import graphene
 
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from .enums import ConfigurationTypeFieldEnum
+
+if TYPE_CHECKING:
+    from ...plugins.base_plugin import BasePlugin
 
 
 class ConfigurationItem(graphene.ObjectType):
@@ -30,6 +35,10 @@ class PluginConfiguration(graphene.ObjectType):
 
     class Meta:
         description = "Stores information about a configuration of plugin."
+
+    @staticmethod
+    def resolve_configuration(root: "BasePlugin", info, **_kwargs):
+        return root.resolve_plugin_configuration(info.context)
 
 
 class Plugin(graphene.ObjectType):

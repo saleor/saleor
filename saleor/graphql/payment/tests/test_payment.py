@@ -7,6 +7,7 @@ import pytest
 
 from ....checkout import calculations
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.utils import add_variant_to_checkout
 from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
 from ....payment.gateways.dummy_credit_card import (
@@ -416,16 +417,19 @@ def test_use_checkout_billing_address_as_payment_billing(
 
 
 def test_create_payment_for_checkout_with_active_payments(
-    checkout_with_payments, user_api_client, address
+    checkout_with_payments, user_api_client, address, product_without_shipping
 ):
     # given
     checkout = checkout_with_payments
     address.street_address_1 = "spanish-inqusition"
     address.save()
     checkout.billing_address = address
+    manager = get_plugins_manager()
+    variant = product_without_shipping.variants.get()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
 
-    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(

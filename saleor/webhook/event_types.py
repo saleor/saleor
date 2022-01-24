@@ -38,6 +38,10 @@ class WebhookEventAsyncType:
     CUSTOMER_CREATED = "customer_created"
     CUSTOMER_UPDATED = "customer_updated"
 
+    COLLECTION_CREATED = "collection_created"
+    COLLECTION_UPDATED = "collection_updated"
+    COLLECTION_DELETED = "collection_deleted"
+
     PRODUCT_CREATED = "product_created"
     PRODUCT_UPDATED = "product_updated"
     PRODUCT_DELETED = "product_deleted"
@@ -80,6 +84,9 @@ class WebhookEventAsyncType:
         INVOICE_SENT: "Invoice sent",
         CUSTOMER_CREATED: "Customer created",
         CUSTOMER_UPDATED: "Customer updated",
+        COLLECTION_CREATED: "Collection created",
+        COLLECTION_UPDATED: "Collection updated",
+        COLLECTION_DELETED: "Collection deleted",
         PRODUCT_CREATED: "Product created",
         PRODUCT_UPDATED: "Product updated",
         PRODUCT_DELETED: "Product deleted",
@@ -119,6 +126,9 @@ class WebhookEventAsyncType:
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (CUSTOMER_UPDATED, DISPLAY_LABELS[CUSTOMER_UPDATED]),
+        (COLLECTION_CREATED, DISPLAY_LABELS[COLLECTION_CREATED]),
+        (COLLECTION_UPDATED, DISPLAY_LABELS[COLLECTION_UPDATED]),
+        (COLLECTION_DELETED, DISPLAY_LABELS[COLLECTION_DELETED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
         (PRODUCT_DELETED, DISPLAY_LABELS[PRODUCT_DELETED]),
@@ -159,6 +169,9 @@ class WebhookEventAsyncType:
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         CUSTOMER_UPDATED: AccountPermissions.MANAGE_USERS,
+        COLLECTION_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        COLLECTION_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        COLLECTION_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
