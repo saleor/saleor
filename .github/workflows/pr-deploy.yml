@@ -63,8 +63,9 @@ jobs:
           buildpack: heroku/nodejs
         env:
           HD_NODE_ENV: development
-          HR_API_URL: "https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/"
-          HD_PLUGINS: social-login # ex: social-login,oto,otp
+          HR_API_URL: |
+            https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
+          HD_PLUGINS: social-login
 
   pr-comments:
     needs: deploy-federation-pr
