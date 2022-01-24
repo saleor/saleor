@@ -1022,7 +1022,8 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  availableShippingMethods: [ShippingMethod]!
+  availableShippingMethods: [ShippingMethod]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
+  shippingMethods: [ShippingMethod]!
   availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String
@@ -4154,7 +4155,8 @@ type Order implements Node & ObjectWithMetadata {
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
-  availableShippingMethods: [ShippingMethod]
+  availableShippingMethods: [ShippingMethod] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
+  shippingMethods: [ShippingMethod]
   availableCollectionPoints: [Warehouse!]!
   invoices: [Invoice]
   number: String
@@ -6279,20 +6281,19 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  type: ShippingMethodTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0.")
   name: String!
   description: JSONString
-  type: ShippingMethodTypeEnum
-  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  channelListings: [ShippingMethodChannelListing!]
-  price: Money
-  maximumOrderPrice: Money
-  minimumOrderPrice: Money
-  postalCodeRules: [ShippingMethodPostalCodeRule]
-  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  minimumOrderWeight: Weight
-  maximumOrderWeight: Weight
   maximumDeliveryDays: Int
   minimumDeliveryDays: Int
+  maximumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
+  minimumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  price: Money!
+  maximumOrderPrice: Money
+  minimumOrderPrice: Money
+  active: Boolean!
+  message: String
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -6316,7 +6317,7 @@ input ShippingMethodChannelListingInput {
 }
 
 type ShippingMethodChannelListingUpdate {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6333,7 +6334,7 @@ type ShippingMethodTranslatableContent implements Node {
   name: String!
   description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 type ShippingMethodTranslation implements Node {
@@ -6341,6 +6342,25 @@ type ShippingMethodTranslation implements Node {
   name: String
   description: JSONString
   language: LanguageDisplay!
+}
+
+type ShippingMethodType implements Node & ObjectWithMetadata {
+  id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  name: String!
+  description: JSONString
+  type: ShippingMethodTypeEnum
+  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  channelListings: [ShippingMethodChannelListing!]
+  maximumOrderPrice: Money
+  minimumOrderPrice: Money
+  postalCodeRules: [ShippingMethodPostalCodeRule]
+  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+  maximumDeliveryDays: Int
+  minimumDeliveryDays: Int
 }
 
 enum ShippingMethodTypeEnum {
@@ -6361,20 +6381,20 @@ type ShippingPriceBulkDelete {
 
 type ShippingPriceCreate {
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
 
 type ShippingPriceDelete {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
 
 type ShippingPriceExcludeProducts {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6398,7 +6418,7 @@ input ShippingPriceInput {
 }
 
 type ShippingPriceRemoveProductFromExclude {
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6406,7 +6426,7 @@ type ShippingPriceRemoveProductFromExclude {
 type ShippingPriceTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
 }
 
 input ShippingPriceTranslationInput {
@@ -6416,7 +6436,7 @@ input ShippingPriceTranslationInput {
 
 type ShippingPriceUpdate {
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
@@ -6429,7 +6449,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   priceRange: MoneyRange
   countries: [CountryDisplay]
-  shippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethodType]
   warehouses: [Warehouse!]!
   channels: [Channel!]!
   description: String

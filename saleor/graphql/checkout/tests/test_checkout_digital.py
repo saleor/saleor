@@ -73,6 +73,9 @@ def test_checkout_has_no_available_shipping_methods(
             checkout(token: $token) {
                 availableShippingMethods {
                     name
+                    price {
+                        amount
+                    }
                 }
             }
         }

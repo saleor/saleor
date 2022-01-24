@@ -252,9 +252,15 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 }
                 availableShippingMethods {
                     id
+                    price {
+                        amount
+                    }
                 }
                 shippingMethod {
                     id
+                    price {
+                        amount
+                    }
                 }
             }
         }
@@ -851,7 +857,7 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     assert data["checkout"]["shippingMethod"] is None
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
