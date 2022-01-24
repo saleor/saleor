@@ -10642,9 +10642,9 @@ def test_collections_query_with_sort(
 ):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Coll1", slug="collection-published1"),
-            Collection(name="Coll2", slug="collection-unpublished2"),
-            Collection(name="Coll3", slug="collection-published"),
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
         ]
     )
     published = (True, False, True)
