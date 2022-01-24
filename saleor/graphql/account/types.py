@@ -273,6 +273,9 @@ class User(CountableDjangoObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
     )
+    wishlist = graphene.Field(
+        "saleor.graphql.wishlist.types.Wishlist", description="User wishlist."
+    )
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
     )

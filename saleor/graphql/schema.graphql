@@ -3843,6 +3843,10 @@ input MoveProductInput {
 }
 
 type Mutation {
+  wishlistAddProduct(productId: ID!): WishlistAddProductMutation
+  wishlistRemoveProduct(productId: ID!): WishlistRemoveProductMutation
+  wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
+  wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -6952,6 +6956,7 @@ type User implements Node & ObjectWithMetadata {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources(channel: String): [PaymentSource]
+  wishlist: Wishlist
   languageCode: LanguageCodeEnum!
 }
 
@@ -7597,6 +7602,70 @@ enum WeightUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+type Wishlist implements Node {
+  id: ID!
+  createdAt: DateTime!
+  items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
+}
+
+type WishlistAddProductMutation {
+  wishlist: Wishlist
+  wishlistErrors: [WishlistError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [WishlistError!]!
+}
+
+type WishlistAddProductVariantMutation {
+  wishlist: Wishlist
+  wishlistErrors: [WishlistError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [WishlistError!]!
+}
+
+type WishlistError {
+  field: String
+  message: String
+  products: [ID!]
+  code: WishlistErrorCode!
+}
+
+enum WishlistErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
+}
+
+type WishlistItem implements Node {
+  id: ID!
+  wishlist: Wishlist!
+  product: Product
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+}
+
+type WishlistItemCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WishlistItemCountableEdge!]!
+  totalCount: Int
+}
+
+type WishlistItemCountableEdge {
+  node: WishlistItem!
+  cursor: String!
+}
+
+type WishlistRemoveProductMutation {
+  wishlist: Wishlist
+  wishlistErrors: [WishlistError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [WishlistError!]!
+}
+
+type WishlistRemoveProductVariantMutation {
+  wishlist: Wishlist
+  wishlistErrors: [WishlistError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [WishlistError!]!
 }
 
 scalar _Any

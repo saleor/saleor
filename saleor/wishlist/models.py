@@ -14,6 +14,9 @@ class Wishlist(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.user.get_full_name()}'s wishlist"
+
     def set_user(self, user):
         self.user = user
         self.save()
