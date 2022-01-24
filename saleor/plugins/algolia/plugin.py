@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class AlgoliaPlugin(BasePlugin):
+    PLUGIN_ID = "algolia"
     DEFAULT_ACTIVE = False
     PLUGIN_NAME = "Algolia"
-    PLUGIN_ID = "wecre8.algolia"
     CONFIGURATION_PER_CHANNEL = False
     PLUGIN_DESCRIPTION = "Plugin responsible for indexing data to Algolia."
 
