@@ -27,7 +27,6 @@ def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
 def sort_queryset_for_connection(iterable, args):
     sort_by = args.get("sort_by")
     reversed = True if "last" in args else False
-    query = getattr(iterable, "query", None)
     if sort_by:
         iterable = sort_queryset(
             queryset=iterable,
@@ -36,8 +35,6 @@ def sort_queryset_for_connection(iterable, args):
             channel_slug=args.get("channel")
             or get_default_channel_slug_or_graphql_error(),
         )
-    elif query and "-rank" in query.order_by:
-        return iterable, {"field": ["rank", "id"], "direction": "-"}
     else:
         iterable, sort_by = sort_queryset_by_default(
             queryset=iterable, reversed=reversed
@@ -89,15 +86,8 @@ def sort_queryset(
     if custom_sort_by:
         queryset = custom_sort_by(queryset, channel_slug=channel_slug)
 
-    if sorting_field_name == "rank":
-        # In rank sorting ID is sorted in opposite direction to rank
-        if sorting_direction == "-":
-            sorting_list = ["-rank", "id"]
-        else:
-            sorting_list = ["rank", "-id"]
-    else:
-        sorting_field_value = sorting_fields.value
-        sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
+    sorting_field_value = sorting_fields.value
+    sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
 
     return queryset.order_by(*sorting_list)
 

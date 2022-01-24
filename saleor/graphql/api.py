@@ -1,3 +1,6 @@
+from django.urls import reverse
+from django.utils.functional import SimpleLazyObject
+
 from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
@@ -23,6 +26,8 @@ from .shop.schema import ShopMutations, ShopQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
+
+API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 
 class Query(

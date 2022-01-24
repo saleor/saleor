@@ -1,4 +1,3 @@
-import warnings
 from typing import List
 
 import graphene
@@ -58,8 +57,17 @@ class BaseMetadataMutation(BaseMutation):
 
         try:
             type_name, _ = from_global_id_or_error(object_id)
-            if type_name == "Order":
-                warnings.warn("DEPRECATED. Use token for changing order metadata.")
+            if type_name in ["Order", "Checkout"]:
+                type_name = type_name.lower()
+                raise ValidationError(
+                    {
+                        "id": ValidationError(
+                            f"Changing {type_name} metadata with use of `id` "
+                            f"is forbidden. Use {type_name} token instead.",
+                            code=MetadataErrorCode.GRAPHQL_ERROR.value,
+                        )
+                    }
+                )
             # ShippingMethod type isn't model-based class
             if type_name == "ShippingMethod":
                 qs = shipping_models.ShippingMethod.objects
@@ -67,7 +75,13 @@ class BaseMetadataMutation(BaseMutation):
         except GraphQLError as e:
             if instance := cls.get_instance_by_token(object_id, qs):
                 return instance
-            raise ValidationError({"id": ValidationError(str(e), code="graphql_error")})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        str(e), code=MetadataErrorCode.GRAPHQL_ERROR.value
+                    )
+                }
+            )
 
     @classmethod
     def get_instance_by_token(cls, object_id, qs):

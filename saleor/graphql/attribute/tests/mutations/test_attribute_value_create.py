@@ -245,9 +245,8 @@ def test_create_attribute_value_not_unique_name(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert data["errors"]
-    assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
-    assert data["errors"][0]["field"] == "name"
+    assert not data["errors"]
+    assert data["attributeValue"]["slug"] == "red-2"
 
 
 def test_create_attribute_value_capitalized_name(
@@ -268,6 +267,5 @@ def test_create_attribute_value_capitalized_name(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert data["errors"]
-    assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
-    assert data["errors"][0]["field"] == "name"
+    assert not data["errors"]
+    assert data["attributeValue"]["slug"] == "red-2"
