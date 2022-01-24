@@ -1,5 +1,4 @@
 from typing import List
-from urllib.parse import urljoin, urlparse
 
 import graphene
 from graphene_federation import key
@@ -28,6 +27,7 @@ from .enums import (
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
+    resolve_app_extension_url,
 )
 
 
@@ -64,21 +64,8 @@ class AppManifestExtension(graphene.ObjectType):
 
     @staticmethod
     def resolve_url(root, info):
-        """Return an extension url.
-
-        Apply url stitching when these 3 conditions are met:
-            - url starts with /
-            - openAs == "POPUP"
-            - appUrl is defined
-        """
-        open_as = root.get("open_as", AppExtensionOpenAs.POPUP)
-        app_url = root["app_url"]
-        url = root["url"]
-        if url.startswith("/") and app_url and open_as == AppExtensionOpenAs.POPUP:
-            parsed_url = urlparse(app_url)
-            new_path = urljoin(parsed_url.path, url[1:])
-            return parsed_url._replace(path=new_path).geturl()
-        return url
+        """Return an extension url."""
+        return resolve_app_extension_url(root)
 
 
 class AppExtension(AppManifestExtension, CountableDjangoObjectType):

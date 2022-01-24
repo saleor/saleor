@@ -31,6 +31,22 @@ def _clean_app_url(url):
     url_validator(url)
 
 
+def _clean_extension_url_with_only_path(
+    manifest_data: dict, open_as: str, extension_url: str
+):
+    if open_as == AppExtensionOpenAs.APP_PAGE:
+        return
+    elif manifest_data["appUrl"]:
+        _clean_app_url(manifest_data["appUrl"])
+    else:
+        msg = (
+            "Incorrect relation between extension's openAs and URL fields. "
+            "APP_PAGE can be used only with relative URL path."
+        )
+        logger.warning(msg, extra={"open_as": open_as, "url": extension_url})
+        raise ValidationError(msg)
+
+
 def clean_extension_url(extension: dict, manifest_data: dict):
     """Clean assigned extension url.
 
@@ -43,17 +59,7 @@ def clean_extension_url(extension: dict, manifest_data: dict):
     extension_url = extension["url"]
     open_as = extension.get("open_as") or AppExtensionOpenAs.POPUP
     if extension_url.startswith("/"):
-        if open_as == AppExtensionOpenAs.APP_PAGE:
-            pass
-        elif manifest_data["appUrl"]:
-            _clean_app_url(manifest_data["appUrl"])
-        else:
-            msg = (
-                "Incorect relation between extension's openAs and url fields. "
-                "APP_PAGE can be used only with relative url path."
-            )
-            logger.warning(msg, extra={"open_as": open_as, "url": extension_url})
-            raise ValidationError(msg)
+        _clean_extension_url_with_only_path(manifest_data, open_as, extension_url)
     elif open_as == AppExtensionOpenAs.APP_PAGE:
         msg = "Url cannot start with protocol when openAs == APP_PAGE"
         logger.warning(msg)
