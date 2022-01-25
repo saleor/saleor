@@ -251,9 +251,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
-        variant_pk = cls.get_global_id_or_error(
-            node_id, only_type=ProductVariant
-        )
+        variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )

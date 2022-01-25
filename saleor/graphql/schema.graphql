@@ -2399,10 +2399,10 @@ scalar GenericScalar
 
 type GiftCard implements Node & ObjectWithMetadata {
   id: ID!
-  last4CodeChars: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   displayCode: String!
+  last4CodeChars: String!
   code: String!
   created: DateTime!
   createdBy: User
@@ -6363,8 +6363,8 @@ type ShippingMethod implements Node & ObjectWithMetadata {
 type ShippingMethodChannelListing implements Node {
   id: ID!
   channel: Channel!
-  minimumOrderPrice: Money
   maximumOrderPrice: Money
+  minimumOrderPrice: Money
   price: Money
 }
 

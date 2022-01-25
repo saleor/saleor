@@ -204,6 +204,7 @@ class GiftCard(ModelObjectType):
     )
     last_4_code_chars = graphene.String(
         description="Last 4 characters of gift card code.",
+        required=True,
     )
     code = graphene.String(
         description=(
