@@ -57,14 +57,15 @@ class CashGatewayPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.configuration = {
-            item["name"]: item["value"] for item in self.configuration
-        }
+        configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
-            connection_params={},
+            connection_params={
+                "cod_fees": configuration["cod_fees"],
+                "maximum_allowed_value": configuration["maximum_allowed_value"],
+            },
             gateway_name=GATEWAY_NAME,
-            auto_capture=self.configuration["automatic_payment_capture"],
-            supported_currencies=self.configuration["supported_currencies"],
+            auto_capture=configuration["automatic_payment_capture"],
+            supported_currencies=configuration["supported_currencies"],
         )
 
     def _get_gateway_config(self):
@@ -117,14 +118,14 @@ class CashGatewayPlugin(BasePlugin):
 
     @require_active_plugin
     def get_payment_config(self, previous_value):
-        supported_countries = self.configuration["supported_countries"].split(",")
+        supported_countries = self.config.supported_currencies.split(",")
         return [
             {"field": "client_token", "value": self.get_client_token()},
-            {"field": "cod_fees", "value": self.configuration["cod_fees"]},
             {"field": "supported_countries", "value": supported_countries},
+            {"field": "cod_fees", "value": self.config.connection_params["cod_fees"]},
             {
                 "field": "maximum_allowed_value",
-                "value": self.configuration["maximum_allowed_value"],
+                "value": self.config.connection_params["maximum_allowed_value"],
             },
         ]
 
