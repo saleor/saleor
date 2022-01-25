@@ -11,10 +11,6 @@ your host machine
 docker ecosystem. Please make sure, you have a running database with a 
 dedicated user with granted r/w access. Please refer to the `.env-template` file 
 to find out more about the configuration documentation.
-* The `docker-compose.yml` is configured to run on `network_mode host`, so make
-sure you have a well configured firewall. Otherwise your app ports could be 
-exposed.
-
 
 ```
 # Clone git repository
@@ -25,9 +21,6 @@ cp .env-template .env
 # ... edit .env file and fill the unspecified variable
 vim .env 
 
-# Habitus 
-./install-habitus.sh
-./run-habitus.sh [YOUR DOCKER HOST IP]
 ```
 
 Usage
