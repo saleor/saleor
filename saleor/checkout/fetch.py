@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 from functools import singledispatch
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
-import graphene
-from django.core.exceptions import ValidationError
 from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
 
@@ -103,8 +101,8 @@ class ShippingMethodInfo(DeliveryMethodBase):
 
 
 def fetch_checkout_lines(
-    checkout: "Checkout", *, validate_variants: bool = False
-) -> Iterable[CheckoutLineInfo]:
+    checkout: "Checkout",
+) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
 
     from .utils import get_voucher_for_checkout
@@ -155,16 +153,6 @@ def fetch_checkout_lines(
             )
         )
 
-    if validate_variants and unavailable_variant_pks:
-        not_available_variants_ids = {
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in unavailable_variant_pks
-        }
-        raise ValidationError(
-            "Unavailable variants.",
-            params={"variants": not_available_variants_ids},
-        )
-
     if checkout.voucher_code and lines_info:
         channel_slug = checkout.channel.slug
         voucher = get_voucher_for_checkout(
@@ -173,10 +161,10 @@ def fetch_checkout_lines(
         if not voucher:
             # in case when voucher is expired, it will be null so no need to apply any
             # discount from voucher
-            return lines_info
+            return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
             _apply_voucher_on_product(voucher, checkout, lines_info)
-    return lines_info
+    return lines_info, unavailable_variant_pks
 
 
 def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
