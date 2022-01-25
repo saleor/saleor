@@ -152,11 +152,15 @@ zipp==3.6.0; python_version < "3.10" and python_version >= "3.6"
 zopfli==0.1.9; python_version >= "3.7"
 authlib==0.15.5;
 cryptography==36.0.0;
--e saleor/plugins/oauth2/
 checkout-sdk==2.0b8
+algoliasearch>=2.0,<3.0
+gql==2.0.0
 django-celery-results==2.2.0
 -e saleor/plugins/oto/
+-e saleor/plugins/oauth2/
+-e saleor/plugins/algolia/
+-e saleor/plugins/countries
 -e saleor/payment/gateways/cod/
 -e saleor/payment/gateways/tabby/
--e saleor/payment/gateways/checkout_payment/
 -e saleor/plugins/customer_group/
+-e saleor/payment/gateways/checkout_payment/
