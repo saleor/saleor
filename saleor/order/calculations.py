@@ -17,7 +17,6 @@ from .models import Order, OrderLine
 def _apply_tax_data_from_manager(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
 ) -> bool:
-    prefetch_related_objects(lines, "variant__product")
     currency = order.currency
 
     try:
@@ -117,7 +116,9 @@ def fetch_order_prices_if_expired(
     (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
     """
     if lines is None:
-        lines = list(order.lines.all())
+        lines = list(order.lines.prefetch_related("variant__product"))
+    else:
+        prefetch_related_objects(lines, "variant__product")
 
     if order.status not in ORDER_EDITABLE_STATUS:
         return order, lines
@@ -136,7 +137,6 @@ def fetch_order_prices_if_expired(
         _apply_tax_data(order, lines, tax_data)
 
     order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
-    print("okay")
     order.save(
         update_fields=[
             "total_net_amount",
