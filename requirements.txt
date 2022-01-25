@@ -158,6 +158,7 @@ gql==2.0.0
 django-celery-results==2.2.0
 -e saleor/plugins/oauth2/
 -e saleor/plugins/algolia/
+-e saleor/plugins/countries
 -e saleor/payment/gateways/cod/
 -e saleor/payment/gateways/tabby/
 -e saleor/plugins/customer_group/
