@@ -229,4 +229,5 @@ django-celery-results==2.2.0
 -e saleor/payment/gateways/cod/
 -e saleor/payment/gateways/tabby/
 -e saleor/payment/gateways/checkout_payment/
+-e saleor/plugins/countries
 -e saleor/plugins/customer_group/
