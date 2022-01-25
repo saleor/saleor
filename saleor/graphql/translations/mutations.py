@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Model
 
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
@@ -10,6 +11,7 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ...site.models import SiteSettings
 from ..attribute import types as attribute_types
 from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
@@ -50,6 +52,14 @@ TRANSLATABLE_CONTENT_TO_TYPE = {
 }
 
 
+def validate_input_against_model(model: Model, input_data: dict):
+    data_to_validate = {key: value for key, value in input_data.items() if value}
+    instance = model(**data_to_validate)  # type: ignore
+    all_fields = [field.name for field in model._meta.fields]
+    exclude_fields = set(all_fields) - set(data_to_validate)
+    instance.full_clean(exclude=exclude_fields, validate_unique=False)
+
+
 class BaseTranslateMutation(ModelMutation):
     class Meta:
         abstract = True
@@ -76,9 +86,15 @@ class BaseTranslateMutation(ModelMutation):
         return node_id, model_type
 
     @classmethod
+    def validate_input(cls, input_data):
+        validate_input_against_model(cls._meta.model, input_data)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id, model_type = cls.clean_node_id(**data)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        cls.validate_input(data["input"])
+
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -158,6 +174,7 @@ class ProductTranslate(BaseTranslateMutation):
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
         product = cls.get_node_or_error(info, node_id, only_type=product_types.Product)
+        cls.validate_input(data["input"])
 
         translation, created = product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -228,6 +245,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
+        cls.validate_input(data["input"])
         translation, created = variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -450,6 +468,7 @@ class ShopSettingsTranslate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
+        validate_input_against_model(SiteSettings, data["input"])
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )
