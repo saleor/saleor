@@ -1,8 +1,11 @@
 import pytest
 
+from ....core import EventDeliveryStatus
+from ....core.models import EventDelivery
 from ....payment import TransactionKind
 from ..utils import (
     APP_ID_PREFIX,
+    clear_successful_delivery,
     from_payment_app_id,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
@@ -160,3 +163,24 @@ def test_parse_payment_action_response_parse_amount(
         dummy_webhook_app_payment_data, payment_action_response, TransactionKind.AUTH
     )
     assert gateway_response.amount == dummy_webhook_app_payment_data.amount
+
+
+def test_clear_successful_delivery(event_delivery):
+    # given
+    assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()
+    event_delivery.status = EventDeliveryStatus.SUCCESS
+    event_delivery.save()
+    # when
+    clear_successful_delivery(event_delivery)
+    # then
+    assert not EventDelivery.objects.filter(pk=event_delivery.pk).exists()
+
+
+def test_clear_successful_delivery_on_failed_delivery(event_delivery):
+    # given
+    event_delivery.status = EventDeliveryStatus.FAILED
+    event_delivery.save()
+    # when
+    clear_successful_delivery(event_delivery)
+    # then
+    assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()

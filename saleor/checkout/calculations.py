@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
+from .interface import CheckoutTaxedPricesData
 from .models import Checkout
 
 if TYPE_CHECKING:
@@ -150,8 +151,8 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    discounts: Iterable[DiscountInfo],
-) -> "TaxedMoney":
+    discounts: Iterable[DiscountInfo] = [],
+) -> "CheckoutTaxedPricesData":
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -164,8 +165,12 @@ def checkout_line_total(
         address=address,
         discounts=discounts,
     )
-    checkout_line_info = _find_checkout_line_info(lines, checkout_line_info)
-    return checkout_line_info.line.total_price
+    checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
+    return CheckoutTaxedPricesData(
+        undiscounted_price=checkout_line.undiscounted_total_price,
+        price_with_sale=checkout_line.total_price,
+        price_with_discounts=checkout_line.total_price_with_discounts,
+    )
 
 
 def checkout_line_unit_price(
@@ -175,7 +180,7 @@ def checkout_line_unit_price(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
-) -> "TaxedMoney":
+) -> "CheckoutTaxedPricesData":
     """Return the unit price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -188,8 +193,12 @@ def checkout_line_unit_price(
         address=address,
         discounts=discounts,
     )
-    checkout_line_info = _find_checkout_line_info(lines, checkout_line_info)
-    return checkout_line_info.line.unit_price
+    checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
+    return CheckoutTaxedPricesData(
+        undiscounted_price=checkout_line.undiscounted_unit_price,
+        price_with_sale=checkout_line.unit_price,
+        price_with_discounts=checkout_line.unit_price_with_discounts,
+    )
 
 
 def checkout_line_tax_rate(
@@ -281,8 +290,16 @@ def fetch_checkout_prices_if_expired(
         [
             "unit_price_net_amount",
             "unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_unit_price_net_amount",
+            "unit_price_with_discounts_gross_amount",
+            "unit_price_with_discounts_gross_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "undiscounted_total_price_net_amount",
+            "total_price_with_discounts_gross_amount",
+            "total_price_with_discounts_gross_amount",
             "tax_rate",
         ],
     )
@@ -344,22 +361,29 @@ def _apply_tax_data_from_plugins(
 
     for line_info in lines:
         line = line_info.line
-        line.total_price = manager.calculate_checkout_line_total(
+
+        total_price_data = manager.calculate_checkout_line_total(
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
         )
-        line.unit_price = manager.calculate_checkout_line_unit_price(
-            line.total_price,
-            line.quantity,
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.total_price = total_price_data.price_with_sale
+        line.total_price_with_discounts = total_price_data.price_with_discounts
+
+        unit_price_data = manager.calculate_checkout_line_unit_price(
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
         )
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.unit_price = unit_price_data.price_with_sale
+        line.unit_price_with_discounts = unit_price_data.price_with_discounts
+
         line.tax_rate = manager.get_checkout_line_tax_rate(
             checkout_info,
             lines,

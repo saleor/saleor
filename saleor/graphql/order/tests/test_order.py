@@ -2705,45 +2705,6 @@ def test_draft_order_update_with_non_draft_order(
     assert error["code"] == OrderErrorCode.INVALID.name
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices_if_expired")
-def test_draft_order_update_tax_error(
-    update_order_prices_if_expired_mock,
-    staff_api_client,
-    permission_manage_orders,
-    draft_order,
-    voucher,
-    graphql_address_data,
-):
-    err_msg = "Test error"
-    update_order_prices_if_expired_mock.side_effect = TaxError(err_msg)
-    order = draft_order
-    assert not order.voucher
-    assert not order.customer_note
-    query = DRAFT_ORDER_UPDATE_MUTATION
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    customer_note = "Test customer note"
-    variables = {
-        "id": order_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "shippingAddress": graphql_address_data,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["draftOrderUpdate"]
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
-    assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
-
-    order.refresh_from_db()
-    assert not order.voucher
-    assert not order.customer_note
-
-
 def test_draft_order_update_invalid_address(
     staff_api_client,
     permission_manage_orders,
@@ -3811,6 +3772,16 @@ ORDER_LINES_CREATE_MUTATION = """
                 quantity
                 productSku
                 productVariantId
+                unitPrice {
+                    gross {
+                        amount
+                        currency
+                    }
+                    net {
+                        amount
+                        currency
+                    }
+                }
             }
             order {
                 total {
@@ -4015,6 +3986,72 @@ def test_order_lines_create_with_existing_variant(
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
     assert_proper_webhook_called_once(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_variant_on_sale(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+    sale,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+
+    variant = variant_with_many_stocks
+    sale.variants.add(variant)
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    line_data = data["orderLines"][0]
+    assert line_data["productSku"] == variant.sku
+    assert line_data["quantity"] == quantity
+    assert line_data["quantity"] == quantity
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    sale_channel_listing = sale.channel_listings.first()
+    assert (
+        line_data["unitPrice"]["gross"]["amount"]
+        == variant_channel_listing.price_amount - sale_channel_listing.discount_value
+    )
+    assert (
+        line_data["unitPrice"]["net"]["amount"]
+        == variant_channel_listing.price_amount - sale_channel_listing.discount_value
+    )
+
+    line = order.lines.get(product_sku=variant.sku)
+    assert line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert line.unit_discount_amount == sale_channel_listing.discount_value
+    assert line.unit_discount_value == sale_channel_listing.discount_value
+    assert (
+        line.unit_discount_reason
+        == f"Sale: {graphene.Node.to_global_id('Sale', sale.id)}"
     )
 
 

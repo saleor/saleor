@@ -116,7 +116,7 @@ mutation orderUpdate(
 """
 
 
-@patch("saleor.graphql.order.mutations.orders.update_order_prices_if_expired")
+@patch("saleor.graphql.order.mutations.orders.invalidate_order_prices")
 def test_order_update_shipping_address_invalidate_prices(
     mocked_function,
     staff_api_client,
@@ -143,10 +143,10 @@ def test_order_update_shipping_address_invalidate_prices(
 
     # then
     assert not content["data"]["orderUpdate"]["errors"]
-    mocked_function.assert_called_once_with(ANY, ANY, ANY, True)
+    mocked_function.assert_called_once_with(order, save=True)
 
 
-@patch("saleor.graphql.order.mutations.orders.update_order_prices_if_expired")
+@patch("saleor.graphql.order.mutations.orders.invalidate_order_prices")
 def test_order_update_billing_address_invalidate_prices(
     mocked_function,
     staff_api_client,
@@ -173,7 +173,7 @@ def test_order_update_billing_address_invalidate_prices(
 
     # then
     assert not content["data"]["orderUpdate"]["errors"]
-    mocked_function.assert_called_once_with(ANY, ANY, ANY, True)
+    mocked_function.assert_called_once_with(order, save=True)
 
 
 ORDER_LINES_CREATE_MUTATION = """

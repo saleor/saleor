@@ -1,8 +1,9 @@
 import copy
 from decimal import Decimal
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
+import graphene
 from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
@@ -13,16 +14,20 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
-from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
+from ..discount.utils import (
+    get_products_voucher_discount,
+    get_sale_id_applied_as_a_discount,
+    validate_voucher_in_order,
+)
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
 from ..graphql.order.mutations.utils import invalidate_order_prices
-from ..order import FulfillmentStatus, OrderLineData, OrderStatus
+from ..order import FulfillmentStatus, OrderStatus
+from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import (
-    deallocate_stock,
     decrease_allocations,
     get_order_lines_with_track_inventory,
     increase_allocations,
@@ -48,11 +53,11 @@ def get_order_country(order: Order) -> str:
     return address.country.code
 
 
-def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
+def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
     """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
     default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
-    content = line.variant.digital_content if line.variant else None
+    content = line_data.digital_content
     if not content:
         return False
     if default_automatic_fulfillment and content.use_default_settings:
@@ -62,10 +67,10 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     return False
 
 
-def order_needs_automatic_fulfillment(order: Order) -> bool:
+def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineInfo"]) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
-    for line in order.lines.digital():  # type: ignore
-        if order_line_needs_automatic_fulfillment(line):
+    for line_data in lines_data:
+        if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
             return True
     return False
 
@@ -199,62 +204,6 @@ def recalculate_order_weight(order):
     order.save(update_fields=["weight"])
 
 
-def update_order_line_prices_if_expired(
-    line: "OrderLine", order: "Order", manager, tax_included
-):
-    line_price = line.unit_price.gross if tax_included else line.unit_price.net
-    line.unit_price = TaxedMoney(line_price, line_price)
-
-    unit_price = calculations.order_line_unit(order, line, manager)
-    total_price = calculations.order_line_total(order, line, manager)
-    line.unit_price = unit_price
-    line.total_price = total_price
-    line.undiscounted_unit_price = line.unit_price + line.unit_discount
-    line.undiscounted_total_price = (
-        line.undiscounted_unit_price * line.quantity
-        if line.unit_discount
-        else total_price
-    )
-    if unit_price.tax and unit_price.net:
-        line.tax_rate = calculations.order_line_tax_rate(order, line, manager)
-
-
-def update_order_lines_prices_if_expired(
-    lines: Iterable[OrderLine], order: "Order", manager, tax_included
-):
-    for line in lines:
-        update_order_line_prices_if_expired(
-            line, order, manager, tax_included=tax_included
-        )
-    OrderLine.objects.bulk_update(
-        lines,
-        [
-            "undiscounted_unit_price_gross_amount",
-            "undiscounted_unit_price_net_amount",
-            "undiscounted_total_price_gross_amount",
-            "undiscounted_total_price_net_amount",
-        ],
-    )
-
-
-def update_order_prices_if_expired(
-    order: Order,
-    manager: "PluginsManager",
-    tax_included: bool,
-    invalidate_prices: bool = False,
-):
-    """Update prices in order with given discounts and proper taxes."""
-
-    lines = order.lines.all()
-    update_order_lines_prices_if_expired(lines, order, manager, tax_included)
-
-    if order.shipping_method:
-        # recalculate order.shipping_price and order.shipping_tax_rate
-        fetch_order_prices_if_expired(order, manager)
-
-    recalculate_order(order, invalidate_prices)
-
-
 def _calculate_quantity_including_returns(order):
     lines = list(order.lines.all())
     total_quantity = sum([line.quantity for line in lines])
@@ -281,7 +230,6 @@ def _calculate_quantity_including_returns(order):
 
 def update_order_status(order):
     """Update order status depending on fulfillments."""
-
     (
         total_quantity,
         quantity_fulfilled,
@@ -315,7 +263,15 @@ def update_order_status(order):
 
 @traced_atomic_transaction()
 def add_variant_to_order(
-    order, variant, quantity, user, app, manager, discounts=None, allocate_stock=False
+    order,
+    variant,
+    quantity,
+    user,
+    app,
+    manager,
+    site_settings,
+    discounts=None,
+    allocate_stock=False,
 ):
     """Add total_quantity of variant to order.
 
@@ -326,7 +282,7 @@ def add_variant_to_order(
         line = order.lines.get(variant=variant)
         old_quantity = line.quantity
         new_quantity = old_quantity + quantity
-        line_info = OrderLineData(line=line, quantity=old_quantity)
+        line_info = OrderLineInfo(line=line, quantity=old_quantity)
         change_order_line_quantity(
             user,
             app,
@@ -341,11 +297,24 @@ def add_variant_to_order(
         product = variant.product
         collections = product.collections.all()
         channel_listing = variant.channel_listings.get(channel=channel)
+
+        # vouchers are not applied for new lines in unconfirmed/draft orders
         unit_price = variant.get_price(
             product, collections, channel, channel_listing, discounts
         )
+        if not discounts:
+            undiscounted_price = unit_price
+        else:
+            undiscounted_price = variant.get_price(
+                product, collections, channel, channel_listing, []
+            )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        undiscounted_unit_price = TaxedMoney(
+            net=undiscounted_price, gross=undiscounted_price
+        )
         total_price = unit_price * quantity
+        undiscounted_total_price = unit_price * quantity
+
         product_name = str(product)
         variant_name = str(variant)
         translated_product_name = str(product.translated)
@@ -365,16 +334,43 @@ def add_variant_to_order(
             is_gift_card=variant.is_gift_card(),
             quantity=quantity,
             unit_price=unit_price,
+            undiscounted_unit_price=undiscounted_unit_price,
             total_price=total_price,
+            undiscounted_total_price=undiscounted_total_price,
             variant=variant,
         )
-        unit_price = calculations.order_line_unit(order, line, manager)
-        total_price = calculations.order_line_total(order, line, manager)
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
+        unit_price_data = calculations.order_line_unit(order, line, manager)
+        total_line_price_data = calculations.order_line_total(order, line, manager)
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_line_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_line_price_data.undiscounted_price
         line.tax_rate = calculations.order_line_tax_rate(order, line, manager)
+
+        unit_discount = line.undiscounted_unit_price - line.unit_price
+        if unit_discount.gross:
+            sale_id = get_sale_id_applied_as_a_discount(
+                product=product,
+                price=channel_listing.price,
+                discounts=discounts,
+                collections=collections,
+                channel=channel,
+                variant_id=variant.id,
+            )
+            taxes_included_in_prices = site_settings.include_taxes_in_prices
+            if taxes_included_in_prices:
+                discount_amount = unit_discount.gross
+            else:
+                discount_amount = unit_discount.net
+            line.unit_discount = discount_amount
+            line.unit_discount_value = discount_amount.amount
+            line.unit_discount_reason = (
+                f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
+            )
+            line.sale_id = (
+                graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
+            )
+
         line.save(
             update_fields=[
                 "currency",
@@ -387,13 +383,17 @@ def add_variant_to_order(
                 "undiscounted_total_price_gross_amount",
                 "undiscounted_total_price_net_amount",
                 "tax_rate",
+                "unit_discount_amount",
+                "unit_discount_value",
+                "unit_discount_reason",
+                "sale_id",
             ]
         )
 
     if allocate_stock:
         increase_allocations(
             [
-                OrderLineData(
+                OrderLineInfo(
                     line=line,
                     quantity=quantity,
                     variant=variant,
@@ -418,7 +418,7 @@ def add_gift_cards_to_order(
     gift_cards_to_update = []
     balance_data: List[Tuple[GiftCard, float]] = []
     used_by_user = checkout_info.user
-    used_by_email = checkout_info.get_customer_email()
+    used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
         if total_price_left > zero_money(total_price_left.currency):
             order_gift_cards.append(gift_card)
@@ -472,7 +472,7 @@ def set_gift_card_user(
 
 
 def _update_allocations_for_line(
-    line_info: OrderLineData,
+    line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
     channel_slug: str,
@@ -565,35 +565,6 @@ def delete_order_line(line_info, manager):
     if line_info.line.order.is_unconfirmed():
         decrease_allocations([line_info], manager)
     line_info.line.delete()
-
-
-def restock_order_lines(order, manager):
-    """Return ordered products to corresponding stocks."""
-    country = get_order_country(order)
-    default_warehouse = Warehouse.objects.filter(
-        shipping_zones__countries__contains=country
-    ).first()
-
-    dellocating_stock_lines: List[OrderLineData] = []
-    for line in order.lines.all():
-        if line.variant and line.variant.track_inventory:
-            if line.quantity_unfulfilled > 0:
-                dellocating_stock_lines.append(
-                    OrderLineData(line=line, quantity=line.quantity_unfulfilled)
-                )
-            if line.quantity_fulfilled > 0:
-                allocation = line.allocations.first()
-                warehouse = (
-                    allocation.stock.warehouse if allocation else default_warehouse
-                )
-                increase_stock(line, warehouse, line.quantity_fulfilled)
-
-        if line.quantity_fulfilled > 0:
-            line.quantity_fulfilled = 0
-            line.save(update_fields=["quantity_fulfilled"])
-
-    if dellocating_stock_lines:
-        deallocate_stock(dellocating_stock_lines, manager)
 
 
 def restock_fulfillment_lines(fulfillment, warehouse):
@@ -895,17 +866,7 @@ def update_discount_for_order_line(
     # Save lines before calculating the taxes as some plugin can fetch all order data
     # from db
     order_line.save(update_fields=fields_to_update)
-
-    update_order_line_prices_if_expired(order_line, order, manager, tax_included)
-    order_line.save(
-        update_fields=[
-            "unit_price_gross_amount",
-            "unit_price_net_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-        ]
-    )
+    fetch_order_prices_if_expired(order, manager)
 
 
 def remove_discount_from_order_line(
@@ -929,13 +890,4 @@ def remove_discount_from_order_line(
         ]
     )
 
-    update_order_line_prices_if_expired(order_line, order, manager, tax_included)
-    order_line.save(
-        update_fields=[
-            "unit_price_gross_amount",
-            "unit_price_net_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-        ]
-    )
+    fetch_order_prices_if_expired(order, manager)

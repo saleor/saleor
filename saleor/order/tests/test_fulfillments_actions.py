@@ -662,3 +662,87 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
     flush_post_commit_hooks()
 
     product_variant_out_of_stock_webhook.assert_not_called()
+
+
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
+    mock_email_fulfillment,
+    staff_user,
+    order_with_lines,
+    warehouse,
+    site_settings,
+):
+    """Ensure that when for some lines quantity allocated is lower than line quantity
+    and an error is raised during the deallocation uantity allocated value for
+    all allocation will be updated."""
+
+    # given
+    order = order_with_lines
+    order_line1, order_line2 = order.lines.all()
+    line_1_qty = 3
+    line_2_qty = 2
+
+    allocation_1 = order_line1.allocations.first()
+    allocation_2 = order_line2.allocations.first()
+
+    stock_quantity = 100
+    allocation_1_qty_allocated = line_1_qty - 1
+    allocation_2_qty_allocated = line_2_qty
+
+    stock_1 = allocation_1.stock
+    stock_2 = allocation_2.stock
+    stock_1.quantity = stock_quantity
+    stock_2.quantity = stock_quantity
+    Stock.objects.bulk_update([stock_1, stock_2], ["quantity"])
+
+    allocation_1.quantity_allocated = allocation_1_qty_allocated
+    allocation_2.quantity_allocated = allocation_2_qty_allocated
+    Allocation.objects.bulk_update([allocation_1, allocation_2], ["quantity_allocated"])
+
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [
+            {"order_line": order_line1, "quantity": line_1_qty},
+            {"order_line": order_line2, "quantity": line_2_qty},
+        ]
+    }
+    manager = get_plugins_manager()
+
+    # when
+    [fulfillment] = create_fulfillments(
+        staff_user,
+        None,
+        order,
+        fulfillment_lines_for_warehouses,
+        manager,
+        site_settings,
+        True,
+    )
+    flush_post_commit_hooks()
+
+    # then
+    order.refresh_from_db()
+    fulfillment_lines = FulfillmentLine.objects.filter(
+        fulfillment__order=order
+    ).order_by("pk")
+    assert fulfillment_lines[0].stock == order_line1.variant.stocks.get()
+    assert fulfillment_lines[0].quantity == line_1_qty
+    assert fulfillment_lines[1].stock == order_line2.variant.stocks.get()
+    assert fulfillment_lines[1].quantity == line_2_qty
+
+    assert order.status == OrderStatus.FULFILLED
+    assert order.fulfillments.get() == fulfillment
+
+    order_line1, order_line2 = order.lines.all()
+    assert order_line1.quantity_fulfilled == line_1_qty
+    assert order_line2.quantity_fulfilled == line_2_qty
+
+    assert (
+        Allocation.objects.filter(
+            order_line__order=order, quantity_allocated__gt=0
+        ).count()
+        == 0
+    )
+
+    mock_email_fulfillment.assert_called_once_with(
+        order, order.fulfillments.get(), staff_user, None, manager
+    )

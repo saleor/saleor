@@ -7,9 +7,11 @@ from prices import Money, TaxedMoney
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
+from ...order.interface import OrderTaxedPricesData
 from ...plugins.manager import get_plugins_manager
-from .. import OrderLineData, OrderStatus
+from .. import OrderStatus
 from ..events import OrderEvents
+from ..fetch import OrderLineInfo
 from ..models import Order, OrderEvent
 from ..utils import (
     add_gift_cards_to_order,
@@ -17,7 +19,6 @@ from ..utils import (
     change_order_line_quantity,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
-    update_order_lines_prices_if_expired,
 )
 
 
@@ -45,7 +46,7 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
-    line_info = OrderLineData(
+    line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
         variant=line.variant,
@@ -93,7 +94,7 @@ def test_change_quantity_update_line_fields(
 ):
     # given
     line = order_with_lines.lines.last()
-    line_info = OrderLineData(
+    line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
         variant=line.variant,
@@ -233,54 +234,33 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
 
 @patch("saleor.order.utils.calculations")
-def test_update_order_lines_prices_if_expired(mocked_calculations, order_with_lines):
-    # given
-    line_with_discount = order_with_lines.lines.first()
-    line_with_discount.unit_discount_amount = Decimal("2.00")
-    line_with_discount.save(update_fields=["unit_discount_amount"])
-
-    unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
-    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
-    tax_rate = Decimal("0.23")
-    mocked_calculations.order_line_unit = Mock(return_value=unit_price)
-    mocked_calculations.order_line_total = Mock(return_value=total_price)
-    mocked_calculations.order_line_tax_rate = Mock(return_value=tax_rate)
-    manager = Mock()
-    lines = order_with_lines.lines.all()
-
-    # when
-    update_order_lines_prices_if_expired(lines, order_with_lines, manager, True)
-
-    # then
-    for line in lines:
-        assert line.unit_price == unit_price
-        assert line.total_price == total_price
-        assert line.tax_rate == tax_rate
-        if line.pk != line_with_discount.pk:
-            assert line.undiscounted_unit_price == unit_price
-            assert line.undiscounted_total_price == total_price
-        else:
-            assert line.undiscounted_unit_price == unit_price + line.unit_discount
-            assert (
-                line.undiscounted_total_price
-                == (unit_price + line.unit_discount) * line.quantity
-            )
-
-
-@patch("saleor.order.utils.calculations")
-def test_add_variant_to_order(mocked_calculations, order, customer_user, variant):
+def test_add_variant_to_order(
+    mocked_calculations, order, customer_user, variant, site_settings
+):
     # given
     unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
     total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
     tax_rate = Decimal("0.23")
-    mocked_calculations.order_line_unit = Mock(return_value=unit_price)
-    mocked_calculations.order_line_total = Mock(return_value=total_price)
+    mocked_calculations.order_line_unit = Mock(
+        return_value=OrderTaxedPricesData(
+            undiscounted_price=unit_price,
+            price_with_discounts=unit_price,
+        )
+    )
+    mocked_calculations.order_line_total = Mock(
+        return_value=OrderTaxedPricesData(
+            undiscounted_price=total_price,
+            price_with_discounts=total_price,
+        )
+    )
     mocked_calculations.order_line_tax_rate = Mock(return_value=tax_rate)
     manager = Mock()
     app = None
 
     # when
-    line = add_variant_to_order(order, variant, 4, customer_user, app, manager)
+    line = add_variant_to_order(
+        order, variant, 4, customer_user, app, manager, site_settings
+    )
 
     # then
     assert line.unit_price == unit_price

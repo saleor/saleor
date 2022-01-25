@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from django.conf import settings
 from django.db.models import prefetch_related_objects
@@ -7,67 +7,58 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
+from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..plugins.manager import PluginsManager
 from . import ORDER_EDITABLE_STATUS
+from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
 
-def _combine_prices_from_manager_into_tax_data(
+def _apply_tax_data_from_manager(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
-) -> Optional[TaxData]:
+) -> bool:
     prefetch_related_objects(lines, "variant__product")
     currency = order.currency
 
-    tax_lines_data = []
-    subtotal = zero_taxed_money(currency)
     try:
+        price_lines: List[dict] = []
         for line in lines:
             variant = line.variant
             if not variant:
                 continue
             product = variant.product
 
-            unit_price = manager.calculate_order_line_unit(
-                order, line, variant, product
-            )
-            total_price = manager.calculate_order_line_total(
-                order, line, variant, product
-            )
+            unit = manager.calculate_order_line_unit(order, line, variant, product)
+            total = manager.calculate_order_line_total(order, line, variant, product)
             tax_rate = manager.get_order_line_tax_rate(
-                order, product, variant, None, unit_price
+                order, product, variant, None, unit.undiscounted_price
             )
 
-            tax_lines_data.append(
-                TaxLineData(
-                    id=line.id,
-                    currency=currency,
-                    tax_rate=tax_rate,
-                    unit_net_amount=unit_price.net.amount,
-                    unit_gross_amount=unit_price.gross.amount,
-                    total_net_amount=total_price.net.amount,
-                    total_gross_amount=total_price.gross.amount,
-                )
-            )
-            subtotal += total_price
+            price_lines.append({"tax_rate": tax_rate, "unit": unit, "total": total})
 
+        subtotal = sum((line.total_price for line in lines), zero_taxed_money(currency))
         shipping_price = manager.calculate_order_shipping(order)
         shipping_tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
         total = shipping_price + subtotal
-
-        return TaxData(
-            currency=currency,
-            total_net_amount=total.net.amount,
-            total_gross_amount=total.gross.amount,
-            subtotal_net_amount=subtotal.net.amount,
-            subtotal_gross_amount=subtotal.gross.amount,
-            shipping_price_net_amount=shipping_price.net.amount,
-            shipping_price_gross_amount=shipping_price.gross.amount,
-            shipping_tax_rate=shipping_tax_rate,
-            lines=tax_lines_data,
-        )
     except TaxError:
-        return None
+        return True
+    else:
+        order.total = total
+        order.shipping_price = shipping_price
+        order.shipping_tax_rate = shipping_tax_rate
+
+        for order_line, price_line in zip(lines, price_lines):
+            unit = price_line["unit"]
+            order_line.undiscounted_unit_price = unit.undiscounted_price
+            order_line.unit_price = unit.price_with_discounts
+
+            total = price_line["total"]
+            order_line.undiscounted_total_price = total.undiscounted_price
+            order_line.total_price = total.price_with_discounts
+
+            order_line.tax_rate = price_line["tax_rate"]
+
+        return False
 
 
 def _apply_tax_data(
@@ -94,9 +85,19 @@ def _apply_tax_data(
         order_line.unit_price = qp(
             net=tax_line.unit_net_amount, gross=tax_line.unit_gross_amount
         )
+        order_line.undiscounted_unit_price = (
+            order_line.unit_price + order_line.unit_discount
+        )
+
         order_line.total_price = qp(
             net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
         )
+        order_line.undiscounted_total_price = (
+            order_line.undiscounted_unit_price * order_line.quantity
+            if order_line.unit_discount
+            else order_line.total_price
+        )
+
         order_line.tax_rate = tax_line.tax_rate
 
 
@@ -124,14 +125,10 @@ def fetch_order_prices_if_expired(
     if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
         return order, lines
 
-    combined_tax_data = _combine_prices_from_manager_into_tax_data(
-        manager, order, lines
-    )
+    tax_error = _apply_tax_data_from_manager(manager, order, lines)
 
-    if not combined_tax_data:
+    if tax_error:
         return order, lines
-
-    _apply_tax_data(order, lines, combined_tax_data)
 
     tax_data = manager.get_taxes_for_order(order)
 
@@ -139,7 +136,7 @@ def fetch_order_prices_if_expired(
         _apply_tax_data(order, lines, tax_data)
 
     order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
-
+    print("okay")
     order.save(
         update_fields=[
             "total_net_amount",
@@ -155,8 +152,12 @@ def fetch_order_prices_if_expired(
         [
             "unit_price_net_amount",
             "unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_unit_price_gross_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "undiscounted_total_price_gross_amount",
             "tax_rate",
         ],
     )
@@ -181,7 +182,7 @@ def order_line_unit(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> TaxedMoney:
+) -> OrderTaxedPricesData:
     """Return the unit price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -190,7 +191,10 @@ def order_line_unit(
     """
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
-    return order_line.unit_price
+    return OrderTaxedPricesData(
+        undiscounted_price=order_line.undiscounted_unit_price,
+        price_with_discounts=order_line.unit_price,
+    )
 
 
 def order_line_total(
@@ -199,7 +203,7 @@ def order_line_total(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> TaxedMoney:
+) -> OrderTaxedPricesData:
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -208,7 +212,10 @@ def order_line_total(
     """
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
-    return order_line.total_price
+    return OrderTaxedPricesData(
+        undiscounted_price=order_line.undiscounted_total_price,
+        price_with_discounts=order_line.total_price,
+    )
 
 
 def order_line_tax_rate(

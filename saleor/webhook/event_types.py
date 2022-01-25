@@ -11,7 +11,7 @@ from ..core.permissions import (
 )
 
 
-class WebhookEventType:
+class WebhookEventAsyncType:
     ANY = "any_events"
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
@@ -38,6 +38,10 @@ class WebhookEventType:
     CUSTOMER_CREATED = "customer_created"
     CUSTOMER_UPDATED = "customer_updated"
 
+    COLLECTION_CREATED = "collection_created"
+    COLLECTION_UPDATED = "collection_updated"
+    COLLECTION_DELETED = "collection_deleted"
+
     PRODUCT_CREATED = "product_created"
     PRODUCT_UPDATED = "product_updated"
     PRODUCT_DELETED = "product_deleted"
@@ -57,19 +61,6 @@ class WebhookEventType:
     PAGE_CREATED = "page_created"
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
-
-    PAYMENT_LIST_GATEWAYS = "payment_list_gateways"
-    PAYMENT_AUTHORIZE = "payment_authorize"
-    PAYMENT_CAPTURE = "payment_capture"
-    PAYMENT_REFUND = "payment_refund"
-    PAYMENT_VOID = "payment_void"
-    PAYMENT_CONFIRM = "payment_confirm"
-    PAYMENT_PROCESS = "payment_process"
-
-    CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
-    ORDER_CALCULATE_TAXES = "order_calculate_taxes"
-
-    SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
 
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
@@ -93,6 +84,9 @@ class WebhookEventType:
         INVOICE_SENT: "Invoice sent",
         CUSTOMER_CREATED: "Customer created",
         CUSTOMER_UPDATED: "Customer updated",
+        COLLECTION_CREATED: "Collection created",
+        COLLECTION_UPDATED: "Collection updated",
+        COLLECTION_DELETED: "Collection deleted",
         PRODUCT_CREATED: "Product created",
         PRODUCT_UPDATED: "Product updated",
         PRODUCT_DELETED: "Product deleted",
@@ -109,16 +103,6 @@ class WebhookEventType:
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
         PAGE_DELETED: "Page Deleted",
-        PAYMENT_AUTHORIZE: "Authorize payment",
-        PAYMENT_CAPTURE: "Capture payment",
-        PAYMENT_CONFIRM: "Confirm payment",
-        PAYMENT_LIST_GATEWAYS: "List payment gateways",
-        PAYMENT_PROCESS: "Process payment",
-        PAYMENT_REFUND: "Refund payment",
-        PAYMENT_VOID: "Void payment",
-        CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
-        ORDER_CALCULATE_TAXES: "Order calculate taxes",
-        SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
@@ -142,6 +126,9 @@ class WebhookEventType:
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (CUSTOMER_UPDATED, DISPLAY_LABELS[CUSTOMER_UPDATED]),
+        (COLLECTION_CREATED, DISPLAY_LABELS[COLLECTION_CREATED]),
+        (COLLECTION_UPDATED, DISPLAY_LABELS[COLLECTION_UPDATED]),
+        (COLLECTION_DELETED, DISPLAY_LABELS[COLLECTION_DELETED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
         (PRODUCT_DELETED, DISPLAY_LABELS[PRODUCT_DELETED]),
@@ -158,32 +145,11 @@ class WebhookEventType:
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
-        (PAYMENT_AUTHORIZE, DISPLAY_LABELS[PAYMENT_AUTHORIZE]),
-        (PAYMENT_CAPTURE, DISPLAY_LABELS[PAYMENT_CAPTURE]),
-        (PAYMENT_CONFIRM, DISPLAY_LABELS[PAYMENT_CONFIRM]),
-        (PAYMENT_LIST_GATEWAYS, DISPLAY_LABELS[PAYMENT_LIST_GATEWAYS]),
-        (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
-        (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
-        (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
-        (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
-        (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
-        (
-            SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-            DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
-        ),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
 
-    PAYMENT_EVENTS = [
-        PAYMENT_AUTHORIZE,
-        PAYMENT_CAPTURE,
-        PAYMENT_CONFIRM,
-        PAYMENT_LIST_GATEWAYS,
-        PAYMENT_PROCESS,
-        PAYMENT_REFUND,
-        PAYMENT_VOID,
-    ]
+    ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
@@ -203,6 +169,9 @@ class WebhookEventType:
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         CUSTOMER_UPDATED: AccountPermissions.MANAGE_USERS,
+        COLLECTION_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        COLLECTION_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        COLLECTION_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -219,6 +188,67 @@ class WebhookEventType:
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
+        TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
+        TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
+    }
+
+
+class WebhookEventSyncType:
+    PAYMENT_LIST_GATEWAYS = "payment_list_gateways"
+    PAYMENT_AUTHORIZE = "payment_authorize"
+    PAYMENT_CAPTURE = "payment_capture"
+    PAYMENT_REFUND = "payment_refund"
+    PAYMENT_VOID = "payment_void"
+    PAYMENT_CONFIRM = "payment_confirm"
+    PAYMENT_PROCESS = "payment_process"
+
+    CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
+    ORDER_CALCULATE_TAXES = "order_calculate_taxes"
+
+    SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
+
+    DISPLAY_LABELS = {
+        PAYMENT_AUTHORIZE: "Authorize payment",
+        PAYMENT_CAPTURE: "Capture payment",
+        PAYMENT_CONFIRM: "Confirm payment",
+        PAYMENT_LIST_GATEWAYS: "List payment gateways",
+        PAYMENT_PROCESS: "Process payment",
+        PAYMENT_REFUND: "Refund payment",
+        PAYMENT_VOID: "Void payment",
+        CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
+        ORDER_CALCULATE_TAXES: "Order calculate taxes",
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
+    }
+
+    CHOICES = [
+        (PAYMENT_AUTHORIZE, DISPLAY_LABELS[PAYMENT_AUTHORIZE]),
+        (PAYMENT_CAPTURE, DISPLAY_LABELS[PAYMENT_CAPTURE]),
+        (PAYMENT_CONFIRM, DISPLAY_LABELS[PAYMENT_CONFIRM]),
+        (PAYMENT_LIST_GATEWAYS, DISPLAY_LABELS[PAYMENT_LIST_GATEWAYS]),
+        (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
+        (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
+        (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
+        (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
+        (
+            SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
+        ),
+    ]
+
+    ALL = [event[0] for event in CHOICES]
+
+    PAYMENT_EVENTS = [
+        PAYMENT_AUTHORIZE,
+        PAYMENT_CAPTURE,
+        PAYMENT_CONFIRM,
+        PAYMENT_LIST_GATEWAYS,
+        PAYMENT_PROCESS,
+        PAYMENT_REFUND,
+        PAYMENT_VOID,
+    ]
+
+    PERMISSIONS = {
         PAYMENT_AUTHORIZE: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_CAPTURE: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_CONFIRM: PaymentPermissions.HANDLE_PAYMENTS,
@@ -229,6 +259,4 @@ class WebhookEventType:
         CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
-        TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
-        TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }

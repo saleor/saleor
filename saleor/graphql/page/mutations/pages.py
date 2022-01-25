@@ -128,6 +128,14 @@ class PageUpdate(PageCreate):
         error_type_field = "page_errors"
 
     @classmethod
+    def clean_attributes(cls, attributes: dict, page_type: models.PageType):
+        attributes_qs = page_type.page_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, creation=False, is_page_attributes=True
+        )
+        return attributes
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
         info.context.plugins.page_updated(instance)
