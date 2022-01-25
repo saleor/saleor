@@ -158,4 +158,5 @@ checkout-sdk==2.0b8
 -e saleor/payment/gateways/tabby/
 -e saleor/payment/gateways/checkout_payment/
 -e saleor/plugins/otp
+-e saleor/plugins/countries
 -e saleor/plugins/customer_group/
