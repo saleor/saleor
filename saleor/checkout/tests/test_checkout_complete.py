@@ -841,6 +841,7 @@ def test_create_order_gift_card_bought(
         manager=manager,
     )
 
+    flush_post_commit_hooks()
     assert order.total.gross == total_gross
     flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()

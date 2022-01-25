@@ -5,73 +5,22 @@ import pytest
 
 from .....giftcard.models import GiftCard
 from ....tests.utils import get_graphql_content
+from .test_gift_card_queries import FRAGMENT_GIFT_CARD_DETAILS
 
-CREATE_GIFT_CARD_MUTATION = """
+CREATE_GIFT_CARD_MUTATION = (
+    FRAGMENT_GIFT_CARD_DETAILS
+    + """
     mutation giftCardCreate(
-        $balance: PriceInput!, $userEmail: String, $tag: String, $channel: String,
-        $note: String, $expiryDate: Date, $isActive: Boolean!
+        $balance: PriceInput!, $userEmail: String, $addTags: [String!],
+         $channel: String, $note: String, $expiryDate: Date, $isActive: Boolean!
     ){
         giftCardCreate(input: {
-                balance: $balance, userEmail: $userEmail, tag: $tag, channel: $channel,
-                expiryDate: $expiryDate, note: $note, isActive: $isActive }) {
+                balance: $balance, userEmail: $userEmail, addTags: $addTags,
+                channel: $channel, expiryDate: $expiryDate, note: $note,
+                isActive: $isActive
+        }) {
             giftCard {
-                id
-                code
-                displayCode
-                isActive
-                expiryDate
-                tag
-                created
-                lastUsedOn
-                initialBalance {
-                    currency
-                    amount
-                }
-                currentBalance {
-                    currency
-                    amount
-                }
-                createdBy {
-                    email
-                }
-                usedBy {
-                    email
-                }
-                createdByEmail
-                usedByEmail
-                app {
-                    name
-                }
-                product {
-                    name
-                }
-                events {
-                    type
-                    user {
-                        email
-                    }
-                    app {
-                        name
-                    }
-                    balance {
-                        initialBalance {
-                            amount
-                            currency
-                        }
-                        oldInitialBalance {
-                            amount
-                            currency
-                        }
-                        currentBalance {
-                            amount
-                            currency
-                        }
-                        oldCurrentBalance {
-                            amount
-                            currency
-                        }
-                    }
-                }
+                ...GiftCardDetails
             }
             errors {
                 field
@@ -81,6 +30,7 @@ CREATE_GIFT_CARD_MUTATION = """
         }
     }
 """
+)
 
 
 @pytest.mark.django_db
@@ -105,7 +55,7 @@ def test_create_never_expiry_gift_card(
         },
         "userEmail": customer_user.email,
         "channel": channel_USD.slug,
-        "tag": tag,
+        "addTags": [tag],
         "note": "This is gift card note that will be save in gift card event.",
         "expiry_date": None,
         "isActive": True,
@@ -129,71 +79,15 @@ def test_create_never_expiry_gift_card(
     assert data
 
 
-UPDATE_GIFT_CARD_MUTATION = """
+UPDATE_GIFT_CARD_MUTATION = (
+    FRAGMENT_GIFT_CARD_DETAILS
+    + """
     mutation giftCardUpdate(
         $id: ID!, $input: GiftCardUpdateInput!
     ){
         giftCardUpdate(id: $id, input: $input) {
             giftCard {
-                id
-                code
-                displayCode
-                isActive
-                expiryDate
-                tag
-                created
-                lastUsedOn
-                initialBalance {
-                    currency
-                    amount
-                }
-                currentBalance {
-                    currency
-                    amount
-                }
-                createdBy {
-                    email
-                }
-                usedBy {
-                    email
-                }
-                createdByEmail
-                usedByEmail
-                app {
-                    name
-                }
-                product {
-                    name
-                }
-                events {
-                    type
-                    user {
-                        email
-                    }
-                    app {
-                        name
-                    }
-                    balance {
-                        initialBalance {
-                            amount
-                            currency
-                        }
-                        oldInitialBalance {
-                            amount
-                            currency
-                        }
-                        currentBalance {
-                            amount
-                            currency
-                        }
-                        oldCurrentBalance {
-                            amount
-                            currency
-                        }
-                    }
-                    expiryDate
-                    oldExpiryDate
-                }
+                ...GiftCardDetails
             }
             errors {
                 field
@@ -203,6 +97,7 @@ UPDATE_GIFT_CARD_MUTATION = """
         }
     }
 """
+)
 
 
 @pytest.mark.django_db
@@ -218,12 +113,14 @@ def test_update_gift_card(
     # given
     initial_balance = 100.0
     date_value = date.today() + timedelta(days=365)
+    old_tag = gift_card.tags.first()
     tag = "new-gift-card-tag"
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
         "input": {
             "balanceAmount": initial_balance,
-            "tag": tag,
+            "addTags": [tag],
+            "removeTags": [old_tag.name],
             "expiryDate": date_value,
         },
     }
@@ -287,3 +184,62 @@ def test_gift_card_bulk_activate_by_staff(
     # then
     content = get_graphql_content(response)
     assert content["data"]["giftCardBulkActivate"]["count"] == len(ids)
+
+
+MUTATION_GIFT_CARD_BULK_CREATE = (
+    FRAGMENT_GIFT_CARD_DETAILS
+    + """
+    mutation GiftCardBulkCreate($input: GiftCardBulkCreateInput!) {
+        giftCardBulkCreate(input: $input) {
+            count
+            giftCards {
+                ...GiftCardDetails
+            }
+            errors {
+                code
+                field
+            }
+        }
+    }
+"""
+)
+
+
+def test_bulk_create_gift_cards(
+    staff_api_client,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+):
+    # given
+    initial_balance = 100
+    currency = "USD"
+    tag = "gift-card-tag"
+    count = 10
+    is_active = True
+    variables = {
+        "input": {
+            "count": count,
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "tags": [tag],
+            "isActive": is_active,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_GIFT_CARD_BULK_CREATE,
+        variables,
+        permissions=(
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["giftCardBulkCreate"]["count"] == count

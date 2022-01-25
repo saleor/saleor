@@ -24,6 +24,7 @@ from ..utils import (
     get_gift_card_lines,
     get_non_shippable_gift_card_lines,
     gift_cards_create,
+    is_gift_card_expired,
     order_has_gift_card_lines,
     remove_gift_card_code_from_checkout,
 )
@@ -263,6 +264,8 @@ def test_gift_cards_create(
     assert non_shippable_event.app is None
     assert non_shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
 
+    flush_post_commit_hooks()
+
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
@@ -338,6 +341,8 @@ def test_gift_cards_create_expiry_date_set(
         "expiry_date": gift_card.expiry_date.isoformat(),
     }
 
+    flush_post_commit_hooks()
+
     send_notification_mock.assert_called_once_with(
         staff_user,
         None,
@@ -383,6 +388,7 @@ def test_gift_cards_create_multiple_quantity(
     )
 
     # then
+    flush_post_commit_hooks()
     assert len(gift_cards) == quantity
     price = gift_card_non_shippable_order_line.unit_price_gross
     for gift_card in gift_cards:
@@ -713,3 +719,41 @@ def test_assign_user_gift_cards_no_gift_cards_to_assign(
     # then
     gift_card_created_by_staff.refresh_from_db()
     assert not gift_card_created_by_staff.created_by
+
+
+def test_is_gift_card_expired_never_expired_gift_card(gift_card):
+    # given
+    assert not gift_card.expiry_date
+
+    # when
+    result = is_gift_card_expired(gift_card)
+
+    # then
+    assert result is False
+
+
+def test_is_gift_card_expired_true(gift_card):
+    # given
+    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.save(update_fields=["expiry_date"])
+
+    # when
+    result = is_gift_card_expired(gift_card)
+
+    # then
+    assert result is True
+
+
+@pytest.mark.parametrize(
+    "expiry_date", [date.today(), date.today() + timedelta(days=1)]
+)
+def test_is_gift_card_expired_false(expiry_date, gift_card):
+    # given
+    gift_card.expiry_date = expiry_date
+    gift_card.save(update_fields=["expiry_date"])
+
+    # when
+    result = is_gift_card_expired(gift_card)
+
+    # then
+    assert result is False
