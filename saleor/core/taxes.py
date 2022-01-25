@@ -99,7 +99,7 @@ DEFAULT_TAX_CODE = "O9999999"
 DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
 
 
-def _get_current_tax_app() -> App:
+def _get_current_tax_app() -> Optional[App]:
     """Return currently used tax app or None, if there aren't any."""
     q_app_is_not_tax = ~(
         Q(webhooks__events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)

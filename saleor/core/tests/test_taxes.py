@@ -60,14 +60,7 @@ def tax_app(tax_app_factory):
 
 
 def test_get_current_tax_app(tax_app):
-    # given
-    expected_app = tax_app
-
-    # when
-    app = _get_current_tax_app()
-
-    # then
-    assert expected_app == app
+    assert tax_app == _get_current_tax_app()
 
 
 def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
@@ -107,11 +100,7 @@ def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
 
 
 def test_get_current_tax_app_no_app():
-    # when
-    app = _get_current_tax_app()
-
-    # then
-    assert app is None
+    assert _get_current_tax_app() is None
 
 
 @pytest.fixture
