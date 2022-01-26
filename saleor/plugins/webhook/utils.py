@@ -227,16 +227,19 @@ def parse_tax_codes(
 ) -> Optional[List[TaxType]]:
     if not isinstance(response_tax_data, list):
         return None
-    try:
-        return [
-            TaxType(
-                code=tax["code"],
-                description=tax["description"],
-            )
-            for tax in response_tax_data
-        ]
-    except KeyError:
-        return None
+
+    tax_types = []
+
+    for tax in response_tax_data:
+        code = tax.get("code")
+        description = tax.get("description")
+
+        if not code or not description:
+            return None
+
+        tax_types.append(TaxType(code, description))
+
+    return tax_types
 
 
 @contextmanager
