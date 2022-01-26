@@ -10,8 +10,8 @@ class VendorErrorCode(Enum):
 
 
 class BillingErrorCode(Enum):
-    GROUP_NOT_FOUND = "Billing_not_found"
-    GROUP_ERROR = "Billing_error"
+    BILLING_NOT_FOUND = "Billing_not_found"
+    BILLING_ERROR = "Billing_error"
 
 
 class CommercialInfo(graphene.Enum):
