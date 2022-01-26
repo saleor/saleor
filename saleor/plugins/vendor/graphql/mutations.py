@@ -6,7 +6,7 @@ from saleor.graphql.account.enums import CountryCodeEnum
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from ..models import Billing, Vendor
-from . import enums
+from . import enums, types
 from .custom_permissions import BillingPermissions, VendorPermissions
 from .errors import BillingError, VendorError
 
@@ -98,7 +98,6 @@ class VendorDelete(ModelDeleteMutation):
         permissions = (VendorPermissions.MANAGE_VENDOR,)
 
 
-# mutations for Billing
 class BillingCreateInput(graphene.InputObjectType):
     iban_num = graphene.String(
         description="you should enter the real IBAN number", required=True
@@ -106,15 +105,13 @@ class BillingCreateInput(graphene.InputObjectType):
     bank_name = graphene.String(
         description="bank name related to the IBAN number", required=True
     )
-    vendors = graphene.List(
-        graphene.ID,
-        description="vendors IDs to add to billing information",
-        name="vendors",
-    )
 
 
 class BillingCreate(ModelMutation):
     class Arguments:
+        vendor_id = graphene.ID(
+            required=True, description="ID of the vendor related to Billing"
+        )
         input = BillingCreateInput(
             required=True, description="Fields required to create billing"
         )
@@ -125,15 +122,38 @@ class BillingCreate(ModelMutation):
         error_type_class = BillingError
         permissions = (BillingPermissions.MANAGE_BILLING,)
 
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        validation_errors = {}
+        for field in ["iban_num", "bank_name"]:
+            if data["input"][field] == "":
+                validation_errors[field] = ValidationError(
+                    f"{field} cannot be empty.",
+                    code=enums.BillingErrorCode.BILLING_ERROR,
+                )
+        if validation_errors:
+            raise ValidationError(validation_errors)
+        return data["input"]
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        vendor = cls.get_node_or_error(
+            info, data["vendor_id"], only_type=types.Vendor, field="vendorId"
+        )
+        cleaned_input = cls.clean_input(info, vendor, data)
+        billing = Billing(**cleaned_input)
+
+        billing.vendor = vendor
+        # print(billing.vendor)
+        # print(billing)
+        # return cls()
+        billing.save()
+        return BillingCreate(billing=billing)
+
 
 class BillingUpdateInput(graphene.InputObjectType):
     iban_num = graphene.String(description="you should enter the real IBAN number")
     bank_name = graphene.String(description="bank name related to the IBAN number")
-    vendors = graphene.List(
-        graphene.ID,
-        description="vendors IDs to add to billing information",
-        name="vendors",
-    )
 
 
 class BillingUpdate(ModelMutation):
