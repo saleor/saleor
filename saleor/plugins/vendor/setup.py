@@ -1,6 +1,5 @@
 from setuptools import setup
 
-# making two gloable var for passing the flake8 lint
 plugin_name = "saleor.plugins.vendor"
 plugin_name_path = "saleor.plugins.vendor.plugin:VendorPlugin"
 
