@@ -63,9 +63,9 @@ class WishlistAddProductMutation(_BaseWishlistProductMutation):
 
 class WishlistRemoveProductMutation(_BaseWishlistProductMutation):
     class Meta:
-        description = "Remove product from the current user's wishlist."
         error_type_class = WishlistError
         error_type_field = "wishlist_errors"
+        description = "Remove product from the current user's wishlist."
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
