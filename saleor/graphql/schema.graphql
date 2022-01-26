@@ -6889,6 +6889,7 @@ type TranslationError {
 
 enum TranslationErrorCode {
   GRAPHQL_ERROR
+  INVALID
   NOT_FOUND
   REQUIRED
 }
