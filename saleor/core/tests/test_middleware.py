@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 from django.core.handlers.base import BaseHandler
 from freezegun import freeze_time
 
@@ -8,6 +10,7 @@ from ..jwt import (
     jwt_encode,
     jwt_user_payload,
 )
+from ..middleware import API_PATH
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -115,3 +118,35 @@ def test_plugins_middleware_requestor_in_plugin_when_no_app_and_user_in_req_is_n
     plugin = request.plugins.all_plugins.pop()
 
     assert not plugin.requestor
+
+
+def test_api_reporter_middleware_when_app_makes_graphql_req(rf, app, settings):
+    settings.MIDDLEWARE = [
+        "saleor.core.middleware.api_reporter",
+    ]
+    request = rf.post(API_PATH)
+    request.app = app
+    plugins = Mock(return_value=None)
+    request.plugins = plugins
+
+    handler = BaseHandler()
+    handler.load_middleware()
+    response = handler.get_response(request)
+
+    plugins.report_api_call.assert_called_once_with(request, response)
+
+
+def test_api_reporter_middleware_when_non_app_makes_graphql_req(rf, app, settings):
+    settings.MIDDLEWARE = [
+        "saleor.core.middleware.api_reporter",
+    ]
+    request = rf.post(API_PATH)
+    request.app = None
+    plugins = Mock(return_value=None)
+    request.plugins = plugins
+
+    handler = BaseHandler()
+    handler.load_middleware()
+    handler.get_response(request)
+
+    plugins.report_api_call.assert_not_called()
