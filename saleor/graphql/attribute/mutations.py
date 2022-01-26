@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
 
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
@@ -14,7 +15,9 @@ from ...core.permissions import (
     ProductTypePermissions,
 )
 from ...core.tracing import traced_atomic_transaction
-from ..attribute.types import Attribute, AttributeValue
+from ...core.utils import generate_unique_slug
+from ...product import models as product_models
+from ...product.search import update_products_search_document
 from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -23,6 +26,7 @@ from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from .types import Attribute, AttributeValue
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -466,6 +470,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     class Meta:
         model = models.Attribute
+        object_type = Attribute
         description = "Creates an attribute."
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -531,6 +536,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     class Meta:
         model = models.Attribute
+        object_type = Attribute
         description = "Updates attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
@@ -586,6 +592,7 @@ class AttributeDelete(ModelDeleteMutation):
 
     class Meta:
         model = models.Attribute
+        object_type = Attribute
         description = "Deletes an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
@@ -623,6 +630,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     class Meta:
         model = models.AttributeValue
+        object_type = AttributeValue
         description = "Creates a value for an attribute."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = AttributeError
@@ -632,7 +640,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         if "name" in cleaned_input:
-            cleaned_input["slug"] = slugify(cleaned_input["name"], allow_unicode=True)
+            cleaned_input["slug"] = generate_unique_slug(
+                instance, cleaned_input["name"]
+            )
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
@@ -687,6 +697,7 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     class Meta:
         model = models.AttributeValue
+        object_type = AttributeValue
         description = "Updates value of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
@@ -712,6 +723,18 @@ class AttributeValueUpdate(AttributeValueCreate):
         response.attribute = instance.attribute
         return response
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        super().post_save_action(info, instance, cleaned_input)
+        variants = product_models.ProductVariant.objects.filter(
+            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+        )
+        products = product_models.Product.objects.filter(
+            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
+            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+        )
+        update_products_search_document(products)
+
 
 class AttributeValueDelete(ModelDeleteMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
@@ -721,10 +744,33 @@ class AttributeValueDelete(ModelDeleteMutation):
 
     class Meta:
         model = models.AttributeValue
+        object_type = AttributeValue
         description = "Deletes a value of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
+        product_ids = cls.get_product_ids_to_update(instance)
+        response = super().perform_mutation(_root, info, **data)
+        update_products_search_document(
+            product_models.Product.objects.filter(id__in=product_ids)
+        )
+        return response
+
+    @classmethod
+    def get_product_ids_to_update(cls, instance):
+        variants = product_models.ProductVariant.objects.filter(
+            Exists(instance.variantassignments.filter(variant_id=OuterRef("id")))
+        )
+        product_ids = product_models.Product.objects.filter(
+            Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
+            | Q(Exists(variants.filter(product_id=OuterRef("id"))))
+        ).values_list("id", flat=True)
+        return list(product_ids)
 
     @classmethod
     def success_response(cls, instance):

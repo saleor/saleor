@@ -1,5 +1,5 @@
 import json
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
@@ -7,7 +7,6 @@ from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection
-from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError, ResolveInfo
 from graphql.language.ast import FragmentSpread
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
@@ -51,28 +50,6 @@ def get_field_value(instance: DjangoModel, field_name: str):
     return attr
 
 
-def _prepare_filter_by_rank_expression(
-    cursor: List[str],
-    sorting_direction: str,
-) -> Q:
-    try:
-        rank = Decimal(cursor[0])
-        int(cursor[1])
-    except (InvalidOperation, ValueError, TypeError, KeyError):
-        raise ValueError("Invalid cursor for sorting by rank.")
-
-    # Because rank is float number, it gets mangled by PostgreSQL's query parser
-    # making equal comparisons impossible. Instead we compare rank against small
-    # range of values, constructed using epsilon.
-    if sorting_direction == "gt":
-        return Q(rank__range=(rank - EPSILON, rank + EPSILON), id__lt=cursor[1]) | Q(
-            rank__gt=rank + EPSILON
-        )
-    return Q(rank__range=(rank - EPSILON, rank + EPSILON), id__gt=cursor[1]) | Q(
-        rank__lt=rank - EPSILON
-    )
-
-
 def _prepare_filter_expression(
     field_name: str,
     index: int,
@@ -114,10 +91,6 @@ def _prepare_filter(
                 ('first_field', 'first_value_form_cursor'))
         )
     """
-    if sorting_fields == ["rank", "id"]:
-        # Fast path for filtering by rank
-        return _prepare_filter_by_rank_expression(cursor, sorting_direction)
-
     filter_kwargs = Q()
     for index, field_name in enumerate(sorting_fields):
         if cursor[index] is None and sorting_direction == "gt":
@@ -502,16 +475,3 @@ class CountableConnection(NonNullConnection):
             return total_count()
 
         return total_count
-
-
-class CountableDjangoObjectType(DjangoObjectType):
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def __init_subclass_with_meta__(cls, *args, **kwargs):
-        # Force it to use the countable connection
-        countable_conn = CountableConnection.create_type(
-            "{}CountableConnection".format(cls.__name__), node=cls
-        )
-        super().__init_subclass_with_meta__(*args, connection=countable_conn, **kwargs)

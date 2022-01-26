@@ -9,7 +9,7 @@ from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
 
 from ....webhook.event_types import WebhookEventAsyncType
 from ...webhook import signature_for_payload
-from ...webhook.tasks import trigger_webhooks_for_event
+from ...webhook.tasks import trigger_webhooks_async
 
 
 @pytest.mark.parametrize(
@@ -46,8 +46,7 @@ def test_trigger_webhooks_with_aws_sqs(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-
-    trigger_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED, expected_data)
+    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
 
     mocked_client_constructor.assert_called_once_with(
         "sqs",
@@ -96,11 +95,11 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
+    message = expected_data
     expected_signature = signature_for_payload(
-        expected_data.encode("utf-8"), webhook.secret_key
+        message.encode("utf-8"), webhook.secret_key
     )
-
-    trigger_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED, expected_data)
+    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
 
     mocked_client_constructor.assert_called_once_with(
         "sqs",
@@ -135,10 +134,9 @@ def test_trigger_webhooks_with_google_pub_sub(
     webhook.app.permissions.add(permission_manage_orders)
     webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     webhook.save()
-
     expected_data = serialize("json", [order_with_lines])
 
-    trigger_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED, expected_data)
+    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
@@ -167,13 +165,14 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
+    message = expected_data
     expected_signature = signature_for_payload(
-        expected_data.encode("utf-8"), webhook.secret_key
+        message.encode("utf-8"), webhook.secret_key
     )
-    trigger_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED, expected_data)
+    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
-        expected_data.encode("utf-8"),
+        message.encode("utf-8"),
         saleorDomain="mirumee.com",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
@@ -196,7 +195,7 @@ def test_trigger_webhooks_with_http(
 
     expected_data = serialize("json", [order_with_lines])
 
-    trigger_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED, expected_data)
+    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
 
     expected_headers = {
         "Content-Type": "application/json",
@@ -228,7 +227,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    trigger_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED, expected_data)
+    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
 
     expected_signature = signature_for_payload(
         expected_data.encode("utf-8"), webhook.secret_key

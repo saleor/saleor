@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from ....account.models import Address
@@ -17,9 +19,12 @@ def vcr_config():
 
 @pytest.fixture
 def plugin_configuration(db, channel_USD):
+    default_username = os.environ.get("AVALARA_USERNAME", "test")
+    default_password = os.environ.get("AVALARA_PASSWORD", "test")
+
     def set_configuration(
-        username="test",
-        password="test",
+        username=default_username,
+        password=default_password,
         sandbox=False,
         channel=None,
         active=True,
@@ -85,9 +90,10 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
     channel = checkout.channel
     shipping_address = checkout.shipping_address
     shipping_method = checkout.shipping_method
-    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        shipping_method=shipping_method, channel=channel
-    ).first()
+    shipping_channel_listing = ShippingMethodChannelListing.objects.get(
+        channel=channel,
+        shipping_method=shipping_method,
+    )
     checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
@@ -95,11 +101,11 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=get_delivery_method_info(
-            convert_to_shipping_method_data(shipping_method), shipping_address
+            convert_to_shipping_method_data(shipping_method, shipping_channel_listing),
+            shipping_address,
         ),
-        shipping_method_channel_listings=shipping_channel_listings,
-        valid_shipping_methods=[],
         valid_pick_up_points=[],
+        all_shipping_methods=[],
     )
     return checkout_info
 

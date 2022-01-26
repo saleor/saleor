@@ -28,7 +28,7 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
-from ..product.models import Product
+from ..product.models import Collection, Product
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -151,6 +151,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "undiscounted_total_price_net_amount",
         "undiscounted_total_price_gross_amount",
         "tax_rate",
+        "sale_id",
+        "voucher_code",
     )
     line_price_fields = (
         "unit_price_gross_amount",
@@ -484,6 +486,30 @@ def generate_customer_payload(
     return data
 
 
+@traced_payload_generator
+def generate_collection_payload(
+    collection: "Collection", requestor: Optional["RequestorOrLazyObject"] = None
+):
+    serializer = PayloadSerializer()
+    data = serializer.serialize(
+        [collection],
+        fields=[
+            "name",
+            "description",
+            "background_image_alt",
+            "private_metadata",
+            "metadata",
+        ],
+        extra_dict_data={
+            "background_image": build_absolute_uri(collection.background_image.url)
+            if collection.background_image
+            else None,
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+        },
+    )
+    return data
+
+
 PRODUCT_FIELDS = (
     "name",
     "description",
@@ -735,6 +761,8 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             )
             if fl.stock
             else None,
+            "sale_id": lambda fl: fl.order_line.sale_id,
+            "voucher_code": lambda fl: fl.order_line.voucher_code,
         },
     )
 

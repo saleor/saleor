@@ -34,6 +34,19 @@
                 </span>
             </td>
         </tr>
+        {% if gift_cards_payment.amount > 0 %}
+            <tr class="summary-row">
+                <td class="cell-summary">
+                    <span class="normal-text-table">Gift cards</span>
+                </td>
+                <td class="cell-quantity"></td>
+                <td class="cell-total-price">
+                    <span class="header-item">
+                        -{% price gift_cards_payment %}
+                    </span>
+                </td>
+            </tr>
+        {% endif %}
         <tr class="summary-row">
             <td class="cell-summary">
                 <span class="normal-text-table"><b>Grand Total</b></span>

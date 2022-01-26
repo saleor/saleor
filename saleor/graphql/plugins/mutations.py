@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ...core.permissions import PluginsPermissions
 from ...plugins.error_codes import PluginErrorCode
+from ...plugins.manager import get_plugins_manager
 from ..channel.types import Channel
 from ..core.mutations import BaseMutation
 from ..core.types.common import PluginError
@@ -98,4 +99,5 @@ class PluginUpdate(BaseMutation):
         input_data = cleaned_data["data"]
         manager = info.context.plugins
         manager.save_plugin_configuration(plugin_id, channel_slug, input_data)
+        manager = get_plugins_manager()
         return PluginUpdate(plugin=resolve_plugin(plugin_id, manager))

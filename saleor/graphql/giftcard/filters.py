@@ -1,3 +1,5 @@
+from typing import List
+
 import django_filters
 import graphene
 from django.db.models import Exists, OuterRef
@@ -7,25 +9,16 @@ from graphql.error import GraphQLError
 from ...account import models as account_models
 from ...giftcard import models
 from ...product import models as product_models
-from ..account import types as account_types
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
-from ..product.types import products as product_types
 from ..utils import resolve_global_ids_to_primary_keys
-
-
-def filter_gift_card_tag(qs, _, value):
-    if not value:
-        return qs
-    return qs.filter(tag__ilike=value)
+from .enums import GiftCardEventsEnum
 
 
 def filter_products(qs, _, value):
     if value:
-        _, product_pks = resolve_global_ids_to_primary_keys(
-            value, product_types.Product
-        )
+        _, product_pks = resolve_global_ids_to_primary_keys(value, "Product")
         qs = filter_gift_cards_by_products(qs, product_pks)
     return qs
 
@@ -37,7 +30,7 @@ def filter_gift_cards_by_products(qs, product_ids):
 
 def filter_used_by(qs, _, value):
     if value:
-        _, user_pks = resolve_global_ids_to_primary_keys(value, account_types.User)
+        _, user_pks = resolve_global_ids_to_primary_keys(value, "User")
         qs = filter_gift_cards_by_used_by_user(qs, user_pks)
     return qs
 
@@ -50,7 +43,14 @@ def filter_gift_cards_by_used_by_user(qs, user_pks):
 def filter_tags_list(qs, _, value):
     if not value:
         return qs
-    return qs.filter(tag__in=value)
+    tags = models.GiftCardTag.objects.filter(name__in=value)
+    return qs.filter(Exists(tags.filter(pk=OuterRef("tags__id"))))
+
+
+def filter_gift_card_used(qs, _, value):
+    if value is None:
+        return qs
+    return qs.filter(used_by_email__isnull=not value)
 
 
 def filter_currency(qs, _, value):
@@ -75,10 +75,10 @@ def filter_code(qs, _, value):
 
 
 class GiftCardFilter(MetadataFilterBase):
-    tag = django_filters.CharFilter(method=filter_gift_card_tag)
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
     used_by = GlobalIDMultipleChoiceFilter(method=filter_used_by)
+    used = django_filters.BooleanFilter(method=filter_gift_card_used)
     currency = django_filters.CharFilter(method=filter_currency)
     current_balance = ObjectTypeFilter(
         input_class=PriceRangeInput, method="filter_current_balance"
@@ -113,3 +113,40 @@ def check_currency_in_filter_data(filter_data: dict):
 class GiftCardFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = GiftCardFilter
+
+
+def filter_events_by_type(events: List[models.GiftCardEvent], type_value: str):
+    filtered_events = []
+    for event in events:
+        if event.type == type_value:
+            filtered_events.append(event)
+    return filtered_events
+
+
+def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[str]):
+    _, order_pks = resolve_global_ids_to_primary_keys(order_ids, "Order")
+    filtered_events = []
+    for event in events:
+        if str(event.parameters.get("order_id")) in order_pks:
+            filtered_events.append(event)
+    return filtered_events
+
+
+class GiftCardEventFilterInput(graphene.InputObjectType):
+    type = graphene.Argument(GiftCardEventsEnum)
+    orders = graphene.List(graphene.NonNull(graphene.ID))
+
+
+def filter_gift_card_tag_search(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(name__ilike=value)
+
+
+class GiftCardTagFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_gift_card_tag_search)
+
+
+class GiftCardTagFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = GiftCardTagFilter

@@ -5,7 +5,6 @@ import pytest
 
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
-from ....shipping.utils import get_countries_without_shipping_zone
 from ....tests.utils import dummy_editorjs
 from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
@@ -125,10 +124,17 @@ def test_create_shipping_zone_without_warehouses_and_channels(
     assert zone["default"] is False
 
 
+TEST_COUNTRIES_LIST = ["DZ", "AX", "BY"]
+
+
+@patch(
+    "saleor.graphql.shipping.mutations.shippings.get_countries_without_shipping_zone",
+    return_value=TEST_COUNTRIES_LIST,
+)
 def test_create_default_shipping_zone(
-    staff_api_client, warehouse, permission_manage_shipping
+    _, staff_api_client, warehouse, permission_manage_shipping
 ):
-    unassigned_countries = set(get_countries_without_shipping_zone())
+    unassigned_countries = TEST_COUNTRIES_LIST
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
         "default": True,
@@ -139,6 +145,7 @@ def test_create_default_shipping_zone(
     response = staff_api_client.post_graphql(
         CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
+    expected_countries = set(unassigned_countries + variables["countries"])
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
     assert not data["errors"]
@@ -146,8 +153,8 @@ def test_create_default_shipping_zone(
     assert zone["name"] == "test shipping"
     assert zone["warehouses"][0]["name"] == warehouse.name
     assert zone["default"] is True
-    zone_countries = {c.code for c in zone["countries"]}
-    assert zone_countries == unassigned_countries
+    zone_countries = {c["code"] for c in zone["countries"]}
+    assert zone_countries == expected_countries
 
 
 def test_create_duplicated_default_shipping_zone(
@@ -1025,7 +1032,7 @@ def test_update_shipping_method(
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     max_del_days = 8
     min_del_days = 2
@@ -1059,7 +1066,7 @@ def test_update_shipping_method_postal_codes(
         "ShippingZone", shipping_method_excluded_by_postal_code.shipping_zone.pk
     )
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excluded_by_postal_code.pk
+        "ShippingMethodType", shipping_method_excluded_by_postal_code.pk
     )
     postal_code_rule_id = graphene.Node.to_global_id(
         "ShippingMethodPostalCodeRule",
@@ -1096,7 +1103,7 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_maximum(
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     max_del_days = 2
     min_del_days = 8
@@ -1129,7 +1136,7 @@ def test_update_shipping_method_minimum_delivery_days_below_0(
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     max_del_days = 2
     min_del_days = -1
@@ -1162,7 +1169,7 @@ def test_update_shipping_method_maximum_delivery_days_below_0(
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     max_del_days = -1
     min_del_days = 10
@@ -1197,7 +1204,7 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_max_from_insta
     shipping_method.save(update_fields=["maximum_delivery_days"])
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     min_del_days = 8
     variables = {
@@ -1230,7 +1237,7 @@ def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instan
     shipping_method.save(update_fields=["minimum_delivery_days"])
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     max_del_days = 5
     variables = {
@@ -1263,7 +1270,7 @@ def test_update_shipping_method_multiple_errors(
     shipping_method.save(update_fields=["minimum_delivery_days"])
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     max_del_days = 5
     variables = {
@@ -1312,7 +1319,7 @@ def test_update_shipping_method_delivery_days_without_value(
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     variables = {
         "shippingZone": shipping_zone_id,
@@ -1354,7 +1361,7 @@ def test_delete_shipping_method(
         }
         """
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     shipping_zone_id = graphene.Node.to_global_id(
         "ShippingZone", shipping_method.shipping_zone.pk
@@ -1409,7 +1416,7 @@ def test_exclude_products_for_shipping_method_only_products(
 ):
     api = staff_api_client if requestor == "staff" else app_api_client
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
     variables = {"id": shipping_method_id, "input": {"products": product_ids}}
@@ -1437,7 +1444,7 @@ def test_exclude_products_for_shipping_method_already_has_excluded_products(
 ):
     api = staff_api_client if requestor == "staff" else app_api_client
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     shipping_method.excluded_products.add(product, product_list[0])
     product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
@@ -1494,7 +1501,7 @@ def test_remove_products_from_excluded_products_for_shipping_method_delete_all_p
 ):
     api = staff_api_client if requestor == "staff" else app_api_client
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     shipping_method.excluded_products.set(product_list)
 
@@ -1529,7 +1536,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
 ):
     api = staff_api_client if requestor == "staff" else app_api_client
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method.pk
+        "ShippingMethodType", shipping_method.pk
     )
     shipping_method.excluded_products.set(product_list)
     shipping_method.excluded_products.add(product)

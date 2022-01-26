@@ -1,4 +1,4 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -28,6 +28,9 @@ from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
 from .types import Payment, PaymentInitialized
 from .utils import metadata_contains_empty_key
+
+if TYPE_CHECKING:
+    from ...checkout import models as checkout_models
 
 
 def description(enum):
@@ -189,6 +192,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 }
             )
 
+    @staticmethod
+    def validate_checkout_email(checkout: "checkout_models.Checkout"):
+        if not checkout.email:
+            raise ValidationError(
+                "Checkout email must be set.",
+                code=PaymentErrorCode.CHECKOUT_EMAIL_NOT_SET.value,
+            )
+
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
         # DEPRECATED
@@ -203,6 +214,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             checkout = cls.get_node_or_error(
                 info, checkout_id or token, only_type=Checkout, field="checkout_id"
             )
+
+        cls.validate_checkout_email(checkout)
 
         data = data["input"]
         gateway = data["gateway"]
@@ -246,20 +259,23 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             cls.validate_metadata_keys(metadata)
             metadata = {data.key: data.value for data in metadata}
 
-        payment = create_payment(
-            gateway=gateway,
-            payment_token=data.get("token", ""),
-            total=amount,
-            currency=checkout.currency,
-            email=checkout.get_customer_email(),
-            extra_data=extra_data,
-            # FIXME this is not a customer IP address. It is a client storefront ip
-            customer_ip_address=get_client_ip(info.context),
-            checkout=checkout,
-            return_url=data.get("return_url"),
-            store_payment_method=data["store_payment_method"],
-            metadata=metadata,
-        )
+        payment = None
+        if amount != 0:
+            payment = create_payment(
+                gateway=gateway,
+                payment_token=data.get("token", ""),
+                total=amount,
+                currency=checkout.currency,
+                email=checkout.get_customer_email(),
+                extra_data=extra_data,
+                # FIXME this is not a customer IP address. It is a client storefront ip
+                customer_ip_address=get_client_ip(info.context),
+                checkout=checkout,
+                return_url=data.get("return_url"),
+                store_payment_method=data["store_payment_method"],
+                metadata=metadata,
+            )
+
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
 

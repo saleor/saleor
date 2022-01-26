@@ -56,7 +56,8 @@ from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...discount.utils import fetch_discounts
-from ...giftcard.models import GiftCard
+from ...giftcard import events as gift_card_events
+from ...giftcard.models import GiftCard, GiftCardTag
 from ...menu.models import Menu
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
@@ -79,6 +80,7 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
+from ...product.search import update_products_search_document
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
@@ -163,10 +165,15 @@ IMAGES_MAPPING = {
     122: ["saleor-digital-03_4.png"],
     123: ["saleor-digital-03_5.png"],
     124: ["saleor-digital-03_6.png"],
+    125: ["saleordemoproduct_giftcard_01.png", "saleordemoproduct_giftcard_02.png"],
 }
 
 
-CATEGORY_IMAGES = {7: "accessories.jpg", 8: "groceries.jpg", 9: "apparel.jpg"}
+CATEGORY_IMAGES = {
+    7: "accessories.jpg",
+    8: "groceries.jpg",
+    9: "apparel.jpg",
+}
 
 COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
@@ -262,6 +269,8 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults["weight"] = get_weight(defaults["weight"])
         defaults["category_id"] = defaults.pop("category")
         defaults["product_type_id"] = defaults.pop("product_type")
+        if default_variant := defaults.pop("default_variant", None):
+            defaults["default_variant_id"] = default_variant
 
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -461,6 +470,8 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
+    update_products_search_document(Product.objects.all())
+
 
 class SaleorProvider(BaseProvider):
     def money(self):
@@ -602,17 +613,20 @@ def create_order_lines(order, discounts, how_many=10):
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
         variant = line.variant
-        unit_price = manager.calculate_order_line_unit(
+        unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
-        total_price = manager.calculate_order_line_total(
+        total_price_data = manager.calculate_order_line_total(
             order, line, variant, variant.product
         )
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
@@ -653,17 +667,20 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
     preorder_allocations = []
     for line in lines:
         variant = line.variant
-        unit_price = manager.calculate_order_line_unit(
+        unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
-        total_price = manager.calculate_order_line_total(
+        total_price_data = manager.calculate_order_line_total(
             order, line, variant, variant.product
         )
-        line.unit_price = unit_price
-        line.total_price = total_price
-        line.undiscounted_unit_price = unit_price
-        line.undiscounted_total_price = total_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
         variant_channel_listing = variant.channel_listings.get(channel=channel)
         preorder_allocations.append(
             PreorderAllocation(
@@ -773,7 +790,6 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
             "user_email": get_email(address.first_name, address.last_name),
         }
 
-    manager = get_plugins_manager()
     shipping_method_channel_listing = (
         ShippingMethodChannelListing.objects.filter(channel=channel)
         .order_by("?")
@@ -781,9 +797,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     )
     shipping_method = shipping_method_channel_listing.shipping_method
     shipping_price = shipping_method_channel_listing.price
-    shipping_price = manager.apply_taxes_to_shipping(
-        shipping_price, address, channel_slug=channel.slug
-    )
+    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
     order_data.update(
         {
             "channel": channel,
@@ -1418,22 +1432,42 @@ def create_vouchers():
         yield "Value voucher already exists"
 
 
-def create_gift_card():
-    user = random.choice(
-        [User.objects.filter(is_superuser=False).order_by("?").first()]
-    )
-    gift_card, created = GiftCard.objects.get_or_create(
-        code="Gift_card_10",
-        defaults={
-            "created_by": user,
-            "initial_balance": Money(10, DEFAULT_CURRENCY),
-            "current_balance": Money(10, DEFAULT_CURRENCY),
-        },
-    )
-    if created:
-        yield "Gift card #%d" % gift_card.id
-    else:
-        yield "Gift card already exists"
+def create_gift_cards(how_many=5):
+    product_pk = Product.objects.get(name="Gift card").pk
+    tag, _ = GiftCardTag.objects.get_or_create(name="issued-gift-cards")
+    for i in range(how_many):
+        staff_user = User.objects.filter(is_staff=True).order_by("?").first()
+        gift_card, created = GiftCard.objects.get_or_create(
+            code=f"Gift_card_{i+1}",
+            defaults={
+                "created_by": staff_user,
+                "initial_balance": Money(50, DEFAULT_CURRENCY),
+                "current_balance": Money(50, DEFAULT_CURRENCY),
+            },
+        )
+        gift_card.tags.add(tag)
+        gift_card_events.gift_card_issued_event(gift_card, staff_user, None)
+        if created:
+            yield "Gift card #%d" % gift_card.id
+        else:
+            yield "Gift card already exists"
+
+        user = User.objects.filter(is_superuser=False).order_by("?").first()
+        gift_card, created = GiftCard.objects.get_or_create(
+            code=f"Gift_card_1{i+1}",
+            defaults={
+                "created_by": user,
+                "product_id": product_pk,
+                "initial_balance": Money(20, DEFAULT_CURRENCY),
+                "current_balance": Money(20, DEFAULT_CURRENCY),
+            },
+        )
+        order_id = Order.objects.order_by("?").first().id
+        gift_card_events.gift_cards_bought_event([gift_card], order_id, user, None)
+        if created:
+            yield "Gift card #%d" % gift_card.id
+        else:
+            yield "Gift card already exists"
 
 
 def add_address_to_admin(email):
