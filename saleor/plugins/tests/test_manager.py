@@ -21,6 +21,7 @@ from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
     ACTIVE_PLUGINS,
     ALL_PLUGINS,
+    SAMPLE_TAX_CODES,
     ActiveDummyPaymentGateway,
     ActivePaymentGateway,
     ChannelPluginSample,
@@ -1122,3 +1123,14 @@ def test_manager_delivery_retry(event_delivery):
     manager = PluginsManager(plugins=plugins)
     delivery_retry = manager.event_delivery_retry(event_delivery=event_delivery)
     assert delivery_retry
+
+
+@pytest.mark.parametrize(
+    "plugins, expected_tax_codes",
+    [
+        ([], []),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], SAMPLE_TAX_CODES),
+    ],
+)
+def test_manager_get_tax_codes(plugins, expected_tax_codes):
+    assert PluginsManager(plugins=plugins).get_tax_codes() == expected_tax_codes

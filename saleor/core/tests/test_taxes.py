@@ -10,6 +10,7 @@ from saleor.core.taxes import (
     TaxType,
     _get_cached_tax_codes_or_fetch,
     _get_current_tax_app,
+    fetch_tax_types,
     get_tax_type,
     set_tax_code,
 )
@@ -257,3 +258,29 @@ def test_get_tax_code_old_method(product, tax_type):
     # then
     assert fetched_tax_type == tax_type
     mocked_get_tax_code_from_object_meta.assert_called_once_with(product)
+
+
+@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
+def test_fetch_tax_types(mocked_get_cached_tax_codes_or_fetch, tax_types):
+    # given
+    mocked_get_cached_tax_codes_or_fetch.return_value = tax_types
+    manager = Mock(get_tax_rate_type_choices=Mock(return_value=Mock()))
+
+    # when
+    expected_tax_types = fetch_tax_types(manager)
+
+    # then
+    assert tax_types == expected_tax_types
+
+
+@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
+def test_fetch_tax_types_old_method(mocked_get_cached_tax_codes_or_fetch, tax_types):
+    # given
+    mocked_get_cached_tax_codes_or_fetch.return_value = []
+    manager = Mock(get_tax_rate_type_choices=Mock(return_value=tax_types))
+
+    # when
+    expected_tax_types = fetch_tax_types(manager)
+
+    # then
+    assert tax_types == expected_tax_types

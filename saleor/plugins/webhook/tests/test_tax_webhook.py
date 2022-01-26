@@ -6,7 +6,7 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import generate_checkout_payload, generate_order_payload
-from ..utils import parse_tax_data
+from ..utils import parse_tax_codes, parse_tax_data
 
 
 @freeze_time()
@@ -101,3 +101,44 @@ def test_get_taxes_for_order_no_permission(
     # then
     assert mock_request.call_count == 0
     assert tax_data is None
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_tax_codes(
+    mock_request,
+    permission_handle_taxes,
+    webhook_plugin,
+    tax_codes_webhook,
+    tax_codes_response,
+    tax_app,
+):
+    # given
+    mock_request.return_value = tax_codes_response
+    plugin = webhook_plugin()
+
+    # when
+    tax_codes = plugin.get_tax_codes(None)
+
+    # then
+    delivery = EventDelivery.objects.get()
+    assert delivery.status == EventDeliveryStatus.PENDING
+    assert delivery.event_type == WebhookEventSyncType.FETCH_TAX_CODES
+    assert delivery.webhook == tax_codes_webhook
+    mock_request.assert_called_once_with(tax_codes_webhook.app.name, delivery)
+    assert tax_codes == parse_tax_codes(tax_codes_response)
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_tax_codes_no_permission(
+    mock_request,
+    webhook_plugin,
+):
+    # given
+    plugin = webhook_plugin()
+
+    # when
+    tax_codes = plugin.get_tax_codes(None)
+
+    # then
+    assert mock_request.call_count == 0
+    assert tax_codes == []

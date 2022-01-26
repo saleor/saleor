@@ -3,7 +3,12 @@ import decimal
 import pytest
 
 from ....core.taxes import TaxData
-from ..utils import _unsafe_parse_tax_data, _unsafe_parse_tax_line_data, parse_tax_data
+from ..utils import (
+    _unsafe_parse_tax_data,
+    _unsafe_parse_tax_line_data,
+    parse_tax_codes,
+    parse_tax_data,
+)
 
 
 def test_unsafe_parse_tax_line_data_success(tax_line_data_response):
@@ -123,3 +128,23 @@ def test_parse_tax_data_decimalexception(tax_data_response):
 
     # then
     assert tax_data is None
+
+
+def test_parse_tax_codes_success(tax_codes_response):
+    assert parse_tax_codes(tax_codes_response)
+
+
+def test_parse_tax_codes_malformed(tax_codes_response):
+    assert not parse_tax_codes({})
+
+
+@pytest.mark.parametrize("key", ["code", "description"])
+def test_parse_tax_codes_keyerror(key, tax_codes_response):
+    # given
+    tax_codes_response[0][key + "_bad"] = tax_codes_response[0].pop(key)
+
+    # when
+    tax_codes = parse_tax_codes(tax_codes_response)
+
+    # then
+    assert not tax_codes

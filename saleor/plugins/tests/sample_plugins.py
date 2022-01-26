@@ -61,6 +61,11 @@ def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
     )
 
 
+SAMPLE_TAX_CODES: List[TaxType] = [
+    TaxType(code=f"code_{i}", description=f"description_{i}") for i in range(1, 4)
+]
+
+
 class PluginSample(BasePlugin):
     PLUGIN_ID = "plugin.sample"
     PLUGIN_NAME = "PluginSample"
@@ -280,6 +285,9 @@ class PluginSample(BasePlugin):
         previous_value: Decimal,
     ) -> Decimal:
         return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_tax_codes(self, previous_value) -> List[TaxType]:
+        return SAMPLE_TAX_CODES
 
     def get_checkout_shipping_tax_rate(
         self,
