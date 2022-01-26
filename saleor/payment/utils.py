@@ -378,6 +378,7 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "partial": False,
         "psp_reference": external_reference or "",
     }
 

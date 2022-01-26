@@ -17,7 +17,7 @@ from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
-from ....interface import PaymentMethodInfo
+from ....interface import GatewayConfig, PaymentMethodInfo
 from ....utils import price_to_minor_unit
 
 if TYPE_CHECKING:
@@ -30,6 +30,16 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
+
+
+def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
+    api_key = config.connection_params["api_key"]
+
+    live_endpoint = config.connection_params["live"] or None
+    platform = "live" if live_endpoint else "test"
+    return Adyen.Adyen(
+        xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
+    )
 
 
 def get_tax_percentage_in_adyen_format(total_gross, total_net):
@@ -336,18 +346,20 @@ def request_data_for_gateway_config(
 
 
 def request_for_payment_refund(
-    payment_information: "PaymentData", merchant_account, token
+    amount: Decimal,
+    currency: str,
+    graphql_payment_id: str,
+    merchant_account: str,
+    token: str,
 ) -> Dict[str, Any]:
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": price_to_minor_unit(
-                payment_information.amount, payment_information.currency
-            ),
-            "currency": payment_information.currency,
+            "value": price_to_minor_unit(amount, currency),
+            "currency": currency,
         },
         "originalReference": token,
-        "reference": payment_information.graphql_payment_id,
+        "reference": graphql_payment_id,
     }
 
 
@@ -386,6 +398,28 @@ def update_payment_with_action_required_data(
 
     payment.extra_data = json.dumps(extra_data)
     payment.save(update_fields=["extra_data"])
+
+
+def call_refund(
+    amount: Decimal,
+    currency: str,
+    graphql_payment_id: str,
+    merchant_account: str,
+    token: str,
+    adyen_client: Adyen.Adyen,
+):
+    request = request_for_payment_refund(
+        amount,
+        currency,
+        graphql_payment_id,
+        merchant_account=merchant_account,
+        token=token,
+    )
+    with opentracing.global_tracer().start_active_span("adyen.payment.refund") as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "adyen")
+        return api_call(request, adyen_client.payment.refund)
 
 
 def call_capture(
