@@ -90,7 +90,7 @@ def test_generate_order_payload(
         assert payload.get(field) is not None
 
     assert payload["collection_point_name"] is None
-
+    assert payload.get("token") == order_with_lines.token
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
@@ -541,6 +541,7 @@ def test_generate_invoice_payload(fulfilled_order):
         },
         "order": {
             "type": "Order",
+            "token": invoice.order.token,
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
             "private_metadata": {},
             "metadata": {},
