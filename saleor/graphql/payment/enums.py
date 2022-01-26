@@ -1,8 +1,9 @@
 import graphene
 
 from ...graphql.core.enums import to_enum
-from ...payment import ChargeStatus
+from ...payment import ChargeStatus, TransactionKind
 
+TransactionKindEnum = to_enum(TransactionKind, type_name="TransactionKind")
 PaymentChargeStatusEnum = to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
 
 

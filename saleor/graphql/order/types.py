@@ -53,17 +53,19 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..channel.types import Channel
+from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
+from ..core.types import ModelObjectType, Money, TaxedMoney, Weight
 from ..core.types.common import Image, OrderError
-from ..core.types.money import Money, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
+from ..discount.types import Voucher
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
@@ -75,7 +77,7 @@ from ..product.dataloaders import (
     ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
 )
-from ..product.types import ProductVariant
+from ..product.types import DigitalContentUrl, ProductVariant
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByChannelSlugLoader,
@@ -92,7 +94,13 @@ from .dataloaders import (
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
+from .enums import (
+    FulfillmentStatusEnum,
+    OrderEventsEmailsEnum,
+    OrderEventsEnum,
+    OrderOriginEnum,
+    OrderStatusEnum,
+)
 from .utils import validate_draft_order
 
 logger = logging.getLogger(__name__)
@@ -159,7 +167,8 @@ class OrderEventOrderLineObject(graphene.ObjectType):
     )
 
 
-class OrderEvent(CountableDjangoObjectType):
+class OrderEvent(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -207,7 +216,6 @@ class OrderEvent(CountableDjangoObjectType):
         description = "History log of the order."
         model = models.OrderEvent
         interfaces = [relay.Node]
-        only_fields = ["id"]
 
     @staticmethod
     def resolve_user(root: models.OrderEvent, info):
@@ -367,21 +375,27 @@ class OrderEventCountableConnection(CountableConnection):
         node = OrderEvent
 
 
-class FulfillmentLine(CountableDjangoObjectType):
+class FulfillmentLine(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    quantity = graphene.Int(required=True)
     order_line = graphene.Field(lambda: OrderLine)
 
     class Meta:
         description = "Represents line of the fulfillment."
         interfaces = [relay.Node]
         model = models.FulfillmentLine
-        only_fields = ["id", "quantity"]
 
     @staticmethod
     def resolve_order_line(root: models.FulfillmentLine, info):
         return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
-class Fulfillment(CountableDjangoObjectType):
+class Fulfillment(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    fulfillment_order = graphene.Int(required=True)
+    status = FulfillmentStatusEnum(required=True)
+    tracking_number = graphene.String(required=True)
+    created = graphene.DateTime(required=True)
     lines = graphene.List(
         FulfillmentLine, description="List of lines for the fulfillment."
     )
@@ -396,13 +410,6 @@ class Fulfillment(CountableDjangoObjectType):
         description = "Represents order fulfillment."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Fulfillment
-        only_fields = [
-            "fulfillment_order",
-            "id",
-            "created",
-            "status",
-            "tracking_number",
-        ]
 
     @staticmethod
     def resolve_lines(root: models.Fulfillment, _info):
@@ -418,7 +425,18 @@ class Fulfillment(CountableDjangoObjectType):
         return line.stock.warehouse if line and line.stock else None
 
 
-class OrderLine(CountableDjangoObjectType):
+class OrderLine(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    product_name = graphene.String(required=True)
+    variant_name = graphene.String(required=True)
+    product_sku = graphene.String()
+    product_variant_id = graphene.String()
+    is_shipping_required = graphene.Boolean(required=True)
+    quantity = graphene.Int(required=True)
+    quantity_fulfilled = graphene.Int(required=True)
+    unit_discount_reason = graphene.String()
+    tax_rate = graphene.Float(required=True)
+    digital_content_url = graphene.Field(DigitalContentUrl)
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for the ordered product.",
@@ -481,19 +499,6 @@ class OrderLine(CountableDjangoObjectType):
         description = "Represents order line of particular order."
         model = models.OrderLine
         interfaces = [relay.Node]
-        only_fields = [
-            "digital_content_url",
-            "id",
-            "is_shipping_required",
-            "product_name",
-            "variant_name",
-            "product_sku",
-            "product_variant_id",
-            "quantity",
-            "quantity_fulfilled",
-            "tax_rate",
-            "unit_discount_reason",
-        ]
 
     @staticmethod
     @traced_resolver
@@ -616,7 +621,17 @@ class OrderLine(CountableDjangoObjectType):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
-class Order(CountableDjangoObjectType):
+class Order(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    created = graphene.DateTime(required=True)
+    status = OrderStatusEnum(required=True)
+    user = graphene.Field(User)
+    tracking_client_id = graphene.String(required=True)
+    billing_address = graphene.Field("saleor.graphql.account.types.Address")
+    shipping_address = graphene.Field("saleor.graphql.account.types.Address")
+    shipping_method_name = graphene.String()
+    collection_point_name = graphene.String()
+    channel = graphene.Field(Channel, required=True)
     fulfillments = graphene.List(
         Fulfillment, required=True, description="List of shipments for the order."
     )
@@ -677,12 +692,24 @@ class Order(CountableDjangoObjectType):
         description="Shipping method for this order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
+
+    shipping_price = graphene.Field(
+        TaxedMoney, description="Total price of shipping.", required=True
+    )
+    shipping_tax_rate = graphene.Float(required=True)
+    token = graphene.String(required=True)
+    voucher = graphene.Field(Voucher)
+    gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
+    display_gross_prices = graphene.Boolean(required=True)
+    customerNote = graphene.Boolean(required=True)
+    customer_note = graphene.String(required=True)
+    weight = graphene.Field(Weight)
+    redirect_url = graphene.String()
     subtotal = graphene.Field(
         TaxedMoney,
         description="The sum of line prices not including shipping.",
         required=True,
     )
-    gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
     status_display = graphene.String(description="User-friendly order status.")
     can_finalize = graphene.Boolean(
         description=(
@@ -756,30 +783,6 @@ class Order(CountableDjangoObjectType):
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Order
-        only_fields = [
-            "billing_address",
-            "created",
-            "customer_note",
-            "channel",
-            "discount",
-            "discount_name",
-            "display_gross_prices",
-            "gift_cards",
-            "id",
-            "shipping_address",
-            "shipping_method_name",
-            "collection_point_name",
-            "shipping_price",
-            "shipping_tax_rate",
-            "status",
-            "token",
-            "tracking_client_id",
-            "translated_discount_name",
-            "user",
-            "voucher",
-            "weight",
-            "redirect_url",
-        ]
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):

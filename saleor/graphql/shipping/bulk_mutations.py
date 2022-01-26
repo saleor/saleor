@@ -4,6 +4,7 @@ from ...core.permissions import ShippingPermissions
 from ...shipping import models
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types.common import ShippingError
+from .types import ShippingMethod, ShippingZone
 
 
 class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
@@ -17,6 +18,7 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes shipping zones."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -33,12 +35,24 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes shipping prices."
         model = models.ShippingMethod
+        object_type = ShippingMethod
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
     @classmethod
-    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
+    def get_nodes_or_error(
+        cls,
+        ids,
+        field,
+        only_type=None,
+        qs=None,
+        schema=None,
+    ):
         return super().get_nodes_or_error(
-            ids, field, "ShippingMethodType", qs=models.ShippingMethod.objects
+            ids,
+            field,
+            "ShippingMethodType",
+            qs=models.ShippingMethod.objects,
+            schema=schema,
         )

@@ -206,6 +206,7 @@ class VoucherCreate(ModelMutation):
     class Meta:
         description = "Creates a new voucher."
         model = models.Voucher
+        object_type = Voucher
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
@@ -255,6 +256,7 @@ class VoucherUpdate(VoucherCreate):
     class Meta:
         description = "Updates a voucher."
         model = models.Voucher
+        object_type = Voucher
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
@@ -267,6 +269,7 @@ class VoucherDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a voucher."
         model = models.Voucher
+        object_type = Voucher
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
@@ -568,6 +571,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Meta:
         description = "Creates a new sale."
         model = models.Sale
+        object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
@@ -609,6 +613,7 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Meta:
         description = "Updates a sale."
         model = models.Sale
+        object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
@@ -638,6 +643,7 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
     class Meta:
         description = "Deletes a sale."
         model = models.Sale
+        object_type = Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"

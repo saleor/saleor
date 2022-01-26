@@ -204,6 +204,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Creates a new shipping zone."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -226,6 +227,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Updates a new shipping zone."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -245,6 +247,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a shipping zone."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -448,6 +451,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     class Meta:
         description = "Creates a new shipping price."
         model = models.ShippingMethod
+        object_type = ShippingMethodType
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -481,6 +485,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     class Meta:
         description = "Updates a new shipping price."
         model = models.ShippingMethod
+        object_type = ShippingMethodType
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

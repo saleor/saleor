@@ -110,6 +110,7 @@ class GiftCardCreate(ModelMutation):
     class Meta:
         description = "Creates a new gift card."
         model = models.GiftCard
+        object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
@@ -263,6 +264,7 @@ class GiftCardUpdate(GiftCardCreate):
     class Meta:
         description = "Update a gift card."
         model = models.GiftCard
+        object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
@@ -358,6 +360,7 @@ class GiftCardDelete(ModelDeleteMutation):
     class Meta:
         description = f"{ADDED_IN_31} Delete gift card."
         model = models.GiftCard
+        object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"

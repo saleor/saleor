@@ -6,6 +6,7 @@ from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types.common import OrderError
+from ..types import Order, OrderLine
 
 
 class DraftOrderBulkDelete(ModelBulkDeleteMutation):
@@ -17,6 +18,7 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes draft orders."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -43,6 +45,7 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes order lines."
         model = models.OrderLine
+        object_type = OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
