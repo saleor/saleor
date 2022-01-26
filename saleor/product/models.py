@@ -846,7 +846,7 @@ class CollectionsQueryset(models.QuerySet):
 
 
 class Collection(SeoModel, ModelWithMetadata):
-    name = models.CharField(max_length=250, unique=True)
+    name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     products = models.ManyToManyField(
         Product,
