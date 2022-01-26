@@ -1,4 +1,5 @@
 from decimal import Decimal
+from threading import Lock
 
 import graphene
 from django.contrib.auth.models import Permission
@@ -248,3 +249,15 @@ def get_product_data(product_pk: int, language_code="EN"):
             }
         )
         return product_dict
+
+
+class SingletonMeta(type):
+    _instances = {}
+    _lock: Lock = Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls not in cls._instances:
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
+        return cls._instances[cls]
