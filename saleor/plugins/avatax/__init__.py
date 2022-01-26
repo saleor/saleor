@@ -361,7 +361,7 @@ def get_order_lines_data(
             amount=undiscounted_amount,
         )
 
-        # for invoice transaction we want to include only undiscounted price
+        # for invoice transaction we want to include only final price
         if (
             not invoice_transaction_type
             and undiscounted_amount != price_with_discounts_amount
@@ -372,18 +372,17 @@ def get_order_lines_data(
                 ref1=line.variant.sku,
             )
 
-    if not invoice_transaction_type:
-        discount_amount = get_total_order_discount(order)
-        if discount_amount:
-            append_line_to_data(
-                data=data,
-                quantity=1,
-                amount=discount_amount.amount * -1,
-                tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
-                item_code="Voucher",
-                name="Order discount",
-                tax_included=True,  # Voucher should be always applied as a gross amount
-            )
+    discount_amount = get_total_order_discount(order)
+    if discount_amount:
+        append_line_to_data(
+            data=data,
+            quantity=1,
+            amount=discount_amount.amount * -1,
+            tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
+            item_code="Voucher",
+            name="Order discount",
+            tax_included=True,  # Voucher should be always applied as a gross amount
+        )
 
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id

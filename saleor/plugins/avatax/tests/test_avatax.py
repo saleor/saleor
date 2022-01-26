@@ -2899,8 +2899,8 @@ def test_get_order_request_data_confirmed_order_with_voucher(
     request_data = get_order_request_data(order_with_lines, config)
     lines_data = request_data["createTransactionModel"]["lines"]
 
-    # extra one from shipping data
-    assert len(lines_data) == order_with_lines.lines.count() + 1
+    # extra one from shipping data and from discount
+    assert len(lines_data) == order_with_lines.lines.count() + 1 + 1
 
 
 def test_get_order_request_data_confirmed_order_with_sale(
