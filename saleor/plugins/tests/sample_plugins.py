@@ -18,11 +18,13 @@ if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
+    from ...core.models import EventDelivery, EventDeliveryAttempt
     from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
+    from ...webhook.payloads import TaskParams
 
 
 class PluginSample(BasePlugin):
@@ -256,6 +258,19 @@ class PluginSample(BasePlugin):
         return NotImplemented
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
+        return True
+
+    def report_api_call(
+        self, request: "WSGIRequest", response: "HttpResponse", previous_value: Any
+    ):
+        return True
+
+    def report_event_delivery_attempt(
+        self,
+        attempt: "EventDeliveryAttempt",
+        task_params: "TaskParams",
+        previous_value: Any,
+    ):
         return True
 
 
