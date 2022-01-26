@@ -3,8 +3,7 @@ from sympy.core.singleton import Singleton
 
 
 class AlgoliaApiClient(metaclass=Singleton):
-    def __init__(self, app_id, api_key, locales, *args, **kws):
-        super().__init__(*args, **kws)
+    def __init__(self, api_key, app_id, locales):
         self.client = SearchClient.create(app_id=app_id, api_key=api_key)
         self.indices = {
             locale: self.client.init_index(name=f"products_{locale}")
@@ -20,6 +19,3 @@ class AlgoliaApiClient(metaclass=Singleton):
                     ]
                 }
             )
-
-    def list_indexes(self):
-        return self.indices
