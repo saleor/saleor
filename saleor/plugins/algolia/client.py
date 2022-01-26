@@ -1,10 +1,12 @@
+from typing import List
+
 from algoliasearch.search_client import SearchClient
-from sympy.core.singleton import Singleton
+
+from saleor.plugins.algolia.utils import SingletonMeta
 
 
-class AlgoliaApiClient(metaclass=Singleton):
-    def __init__(self, app_id, api_key, locales, *args, **kws):
-        super().__init__(*args, **kws)
+class AlgoliaApiClient(metaclass=SingletonMeta):
+    def __init__(self, api_key: str, app_id: str, locales: List[str]) -> None:
         self.client = SearchClient.create(app_id=app_id, api_key=api_key)
         self.indices = {
             locale: self.client.init_index(name=f"products_{locale}")
@@ -20,6 +22,3 @@ class AlgoliaApiClient(metaclass=Singleton):
                     ]
                 }
             )
-
-    def list_indexes(self):
-        return self.indices
