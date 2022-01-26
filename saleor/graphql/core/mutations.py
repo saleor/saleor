@@ -13,7 +13,6 @@ from django.core.files.storage import default_storage
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
-from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 
 from ...core.exceptions import PermissionDenied
@@ -25,8 +24,6 @@ from .types import File, Upload
 from .types.common import UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
-
-registry = get_global_registry()
 
 
 def get_model_name(model):
@@ -92,6 +89,7 @@ def attach_error_params(error, params: dict, error_class_fields: set):
 class ModelMutationOptions(MutationOptions):
     exclude = None
     model = None
+    object_type = None
     return_field_name = None
 
 
@@ -224,9 +222,9 @@ class BaseMutation(graphene.Mutation):
         return pks
 
     @classmethod
-    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
+    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None, schema=None):
         try:
-            instances = get_nodes(ids, only_type, qs=qs)
+            instances = get_nodes(ids, only_type, qs=qs, schema=schema)
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
@@ -371,6 +369,7 @@ class ModelMutation(BaseMutation):
         model=None,
         exclude=None,
         return_field_name=None,
+        object_type=None,
         _meta=None,
         **options,
     ):
@@ -388,6 +387,7 @@ class ModelMutation(BaseMutation):
             arguments = {}
 
         _meta.model = model
+        _meta.object_type = object_type
         _meta.return_field_name = return_field_name
         _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
@@ -395,7 +395,8 @@ class ModelMutation(BaseMutation):
         model_type = cls.get_type_for_model()
         if not model_type:
             raise ImproperlyConfigured(
-                "Unable to find type for model %s in graphene registry" % model.__name__
+                f"GraphQL type for model {cls._meta.model.__name__} could not be "
+                f"resolved for {cls.__name__}"
             )
         fields = {return_field_name: graphene.Field(model_type)}
 
@@ -445,7 +446,9 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field_item):
                     instances = (
-                        cls.get_nodes_or_error(value, field_name) if value else []
+                        cls.get_nodes_or_error(value, field_name, schema=info.schema)
+                        if value
+                        else []
                     )
                     cleaned_input[field_name] = instances
 
@@ -484,7 +487,14 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def get_type_for_model(cls):
-        return registry.get_type_for_model(cls._meta.model)
+        if not cls._meta.object_type:
+            raise ImproperlyConfigured(
+                f"Either GraphQL type for model {cls._meta.model.__name__} needs to be "
+                f"specified on object_type option or {cls.__name__} needs to define "
+                "custom get_type_for_model() method."
+            )
+
+        return cls._meta.object_type
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -571,14 +581,28 @@ class BaseBulkMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, model=None, _meta=None, **kwargs):
+    def __init_subclass_with_meta__(
+        cls, model=None, object_type=None, _meta=None, **kwargs
+    ):
         if not model:
             raise ImproperlyConfigured("model is required for bulk mutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
         _meta.model = model
+        _meta.object_type = object_type
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+
+    @classmethod
+    def get_type_for_model(cls):
+        if not cls._meta.object_type:
+            raise ImproperlyConfigured(
+                f"Either GraphQL type for model {cls._meta.model.__name__} needs to be "
+                f"specified on object_type option or {cls.__name__} needs to define "
+                "custom get_type_for_model() method."
+            )
+
+        return cls._meta.object_type
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -601,9 +625,17 @@ class BaseBulkMutation(BaseMutation):
         if not ids:
             return 0, errors
         instance_model = cls._meta.model
-        model_type = registry.get_type_for_model(instance_model)
+        model_type = cls.get_type_for_model()
+        if not model_type:
+            raise ImproperlyConfigured(
+                f"GraphQL type for model {cls._meta.model.__name__} could not be "
+                f"resolved for {cls.__name__}"
+            )
+
         try:
-            instances = cls.get_nodes_or_error(ids, "id", model_type)
+            instances = cls.get_nodes_or_error(
+                ids, "id", model_type, schema=info.schema
+            )
         except ValidationError as error:
             return 0, error
         for instance, node_id in zip(instances, ids):

@@ -5,35 +5,32 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31
-from ..core.types import Money
+from ..core.types import ModelObjectType, Money
 from ..decorators import permission_required
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
-from .enums import OrderAction, PaymentChargeStatusEnum
+from .enums import OrderAction, PaymentChargeStatusEnum, TransactionKindEnum
 
 
-class Transaction(CountableDjangoObjectType):
+class Transaction(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    created = graphene.DateTime(required=True)
+    payment = graphene.Field(lambda: Payment, required=True)
+    token = graphene.String(required=True)
+    kind = TransactionKindEnum(required=True)
+    is_success = graphene.Boolean(required=True)
+    error = graphene.String()
+    gateway_response = graphene.JSONString(required=True)
     amount = graphene.Field(Money, description="Total amount of the transaction.")
 
     class Meta:
         description = "An object representing a single payment."
         interfaces = [relay.Node]
         model = models.Transaction
-        filter_fields = ["id"]
-        only_fields = [
-            "id",
-            "created",
-            "payment",
-            "token",
-            "kind",
-            "is_success",
-            "error",
-            "gateway_response",
-        ]
 
     @staticmethod
     def resolve_amount(root: models.Transaction, _info):
@@ -80,7 +77,17 @@ class PaymentSource(graphene.ObjectType):
     )
 
 
-class Payment(CountableDjangoObjectType):
+class Payment(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    gateway = graphene.String(required=True)
+    is_active = graphene.Boolean(required=True)
+    created = graphene.DateTime(required=True)
+    modified = graphene.DateTime(required=True)
+    token = graphene.String(required=True)
+    checkout = graphene.Field("saleor.graphql.checkout.types.Checkout")
+    order = graphene.Field("saleor.graphql.order.types.Order")
+    payment_method_type = graphene.String(required=True)
+    customer_ip_address = graphene.String()
     charge_status = PaymentChargeStatusEnum(
         description="Internal payment status.", required=True
     )
@@ -112,19 +119,6 @@ class Payment(CountableDjangoObjectType):
         description = "Represents a payment of a given type."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Payment
-        filter_fields = ["id"]
-        only_fields = [
-            "id",
-            "gateway",
-            "is_active",
-            "created",
-            "modified",
-            "token",
-            "checkout",
-            "order",
-            "customer_ip_address",
-            "payment_method_type",
-        ]
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)

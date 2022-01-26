@@ -61,10 +61,6 @@ class Plugin(graphene.ObjectType):
         description = "Plugin."
 
     @staticmethod
-    def resolve_id(root: "Plugin", _info):
-        return root.id
-
-    @staticmethod
     def resolve_name(root: "Plugin", _info):
         return root.name
 

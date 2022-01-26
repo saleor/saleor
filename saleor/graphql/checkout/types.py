@@ -12,16 +12,18 @@ from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
+from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..channel.types import Channel
+from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
-from ..core.types.money import TaxedMoney
+from ..core.types import ModelObjectType, Money, TaxedMoney
 from ..core.utils import str_to_enum
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
@@ -79,7 +81,12 @@ class PaymentGateway(graphene.ObjectType):
         )
 
 
-class CheckoutLine(CountableDjangoObjectType):
+class CheckoutLine(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant", required=True
+    )
+    quantity = graphene.Int(required=True)
     total_price = graphene.Field(
         TaxedMoney,
         description="The sum of the checkout line price, taxes and discounts.",
@@ -89,11 +96,9 @@ class CheckoutLine(CountableDjangoObjectType):
     )
 
     class Meta:
-        only_fields = ["id", "quantity", "variant"]
         description = "Represents an item in the checkout."
         interfaces = [graphene.relay.Node]
         model = models.CheckoutLine
-        filter_fields = ["id"]
 
     @staticmethod
     def resolve_variant(root: models.CheckoutLine, info):
@@ -184,10 +189,25 @@ class DeliveryMethod(graphene.Union):
     def resolve_type(cls, instance, info):
         if isinstance(instance, ShippingMethodData):
             return ShippingMethod
+        if isinstance(instance, warehouse_models.Warehouse):
+            return Warehouse
+
         return super(DeliveryMethod, cls).resolve_type(instance, info)
 
 
-class Checkout(CountableDjangoObjectType):
+class Checkout(ModelObjectType):
+    id = graphene.ID(required=True)
+    created = graphene.DateTime(required=True)
+    last_change = graphene.DateTime(required=True)
+    user = graphene.Field("saleor.graphql.account.types.User")
+    channel = graphene.Field(Channel, required=True)
+    billing_address = graphene.Field("saleor.graphql.account.types.Address")
+    shipping_address = graphene.Field("saleor.graphql.account.types.Address")
+    note = graphene.String(required=True)
+    discount = graphene.Field(Money)
+    discount_name = graphene.String()
+    translated_discount_name = graphene.String()
+    voucher_code = graphene.String()
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
@@ -262,25 +282,13 @@ class Checkout(CountableDjangoObjectType):
     )
 
     class Meta:
-        only_fields = [
-            "billing_address",
-            "created",
-            "discount_name",
-            "gift_cards",
-            "is_shipping_required",
-            "last_change",
-            "channel",
-            "note",
-            "shipping_address",
-            "translated_discount_name",
-            "user",
-            "voucher_code",
-            "discount",
-        ]
         description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
-        filter_fields = ["token"]
+
+    @staticmethod
+    def resolve_id(root: models.Checkout, _):
+        return graphene.Node.to_global_id("Checkout", root.pk)
 
     @staticmethod
     def resolve_shipping_address(root: models.Checkout, info):

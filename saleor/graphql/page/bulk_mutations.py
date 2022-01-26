@@ -4,6 +4,7 @@ from ...core.permissions import PagePermissions, PageTypePermissions
 from ...page import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types.common import PageError
+from .types import Page, PageType
 
 
 class PageBulkDelete(ModelBulkDeleteMutation):
@@ -15,6 +16,7 @@ class PageBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes pages."
         model = models.Page
+        object_type = Page
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -32,6 +34,7 @@ class PageBulkPublish(BaseBulkMutation):
     class Meta:
         description = "Publish pages."
         model = models.Page
+        object_type = Page
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -52,6 +55,7 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Delete page types."
         model = models.PageType
+        object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"

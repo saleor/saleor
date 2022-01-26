@@ -16,14 +16,10 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
     ChannelContextTypeWithMetadataForObjectType,
 )
-from ..core.connection import (
-    CountableConnection,
-    CountableDjangoObjectType,
-    create_connection_slice,
-)
+from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import ConnectionField
-from ..core.types import CountryDisplay, Money, MoneyRange, Weight
+from ..core.types import CountryDisplay, ModelObjectType, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
@@ -41,25 +37,24 @@ from .dataloaders import (
 from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 
-class ShippingMethodChannelListing(CountableDjangoObjectType):
+class ShippingMethodChannelListing(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    channel = graphene.Field(Channel, required=True)
+    maximum_order_price = graphene.Field(Money)
+    minimum_order_price = graphene.Field(Money)
+    price = graphene.Field(Money)
+
     class Meta:
         description = "Represents shipping method channel listing."
         model = models.ShippingMethodChannelListing
         interfaces = [relay.Node]
-        only_fields = [
-            "id",
-            "channel",
-            "price",
-            "maximum_order_price",
-            "minimum_order_price",
-        ]
 
     @staticmethod
     def resolve_channel(root: models.ShippingMethodChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
+class ShippingMethodPostalCodeRule(ModelObjectType):
     start = graphene.String(description="Start address range.")
     end = graphene.String(description="End address range.")
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
@@ -70,11 +65,6 @@ class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
         description = "Represents shipping method postal code rule."
         interfaces = [relay.Node]
         model = models.ShippingMethodPostalCodeRule
-        only_fields = [
-            "start",
-            "end",
-            "inclusion_type",
-        ]
 
 
 class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
@@ -221,7 +211,10 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
 
-class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    default = graphene.Boolean(required=True)
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
@@ -256,7 +249,6 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
         model = models.ShippingZone
         interfaces = [relay.Node, ObjectWithMetadata]
-        only_fields = ["default", "id", "name"]
 
     @staticmethod
     @traced_resolver

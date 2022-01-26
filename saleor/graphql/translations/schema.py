@@ -26,22 +26,32 @@ from .resolvers import (
     resolve_vouchers,
 )
 
+TYPES_TRANSLATIONS_MAP = {
+    Product: translation_types.ProductTranslatableContent,
+    Collection: translation_types.CollectionTranslatableContent,
+    Category: translation_types.CategoryTranslatableContent,
+    Attribute: translation_types.AttributeTranslatableContent,
+    AttributeValue: translation_types.AttributeValueTranslatableContent,
+    ProductVariant: translation_types.ProductVariantTranslatableContent,
+    Page: translation_types.PageTranslatableContent,
+    ShippingMethod: translation_types.ShippingMethodTranslatableContent,
+    Sale: translation_types.SaleTranslatableContent,
+    Voucher: translation_types.VoucherTranslatableContent,
+    MenuItem: translation_types.MenuItemTranslatableContent,
+}
+
 
 class TranslatableItem(graphene.Union):
     class Meta:
-        types = (
-            translation_types.ProductTranslatableContent,
-            translation_types.CollectionTranslatableContent,
-            translation_types.CategoryTranslatableContent,
-            translation_types.AttributeTranslatableContent,
-            translation_types.AttributeValueTranslatableContent,
-            translation_types.ProductVariantTranslatableContent,
-            translation_types.PageTranslatableContent,
-            translation_types.ShippingMethodTranslatableContent,
-            translation_types.SaleTranslatableContent,
-            translation_types.VoucherTranslatableContent,
-            translation_types.MenuItemTranslatableContent,
-        )
+        types = tuple(TYPES_TRANSLATIONS_MAP.values())
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        instance_type = type(instance)
+        if instance_type in TYPES_TRANSLATIONS_MAP:
+            return TYPES_TRANSLATIONS_MAP[instance_type]
+
+        return super(TranslatableItem, cls).resolve_type(instance, info)
 
 
 class TranslatableItemConnection(CountableConnection):

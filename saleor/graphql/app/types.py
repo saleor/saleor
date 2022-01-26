@@ -6,10 +6,10 @@ from graphene_federation import key
 from ...app import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31
 from ..core.federation import resolve_federation_references
-from ..core.types import Permission
+from ..core.types import ModelObjectType, Permission
 from ..core.types.common import Job
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -53,7 +53,8 @@ class AppManifestExtension(graphene.ObjectType):
     )
 
 
-class AppExtension(AppManifestExtension, CountableDjangoObjectType):
+class AppExtension(AppManifestExtension, ModelObjectType):
+    id = graphene.GlobalID(required=True)
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app extension."
@@ -115,16 +116,22 @@ class Manifest(graphene.ObjectType):
         description = "The manifest definition."
 
 
-class AppToken(CountableDjangoObjectType):
+class AppToken(graphene.ObjectType):
+    id = graphene.GlobalID(required=True)
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
     class Meta:
         description = "Represents token data."
-        model = models.AppToken
         interfaces = [graphene.relay.Node]
         permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = ["name", "auth_token"]
+
+    @staticmethod
+    def get_node(info, id):
+        try:
+            return models.AppToken.objects.get(pk=id)
+        except models.AppToken.DoesNotExist:
+            return None
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
@@ -132,7 +139,8 @@ class AppToken(CountableDjangoObjectType):
 
 
 @key(fields="id")
-class App(CountableDjangoObjectType):
+class App(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     permissions = graphene.List(
         Permission, description="List of the app's permissions."
     )
@@ -177,16 +185,6 @@ class App(CountableDjangoObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
-        permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = [
-            "name",
-            "permissions",
-            "created",
-            "is_active",
-            "tokens",
-            "id",
-            "tokens",
-        ]
 
     @staticmethod
     def resolve_permissions(root: models.App, _info, **_kwargs):
@@ -232,13 +230,12 @@ class AppCountableConnection(CountableConnection):
         node = App
 
 
-class AppInstallation(CountableDjangoObjectType):
+class AppInstallation(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    app_name = graphene.String(required=True)
+    manifest_url = graphene.String(required=True)
+
     class Meta:
         model = models.AppInstallation
         description = "Represents ongoing installation of app."
         interfaces = [graphene.relay.Node, Job]
-        permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = [
-            "app_name",
-            "manifest_url",
-        ]
