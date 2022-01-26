@@ -1,8 +1,9 @@
 import requests
-from sympy.core.singleton import Singleton
+
+from saleor.plugins.oto.utils import SingletonMeta
 
 
-class OTOApiClient(metaclass=Singleton):
+class OTOApiClient(metaclass=SingletonMeta):
     def __init__(self, access_token):
         self.session = requests.Session()
         self.session.headers.update(
