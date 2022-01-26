@@ -143,7 +143,7 @@ def test_order_update_shipping_address_invalidate_prices(
 
     # then
     assert not content["data"]["orderUpdate"]["errors"]
-    mocked_function.assert_called_once_with(order, save=True)
+    mocked_function.assert_called_once_with(order, save=False)
 
 
 @patch("saleor.graphql.order.mutations.orders.invalidate_order_prices")
@@ -173,7 +173,7 @@ def test_order_update_billing_address_invalidate_prices(
 
     # then
     assert not content["data"]["orderUpdate"]["errors"]
-    mocked_function.assert_called_once_with(order, save=True)
+    mocked_function.assert_called_once_with(order, save=False)
 
 
 ORDER_LINES_CREATE_MUTATION = """

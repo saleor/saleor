@@ -240,7 +240,6 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
-        instance.save()
 
         invalid_price_fields = ["shipping_address", "billing_address"]
         invalidate_prices = any(
@@ -248,7 +247,9 @@ class OrderUpdate(DraftOrderCreate):
         )
 
         if invalidate_prices:
-            invalidate_order_prices(instance, save=True)
+            invalidate_order_prices(instance, save=False)
+
+        instance.save()
 
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 

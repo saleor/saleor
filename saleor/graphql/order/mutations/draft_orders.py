@@ -36,7 +36,6 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-from .utils import invalidate_order_prices
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -88,6 +87,8 @@ class DraftOrderCreateInput(DraftOrderInput):
 
 
 class DraftOrderCreate(ModelMutation, I18nMixin):
+    _invalidate_prices = False
+
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -281,20 +282,23 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         if new_instance:
             # It is a new instance, all new lines have already updated prices.
             return
+
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            invalidate_order_prices(instance, save=True)
+            cls._invalidate_prices = True
+
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            invalidate_order_prices(instance, save=True)
+            cls._invalidate_prices = True
 
     @classmethod
     def invalidate_prices(cls, instance, cleaned_input) -> bool:
-        return False
+        return cls._invalidate_prices
 
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
+        cls._invalidate_prices = False
         new_instance = not bool(instance.pk)
 
         # Process addresses

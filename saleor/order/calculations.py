@@ -17,6 +17,13 @@ from .models import Order, OrderLine
 def _apply_tax_data_from_manager(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
 ) -> bool:
+    """Apply tax data from manager methods into order and lines.
+
+    If any of the manager order tax methods raises `TaxError`,
+    order and lines stay unchanged.
+
+    :return: True if `TaxError` was raised, False otherwise.
+    """
     currency = order.currency
 
     try:
@@ -63,15 +70,17 @@ def _apply_tax_data_from_manager(
 def _apply_tax_data(
     order: Order, lines: Iterable[OrderLine], tax_data: TaxData
 ) -> None:
-    def qp(net: Decimal, gross: Decimal) -> TaxedMoney:
+    def _quantize_price(net: Decimal, gross: Decimal) -> TaxedMoney:
         currency = order.currency
         return quantize_price(
             TaxedMoney(net=Money(net, currency), gross=Money(gross, currency)),
             currency,
         )
 
-    order.total = qp(net=tax_data.total_net_amount, gross=tax_data.total_gross_amount)
-    order.shipping_price = qp(
+    order.total = _quantize_price(
+        net=tax_data.total_net_amount, gross=tax_data.total_gross_amount
+    )
+    order.shipping_price = _quantize_price(
         net=tax_data.shipping_price_net_amount,
         gross=tax_data.shipping_price_gross_amount,
     )
@@ -81,14 +90,14 @@ def _apply_tax_data(
     zipped_order_and_tax_lines = ((line, tax_lines[line.id]) for line in lines)
 
     for (order_line, tax_line) in zipped_order_and_tax_lines:
-        order_line.unit_price = qp(
+        order_line.unit_price = _quantize_price(
             net=tax_line.unit_net_amount, gross=tax_line.unit_gross_amount
         )
         order_line.undiscounted_unit_price = (
             order_line.unit_price + order_line.unit_discount
         )
 
-        order_line.total_price = qp(
+        order_line.total_price = _quantize_price(
             net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
         )
         order_line.undiscounted_total_price = (
@@ -105,7 +114,7 @@ def fetch_order_prices_if_expired(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
-) -> Tuple[Order, Iterable[OrderLine]]:
+) -> Tuple[Order, Optional[Iterable[OrderLine]]]:
     """Fetch order prices with taxes.
 
     First calculate and apply all order prices with taxes separately,
@@ -115,16 +124,16 @@ def fetch_order_prices_if_expired(
     or if order price expiration time was exceeded
     (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
     """
-    if lines is None:
-        lines = list(order.lines.prefetch_related("variant__product"))
-    else:
-        prefetch_related_objects(lines, "variant__product")
-
     if order.status not in ORDER_EDITABLE_STATUS:
         return order, lines
 
     if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
         return order, lines
+
+    if lines is None:
+        lines = list(order.lines.prefetch_related("variant__product"))
+    else:
+        prefetch_related_objects(lines, "variant__product")
 
     tax_error = _apply_tax_data_from_manager(manager, order, lines)
 
@@ -166,14 +175,18 @@ def fetch_order_prices_if_expired(
 
 
 def _find_order_line(
-    lines: Iterable[OrderLine],
+    lines: Optional[Iterable[OrderLine]],
     order_line: OrderLine,
 ) -> OrderLine:
     """Return order line from provided lines.
 
     The return value represents the updated version of order_line parameter.
     """
-    return next(line for line in lines if line.pk == order_line.pk)
+    return (
+        order_line
+        if lines is None
+        else next(line for line in lines if line.pk == order_line.pk)
+    )
 
 
 def order_line_unit(
