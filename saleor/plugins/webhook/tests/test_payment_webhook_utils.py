@@ -71,6 +71,19 @@ def test_parse_list_payment_gateways_response_no_id(app):
     assert gateways == []
 
 
+def test_parse_list_payment_gateways_response_dict_response(app):
+    # We expect that the response_data is a list of dicts, otherwise it won't be
+    # parsed.
+    response_data = {
+        "id": "credit-card",
+        "name": "Credit Card",
+        "currencies": ["USD", "EUR"],
+        "config": [{"field": "example-key", "value": "example-value"}],
+    }
+    gateways = parse_list_payment_gateways_response(response_data, app)
+    assert gateways == []
+
+
 @pytest.fixture
 def payment_action_response(dummy_webhook_app_payment_data):
     return {

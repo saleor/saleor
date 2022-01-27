@@ -136,6 +136,7 @@ def send_webhook_using_http(
     }
 
     response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
+    response.raise_for_status()
     return WebhookResponse(
         content=response.text,
         request_headers=headers,
