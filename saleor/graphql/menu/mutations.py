@@ -19,6 +19,7 @@ from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
 from ..product.types import Category, Collection
+from .dataloaders import MenuItemsByParentMenuLoader
 from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput
 
@@ -355,18 +356,30 @@ class MenuItemMove(BaseMutation):
 
     @classmethod
     def get_operation(
-        cls, info, menu: models.Menu, move: MenuItemMoveInput
+        cls,
+        info,
+        menu_item_to_current_parent,
+        menu: models.Menu,
+        move: MenuItemMoveInput,
     ) -> _MenuMoveOperation:
         menu_item = cls.get_node_or_error(
             info, move.item_id, field="item", only_type="MenuItem", qs=menu.items
         )
         new_parent, parent_changed = None, False
 
+        # we want to check if parent has changes in relation to previous operations
+        # as moves are performed sequentially
+        old_parent_id = (
+            menu_item_to_current_parent[menu_item.pk]
+            if menu_item.pk in menu_item_to_current_parent
+            else menu_item.parent_id
+        )
+
         if move.parent_id is not None:
             parent_pk = cls.get_global_id_or_error(
                 move.parent_id, only_type=MenuItem, field="parent_id"
             )
-            if int(parent_pk) != menu_item.parent_id:
+            if int(parent_pk) != old_parent_id:
                 new_parent = cls.get_node_or_error(
                     info,
                     move.parent_id,
@@ -375,7 +388,7 @@ class MenuItemMove(BaseMutation):
                     qs=menu.items,
                 )
                 parent_changed = True
-        elif move.parent_id is None and menu_item.parent_id is not None:
+        elif move.parent_id is None and old_parent_id is not None:
             parent_changed = True
 
         return _MenuMoveOperation(
@@ -389,24 +402,34 @@ class MenuItemMove(BaseMutation):
     def clean_moves(
         cls, info, menu: models.Menu, move_operations: List[MenuItemMoveInput]
     ) -> List[_MenuMoveOperation]:
-
         operations = []
+        item_to_current_parent: Dict[int, Optional[models.MenuItem]] = {}
         for move in move_operations:
             cls.clean_move(move)
-            operation = cls.get_operation(info, menu, move)
-            cls.clean_operation(operation)
+            operation = cls.get_operation(info, item_to_current_parent, menu, move)
+            if operation.parent_changed:
+                cls.clean_operation(operation)
+                item_to_current_parent[operation.menu_item.id] = operation.new_parent
             operations.append(operation)
         return operations
 
     @staticmethod
     def perform_change_parent_operation(operation: _MenuMoveOperation):
-        menu_item = operation.menu_item  # type: models.MenuItem
+        menu_item = operation.menu_item
 
         if not operation.parent_changed:
             return
 
+        # we need to refresh item, as it might be changes in previous operations
+        # and in such case the parent and level values are invalid
+        menu_item.refresh_from_db()
+
+        # parent cache need to be update in case of the item parent is changed
+        # more than once
+        menu_item._mptt_meta.update_mptt_cached_fields(menu_item)
+
         # Move the parent
-        menu_item.move_to(operation.new_parent)
+        menu_item.parent = operation.new_parent
         menu_item.sort_order = None
         menu_item.save()
 
@@ -428,7 +451,14 @@ class MenuItemMove(BaseMutation):
             menu_item = operation.menu_item
             parent_pk = operation.menu_item.parent_id
 
-            sort_operations[parent_pk][menu_item.pk] = operation.sort_order
+            # we want to keep the final relative value, as moves are performed
+            # sequentially
+            new_sort_value = (
+                sort_operations[parent_pk].get(menu_item.pk, 0) + operation.sort_order
+                if operation.sort_order is not None
+                else None
+            )
+            sort_operations[parent_pk][menu_item.pk] = new_sort_value
             sort_querysets[parent_pk] = menu_item.get_ordering_queryset()
 
         for parent_pk, operations in sort_operations.items():
@@ -436,6 +466,7 @@ class MenuItemMove(BaseMutation):
             perform_reordering(ordering_qs, operations)
 
         menu = qs.get(pk=menu.pk)
+        MenuItemsByParentMenuLoader(info.context).clear(menu.id)
         return MenuItemMove(menu=ChannelContext(node=menu, channel_slug=None))
 
 
