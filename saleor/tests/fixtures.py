@@ -5110,7 +5110,7 @@ def any_webhook(app):
     webhook = Webhook.objects.create(
         name="Any webhook", app=app, target_url="http://www.example.com/any"
     )
-    webhook.events.create(event_type=WebhookEventType.ANY)
+    webhook.events.create(event_type=WebhookEventAsyncType.ANY)
     return webhook
 
 
