@@ -298,10 +298,8 @@ type AppExtension implements Node {
   app: App!
   label: String!
   url: String!
-  view: AppExtensionViewEnum!
-  type: AppExtensionTypeEnum!
+  mount: AppExtensionMountEnum!
   target: AppExtensionTargetEnum!
-  openAs: AppExtensionOpenAsEnum!
   permissions: [Permission!]!
   accessToken: String
 }
@@ -318,37 +316,25 @@ type AppExtensionCountableEdge {
 }
 
 input AppExtensionFilterInput {
-  view: AppExtensionViewEnum
-  type: AppExtensionTypeEnum
+  mount: AppExtensionMountEnum
   target: AppExtensionTargetEnum
-  openAs: AppExtensionOpenAsEnum
 }
 
-enum AppExtensionOpenAsEnum {
-  POPUP
-  APP_PAGE
+enum AppExtensionMountEnum {
+  PRODUCT_OVERVIEW_CREATE
+  PRODUCT_OVERVIEW_MORE_ACTIONS
+  PRODUCT_DETAILS_MORE_ACTIONS
+  NAVIGATION_CATALOG
+  NAVIGATION_ORDERS
+  NAVIGATION_CUSTOMERS
+  NAVIGATION_DISCOUNTS
+  NAVIGATION_TRANSLATIONS
+  NAVIGATION_PAGES
 }
 
 enum AppExtensionTargetEnum {
-  MORE_ACTIONS
-  CREATE
-  CATALOG
-  ORDERS
-  CUSTOMERS
-  DISCOUNTS
-  TRANSLATIONS
-  PAGES
-}
-
-enum AppExtensionTypeEnum {
-  OVERVIEW
-  DETAILS
-  NAVIGATION
-}
-
-enum AppExtensionViewEnum {
-  PRODUCT
-  ALL
+  POPUP
+  APP_PAGE
 }
 
 type AppFetchManifest {
@@ -395,10 +381,8 @@ type AppManifestExtension {
   permissions: [Permission!]!
   label: String!
   url: String!
-  view: AppExtensionViewEnum!
-  type: AppExtensionTypeEnum!
+  mount: AppExtensionMountEnum!
   target: AppExtensionTargetEnum!
-  openAs: AppExtensionOpenAsEnum!
 }
 
 type AppRetryInstall {

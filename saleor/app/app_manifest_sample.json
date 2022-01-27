@@ -15,10 +15,8 @@
     "extensions": [
       {
         "label": "Create with Sample app",
-        "view": "PRODUCT",
-        "type": "OVERVIEW",
-        "target": "CREATE",
-        "openAs": "POPUP",
+        "mount": "PRODUCT_OVERVIEW_CREATE",
+        "target": "POPUP",
         "permissions": [
             "MANAGE_PRODUCTS"
         ],
@@ -26,10 +24,8 @@
       },
       {
         "label": "Create with App and redirect",
-        "view": "PRODUCT",
-        "type": "OVERVIEW",
-        "target": "CREATE",
-        "openAs": "APP_PAGE",
+        "mount": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+        "target": "APP_PAGE",
         "permissions": [
             "MANAGE_PRODUCTS"
         ],
