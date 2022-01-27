@@ -4,15 +4,14 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from django.contrib.sites.models import Site
 from django.core.cache import cache
-from django.db.models import Q
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.app.models import App
-from saleor.webhook.event_types import WebhookEventSyncType
+from ..app.models import App
+from ..webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
-    from saleor.plugins.manager import PluginsManager
-    from saleor.product.models import Product, ProductType
+    from ..plugins.manager import PluginsManager
+    from ..product.models import Product, ProductType
 
 
 class TaxError(Exception):
@@ -101,14 +100,10 @@ DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
 
 def _get_current_tax_app() -> Optional[App]:
     """Return currently used tax app or None, if there aren't any."""
-    q_app_is_not_tax = ~(
-        Q(webhooks__events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
-        & Q(webhooks__events__event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-    )
     return (
         App.objects.order_by("pk")
-        .filter(is_active=True)
-        .exclude(q_app_is_not_tax)
+        .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+        .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
         .last()
     )
 

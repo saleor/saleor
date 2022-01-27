@@ -2,8 +2,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from saleor.app.models import App
-from saleor.core.taxes import (
+from ...app.models import App
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...webhook.models import Webhook, WebhookEvent
+from ..permissions import (
+    CheckoutPermissions,
+    OrderPermissions,
+    get_permissions_from_codenames,
+)
+from ..taxes import (
     DEFAULT_TAX_CODE,
     DEFAULT_TAX_DESCRIPTION,
     WEBHOOK_TAX_CODES_CACHE_KEY,
@@ -14,13 +21,11 @@ from saleor.core.taxes import (
     get_tax_type,
     set_tax_code,
 )
-from saleor.webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from saleor.webhook.models import Webhook, WebhookEvent
 
 
 @pytest.fixture
 def app_factory():
-    def factory(name, is_active, webhook_event_types):
+    def factory(name, is_active, webhook_event_types, permissions):
         app = App.objects.create(name=name, is_active=is_active)
         webhook = Webhook.objects.create(
             name=f"{name} Webhook",
@@ -32,6 +37,9 @@ def app_factory():
                 webhook=webhook,
                 event_type=event_type,
             )
+        app.permissions.add(
+            *get_permissions_from_codenames([p.codename for p in permissions])
+        )
         return app
 
     return factory
@@ -39,14 +47,19 @@ def app_factory():
 
 @pytest.fixture
 def tax_app_factory(app_factory):
-    def factory(name, is_active):
+    def factory(name, is_active=True, webhook_event_types=None, permissions=None):
+        if webhook_event_types is None:
+            webhook_event_types = [
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+            ]
+        if permissions is None:
+            permissions = [CheckoutPermissions.HANDLE_TAXES]
         return app_factory(
             name=name,
             is_active=is_active,
-            webhook_event_types=[
-                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-            ],
+            webhook_event_types=webhook_event_types,
+            permissions=permissions,
         )
 
     return factory
@@ -67,12 +80,13 @@ def test_get_current_tax_app(tax_app):
 def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
     # given
     tax_app_factory(
-        name="Another Tax App",
-        is_active=True,
+        name="A Tax App",
+    )
+    tax_app_factory(
+        name="Z Tax App",
     )
     expected_app = tax_app_factory(
         name="Tax App",
-        is_active=True,
     )
     app_factory(
         name="Non Tax App",
@@ -80,10 +94,19 @@ def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
         webhook_event_types=[
             WebhookEventAsyncType.ORDER_UPDATED,
         ],
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
-    app_factory(
-        name="Partial Tax App",
-        is_active=True,
+    tax_app_factory(name="Unauthorized Tax App", permissions=[])
+    tax_app_factory(
+        name="Partial Tax App 2",
+        webhook_event_types=[
+            WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+        ],
+    )
+    tax_app_factory(
+        name="Partial Tax App 1",
         webhook_event_types=[
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         ],
