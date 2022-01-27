@@ -35,7 +35,7 @@ AUTH_STATUS = "authorised"
 def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
     api_key = config.connection_params["api_key"]
 
-    live_endpoint = config.connection_params["live"] or None
+    live_endpoint = config.connection_params.get("live")
     platform = "live" if live_endpoint else "test"
     return Adyen.Adyen(
         xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform

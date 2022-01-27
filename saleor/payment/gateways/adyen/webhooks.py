@@ -704,15 +704,17 @@ def get_adyen_partial_payment_keys(additiona_data):
     a int number pointing to the given payment method. So we need to convert it and
     match somehow a paymentMethod, paymentAmount and payment psp reference
     """
-    for i in range(1, 99):
-        payment_method_key = f"order-{i}-paymentMethod"
-        payment_amount_key = f"order-{i}-paymentAmount"
-        psp_reference_key = f"order-{i}-pspReference"
+    index = 1
+    while True:
+        payment_method_key = f"order-{index}-paymentMethod"
+        payment_amount_key = f"order-{index}-paymentAmount"
+        psp_reference_key = f"order-{index}-pspReference"
 
         # stop iterating when there is no more an additional payment method fields
         if payment_method_key not in additiona_data:
             return
         yield (payment_method_key, payment_amount_key, psp_reference_key)
+        index += 1
 
 
 def refund_partial_payments(payments, config):
