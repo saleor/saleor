@@ -4,7 +4,7 @@ import graphene
 from graphene_federation import key
 
 from ...app import models
-from ...app.types import AppExtensionOpenAs
+from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableConnection, CountableDjangoObjectType
@@ -17,13 +17,7 @@ from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
-from .enums import (
-    AppExtensionOpenAsEnum,
-    AppExtensionTargetEnum,
-    AppExtensionTypeEnum,
-    AppExtensionViewEnum,
-    AppTypeEnum,
-)
+from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
@@ -43,24 +37,17 @@ class AppManifestExtension(graphene.ObjectType):
     url = graphene.String(
         description="URL of a view where extension's iframe is placed.", required=True
     )
-    view = AppExtensionViewEnum(
-        description="Name of a view where extension's iframe will be mounted.",
-        required=True,
-    )
-    type = AppExtensionTypeEnum(
-        description="Type of a view where extension's iframe will be mounted.",
+    mount = AppExtensionMountEnum(
+        description="Place where given extension will be mounted.",
         required=True,
     )
     target = AppExtensionTargetEnum(
-        description="Place where extension's iframe will be mounted.", required=True
-    )
-    open_as = AppExtensionOpenAsEnum(
         description="Type of way how app extension will be opened.", required=True
     )
 
     @staticmethod
-    def resolve_open_as(root, info):
-        return root.get("open_as") or AppExtensionOpenAs.POPUP
+    def resolve_target(root, info):
+        return root.get("target") or AppExtensionTarget.POPUP
 
     @staticmethod
     def resolve_url(root, info):
@@ -86,15 +73,15 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
             .load(root.app_id)
             .then(
                 lambda app: AppManifestExtension.resolve_url(
-                    {"open_as": root.open_as, "app_url": app.app_url, "url": root.url},
+                    {"target": root.target, "app_url": app.app_url, "url": root.url},
                     info,
                 )
             )
         )
 
     @staticmethod
-    def resolve_open_as(root, info):
-        return root.open_as
+    def resolve_target(root, info):
+        return root.target
 
     @staticmethod
     def resolve_app(root, info):

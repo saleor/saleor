@@ -34,8 +34,7 @@ QUERY_APP = """
                 id
                 label
                 url
-                view
-                type
+                mount
                 target
                 permissions{
                     code
@@ -259,18 +258,14 @@ def test_app_with_extensions_query(
     extensions_data = app_data["extensions"]
     returned_ids = {e["id"] for e in extensions_data}
     returned_labels = {e["label"] for e in extensions_data}
-    returned_urls = {e["url"] for e in extensions_data}
-    returned_views = {e["view"].lower() for e in extensions_data}
-    returned_types = {e["type"].lower() for e in extensions_data}
+    returned_mounts = {e["mount"].lower() for e in extensions_data}
     returned_targets = {e["target"].lower() for e in extensions_data}
     returned_permission_codes = [e["permissions"] for e in extensions_data]
     for app_extension in app_extensions:
         global_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
         assert global_id in returned_ids
         assert app_extension.label in returned_labels
-        assert app_extension.url in returned_urls
-        assert app_extension.view in returned_views
-        assert app_extension.type in returned_types
+        assert app_extension.mount in returned_mounts
         assert app_extension.target in returned_targets
         assigned_permissions = [p.codename for p in app_extension.permissions.all()]
         assigned_permissions = [{"code": p.upper()} for p in assigned_permissions]

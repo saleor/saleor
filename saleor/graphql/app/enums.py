@@ -1,10 +1,4 @@
-from ...app.types import (
-    AppExtensionOpenAs,
-    AppExtensionTarget,
-    AppExtensionType,
-    AppExtensionView,
-    AppType,
-)
+from ...app.types import AppExtensionMount, AppExtensionTarget, AppType
 from ..core.enums import to_enum
 
 
@@ -26,12 +20,9 @@ def description(enum):
 
 
 AppTypeEnum = to_enum(AppType, description=description)
-
-AppExtensionTypeEnum = to_enum(AppExtensionType, description=AppExtensionType.__doc__)
-AppExtensionViewEnum = to_enum(AppExtensionView, description=AppExtensionView.__doc__)
+AppExtensionMountEnum = to_enum(
+    AppExtensionMount, description=AppExtensionMount.__doc__
+)
 AppExtensionTargetEnum = to_enum(
     AppExtensionTarget, description=AppExtensionTarget.__doc__
-)
-AppExtensionOpenAsEnum = to_enum(
-    AppExtensionOpenAs, description=AppExtensionOpenAs.__doc__
 )
