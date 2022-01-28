@@ -388,7 +388,7 @@ def test_page_create_trigger_page_webhook(
     expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_CREATED
+        expected_data, WebhookEventAsyncType.PAGE_CREATED, [any_webhook]
     )
 
 

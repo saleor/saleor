@@ -7564,7 +7564,7 @@ def test_delete_product_trigger_webhook(
         product, variants_id, staff_api_client.user
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_DELETED
+        expected_data, WebhookEventAsyncType.PRODUCT_DELETED, [any_webhook]
     )
     mocked_recalculate_orders_task.assert_not_called()
 
