@@ -856,7 +856,7 @@ def test_product_create_translation(
     translation = product.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -982,7 +982,7 @@ def test_product_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1040,7 +1040,7 @@ def test_product_variant_create_translation(
     translation = variant.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1094,7 +1094,7 @@ def test_product_variant_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1177,7 +1177,7 @@ def test_collection_create_translation(
     translation = published_collection.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1269,7 +1269,7 @@ def test_collection_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1340,7 +1340,7 @@ def test_category_create_translation(
     translation = category.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1430,7 +1430,7 @@ def test_category_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1481,7 +1481,7 @@ def test_voucher_create_translation(
     translation = voucher.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1533,7 +1533,7 @@ def test_voucher_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1584,7 +1584,7 @@ def test_sale_create_translation(
     translation = sale.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1637,7 +1637,7 @@ def test_sale_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1689,7 +1689,7 @@ def test_page_create_translation(
     translation = page.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1775,7 +1775,7 @@ def test_page_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1828,7 +1828,7 @@ def test_attribute_create_translation(
     translation = color_attribute.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1881,7 +1881,7 @@ def test_attribute_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -1936,7 +1936,7 @@ def test_attribute_value_create_translation(
     translation = pink_attribute_value.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -1991,7 +1991,7 @@ def test_attribute_value_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -2058,7 +2058,7 @@ def test_shipping_method_create_translation(
     translation = shipping_method.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -2137,7 +2137,7 @@ def test_shipping_method_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -2193,7 +2193,7 @@ def test_menu_item_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 
@@ -2255,7 +2255,7 @@ def test_shop_create_translation(
     translation = site_settings.translations.first()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED
+        expected_payload, WebhookEventAsyncType.TRANSLATION_CREATED, [any_webhook]
     )
 
 
@@ -2312,8 +2312,7 @@ def test_shop_update_translation(
     translation.refresh_from_db()
     expected_payload = generate_translation_payload(translation, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_payload,
-        WebhookEventAsyncType.TRANSLATION_UPDATED,
+        expected_payload, WebhookEventAsyncType.TRANSLATION_UPDATED, [any_webhook]
     )
 
 

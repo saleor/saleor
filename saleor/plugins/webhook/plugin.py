@@ -376,7 +376,7 @@ class WebhookPlugin(BasePlugin):
             product_variant_data = generate_product_variant_with_stock_payload(
                 [stock], self.requestor
             )
-            trigger_webhooks_async(event_type, product_variant_data, webhooks)
+            trigger_webhooks_async(product_variant_data, event_type, webhooks)
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
