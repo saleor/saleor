@@ -4,6 +4,7 @@ from unittest import mock
 
 import Adyen
 import pytest
+import requests
 from django.core.exceptions import ValidationError
 from requests.exceptions import RequestException, SSLError
 
@@ -702,3 +703,21 @@ def test_adyen_check_payment_balance_adyen_raises_error(
         plugin.adyen.checkout.client.call_checkout_api,
         action="paymentMethods/balance",
     )
+
+
+@mock.patch("saleor.payment.gateways.adyen.plugin.HTTP_TIMEOUT", 0.001)
+def test_adyen_check_payment_timeout(adyen_plugin, adyen_check_balance_response):
+    plugin = adyen_plugin()
+
+    data = {
+        "gatewayId": "mirumee.payments.gateway",
+        "method": "givex",
+        "card": {
+            "cvc": "9891",
+            "code": "1234567910",
+            "money": {"currency": "GBP", "amount": Decimal(100.0)},
+        },
+    }
+
+    with pytest.raises(requests.exceptions.ConnectTimeout):
+        plugin.check_payment_balance(data)

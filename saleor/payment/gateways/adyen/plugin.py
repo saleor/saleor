@@ -5,6 +5,7 @@ from urllib.parse import urlencode, urljoin
 import Adyen
 import opentracing
 import opentracing.tags
+from Adyen.httpclient import HTTPClient
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -50,6 +51,7 @@ from .webhooks import handle_additional_actions, handle_webhook
 GATEWAY_NAME = "Adyen"
 WEBHOOK_PATH = "/webhooks"
 ADDITIONAL_ACTION_PATH = "/additional-actions"
+HTTP_TIMEOUT = 20  # in seconds
 
 
 class AdyenGatewayPlugin(BasePlugin):
@@ -224,6 +226,17 @@ class AdyenGatewayPlugin(BasePlugin):
         self.adyen = Adyen.Adyen(
             xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
         )
+        self._init_http_client()
+
+    def _init_http_client(self):
+        adyen_client = self.adyen.client
+        adyen_client.http_client = HTTPClient(
+            user_agent_suffix=adyen_client.USER_AGENT_SUFFIX,
+            lib_version=adyen_client.LIB_VERSION,
+            force_request=adyen_client.http_force,
+            timeout=HTTP_TIMEOUT,
+        )
+        adyen_client.http_init = True
 
     def _insert_webhook_endpoint_to_configuration(self, raw_configuration, channel):
         updated = False
