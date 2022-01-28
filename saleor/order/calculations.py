@@ -14,15 +14,12 @@ from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
 
-def _apply_tax_data_from_manager(
+def _get_tax_data_from_manager(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
-) -> bool:
-    """Apply tax data from manager methods into order and lines.
+) -> Optional[dict]:
+    """Fetch tax data from manager methods.
 
-    If any of the manager order tax methods raises `TaxError`,
-    order and lines stay unchanged.
-
-    :return: True if `TaxError` was raised, False otherwise.
+    :return: None if `TaxError` was raised, tax data dict otherwise.
     """
     currency = order.currency
 
@@ -47,24 +44,35 @@ def _apply_tax_data_from_manager(
         shipping_tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
         total = shipping_price + subtotal
     except TaxError:
-        return True
+        return None
     else:
-        order.total = total
-        order.shipping_price = shipping_price
-        order.shipping_tax_rate = shipping_tax_rate
+        return {
+            "total": total,
+            "subtotal": subtotal,
+            "shipping_price": shipping_price,
+            "shipping_tax_rate": shipping_tax_rate,
+            "lines": price_lines,
+        }
 
-        for order_line, price_line in zip(lines, price_lines):
-            unit = price_line["unit"]
-            order_line.undiscounted_unit_price = unit.undiscounted_price
-            order_line.unit_price = unit.price_with_discounts
 
-            total = price_line["total"]
-            order_line.undiscounted_total_price = total.undiscounted_price
-            order_line.total_price = total.price_with_discounts
+def _apply_tax_data_from_manager(
+    tax_data: dict, order: Order, lines: Iterable[OrderLine]
+) -> None:
+    """Apply tax data from manager methods into order and lines."""
+    order.total = tax_data["total"]
+    order.shipping_price = tax_data["shipping_price"]
+    order.shipping_tax_rate = tax_data["shipping_tax_rate"]
 
-            order_line.tax_rate = price_line["tax_rate"]
+    for order_line, price_line in zip(lines, tax_data["lines"]):
+        unit = price_line["unit"]
+        order_line.undiscounted_unit_price = unit.undiscounted_price
+        order_line.unit_price = unit.price_with_discounts
 
-        return False
+        total = price_line["total"]
+        order_line.undiscounted_total_price = total.undiscounted_price
+        order_line.total_price = total.price_with_discounts
+
+        order_line.tax_rate = price_line["tax_rate"]
 
 
 def _apply_tax_data(
@@ -135,10 +143,12 @@ def fetch_order_prices_if_expired(
     else:
         prefetch_related_objects(lines, "variant__product")
 
-    tax_error = _apply_tax_data_from_manager(manager, order, lines)
+    manager_tax_data = _get_tax_data_from_manager(manager, order, lines)
 
-    if tax_error:
+    if manager_tax_data is None:
         return order, lines
+
+    _apply_tax_data_from_manager(manager_tax_data, order, lines)
 
     tax_data = manager.get_taxes_for_order(order)
 

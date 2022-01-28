@@ -12,7 +12,7 @@ from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus
 from ..calculations import (
     _apply_tax_data,
-    _apply_tax_data_from_manager,
+    _get_tax_data_from_manager,
     fetch_order_prices_if_expired,
     order_line_tax_rate,
     order_line_total,
@@ -80,6 +80,61 @@ def create_order_taxed_prices_data(
     )
 
 
+def test_get_tax_data_from_manager(order_with_lines, order_lines, tax_data):
+    # given
+    order = order_with_lines
+    lines = list(order_lines)
+    lines.append(
+        Mock(
+            variant=None,
+            total_price=create_taxed_money(
+                net=Decimal("33.33"),
+                gross=Decimal("44.44"),
+                currency=order.currency,
+            ),
+        )
+    )
+
+    unit_prices = [get_order_priced_taxes_data(line, "unit") for line in tax_data.lines]
+    total_prices = [
+        get_order_priced_taxes_data(line, "total") for line in tax_data.lines
+    ]
+    tax_rates = [line.tax_rate for line in tax_data.lines]
+    shipping_tax_rate = tax_data.shipping_tax_rate
+    shipping = get_taxed_money(tax_data, "shipping_price")
+    subtotal = sum(
+        (line.total_price for line in lines), zero_taxed_money(order.currency)
+    )
+    total = shipping + subtotal
+
+    manager_methods = {
+        "calculate_order_line_unit": Mock(side_effect=unit_prices),
+        "calculate_order_line_total": Mock(side_effect=total_prices),
+        "get_order_shipping_tax_rate": Mock(return_value=shipping_tax_rate),
+        "get_order_line_tax_rate": Mock(side_effect=tax_rates),
+        "calculate_order_shipping": Mock(return_value=shipping),
+    }
+    manager = Mock(**manager_methods)
+
+    # when
+    manager_tax_data = _get_tax_data_from_manager(manager, order, lines)
+
+    # then
+    assert manager_tax_data["total"] == total
+    assert manager_tax_data["subtotal"] == subtotal
+    assert manager_tax_data["shipping_price"] == shipping
+    assert manager_tax_data["shipping_tax_rate"] == shipping_tax_rate
+
+    price_lines = manager_tax_data["lines"]
+    assert len(price_lines) == len(order_lines)
+    for unit, total, tax_rate, line in zip(
+        unit_prices, total_prices, tax_rates, price_lines
+    ):
+        assert unit == line["unit"]
+        assert total == line["total"]
+        assert tax_rate == line["tax_rate"]
+
+
 @pytest.mark.parametrize(
     "mocked_method_name",
     [
@@ -90,27 +145,12 @@ def create_order_taxed_prices_data(
         "get_order_shipping_tax_rate",
     ],
 )
-@patch("saleor.order.calculations.prefetch_related_objects", new=Mock())
-def test_apply_tax_data_from_manager_tax_error(
+def test_get_tax_data_from_manager_tax_error(
     order_with_lines, order_lines, mocked_method_name
 ):
     # given
     order = order_with_lines
-    price = create_taxed_money(Decimal("-100"), Decimal("-100"), "USD")
-    tax_rate = Decimal("-100")
-
-    order.total = price
-    order.shipping_price = price
-    order.shipping_tax_rate = tax_rate
-
-    lines = list(order_lines)
-    for line in lines:
-        line.unit_price = price
-        line.undiscounted_unit_price = price
-        line.total_price = price
-        line.undiscounted_total_price = price
-        line.tax_rate = tax_rate
-
+    lines = order_lines
     zero_money = zero_taxed_money(order.currency)
     zero_prices = OrderTaxedPricesData(
         undiscounted_price=zero_money,
@@ -127,20 +167,10 @@ def test_apply_tax_data_from_manager_tax_error(
     manager = Mock(**manager_methods)
 
     # when
-    tax_error = _apply_tax_data_from_manager(manager, order, lines)
+    tax_data = _get_tax_data_from_manager(manager, order, lines)
 
     # then
-    assert tax_error
-    assert order.total == price
-    assert order.shipping_price == price
-    assert order.shipping_tax_rate == tax_rate
-
-    for line in lines:
-        assert line.unit_price == price
-        assert line.undiscounted_unit_price == price
-        assert line.total_price == price
-        assert line.undiscounted_total_price == price
-        assert line.tax_rate == tax_rate
+    assert not tax_data
 
 
 def test_apply_tax_data(order_with_lines, order_lines, tax_data):
@@ -206,6 +236,15 @@ def fetch_kwargs(order_with_lines, manager):
     }
 
 
+@pytest.fixture
+def fetch_kwargs_with_lines(order_with_lines, order_lines, manager):
+    return {
+        "order": order_with_lines,
+        "lines": order_lines,
+        "manager": manager,
+    }
+
+
 def get_taxed_money(
     obj: Union[TaxData, TaxLineData],
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
@@ -253,7 +292,7 @@ def test_fetch_order_prices_if_expired_plugins(
 
 
 @freeze_time("2020-12-12 12:00:00")
-@patch("saleor.order.calculations._apply_tax_data_from_manager")
+@patch("saleor.order.calculations._get_tax_data_from_manager")
 def test_fetch_order_prices_if_expired_plugins_tax_error(
     mocked_apply_tax_data_from_manager,
     order_with_lines,
@@ -402,3 +441,21 @@ def test_order_shipping_tax_rate(mocked_fetch_order_prices_if_expired):
 
     # then
     assert shipping_tax_rate == expected_shipping_tax_rate
+
+
+def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):
+    # when
+    fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    assert all(line._state.fields_cache for line in order_lines)
+
+
+def test_fetch_order_prices_if_expired_prefetch_with_lines(
+    fetch_kwargs_with_lines, order_lines
+):
+    # when
+    fetch_order_prices_if_expired(**fetch_kwargs_with_lines)
+
+    # then
+    assert all(line._state.fields_cache for line in order_lines)
