@@ -15,6 +15,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
+from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
@@ -330,6 +331,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
         if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
