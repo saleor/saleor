@@ -2706,6 +2706,53 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
     assert products[0]["node"]["name"] == product_with_numeric_attr.name
 
 
+def test_products_query_with_filter_search_by_numeric_attribute_value_without_unit(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    numeric_attribute_without_unit,
+):
+    # given
+    numeric_attribute = numeric_attribute_without_unit
+    product_with_numeric_attr = product_list[1]
+
+    product_type = product_with_numeric_attr.product_type
+    product_type.product_attributes.add(numeric_attribute)
+
+    numeric_attr_value = numeric_attribute.values.first()
+    numeric_attr_value.name = "13456"
+    numeric_attr_value.save(update_fields=["name"])
+
+    associate_attribute_values_to_instance(
+        product_with_numeric_attr, numeric_attribute, numeric_attr_value
+    )
+
+    product_with_numeric_attr.refresh_from_db()
+
+    product_with_numeric_attr.search_document = prepare_product_search_document_value(
+        product_with_numeric_attr
+    )
+    product_with_numeric_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": "13456"}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_numeric_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_numeric_attr.name
+
+
 @pytest.mark.parametrize("search_value", ["2020", "2020 10 10", "2020-10-10"])
 def test_products_query_with_filter_search_by_date_attribute_value(
     search_value,
