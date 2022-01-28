@@ -1140,6 +1140,32 @@ def test_calculate_order_shipping(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_zero_shipping_amount(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    channel_listing = method.channel_listings.get(channel=order.channel)
+    channel_listing.price_amount = 0
+    channel_listing.save(update_fields=["price_amount"])
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_line_unit(
     order_line,
     shipping_zone,
