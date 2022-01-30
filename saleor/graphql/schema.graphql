@@ -118,6 +118,8 @@ type AccountUpdate {
 
 type Address implements Node & ObjectWithMetadata {
   id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   firstName: String!
   lastName: String!
   companyName: String!
@@ -129,8 +131,6 @@ type Address implements Node & ObjectWithMetadata {
   country: CountryDisplay!
   countryArea: String!
   phone: String
-  privateMetadata: [MetadataItem]!
-  metadata: [MetadataItem]!
   isDefaultShippingAddress: Boolean
   isDefaultBillingAddress: Boolean
 }
