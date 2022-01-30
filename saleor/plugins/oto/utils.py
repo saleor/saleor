@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import logging
+from threading import Lock
 
 from django.contrib.sites.models import Site
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
@@ -150,3 +151,15 @@ def handle_webhook(request: HttpRequest, config: "dict"):
     else:
         logger.info("Webhook is not verified!")
         return HttpResponseForbidden("Webhook is not verified!")
+
+
+class SingletonMeta(type):
+    _instances = {}
+    _lock: Lock = Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls not in cls._instances:
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
+        return cls._instances[cls]
