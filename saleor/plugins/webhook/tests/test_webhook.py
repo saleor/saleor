@@ -1,4 +1,5 @@
 import json
+from dataclasses import asdict
 from datetime import datetime
 from unittest import mock
 from unittest.mock import ANY, MagicMock
@@ -7,6 +8,8 @@ from urllib.parse import urlencode
 import boto3
 import graphene
 import pytest
+from celery.exceptions import MaxRetriesExceededError
+from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.serializers import serialize
 from django.utils import timezone
@@ -29,6 +32,7 @@ from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
+    TaskParams,
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
@@ -915,23 +919,28 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     mocked_webhook_send.assert_called_once_with(event_delivery.pk)
 
 
-TEST_WEBHOOK_RESPONSE = WebhookResponse(
-    content="test_content",
-    request_headers={"headers": "test_request"},
-    response_headers={"headers": "test_response"},
-    duration=2.0,
-    status=EventDeliveryStatus.SUCCESS,
-)
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_report_event_delivery_attempt(mocked_webhook_trigger, event_attempt, settings):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    manager.report_event_delivery_attempt(event_attempt, TaskParams())
+
+    mocked_webhook_trigger.assert_called_once()
 
 
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
-@mock.patch(
-    "saleor.plugins.webhook.tasks.send_webhook_using_scheme_method",
-    return_value=TEST_WEBHOOK_RESPONSE,
-)
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_send_webhook_request_async(
-    mocked_send_response, mocked_clear_delivery, event_delivery
+    mocked_send_response,
+    mocked_clear_delivery,
+    mocked_report_event_delivery_attempt,
+    event_delivery,
+    webhook_response,
 ):
+    mocked_send_response.return_value = webhook_response
+
     send_webhook_request_async(event_delivery.pk)
 
     mocked_send_response.assert_called_once_with(
@@ -945,10 +954,54 @@ def test_send_webhook_request_async(
     attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
     delivery = EventDelivery.objects.get(id=event_delivery.pk)
     assert attempt.status == EventDeliveryStatus.SUCCESS
-    assert attempt.response == TEST_WEBHOOK_RESPONSE.content
-    assert attempt.response_headers == json.dumps(
-        TEST_WEBHOOK_RESPONSE.response_headers
-    )
-    assert attempt.request_headers == json.dumps(TEST_WEBHOOK_RESPONSE.request_headers)
-    assert attempt.duration == TEST_WEBHOOK_RESPONSE.duration
+    assert attempt.response == webhook_response.content
+    assert attempt.response_headers == json.dumps(webhook_response.response_headers)
+    assert attempt.request_headers == json.dumps(webhook_response.request_headers)
+    assert attempt.duration == webhook_response.duration
     assert delivery.status == EventDeliveryStatus.SUCCESS
+
+    mocked_report_event_delivery_attempt.assert_called_once_with(
+        delivery.event_type, attempt, TaskParams(retry_number=0, max_retries=5)
+    )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_send_webhook_request_async_when_delivery_attempt_failed(
+    mocked_send_response,
+    mocked_report_event_delivery_attempt,
+    event_delivery,
+    webhook_response_failed,
+):
+    mocked_send_response.return_value = webhook_response_failed
+
+    with pytest.raises(CeleryTaskRetryError):
+        send_webhook_request_async(event_delivery.pk)
+
+    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
+    delivery = EventDelivery.objects.get(id=event_delivery.pk)
+    assert attempt.status == EventDeliveryStatus.FAILED
+    assert delivery.status == EventDeliveryStatus.PENDING
+    mocked_report_event_delivery_attempt.assert_called_once()
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.retry")
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_send_webhook_request_async_when_max_retries_exceeded(
+    mocked_send_response,
+    mocked_report_event_delivery_attempt,
+    mocked_task_retry,
+    event_delivery,
+    webhook_response_failed,
+):
+    mocked_send_response.return_value = webhook_response_failed
+    mocked_task_retry.side_effect = MaxRetriesExceededError()
+
+    send_webhook_request_async(event_delivery.pk)
+
+    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
+    delivery = EventDelivery.objects.get(id=event_delivery.pk)
+    assert attempt.status == EventDeliveryStatus.FAILED
+    assert delivery.status == EventDeliveryStatus.FAILED
+    mocked_report_event_delivery_attempt.assert_called_once()

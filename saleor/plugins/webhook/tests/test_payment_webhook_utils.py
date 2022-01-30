@@ -1,14 +1,24 @@
+from datetime import datetime
+from unittest import mock
+
 import pytest
+import pytz
+from celery.exceptions import Retry
+from freezegun import freeze_time
 
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery
 from ....payment import TransactionKind
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ....webhook.payloads import TaskParams
 from ..utils import (
     APP_ID_PREFIX,
     clear_successful_delivery,
     from_payment_app_id,
+    get_next_retry_date,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
+    report_event_delivery_attempt,
     to_payment_app_id,
 )
 
@@ -184,3 +194,45 @@ def test_clear_successful_delivery_on_failed_delivery(event_delivery):
     clear_successful_delivery(event_delivery)
     # then
     assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()
+
+
+@pytest.mark.parametrize(
+    "retry, next_retry_date",
+    [
+        (Retry(), None),
+        (Retry(when=60 * 10), datetime(1914, 6, 28, 11, tzinfo=pytz.utc)),
+        (Retry(when=datetime(1914, 6, 28, 11)), datetime(1914, 6, 28, 11)),
+    ],
+)
+@freeze_time("1914-06-28 10:50")
+def test_get_next_retry_date(retry, next_retry_date):
+    assert get_next_retry_date(retry) == next_retry_date
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [WebhookEventAsyncType.ORDER_CREATED, WebhookEventSyncType.PAYMENT_CAPTURE],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.report_event_delivery_attempt")
+def test_report_event_delivery_attempt(
+    mock_report_event_delivery_attempt, event_type, event_attempt
+):
+    report_event_delivery_attempt(event_type, event_attempt, TaskParams())
+    mock_report_event_delivery_attempt.assert_called_once_with(
+        event_attempt, TaskParams()
+    )
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        WebhookEventAsyncType.REPORT_API_CALL,
+        WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT,
+    ],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.report_event_delivery_attempt")
+def test_report_event_delivery_attempt_not_fired(
+    mock_report_event_delivery_attempt, event_type, event_attempt
+):
+    report_event_delivery_attempt(event_type, event_attempt, TaskParams())
+    mock_report_event_delivery_attempt.assert_not_called()

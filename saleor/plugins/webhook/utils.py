@@ -3,10 +3,13 @@ import decimal
 import json
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from time import time
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from celery.exceptions import Retry
 from django.db.models import QuerySet
+from django.utils import timezone
 from prices import Money
 
 from ...core.models import (
@@ -235,3 +238,11 @@ def report_event_delivery_attempt(
         WebhookEventAsyncType.REPORT_API_CALL,
     ]:
         get_plugins_manager().report_event_delivery_attempt(attempt, task_params)
+
+
+def get_next_retry_date(retry_error: Retry) -> Optional[datetime]:
+    if isinstance(retry_error.when, (int, float)):
+        return timezone.now() + timedelta(seconds=retry_error.when)
+    elif isinstance(retry_error.when, datetime):
+        return retry_error.when
+    return None
