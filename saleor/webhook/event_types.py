@@ -158,6 +158,7 @@ class WebhookEventAsyncType:
     ]
 
     ALL = [event[0] for event in CHOICES]
+    REPORTER_EVENTS = [REPORT_API_CALL, REPORT_EVENT_DELIVERY_ATTEMPT]
 
     PERMISSIONS = {
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,

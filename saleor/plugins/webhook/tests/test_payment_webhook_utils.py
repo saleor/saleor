@@ -210,7 +210,11 @@ def test_get_next_retry_date(retry, next_retry_date):
 
 @pytest.mark.parametrize(
     "event_type",
-    [WebhookEventAsyncType.ORDER_CREATED, WebhookEventSyncType.PAYMENT_CAPTURE],
+    [
+        et
+        for et in WebhookEventAsyncType.ALL + WebhookEventSyncType.ALL
+        if et not in WebhookEventAsyncType.REPORTER_EVENTS
+    ],
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.report_event_delivery_attempt")
 def test_report_event_delivery_attempt(
@@ -220,13 +224,7 @@ def test_report_event_delivery_attempt(
     mock_report_event_delivery_attempt.assert_called_once_with(event_attempt, None)
 
 
-@pytest.mark.parametrize(
-    "event_type",
-    [
-        WebhookEventAsyncType.REPORT_API_CALL,
-        WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT,
-    ],
-)
+@pytest.mark.parametrize("event_type", WebhookEventAsyncType.REPORTER_EVENTS)
 @mock.patch("saleor.plugins.manager.PluginsManager.report_event_delivery_attempt")
 def test_report_event_delivery_attempt_not_fired(
     mock_report_event_delivery_attempt, event_type, event_attempt
