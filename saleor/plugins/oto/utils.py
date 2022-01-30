@@ -76,9 +76,9 @@ def generate_create_order_data(fulfillment):
         ),
         "orderDate": "%s %s:%s"
         % (
-            str(fulfillment.order.created.date().strftime("%d/%m/%Y")),
-            str(fulfillment.order.created.hour),
-            str(fulfillment.order.created.minute),
+            str(fulfillment.created.date().strftime("%d/%m/%Y")),
+            str(fulfillment.created.hour),
+            str(fulfillment.created.minute),
         ),
     }
     return data
