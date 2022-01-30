@@ -7,10 +7,12 @@ from unittest import mock
 from unittest.mock import ANY
 
 import graphene
+from django.http import JsonResponse
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ... import __version__
+from ...core import EventDeliveryStatus
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
@@ -22,12 +24,15 @@ from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
+from ...webhook.payloads import TaskParams
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
+    generate_api_call_payload,
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_event_delivery_attempt_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -946,3 +951,23 @@ def test_generate_meta(app, rf):
         "issued_at": timestamp,
         "version": __version__,
     }
+
+
+def test_generate_api_call_payload(app, rf):
+    request = rf.post(
+        "/graphql", data={"request": "data"}, content_type="application/json"
+    )
+    request.request_time = timezone.now()
+    request.app = app
+    response = JsonResponse({"response": "data"})
+
+    payload = json.loads(generate_api_call_payload(request, response))[0]
+    assert payload["response_content"] == '{"response": "data"}'
+
+
+def test_generate_event_delivery_attempt_payload(event_attempt):
+    payload = json.loads(
+        generate_event_delivery_attempt_payload(event_attempt, TaskParams())
+    )[0]
+
+    assert payload["status"] == EventDeliveryStatus.PENDING
