@@ -46,6 +46,8 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from django.core.handlers.wsgi import WSGIRequest
     from django.http import HttpResponse
 
@@ -61,7 +63,6 @@ if TYPE_CHECKING:
     from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
-    from ...webhook.payloads import TaskParams
 
 
 logger = logging.getLogger(__name__)
@@ -395,12 +396,12 @@ class WebhookPlugin(BasePlugin):
     def report_event_delivery_attempt(
         self,
         attempt: "EventDeliveryAttempt",
-        task_params: "TaskParams",
+        next_retry: Optional["datetime"],
         previous_value: Any,
     ):
         if not self.active:
             return previous_value
-        attempt_data = generate_event_delivery_attempt_payload(attempt, task_params)
+        attempt_data = generate_event_delivery_attempt_payload(attempt, next_retry)
         trigger_webhooks_async(
             attempt_data, WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
         )

@@ -2,7 +2,6 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 
@@ -48,6 +47,8 @@ if TYPE_CHECKING:
 
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from ..discount.models import Sale
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
@@ -98,13 +99,6 @@ ORDER_PRICE_FIELDS = (
     "undiscounted_total_net_amount",
     "undiscounted_total_gross_amount",
 )
-
-
-@dataclass
-class TaskParams:
-    retry_number: int = 0
-    max_retries: int = 0
-    next_retry: Optional[datetime] = None
 
 
 def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
@@ -1045,7 +1039,8 @@ def generate_api_call_payload(request, response):
 
 
 def generate_event_delivery_attempt_payload(
-    attempt: EventDeliveryAttempt, task_params: TaskParams
+    attempt: EventDeliveryAttempt,
+    next_retry: Optional["datetime"],
 ):
     data = {
         "time": attempt.created_at.timestamp(),
@@ -1057,8 +1052,8 @@ def generate_event_delivery_attempt_payload(
         "response_body": attempt.response,
         "task_params": {"next_retry": None},
     }
-    if task_params.next_retry:
-        data["task_params"]["next_retry"] = task_params.next_retry.timestamp()
+    if next_retry:
+        data["task_params"]["next_retry"] = next_retry.timestamp()
     if delivery := attempt.delivery:
         data.update(
             event_id=graphene.Node.to_global_id("EventDelivery", delivery.pk),

@@ -35,6 +35,8 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from datetime import datetime
+
     from ..account.models import Address, User
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
@@ -55,7 +57,6 @@ if TYPE_CHECKING:
     from ..shipping.interface import ShippingMethodData
     from ..translation.models import Translation
     from ..warehouse.models import Stock
-    from ..webhook.payloads import TaskParams
     from .base_plugin import BasePlugin
 
 
@@ -604,14 +605,16 @@ class PluginsManager(PaymentInterface):
         )
 
     def report_event_delivery_attempt(
-        self, delivery_attempt: "EventDeliveryAttempt", task_params: "TaskParams"
+        self,
+        delivery_attempt: "EventDeliveryAttempt",
+        next_retry: Optional["datetime"],
     ):
         default_value = None
         return self.__run_method_on_plugins(
             "report_event_delivery_attempt",
             default_value,
             delivery_attempt,
-            task_params,
+            next_retry,
         )
 
     def order_created(self, order: "Order"):

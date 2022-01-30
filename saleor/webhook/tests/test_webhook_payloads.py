@@ -24,7 +24,6 @@ from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
-from ...webhook.payloads import TaskParams
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
@@ -966,8 +965,10 @@ def test_generate_api_call_payload(app, rf):
 
 
 def test_generate_event_delivery_attempt_payload(event_attempt):
+    next_retry_date = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     payload = json.loads(
-        generate_event_delivery_attempt_payload(event_attempt, TaskParams())
+        generate_event_delivery_attempt_payload(event_attempt, next_retry_date)
     )[0]
 
     assert payload["status"] == EventDeliveryStatus.PENDING
+    assert payload["task_params"]["next_retry"] == next_retry_date.timestamp()

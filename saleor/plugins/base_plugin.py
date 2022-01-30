@@ -23,6 +23,8 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from datetime import datetime
+
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -38,7 +40,6 @@ if TYPE_CHECKING:
     from ..page.models import Page
     from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..shipping.interface import ShippingMethodData
-    from ..webhook.payloads import TaskParams
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
@@ -509,7 +510,7 @@ class BasePlugin:
     #
     #  Overwrite this method if you need log webhook delivery attempt.
     report_event_delivery_attempt: Callable[
-        ["EventDeliveryAttempt", "TaskParams", Any], Any
+        ["EventDeliveryAttempt", Optional["datetime"], Any], Any
     ]
 
     #  Trigger when sale is created.

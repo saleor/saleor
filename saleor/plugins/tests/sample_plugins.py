@@ -14,6 +14,8 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessToke
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from datetime import datetime
+
     from ...account.models import Address
     from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -24,7 +26,6 @@ if TYPE_CHECKING:
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
-    from ...webhook.payloads import TaskParams
 
 
 class PluginSample(BasePlugin):
@@ -268,7 +269,7 @@ class PluginSample(BasePlugin):
     def report_event_delivery_attempt(
         self,
         attempt: "EventDeliveryAttempt",
-        task_params: "TaskParams",
+        next_retry: "datetime",
         previous_value: Any,
     ):
         return True

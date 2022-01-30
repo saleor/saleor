@@ -32,7 +32,6 @@ from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
-    TaskParams,
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
@@ -924,7 +923,7 @@ def test_report_event_delivery_attempt(mocked_webhook_trigger, event_attempt, se
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
 
-    manager.report_event_delivery_attempt(event_attempt, TaskParams())
+    manager.report_event_delivery_attempt(event_attempt, timezone.now())
 
     mocked_webhook_trigger.assert_called_once()
 
@@ -961,7 +960,7 @@ def test_send_webhook_request_async(
     assert delivery.status == EventDeliveryStatus.SUCCESS
 
     mocked_report_event_delivery_attempt.assert_called_once_with(
-        delivery.event_type, attempt, TaskParams(retry_number=0, max_retries=5)
+        delivery.event_type, attempt
     )
 
 

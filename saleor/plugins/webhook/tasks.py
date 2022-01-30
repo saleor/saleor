@@ -23,7 +23,6 @@ from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.models import Webhook
-from ...webhook.payloads import TaskParams
 from . import signature_for_payload
 from .utils import (
     attempt_update,
@@ -255,10 +254,6 @@ def send_webhook_request_async(self, event_delivery_id):
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
-    task_params = TaskParams(
-        retry_number=self.request.retries,
-        max_retries=self.retry_kwargs["max_retries"],
-    )
     try:
         with webhooks_opentracing_trace(
             delivery.event_type, domain, app_name=webhook.app.name
@@ -285,8 +280,8 @@ def send_webhook_request_async(self, event_delivery_id):
                 countdown = self.retry_backoff * (2 ** self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except Retry as retry_error:
-                task_params.next_retry = get_next_retry_date(retry_error)
-                report_event_delivery_attempt(delivery.event_type, attempt, task_params)
+                next_retry = get_next_retry_date(retry_error)
+                report_event_delivery_attempt(delivery.event_type, attempt, next_retry)
                 raise retry_error
             except MaxRetriesExceededError:
                 task_logger.warning(
@@ -309,7 +304,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-    report_event_delivery_attempt(delivery.event_type, attempt, task_params)
+    report_event_delivery_attempt(delivery.event_type, attempt)
     clear_successful_delivery(delivery)
 
 
@@ -379,7 +374,7 @@ def send_webhook_request_sync(app_name, delivery):
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     delivery_update(delivery, response.status)
-    report_event_delivery_attempt(delivery.event_type, attempt, TaskParams())
+    report_event_delivery_attempt(delivery.event_type, attempt)
     clear_successful_delivery(delivery)
     return response_data
 

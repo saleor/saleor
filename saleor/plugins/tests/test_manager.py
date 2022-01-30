@@ -5,6 +5,7 @@ from unittest import mock
 
 import pytest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.utils import timezone
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
@@ -15,7 +16,6 @@ from ...discount.utils import fetch_catalogue_info
 from ...graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
-from ...webhook.payloads import TaskParams
 from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
@@ -1078,4 +1078,4 @@ def test_manager_report_api_call(rf):
 def test_manager_report_event_delivery_attempt(event_attempt):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = PluginsManager(plugins=plugins)
-    assert manager.report_event_delivery_attempt(event_attempt, TaskParams())
+    assert manager.report_event_delivery_attempt(event_attempt, timezone.now())

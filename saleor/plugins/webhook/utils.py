@@ -26,7 +26,6 @@ from ...webhook.event_types import WebhookEventAsyncType
 if TYPE_CHECKING:
     from ...app.models import App
     from ...payment.interface import PaymentData
-    from ...webhook.payloads import TaskParams
     from .tasks import WebhookResponse
 
 
@@ -231,13 +230,15 @@ def clear_successful_delivery(delivery: "EventDelivery"):
 
 
 def report_event_delivery_attempt(
-    event_type: str, attempt: "EventDeliveryAttempt", task_params: "TaskParams"
+    event_type: str,
+    attempt: "EventDeliveryAttempt",
+    next_retry: Optional[datetime] = None,
 ):
     if event_type not in [
         WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT,
         WebhookEventAsyncType.REPORT_API_CALL,
     ]:
-        get_plugins_manager().report_event_delivery_attempt(attempt, task_params)
+        get_plugins_manager().report_event_delivery_attempt(attempt, next_retry)
 
 
 def get_next_retry_date(retry_error: Retry) -> Optional[datetime]:
