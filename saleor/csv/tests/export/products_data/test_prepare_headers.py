@@ -4,8 +4,8 @@ from .....graphql.csv.enums import ProductFieldEnum
 from ....utils.product_headers import (
     get_attributes_headers,
     get_channels_headers,
-    get_export_fields_and_headers_info,
     get_product_export_fields_and_headers,
+    get_product_export_fields_and_headers_info,
     get_warehouses_headers,
 )
 
@@ -144,7 +144,7 @@ def test_get_channels_headers_lack_of_channel_ids():
     assert channel_headers == []
 
 
-def test_get_export_fields_and_headers_info(
+def test_get_product_export_fields_and_headers_info(
     warehouses, product_with_multiple_values_attributes, channel_PLN, channel_USD
 ):
     # given
@@ -168,9 +168,11 @@ def test_get_export_fields_and_headers_info(
     ]
 
     # when
-    export_fields, file_headers, data_headers = get_export_fields_and_headers_info(
-        export_info
-    )
+    (
+        export_fields,
+        file_headers,
+        data_headers,
+    ) = get_product_export_fields_and_headers_info(export_info)
 
     # then
     expected_fields = [

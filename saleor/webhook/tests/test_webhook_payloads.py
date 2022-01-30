@@ -14,8 +14,9 @@ from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
-from ...order import OrderLineData, OrderOrigin
+from ...order import OrderOrigin
 from ...order.actions import fulfill_order_lines
+from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
@@ -25,6 +26,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_checkout_payload,
+    generate_collection_payload,
     generate_customer_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
@@ -88,7 +90,7 @@ def test_generate_order_payload(
         assert payload.get(field) is not None
 
     assert payload["collection_point_name"] is None
-
+    assert payload.get("token") == order_with_lines.token
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
@@ -144,7 +146,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         order_line=line, quantity=line.quantity, stock=stock
     )
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
@@ -192,7 +194,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
 
@@ -301,6 +303,29 @@ def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocati
     line_payload = lines_payload[0]
     assert line_payload["product_sku"] is None
     assert line_payload["product_variant_id"] == line.product_variant_id
+
+
+def test_generate_collection_payload(collection):
+    payload = json.loads(generate_collection_payload(collection))
+    expected_payload = [
+        {
+            "type": "Collection",
+            "id": graphene.Node.to_global_id("Collection", collection.id),
+            "name": collection.name,
+            "description": collection.description,
+            "background_image": None,
+            "background_image_alt": "",
+            "private_metadata": {},
+            "metadata": {},
+            "meta": {
+                "issued_at": ANY,
+                "version": __version__,
+                "issuing_principal": {"id": None, "type": None},
+            },
+        }
+    ]
+
+    assert payload == expected_payload
 
 
 def test_generate_base_product_variant_payload(product_with_two_variants):
@@ -516,6 +541,7 @@ def test_generate_invoice_payload(fulfilled_order):
         },
         "order": {
             "type": "Order",
+            "token": invoice.order.token,
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
             "private_metadata": {},
             "metadata": {},

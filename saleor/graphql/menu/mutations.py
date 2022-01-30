@@ -64,6 +64,7 @@ class MenuCreate(ModelMutation):
     class Meta:
         description = "Creates a new Menu."
         model = models.Menu
+        object_type = Menu
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
@@ -149,6 +150,7 @@ class MenuUpdate(ModelMutation):
     class Meta:
         description = "Updates a menu."
         model = models.Menu
+        object_type = Menu
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
@@ -166,6 +168,7 @@ class MenuDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a menu."
         model = models.Menu
+        object_type = Menu
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
@@ -209,6 +212,7 @@ class MenuItemCreate(ModelMutation):
     class Meta:
         description = "Creates a new menu item."
         model = models.MenuItem
+        object_type = MenuItem
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
@@ -256,6 +260,7 @@ class MenuItemUpdate(MenuItemCreate):
     class Meta:
         description = "Updates a menu item."
         model = models.MenuItem
+        object_type = MenuItem
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
@@ -277,6 +282,7 @@ class MenuItemDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a menu item."
         model = models.MenuItem
+        object_type = MenuItem
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"

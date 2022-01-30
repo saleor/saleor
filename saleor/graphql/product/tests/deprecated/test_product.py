@@ -358,7 +358,7 @@ def test_collections_query_with_sort(
 
     content = get_graphql_content(response)
     collections = content["data"]["collections"]["edges"]
-    for order, collection_name in enumerate(["Coll2", "Coll1", "Coll3"]):
+    for order, collection_name in enumerate(["Coll2", "Coll3", "Coll1"]):
         assert collections[order]["node"]["name"] == collection_name
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]

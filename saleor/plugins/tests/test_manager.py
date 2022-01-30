@@ -554,23 +554,6 @@ def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
 
-@pytest.mark.parametrize(
-    "plugins, price_amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
-)
-def test_manager_apply_taxes_to_shipping(
-    shipping_method, address, plugins, price_amount, channel_USD
-):
-    shipping_price = shipping_method.channel_listings.get(
-        channel_id=channel_USD.id
-    ).price
-    expected_price = Money(price_amount, "USD")
-    taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_price, address, channel_slug=channel_USD.slug
-    )
-    assert TaxedMoney(expected_price, expected_price) == taxed_price
-
-
 def test_manager_sale_created(sale):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
@@ -1076,3 +1059,10 @@ def test_create_plugin_manager_initializes_requestor_lazily(channel_USD):
     assert plugin.requestor.name == "some name"
 
     user_mock.assert_called_once()
+
+
+def test_manager_delivery_retry(event_delivery):
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    manager = PluginsManager(plugins=plugins)
+    delivery_retry = manager.event_delivery_retry(event_delivery=event_delivery)
+    assert delivery_retry

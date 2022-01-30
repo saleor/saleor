@@ -6,13 +6,15 @@ import pytest
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....giftcard import GiftCardEvents
 from ....giftcard.models import GiftCard, GiftCardEvent
-from ....order import OrderLineData, OrderStatus
+from ....order import OrderStatus
 from ....order.actions import fulfill_order_lines
 from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
+from ....order.fetch import OrderLineInfo
 from ....order.models import Fulfillment, FulfillmentLine, FulfillmentStatus, OrderLine
 from ....plugins.manager import get_plugins_manager
 from ....product.models import Product, ProductVariant
+from ....tests.utils import flush_post_commit_hooks
 from ....warehouse.models import Allocation, Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -571,6 +573,7 @@ def test_order_fulfill_with_gift_cards(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
     gift_cards = GiftCard.objects.all()
@@ -1849,12 +1852,12 @@ def test_fulfillment_approve_gift_cards_created(
 
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=gift_card_line_1,
                 quantity=gift_card_line_1.quantity,
                 warehouse_pk=stock_1.warehouse.pk,
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=gift_card_line_2,
                 quantity=gift_card_line_2.quantity,
                 warehouse_pk=stock_2.warehouse.pk,

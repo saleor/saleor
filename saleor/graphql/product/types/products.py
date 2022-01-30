@@ -43,7 +43,6 @@ from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,
-    CountableDjangoObjectType,
     create_connection_slice,
     filter_connection_queryset,
 )
@@ -55,7 +54,14 @@ from ...core.descriptions import (
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField
-from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.types import (
+    Image,
+    ModelObjectType,
+    TaxedMoney,
+    TaxedMoneyRange,
+    TaxType,
+    Weight,
+)
 from ...core.utils import from_global_id_or_error
 from ...decorators import (
     one_of_permissions_required,
@@ -111,7 +117,7 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
-from ..enums import ProductTypeKindEnum, VariantAttributeScope
+from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..resolvers import resolve_product_variants, resolve_products
 from ..sorters import ProductOrder
@@ -212,7 +218,14 @@ class PreorderData(graphene.ObjectType):
 
 
 @key(fields="id channel")
-class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    sku = graphene.String()
+    product = graphene.Field(lambda: Product, required=True)
+    track_inventory = graphene.Boolean(required=True)
+    quantity_limit_per_customer = graphene.Int()
+    weight = graphene.Field(Weight)
     channel = graphene.String(
         description=(
             "Channel given to retrieve this product variant. Also used by federation "
@@ -311,15 +324,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        only_fields = [
-            "id",
-            "name",
-            "product",
-            "sku",
-            "track_inventory",
-            "weight",
-            "quantity_limit_per_customer",
-        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
@@ -717,7 +721,20 @@ class ProductVariantCountableConnection(CountableConnection):
 
 
 @key(fields="id channel")
-class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class Product(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    seo_title = graphene.String()
+    seo_description = graphene.String()
+    name = graphene.String(required=True)
+    description = graphene.JSONString()
+    product_type = graphene.Field(lambda: ProductType, required=True)
+    slug = graphene.String(required=True)
+    category = graphene.Field(lambda: Category)
+    updated_at = graphene.DateTime()
+    charge_taxes = graphene.Boolean(required=True)
+    weight = graphene.Field(Weight)
+    default_variant = graphene.Field(ProductVariant)
+    rating = graphene.Float()
     channel = graphene.String(
         description=(
             "Channel given to retrieve this product. Also used by federation "
@@ -804,21 +821,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
-        only_fields = [
-            "category",
-            "charge_taxes",
-            "description",
-            "id",
-            "name",
-            "slug",
-            "product_type",
-            "seo_description",
-            "seo_title",
-            "updated_at",
-            "weight",
-            "default_variant",
-            "rating",
-        ]
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], info):
@@ -1196,7 +1198,14 @@ class ProductCountableConnection(CountableConnection):
 
 
 @key(fields="id")
-class ProductType(CountableDjangoObjectType):
+class ProductType(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    slug = graphene.String(required=True)
+    has_variants = graphene.Boolean(required=True)
+    is_shipping_required = graphene.Boolean(required=True)
+    is_digital = graphene.Boolean(required=True)
+    weight = graphene.Field(Weight)
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
     products = ConnectionField(
         ProductCountableConnection,
@@ -1248,16 +1257,6 @@ class ProductType(CountableDjangoObjectType):
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductType
-        only_fields = [
-            "has_variants",
-            "id",
-            "is_digital",
-            "is_shipping_required",
-            "name",
-            "slug",
-            "weight",
-            "tax_type",
-        ]
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
@@ -1368,7 +1367,13 @@ class ProductTypeCountableConnection(CountableConnection):
 
 
 @key(fields="id channel")
-class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    seo_title = graphene.String()
+    seo_description = graphene.String()
+    name = graphene.String(required=True)
+    description = graphene.JSONString()
+    slug = graphene.String(required=True)
     channel = graphene.String(
         description=(
             "Channel given to retrieve this collection. Also used by federation "
@@ -1403,14 +1408,6 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
         description = "Represents a collection of products."
-        only_fields = [
-            "description",
-            "id",
-            "name",
-            "seo_description",
-            "seo_title",
-            "slug",
-        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Collection
 
@@ -1485,7 +1482,15 @@ class CollectionCountableConnection(CountableConnection):
 
 
 @key(fields="id")
-class Category(CountableDjangoObjectType):
+class Category(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    seo_title = graphene.String()
+    seo_description = graphene.String()
+    name = graphene.String(required=True)
+    description = graphene.JSONString()
+    slug = graphene.String(required=True)
+    parent = graphene.Field(lambda: Category)
+    level = graphene.Int(required=True)
     description_json = graphene.JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
@@ -1518,16 +1523,6 @@ class Category(CountableDjangoObjectType):
             "products in a tree-hierarchies which can be used for navigation in the "
             "storefront."
         )
-        only_fields = [
-            "description",
-            "id",
-            "level",
-            "name",
-            "parent",
-            "seo_description",
-            "seo_title",
-            "slug",
-        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Category
 
@@ -1606,7 +1601,12 @@ class CategoryCountableConnection(CountableConnection):
 
 
 @key(fields="id")
-class ProductMedia(CountableDjangoObjectType):
+class ProductMedia(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    sort_order = graphene.Int()
+    alt = graphene.String(required=True)
+    type = ProductMediaType(required=True)
+    oembed_data = graphene.JSONString(required=True)
     url = graphene.String(
         required=True,
         description="The URL of the media.",
@@ -1615,7 +1615,6 @@ class ProductMedia(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a product media."
-        fields = ["alt", "id", "sort_order", "type", "oembed_data"]
         interfaces = [relay.Node]
         model = models.ProductMedia
 

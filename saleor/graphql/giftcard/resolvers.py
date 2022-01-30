@@ -7,3 +7,7 @@ def resolve_gift_card(id):
 
 def resolve_gift_cards():
     return models.GiftCard.objects.all()
+
+
+def resolve_gift_card_tags():
+    return models.GiftCardTag.objects.all()

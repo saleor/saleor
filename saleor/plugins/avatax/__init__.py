@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union, cast
 from urllib.parse import urljoin
 
 import opentracing
@@ -218,18 +218,17 @@ def append_line_to_data(
 
 def append_shipping_to_data(
     data: List[Dict],
-    shipping_method_channel_listings: Optional["ShippingMethodChannelListing"],
+    shipping_price_amount: Optional[Decimal],
     shipping_tax_code: str,
 ):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
-    if charge_taxes_on_shipping and shipping_method_channel_listings:
-        shipping_price = shipping_method_channel_listings.price
+    if charge_taxes_on_shipping and shipping_price_amount:
         append_line_to_data(
             data,
             quantity=1,
-            amount=shipping_price.amount,
+            amount=shipping_price_amount,
             tax_code=shipping_tax_code,
             item_code="Shipping",
         )
@@ -298,9 +297,15 @@ def get_checkout_lines_data(
                 ref2=line_info.variant.sku,
             )
 
-    append_shipping_to_data(
-        data, checkout_info.shipping_method_channel_listings, config.shipping_tax_code
-    )
+    delivery_method = checkout_info.delivery_method_info.delivery_method
+    if delivery_method:
+        price = getattr(delivery_method, "price", None)
+        append_shipping_to_data(
+            data,
+            price.amount if price else None,
+            config.shipping_tax_code,
+        )
+
     return data
 
 
@@ -378,9 +383,12 @@ def get_order_lines_data(
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id
     ).first()
-    append_shipping_to_data(
-        data, shipping_method_channel_listing, config.shipping_tax_code
-    )
+    if shipping_method_channel_listing:
+        append_shipping_to_data(
+            data,
+            shipping_method_channel_listing.price.amount,
+            config.shipping_tax_code,
+        )
     return data
 
 
@@ -439,12 +447,13 @@ def generate_request_data_from_checkout(
     lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
 
     currency = checkout_info.checkout.currency
+    customer_email = cast(str, checkout_info.get_customer_email())
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
         transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
-        customer_email=checkout_info.get_customer_email(),
+        customer_email=customer_email,
         config=config,
         currency=currency,
     )

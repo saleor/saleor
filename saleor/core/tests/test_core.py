@@ -15,7 +15,7 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
-from ...giftcard.models import GiftCard
+from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...product import ProductTypeKind
 from ...product.models import ProductMedia, ProductType
@@ -186,11 +186,20 @@ def test_create_vouchers(db):
     assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 
-def test_create_gift_card(db):
+def test_create_gift_card(
+    db, product, shippable_gift_card_product, customer_user, staff_user, order
+):
+    product = shippable_gift_card_product
+    product.name = "Gift card"
+    product.save(update_fields=["name"])
+
+    amount = 5
     assert GiftCard.objects.count() == 0
-    for _ in random_data.create_gift_card():
+    assert GiftCardEvent.objects.count() == 0
+    for _ in random_data.create_gift_cards(amount):
         pass
-    assert GiftCard.objects.count() == 1
+    assert GiftCard.objects.count() == amount * 2
+    assert GiftCardEvent.objects.count() == amount * 2
 
 
 @override_settings(VERSATILEIMAGEFIELD_SETTINGS={"create_images_on_demand": False})

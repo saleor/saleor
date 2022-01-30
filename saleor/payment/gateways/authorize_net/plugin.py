@@ -104,7 +104,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         return self.config
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct."""
         configuration = {
             item["name"]: item["value"] for item in plugin_configuration.configuration

@@ -24,6 +24,7 @@ from django.http.request import HttpHeaders
 from django.http.response import HttpResponseRedirect
 from graphql_relay import from_global_id
 
+from ....checkout.calculations import calculate_checkout_total_with_gift_cards
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -37,6 +38,7 @@ from ....order.actions import (
     order_refunded,
 )
 from ....order.events import external_notification_event
+from ....order.fetch import fetch_order_info
 from ....payment.models import Payment, Transaction
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind, gateway
@@ -164,6 +166,20 @@ def create_order(payment, checkout, manager):
         discounts = fetch_active_discounts()
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_total = calculate_checkout_total_with_gift_cards(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=checkout.shipping_address or checkout.billing_address,
+            discounts=discounts,
+        )
+        # when checkout total value is different than total amount from payments
+        # it means that some products has been removed during the payment was completed
+        if checkout_total.gross.amount != payment.total:
+            payment_refund_or_void(payment, manager, checkout_info.channel.slug)
+            raise ValidationError(
+                "Cannot create order - some products do not exist anymore."
+            )
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,
@@ -174,8 +190,10 @@ def create_order(payment, checkout, manager):
             user=checkout.user or AnonymousUser(),
             app=None,
         )
-    except ValidationError:
-        payment_refund_or_void(payment, manager, checkout_info.channel.slug)
+    except ValidationError as e:
+        logger.info(
+            "Failed to create order from checkout %s.", checkout.pk, extra={"error": e}
+        )
         return None
     # Refresh the payment to assign the newly created order
     payment.refresh_from_db()
@@ -259,8 +277,9 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
             if new_transaction.is_success:
                 gateway_postprocess(new_transaction, payment)
                 if adyen_auto_capture:
+                    order_info = fetch_order_info(payment.order)
                     order_captured(
-                        payment.order,
+                        order_info,
                         None,
                         None,
                         new_transaction.amount,
@@ -357,8 +376,9 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         )
         if new_transaction.is_success and not capture_transaction:
             gateway_postprocess(new_transaction, payment)
+            order_info = fetch_order_info(payment.order)
             order_captured(
-                payment.order, None, None, new_transaction.amount, payment, manager
+                order_info, None, None, new_transaction.amount, payment, manager
             )
 
     reason = notification.get("reason", "-")

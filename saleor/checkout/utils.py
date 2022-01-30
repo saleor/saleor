@@ -1,5 +1,5 @@
 """Checkout-related utility functions."""
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -26,7 +26,9 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
-from ..shipping.models import ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.availability import (
     check_stock_and_preorder_quantity,
     check_stock_and_preorder_quantity_bulk,
@@ -256,6 +258,7 @@ def change_shipping_address_in_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     manager: "PluginsManager",
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
     """Save shipping address in checkout if changed.
 
@@ -270,7 +273,7 @@ def change_shipping_address_in_checkout(
             checkout.shipping_address.delete()  # type: ignore
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
-            checkout_info, address, lines, discounts, manager
+            checkout_info, address, lines, discounts, manager, shipping_channel_listings
         )
         checkout.save(update_fields=["shipping_address", "last_change"])
 
@@ -514,6 +517,7 @@ def recalculate_checkout_discount(
                     "discount_amount",
                     "discount_name",
                     "currency",
+                    "last_change",
                 ]
             )
     else:
@@ -536,9 +540,10 @@ def add_promo_code_to_checkout(
             manager, checkout_info, lines, promo_code, discounts
         )
     elif promo_code_is_gift_card(promo_code):
+        user_email = cast(str, checkout_info.get_customer_email())
         add_gift_card_code_to_checkout(
             checkout_info.checkout,
-            checkout_info.get_customer_email(),
+            user_email,
             promo_code,
             checkout_info.channel.currency_code,
         )
@@ -604,6 +609,7 @@ def add_voucher_to_checkout(
             "discount_name",
             "translated_discount_name",
             "discount_amount",
+            "last_change",
         ]
     )
 
@@ -636,27 +642,43 @@ def remove_voucher_from_checkout(checkout: Checkout):
             "translated_discount_name",
             "discount_amount",
             "currency",
+            "last_change",
         ]
     )
 
 
-def get_valid_shipping_methods_for_checkout(
+def get_valid_internal_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
-):
+) -> List[ShippingMethodData]:
     if not is_shipping_required(lines):
-        return None
+        return []
     if not checkout_info.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,  # type: ignore
+        country_code=country_code,
         lines=lines,
     )
+
+    channel_listings_map = {
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
+    }
+
+    internal_methods = []
+    for method in shipping_methods:
+        listing = channel_listings_map.get(method.pk)
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            internal_methods.append(shipping_method_data)
+
+    return internal_methods
 
 
 def get_valid_collection_points_for_checkout(

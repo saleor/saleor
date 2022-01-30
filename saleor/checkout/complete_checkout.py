@@ -1,5 +1,5 @@
 from datetime import date
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, cast
 
 import graphene
 from django.contrib.sites.models import Site
@@ -29,8 +29,9 @@ from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
-from ..order import OrderLineData, OrderOrigin, OrderStatus
-from ..order.actions import order_created
+from ..order import OrderOrigin, OrderStatus
+from ..order.actions import mark_order_as_paid, order_created
+from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_document_value
@@ -74,7 +75,8 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     if voucher.usage_limit:
         increase_voucher_usage(voucher)
     if voucher.apply_once_per_customer:
-        add_voucher_usage_by_customer(voucher, checkout_info.get_customer_email())
+        customer_email = cast(str, checkout_info.get_customer_email())
+        add_voucher_usage_by_customer(voucher, customer_email)
     return {
         "voucher": voucher,
     }
@@ -148,7 +150,7 @@ def _create_line_for_order(
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
     taxes_included_in_prices: bool,
-) -> OrderLineData:
+) -> OrderLineInfo:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -250,10 +252,13 @@ def _create_line_for_order(
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
     )
-    line_info = OrderLineData(
+    is_digital = line.is_digital
+    line_info = OrderLineInfo(
         line=line,
         quantity=quantity,
+        is_digital=is_digital,
         variant=variant,
+        digital_content=variant.digital_content if is_digital and variant else None,
         warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
     )
 
@@ -267,7 +272,7 @@ def _create_lines_for_order(
     discounts: Iterable[DiscountInfo],
     check_reservations: bool,
     taxes_included_in_prices: bool,
-) -> Iterable[OrderLineData]:
+) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -521,19 +526,29 @@ def _create_order(
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
-        fulfill_non_shippable_gift_cards(
-            order, order_lines, site_settings, user, app, manager
-        )
+    order_info = OrderInfo(
+        order=order,
+        customer_email=order_data["user_email"],
+        channel=checkout_info.channel,
+        payment=order.get_last_payment(),
+        lines_data=order_lines_info,
+    )
 
     transaction.on_commit(
-        lambda: order_created(order=order, user=user, app=app, manager=manager)
+        lambda: order_created(
+            order_info=order_info, user=user, app=app, manager=manager
+        )
     )
 
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation(order, checkout.redirect_url, manager)
+        lambda: send_order_confirmation(order_info, checkout.redirect_url, manager)
     )
+
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
 
     return order
 
@@ -706,21 +721,25 @@ def complete_checkout(
     if payment and user.is_authenticated:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
-    txn = _process_payment(
-        payment=payment,  # type: ignore
-        customer_id=customer_id,
-        store_source=store_source,
-        payment_data=payment_data,
-        order_data=order_data,
-        manager=manager,
-        channel_slug=channel_slug,
-    )
+    action_required = False
+    action_data: Dict[str, str] = {}
+    if payment:
+        txn = _process_payment(
+            payment=payment,  # type: ignore
+            customer_id=customer_id,
+            store_source=store_source,
+            payment_data=payment_data,
+            order_data=order_data,
+            manager=manager,
+            channel_slug=channel_slug,
+        )
 
-    if txn.customer_id and user.is_authenticated:
-        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
+        if txn.customer_id and user.is_authenticated:
+            store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
-    action_required = txn.action_required
-    action_data = txn.action_required_data if action_required else {}
+        action_required = txn.action_required
+        if action_required:
+            action_data = txn.action_required_data
 
     order = None
     if not action_required:
@@ -741,4 +760,9 @@ def complete_checkout(
             gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
+
+        # if the order total value is 0 it is paid from the definition
+        if order.total.net.amount == 0:
+            mark_order_as_paid(order, user, app, manager)
+
     return order, action_required, action_data

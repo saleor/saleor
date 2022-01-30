@@ -135,20 +135,21 @@ def calculate_base_line_total_price(
     return prices_data
 
 
-def base_checkout_shipping_price(
+def base_checkout_delivery_price(
     checkout_info: "CheckoutInfo", lines=None
 ) -> TaxedMoney:
+    """Calculate base (untaxed) price for any kind of delivery method."""
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
-        return calculate_price_for_shipping_method(
+        return calculate_base_price_for_shipping_method(
             checkout_info, delivery_method_info, lines
         )
 
     return zero_taxed_money(checkout_info.checkout.currency)
 
 
-def calculate_price_for_shipping_method(
+def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: ShippingMethodInfo,
     lines=None,
@@ -167,16 +168,14 @@ def calculate_price_for_shipping_method(
     if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout_info.checkout.currency)
 
-    # external shipping methods have the price field,
-    # while internal methods use channel listings
-    shipping_price = shipping_method.price
-    if shipping_price is None:
-        shipping_price = shipping_method.channel_listings.get(  # type: ignore
-            channel_id=checkout_info.checkout.channel_id,
-        ).get_total()
-
+    # Base price does not yet contain tax information,
+    # which can be later applied by tax plugins
     return quantize_price(
-        TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
+        TaxedMoney(
+            net=shipping_method.price,
+            gross=shipping_method.price,
+        ),
+        checkout_info.checkout.currency,
     )
 
 
@@ -223,8 +222,8 @@ def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
 
 def base_tax_rate(price: TaxedMoney):
     tax_rate = Decimal("0.0")
-    # The condition will return False when unit_price.gross is 0.0
-    if not isinstance(price, Decimal) and price.gross:
+    # The condition will return False when unit_price.gross or unit_price.net is 0.0
+    if not isinstance(price, Decimal) and all((price.gross, price.net)):
         tax_rate = price.tax / price.net
     return tax_rate
 

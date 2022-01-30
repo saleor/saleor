@@ -229,7 +229,7 @@ class AvataxPlugin(BasePlugin):
                 taxed_line_total_data.price_with_discounts
             )
 
-        base_shipping_price = base_calculations.base_checkout_shipping_price(
+        base_shipping_price = base_calculations.base_checkout_delivery_price(
             checkout_info, lines
         )
         shipping_price = self._calculate_checkout_shipping(
@@ -878,7 +878,9 @@ class AvataxPlugin(BasePlugin):
             )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct."""
         missing_fields = []
         configuration = plugin_configuration.configuration

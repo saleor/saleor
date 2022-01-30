@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
@@ -8,8 +8,10 @@ from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
+from promise.promise import Promise
 
 from ..checkout.interface import CheckoutTaxedPricesData
+from ..core.models import EventDelivery
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -34,7 +36,7 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
-    from ..product.models import Product, ProductType, ProductVariant
+    from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..shipping.interface import ShippingMethodData
 
 PluginConfigurationType = List[dict]
@@ -96,7 +98,8 @@ class BasePlugin:
         configuration: PluginConfigurationType,
         active: bool,
         channel: Optional["Channel"] = None,
-        requestor_getter: Optional[Callable[[], "Requestor"]] = None
+        requestor_getter: Optional[Callable[[], "Requestor"]] = None,
+        db_config: Optional["PluginConfiguration"] = None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
@@ -104,6 +107,7 @@ class BasePlugin:
         self.requestor: Optional[RequestorOrLazyObject] = (
             SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
         )
+        self.db_config = db_config
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -114,12 +118,6 @@ class BasePlugin:
     apply_taxes_to_product: Callable[
         ["Product", Money, Country, TaxedMoney], TaxedMoney
     ]
-
-    #  Apply taxes to the shipping costs based on the shipping address.
-    #
-    #  Overwrite this method if you want to show available shipping methods with
-    #  taxes.
-    apply_taxes_to_shipping: Callable[[Money, "Address", TaxedMoney], TaxedMoney]
 
     #  Assign tax code dedicated to plugin.
     assign_tax_code_to_object_meta: Callable[
@@ -236,6 +234,24 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic when a checkout is
     #  updated.
     checkout_updated: Callable[["Checkout", Any], Any]
+
+    #  Trigger when collection is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection is
+    #  created.
+    collection_created: Callable[["Collection", Any], Any]
+
+    #  Trigger when collection is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection is
+    #  deleted.
+    collection_deleted: Callable[["Collection", Any], Any]
+
+    #  Trigger when collection is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a collection is
+    #  updated.
+    collection_updated: Callable[["Collection", Any], Any]
 
     confirm_payment: Callable[["PaymentData", Any], GatewayResponse]
 
@@ -511,6 +527,9 @@ class BasePlugin:
     #  Overwrite this method if the plugin expects the incoming requests.
     webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
 
+    # Triggers retry mechanism for event delivery
+    event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
+
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
 
@@ -572,7 +591,9 @@ class BasePlugin:
             )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct.
 
         Raise django.core.exceptions.ValidationError otherwise.
@@ -595,11 +616,14 @@ class BasePlugin:
         configuration_to_update = cleaned_data.get("configuration")
         if configuration_to_update:
             cls._update_config_items(configuration_to_update, current_config)
+
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
+
         cls.validate_plugin_configuration(plugin_configuration)
         cls.pre_save_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
+
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
@@ -668,6 +692,12 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Override this function to customize resolving plugin configuration in API.
+        return self.configuration
 
     def is_event_active(self, event: str, channel=Optional[str]):
         return hasattr(self, event)

@@ -23,6 +23,7 @@ from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
+from freezegun import freeze_time
 from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
@@ -41,6 +42,7 @@ from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
+from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -57,15 +59,16 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..giftcard import GiftCardEvents
-from ..giftcard.models import GiftCard, GiftCardEvent
+from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderLineData, OrderOrigin, OrderStatus
+from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
     order_added_products_event,
 )
+from ..order.fetch import OrderLineInfo
 from ..order.models import (
     FulfillmentLine,
     FulfillmentStatus,
@@ -82,6 +85,7 @@ from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
+from ..plugins.webhook.tasks import WebhookResponse
 from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes, ProductTypeKind
 from ..product.models import (
@@ -111,6 +115,7 @@ from ..shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
@@ -283,7 +288,7 @@ def site_settings_with_reservations(site_settings):
 @pytest.fixture
 def checkout(db, channel_USD):
     checkout = Checkout.objects.create(
-        currency=channel_USD.currency_code, channel=channel_USD
+        currency=channel_USD.currency_code, channel=channel_USD, email="user@email.com"
     )
     checkout.set_country("US", commit=True)
     return checkout
@@ -310,6 +315,15 @@ def checkout_with_item(checkout, product):
 @pytest.fixture
 def checkout_line(checkout_with_item):
     return checkout_with_item.lines.first()
+
+
+@pytest.fixture
+def checkout_with_item_total_0(checkout, product_price_0):
+    variant = product_price_0.variants.get()
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
+    checkout.save()
+    return checkout
 
 
 @pytest.fixture
@@ -387,6 +401,14 @@ def checkout_with_shipping_required(checkout_with_item, product):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
+    checkout = checkout_with_item
+    checkout.shipping_method = shipping_method
     checkout.save()
     return checkout
 
@@ -683,6 +705,7 @@ def user_checkout(customer_user, channel_USD):
 def user_checkout_for_cc(customer_user, channel_USD, warehouse_for_cc):
     checkout = Checkout.objects.create(
         user=customer_user,
+        email=customer_user.email,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=warehouse_for_cc.address,
@@ -1001,6 +1024,14 @@ def shipping_method(shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def shipping_method_data(shipping_method, channel_USD):
+    listing = ShippingMethodChannelListing.objects.filter(
+        channel=channel_USD, shipping_method=shipping_method
+    ).get()
+    return convert_to_shipping_method_data(shipping_method, listing)
+
+
+@pytest.fixture
 def shipping_method_weight_based(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="weight based method",
@@ -1285,6 +1316,22 @@ def numeric_attribute(db):
     )
     AttributeValue.objects.create(attribute=attribute, name="9.5", slug="10_5")
     AttributeValue.objects.create(attribute=attribute, name="15.2", slug="15_2")
+    return attribute
+
+
+@pytest.fixture
+def numeric_attribute_without_unit(db):
+    attribute = Attribute.objects.create(
+        slug="count",
+        name="Count",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.NUMERIC,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="9", slug="9")
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
     return attribute
 
 
@@ -1773,6 +1820,38 @@ def shippable_gift_card_product(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
 
+    return product
+
+
+@pytest.fixture
+def product_price_0(category, warehouse, channel_USD):
+    product_type = ProductType.objects.create(
+        name="Type with no shipping",
+        slug="no-shipping",
+        has_variants=False,
+        is_shipping_required=False,
+    )
+    product = Product.objects.create(
+        name="Test product",
+        slug="test-product-4",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+    )
+    variant = ProductVariant.objects.create(product=product, sku="SKU_C")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(0),
+        cost_price_amount=Decimal(0),
+        currency=channel_USD.currency_code,
+    )
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=1)
     return product
 
 
@@ -3239,15 +3318,23 @@ def checkout_line_with_reserved_preorder_item(
 
 
 @pytest.fixture
+def gift_card_tag_list(db):
+    tags = [GiftCardTag(name=f"test-tag-{i}") for i in range(5)]
+    return GiftCardTag.objects.bulk_create(tags)
+
+
+@pytest.fixture
 def gift_card(customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="never_expiry",
         created_by=customer_user,
         created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        tag="test-tag",
     )
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
@@ -3264,20 +3351,22 @@ def gift_card_with_metadata(customer_user):
 
 @pytest.fixture
 def gift_card_expiry_date(customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="expiry_date",
         created_by=customer_user,
         created_by_email=customer_user.email,
         initial_balance=Money(20, "USD"),
         current_balance=Money(20, "USD"),
         expiry_date=datetime.date.today() + datetime.timedelta(days=100),
-        tag="another-tag",
     )
+    tag = GiftCardTag.objects.create(name="another-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
 def gift_card_used(staff_user, customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="giftcard_used",
         created_by=staff_user,
         used_by=customer_user,
@@ -3285,20 +3374,24 @@ def gift_card_used(staff_user, customer_user):
         used_by_email=customer_user.email,
         initial_balance=Money(100, "USD"),
         current_balance=Money(80, "USD"),
-        tag="tag",
     )
+    tag = GiftCardTag.objects.create(name="tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="created_by_staff",
         created_by=staff_user,
         created_by_email=staff_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        tag="test-tag",
     )
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
@@ -3307,8 +3400,8 @@ def gift_card_event(gift_card, order, app, staff_user):
         "message": "test message",
         "email": "testemail@email.com",
         "order_id": order.pk,
-        "tag": "test tag",
-        "old_tag": "test old tag",
+        "tags": ["test tag"],
+        "old_tags": ["test old tag"],
         "balance": {
             "currency": "USD",
             "initial_balance": 10,
@@ -3511,7 +3604,7 @@ def order_fulfill_data(order_with_lines, warehouse):
 @pytest.fixture
 def lines_info(order_with_lines):
     return [
-        OrderLineData(
+        OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -3818,10 +3911,10 @@ def fulfilled_order(order_with_lines):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
     fulfill_order_lines(
         [
-            OrderLineData(
+            OrderLineInfo(
                 line=line_1, quantity=line_1.quantity, warehouse_pk=warehouse_1_pk
             ),
-            OrderLineData(
+            OrderLineInfo(
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
@@ -3843,7 +3936,7 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
-        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(),
     )
     order.status = OrderStatus.FULFILLED
@@ -5250,6 +5343,7 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+        email=customer_user.email,
     )
 
 
@@ -5518,6 +5612,42 @@ def app_manifest():
 
 
 @pytest.fixture
+def event_payload():
+    """Return event payload."""
+    return EventPayload.objects.create(payload='{"payload_key": "payload_value"}')
+
+
+@pytest.fixture
+def event_delivery(event_payload, webhook, app):
+    """Return event delivery object"""
+    return EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+
+
+@pytest.fixture
+def event_attempt(event_delivery):
+    """Return event delivery attempt object"""
+    return EventDeliveryAttempt.objects.create(
+        delivery=event_delivery,
+        task_id="example_task_id",
+        duration=None,
+        response="example_response",
+        response_headers=None,
+        request_headers=None,
+    )
+
+
+@pytest.fixture
+def webhook_response():
+    return WebhookResponse(
+        content="example_content_response",
+    )
+
+
+@pytest.fixture
 def check_payment_balance_input():
     return {
         "gatewayId": "mirumee.payments.gateway",
@@ -5528,4 +5658,81 @@ def check_payment_balance_input():
             "code": "12345678910",
             "money": {"currency": "GBP", "amount": 100.0},
         },
+    }
+
+
+@pytest.fixture
+def delivery_attempts(event_delivery):
+    """Return consecutive deliveries attempts ids"""
+    with freeze_time("2020-03-18 12:00:00"):
+        attempt_1 = EventDeliveryAttempt.objects.create(
+            delivery=event_delivery,
+            task_id="example_task_id_1",
+            duration=None,
+            response="example_response",
+            response_headers=None,
+            request_headers=None,
+        )
+
+    with freeze_time("2020-03-18 13:00:00"):
+        attempt_2 = EventDeliveryAttempt.objects.create(
+            delivery=event_delivery,
+            task_id="example_task_id_2",
+            duration=None,
+            response="example_response",
+            response_headers=None,
+            request_headers=None,
+        )
+
+    with freeze_time("2020-03-18 14:00:00"):
+        attempt_3 = EventDeliveryAttempt.objects.create(
+            delivery=event_delivery,
+            task_id="example_task_id_3",
+            duration=None,
+            response="example_response",
+            response_headers=None,
+            request_headers=None,
+        )
+
+    attempt_1 = graphene.Node.to_global_id("EventDeliveryAttempt", attempt_1.pk)
+    attempt_2 = graphene.Node.to_global_id("EventDeliveryAttempt", attempt_2.pk)
+    attempt_3 = graphene.Node.to_global_id("EventDeliveryAttempt", attempt_3.pk)
+    webhook_id = graphene.Node.to_global_id("Webhook", event_delivery.webhook.pk)
+
+    return {
+        "webhook_id": webhook_id,
+        "attempt_1_id": attempt_1,
+        "attempt_2_id": attempt_2,
+        "attempt_3_id": attempt_3,
+    }
+
+
+@pytest.fixture
+def event_deliveries(event_payload, webhook, app):
+    """Return consecutive event deliveries ids"""
+    delivery_1 = EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    delivery_2 = EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    delivery_3 = EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=webhook,
+    )
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    delivery_1 = graphene.Node.to_global_id("EventDelivery", delivery_1.pk)
+    delivery_2 = graphene.Node.to_global_id("EventDelivery", delivery_2.pk)
+    delivery_3 = graphene.Node.to_global_id("EventDelivery", delivery_3.pk)
+
+    return {
+        "webhook_id": webhook_id,
+        "delivery_1_id": delivery_1,
+        "delivery_2_id": delivery_2,
+        "delivery_3_id": delivery_3,
     }

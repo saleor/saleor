@@ -1,7 +1,7 @@
 import copy
 from decimal import Decimal
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.conf import settings
@@ -21,12 +21,14 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..order import FulfillmentStatus, OrderLineData, OrderStatus
+from ..order import FulfillmentStatus, OrderStatus
+from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
-from ..shipping.models import ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.management import (
-    deallocate_stock,
     decrease_allocations,
     get_order_lines_with_track_inventory,
     increase_allocations,
@@ -51,11 +53,11 @@ def get_order_country(order: Order) -> str:
     return address.country.code
 
 
-def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
+def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
     """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
     default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
-    content = line.variant.digital_content if line.variant else None
+    content = line_data.digital_content
     if not content:
         return False
     if default_automatic_fulfillment and content.use_default_settings:
@@ -65,10 +67,10 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     return False
 
 
-def order_needs_automatic_fulfillment(order: Order) -> bool:
+def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineInfo"]) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
-    for line in order.lines.digital():  # type: ignore
-        if order_line_needs_automatic_fulfillment(line):
+    for line_data in lines_data:
+        if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
             return True
     return False
 
@@ -286,7 +288,6 @@ def _calculate_quantity_including_returns(order):
 
 def update_order_status(order):
     """Update order status depending on fulfillments."""
-
     (
         total_quantity,
         quantity_fulfilled,
@@ -339,7 +340,7 @@ def add_variant_to_order(
         line = order.lines.get(variant=variant)
         old_quantity = line.quantity
         new_quantity = old_quantity + quantity
-        line_info = OrderLineData(line=line, quantity=old_quantity)
+        line_info = OrderLineInfo(line=line, quantity=old_quantity)
         change_order_line_quantity(
             user,
             app,
@@ -456,7 +457,7 @@ def add_variant_to_order(
     if allocate_stock:
         increase_allocations(
             [
-                OrderLineData(
+                OrderLineInfo(
                     line=line,
                     quantity=quantity,
                     variant=variant,
@@ -481,7 +482,7 @@ def add_gift_cards_to_order(
     gift_cards_to_update = []
     balance_data: List[Tuple[GiftCard, float]] = []
     used_by_user = checkout_info.user
-    used_by_email = checkout_info.get_customer_email()
+    used_by_email = cast(str, checkout_info.get_customer_email())
     for gift_card in checkout_info.checkout.gift_cards.select_for_update():
         if total_price_left > zero_money(total_price_left.currency):
             order_gift_cards.append(gift_card)
@@ -535,7 +536,7 @@ def set_gift_card_user(
 
 
 def _update_allocations_for_line(
-    line_info: OrderLineData,
+    line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
     channel_slug: str,
@@ -630,35 +631,6 @@ def delete_order_line(line_info, manager):
     line_info.line.delete()
 
 
-def restock_order_lines(order, manager):
-    """Return ordered products to corresponding stocks."""
-    country = get_order_country(order)
-    default_warehouse = Warehouse.objects.filter(
-        shipping_zones__countries__contains=country
-    ).first()
-
-    dellocating_stock_lines: List[OrderLineData] = []
-    for line in order.lines.all():
-        if line.variant and line.variant.track_inventory:
-            if line.quantity_unfulfilled > 0:
-                dellocating_stock_lines.append(
-                    OrderLineData(line=line, quantity=line.quantity_unfulfilled)
-                )
-            if line.quantity_fulfilled > 0:
-                allocation = line.allocations.first()
-                warehouse = (
-                    allocation.stock.warehouse if allocation else default_warehouse
-                )
-                increase_stock(line, warehouse, line.quantity_fulfilled)
-
-        if line.quantity_fulfilled > 0:
-            line.quantity_fulfilled = 0
-            line.save(update_fields=["quantity_fulfilled"])
-
-    if dellocating_stock_lines:
-        deallocate_stock(dellocating_stock_lines, manager)
-
-
 def restock_fulfillment_lines(fulfillment, warehouse):
     """Return fulfilled products to corresponding stocks.
 
@@ -680,17 +652,39 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(order: Order):
+def get_valid_shipping_methods_for_order(
+    order: Order, shipping_channel_listings: Iterable["ShippingMethodChannelListing"]
+) -> List[ShippingMethodData]:
+    """Return a list of shipping methods according to Saleor's own business logic.
+
+    The resulting methods are not yet filtered by plugins.
+    """
     if not order.is_shipping_required():
-        return None
+        return []
+
     if not order.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    valid_methods = []
+
+    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order,
         channel_id=order.channel_id,
         price=order.get_subtotal().gross,
         country_code=order.shipping_address.country.code,
-    )
+    ).prefetch_related("channel_listings")
+
+    listing_map = {
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
+    }
+
+    for method in shipping_methods:
+        listing = listing_map.get(method.id)
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            valid_methods.append(shipping_method_data)
+
+    return valid_methods
 
 
 def is_shipping_required(lines: Iterable["OrderLine"]):

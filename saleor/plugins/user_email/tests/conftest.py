@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from ....plugins.models import EmailTemplate, PluginConfiguration
 from ...email_common import DEFAULT_EMAIL_VALUE
 from ...manager import get_plugins_manager
 from ..constants import (
@@ -243,3 +244,14 @@ def user_email_plugin(settings, channel_USD):
         return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
+
+
+@pytest.fixture
+def user_email_template(user_email_plugin):
+    plugin = user_email_plugin()
+    config = PluginConfiguration.objects.get(identifier=plugin.PLUGIN_ID)
+    return EmailTemplate.objects.create(
+        name=ORDER_CONFIRMATION_TEMPLATE_FIELD,
+        value="Custom order confirmation template",
+        plugin_configuration=config,
+    )

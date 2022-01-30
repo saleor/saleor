@@ -1,6 +1,6 @@
 import pytest
 
-from ....order.tests.benchmark.test_order import FRAGMENT_AVAILABLE_SHIPPING_METHODS
+from ....order.tests.benchmark.test_order import FRAGMENT_SHIPPING_METHODS
 from ....tests.utils import get_graphql_content
 
 
@@ -8,7 +8,7 @@ from ....tests.utils import get_graphql_content
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_shop(api_client, channel_USD, count_queries):
     query = (
-        FRAGMENT_AVAILABLE_SHIPPING_METHODS
+        FRAGMENT_SHIPPING_METHODS
         + """
         query getShop($channel: String!) {
           shop {

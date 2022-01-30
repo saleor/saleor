@@ -10,8 +10,9 @@ from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.interface import OrderTaxedPricesData
 from ...plugins.manager import get_plugins_manager
-from .. import OrderLineData, OrderStatus
+from .. import OrderStatus
 from ..events import OrderEvents
+from ..fetch import OrderLineInfo
 from ..models import Order, OrderEvent
 from ..utils import (
     add_gift_cards_to_order,
@@ -48,7 +49,7 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
-    line_info = OrderLineData(
+    line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
         variant=line.variant,
@@ -96,7 +97,7 @@ def test_change_quantity_update_line_fields(
 ):
     # given
     line = order_with_lines.lines.last()
-    line_info = OrderLineData(
+    line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
         variant=line.variant,
@@ -173,7 +174,9 @@ def test_get_valid_shipping_methods_for_order(order_line_with_one_allocation, ad
     order.save(update_fields=["shipping_address"])
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
     assert len(valid_shipping_methods) == 1
@@ -193,7 +196,9 @@ def test_get_valid_shipping_methods_for_order_no_channel_shipping_zones(
     order.save(update_fields=["shipping_address"])
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
     assert len(valid_shipping_methods) == 0
@@ -210,10 +215,12 @@ def test_get_valid_shipping_methods_for_order_no_shipping_address(
     order.currency = "USD"
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
-    assert valid_shipping_methods is None
+    assert valid_shipping_methods == []
 
 
 def test_get_valid_shipping_methods_for_order_shipping_not_required(
@@ -229,10 +236,12 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
     order.save(update_fields=["shipping_address"])
 
     # when
-    valid_shipping_methods = get_valid_shipping_methods_for_order(order)
+    valid_shipping_methods = get_valid_shipping_methods_for_order(
+        order, order.channel.shipping_method_listings.all()
+    )
 
     # then
-    assert valid_shipping_methods is None
+    assert valid_shipping_methods == []
 
 
 def test_update_taxes_for_order_lines(order_with_lines):

@@ -11,6 +11,7 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    cast,
 )
 
 from django.db.models import F
@@ -205,7 +206,7 @@ def validate_voucher_for_checkout(
         discounts=discounts,
     )
 
-    customer_email = checkout_info.get_customer_email()
+    customer_email = cast(str, checkout_info.get_customer_email())
     validate_voucher(
         voucher,
         subtotal,

@@ -23,6 +23,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add query complexity limit to GraphQL API - #8526 by rafalp
 - Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
 - Optimize products stock availability filter - #8809 by @fowczarek
+- Refactor attributes validation - #8905 by @IKarbowiak
+  - in create mutations: require all required attributes
+  - in update mutations: do not require providing any attributes; when any attribute is given, validate provided values.
+- Do no allow using id for updating checkout and order metadata - #8906 by @IKarbowiak
+- Fix crash when querying external shipping method's `translation` field - #8971 by @rafalp
+- Add `COLLECTION_CREATED`, `COLLECTION_UPDATED`, `COLLECTION_DELETED` events and webhooks - #8974 by @rafalp
+- Fix crash when too long translation strings were passed to `translate` mutations - #8942 by rafalp
+- Make collections names non-unique - #8986 by @rafalp
 
 # 3.0.0 [Unreleased]
 
@@ -153,6 +161,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate nested objects in TranslatableContent types - #7522 by @IKarbowiak
 - Fix performance for User type on resolvers: orders, gift cards, events - #7574 by @tomaszszymanski129
 - Fix failing account mutations for app - #7569 by @IKarbowiak
+- Introduce `event_payload` to webhook tasks - #8227 by @jakubkuc
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
 - Fulfillment confirmation - #7675 by @tomaszszymanski129
@@ -305,6 +314,8 @@ All notable, unreleased changes to this project will be documented in this file.
   `OrderTaxedPricesData` instead of `TaxedMoney`.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
+- Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
+  - Use `token` instead
 
 ### Other
 
