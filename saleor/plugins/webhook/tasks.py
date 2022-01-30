@@ -1,7 +1,6 @@
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from enum import Enum
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Type
@@ -10,7 +9,7 @@ from urllib.parse import urlparse, urlunparse
 import boto3
 import requests
 from botocore.exceptions import ClientError
-from celery.exceptions import MaxRetriesExceededError
+from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
@@ -33,6 +32,7 @@ from .utils import (
     create_attempt,
     create_event_delivery_list_for_webhooks,
     delivery_update,
+    get_next_retry_date,
     report_event_delivery_attempt,
 )
 
@@ -255,6 +255,10 @@ def send_webhook_request_async(self, event_delivery_id):
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
+    task_params = TaskParams(
+        retry_number=self.request.retries,
+        max_retries=self.retry_kwargs["max_retries"],
+    )
     try:
         with webhooks_opentracing_trace(
             delivery.event_type, domain, app_name=webhook.app.name
@@ -267,13 +271,6 @@ def send_webhook_request_async(self, event_delivery_id):
                 data,
             )
         attempt_update(attempt, response)
-        countdown = self.retry_backoff * (2 ** self.request.retries)
-        task_params = TaskParams(
-            retry_number=self.request.retries,
-            max_retries=self.retry_kwargs["max_retries"],
-            next_retry=datetime.now() + timedelta(seconds=countdown),
-        )
-        report_event_delivery_attempt(delivery.event_type, attempt, task_params)
         if response.status == EventDeliveryStatus.FAILED:
             task_logger.info(
                 "[Webhook ID: %r] Failed request to %r: %r for event: %r."
@@ -285,7 +282,12 @@ def send_webhook_request_async(self, event_delivery_id):
                 attempt.id,
             )
             try:
+                countdown = self.retry_backoff * (2 ** self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
+            except Retry as retry_error:
+                task_params.next_retry = get_next_retry_date(retry_error)
+                report_event_delivery_attempt(delivery.event_type, attempt, task_params)
+                raise retry_error
             except MaxRetriesExceededError:
                 task_logger.warning(
                     "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
@@ -307,7 +309,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-        report_event_delivery_attempt(delivery.event_type, attempt, TaskParams())
+    report_event_delivery_attempt(delivery.event_type, attempt, task_params)
     clear_successful_delivery(delivery)
 
 

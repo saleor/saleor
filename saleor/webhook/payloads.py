@@ -1060,12 +1060,9 @@ def generate_event_delivery_attempt_payload(
     if task_params.next_retry:
         data["task_params"]["next_retry"] = task_params.next_retry.timestamp()
     if delivery := attempt.delivery:
-        delivery_status = delivery.status
-        if task_params.retry_number >= task_params.max_retries:
-            delivery_status = EventDeliveryStatus.FAILED
         data.update(
             event_id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
-            event_status=delivery_status,
+            event_status=delivery.status,
             event_type=delivery.event_type,
         )
         if webhook := delivery.webhook:
