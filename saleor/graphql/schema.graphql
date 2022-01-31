@@ -316,7 +316,7 @@ type AppExtensionCountableEdge {
 }
 
 input AppExtensionFilterInput {
-  mount: AppExtensionMountEnum
+  mount: [AppExtensionMountEnum]
   target: AppExtensionTargetEnum
 }
 

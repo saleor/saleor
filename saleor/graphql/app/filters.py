@@ -1,8 +1,8 @@
 import django_filters
 
 from ...app import models
-from ...app.types import AppExtensionMount, AppExtensionTarget, AppType
-from ..core.filters import EnumFilter
+from ...app.types import AppExtensionTarget, AppType
+from ..core.filters import EnumFilter, ListObjectTypeFilter
 from ..utils.filters import filter_by_query_param
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
@@ -26,8 +26,8 @@ def filter_app_extension_target(qs, _, value):
 
 
 def filter_app_extension_mount(qs, _, value):
-    if value in [mount_place for mount_place, _ in AppExtensionMount.CHOICES]:
-        qs = qs.filter(mount=value)
+    if value:
+        qs = qs.filter(mount__in=value)
     return qs
 
 
@@ -42,7 +42,7 @@ class AppFilter(django_filters.FilterSet):
 
 
 class AppExtensionFilter(django_filters.FilterSet):
-    mount = EnumFilter(
+    mount = ListObjectTypeFilter(
         input_class=AppExtensionMountEnum, method=filter_app_extension_mount
     )
     target = EnumFilter(
