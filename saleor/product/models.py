@@ -377,6 +377,8 @@ class ProductsQueryset(models.QuerySet):
             "variants__attributes__assignment__attribute",
             "variants__variant_media__media",
             "variants__stocks__allocations",
+            "variants__channel_listings__channel",
+            "channel_listings__channel",
         )
         if single_object:
             return self.prefetch_related(*common_fields)
