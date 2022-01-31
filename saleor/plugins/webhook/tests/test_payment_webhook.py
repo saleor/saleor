@@ -96,9 +96,15 @@ def test_trigger_webhook_sync_no_webhook_available():
     "target_url",
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_sync_failed_attempt(
-    mock_post, target_url, site_settings, app, event_delivery
+    mock_post,
+    mock_reporter,
+    target_url,
+    site_settings,
+    app,
+    event_delivery,
 ):
     # given
     expected_data = {
@@ -120,16 +126,24 @@ def test_send_webhook_request_sync_failed_attempt(
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["content"]
     assert attempt.response_headers == json.dumps(expected_data["headers"])
+    mock_reporter.assert_called_once_with(event_delivery.event_type, attempt)
 
 
 @pytest.mark.parametrize(
     "target_url",
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 def test_send_webhook_request_sync_successful_attempt(
-    mock_clear_delivery, mock_post, target_url, site_settings, app, event_delivery
+    mock_clear_delivery,
+    mock_post,
+    mock_reporter,
+    target_url,
+    site_settings,
+    app,
+    event_delivery,
 ):
     # given
     expected_data = {
@@ -153,15 +167,17 @@ def test_send_webhook_request_sync_successful_attempt(
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["content"]
     assert attempt.response_headers == json.dumps(expected_data["headers"])
+    mock_reporter.assert_called_once_with(event_delivery.event_type, attempt)
 
 
 @pytest.mark.parametrize(
     "target_url",
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post", side_effect=RequestException)
 def test_send_webhook_request_sync_request_exception(
-    mock_post, target_url, site_settings, app, event_delivery
+    mock_post, mock_reporter, target_url, site_settings, app, event_delivery
 ):
     # when
     send_webhook_request_sync(app.name, event_delivery)
@@ -174,15 +190,17 @@ def test_send_webhook_request_sync_request_exception(
     assert attempt.response == ""
     assert attempt.response_headers == "null"
     assert attempt.request_headers == "null"
+    mock_reporter.assert_called_once_with(event_delivery.event_type, attempt)
 
 
 @pytest.mark.parametrize(
     "target_url",
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_sync_when_exception_with_response(
-    mock_post, target_url, site_settings, app, event_delivery
+    mock_post, mock_reporter, target_url, site_settings, app, event_delivery
 ):
     mock_response = mock.Mock()
     mock_response.text = "response_content"
@@ -201,9 +219,10 @@ def test_send_webhook_request_sync_when_exception_with_response(
     "target_url",
     ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
 )
+@mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_sync_json_parsing_error(
-    mock_post, target_url, site_settings, app, event_delivery
+    mock_post, mock_reporter, target_url, site_settings, app, event_delivery
 ):
     # given
     expected_data = {
@@ -225,6 +244,7 @@ def test_send_webhook_request_sync_json_parsing_error(
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["incorrect_content"]
     assert attempt.response_headers == json.dumps(expected_data["response_headers"])
+    mock_reporter.assert_called_once_with(event_delivery.event_type, attempt)
 
 
 @pytest.mark.parametrize(
