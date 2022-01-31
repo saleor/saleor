@@ -204,25 +204,22 @@ def get_product_data(product_pk: int, language_code="EN"):
     )
 
     channels = []
-    channel_listings = product_dict.pop("channelListings")
+    channel_listings = product_dict.pop("channelListings", [])
     for channel in channel_listings:
-        price_net = (
-            channel.pop("pricing", {})
-            .pop("priceRange", {})
-            .pop("start", {})
-            .pop("net", {})
-        )
-        is_published = channel.pop("isPublished", False)
-        is_available_for_purchase = channel.pop("isAvailableForPurchase", False)
+        pricing = channel.pop("pricing", {})
+        if pricing:
+            price_net = pricing.pop("priceRange", {}).pop("start", {}).pop("net", {})
+            is_published = channel.pop("isPublished", False)
+            is_available_for_purchase = channel.pop("isAvailableForPurchase", False)
 
-        if is_available_for_purchase and is_published:
-            name = channel.pop("channel").get("slug")
-            channel[name] = {
-                "name": name,
-                "currency": price_net.pop("currency", 0),
-                "price": Decimal(price_net.pop("amount", 0)),
-            }
-            channels.append(channel)
+            if is_available_for_purchase and is_published:
+                name = channel.pop("channel").get("slug")
+                channel[name] = {
+                    "name": name,
+                    "currency": price_net.pop("currency", 0),
+                    "price": Decimal(price_net.pop("amount", 0)),
+                }
+                channels.append(channel)
 
     skus = []
     for sku in product.variants.values_list("sku", flat=True):
