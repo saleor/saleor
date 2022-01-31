@@ -101,7 +101,11 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             .filter(collections__in=collections_ids)
             .distinct()
         )
+
+        for collection in queryset.iterator():
+            info.context.plugins.collection_deleted(collection)
         queryset.delete()
+
         for product in products:
             info.context.plugins.product_updated(product)
 
