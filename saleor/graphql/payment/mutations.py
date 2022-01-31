@@ -170,6 +170,15 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
+        if not lines:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Cannot create payment for checkout without lines.",
+                        code=PaymentErrorCode.NO_CHECKOUT_LINES.value,
+                    )
+                }
+            )
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )

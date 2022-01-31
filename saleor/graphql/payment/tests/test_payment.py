@@ -512,6 +512,43 @@ def test_checkout_add_payment_no_product_channel_listings(
     ]
 
 
+def test_checkout_add_payment_checkout_without_lines(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.save()
+
+    checkout.lines.all().delete()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == PaymentErrorCode.NO_CHECKOUT_LINES.name
+
+
 CAPTURE_QUERY = """
     mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentCapture(paymentId: $paymentId, amount: $amount) {
