@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 from ....order.models import Fulfillment, Order
 from ...interface import PaymentData
@@ -25,7 +25,6 @@ from .const import PRE_FULFILLMENT_ERROR_CODE
 from .errors import (
     FULFILLMENT_REPORT,
     NO_PSP_REFERENCE,
-    PAYMENT_DOES_NOT_EXIST,
     TRANSACTION_CANCELLATION,
     TRANSACTION_CHANGE,
     TRANSACTION_REGISTRATION,
@@ -80,15 +79,7 @@ def cancel_transaction(
 ) -> PaymentResult:
     with np_atobarai_opentracing_trace("np-atobarai.checkout.payments.cancel"):
         action = TRANSACTION_CANCELLATION
-        payment_id = payment_information.payment_id
-        payment = Payment.objects.filter(id=payment_id).first()
-
-        if not payment:
-            return error_payment_result(
-                add_action_to_code(action, error_code=PAYMENT_DOES_NOT_EXIST)
-            )
-
-        psp_reference = payment.psp_reference
+        psp_reference = payment_information.psp_reference
 
         if not psp_reference:
             return error_payment_result(
@@ -234,7 +225,7 @@ def reregister_transaction_for_partial_return(
 
 def report_fulfillment(
     config: ApiConfig, payment: Payment, fulfillment: Fulfillment
-) -> Tuple[Union[str, int], List[str], bool]:
+) -> Tuple[List[str], bool]:
     """Report fulfillment.
 
     After this action, given payment is captured in NP Atobarai.
@@ -242,8 +233,6 @@ def report_fulfillment(
     with np_atobarai_opentracing_trace(
         "np-atobarai.checkout.payments.report-fulfillment"
     ):
-        payment_id = payment.psp_reference or payment.id
-        already_reported = False
         shipping_company_code = get_shipping_company_code(config, fulfillment)
 
         result, error_codes = report(
@@ -253,11 +242,9 @@ def report_fulfillment(
             fulfillment.tracking_number,
         )
 
-        if PRE_FULFILLMENT_ERROR_CODE in error_codes:
-            already_reported = True
-
         errors = get_error_messages_from_codes(
             action=FULFILLMENT_REPORT, error_codes=error_codes
         )
+        already_reported = PRE_FULFILLMENT_ERROR_CODE in error_codes
 
-        return payment_id, errors, already_reported
+        return errors, already_reported

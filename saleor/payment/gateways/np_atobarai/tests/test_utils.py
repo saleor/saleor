@@ -2,12 +2,7 @@ import pytest
 
 from .....order import FulfillmentStatus, OrderEvents
 from .... import PaymentError
-from .. import (
-    get_fulfillment_for_order,
-    get_payment_name,
-    get_shipping_company_code,
-    notify_dashboard,
-)
+from .. import get_fulfillment_for_order, get_shipping_company_code, notify_dashboard
 from ..const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
 
@@ -22,22 +17,6 @@ def test_notify_dashboard(order):
     event = order.events.first()
     assert event.type == OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     assert event.parameters["message"] == message
-
-
-@pytest.mark.parametrize(
-    "payment_id, result",
-    [
-        ("123", "payment with psp reference 123"),
-        (123, "payment with id 123"),
-        ("", "payment"),
-    ],
-)
-def test_get_payment_name(payment_id, result):
-    # when
-    payment_name = get_payment_name(payment_id)
-
-    # then
-    assert payment_name == result
 
 
 def test_get_fulfillment_for_order(order):

@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Optional, Union
+from typing import Optional
 
 from django.db.models import Q
 
@@ -16,14 +16,6 @@ def notify_dashboard(order: Order, message: str):
     external_notification_event(
         order=order, user=None, app=None, message=message, parameters=None
     )
-
-
-def get_payment_name(payment_id: Union[int, str]) -> str:
-    if not payment_id:
-        return "payment"
-    if isinstance(payment_id, str):
-        return f"payment with psp reference {payment_id}"
-    return f"payment with id {payment_id}"
 
 
 STATUSES_NOT_ALLOWED_TO_REFUND = [
