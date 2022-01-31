@@ -638,9 +638,12 @@ class AvataxPlugin(BasePlugin):
                 return TaxedMoney(net=net, gross=gross)
 
         # Ignore typing checks because it is checked in _validate_order
-        price = order.shipping_method.channel_listings.get(  # type: ignore
+        channel_listing = order.shipping_method.channel_listings.filter(  # type: ignore
             channel_id=order.channel_id
-        ).price
+        ).first()
+        if not channel_listing:
+            raise Exception("Shipping method not available in the given channel.")
+        price = channel_listing.price
         return TaxedMoney(
             net=price,
             gross=price,

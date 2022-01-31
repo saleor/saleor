@@ -314,6 +314,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 "Unable to calculate taxes - %s" % str(tax_error),
                 code=OrderErrorCode.TAX_ERROR.value,
             )
+        except Exception as e:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        str(e), code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value
+                    )
+                }
+            )
 
         if new_instance:
             transaction.on_commit(
