@@ -1,5 +1,4 @@
 import json
-from dataclasses import asdict
 from datetime import datetime
 from unittest import mock
 from unittest.mock import ANY, MagicMock
@@ -45,11 +44,7 @@ from ....webhook.payloads import (
     generate_sale_payload,
 )
 from ...manager import get_plugins_manager
-from ...webhook.tasks import (
-    WebhookResponse,
-    send_webhook_request_async,
-    trigger_webhooks_async,
-)
+from ...webhook.tasks import send_webhook_request_async, trigger_webhooks_async
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"

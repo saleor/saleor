@@ -5,6 +5,7 @@ from decimal import Decimal
 from itertools import chain
 from unittest import mock
 from unittest.mock import ANY
+from uuid import UUID
 
 import graphene
 from django.http import JsonResponse
@@ -24,6 +25,7 @@ from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
+from ...webhook.event_types import WebhookEventAsyncType
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
@@ -956,19 +958,79 @@ def test_generate_api_call_payload(app, rf):
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
-    request.request_time = timezone.now()
+    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     request.app = app
     response = JsonResponse({"response": "data"})
 
     payload = json.loads(generate_api_call_payload(request, response))[0]
-    assert payload["response_content"] == '{"response": "data"}'
+
+    assert UUID(payload.pop("request_id"), version=4)
+    assert payload == {
+        "request_time": request.request_time.timestamp(),
+        "request_headers": {
+            "Content-Length": "19",
+            "Content-Type": "application/json",
+            "Cookie": "",
+        },
+        "request_body": '{"request": "data"}',
+        "request_content_length": 19,
+        "response_status_code": 200,
+        "response_reason_phrase": "OK",
+        "response_headers": {"Content-Type": "application/json"},
+        "response_content": '{"response": "data"}',
+        "saleor_app": {
+            "name": "Sample app objects",
+            "saleor_app_id": graphene.Node.to_global_id("App", app.pk),
+        },
+    }
+
+
+def test_generate_api_call_not_from_app_payload(rf):
+    request = rf.post(
+        "/graphql", data={"request": "data"}, content_type="application/json"
+    )
+    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.app = None
+    response = JsonResponse({"response": "data"})
+
+    payload = json.loads(generate_api_call_payload(request, response))[0]
+
+    assert "saleor_app" not in payload
 
 
 def test_generate_event_delivery_attempt_payload(event_attempt):
+    delivery = event_attempt.delivery
+    webhook = delivery.webhook
+    app = webhook.app
+
+    payload = json.loads(generate_event_delivery_attempt_payload(event_attempt))[0]
+
+    assert payload == {
+        "time": event_attempt.created_at.timestamp(),
+        "duration": None,
+        "app_id": graphene.Node.to_global_id("App", app.pk),
+        "app_name": "Sample app objects",
+        "event_id": graphene.Node.to_global_id("EventDelivery", delivery.pk),
+        "event_payload": '{"payload_key": "payload_value"}',
+        "event_status": EventDeliveryStatus.PENDING,
+        "event_type": WebhookEventAsyncType.ANY,
+        "id": graphene.Node.to_global_id("EventDeliveryAttempt", event_attempt.pk),
+        "request_headers": None,
+        "response_body": "example_response",
+        "response_headers": None,
+        "status": EventDeliveryStatus.PENDING,
+        "task_params": {"next_retry": None},
+        "webhook_id": graphene.Node.to_global_id("Webhook", webhook.pk),
+        "webhook_name": "Simple webhook",
+        "webhook_target_url": "http://www.example.com/test",
+    }
+
+
+def test_generate_event_delivery_attempt_payload_with_next_retry_date(event_attempt):
     next_retry_date = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     payload = json.loads(
-        generate_event_delivery_attempt_payload(event_attempt, next_retry_date)
+        generate_event_delivery_attempt_payload(
+            event_attempt, next_retry=next_retry_date
+        )
     )[0]
-
-    assert payload["status"] == EventDeliveryStatus.PENDING
     assert payload["task_params"]["next_retry"] == next_retry_date.timestamp()

@@ -1,7 +1,7 @@
 import json
 import uuid
 from collections import defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 
@@ -14,7 +14,6 @@ from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout.models import Checkout
-from ..core import EventDeliveryStatus
 from ..core.models import EventDeliveryAttempt
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
@@ -1040,7 +1039,7 @@ def generate_api_call_payload(request, response):
 
 def generate_event_delivery_attempt_payload(
     attempt: EventDeliveryAttempt,
-    next_retry: Optional["datetime"],
+    next_retry: Optional["datetime"] = None,
 ):
     data = {
         "time": attempt.created_at.timestamp(),
