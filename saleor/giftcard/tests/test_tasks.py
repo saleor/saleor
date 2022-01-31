@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.utils import timezone
 
 from .. import GiftCardEvents
 from ..models import GiftCard
@@ -43,8 +44,8 @@ def test_deactivate_expired_cards_task(
 @pytest.mark.parametrize(
     "expiry_date",
     [
-        datetime.date.today(),
-        datetime.date.today() + datetime.timedelta(days=1),
+        timezone.now().date(),
+        timezone.now().date() + datetime.timedelta(days=1),
     ],
 )
 def test_deactivate_expired_cards_task_cards_not_deactivated(
