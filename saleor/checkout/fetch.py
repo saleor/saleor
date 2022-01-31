@@ -127,17 +127,8 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
 
-        if not variant_channel_listing or variant_channel_listing.price is None:
-            unavailable_variant_pks.append(variant.pk)
-            continue
-
-        product_channel_listing = _get_product_channel_listing(
-            product_channel_listing_mapping, checkout.channel_id, product
-        )
-
-        if (
-            not product_channel_listing
-            or product_channel_listing.is_available_for_purchase() is False
+        if not _is_variant_valid(
+            checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
             continue
@@ -173,6 +164,28 @@ def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
         if channel_listing.channel_id == channel_id:
             variant_channel_listing = channel_listing
     return variant_channel_listing
+
+
+def _is_variant_valid(
+    checkout: "Checkout",
+    product: "Product",
+    variant_channel_listing: "ProductVariantChannelListing",
+    product_channel_listing_mapping: dict,
+):
+    if not variant_channel_listing or variant_channel_listing.price is None:
+        return False
+
+    product_channel_listing = _get_product_channel_listing(
+        product_channel_listing_mapping, checkout.channel_id, product
+    )
+
+    if (
+        not product_channel_listing
+        or product_channel_listing.is_available_for_purchase() is False
+    ):
+        return False
+
+    return True
 
 
 def _get_product_channel_listing(

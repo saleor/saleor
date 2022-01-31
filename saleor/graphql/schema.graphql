@@ -1064,6 +1064,7 @@ enum CheckoutErrorCode {
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
+  NO_LINES
 }
 
 type CheckoutLanguageCodeUpdate {

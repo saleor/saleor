@@ -654,6 +654,52 @@ def test_checkout_complete_without_inventory_tracking(
     ).exists(), "Checkout should have been deleted"
 
 
+def test_checkout_complete_checkout_without_lines(
+    site_settings,
+    user_api_client,
+    checkout,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    checkout = checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    assert not lines
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    redirect_url = "https://www.example.com"
+    variables = {"token": checkout.token, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == CheckoutErrorCode.NO_LINES.name
+
+
 @pytest.mark.integration
 @pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
 @patch(

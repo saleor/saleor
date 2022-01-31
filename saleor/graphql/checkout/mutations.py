@@ -1308,6 +1308,15 @@ class CheckoutComplete(BaseMutation):
                         )
                     }
                 )
+            if not lines:
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "Cannot complete checkout without lines.",
+                            code=CheckoutErrorCode.NO_LINES.value,
+                        )
+                    }
+                )
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
