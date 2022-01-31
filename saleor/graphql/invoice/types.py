@@ -1,22 +1,20 @@
 import graphene
 
 from ...invoice import models
-from ..core.connection import CountableDjangoObjectType
+from ..core.types import ModelObjectType
 from ..core.types.common import Job
 from ..meta.types import ObjectWithMetadata
 
 
-class Invoice(CountableDjangoObjectType):
+class Invoice(ModelObjectType):
+    number = graphene.String()
+    external_url = graphene.String()
+    created_at = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
+    message = graphene.String()
     url = graphene.String(description="URL to download an invoice.")
 
     class Meta:
         description = "Represents an Invoice."
         interfaces = [ObjectWithMetadata, Job, graphene.relay.Node]
         model = models.Invoice
-        only_fields = [
-            "id",
-            "number",
-            "external_url",
-            "status",
-            "metadata",
-        ]

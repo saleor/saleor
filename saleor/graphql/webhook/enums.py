@@ -14,6 +14,12 @@ def description(enum):
             "A checkout is updated. "
             "It also triggers all updates related to the checkout."
         )
+    elif enum == WebhookEventTypeAsyncEnum.COLLECTION_CREATED:
+        return "A new collection is created."
+    elif enum == WebhookEventTypeAsyncEnum.COLLECTION_UPDATED:
+        return "A collection is updated."
+    elif enum == WebhookEventTypeAsyncEnum.COLLECTION_DELETED:
+        return "A collection is deleted."
     elif enum == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED:
         return "A new customer account is created."
     elif enum == WebhookEventTypeAsyncEnum.CUSTOMER_UPDATED:

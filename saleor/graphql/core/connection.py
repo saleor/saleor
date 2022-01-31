@@ -7,7 +7,6 @@ from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection
-from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError, ResolveInfo
 from graphql.language.ast import FragmentSpread
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
@@ -476,16 +475,3 @@ class CountableConnection(NonNullConnection):
             return total_count()
 
         return total_count
-
-
-class CountableDjangoObjectType(DjangoObjectType):
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def __init_subclass_with_meta__(cls, *args, **kwargs):
-        # Force it to use the countable connection
-        countable_conn = CountableConnection.create_type(
-            "{}CountableConnection".format(cls.__name__), node=cls
-        )
-        super().__init_subclass_with_meta__(*args, connection=countable_conn, **kwargs)

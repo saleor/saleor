@@ -15,9 +15,9 @@ from ...core.permissions import (
     ProductTypePermissions,
 )
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils import generate_unique_slug
 from ...product import models as product_models
 from ...product.search import update_products_search_document
-from ..attribute.types import Attribute, AttributeValue
 from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -26,6 +26,7 @@ from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from .types import Attribute, AttributeValue
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -469,6 +470,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     class Meta:
         model = models.Attribute
+        object_type = Attribute
         description = "Creates an attribute."
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -534,6 +536,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     class Meta:
         model = models.Attribute
+        object_type = Attribute
         description = "Updates attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
@@ -589,6 +592,7 @@ class AttributeDelete(ModelDeleteMutation):
 
     class Meta:
         model = models.Attribute
+        object_type = Attribute
         description = "Deletes an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
@@ -626,6 +630,7 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
 
     class Meta:
         model = models.AttributeValue
+        object_type = AttributeValue
         description = "Creates a value for an attribute."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = AttributeError
@@ -635,7 +640,9 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         if "name" in cleaned_input:
-            cleaned_input["slug"] = slugify(cleaned_input["name"], allow_unicode=True)
+            cleaned_input["slug"] = generate_unique_slug(
+                instance, cleaned_input["name"]
+            )
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
@@ -690,6 +697,7 @@ class AttributeValueUpdate(AttributeValueCreate):
 
     class Meta:
         model = models.AttributeValue
+        object_type = AttributeValue
         description = "Updates value of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
@@ -736,6 +744,7 @@ class AttributeValueDelete(ModelDeleteMutation):
 
     class Meta:
         model = models.AttributeValue
+        object_type = AttributeValue
         description = "Deletes a value of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError

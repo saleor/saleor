@@ -1,11 +1,19 @@
 import graphene
 
 from ...graphql.core.enums import to_enum
-from ...order import OrderEvents, OrderEventsEmails, OrderOrigin
+from ...order import (
+    FulfillmentStatus,
+    OrderEvents,
+    OrderEventsEmails,
+    OrderOrigin,
+    OrderStatus,
+)
 
+FulfillmentStatusEnum = to_enum(FulfillmentStatus, type_name="FulfillmentStatus")
 OrderEventsEnum = to_enum(OrderEvents)
 OrderEventsEmailsEnum = to_enum(OrderEventsEmails)
 OrderOriginEnum = to_enum(OrderOrigin)
+OrderStatusEnum = to_enum(OrderStatus, type_name="OrderStatus")
 
 
 class OrderStatusFilter(graphene.Enum):

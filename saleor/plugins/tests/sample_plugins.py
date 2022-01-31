@@ -161,12 +161,6 @@ class PluginSample(BasePlugin):
         price = Money("1.0", price.currency)
         return TaxedMoney(price, price)
 
-    def apply_taxes_to_shipping(
-        self, price, shipping_address, previous_value
-    ) -> TaxedMoney:
-        price = Money("1.0", price.currency)
-        return TaxedMoney(price, price)
-
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:

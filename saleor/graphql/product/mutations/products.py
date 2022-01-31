@@ -99,6 +99,7 @@ class CategoryCreate(ModelMutation):
     class Meta:
         description = "Creates a new category."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -153,6 +154,7 @@ class CategoryUpdate(CategoryCreate):
     class Meta:
         description = "Updates a category."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -165,6 +167,7 @@ class CategoryDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a category."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -216,6 +219,7 @@ class CollectionCreate(ModelMutation):
     class Meta:
         description = "Creates a new collection."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -249,6 +253,8 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.collection_created(instance)
+
         products = instance.products.prefetched_for_webhook(single_object=False)
         for product in products:
             info.context.plugins.product_updated(product)
@@ -271,6 +277,7 @@ class CollectionUpdate(CollectionCreate):
     class Meta:
         description = "Updates a collection."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -278,7 +285,7 @@ class CollectionUpdate(CollectionCreate):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         """Override this method with `pass` to avoid triggering product webhook."""
-        pass
+        info.context.plugins.collection_updated(instance)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -294,6 +301,7 @@ class CollectionDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a collection."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -306,8 +314,11 @@ class CollectionDelete(ModelDeleteMutation):
         products = list(instance.products.prefetched_for_webhook(single_object=False))
 
         result = super().perform_mutation(_root, info, **kwargs)
+
+        info.context.plugins.collection_deleted(instance)
         for product in products:
             info.context.plugins.product_updated(product)
+
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
         )
@@ -554,6 +565,7 @@ class ProductCreate(ModelMutation):
     class Meta:
         description = "Creates a new product."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -563,9 +575,7 @@ class ProductCreate(ModelMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.product_attributes
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, is_variant=False
-        )
+        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
     @classmethod
@@ -684,9 +694,20 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = "Updates an existing product."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def clean_attributes(
+        cls, attributes: dict, product_type: models.ProductType
+    ) -> T_INPUT_MAP:
+        attributes_qs = product_type.product_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, creation=False
+        )
+        return attributes
 
     @classmethod
     @traced_atomic_transaction()
@@ -710,6 +731,7 @@ class ProductDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -820,6 +842,7 @@ class ProductVariantCreate(ModelMutation):
     class Meta:
         description = "Creates a new variant for a product."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -830,9 +853,7 @@ class ProductVariantCreate(ModelMutation):
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
         attributes_qs = product_type.variant_attributes
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, is_variant=True
-        )
+        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
     @classmethod
@@ -921,10 +942,14 @@ class ProductVariantCreate(ModelMutation):
                         cleaned_attributes, used_attribute_values, instance
                     )
                     cleaned_input["attributes"] = cleaned_attributes
-                elif not instance.pk and not attributes:
+                # elif not instance.pk and not attributes:
+                elif not instance.pk and (
+                    not attributes
+                    and product_type.variant_attributes.filter(value_required=True)
+                ):
                     # if attributes were not provided on creation
                     raise ValidationError(
-                        "All attributes must take a value.",
+                        "All required attributes must take a value.",
                         ProductErrorCode.REQUIRED.value,
                     )
             except ValidationError as exc:
@@ -996,8 +1021,8 @@ class ProductVariantCreate(ModelMutation):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
+        generate_and_set_variant_name(instance, cleaned_input.get("sku"))
         update_product_search_document(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created
@@ -1032,10 +1057,21 @@ class ProductVariantUpdate(ProductVariantCreate):
     class Meta:
         description = "Updates an existing variant for product."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
         errors_mapping = {"price_amount": "price"}
+
+    @classmethod
+    def clean_attributes(
+        cls, attributes: dict, product_type: models.ProductType
+    ) -> T_INPUT_MAP:
+        attributes_qs = product_type.variant_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, creation=False
+        )
+        return attributes
 
     @classmethod
     def validate_duplicated_attribute_values(
@@ -1073,6 +1109,7 @@ class ProductVariantDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product variant."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1181,6 +1218,7 @@ class ProductTypeCreate(ModelMutation):
     class Meta:
         description = "Creates a new product type."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1258,6 +1296,7 @@ class ProductTypeUpdate(ProductTypeCreate):
     class Meta:
         description = "Updates an existing product type."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1288,6 +1327,7 @@ class ProductTypeDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product type."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"

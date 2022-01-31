@@ -30,7 +30,7 @@ from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
 from ..order import OrderOrigin, OrderStatus
-from ..order.actions import order_created
+from ..order.actions import mark_order_as_paid, order_created
 from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
@@ -526,11 +526,6 @@ def _create_order(
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
-        fulfill_non_shippable_gift_cards(
-            order, order_lines, site_settings, user, app, manager
-        )
-
     order_info = OrderInfo(
         order=order,
         customer_email=order_data["user_email"],
@@ -549,6 +544,11 @@ def _create_order(
     transaction.on_commit(
         lambda: send_order_confirmation(order_info, checkout.redirect_url, manager)
     )
+
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
 
     return order
 
@@ -721,21 +721,25 @@ def complete_checkout(
     if payment and user.is_authenticated:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
-    txn = _process_payment(
-        payment=payment,  # type: ignore
-        customer_id=customer_id,
-        store_source=store_source,
-        payment_data=payment_data,
-        order_data=order_data,
-        manager=manager,
-        channel_slug=channel_slug,
-    )
+    action_required = False
+    action_data: Dict[str, str] = {}
+    if payment:
+        txn = _process_payment(
+            payment=payment,  # type: ignore
+            customer_id=customer_id,
+            store_source=store_source,
+            payment_data=payment_data,
+            order_data=order_data,
+            manager=manager,
+            channel_slug=channel_slug,
+        )
 
-    if txn.customer_id and user.is_authenticated:
-        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
+        if txn.customer_id and user.is_authenticated:
+            store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
-    action_required = txn.action_required
-    action_data = txn.action_required_data if action_required else {}
+        action_required = txn.action_required
+        if action_required:
+            action_data = txn.action_required_data
 
     order = None
     if not action_required:
@@ -756,4 +760,9 @@ def complete_checkout(
             gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
+
+        # if the order total value is 0 it is paid from the definition
+        if order.total.net.amount == 0:
+            mark_order_as_paid(order, user, app, manager)
+
     return order, action_required, action_data

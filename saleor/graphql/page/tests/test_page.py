@@ -1436,6 +1436,60 @@ def test_update_page_trigger_webhook(
     )
 
 
+def test_update_page_only_title(staff_api_client, permission_manage_pages, page):
+    """Ensures that updating page field without providing attributes is allowed."""
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    page_title = page.title
+    new_slug = "new-slug"
+    assert new_slug != page.slug
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {
+            "slug": new_slug,
+            "isPublished": True,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["errors"]
+    assert data["page"]["title"] == page_title
+    assert data["page"]["slug"] == new_slug
+
+    expected_attributes = []
+    page_attr = page.attributes.all()
+    for attr in page_type.page_attributes.all():
+        values = [
+            {"slug": slug, "file": None, "name": name, "reference": None}
+            for slug, name in page_attr.filter(assignment__attribute=attr).values_list(
+                "values__slug", "values__name"
+            )
+        ]
+        attr_data = {
+            "attribute": {"slug": attr.slug},
+            "values": values,
+        }
+        expected_attributes.append(attr_data)
+
+    attributes = data["page"]["attributes"]
+    assert len(attributes) == len(expected_attributes)
+    for attr_data in attributes:
+        assert attr_data in expected_attributes
+
+
 def test_update_page_with_file_attribute_value(
     staff_api_client, permission_manage_pages, page, page_file_attribute
 ):
