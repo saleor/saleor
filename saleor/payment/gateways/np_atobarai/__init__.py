@@ -2,6 +2,8 @@ import logging
 import os
 from typing import List
 
+from graphene import Node
+
 from ....order.models import Fulfillment
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayResponse, PaymentData
@@ -11,7 +13,6 @@ from .api_types import ApiConfig, PaymentStatus
 from .const import NP_PLUGIN_ID
 from .utils import (
     get_fulfillment_for_order,
-    get_payment_name,
     get_shipping_company_code,
     notify_dashboard,
 )
@@ -78,27 +79,35 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
     order = fulfillment.order
     payments = order.payments.filter(gateway=NP_PLUGIN_ID, is_active=True)
 
-    if payments:
-        results = [
-            api.report_fulfillment(config, payment, fulfillment) for payment in payments
-        ]
-    else:
-        results = [("", ["No active payments for this order"], False)]
+    if not payments:
+        logger.warning("No active payments for this order")
+        notify_dashboard(order, "No active payments for this order")
+        return
+
+    results = [
+        (payment.id, *api.report_fulfillment(config, payment, fulfillment))
+        for payment in payments
+    ]
 
     for payment_id, errors, already_captured in results:
-        payment_name = get_payment_name(payment_id)
+        payment_graphql_id = Node.to_global_id("Payment", payment_id)
 
         if already_captured:
-            logger.warning("%s was already captured", payment_name.capitalize())
-            notify_dashboard(
-                order, f"Error: {payment_name.capitalize()} was already captured"
-            )
+            logger.warning(f"Payment with id {payment_graphql_id} was already captured")
+            msg = f"Error: Payment with id {payment_graphql_id} was already captured"
         elif errors:
             error = ", ".join(errors)
-            logger.warning(f"Could not capture {payment_name} in NP Atobarai: {error}")
-            notify_dashboard(order, f"Capture Error for {payment_name}")
+            logger.warning(
+                f"Could not capture payment with id {payment_graphql_id} "
+                f"in NP Atobarai: {error}"
+            )
+            msg = (
+                f"Error: Cannot capture payment with id {payment_graphql_id} ({error})"
+            )
         else:
-            notify_dashboard(order, f"Captured {payment_name}")
+            msg = f"Payment with id {payment_graphql_id} was captured"
+
+        notify_dashboard(order, msg)
 
 
 def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayResponse:
@@ -113,6 +122,8 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     if not payment:
         raise PaymentError(f"Payment with id {payment_id} does not exist.")
 
+    # in case of refunding less than already captured
+    # the transaction needs to be re-registered in NP Atobarai
     if payment_information.amount < payment.captured_amount:
         order = payment.order
 
@@ -143,8 +154,9 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     else:
         result = api.cancel_transaction(config, payment_information)
 
-    if psp_reference := result.psp_reference:
-        payment.psp_reference = psp_reference
+    new_psp_reference = result.psp_reference
+    if new_psp_reference and payment.psp_reference != new_psp_reference:
+        payment.psp_reference = new_psp_reference
         payment.save(update_fields=["psp_reference"])
 
     return GatewayResponse(
