@@ -509,11 +509,14 @@ def test_delete_products_with_images(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task,
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     product_list,
     permission_manage_products,
@@ -521,6 +524,7 @@ def test_delete_products_trigger_webhook(
     settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     query = DELETE_PRODUCTS_MUTATION
@@ -540,9 +544,12 @@ def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_products_without_variants(
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     product_list,
     permission_manage_products,
@@ -550,6 +557,7 @@ def test_delete_products_without_variants(
     settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     for product in product_list:

@@ -5122,6 +5122,15 @@ def webhook(app):
 
 
 @pytest.fixture
+def any_webhook(app):
+    webhook = Webhook.objects.create(
+        name="Any webhook", app=app, target_url="http://www.example.com/any"
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.ANY)
+    return webhook
+
+
+@pytest.fixture
 def fake_payment_interface(mocker):
     return mocker.Mock(spec=PaymentInterface)
 
