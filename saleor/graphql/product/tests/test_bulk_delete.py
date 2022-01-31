@@ -300,6 +300,33 @@ def test_delete_collections_with_images(
     } == {collection_list[0].background_image, collection_list[1].background_image}
 
 
+@patch("saleor.plugins.manager.PluginsManager.collection_deleted")
+def test_delete_collections_trigger_collection_deleted_webhook(
+    collection_deleted_mock,
+    staff_api_client,
+    collection_list,
+    permission_manage_products,
+):
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_COLLECTION_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["collectionBulkDelete"]["count"] == 3
+    assert not Collection.objects.filter(
+        id__in=[collection.id for collection in collection_list]
+    ).exists()
+    assert len(collection_list) == collection_deleted_mock.call_count
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_collections_trigger_product_updated_webhook(
     product_updated_mock,
@@ -308,13 +335,6 @@ def test_delete_collections_trigger_product_updated_webhook(
     product_list,
     permission_manage_products,
 ):
-    query = """
-    mutation collectionBulkDelete($ids: [ID]!) {
-        collectionBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
     for collection in collection_list:
         collection.products.add(*product_list)
     variables = {
@@ -324,7 +344,9 @@ def test_delete_collections_trigger_product_updated_webhook(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        MUTATION_COLLECTION_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
