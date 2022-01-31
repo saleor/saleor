@@ -6,7 +6,7 @@ CELERY_BEAT_SCHEDULE.update(  # noqa F405
     {
         "update-oto-access-token": {
             "task": "saleor.plugins.oto.tasks.update_oto_access_token_task",
-            "schedule": timedelta(hours=1),  # noqa F405
+            "schedule": timedelta(minutes=30),  # noqa F405
         },
     }
 )
