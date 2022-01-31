@@ -6,7 +6,7 @@ import json
 import logging
 from decimal import Decimal
 from json.decoder import JSONDecodeError
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 from urllib.parse import urlencode, urlparse
 
 import Adyen
@@ -30,6 +30,7 @@ from ....checkout.calculations import calculate_checkout_total_with_gift_cards
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
+from ....core.prices import quantize_price
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
@@ -639,14 +640,21 @@ def get_or_create_adyen_partial_payments(
     """
     additional_data = notification.get("additionalData", {})
     new_payments = []
-
+    currency = payment.currency
+    payment_total_to_cover = payment.total
     for (
         payment_method_key,
         payment_amount_key,
         psp_reference_key,
     ) in get_adyen_partial_payment_keys(additional_data):
-        # payment amount key has structure - "{currency} {amount}", like 'GBP 41.90'
-        currency, amount = additional_data[payment_amount_key].split()
+        # payment amount key has structure - "{currency} {amount}", like 'GBP 41.90',
+        # for payments with 3d secure, the last payment could not have an amount field,
+        # in that case we need to handle it on our side.
+        if payment_amount_key in additional_data:
+            currency, amount = additional_data[payment_amount_key].split()
+            amount = Decimal(amount)
+        else:
+            amount = quantize_price(max(payment_total_to_cover, Decimal(0)), currency)
 
         new_payment = Payment(**model_to_dict(payment, exclude=["id", "checkout"]))
         new_payment.checkout_id = payment.checkout_id
@@ -656,10 +664,17 @@ def get_or_create_adyen_partial_payments(
         # Increasing captured amount increases a total paid of the order.
         new_payment.captured_amount = 0
         new_payment.currency = currency
-        new_payment.payment_method_type = additional_data[payment_method_key]
-        new_payment.psp_reference = additional_data[psp_reference_key]
+        new_payment.payment_method_type = additional_data.get(
+            payment_method_key, "givex"
+        )
+        new_payment.psp_reference = additional_data.get(psp_reference_key, "")
         new_payment.extra_data = json.dumps({"parent_payment_id": payment.id})
         new_payments.append(new_payment)
+
+        # For some last partial payments Adyen doesn't send an amount field. We need to
+        # figure it out somehow, we calculate the total of amount covered by previous
+        # payments.
+        payment_total_to_cover -= new_payment.total
 
     already_existing_partial_payments = Payment.objects.filter(
         psp_reference__in=[p.psp_reference for p in new_payments],
@@ -675,26 +690,24 @@ def get_or_create_adyen_partial_payments(
 
 
 def create_order_event_about_adyen_partial_payments(
-    notification: Dict[str, Any], payment
+    adyen_partial_payments: Iterable[Payment], payment
 ):
-    additional_data = notification.get("additionalData", {})
     msg = "Adyen: "
 
-    for (
-        payment_method_key,
-        payment_amount_key,
-        psp_reference_key,
-    ) in get_adyen_partial_payment_keys(additional_data):
-        payment_method = additional_data[payment_method_key]
-        payment_amount = additional_data[payment_amount_key]
-        psp_reference = additional_data[psp_reference_key]
+    for payment in adyen_partial_payments:
+        payment_method = payment.payment_method_type
+        payment_amount = payment.total
+        psp_reference = payment.psp_reference
+        currency = payment.currency
         msg += (
             f"Partial payment with {payment_method} (PSP: {psp_reference}) "
-            f"for {payment_amount}.\n"
+            f"for {currency} {payment_amount}.\n"
         )
-    create_payment_notification_for_order(
-        payment, msg, failed_msg=None, is_success=True
-    )
+    if adyen_partial_payments:
+        payment.refresh_from_db()
+        create_payment_notification_for_order(
+            payment, msg, failed_msg=None, is_success=True
+        )
 
 
 def get_adyen_partial_payment_keys(additiona_data):
@@ -792,7 +805,7 @@ def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayCon
         return
 
     if adyen_partial_payments:
-        create_order_event_about_adyen_partial_payments(notification, payment)
+        create_order_event_about_adyen_partial_payments(adyen_partial_payments, payment)
     else:
         reason = notification.get("reason", "-")
         success_msg = f"Adyen: The payment  {psp_reference} request  was successful."
@@ -1101,7 +1114,9 @@ def handle_api_response(payment: Payment, response: Adyen.Adyen, channel_slug: s
         create_order(payment, checkout, manager)
 
         if adyen_partial_payments:
-            create_order_event_about_adyen_partial_payments(response.message, payment)
+            create_order_event_about_adyen_partial_payments(
+                adyen_partial_payments, payment
+            )
 
 
 def confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug):
