@@ -243,11 +243,20 @@ class OrderUpdate(DraftOrderCreate):
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
         instance.save()
-        update_order_prices(
-            instance,
-            info.context.plugins,
-            info.context.site.settings.include_taxes_in_prices,
-        )
+        try:
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
+        except Exception as e:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        str(e), code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value
+                    )
+                }
+            )
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
 
@@ -370,12 +379,24 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
+        shipping_channel_listing = (
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method, channel=order.channel
+            ).first()
+        )
+        if not shipping_channel_listing:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not available in the given channel.",
+                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+
         shipping_method_data = convert_to_shipping_method_data(
             method,
-            shipping_models.ShippingMethodChannelListing.objects.filter(
-                shipping_method=method,
-                channel=order.channel,
-            ).first(),
+            shipping_channel_listing,
         )
         clean_order_update_shipping(order, shipping_method_data)
 
@@ -396,11 +417,20 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "shipping_tax_rate",
             ]
         )
-        update_order_prices(
-            order,
-            info.context.plugins,
-            info.context.site.settings.include_taxes_in_prices,
-        )
+        try:
+            update_order_prices(
+                order,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
+        except Exception as e:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        str(e), code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value
+                    )
+                }
+            )
         # Post-process the results
         order_shipping_updated(order, info.context.plugins)
         return OrderUpdateShipping(order=order)
