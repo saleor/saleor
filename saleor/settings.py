@@ -530,11 +530,6 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
-    "MIDDLEWARE": [
-        # Those middlewares are executed from bottom to top
-        "saleor.graphql.middleware.JWTMiddleware",
-        "saleor.graphql.middleware.app_middleware",
-    ],
 }
 
 # Max number entities that can be requested in single query by Apollo Federation
