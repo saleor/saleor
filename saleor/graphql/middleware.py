@@ -1,55 +1,7 @@
-from typing import Optional
-
 from django.conf import settings
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import AnonymousUser
-from django.db.models import Exists, OuterRef
-from django.utils.functional import SimpleLazyObject
 
-from ..app.models import App, AppToken
-from ..core.auth import get_token_from_request
 from ..core.exceptions import ReadOnlyException
-from .views import API_PATH, GraphQLView
-
-
-def get_user(request):
-    if not hasattr(request, "_cached_user"):
-        request._cached_user = authenticate(request=request)
-    return request._cached_user
-
-
-class JWTMiddleware:
-    def resolve(self, next, root, info, **kwargs):
-        request = info.context
-
-        if hasattr(request, "app") and request.app:
-            request.user = AnonymousUser()
-            return next(root, info, **kwargs)
-
-        def user():
-            return get_user(request) or AnonymousUser()
-
-        request.user = SimpleLazyObject(lambda: user())
-        return next(root, info, **kwargs)
-
-
-def get_app(auth_token) -> Optional[App]:
-    tokens = AppToken.objects.filter(auth_token=auth_token).values("pk")
-    return App.objects.filter(
-        Exists(tokens.filter(app_id=OuterRef("pk"))), is_active=True
-    ).first()
-
-
-def app_middleware(next, root, info, **kwargs):
-    request = info.context
-
-    if request.path == API_PATH:
-        if not hasattr(request, "app"):
-            request.app = None
-            auth_token = get_token_from_request(request)
-            if auth_token and len(auth_token) == 30:
-                request.app = SimpleLazyObject(lambda: get_app(auth_token))
-    return next(root, info, **kwargs)
+from .views import GraphQLView
 
 
 class ReadOnlyMiddleware:

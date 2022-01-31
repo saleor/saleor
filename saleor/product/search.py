@@ -102,7 +102,7 @@ def generate_attributes_search_document_value(
                 clean_editor_js(value.rich_text, to_string=True) for value in values
             ]
         elif input_type == AttributeInputType.NUMERIC:
-            unit = attribute.unit
+            unit = attribute.unit or ""
             values_list = [value.name + unit for value in values]
         elif input_type in [AttributeInputType.DATE, AttributeInputType.DATE_TIME]:
             values_list = [value.date_time.isoformat() for value in values]

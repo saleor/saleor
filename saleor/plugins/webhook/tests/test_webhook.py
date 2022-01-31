@@ -29,6 +29,7 @@ from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
+    generate_collection_payload,
     generate_customer_payload,
     generate_invoice_payload,
     generate_order_payload,
@@ -211,6 +212,45 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
 
     mocked_webhook_trigger.assert_called_once_with(
         expected_data, WebhookEventAsyncType.ORDER_FULLY_PAID
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_collection_created(mocked_webhook_trigger, settings, collection):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.collection_created(collection)
+    expected_data = generate_collection_payload(collection)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data, WebhookEventAsyncType.COLLECTION_CREATED
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_collection_updated(mocked_webhook_trigger, settings, collection):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.collection_updated(collection)
+    expected_data = generate_collection_payload(collection)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data, WebhookEventAsyncType.COLLECTION_UPDATED
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_collection_deleted(mocked_webhook_trigger, settings, collection):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.collection_deleted(collection)
+    expected_data = generate_collection_payload(collection)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data, WebhookEventAsyncType.COLLECTION_DELETED
     )
 
 

@@ -88,6 +88,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         description = "Creates new warehouse."
         model = models.Warehouse
+        object_type = Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
@@ -101,6 +102,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
+        object_type = Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Add shipping zone to given warehouse."
         error_type_class = WarehouseError
@@ -127,6 +129,7 @@ class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseShippingZoneUnassign(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
+        object_type = Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Remove shipping zone from given warehouse."
         error_type_class = WarehouseError
@@ -153,6 +156,7 @@ class WarehouseShippingZoneUnassign(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
+        object_type = Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Updates given warehouse."
         error_type_class = WarehouseError
@@ -177,6 +181,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseDelete(ModelDeleteMutation):
     class Meta:
         model = models.Warehouse
+        object_type = Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Deletes selected warehouse."
         error_type_class = WarehouseError

@@ -81,7 +81,7 @@ def resolve_plugins(manager, sort_by=None, **kwargs):
             description=plugin.PLUGIN_DESCRIPTION,
             name=plugin.PLUGIN_NAME,
         )
-        for plugin_id, plugin in global_plugins.items()
+        for _, plugin in global_plugins.items()
     ]
 
     plugins.extend(

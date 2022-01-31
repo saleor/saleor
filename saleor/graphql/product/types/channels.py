@@ -15,8 +15,9 @@ from ....product.utils.costs import (
 )
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
-from ...core.connection import CountableDjangoObjectType
+from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_31
+from ...core.types import ModelObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ..dataloaders import (
@@ -33,7 +34,13 @@ class Margin(graphene.ObjectType):
     stop = graphene.Int()
 
 
-class ProductChannelListing(CountableDjangoObjectType):
+class ProductChannelListing(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    publication_date = graphene.Date()
+    is_published = graphene.Boolean(required=True)
+    channel = graphene.Field(Channel, required=True)
+    visible_in_listings = graphene.Boolean(required=True)
+    available_for_purchase = graphene.Date()
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
@@ -63,14 +70,6 @@ class ProductChannelListing(CountableDjangoObjectType):
         description = "Represents product channel listing."
         model = models.ProductChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "id",
-            "channel",
-            "is_published",
-            "publication_date",
-            "visible_in_listings",
-            "available_for_purchase",
-        ]
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
@@ -249,7 +248,10 @@ class PreorderThreshold(graphene.ObjectType):
         description = "Represents preorder variant data for channel."
 
 
-class ProductVariantChannelListing(CountableDjangoObjectType):
+class ProductVariantChannelListing(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    channel = graphene.Field(Channel, required=True)
+    price = graphene.Field(Money)
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
     preorder_threshold = graphene.Field(
@@ -262,7 +264,6 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
         description = "Represents product varaint channel listing."
         model = models.ProductVariantChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "channel", "price", "cost_price"]
 
     @staticmethod
     def resolve_channel(root: models.ProductVariantChannelListing, info, **_kwargs):
@@ -285,12 +286,16 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
         )
 
 
-class CollectionChannelListing(CountableDjangoObjectType):
+class CollectionChannelListing(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    publication_date = graphene.Date()
+    is_published = graphene.Boolean(required=True)
+    channel = graphene.Field(Channel, required=True)
+
     class Meta:
         description = "Represents collection channel listing."
         model = models.CollectionChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "channel", "is_published", "publication_date"]
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):

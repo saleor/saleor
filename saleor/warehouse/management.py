@@ -183,7 +183,6 @@ def _create_allocations(
         return insufficient_stock, []
 
 
-@traced_atomic_transaction()
 def deallocate_stock(
     order_lines_data: Iterable["OrderLineInfo"], manager: PluginsManager
 ):
@@ -234,9 +233,6 @@ def deallocate_stock(
         if not quantity_dealocated == quantity:
             not_dellocated_lines.append(order_line)
 
-    if not_dellocated_lines:
-        raise AllocationError(not_dellocated_lines)
-
     allocations_before_update = list(
         Allocation.objects.filter(
             id__in=[a.id for a in allocations_to_update]
@@ -258,6 +254,9 @@ def deallocate_stock(
                     allocation_before_update.stock
                 )
             )
+
+    if not_dellocated_lines:
+        raise AllocationError(not_dellocated_lines)
 
 
 @traced_atomic_transaction()
