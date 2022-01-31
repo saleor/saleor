@@ -342,7 +342,9 @@ def send_webhook_request_sync(app_name, delivery):
                 attempt.id,
             )
             response.status = EventDeliveryStatus.FAILED
-            response.content = e.response
+            if e.response:
+                response.content = e.response.text
+                response.response_headers = dict(e.response.headers)
 
         except JSONDecodeError as e:
             logger.warning(
@@ -353,7 +355,6 @@ def send_webhook_request_sync(app_name, delivery):
                 attempt.id,
             )
             response.status = EventDeliveryStatus.FAILED
-            response.content = e.msg
         else:
             logger.debug(
                 "[Webhook] Success response from %r."
