@@ -19,7 +19,8 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
-from ....discount import VoucherType
+from ....discount import DiscountValueType, OrderDiscountType, VoucherType
+from ....order import OrderStatus
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
 from ....shipping.utils import convert_to_shipping_method_data
@@ -2850,6 +2851,192 @@ def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
     assert len(lines_with_taxes) == 1
 
     assert line_without_taxes[0]["itemCode"] == line.product_sku
+
+
+def test_get_order_request_data_confirmed_order_with_voucher(
+    order_with_lines, shipping_zone, site_settings, address, voucher
+):
+    site_settings.include_taxes_in_prices = True
+    site_settings.company_address = address
+    site_settings.save()
+    method = shipping_zone.shipping_methods.get()
+    line = order_with_lines.lines.first()
+    line.unit_price_gross_amount = line.unit_price_net_amount
+    line.save()
+
+    order_with_lines.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("10.0"),
+        name=voucher.code,
+        currency="USD",
+        amount_value=Decimal("10.0"),
+    )
+
+    order_with_lines.status = OrderStatus.UNFULFILLED
+    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
+    order_with_lines.shipping_method_name = method.name
+    order_with_lines.shipping_method = method
+    order_with_lines.save(
+        update_fields=[
+            "status",
+            "shipping_address",
+            "shipping_method_name",
+            "shipping_method",
+        ]
+    )
+
+    config = AvataxConfiguration(
+        username_or_account="",
+        password_or_license="",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+    request_data = get_order_request_data(order_with_lines, config)
+    lines_data = request_data["createTransactionModel"]["lines"]
+
+    # extra one from shipping data and from discount
+    assert len(lines_data) == order_with_lines.lines.count() + 1 + 1
+
+
+def test_get_order_request_data_confirmed_order_with_sale(
+    order_with_lines, shipping_zone, site_settings, address, sale
+):
+    site_settings.include_taxes_in_prices = True
+    site_settings.company_address = address
+    site_settings.save()
+    method = shipping_zone.shipping_methods.get()
+    line = order_with_lines.lines.first()
+    line.unit_price_gross_amount = line.unit_price_net_amount
+    line.save()
+
+    sale.variants.add(line.variant)
+
+    order_with_lines.status = OrderStatus.UNFULFILLED
+    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
+    order_with_lines.shipping_method_name = method.name
+    order_with_lines.shipping_method = method
+    order_with_lines.save(
+        update_fields=[
+            "status",
+            "shipping_address",
+            "shipping_method_name",
+            "shipping_method",
+        ]
+    )
+
+    config = AvataxConfiguration(
+        username_or_account="",
+        password_or_license="",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+    request_data = get_order_request_data(order_with_lines, config)
+    lines_data = request_data["createTransactionModel"]["lines"]
+
+    # extra one from shipping data
+    assert len(lines_data) == order_with_lines.lines.count() + 1
+
+
+def test_get_order_request_data_draft_order_with_voucher(
+    order_with_lines, shipping_zone, site_settings, address, voucher
+):
+    site_settings.include_taxes_in_prices = True
+    site_settings.company_address = address
+    site_settings.save()
+    method = shipping_zone.shipping_methods.get()
+    line = order_with_lines.lines.first()
+    line.unit_price_gross_amount = line.unit_price_net_amount
+    line.save()
+
+    order_with_lines.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("10.0"),
+        name=voucher.code,
+        currency="USD",
+        amount_value=Decimal("10.0"),
+    )
+
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
+    order_with_lines.shipping_method_name = method.name
+    order_with_lines.shipping_method = method
+    order_with_lines.save(
+        update_fields=[
+            "status",
+            "shipping_address",
+            "shipping_method_name",
+            "shipping_method",
+        ]
+    )
+
+    config = AvataxConfiguration(
+        username_or_account="",
+        password_or_license="",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+    request_data = get_order_request_data(order_with_lines, config)
+    lines_data = request_data["createTransactionModel"]["lines"]
+
+    # every line has additional discount data and extra one from shipping data
+    assert len(lines_data) == order_with_lines.lines.count() * 2 + 1
+
+
+def test_get_order_request_data_draft_order_with_sale(
+    order_with_lines, shipping_zone, site_settings, address, sale
+):
+    site_settings.include_taxes_in_prices = True
+    site_settings.company_address = address
+    site_settings.save()
+    method = shipping_zone.shipping_methods.get()
+    line = order_with_lines.lines.first()
+    line.unit_price_gross_amount = line.unit_price_net_amount
+    line.save()
+
+    sale.variants.add(line.variant)
+
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
+    order_with_lines.shipping_method_name = method.name
+    order_with_lines.shipping_method = method
+    order_with_lines.save(
+        update_fields=[
+            "status",
+            "shipping_address",
+            "shipping_method_name",
+            "shipping_method",
+        ]
+    )
+
+    config = AvataxConfiguration(
+        username_or_account="",
+        password_or_license="",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+    request_data = get_order_request_data(order_with_lines, config)
+    lines_data = request_data["createTransactionModel"]["lines"]
+
+    # one additional line from variant sale and one from shipping data
+    assert len(lines_data) == order_with_lines.lines.count() + 1 + 1
 
 
 @patch("saleor.plugins.avatax.get_order_request_data")
