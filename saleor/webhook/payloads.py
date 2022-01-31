@@ -61,6 +61,7 @@ ADDRESS_FIELDS = (
 )
 
 ORDER_FIELDS = (
+    "token",
     "created",
     "status",
     "origin",

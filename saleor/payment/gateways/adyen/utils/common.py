@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 import Adyen
 import opentracing
 import opentracing.tags
+from Adyen.httpclient import HTTPClient
 from django.conf import settings
 from django_countries.fields import Country
 
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
+HTTP_TIMEOUT = 20  # in seconds
 
 
 def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
@@ -37,9 +39,22 @@ def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
 
     live_endpoint = config.connection_params.get("live")
     platform = "live" if live_endpoint else "test"
-    return Adyen.Adyen(
+    adyen = Adyen.Adyen(
         xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
     )
+    init_http_client(adyen)
+    return adyen
+
+
+def init_http_client(adyen: Adyen.Adyen):
+    adyen_client = adyen.client
+    adyen_client.http_client = HTTPClient(
+        user_agent_suffix=adyen_client.USER_AGENT_SUFFIX,
+        lib_version=adyen_client.LIB_VERSION,
+        force_request=adyen_client.http_force,
+        timeout=HTTP_TIMEOUT,
+    )
+    adyen_client.http_init = True
 
 
 def get_tax_percentage_in_adyen_format(total_gross, total_net):
