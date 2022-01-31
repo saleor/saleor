@@ -125,8 +125,27 @@ def test_app_extensions_user_not_staff(
         ({}, 4),
         ({"target": AppExtensionTargetEnum.APP_PAGE.name}, 1),
         ({"target": AppExtensionTargetEnum.POPUP.name}, 3),
-        ({"mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name}, 1),
-        ({"mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name}, 2),
+        ({"mount": [AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name]}, 1),
+        ({"mount": [AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name]}, 2),
+        (
+            {
+                "mount": [
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name,
+                ]
+            },
+            3,
+        ),
+        (
+            {
+                "target": AppExtensionTargetEnum.APP_PAGE.name,
+                "mount": [
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name,
+                ],
+            },
+            1,
+        ),
     ],
 )
 def test_app_extensions_with_filter(
