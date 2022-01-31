@@ -28,6 +28,6 @@ def install_app_task(job_id, activate=False):
         )
     except Exception as e:
         logger.warning("Failed to install app. error %s", e)
-        app_installation.message = f"Error {e}. Contact with app support."
+        app_installation.message = "Unknown error. Contact with app support."
     app_installation.status = JobStatus.FAILED
     app_installation.save()
