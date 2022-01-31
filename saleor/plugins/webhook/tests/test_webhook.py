@@ -11,6 +11,7 @@ from celery.exceptions import MaxRetriesExceededError
 from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.serializers import serialize
+from django.http import HttpResponse
 from django.utils import timezone
 from freezegun import freeze_time
 from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
@@ -31,6 +32,7 @@ from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
+    generate_api_call_payload,
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
@@ -911,6 +913,20 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
 
     # then
     mocked_webhook_send.assert_called_once_with(event_delivery.pk)
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_report_api_call(mocked_webhook_trigger, rf, settings):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    request = rf.post("/", data={"request": "data"})
+    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.app = None
+    response = HttpResponse("response")
+
+    manager.report_api_call(request, response)
+
+    mocked_webhook_trigger.assert_called_once()
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")

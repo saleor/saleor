@@ -985,6 +985,17 @@ def test_generate_api_call_payload(app, rf):
     }
 
 
+def test_generate_api_call_payload_from_post_request(app, rf):
+    request = rf.post("/graphql", data={"request": "data"})
+    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.app = app
+    response = JsonResponse({"response": "data"})
+
+    payload = json.loads(generate_api_call_payload(request, response))[0]
+
+    assert payload["request_body"] == '{"request": ["data"]}'
+
+
 def test_generate_api_call_not_from_app_payload(rf):
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"

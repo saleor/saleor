@@ -1004,8 +1004,8 @@ def generate_translation_payload(
 
 def generate_api_call_payload(request, response):
     content_length = int(request.headers.get("Content-Length", 0))
+    response_body = response.content.decode(response.charset)
     request_body = None
-    response_body = None
     if request.POST:
         request_body = json.dumps(dict(request.POST))
     else:
@@ -1013,10 +1013,6 @@ def generate_api_call_payload(request, response):
             request_body = request.body.decode("utf-8")
         except ValueError:
             pass
-    try:
-        response_body = response.content.decode(response.charset)
-    except ValueError:
-        pass
 
     payload = {
         "request_id": str(uuid4()),
