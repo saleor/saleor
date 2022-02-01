@@ -93,11 +93,19 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
 )
 
 
-def get_hierarchical_categories(product: Product):
+def get_hierarchical_categories(product: Product, language_code: str):
     hierarchical = {}
     hierarchical_list = []
     if product.category:
         categories = product.category.get_ancestors(include_self=True)
+        if language_code == "EN":
+            categories = [str(category) for category in categories]
+        else:
+            categories = [
+                str(category.translations.filter(language_code=language_code).first())
+                for category in categories
+                if category.translations.filter(language_code=language_code).first()
+            ]
         for index, category in enumerate(categories):
             hierarchical_list.append(str(category))
             hierarchical.update(
@@ -183,7 +191,7 @@ def get_product_data(product_pk: int, language_code="EN"):
     product_dict = product_data.data["products"]["edges"][0]["node"]
 
     translated_product = product.translations.filter(
-        language_code=language_code
+        language_code=language_code.lower()
     ).first()
 
     description = {}
@@ -239,8 +247,10 @@ def get_product_data(product_pk: int, language_code="EN"):
                 "description": description,
                 "images": map_product_media(media=media),
                 "gender": product.get_value_from_metadata("gender"),
-                "categories": get_hierarchical_categories(product=product),
                 "collections": map_product_collections(
+                    product=product, language_code=language_code.lower()
+                ),
+                "categories": get_hierarchical_categories(
                     product=product, language_code=language_code.lower()
                 ),
             }
