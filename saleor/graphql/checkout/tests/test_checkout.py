@@ -45,6 +45,7 @@ from ....shipping import models as shipping_models
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
+from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -2124,9 +2125,12 @@ query AvailableCollectionPoints($token: UUID!) {
 def test_available_collection_points_for_preorders_variants_in_checkout(
     api_client, staff_api_client, checkout_with_preorders_only
 ):
-
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").values("name")
+        Warehouse.objects.for_country("US")
+        .exclude(
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        )
+        .values("name")
     )
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
