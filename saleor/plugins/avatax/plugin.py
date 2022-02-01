@@ -321,7 +321,13 @@ class AvataxPlugin(BasePlugin):
         Raise an error when can't receive taxes.
         """
         if lines is None:
-            lines = fetch_checkout_lines(checkout_info.checkout)
+            lines, unavailable_variant_pks = fetch_checkout_lines(
+                checkout_info.checkout
+            )
+            if unavailable_variant_pks:
+                raise ValidationError(
+                    "Some of the checkout lines variants are unavailable."
+                )
         if self._skip_plugin(previous_value):
             return previous_value
 
