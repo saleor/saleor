@@ -7,7 +7,7 @@ manager.
 from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
@@ -182,12 +182,15 @@ def calculate_base_price_for_shipping_method(
 def base_checkout_total(
     subtotal: TaxedMoney,
     shipping_price: TaxedMoney,
-    discount: TaxedMoney,
+    discount: Money,
     currency: str,
 ) -> TaxedMoney:
     """Return the total cost of the checkout."""
+    zero = zero_taxed_money(currency)
     total = subtotal + shipping_price - discount
-    return max(total, zero_taxed_money(currency))
+    if total.gross <= zero.gross:
+        return zero_taxed_money(currency)
+    return total
 
 
 def base_checkout_line_total(
