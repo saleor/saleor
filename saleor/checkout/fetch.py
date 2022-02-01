@@ -181,10 +181,10 @@ def get_delivery_method_info(
     delivery_method: Optional[Union["ShippingMethodData", "Warehouse", Callable]],
     address=Optional["Address"],
 ) -> DeliveryMethodBase:
-    if delivery_method is None:
-        return DeliveryMethodBase()
     if callable(delivery_method):
         delivery_method = delivery_method()
+    if delivery_method is None:
+        return DeliveryMethodBase()
     if isinstance(delivery_method, ShippingMethodData):
         return ShippingMethodInfo(delivery_method, address)
     if isinstance(delivery_method, Warehouse):

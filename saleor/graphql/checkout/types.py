@@ -39,10 +39,7 @@ from ..shipping.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
-from ..warehouse.dataloaders import (
-    StocksReservationsByCheckoutTokenLoader,
-    WarehouseByIdLoader,
-)
+from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
 from .dataloaders import (
     CheckoutByTokenLoader,
@@ -364,12 +361,13 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):
-        external_app_shipping_id = get_external_shipping_id(root)
-        if root.shipping_method_id or external_app_shipping_id:
-            return Checkout.resolve_shipping_method(root, info)
-        if root.collection_point_id:
-            return WarehouseByIdLoader(info.context).load(root.collection_point_id)
-        return None
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(
+                lambda checkout_info: checkout_info.delivery_method_info.delivery_method
+            )
+        )
 
     @staticmethod
     def resolve_quantity(root: models.Checkout, info):
