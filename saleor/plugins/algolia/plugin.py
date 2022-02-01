@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ...graphql.core.enums import PluginErrorCode
 from ...payment.gateways.utils import require_active_plugin
-from ...product.models import Product
+from ...product.models import Product, ProductTranslation
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
 from .client import AlgoliaApiClient
@@ -126,3 +126,38 @@ class AlgoliaPlugin(BasePlugin):
         for locale, index in self.get_client().indices.items():
             index.delete_object(object_id=product.slug)
             logger.info("Product %s deleted from Algolia", product.slug)
+
+    @require_active_plugin
+    def translation_created(
+        self, translation: "ProductTranslation", previous_value: Any
+    ) -> Any:
+        """Index translation to Algolia."""
+        if isinstance(translation, ProductTranslation):
+            for locale, index in self.get_client().indices.items():
+                product_data = get_product_data(
+                    language_code=locale.upper(),
+                    product_pk=translation.product.pk,
+                )
+                if product_data:
+                    index.save_object(
+                        obj=product_data,
+                        request_options={"autoGenerateObjectIDIfNotExist": False},
+                    )
+                    logger.info("Translation %s indexed to Algolia", translation)
+
+    @require_active_plugin
+    def translation_updated(
+        self, translation: "ProductTranslation", previous_value: Any
+    ) -> Any:
+        """Index translation to Algolia."""
+        if isinstance(translation, ProductTranslation):
+            for locale, index in self.get_client().indices.items():
+                product_data = get_product_data(
+                    language_code=locale.upper(),
+                    product_pk=translation.product.pk,
+                )
+                if product_data:
+                    index.partial_update_object(
+                        obj=product_data, request_options={"createIfNotExists": True}
+                    )
+                    logger.info("Translation %s updated in Algolia", translation)
