@@ -2,8 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from saleor.checkout.utils import set_external_shipping_id
-
+from .....checkout.utils import set_external_shipping_id
 from ....tests.utils import get_graphql_content
 
 
