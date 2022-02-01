@@ -1146,6 +1146,7 @@ enum CheckoutErrorCode {
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
   EMAIL_NOT_SET
+  NO_LINES
 }
 
 input CheckoutFilterInput {
@@ -5092,6 +5093,7 @@ type PaymentError {
   field: String
   message: String
   code: PaymentErrorCode!
+  variants: [ID!]
 }
 
 enum PaymentErrorCode {
@@ -5110,6 +5112,8 @@ enum PaymentErrorCode {
   CHANNEL_INACTIVE
   BALANCE_CHECK_ERROR
   CHECKOUT_EMAIL_NOT_SET
+  UNAVAILABLE_VARIANT_IN_CHANNEL
+  NO_CHECKOUT_LINES
 }
 
 input PaymentFilterInput {

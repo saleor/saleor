@@ -35,7 +35,7 @@ def test_adding_same_variant(checkout, product):
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
     add_variant_to_checkout(checkout_info, variant, 2)
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_quantity = calculate_checkout_quantity(lines)
     assert checkout.lines.count() == 1
     assert checkout_quantity == 3
@@ -59,7 +59,7 @@ def test_replacing_same_variant(checkout, product):
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1, replace=True)
     add_variant_to_checkout(checkout_info, variant, 2, replace=True)
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     assert calculate_checkout_quantity(lines) == 2
 
@@ -104,7 +104,7 @@ def test_get_prices_of_discounted_specific_product(
     voucher.categories.add(category)
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
@@ -136,7 +136,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.products.add(product)
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
     )
@@ -170,7 +170,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     product.collections.add(collection)
     voucher.collections.add(collection)
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
     )
@@ -206,7 +206,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.categories.add(category)
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
     )
@@ -231,7 +231,7 @@ def test_get_prices_of_discounted_specific_product_all_products(
     variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
@@ -272,5 +272,5 @@ def test_get_total_weight(checkout_with_item):
     variant.save()
     line.quantity = 6
     line.save()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     assert checkout_with_item.get_total_weight(lines) == Weight(kg=60)
