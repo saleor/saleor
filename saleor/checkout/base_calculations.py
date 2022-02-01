@@ -188,6 +188,10 @@ def base_checkout_total(
     """Return the total cost of the checkout."""
     zero = zero_taxed_money(currency)
     total = subtotal + shipping_price - discount
+    # Discount is subtracted from both gross and net values, which may cause negative
+    # net value if we are having a discount that covers whole price.
+    # Comparing TaxedMoney objects works only on gross values. That is why we are
+    # explicitly returning zero_taxed_money if total.gross is less or equal zero.
     if total.gross <= zero.gross:
         return zero_taxed_money(currency)
     return total
