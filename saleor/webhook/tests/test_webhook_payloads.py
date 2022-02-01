@@ -1,11 +1,11 @@
 import json
+import uuid
 from dataclasses import asdict
 from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
 from unittest.mock import ANY
-from uuid import UUID
 
 import graphene
 from django.http import JsonResponse
@@ -960,11 +960,12 @@ def test_generate_api_call_payload(app, rf):
     )
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     request.app = app
+    request.request_uuid = uuid.uuid4()
     response = JsonResponse({"response": "data"})
 
     payload = json.loads(generate_api_call_payload(request, response))[0]
 
-    assert UUID(payload.pop("request_id"), version=4)
+    assert uuid.UUID(payload.pop("request_id"), version=4) == request.request_uuid
     assert payload == {
         "request_time": request.request_time.timestamp(),
         "request_headers": {
@@ -985,10 +986,27 @@ def test_generate_api_call_payload(app, rf):
     }
 
 
+def test_generate_api_call_payload_from_request_with_non_utf8_body(app, rf):
+    request = rf.post(
+        "/graphql",
+        data="abcd".encode("UTF-16"),
+        content_type="application/octet-stream",
+    )
+    request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
+    request.app = app
+    request.request_uuid = uuid.uuid4()
+    response = JsonResponse({"response": "data"})
+
+    payload = json.loads(generate_api_call_payload(request, response))[0]
+
+    assert payload["request_body"] is None
+
+
 def test_generate_api_call_payload_from_post_request(app, rf):
     request = rf.post("/graphql", data={"request": "data"})
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     request.app = app
+    request.request_uuid = uuid.uuid4()
     response = JsonResponse({"response": "data"})
 
     payload = json.loads(generate_api_call_payload(request, response))[0]
@@ -1002,6 +1020,7 @@ def test_generate_api_call_not_from_app_payload(rf):
     )
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     request.app = None
+    request.request_uuid = uuid.uuid4()
     response = JsonResponse({"response": "data"})
 
     payload = json.loads(generate_api_call_payload(request, response))[0]

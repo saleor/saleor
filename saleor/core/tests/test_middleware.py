@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import Mock
 
 from django.core.handlers.base import BaseHandler
@@ -133,6 +134,7 @@ def test_api_reporter_middleware_when_app_makes_graphql_req(rf, app, settings):
     handler.load_middleware()
     response = handler.get_response(request)
 
+    assert isinstance(request.request_uuid, uuid.UUID)
     plugins.report_api_call.assert_called_once_with(request, response)
 
 

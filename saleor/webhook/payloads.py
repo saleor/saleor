@@ -3,7 +3,6 @@ import uuid
 from collections import defaultdict
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
-from uuid import uuid4
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
@@ -1013,9 +1012,12 @@ def generate_api_call_payload(request, response):
             request_body = request.body.decode("utf-8")
         except ValueError:
             pass
+    request_id = None
+    if hasattr(request, "request_uuid") and request.request_uuid:
+        request_id = str(request.request_uuid)
 
     payload = {
-        "request_id": str(uuid4()),
+        "request_id": request_id or str(uuid.uuid4()),
         "request_time": request.request_time.timestamp(),
         "request_headers": dict(request.headers),
         "request_body": request_body,

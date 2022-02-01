@@ -1,4 +1,5 @@
 import json
+import uuid
 from datetime import datetime
 from unittest import mock
 from unittest.mock import ANY, MagicMock
@@ -36,6 +37,7 @@ from ....webhook.payloads import (
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_event_delivery_attempt_payload,
     generate_invoice_payload,
     generate_order_payload,
     generate_page_payload,
@@ -922,21 +924,29 @@ def test_report_api_call(mocked_webhook_trigger, rf, settings):
     request = rf.post("/", data={"request": "data"})
     request.request_time = datetime(1914, 6, 28, 10, 50, tzinfo=timezone.utc)
     request.app = None
+    request.request_uuid = uuid.uuid4()
     response = HttpResponse("response")
+    expected_data = generate_api_call_payload(request, response)
 
     manager.report_api_call(request, response)
 
-    mocked_webhook_trigger.assert_called_once()
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data, WebhookEventAsyncType.REPORT_API_CALL
+    )
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_report_event_delivery_attempt(mocked_webhook_trigger, event_attempt, settings):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
+    next_retry = timezone.now()
+    expected_data = generate_event_delivery_attempt_payload(event_attempt, next_retry)
 
-    manager.report_event_delivery_attempt(event_attempt, timezone.now())
+    manager.report_event_delivery_attempt(event_attempt, next_retry)
 
-    mocked_webhook_trigger.assert_called_once()
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data, WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
+    )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.report_event_delivery_attempt")

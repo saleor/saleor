@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import datetime
 from functools import partial
 from typing import TYPE_CHECKING, Callable, Union
@@ -145,6 +146,7 @@ def api_reporter(get_response):
             if settings.REPORTER_LOG_ALL_API_CALLS or (
                 hasattr(request, "app") and request.app
             ):
+                request.request_uuid = uuid.uuid4()
                 request.plugins.report_api_call(request, response)
         return response
 
