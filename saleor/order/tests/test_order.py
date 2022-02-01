@@ -21,6 +21,7 @@ from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
@@ -1302,7 +1303,9 @@ def test_available_collection_points_for_preorders_variants_in_order(
     api_client, staff_api_client, order_with_preorder_lines, permission_manage_orders
 ):
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").values("name")
+        Warehouse.objects.for_country("US").exclude(
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        ).values("name")
     )
     response = staff_api_client.post_graphql(
         GET_ORDER_AVAILABLE_COLLECTION_POINTS,
