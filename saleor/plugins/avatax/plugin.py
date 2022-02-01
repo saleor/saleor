@@ -642,7 +642,7 @@ class AvataxPlugin(BasePlugin):
             channel_id=order.channel_id
         ).first()
         if not channel_listing:
-            raise Exception("Shipping method not available in the given channel.")
+            return previous_value
         price = channel_listing.price
         return TaxedMoney(
             net=price,

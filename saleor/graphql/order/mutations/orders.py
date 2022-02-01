@@ -249,20 +249,11 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
-        try:
-            update_order_prices(
-                instance,
-                info.context.plugins,
-                info.context.site.settings.include_taxes_in_prices,
-            )
-        except Exception as e:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        str(e), code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value
-                    )
-                }
-            )
+        update_order_prices(
+            instance,
+            info.context.plugins,
+            info.context.site.settings.include_taxes_in_prices,
+        )
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
 
@@ -388,20 +379,11 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "shipping_tax_rate",
             ]
         )
-        try:
-            update_order_prices(
-                order,
-                info.context.plugins,
-                info.context.site.settings.include_taxes_in_prices,
-            )
-        except Exception as e:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        str(e), code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value
-                    )
-                }
-            )
+        update_order_prices(
+            order,
+            info.context.plugins,
+            info.context.site.settings.include_taxes_in_prices,
+        )
         # Post-process the results
         order_shipping_updated(order, info.context.plugins)
         return OrderUpdateShipping(order=order)

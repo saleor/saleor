@@ -149,9 +149,18 @@ def _validate_order(order: "Order") -> bool:
     shipping_address = order.shipping_address
     shipping_required = order.is_shipping_required()
     address = shipping_address or order.billing_address
-    return _validate_adddress_details(
-        shipping_address, shipping_required, address, order.shipping_method
+    shipping_method = order.shipping_method
+    valid_address_details = _validate_adddress_details(
+        shipping_address, shipping_required, address, shipping_method
     )
+    if not valid_address_details:
+        return False
+    channel_listing = shipping_method.channel_listings.filter(  # type: ignore
+        channel_id=order.channel_id
+    ).first()
+    if not channel_listing:
+        return False
+    return True
 
 
 def _validate_checkout(
