@@ -1303,9 +1303,11 @@ def test_available_collection_points_for_preorders_variants_in_order(
     api_client, staff_api_client, order_with_preorder_lines, permission_manage_orders
 ):
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").exclude(
+        Warehouse.objects.for_country("US")
+        .exclude(
             click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
-        ).values("name")
+        )
+        .values("name")
     )
     response = staff_api_client.post_graphql(
         GET_ORDER_AVAILABLE_COLLECTION_POINTS,
@@ -1328,9 +1330,11 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
     permission_manage_orders,
 ):
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").exclude(
+        Warehouse.objects.for_country("US")
+        .exclude(
             click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
-        ).values("name")
+        )
+        .values("name")
     )
 
     response = staff_api_client.post_graphql(
