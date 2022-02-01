@@ -113,8 +113,8 @@ class OTOPlugin(BasePlugin):
             )
         else:
             msg = (
-                response.get("message").capitalize()
-                if response.get("message")
+                response.get("errorMsg").capitalize()
+                if response.get("errorMsg")
                 else "Can not create an OTO order"
             )
             logger.error(msg=msg, extra={"order_id": fulfillment.order.id})
@@ -173,6 +173,15 @@ class OTOPlugin(BasePlugin):
                         )
                         returned_fulfillment.order.save(
                             update_fields=["private_metadata"]
+                        )
+                    else:
+                        msg = (
+                            response.get("errorMsg").capitalize()
+                            if response.get("errorMsg")
+                            else "Can not create an OTO order"
+                        )
+                        raise ValidationError(
+                            {"order_id": ValidationError(msg, code="invalid")},
                         )
 
     @require_active_plugin
