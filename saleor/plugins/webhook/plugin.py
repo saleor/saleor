@@ -390,8 +390,10 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        api_call_data = generate_api_call_payload(request, response)
-        trigger_webhooks_async(api_call_data, WebhookEventAsyncType.REPORT_API_CALL)
+        event_type = WebhookEventAsyncType.REPORT_API_CALL
+        if webhooks := _get_webhooks_for_event(event_type):
+            api_call_data = generate_api_call_payload(request, response)
+            trigger_webhooks_async(api_call_data, event_type, webhooks)
 
     def report_event_delivery_attempt(
         self,
@@ -401,10 +403,10 @@ class WebhookPlugin(BasePlugin):
     ):
         if not self.active:
             return previous_value
-        attempt_data = generate_event_delivery_attempt_payload(attempt, next_retry)
-        trigger_webhooks_async(
-            attempt_data, WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
-        )
+        event_type = WebhookEventAsyncType.REPORT_EVENT_DELIVERY_ATTEMPT
+        if webhooks := _get_webhooks_for_event(event_type):
+            attempt_data = generate_event_delivery_attempt_payload(attempt, next_retry)
+            trigger_webhooks_async(attempt_data, event_type, webhooks)
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
