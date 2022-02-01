@@ -1493,3 +1493,249 @@ def test_handle_order_closed_success_true(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+def test_handle_order_closed_with_adyen_partial_payments_success_true(
+    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method
+):
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+    checkout_token = str(checkout.token)
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification_data = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+        success="true",
+    )
+    notification_data["additionalData"] = {
+        "order-2-paymentMethod": "visa",
+        "order-2-pspReference": "881643125782168B",
+        "order-2-paymentAmount": "GBP 29.10",
+        "order-1-pspReference": "861643125754056E",
+        "order-1-paymentAmount": "GBP 41.90",
+        "order-1-paymentMethod": "givex",
+    }
+    config = adyen_plugin().config
+
+    # when
+    handle_order_closed(notification_data, config)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.exclude(
+        kind=TransactionKind.ACTION_TO_CONFIRM
+    ).get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
+    assert payment.checkout is None
+    assert payment.order
+    assert payment.order.checkout_token == checkout_token
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
+    )
+    assert external_events.count() == 1
+
+    external_event = external_events.first()
+    event_message = external_event.parameters["message"]
+    assert "Partial payment" in event_message
+    assert "GBP 41.90" in event_message
+    assert "GBP 29.10" in event_message
+    assert "881643125782168B" in event_message
+    assert "861643125754056E" in event_message
+    assert "givex" in event_message
+    assert "visa" in event_message
+
+    partial_payments = list(payment.order.payments.exclude(id=payment.id))
+    assert len(partial_payments) == 2
+    assert all([payment.is_active is False for payment in partial_payments])
+    assert all([payment.partial is True for payment in partial_payments])
+    assert all([payment.is_active is False for payment in partial_payments])
+    assert any(payment.total == Decimal("29.10") for payment in partial_payments)
+    assert any(payment.total == Decimal("41.90") for payment in partial_payments)
+    assert any(
+        payment.psp_reference == "881643125782168B" for payment in partial_payments
+    )
+    assert any(
+        payment.psp_reference == "861643125754056E" for payment in partial_payments
+    )
+
+
+def test_handle_order_closed_with_adyen_partial_payments_success_true_without_amount(
+    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method
+):
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+    checkout_token = str(checkout.token)
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification_data = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+        success="true",
+    )
+    notification_data["additionalData"] = {
+        "order-2-paymentMethod": "visa",
+        "order-2-pspReference": "881643125782168B",
+        "order-1-pspReference": "861643125754056E",
+        "order-1-paymentAmount": "GBP 50.90",
+        "order-1-paymentMethod": "givex",
+    }
+    config = adyen_plugin().config
+
+    # when
+    handle_order_closed(notification_data, config)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.exclude(
+        kind=TransactionKind.ACTION_TO_CONFIRM
+    ).get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
+    assert payment.checkout is None
+    assert payment.order
+    assert payment.order.checkout_token == checkout_token
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
+    )
+    assert external_events.count() == 1
+
+    external_event = external_events.first()
+    event_message = external_event.parameters["message"]
+    assert "Partial payment" in event_message
+    assert "GBP 50.90" in event_message
+    assert "GBP 29.10" in event_message
+    assert "881643125782168B" in event_message
+    assert "861643125754056E" in event_message
+    assert "givex" in event_message
+    assert "visa" in event_message
+
+    partial_payments = list(payment.order.payments.exclude(id=payment.id))
+    assert len(partial_payments) == 2
+    assert all([payment.is_active is False for payment in partial_payments])
+    assert all([payment.partial is True for payment in partial_payments])
+    assert all([payment.is_active is False for payment in partial_payments])
+    assert any(payment.total == Decimal("29.10") for payment in partial_payments)
+    assert any(payment.total == Decimal("50.90") for payment in partial_payments)
+    assert any(
+        payment.psp_reference == "881643125782168B" for payment in partial_payments
+    )
+    assert any(
+        payment.psp_reference == "861643125754056E" for payment in partial_payments
+    )
+
+
+@patch("saleor.payment.gateway.void")
+@mock.patch("saleor.payment.gateways.adyen.webhooks.call_refund")
+@patch("saleor.checkout.complete_checkout._get_order_data")
+def test_order_closed_with_adyen_partial_payments_unable_to_create_order(
+    mock_order_data,
+    mock_call_refund,
+    mock_void,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    # given
+    mock_order_data.side_effect = ValidationError("Test error")
+
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification_data = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+        success="true",
+    )
+    notification_data["additionalData"] = {
+        "order-2-paymentMethod": "visa",
+        "order-2-pspReference": "881643125782168B",
+        "order-2-paymentAmount": "GBP 29.10",
+        "order-1-pspReference": "861643125754056E",
+        "order-1-paymentAmount": "GBP 41.90",
+        "order-1-paymentMethod": "givex",
+    }
+    merchant_account = "SaleorEcom"
+    config = adyen_plugin(merchant_account=merchant_account).config
+
+    # when
+    handle_order_closed(notification_data, config)
+
+    # then
+    assert payment.checkout
+    assert payment.order is None
+    mock_call_refund.assert_any_call(
+        amount=Decimal("41.90"),
+        currency="GBP",
+        merchant_account=merchant_account,
+        token="861643125754056E",
+        graphql_payment_id=mock.ANY,
+        adyen_client=mock.ANY,
+    )
+    mock_call_refund.assert_any_call(
+        amount=Decimal("29.10"),
+        currency="GBP",
+        merchant_account=merchant_account,
+        token="881643125782168B",
+        graphql_payment_id=mock.ANY,
+        adyen_client=mock.ANY,
+    )
