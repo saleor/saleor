@@ -56,7 +56,7 @@ def generate_create_order_data(fulfillment):
     fulfillment_line = fulfillment.lines.last()
     is_cod_order = (
         True
-        if fulfillment.order.get_last_payment().payment_method_type == "cod"
+        if fulfillment.order.get_last_payment().gateway == "payments.cash"
         else False
     )
     data = {
