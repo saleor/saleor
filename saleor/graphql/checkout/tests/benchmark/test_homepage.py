@@ -147,8 +147,8 @@ def test_user_checkout_details(user_api_client, customer_checkout, count_queries
 @patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_user_checkout_details_with_external_shipping_method(
     mock_send_request,
-    api_client,
-    checkout_with_shipping_method,
+    user_api_client,
+    customer_checkout,
     shipping_app,
     settings,
 ):
@@ -164,38 +164,24 @@ def test_user_checkout_details_with_external_shipping_method(
             "maximum_delivery_days": "7",
         }
     ]
-    checkout = checkout_with_shipping_method
+    checkout = customer_checkout
     checkout.shipping_method = None
     set_external_shipping_id(checkout, external_id)
     checkout.save()
     mock_send_request.return_value = mock_json_response
     query = """
-        query External($token: UUID!) {
-          checkout(token: $token){
-            id
-            lines{
+        query {
+          me {
+            checkout {
               id
-              variant{
-                id
-                product{
-                  productType{
-                    isShippingRequired
-                  }
-                }
+              deliveryMethod {
+                  __typename
               }
-            }
-            deliveryMethod{
-              __typename
-              ... on ShippingMethod {
-                id
+              shippingMethod {
+                  __typename
               }
-            }
-            shippingMethods{
-              id
-            }
-            totalPrice{
-              gross{
-                amount
+              shippingMethods {
+                id
               }
             }
           }
@@ -203,7 +189,7 @@ def test_user_checkout_details_with_external_shipping_method(
     """
 
     # when
-    get_graphql_content(api_client.post_graphql(query, {"token": checkout.token}))
+    get_graphql_content(user_api_client.post_graphql(query))
 
     # then
     assert mock_send_request.call_count == 1
