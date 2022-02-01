@@ -2008,7 +2008,7 @@ def test_checkout_complete_with_preorder_variant(
     order_confirmed_mock.assert_called_once_with(order)
 
 
-def test_checkout_complete_with_preorder_raises_InvalidShippingMethod_when_warehouse_disabled(
+def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_warehouse(
     warehouse_for_cc,
     checkout_with_items_for_cc,
     address,
