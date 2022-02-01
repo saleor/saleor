@@ -705,7 +705,7 @@ def test_adyen_check_payment_balance_adyen_raises_error(
     )
 
 
-@mock.patch("saleor.payment.gateways.adyen.plugin.HTTP_TIMEOUT", 0.001)
+@mock.patch("saleor.payment.gateways.adyen.utils.common.HTTP_TIMEOUT", 0.001)
 def test_adyen_check_payment_timeout(adyen_plugin, adyen_check_balance_response):
     plugin = adyen_plugin()
 
