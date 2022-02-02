@@ -18,15 +18,15 @@ logger = logging.Logger(__name__)
 
 def get_order_customer_data(order):
     return {
-        "name": order.user.get_full_name(),
         "email": order.get_customer_email(),
         "city": order.shipping_address.city,
-        "mobile": str(order.shipping_address.phone),
         "district": order.shipping_address.city_area,
         "country": order.shipping_address.country.code,
         "postcode": order.shipping_address.postal_code,
         "address": order.shipping_address.street_address_1
         or order.shipping_address.street_address_2,
+        "name": order.user.get_full_name() if order.user else "",
+        "mobile": str(order.shipping_address.phone) if order.shipping_address else "",
     }
 
 
@@ -56,7 +56,7 @@ def generate_create_order_data(fulfillment):
     fulfillment_line = fulfillment.lines.last()
     is_cod_order = (
         True
-        if fulfillment.order.get_last_payment().payment_method_type == "cod"
+        if fulfillment.order.get_last_payment().gateway == "payments.cash"
         else False
     )
     data = {
