@@ -103,9 +103,11 @@ The easiest way to run all components of Saleor (API, storefront and dashboard) 
 
 ## Storefront
 
-For PWA, single-page storefront go to the [saleor-storefront](https://github.com/saleor/saleor-storefront) repository.
+An open-source storefront in React.js with Next.js. Built for Headless Commerce, using a modern stack with TypeScript, GraphQL, Apollo, and Tailwind CSS.
 
-[View storefront demo](https://demo.saleor.io/)
+[React Storefront Repository](https://github.com/saleor/react-storefront)
+
+[View Storefront Demo](https://reactstorefront.vercel.app/)
 
 ## Dashboard
 
@@ -117,7 +119,9 @@ For dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dash
 
 Want to see Saleor in action?
 
-[View Storefront](https://demo.saleor.io/) | [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
+* [View React Storefront](https://reactstorefront.vercel.app/)
+* [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
+* [View Legacy Storefront](https://demo.saleor.io/)
 
 Or launch the demo on a free Heroku instance.
 
