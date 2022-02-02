@@ -193,7 +193,7 @@ def base_checkout_total(
     # Comparing TaxedMoney objects works only on gross values. That is why we are
     # explicitly returning zero_taxed_money if total.gross is less or equal zero.
     if total.gross <= zero.gross:
-        return zero_taxed_money(currency)
+        return zero
     return total
 
 
