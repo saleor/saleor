@@ -54,7 +54,7 @@ def create_checkout_payment_lines_information(
     checkout: Checkout, manager: PluginsManager
 ) -> List[PaymentLineData]:
     line_items = []
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     address = checkout_info.shipping_address or checkout_info.billing_address
@@ -378,6 +378,7 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "partial": False,
         "psp_reference": external_reference or "",
     }
 

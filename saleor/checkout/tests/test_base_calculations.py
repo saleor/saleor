@@ -15,7 +15,8 @@ from ..fetch import fetch_checkout_lines
 
 def test_calculate_base_line_unit_price(checkout_with_single_item):
     # given
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -41,7 +42,8 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
     checkout_with_single_item, discount_info, category
 ):
     # given
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
     # set category on sale
@@ -94,7 +96,8 @@ def test_calculate_base_line_unit_price_with_fixed_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -133,7 +136,8 @@ def test_calculate_base_line_unit_price_with_percentage_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -174,7 +178,8 @@ def test_calculate_base_line_unit_price_with_discounts_apply_once_per_order(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -210,7 +215,8 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.discount = voucher_amount
     voucher_channel_listing.save()
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -255,7 +261,8 @@ def test_calculate_base_line_total_price(checkout_with_single_item):
     checkout_line.quantity = quantity
     checkout_line.save()
 
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -286,7 +293,8 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     checkout_line.quantity = quantity
     checkout_line.save()
 
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
     # set category on sale
@@ -344,7 +352,8 @@ def test_calculate_base_line_total_price_with_fixed_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -391,7 +400,8 @@ def test_calculate_base_line_total_price_with_percentage_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -440,7 +450,8 @@ def test_calculate_base_line_total_price_with_discounts_apply_once_per_order(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -488,7 +499,8 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
@@ -551,7 +563,8 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
-    checkout_line_info = fetch_checkout_lines(checkout_with_single_item)[0]
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
 
