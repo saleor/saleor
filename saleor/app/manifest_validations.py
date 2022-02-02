@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from typing import Dict, Iterable, List
 
@@ -12,31 +13,54 @@ from ..core.permissions import (
     split_permission_codename,
 )
 from .error_codes import AppErrorCode
-from .types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
 
+logger = logging.getLogger(__name__)
+
 T_ERRORS = Dict[str, List[ValidationError]]
-
-
-AVAILABLE_APP_EXTENSION_CONFIGS = {
-    AppExtensionType.DETAILS: {
-        AppExtensionView.PRODUCT: [
-            AppExtensionTarget.CREATE,
-            AppExtensionTarget.MORE_ACTIONS,
-        ]
-    },
-    AppExtensionType.OVERVIEW: {
-        AppExtensionView.PRODUCT: [
-            AppExtensionTarget.CREATE,
-            AppExtensionTarget.MORE_ACTIONS,
-        ]
-    },
-}
 
 
 def _clean_app_url(url):
     url_validator = AppURLValidator()
     url_validator(url)
+
+
+def _clean_extension_url_with_only_path(
+    manifest_data: dict, target: str, extension_url: str
+):
+    if target == AppExtensionTarget.APP_PAGE:
+        return
+    elif manifest_data["appUrl"]:
+        _clean_app_url(manifest_data["appUrl"])
+    else:
+        msg = (
+            "Incorrect relation between extension's target and URL fields. "
+            "APP_PAGE can be used only with relative URL path."
+        )
+        logger.warning(msg, extra={"target": target, "url": extension_url})
+        raise ValidationError(msg)
+
+
+def clean_extension_url(extension: dict, manifest_data: dict):
+    """Clean assigned extension url.
+
+    Make sure that format of url is correct based on the rest of manifest fields.
+    - url can start with '/' when one of these conditions is true:
+        a) extension.target == APP_PAGE
+        b) appUrl is provided
+    - url cannot start with protocol when target == "APP_PAGE"
+    """
+    extension_url = extension["url"]
+    target = extension.get("target") or AppExtensionTarget.POPUP
+    if extension_url.startswith("/"):
+        _clean_extension_url_with_only_path(manifest_data, target, extension_url)
+    elif target == AppExtensionTarget.APP_PAGE:
+        msg = "Url cannot start with protocol when target == APP_PAGE"
+        logger.warning(msg)
+        raise ValidationError(msg)
+    else:
+        _clean_app_url(extension_url)
 
 
 def clean_manifest_url(manifest_url):
@@ -121,23 +145,13 @@ def _clean_extension_permissions(extension, app_permissions, errors):
     extension["permissions"] = extension_permissions
 
 
-def _validate_configuration(extension, errors):
-
-    available_config_for_type = AVAILABLE_APP_EXTENSION_CONFIGS.get(
-        extension["type"], {}
-    )
-    available_config_for_type_and_view = available_config_for_type.get(
-        extension["view"], []
-    )
-
-    if extension["target"] not in available_config_for_type_and_view:
-        msg = (
-            "Incorrect configuration of app extension for fields: view, type and "
-            "target."
-        )
+def clean_extension_enum_field(enum, field_name, extension, errors):
+    if extension[field_name] in [code.upper() for code, _ in enum.CHOICES]:
+        extension[field_name] = getattr(enum, extension[field_name])
+    else:
         errors["extensions"].append(
             ValidationError(
-                msg,
+                f"Incorrect value for field: {field_name}",
                 code=AppErrorCode.INVALID.value,
             )
         )
@@ -145,25 +159,15 @@ def _validate_configuration(extension, errors):
 
 def clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
-    enum_map = [
-        (AppExtensionView, "view"),
-        (AppExtensionType, "type"),
-        (AppExtensionTarget, "target"),
-    ]
     for extension in extensions:
-        for extension_enum, key in enum_map:
-            if extension[key] in [code.upper() for code, _ in extension_enum.CHOICES]:
-                extension[key] = getattr(extension_enum, extension[key])
-            else:
-                errors["extensions"].append(
-                    ValidationError(
-                        f"Incorrect value for field: {key}",
-                        code=AppErrorCode.INVALID.value,
-                    )
-                )
+        if "target" not in extension:
+            extension["target"] = AppExtensionTarget.POPUP
+        else:
+            clean_extension_enum_field(AppExtensionTarget, "target", extension, errors)
+        clean_extension_enum_field(AppExtensionMount, "mount", extension, errors)
 
         try:
-            _clean_app_url(extension["url"])
+            clean_extension_url(extension, manifest_data)
         except (ValidationError, AttributeError):
             errors["extensions"].append(
                 ValidationError(
@@ -171,7 +175,6 @@ def clean_extensions(manifest_data, app_permissions, errors):
                     code=AppErrorCode.INVALID_URL_FORMAT.value,
                 )
             )
-        _validate_configuration(extension, errors)
         _clean_extension_permissions(extension, app_permissions, errors)
 
 
@@ -180,9 +183,7 @@ def validate_required_fields(manifest_data, errors):
     extension_required_fields = {
         "label",
         "url",
-        "view",
-        "type",
-        "target",
+        "mount",
     }
     manifest_missing_fields = manifest_required_fields.difference(manifest_data)
     if manifest_missing_fields:

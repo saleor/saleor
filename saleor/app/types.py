@@ -5,38 +5,41 @@ class AppType:
     CHOICES = [(LOCAL, "local"), (THIRDPARTY, "thirdparty")]
 
 
-class AppExtensionView:
-    """All available places where app's iframe can be mounted.
+class AppExtensionMount:
+    """All places where app extension can be mounted."""
 
-    PRODUCT - app's iframe will be mounted in product section
-    """
+    PRODUCT_OVERVIEW_CREATE = "product_overview_create"
+    PRODUCT_OVERVIEW_MORE_ACTIONS = "product_overview_more_actions"
+    PRODUCT_DETAILS_MORE_ACTIONS = "product_details_more_actions"
 
-    PRODUCT = "product"
+    NAVIGATION_CATALOG = "navigation_catalog"
+    NAVIGATION_ORDERS = "navigation_orders"
+    NAVIGATION_CUSTOMERS = "navigation_customers"
+    NAVIGATION_DISCOUNTS = "navigation_discounts"
+    NAVIGATION_TRANSLATIONS = "navigation_translations"
+    NAVIGATION_PAGES = "navigation_pages"
 
-    CHOICES = [(PRODUCT, "product")]
-
-
-class AppExtensionType:
-    """All available types where app's iframe can be mounted.
-
-    OVERVIEW - app's iframe will be mounted on list view.
-    DETAILS - app's iframe will be mounted on detail view
-    """
-
-    OVERVIEW = "overview"
-    DETAILS = "details"
-
-    CHOICES = [(OVERVIEW, "overview"), (DETAILS, "details")]
+    CHOICES = [
+        (PRODUCT_OVERVIEW_CREATE, "product_overview_create"),
+        (PRODUCT_OVERVIEW_MORE_ACTIONS, "product_overview_more_actions"),
+        (PRODUCT_DETAILS_MORE_ACTIONS, "product_details_more_actions"),
+        (NAVIGATION_CATALOG, "navigation_catalog"),
+        (NAVIGATION_ORDERS, "navigation_orders"),
+        (NAVIGATION_CUSTOMERS, "navigation_customers"),
+        (NAVIGATION_DISCOUNTS, "navigation_discounts"),
+        (NAVIGATION_TRANSLATIONS, "navigation_translations"),
+        (NAVIGATION_PAGES, "navigation_pages"),
+    ]
 
 
 class AppExtensionTarget:
-    """All available places where app's iframe can be mounted.
+    """All available ways of opening an app extension.
 
-    MORE_ACTIONS - more actions button
-    CREATE - create button
+    POPUP - app's extension will be mounted as a popup window
+    APP_PAGE - redirect to app's page
     """
 
-    MORE_ACTIONS = "more_actions"
-    CREATE = "create"
+    POPUP = "popup"
+    APP_PAGE = "app_page"
 
-    CHOICES = [(MORE_ACTIONS, "more_actions"), (CREATE, "create")]
+    CHOICES = [(POPUP, "popup"), (APP_PAGE, "app_page")]
