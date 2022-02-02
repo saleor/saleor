@@ -5,7 +5,7 @@ from graphene_django.converter import convert_django_field
 from graphene_django.forms.converter import convert_form_field
 
 from ....account.models import PossiblePhoneNumberField
-from ..filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter, GlobalIDMultipleChoiceField, GlobalIDFormField
 from .common import Weight
 from .money import Money, TaxedMoney
 
@@ -36,6 +36,16 @@ def convert_convert_enum(field):
     return field.input_class()
 
 
+@convert_form_field.register(GlobalIDFormField)
+def convert_form_field_to_id(field):
+    return graphene.ID(required=field.required)
+
+
 @convert_form_field.register(ListObjectTypeFilter)
 def convert_list_object_type(field):
     return graphene.List(field.input_class)
+
+
+@convert_form_field.register(GlobalIDMultipleChoiceField)
+def convert_form_field_to_list(field):
+    return graphene.List(graphene.ID, required=field.required)
