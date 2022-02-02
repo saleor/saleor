@@ -19,12 +19,12 @@ logger = logging.Logger(__name__)
 def get_order_customer_data(order):
     return {
         "email": order.get_customer_email(),
-        "city": order.shipping_address.city,
-        "district": order.shipping_address.city_area,
         "country": order.shipping_address.country.code,
         "postcode": order.shipping_address.postal_code,
         "address": order.shipping_address.street_address_1
         or order.shipping_address.street_address_2,
+        "city": order.shipping_address.city if order.shipping_address else "",
+        "district": order.shipping_address.city_area if order.shipping_address else "",
         "name": order.user.get_full_name() if order.user else "",
         "mobile": str(order.shipping_address.phone) if order.shipping_address else "",
     }
@@ -70,7 +70,7 @@ def generate_create_order_data(fulfillment):
         "customer": get_order_customer_data(order=fulfillment.order),
         "subtotal": float(fulfillment.order.get_subtotal().net.amount),
         "shippingAmount": float(fulfillment.order.shipping_price_net_amount),
-        "amount_due": fulfillment.order.total_net_amount if is_cod_order else 0,
+        "amount_due": float(fulfillment.order.total_net_amount) if is_cod_order else 0,
         "amount": float(
             fulfillment_line.quantity
             * fulfillment_line.order_line.unit_price_net_amount
