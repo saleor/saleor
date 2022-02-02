@@ -1021,7 +1021,7 @@ def test_calculate_checkout_total_zero_default_value(
     currency = checkout_with_item.currency
     mocked_base_checkout_total.return_value = zero_taxed_money(currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
