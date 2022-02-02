@@ -29,7 +29,7 @@ from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppExtension, AppInstallation
-from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
+from ..app.types import AppExtensionMount, AppExtensionTarget, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -5029,9 +5029,7 @@ def app_with_extensions(app, permission_manage_products):
         app=app,
         label="Create product with App",
         url="www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     extensions = AppExtension.objects.bulk_create(
         [
@@ -5040,9 +5038,7 @@ def app_with_extensions(app, permission_manage_products):
                 app=app,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.DETAILS,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
             ),
         ]
     )

@@ -1,15 +1,10 @@
 import django_filters
 
 from ...app import models
-from ...app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
-from ..core.filters import EnumFilter
+from ...app.types import AppExtensionTarget, AppType
+from ..core.filters import EnumFilter, ListObjectTypeFilter
 from ..utils.filters import filter_by_query_param
-from .enums import (
-    AppExtensionTargetEnum,
-    AppExtensionTypeEnum,
-    AppExtensionViewEnum,
-    AppTypeEnum,
-)
+from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
 
 def filter_app_search(qs, _, value):
@@ -24,21 +19,15 @@ def filter_app_type(qs, _, value):
     return qs
 
 
-def filter_app_extension_view(qs, _, value):
-    if value in [view for view, _ in AppExtensionView.CHOICES]:
-        qs = qs.filter(view=value)
-    return qs
-
-
-def filter_app_extension_type(qs, _, value):
-    if value in [type for type, _ in AppExtensionType.CHOICES]:
-        qs = qs.filter(type=value)
-    return qs
-
-
 def filter_app_extension_target(qs, _, value):
     if value in [target for target, _ in AppExtensionTarget.CHOICES]:
         qs = qs.filter(target=value)
+    return qs
+
+
+def filter_app_extension_mount(qs, _, value):
+    if value:
+        qs = qs.filter(mount__in=value)
     return qs
 
 
@@ -53,11 +42,8 @@ class AppFilter(django_filters.FilterSet):
 
 
 class AppExtensionFilter(django_filters.FilterSet):
-    view = EnumFilter(
-        input_class=AppExtensionViewEnum, method=filter_app_extension_view
-    )
-    type = EnumFilter(
-        input_class=AppExtensionTypeEnum, method=filter_app_extension_type
+    mount = ListObjectTypeFilter(
+        input_class=AppExtensionMountEnum, method=filter_app_extension_mount
     )
     target = EnumFilter(
         input_class=AppExtensionTargetEnum, method=filter_app_extension_target
@@ -65,8 +51,4 @@ class AppExtensionFilter(django_filters.FilterSet):
 
     class Meta:
         model = models.AppExtension
-        fields = [
-            "view",
-            "type",
-            "target",
-        ]
+        fields = ["mount", "target"]

@@ -72,4 +72,4 @@ def test_install_app_task_undefined_error(monkeypatch, app_installation):
     install_app_task(app_installation.pk)
     app_installation.refresh_from_db()
     assert app_installation.status == JobStatus.FAILED
-    assert app_installation.message == "Unknow error. Contact with app support."
+    assert app_installation.message == "Unknown error. Contact with app support."
