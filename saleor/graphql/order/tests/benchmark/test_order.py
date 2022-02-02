@@ -100,7 +100,10 @@ FRAGMENT_ORDER_DETAILS = (
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_user_order_details(
-    user_api_client, order_with_lines_and_events, count_queries
+    staff_api_client,
+    order_with_lines_and_events,
+    permission_manage_orders,
+    count_queries,
 ):
     query = (
         FRAGMENT_ORDER_DETAILS
@@ -115,7 +118,9 @@ def test_user_order_details(
     variables = {
         "token": order_with_lines_and_events.token,
     }
-    get_graphql_content(user_api_client.post_graphql(query, variables))
+    get_graphql_content(
+        staff_api_client.post_graphql(query, variables, [permission_manage_orders])
+    )
 
 
 FRAGMENT_STAFF_ORDER_DETAILS = (

@@ -749,11 +749,13 @@ class Order(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_discounts(root: models.Order, info):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_discount(root: models.Order, info):
         def return_voucher_discount(discounts) -> Optional[Money]:
             if not discounts:
@@ -771,6 +773,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_discount_name(root: models.Order, info):
         def return_voucher_name(discounts) -> Optional[Money]:
             if not discounts:
@@ -788,6 +791,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_translated_discount_name(root: models.Order, info):
         def return_voucher_translated_name(discounts) -> Optional[Money]:
             if not discounts:
@@ -966,7 +970,13 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_lines(root: models.Order, info):
-        return OrderLinesByOrderIdLoader(info.context).load(root.id)
+        requestor = get_user_or_app_from_context(info.context)
+        user = info.context.user
+        if requestor.has_perm(OrderPermissions.MANAGE_ORDERS) or (
+            not user.is_anonymous and user.id == root.user_id
+        ):
+            return OrderLinesByOrderIdLoader(info.context).load(root.id)
+        raise PermissionDenied()
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
@@ -1018,6 +1028,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
@@ -1064,15 +1075,18 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_available_shipping_methods(root: models.Order, info):
         return resolve_order_shipping_methods(root, info, include_active_only=True)
 
     @staticmethod
     @traced_resolver
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_shipping_methods(root: models.Order, info):
         return resolve_order_shipping_methods(root, info)
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
         if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
@@ -1080,14 +1094,17 @@ class Order(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_is_shipping_required(root: models.Order, _info):
         return root.is_shipping_required()
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_gift_cards(root: models.Order, _info):
         return root.gift_cards.all()
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_voucher(root: models.Order, info):
         if not root.voucher_id:
             return None

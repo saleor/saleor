@@ -504,6 +504,272 @@ def test_query_staff_user_with_orders_and_manage_orders_perm(
     }
 
 
+def test_query_customer_user_orders_by_staff_with_manage_users(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
+):
+    # given
+    query = """
+        query User($id: ID!) {
+            user(id: $id) {
+                email
+                orders(first: 10) {
+                    totalCount
+                    edges {
+                        node {
+                            id
+                            number
+                            origin
+                            subtotal {
+                                gross {
+                                    amount
+                                    currency
+                                }
+                            }
+                            total {
+                                gross {
+                                    amount
+                                    currency
+                                }
+                            }
+                            totalAuthorized {
+                                amount
+                            }
+                            undiscountedTotal {
+                                gross {
+                                    amount
+                                }
+                            }
+                            totalBalance {
+                                amount
+
+                            }
+                            isPaid
+                            paymentStatus
+                            paymentStatusDisplay
+                            statusDisplay
+                            userEmail
+                            languageCodeEnum
+
+                        }
+                    }
+                }
+            }
+        }
+    """
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.status = OrderStatus.UNFULFILLED
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    user = content["data"]["user"]
+    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
+        graphene.Node.to_global_id("Order", order.pk)
+        for order in [order_unfulfilled, order_unconfirmed]
+    }
+
+
+USER_ORDERS_QUERY = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+            orders(first: 10) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                        discount
+                        discountName
+                        lines {
+                            id
+                        }
+                        payments {
+                            id
+                        }
+                        shippingMethods {
+                            name
+                        }
+                        subtotal {
+                            gross {
+                                amount
+                                currency
+                            }
+                        }
+                        total {
+                            gross {
+                                amount
+                                currency
+                            }
+                        }
+                        totalAuthorized {
+                            amount
+                        }
+                        undiscountedTotal {
+                            gross {
+                                amount
+                            }
+                        }
+                        totalBalance {
+                            amount
+
+                        }
+                        isPaid
+                        paymentStatus
+                        paymentStatusDisplay
+                        statusDisplay
+                        userEmail
+                        languageCodeEnum
+
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def query_user_orders_by_staff_with_manage_orders(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
+    permission_manage_orders,
+):
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.status = OrderStatus.UNFULFILLED
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_ORDERS_QUERY,
+        variables,
+        permissions=[permission_manage_users, permission_manage_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    user = content["data"]["user"]
+    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
+        graphene.Node.to_global_id("Order", order.pk)
+        for order in [order_unfulfilled, order_unconfirmed]
+    }
+
+
+def query_user_orders_by_app_with_manage_orders(
+    app_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
+    permission_manage_orders,
+):
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.status = OrderStatus.UNFULFILLED
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(
+        USER_ORDERS_QUERY,
+        variables,
+        permissions=[permission_manage_users, permission_manage_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    user = content["data"]["user"]
+    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
+        graphene.Node.to_global_id("Order", order.pk)
+        for order in [order_unfulfilled, order_unconfirmed]
+    }
+
+
+def query_user_orders_by_staff_without_manage_orders(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
+):
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.status = OrderStatus.UNFULFILLED
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_ORDERS_QUERY, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 USER_QUERY = """
     query User($id: ID $email: String) {
         user(id: $id, email: $email) {
@@ -975,6 +1241,7 @@ def test_user_with_cancelled_fulfillments(
     staff_api_client,
     customer_user,
     permission_manage_users,
+    permission_manage_orders,
     fulfilled_order_with_cancelled_fulfillment,
 ):
     query = """
@@ -995,7 +1262,9 @@ def test_user_with_cancelled_fulfillments(
     """
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": user_id}
-    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_users, permission_manage_orders
+    )
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     order_id = graphene.Node.to_global_id(

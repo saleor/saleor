@@ -5818,6 +5818,62 @@ def test_order_query_address_without_order_user(
     assert order["billingAddress"] is not None
 
 
+QUERY_ORDER_LINES_BY_TOKEN = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            number
+            lines {
+                id
+            }
+        }
+    }
+"""
+
+
+def test_fetch_order_lines_by_owner(user_api_client, order):
+    query = QUERY_ORDER_LINES_BY_TOKEN
+    response = user_api_client.post_graphql(query, {"token": order.token})
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderByToken"]
+    assert order_data
+
+
+def test_fetch_order_lines_by_staff(staff_api_client, order, permission_manage_orders):
+    query = QUERY_ORDER_LINES_BY_TOKEN
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, {"token": order.token})
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderByToken"]
+    assert order_data
+
+
+def test_fetch_order_lines_by_staff_no_perm(staff_api_client, order):
+    query = QUERY_ORDER_LINES_BY_TOKEN
+    response = staff_api_client.post_graphql(query, {"token": order.token})
+    assert_no_permission(response)
+
+
+def test_fetch_order_lines_by_app(app_api_client, order, permission_manage_orders):
+    query = QUERY_ORDER_LINES_BY_TOKEN
+    app_api_client.app.permissions.add(permission_manage_orders)
+    response = app_api_client.post_graphql(query, {"token": order.token})
+    content = get_graphql_content(response)
+    order_data = content["data"]["orderByToken"]
+    assert order_data
+
+
+def test_fetch_order_lines_by_app_no_perm(app_api_client, order):
+    query = QUERY_ORDER_LINES_BY_TOKEN
+    response = app_api_client.post_graphql(query, {"token": order.token})
+    assert_no_permission(response)
+
+
+def test_fetch_order_lines_by_anonymous_user(api_client, order):
+    query = QUERY_ORDER_LINES_BY_TOKEN
+    response = api_client.post_graphql(query, {"token": order.token})
+    assert_no_permission(response)
+
+
 MUTATION_ORDER_BULK_CANCEL = """
 mutation CancelManyOrders($ids: [ID]!) {
     orderBulkCancel(ids: $ids) {
