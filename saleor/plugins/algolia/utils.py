@@ -121,7 +121,9 @@ def get_hierarchical_categories(product: Product, language_code: str):
 
 
 def map_product_description(description: dict):
-    return description.get("blocks", [{}])[0].get("data", {}).get("text", {})
+    if description:
+        return description.get("blocks", [{}])[0].get("data", {}).get("text", {})
+    return {}
 
 
 def map_product_attributes(product_dict: dict, language_code: str):
