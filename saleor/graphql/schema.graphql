@@ -5580,9 +5580,9 @@ input ProductFilterInput {
   metadata: [MetadataFilter]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
-  ids: [ID]
   productTypes: [ID]
   giftCard: Boolean
+  ids: [ID]
   hasPreorderedVariants: Boolean
   channel: String
 }

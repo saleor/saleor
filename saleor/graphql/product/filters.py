@@ -583,11 +583,11 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability, method="filter_stock_availability"
     )
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     product_types = GlobalIDMultipleChoiceFilter(method=filter_product_types)
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
     gift_card = django_filters.BooleanFilter(method=filter_gift_card)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants
     )
