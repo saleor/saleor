@@ -5,6 +5,7 @@ from prices import Money, TaxedMoney
 from ...discount import DiscountValueType, VoucherType
 from ...discount.utils import get_product_discount_on_sale
 from ..base_calculations import (
+    base_checkout_total,
     base_tax_rate,
     calculate_base_line_total_price,
     calculate_base_line_unit_price,
@@ -612,3 +613,34 @@ def test_base_tax_rate_net_price_zero():
 def test_base_tax_rate_gross_price_zero():
     price = TaxedMoney(net=Money(3, "USD"), gross=Money(0, "USD"))
     assert base_tax_rate(price) == Decimal("0.0")
+
+
+def test_base_checkout_total():
+    # given
+    currency = "USD"
+    taxed_money = TaxedMoney(net=Money(10, currency), gross=Money(10, currency))
+    subtotal = taxed_money
+    shipping_price = taxed_money
+    discount = Money(5, currency)
+
+    # when
+    total = base_checkout_total(subtotal, shipping_price, discount, currency)
+    expected = subtotal + shipping_price - discount
+
+    # then
+    assert total == expected
+
+
+def test_base_checkout_total_high_discount():
+    # given
+    currency = "USD"
+    zero_taxed_money = TaxedMoney(net=Money(0, currency), gross=Money(0, currency))
+    subtotal = TaxedMoney(net=Money(10, currency), gross=Money(12, currency))
+    shipping_price = zero_taxed_money
+    discount = Money(20, currency)
+
+    # when
+    total = base_checkout_total(subtotal, shipping_price, discount, currency)
+
+    # then
+    assert total == zero_taxed_money
