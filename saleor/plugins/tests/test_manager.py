@@ -154,7 +154,7 @@ def test_manager_calculates_checkout_total(
     currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -174,7 +174,7 @@ def test_manager_calculates_checkout_subtotal(
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -194,7 +194,7 @@ def test_manager_calculates_checkout_shipping(
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -234,7 +234,7 @@ def test_manager_calculates_checkout_line_total(
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -281,7 +281,7 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -309,7 +309,7 @@ def test_manager_get_checkout_line_tax_rate_no_plugins(
     checkout_with_item, discount_info, unit_price, expected_tax_rate
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -371,7 +371,7 @@ def test_manager_get_checkout_shipping_tax_rate_sample_plugin(
     shipping_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -397,7 +397,7 @@ def test_manager_get_checkout_shipping_tax_rate_no_plugins(
     checkout_with_item, discount_info, shipping_price, expected_tax_rate
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -466,7 +466,7 @@ def test_manager_calculates_checkout_line_unit_price(
     plugins, total_line_price, quantity, checkout_with_item, address
 ):
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
 

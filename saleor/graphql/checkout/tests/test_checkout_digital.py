@@ -162,7 +162,7 @@ def test_remove_shipping_method_if_only_digital_in_checkout(
 
     assert checkout.shipping_method
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 

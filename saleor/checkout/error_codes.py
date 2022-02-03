@@ -28,3 +28,4 @@ class CheckoutErrorCode(Enum):
     CHANNEL_INACTIVE = "channel_inactive"
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     EMAIL_NOT_SET = "email_not_set"
+    NO_LINES = "no_lines"

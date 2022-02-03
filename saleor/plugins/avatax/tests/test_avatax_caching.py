@@ -31,7 +31,7 @@ def test_calculate_checkout_total_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
     )
@@ -75,7 +75,7 @@ def test_calculate_checkout_total_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
     )
@@ -120,7 +120,7 @@ def test_calculate_checkout_subtotal_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
     )
@@ -164,7 +164,7 @@ def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
     )
@@ -209,7 +209,7 @@ def test_calculate_checkout_shipping_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
     )
@@ -253,7 +253,7 @@ def test_calculate_checkout_shipping_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
     )
@@ -298,7 +298,7 @@ def test_calculate_checkout_line_total_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
@@ -343,7 +343,7 @@ def test_calculate_checkout_line_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
@@ -389,7 +389,7 @@ def test_calculate_checkout_line_unit_price_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
@@ -438,7 +438,7 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
@@ -492,7 +492,7 @@ def test_get_checkout_line_tax_rate_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
@@ -543,7 +543,7 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line_info = lines[0]
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
@@ -600,7 +600,7 @@ def test_get_checkout_shipping_tax_rate_use_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     avalara_request_data = generate_request_data_from_checkout(
         checkout_info, lines, plugin.config, []
     )
@@ -645,7 +645,7 @@ def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     mocked_avalara = Mock(
         return_value=avalara_response_for_checkout_with_items_and_shipping
     )
