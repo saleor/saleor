@@ -1,10 +1,17 @@
 from collections import defaultdict
 
 from django.db.models import F
+from django.utils.functional import SimpleLazyObject
 from promise import Promise
 
-from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+from ...checkout.fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    get_delivery_method_info,
+    get_shipping_method_list_for_checkout_info,
+)
 from ...checkout.models import Checkout, CheckoutLine
+from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
@@ -16,7 +23,7 @@ from ..product.dataloaders import (
 )
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
 )
 
 
@@ -24,7 +31,11 @@ class CheckoutByTokenLoader(DataLoader):
     context_key = "checkout_by_token"
 
     def batch_load(self, keys):
-        checkouts = Checkout.objects.filter(token__in=keys).in_bulk()
+        checkouts = (
+            Checkout.objects.using(self.database_connection_name)
+            .filter(token__in=keys)
+            .in_bulk()
+        )
         return [checkouts.get(token) for token in keys]
 
 
@@ -110,7 +121,7 @@ class CheckoutByIdLoader(DataLoader):
     context_key = "checkout_by_id"
 
     def batch_load(self, keys):
-        checkouts = Checkout.objects.in_bulk(keys)
+        checkouts = Checkout.objects.using(self.database_connection_name).in_bulk(keys)
         return [checkouts.get(checkout_id) for checkout_id in keys]
 
 
@@ -118,7 +129,9 @@ class CheckoutByUserLoader(DataLoader):
     context_key = "checkout_by_user"
 
     def batch_load(self, keys):
-        checkouts = Checkout.objects.filter(user_id__in=keys, channel__is_active=True)
+        checkouts = Checkout.objects.using(self.database_connection_name).filter(
+            user_id__in=keys, channel__is_active=True
+        )
         checkout_by_user_map = defaultdict(list)
         for checkout in checkouts:
             checkout_by_user_map[checkout.user_id].append(checkout)
@@ -131,11 +144,15 @@ class CheckoutByUserAndChannelLoader(DataLoader):
     def batch_load(self, keys):
         user_ids = [key[0] for key in keys]
         channel_slugs = [key[1] for key in keys]
-        checkouts = Checkout.objects.filter(
-            user_id__in=user_ids,
-            channel__slug__in=channel_slugs,
-            channel__is_active=True,
-        ).annotate(channel_slug=F("channel__slug"))
+        checkouts = (
+            Checkout.objects.using(self.database_connection_name)
+            .filter(
+                user_id__in=user_ids,
+                channel__slug__in=channel_slugs,
+                channel__is_active=True,
+            )
+            .annotate(channel_slug=F("channel__slug"))
+        )
         checkout_by_user_and_channel_map = defaultdict(list)
         for checkout in checkouts:
             key = (checkout.user_id, checkout.channel_slug)
@@ -147,7 +164,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
     context_key = "checkoutinfo_by_checkout"
 
     def batch_load(self, keys):
-        def with_checkout(checkouts):
+        def with_checkout(data):
+            checkouts, checkout_line_infos = data
             from ..channel.dataloaders import ChannelByIdLoader
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
@@ -177,15 +195,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                 shipping_methods = ShippingMethodByIdLoader(self.context).load_many(
                     shipping_method_ids
                 )
-                shipping_method_ids_channel_slugs = [
-                    (checkout.shipping_method_id, channel.slug)
-                    for checkout, channel in zip(checkouts, channels)
-                    if checkout.shipping_method_id
-                ]
+                channel_slugs = [channel.slug for channel in channels]
                 shipping_method_channel_listings = (
-                    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    ShippingMethodChannelListingByChannelSlugLoader(
                         self.context
-                    ).load_many(shipping_method_ids_channel_slugs)
+                    ).load_many(channel_slugs)
                 )
 
                 def with_checkout_info(results):
@@ -193,7 +207,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         addresses,
                         users,
                         shipping_methods,
-                        channel_listings,
+                        listings_for_channels,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -203,13 +217,33 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     }
                     shipping_method_channel_listing_map = {
                         (listing.shipping_method_id, listing.channel_id): listing
+                        for channel_listings in listings_for_channels
                         for listing in channel_listings
                         if listing
                     }
 
                     checkout_info_map = {}
-                    for key, checkout, channel in zip(keys, checkouts, channels):
-                        checkout_info_map[key] = CheckoutInfo(
+                    for key, checkout, channel, checkout_lines in zip(
+                        keys, checkouts, channels, checkout_line_infos
+                    ):
+                        shipping_method = shipping_method_map.get(
+                            checkout.shipping_method_id
+                        )
+                        listing = shipping_method_channel_listing_map.get(
+                            (checkout.shipping_method_id, channel.id)
+                        )
+                        delivery_method = None
+                        if shipping_method:
+                            delivery_method = convert_to_shipping_method_data(
+                                shipping_method,
+                                listing,
+                            )
+
+                        shipping_address = address_map.get(checkout.shipping_address_id)
+                        delivery_method_info = get_delivery_method_info(
+                            delivery_method, shipping_address
+                        )
+                        checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
                             channel=channel,
@@ -219,16 +253,36 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             shipping_address=address_map.get(
                                 checkout.shipping_address_id
                             ),
-                            shipping_method=shipping_method_map.get(
-                                checkout.shipping_method_id
-                            ),
-                            valid_shipping_methods=[],
-                            shipping_method_channel_listings=(
-                                shipping_method_channel_listing_map.get(
-                                    (checkout.shipping_method_id, channel.id)
-                                )
-                            ),
+                            delivery_method_info=delivery_method_info,
+                            all_shipping_methods=[],
                         )
+
+                        def fetch_valid_shipping_methods():
+                            if not shipping_address:
+                                return []
+
+                            manager = self.context.plugins
+                            discounts = self.context.discounts
+                            shipping_method_listings = [
+                                listing
+                                for channel_listings in listings_for_channels
+                                for listing in channel_listings
+                                if listing.channel_id == channel.id
+                            ]
+                            return get_shipping_method_list_for_checkout_info(
+                                checkout_info,
+                                shipping_address,
+                                checkout_lines,
+                                discounts,
+                                manager,
+                                shipping_method_listings,
+                            )
+
+                        checkout_info.all_shipping_methods = SimpleLazyObject(
+                            fetch_valid_shipping_methods
+                        )
+                        checkout_info_map[key] = checkout_info
+
                     return [checkout_info_map[key] for key in keys]
 
                 return Promise.all(
@@ -246,14 +300,20 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                 .then(with_channel)
             )
 
-        return CheckoutByTokenLoader(self.context).load_many(keys).then(with_checkout)
+        checkouts = CheckoutByTokenLoader(self.context).load_many(keys)
+        checkout_line_infos = CheckoutLinesInfoByCheckoutTokenLoader(
+            self.context
+        ).load_many(keys)
+        return Promise.all([checkouts, checkout_line_infos]).then(with_checkout)
 
 
 class CheckoutLineByIdLoader(DataLoader):
     context_key = "checkout_line_by_id"
 
     def batch_load(self, keys):
-        checkout_lines = CheckoutLine.objects.in_bulk(keys)
+        checkout_lines = CheckoutLine.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys)
         return [checkout_lines.get(line_id) for line_id in keys]
 
 
@@ -261,7 +321,9 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader):
     context_key = "checkoutlines_by_checkout"
 
     def batch_load(self, keys):
-        lines = CheckoutLine.objects.filter(checkout_id__in=keys)
+        lines = CheckoutLine.objects.using(self.database_connection_name).filter(
+            checkout_id__in=keys
+        )
         line_map = defaultdict(list)
         for line in lines.iterator():
             line_map[line.checkout_id].append(line)

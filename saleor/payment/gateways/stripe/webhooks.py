@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
 from stripe.stripe_object import StripeObject
 
+from ....checkout.calculations import calculate_checkout_total_with_gift_cards
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -16,6 +17,7 @@ from ....discount.utils import fetch_active_discounts
 from ....order.actions import order_captured, order_refunded, order_voided
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, TransactionKind
+from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
 from ...utils import (
@@ -146,12 +148,29 @@ def _finalize_checkout(
 
     manager = get_plugins_manager()
     discounts = fetch_active_discounts()
-    lines = fetch_checkout_lines(checkout)  # type: ignore
+    lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    if unavailable_variant_pks:
+        raise ValidationError("Some of the checkout lines variants are unavailable.")
     checkout_info = fetch_checkout_info(
         checkout, lines, discounts, manager  # type: ignore
     )
+    checkout_total = calculate_checkout_total_with_gift_cards(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address or checkout.billing_address,
+        discounts=discounts,
+    )
 
     try:
+        # when checkout total value is different than total amount from payments
+        # it means that some products has been removed during the payment was completed
+        if checkout_total.gross.amount != payment.total:
+            payment_refund_or_void(payment, manager, checkout_info.channel.slug)
+            raise ValidationError(
+                "Cannot complete checkout - some products do not exist anymore."
+            )
+
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,
@@ -206,6 +225,16 @@ def _process_payment_with_checkout(
         _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
+def update_payment_method_details_from_intent(
+    payment: Payment, payment_intent: StripeObject
+):
+    if payment_method_info := get_payment_method_details(payment_intent):
+        changed_fields: List[str] = []
+        update_payment_method_details(payment, payment_method_info, changed_fields)
+        if changed_fields:
+            payment.save(update_fields=changed_fields)
+
+
 def handle_authorized_payment_intent(
     payment_intent: StripeObject, gateway_config: "GatewayConfig", _channel_slug: str
 ):
@@ -217,6 +246,9 @@ def handle_authorized_payment_intent(
             extra={"payment_intent": payment_intent.id},
         )
         return
+
+    update_payment_method_details_from_intent(payment, payment_intent)
+
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
             _update_payment_with_new_transaction(
@@ -303,12 +335,7 @@ def handle_successful_payment_intent(
     if payment_intent.setup_future_usage:
         update_payment_method(api_key, payment_intent.payment_method, channel_slug)
 
-    payment_method_info = get_payment_method_details(payment_intent)
-    if payment_method_info:
-        changed_fields: List[str] = []
-        update_payment_method_details(payment, payment_method_info, changed_fields)
-        if changed_fields:
-            payment.save(update_fields=changed_fields)
+    update_payment_method_details_from_intent(payment, payment_intent)
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:

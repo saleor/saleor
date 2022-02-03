@@ -136,7 +136,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Modify order of auth middleware calls - #7572 by @tomaszszymanski129
 - Add app support for events - #7622 by @IKarbowiak
 - Add date & date time attributes - #7500 by @piotrgrundas
-- Add `withChoices` flag for Attribute type - #7733 by @dexon44
+- Add `withChoices` flag for Attribute type - #7733 by @CossackDex
 - Drop assigning cheapest shipping method in checkout - #7767 by @maarcingebala
 - Add `product_id`, `product_variant_id`, `attribute_id` and `page_id` when it's possible for `AttributeValue` translations webhook. - #7783 by @fowczarek
 - Deprecate `query` argument in `sales` and `vouchers` queries - #7806 by @maarcingebala
@@ -157,7 +157,23 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add workaround for failing Avatax when line has price 0 - #8610 by @korycins
 - Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
 - Fix Avalara tax fetching from cache - #8647 by @fowczarek
-
+- Implement database read replicas - #8516, #8751 by @fowczarek
+- Propagate sale and voucher discounts over specific lines - #8793 by @korycins
+  - The created order lines from checkout will now have fulfilled all undiscounted fields with a default price value
+  (without any discounts).
+  - Order line will now include a voucher discount (in the case when the voucher is for specific products or have a
+  flag apply_once_per_order). In that case `Order.discounts` will not have a relation to `OrderDiscount` object.
+  - Webhook payload for `OrderLine` will now include two new fields `sale_id` (graphql's ID of applied sale) and
+  `voucher_code` (code of the valid voucher applied to this line).
+  - When any sale or voucher discount was applied, `line.discount_reason` will be fulfilled.
+  - New interface for handling more data for prices: `PricesData` and `TaxedPricesData` used in checkout calculations
+  and in plugins/pluginManager.
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+  - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
+- Fix incorrect stock allocation - #8931 by @IKarbowiak
+- Fix incorrect handling of unavailable products in checkout - #8978 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -190,10 +206,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
 - Fix Avalara caching - #7036 by @fowczarek;
- - Introduced changes in plugin methods definitions:
-    - `calculate_checkout_line_total`  was extended with `lines` parameter
-    - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
-    - `get_checkout_line_tax_rate`  was extended with `lines` parameter
+- Introduced changes in plugin methods definitions:
+   - `calculate_checkout_line_total`  was extended with `lines` parameter
+   - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
+   - `get_checkout_line_tax_rate`  was extended with `lines` parameter
   To get proper taxes we should always send the whole checkout to Avalara.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
@@ -263,6 +279,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
   - drop `channel` field from filters and sorters
 - Drop top-level `checkoutLine` query from the schema with related resolver, use `checkout` query instead - #7623 by @dexon44
+- Propagate sale and voucher discounts over specific lines - #8793 by @korycins
+  - Use a new interface for response received from plugins/pluginManager. Methods `calculate_checkout_line_unit_price`
+  and `calculate_checkout_line_total` returns `TaxedPricesData` instead of `TaxedMoney`.
+- Attach sale discount info to the line when adding variant to order - #8821 by @IKarbowiak
+  - Use a new interface for the response received from plugins/pluginManager.
+  Methods `calculate_order_line_unit` and `calculate_order_line_total` returns
+  `OrderTaxedPricesData` instead of `TaxedMoney`.
+  - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
+  and `CheckoutPricesData` instead of `PricesData`
+- Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
 
 ### Other
 

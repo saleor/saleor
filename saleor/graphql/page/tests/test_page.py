@@ -343,14 +343,18 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert tag_value_slug in values
 
 
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_create_trigger_page_webhook(
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     permission_manage_pages,
     page_type,
     settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     page_slug = "test-slug"
@@ -1232,10 +1236,18 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
         page.refresh_from_db()
 
 
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_page_delete_trigger_webhook(
-    mocked_webhook_trigger, staff_api_client, page, permission_manage_pages, settings
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    page,
+    permission_manage_pages,
+    settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = staff_api_client.post_graphql(
@@ -1392,14 +1404,22 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
         assert attr_data in expected_attributes
 
 
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 @freeze_time("2020-03-18 12:00:00")
 def test_update_page_trigger_webhook(
-    mocked_webhook_trigger, staff_api_client, permission_manage_pages, page, settings
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_pages,
+    page,
+    settings,
 ):
     query = UPDATE_PAGE_MUTATION
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
 
     page_title = page.title
     new_slug = "new-slug"

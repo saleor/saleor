@@ -2,6 +2,7 @@ import binascii
 import os
 import secrets
 from typing import TYPE_CHECKING, Type, Union
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -142,7 +143,7 @@ def validate_required_string_field(cleaned_input, field_name: str):
 def from_global_id_or_error(
     id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
 ):
-    """Resolve database ID from global ID or raise ValidationError.
+    """Resolve database ID from global ID or raise GraphQLError.
 
     Optionally validate the object type, if `only_type` is provided,
     raise GraphQLError when `raise_error` is set to True.
@@ -151,6 +152,13 @@ def from_global_id_or_error(
         _type, _id = graphene.Node.from_global_id(id)
     except (binascii.Error, UnicodeDecodeError, ValueError):
         raise GraphQLError(f"Couldn't resolve id: {id}.")
+    try:
+        int(_id)
+    except ValueError:
+        try:
+            UUID(_id)
+        except (AttributeError, ValueError):
+            raise GraphQLError(f"Error occurred during ID - {id} validation.")
 
     if only_type and str(_type) != str(only_type):
         if not raise_error:

@@ -2,7 +2,6 @@ from typing import Optional
 
 import graphene
 from django.conf import settings
-from django.utils import translation
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
@@ -28,7 +27,8 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .resolvers import resolve_available_shipping_methods
+from .filters import CountryFilterInput
+from .resolvers import resolve_available_shipping_methods, resolve_countries
 
 
 class Domain(graphene.ObjectType):
@@ -128,6 +128,10 @@ class Shop(graphene.ObjectType):
                 "A language code to return the translation for."
             ),
         ),
+        filter=CountryFilterInput(
+            description="Filtering options for countries",
+            required=False,
+        ),
         description="List of countries available in the shop.",
         required=True,
     )
@@ -222,17 +226,8 @@ class Shop(graphene.ObjectType):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
-    def resolve_countries(_, _info, language_code=None):
-        taxes = {vat.country_code: vat for vat in VAT.objects.all()}
-
-        # DEPRECATED: translation.override will be dropped in Saleor 4.0
-        with translation.override(language_code):
-            return [
-                CountryDisplay(
-                    code=country[0], country=country[1], vat=taxes.get(country[0])
-                )
-                for country in countries
-            ]
+    def resolve_countries(_, _info, **kwargs):
+        return resolve_countries(**kwargs)
 
     @staticmethod
     def resolve_domain(_, info):

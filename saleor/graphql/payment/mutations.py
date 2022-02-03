@@ -155,7 +155,30 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_gateway(manager, gateway, checkout.currency)
         cls.validate_return_url(data)
 
-        lines = fetch_checkout_lines(checkout)
+        lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+        if unavailable_variant_pks:
+            not_available_variants_ids = {
+                graphene.Node.to_global_id("ProductVariant", pk)
+                for pk in unavailable_variant_pks
+            }
+            raise ValidationError(
+                {
+                    "token": ValidationError(
+                        "Some of the checkout lines variants are unavailable.",
+                        code=PaymentErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
+                        params={"variants": not_available_variants_ids},
+                    )
+                }
+            )
+        if not lines:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Cannot create payment for checkout without lines.",
+                        code=PaymentErrorCode.NO_CHECKOUT_LINES.value,
+                    )
+                }
+            )
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )
@@ -184,18 +207,20 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         cancel_active_payments(checkout)
 
-        payment = create_payment(
-            gateway=gateway,
-            payment_token=data.get("token", ""),
-            total=amount,
-            currency=checkout.currency,
-            email=checkout.get_customer_email(),
-            extra_data=extra_data,
-            # FIXME this is not a customer IP address. It is a client storefront ip
-            customer_ip_address=get_client_ip(info.context),
-            checkout=checkout,
-            return_url=data.get("return_url"),
-        )
+        payment = None
+        if amount != 0:
+            payment = create_payment(
+                gateway=gateway,
+                payment_token=data.get("token", ""),
+                total=amount,
+                currency=checkout.currency,
+                email=checkout.get_customer_email(),
+                extra_data=extra_data,
+                # FIXME this is not a customer IP address. It is a client storefront ip
+                customer_ip_address=get_client_ip(info.context),
+                checkout=checkout,
+                return_url=data.get("return_url"),
+            )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
 

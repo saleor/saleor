@@ -10,7 +10,6 @@ from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 
 from ..account.models import User
-from ..checkout.calculations import checkout_line_total
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
@@ -55,28 +54,19 @@ def create_checkout_payment_lines_information(
     checkout: Checkout, manager: PluginsManager
 ) -> List[PaymentLineData]:
     line_items = []
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
-        total = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
-        )
+        ).price_with_sale
         unit_gross = unit_price.gross.amount
 
         quantity = line_info.line.quantity
@@ -200,13 +190,22 @@ def create_payment_information(
         shipping = checkout.shipping_address
         email = checkout.get_customer_email()
         user_id = checkout.user_id
-    elif payment.order:
-        billing = payment.order.billing_address
-        shipping = payment.order.shipping_address
-        email = payment.order.user_email
-        user_id = payment.order.user_id
+        checkout_token = str(checkout.token)
+        checkout_metadata = checkout.metadata
+    elif order := payment.order:
+        billing = order.billing_address
+        shipping = order.shipping_address
+        email = order.user_email
+        user_id = order.user_id
+        checkout_token = order.checkout_token
+        checkout_metadata = None
     else:
-        billing, shipping, email, user_id = None, None, payment.billing_email, None
+        billing = None
+        shipping = None
+        email = payment.billing_email
+        user_id = None
+        checkout_token = ""
+        checkout_metadata = None
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -238,6 +237,8 @@ def create_payment_information(
         _resolve_lines=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
+        checkout_token=checkout_token,
+        checkout_metadata=checkout_metadata,
     )
 
 
@@ -377,6 +378,7 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "partial": False,
         "psp_reference": external_reference or "",
     }
 

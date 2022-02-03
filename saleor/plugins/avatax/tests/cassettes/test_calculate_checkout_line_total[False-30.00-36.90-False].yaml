@@ -4,9 +4,9 @@ interactions:
       "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "O9999999", "taxIncluded":
       false, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
       "10.000", "taxCode": "FR000000", "taxIncluded": false, "itemCode": "Shipping",
-      "description": null}], "code": "e30b79c9-1489-46d1-8189-f6a474a3b250", "date":
-      "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
-      7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
+      "description": null}], "code": "d1c65aa1-0ac2-4df0-a709-3dc6c645c204", "date":
+      "2021-12-14", "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa
+      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
       "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
       "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
       "USD", "email": ""}}'
@@ -20,37 +20,37 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '767'
+      - '759'
       User-Agent:
-      - python-requests/2.25.1
+      - python-requests/2.26.0
     method: POST
     uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
       string: !!binary |
-        H4sIAAAAAAAEA+1X224iORD9laifA+obIfQbSyZSJARRIDvSrObBdBvwTN/WdmfCjvLve8ptkyaQ
-        ncxe8rSIh+5yVbkux8fV3z2ReYl/7qVVxr3E45G/Go7SUS+IL0e9+CILepcBntYXLB7GLFqFA98j
-        7aJm5e4GtmEcjoaDcy9jmhyEfhj0/Kjnh1Cr2a7gpb46saQ0042CwZIXdSWZ3EFf72rysWA5V3OZ
-        cQnZiul0O2mjo50bKXmZ7qzkfnEFIX9Mt6zc8DtsNDmlkDZKVwWX94pt+LLdhexKLfTuXvGu/1bz
-        V15mlbRyk7J10RHxR8SuZxVChjPJ06pMRc5RlDXLFT/38iplWlTls3vJkawW5WZ6tFQ3ElkobhJ/
-        drrmlG8nQkXVqblUXb+60iwfF1VTai+J/T46akQfTIjo8F5yJVTaqj3LluzRS0b90Brhla1ydKLj
-        CLIJy9MmR4mRoFFm2RcUhTp8xxnCQR1mlR4bKZRM/l875XhA0KiGlwSHLfuwXvNUiwd+Cijd3sKS
-        8uAFE3lb9KLKxFrw7Mhy6Q+TOE6CUX80GhBGPyEep42OS4PdyygYUdbs8YQDP/HpT4a5KDnA+tt3
-        d1y0ZKViCLoqyRGCIpVZU6wA2sQLYPN2zGVcpVLU5Ay2S670WS2rrEk13GS2X665pmst8k6IJlxq
-        G9AhOoW60bzYd1bLBvgUEFlsBmFk83ReI+yEvH5vmDklXhJR7SVfB23p8RS6JwvqoyLCJWrrJRf9
-        kXkiWHX9G2EXV07RRjUftb/WDwkpuUEUI5JTTWv1bso0b7IO8DKugZjXGjhF52zNjttqzgrIKfFu
-        p/Au+abtknk70YYvjRTKRm90jGDGCiK22/l0PCPCIvbjY6XEpuSZO+tG05LTZLaEmpFkwsDMLdDZ
-        NWRZVqVtp6uogYY0ZOv3w8jH7y31t57nja4bQhwKu2hWJKWqePNWZFNYaFZmTGZnxLXtyrjR20qC
-        SJ1JjOsATo76SqHZzZwbeHBSW7QFRE0p9Hz9C1OCbohbLh2p32MB60LNqvKWKbXcymbPtkJdc1TZ
-        cu+eaW2RyBTeCNXURotY+DlcP1xu6dOaHi7BzOJ67wyio5xzwVYit8VBMgue56CIp8/nHhpIOeit
-        rJrN9mqPUSxtHYSQbFopfVOqBoyT8mvJxWYLjjfBPDC9h9qih47Pez0DOiy0XORa4j+dv5W76OL+
-        Ce56H3pabEVd49pEbES0DvEBynBIUuaC+HskFfYjg9suSdEGR2B2irb213d+6Ac+DQkaCLAkFQ8v
-        YyN4hRT/Jylg+ICkXFlP1t/yxn9KUiYAR0d0Vi3XobFO+j4k1aJuzyv/kKTatBzjvSAps/i+JHX9
-        OkmB+liWSa7Uj8atFe5B3EO7KX/gNAt+EvXAkgPNJ/OcfVNf2VlAp5IYw44q9BhhHdIUpIynj3fz
-        yXT8kXrs7nY81yBdlttuD6Je4JP3F8MATvudsaF7MvQHgY9ZEgOy0Jg+2k3yqtzsX/+Sg3+Q0JKn
-        f1Tf2NkQYfwL+Vz4ZkS1w4Qdbn46H7RLNUVBH280G78oz76ez3OQPcWT/RDztnEJgR0MGfgywYiB
-        Dh0PUVB9nSoIGKgfdF6ZZtwxh2Ln8EO/+z1ESnQBH5BX+/V0OAAYGW75pbM3l0k7NJopEu9Pn5/+
-        BMUT/a6EDwAA
+        H4sIAAAAAAAEA+1XTW8iORD9K1GfA+oPSAZuLJlIkRBEgexIs5qDcRvwTH+t7c6EHeW/zyu3TZoA
+        k+yuNqftU3e5qlz1qvxc/SOQaTAMzwNepiIYBmnEL/qMRZ2Q8bjTS1dhh12Gg06S8gt+0evzOOwF
+        pJ1XrNjewDbuxYPL/nmQMkMO4jCOOlHciUitYttcFObqyJI2zNQaBguRV6Viagt9s63Ix5xlQs9U
+        KhRkS2b4ZtxERzvXSomCb53kfn4FoXjkG1asxR02Gh9T4LU2ZS7UvWZrsWh2IbvCSLO916Ltv9H8
+        XRRpqZw8tBs3Cy2ReETsZloiZCgowcuCy0wAlBXLtDgPspIzI8vi2b0SSNbIYj05WKpqhSy0sIk/
+        O10JyrcVoSZ0KqF0268pDctGeVkXJhj2wi4qakUfbYio8E5yJTVv1J5lC/YYDAfd2Bnhky0zVKLl
+        CLIxy3idAWIkaJVZ+hW4UoXvBEM4wGFampGVQsnm/60FxwOCBhrBMNov2cfVSnAjH8SxRmnXFpaU
+        h8iZzBrQ8zKVKynSA8tFOBgm0bCXdJPeRfzhQ+8z4vHaqLiyvfshiQaUNXs8cEDhy0KgRf/44Q+J
+        UazQDKGWBZkjFFKZ1vkSrToMIti8vdNSobmSFTmD7UJoc1apMq25gZvUVcmX1Naq6bcjorFQxgW0
+        35NS3xiR7+ppVI2ulBC5jozixOXpvSbYCXn9WTN7NoJhQogrsYoawPEW+zfXysegA6LB8KI7sNhS
+        M7X9W2G7m7yii2o2aB6EBj8kpOT6SQ+RnCgVxDcFz+q01W6pMOiTUwWcoHIOs8Oy2hMCShoGtxNE
+        ocS6qZL9OlKGr7WS2kVvdaxgynKis9vZZDQlmiLOEyOt5boQqT/hVtNR0ni6gJqVpNK2mV+gE2sp
+        siiLRXM8PaK2NZSl2LAbJyEeC9Mr+DvPs9pUNXUcEJzXS5ISKsGsEbkU5oYVKVPpGTFsszKqzaZU
+        oE9v0sMlACcHdaXQ3GbeDTx4qQNtDlFdSDNb/ca0pHvhVihP5fdYwLrU07K4ZVovNqrecazU1wIo
+        O8bd8asDiUzhjbqayug6Fn721/eXG9J0pvtLMHO47pxBdJBzJtlSZg4cJDMXWQaKePpyHqCAlIPZ
+        qLJeb652PYqljW8hJMtLbW4KXYNxuLhWQq43YHYbzAMzu1abd1DxWadjmw4LDRf5koRP52/lrpj2
+        fPMt+U70NN/IqsJlidiIaH3HR4Bhn6TstfDPSCruJrZv2yRFGxw0s1d02F/f0UkLaTQwzyTVu7xs
+        OO8EKf5PUujhPZLysB7F3/HGf0pSNgBPR3RWHdehsF76PiTVdN2OV/4lSTVpecZ7QVJ28X1J6vo0
+        SYH6WJoqofVr49YS9yDuoe1EPAiaAD/Lqu/IgeaTWca+62/sLKJTSYzhRhV6TbAOKQcp4+3T3Ww8
+        GX2iGvu7He8VSJdlrtr9pBOF5P3FMIDTfmdt6J6Mw34UYoLEWCwNpo9mk6ws1rvPX3LwKwktBP+r
+        /M7OLhHGr/NRJUfyr+RzEdoR1Q0Tbrj52/mgXLrOc/plo9n4BTw7PJ/nIHeKx7sh5m3jEgLbGzLw
+        P4IRAxU6HKKgepoqqDEADHROTDP+mEOxdfih3/4LIiW6gPfIq/ln2h8ArAy3/MLb28ukGRrtFInv
+        py9PPwHMGoCgeg8AAA==
     headers:
       Connection:
       - keep-alive
@@ -59,17 +59,31 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Tue, 02 Mar 2021 07:44:19 GMT
+      - Tue, 14 Dec 2021 09:31:43 GMT
       Location:
       - /api/v2/companies/242975/transactions/0
-      Server:
-      - Kestrel
       ServerDuration:
-      - '00:00:00.0190677'
+      - '00:00:00.0162443'
       Transfer-Encoding:
       - chunked
       Vary:
       - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - 1bf1566f-7121-4515-9d22-5439c9c182af
+      x-correlation-id:
+      - 1bf1566f-7121-4515-9d22-5439c9c182af
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
     status:
       code: 201
       message: Created

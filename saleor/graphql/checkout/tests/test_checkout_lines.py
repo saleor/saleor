@@ -46,9 +46,10 @@ def test_checkout_lines_add(
     variant = stock.product_variant
     checkout = checkout_with_item
     line = checkout.lines.first()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    previous_last_change = checkout.last_change
 
     variables = {
         "token": checkout.token,
@@ -60,22 +61,24 @@ def test_checkout_lines_add(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
 
 
 def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item):
     checkout = checkout_with_item
     line = checkout.lines.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    previous_last_change = checkout.last_change
 
     variables = {
         "token": checkout.token,
@@ -89,6 +92,7 @@ def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item
     checkout.refresh_from_db()
     line = checkout.lines.latest("pk")
     assert line.quantity == 10
+    assert checkout.last_change != previous_last_change
 
 
 def test_checkout_lines_add_existing_variant_over_allowed_stock(
@@ -407,12 +411,13 @@ def test_checkout_lines_update(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     assert calculate_checkout_quantity(lines) == 3
     line = checkout.lines.first()
     variant = line.variant
     assert line.quantity == 3
+    previous_last_change = checkout.last_change
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -426,7 +431,7 @@ def test_checkout_lines_update(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.variant == variant
@@ -434,15 +439,17 @@ def test_checkout_lines_update(
     assert calculate_checkout_quantity(lines) == 1
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
 
 
 def test_checkout_lines_update_with_unavailable_variant(
     user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
+    previous_last_change = checkout.last_change
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     variant = line.variant
@@ -464,6 +471,8 @@ def test_checkout_lines_update_with_unavailable_variant(
     assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [variant_id]
+    checkout.refresh_from_db()
+    assert checkout.last_change == previous_last_change
 
 
 def test_checkout_lines_update_channel_without_shipping_zones(
@@ -521,6 +530,7 @@ def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
     stock = line.variant.stocks.first()
     stock.quantity = 0
     stock.save(update_fields=["quantity"])
+    previous_last_change = checkout.last_change
 
     variables = {
         "token": checkout.token,
@@ -531,6 +541,8 @@ def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["checkout"]["lines"]
+    checkout.refresh_from_db()
+    assert checkout.last_change != previous_last_change
 
 
 @mock.patch(
@@ -545,6 +557,7 @@ def test_checkout_line_delete_by_zero_quantity(
     line = checkout.lines.first()
     variant = line.variant
     assert line.quantity == 3
+    previous_last_change = checkout.last_change
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -560,9 +573,10 @@ def test_checkout_line_delete_by_zero_quantity(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
 
 
 @mock.patch(
@@ -594,7 +608,7 @@ def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purc
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
@@ -613,6 +627,7 @@ def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
     variant = line.variant
     checkout.lines.all().delete()
     assert checkout.lines.count() == 0
+    previous_last_change = checkout.last_change
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -628,9 +643,10 @@ def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
 
 
 def test_checkout_lines_update_with_unpublished_product(
@@ -707,7 +723,7 @@ def test_checkout_lines_update_with_chosen_shipping(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 1
 
 
@@ -740,7 +756,8 @@ def test_checkout_line_delete(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
-    lines = fetch_checkout_lines(checkout)
+    previous_last_change = checkout.last_change
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -755,12 +772,13 @@ def test_checkout_line_delete(
     data = content["data"]["checkoutLineDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 0
     assert calculate_checkout_quantity(lines) == 0
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
 
 
 MUTATION_CHECKOUT_LINES_DELETE = """
@@ -796,6 +814,7 @@ def test_checkout_lines_delete(
 ):
     checkout = checkout_with_items
     checkout_lines_count = checkout.lines.count()
+    previous_last_change = checkout.last_change
     line = checkout.lines.first()
     second_line = checkout.lines.last()
 
@@ -810,7 +829,7 @@ def test_checkout_lines_delete(
     data = content["data"]["checkoutLinesDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() + len(lines_list) == checkout_lines_count
     remaining_lines = data["checkout"]["lines"]
     lines_ids = [line["id"] for line in remaining_lines]
@@ -818,12 +837,14 @@ def test_checkout_lines_delete(
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
 
 
 def test_checkout_lines_delete_invalid_checkout_token(
     user_api_client, checkout_with_items
 ):
     checkout = checkout_with_items
+    previous_last_change = checkout.last_change
     line = checkout.lines.first()
     second_line = checkout.lines.last()
 
@@ -839,10 +860,13 @@ def test_checkout_lines_delete_invalid_checkout_token(
     content = get_graphql_content(response)
     errors = content["data"]["checkoutLinesDelete"]["errors"][0]
     assert errors["code"] == CheckoutErrorCode.NOT_FOUND.name
+    checkout.refresh_from_db()
+    assert checkout.last_change == previous_last_change
 
 
 def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with_items):
     checkout = checkout_with_items
+    previous_last_change = checkout.last_change
     line = checkout.lines.first()
 
     first_line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
@@ -850,8 +874,8 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
 
     variables = {"token": checkout.token, "linesIds": lines_list}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
-    content = get_graphql_content(response)
-    errors = content["data"]["checkoutLinesDelete"]["errors"][0]
-    assert errors["code"] == CheckoutErrorCode.INVALID.name
-    assert errors["lines"] == lines_list[1:]
-    assert errors["field"] == "lineId"
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"][0]
+    assert errors["extensions"]["exception"]["code"] == "GraphQLError"
+    checkout.refresh_from_db()
+    assert checkout.last_change == previous_last_change

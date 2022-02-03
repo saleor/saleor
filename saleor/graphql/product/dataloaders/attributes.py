@@ -30,9 +30,11 @@ class BaseProductAttributesByProductTypeIdLoader(DataLoader):
         if requestor.is_active and requestor.has_perm(
             ProductPermissions.MANAGE_PRODUCTS
         ):
-            qs = self.model_name.objects.all()
+            qs = self.model_name.objects.using(self.database_connection_name).all()
         else:
-            qs = self.model_name.objects.filter(attribute__visible_in_storefront=True)
+            qs = self.model_name.objects.using(self.database_connection_name).filter(
+                attribute__visible_in_storefront=True
+            )
         product_type_attribute_pairs = qs.filter(product_type_id__in=keys).values_list(
             "product_type_id", "attribute_id"
         )
@@ -86,9 +88,11 @@ class AttributeProductsByProductTypeIdLoader(DataLoader):
         if requestor.is_active and requestor.has_perm(
             ProductPermissions.MANAGE_PRODUCTS
         ):
-            qs = AttributeProduct.objects.all()
+            qs = AttributeProduct.objects.using(self.database_connection_name).all()
         else:
-            qs = AttributeProduct.objects.filter(attribute__visible_in_storefront=True)
+            qs = AttributeProduct.objects.using(self.database_connection_name).filter(
+                attribute__visible_in_storefront=True
+            )
         attribute_products = qs.filter(product_type_id__in=keys)
         producttype_to_attributeproducts = defaultdict(list)
         for attribute_product in attribute_products:
@@ -106,12 +110,14 @@ class AttributeVariantsByProductTypeIdLoader(DataLoader):
         if requestor.is_active and requestor.has_perm(
             ProductPermissions.MANAGE_PRODUCTS
         ):
-            qs = AttributeVariant.objects.all()
+            qs = AttributeVariant.objects.using(self.database_connection_name).all()
         else:
-            qs = AttributeVariant.objects.filter(attribute__visible_in_storefront=True)
+            qs = AttributeVariant.objects.using(self.database_connection_name).filter(
+                attribute__visible_in_storefront=True
+            )
         attribute_variants = qs.filter(product_type_id__in=keys)
         producttype_to_attributevariants = defaultdict(list)
-        for attribute_variant in attribute_variants:
+        for attribute_variant in attribute_variants.iterator():
             producttype_to_attributevariants[attribute_variant.product_type_id].append(
                 attribute_variant
             )
@@ -126,14 +132,16 @@ class AssignedProductAttributesByProductIdLoader(DataLoader):
         if requestor.is_active and requestor.has_perm(
             ProductPermissions.MANAGE_PRODUCTS
         ):
-            qs = AssignedProductAttribute.objects.all()
+            qs = AssignedProductAttribute.objects.using(
+                self.database_connection_name
+            ).all()
         else:
-            qs = AssignedProductAttribute.objects.filter(
-                assignment__attribute__visible_in_storefront=True
-            )
+            qs = AssignedProductAttribute.objects.using(
+                self.database_connection_name
+            ).filter(assignment__attribute__visible_in_storefront=True)
         assigned_product_attributes = qs.filter(product_id__in=keys)
         product_to_assignedproductattributes = defaultdict(list)
-        for assigned_product_attribute in assigned_product_attributes:
+        for assigned_product_attribute in assigned_product_attributes.iterator():
             product_to_assignedproductattributes[
                 assigned_product_attribute.product_id
             ].append(assigned_product_attribute)
@@ -148,16 +156,18 @@ class AssignedVariantAttributesByProductVariantId(DataLoader):
         if requestor.is_active and requestor.has_perm(
             ProductPermissions.MANAGE_PRODUCTS
         ):
-            qs = AssignedVariantAttribute.objects.all()
+            qs = AssignedVariantAttribute.objects.using(
+                self.database_connection_name
+            ).all()
         else:
-            qs = AssignedVariantAttribute.objects.filter(
-                assignment__attribute__visible_in_storefront=True
-            )
+            qs = AssignedVariantAttribute.objects.using(
+                self.database_connection_name
+            ).filter(assignment__attribute__visible_in_storefront=True)
         assigned_variant_attributes = qs.filter(variant_id__in=keys).select_related(
             "assignment__attribute"
         )
         variant_attributes = defaultdict(list)
-        for assigned_variant_attribute in assigned_variant_attributes:
+        for assigned_variant_attribute in assigned_variant_attributes.iterator():
             variant_attributes[assigned_variant_attribute.variant_id].append(
                 assigned_variant_attribute
             )
@@ -168,8 +178,10 @@ class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedproductattribute"
 
     def batch_load(self, keys):
-        attribute_values = AssignedProductAttributeValue.objects.filter(
-            assignment_id__in=keys
+        attribute_values = list(
+            AssignedProductAttributeValue.objects.using(self.database_connection_name)
+            .filter(assignment_id__in=keys)
+            .iterator()
         )
         value_ids = [a.value_id for a in attribute_values]
 
@@ -193,8 +205,10 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedvariantattribute"
 
     def batch_load(self, keys):
-        attribute_values = AssignedVariantAttributeValue.objects.filter(
-            assignment_id__in=keys
+        attribute_values = list(
+            AssignedVariantAttributeValue.objects.using(self.database_connection_name)
+            .filter(assignment_id__in=keys)
+            .iterator()
         )
         value_ids = [a.value_id for a in attribute_values]
 

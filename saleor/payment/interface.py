@@ -93,6 +93,8 @@ class PaymentData:
     data: Optional[dict] = None
     graphql_customer_id: Optional[str] = None
     refund_data: Optional[Dict[int, int]] = None
+    checkout_token: Optional[str] = None
+    checkout_metadata: Optional[Dict] = None
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines: InitVar[Callable] = None
 

@@ -18,7 +18,7 @@ class PageByIdLoader(DataLoader):
     context_key = "page_by_id"
 
     def batch_load(self, keys):
-        pages = Page.objects.in_bulk(keys)
+        pages = Page.objects.using(self.database_connection_name).in_bulk(keys)
         return [pages.get(page_id) for page_id in keys]
 
 
@@ -26,7 +26,7 @@ class PageTypeByIdLoader(DataLoader):
     context_key = "page_type_by_id"
 
     def batch_load(self, keys):
-        page_types = PageType.objects.in_bulk(keys)
+        page_types = PageType.objects.using(self.database_connection_name).in_bulk(keys)
         return [page_types.get(page_type_id) for page_type_id in keys]
 
 
@@ -36,7 +36,9 @@ class PagesByPageTypeIdLoader(DataLoader):
     context_key = "pages_by_pagetype"
 
     def batch_load(self, keys):
-        pages = Page.objects.filter(page_type_id__in=keys)
+        pages = Page.objects.using(self.database_connection_name).filter(
+            page_type_id__in=keys
+        )
 
         pagetype_to_pages = defaultdict(list)
         for page in pages:
@@ -53,9 +55,11 @@ class PageAttributesByPageTypeIdLoader(DataLoader):
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
         if requestor.is_active and requestor.has_perm(PagePermissions.MANAGE_PAGES):
-            qs = AttributePage.objects.all()
+            qs = AttributePage.objects.using(self.database_connection_name).all()
         else:
-            qs = AttributePage.objects.filter(attribute__visible_in_storefront=True)
+            qs = AttributePage.objects.using(self.database_connection_name).filter(
+                attribute__visible_in_storefront=True
+            )
 
         page_type_attribute_pairs = qs.filter(page_type_id__in=keys).values_list(
             "page_type_id", "attribute_id"
@@ -90,9 +94,11 @@ class AttributePagesByPageTypeIdLoader(DataLoader):
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
         if requestor.is_active and requestor.has_perm(PagePermissions.MANAGE_PAGES):
-            qs = AttributePage.objects.all()
+            qs = AttributePage.objects.using(self.database_connection_name).all()
         else:
-            qs = AttributePage.objects.filter(attribute__visible_in_storefront=True)
+            qs = AttributePage.objects.using(self.database_connection_name).filter(
+                attribute__visible_in_storefront=True
+            )
         attribute_pages = qs.filter(page_type_id__in=keys)
         pagetype_to_attributepages = defaultdict(list)
         for attribute_page in attribute_pages:
@@ -108,11 +114,13 @@ class AssignedPageAttributesByPageIdLoader(DataLoader):
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
         if requestor.is_active and requestor.has_perm(PagePermissions.MANAGE_PAGES):
-            qs = AssignedPageAttribute.objects.all()
+            qs = AssignedPageAttribute.objects.using(
+                self.database_connection_name
+            ).all()
         else:
-            qs = AssignedPageAttribute.objects.filter(
-                assignment__attribute__visible_in_storefront=True
-            )
+            qs = AssignedPageAttribute.objects.using(
+                self.database_connection_name
+            ).filter(assignment__attribute__visible_in_storefront=True)
         assigned_page_attributes = qs.filter(page_id__in=keys)
         page_to_assignedattributes = defaultdict(list)
         for assigned_page_attribute in assigned_page_attributes:
@@ -126,9 +134,9 @@ class AttributeValuesByAssignedPageAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assigned_pageattribute"
 
     def batch_load(self, keys):
-        attribute_values = AssignedPageAttributeValue.objects.filter(
-            assignment_id__in=keys
-        )
+        attribute_values = AssignedPageAttributeValue.objects.using(
+            self.database_connection_name
+        ).filter(assignment_id__in=keys)
         value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):

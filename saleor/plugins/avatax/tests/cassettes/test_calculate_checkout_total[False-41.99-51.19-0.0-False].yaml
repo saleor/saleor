@@ -1,0 +1,90 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "PS081282", "taxIncluded":
+      false, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
+      "10.000", "taxCode": "FR000000", "taxIncluded": false, "itemCode": "Shipping",
+      "description": null}], "code": "6f2d1c08-ec63-4484-924d-795ac3cd2039", "date":
+      "2021-12-14", "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa
+      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
+      "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
+      "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
+      "USD", "email": ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '759'
+      User-Agent:
+      - python-requests/2.26.0
+    method: POST
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEA+1X224aSRD9FWueDZobNvDG4liyhMAyeCNllYdmpoFO5rbdPY7ZyP++p3q68WAg
+        dhKtn5anoW5TVaf6dM13T6Te0D/3kjLl3tC7WIVpkPj9Dk8uok4c9+POIIzTzuWgx5IoSUM/Gnhk
+        nVes2N7AN4zDwWXv3EuZpgChHwadIOwEMcwqts15oa+OqJRmulZwWPC8KiWTW9jrbUUx5izjaiZT
+        LiFbMp1sxk129OZaSl4kWyu5n19ByB+TDSvW/A4vGh8zSGqly5zLe8XWfNG8hfwKLfT2XvF2/Mby
+        T16kpbRy37y4UbRE/BG562mJlGEgeVIWicg4mrJimeLnXlYmTIuyeA4vOYrVolhPDlRVLVGF4qbw
+        56ArTvW2MlTUnYpL1Y6rS82yUV7WhfaGsd8Fokb0waQIhHeSK6GSxuxZtmCP3nDQDa0T/rJlBiRa
+        gSAbsyypM7QYBRpjln5BXwnhO86QDvowLfXISGFk6v/aascDkkY3vGGwD9mH1YonWjzwY4PSxhae
+        VAfPmciapudlKlaCpweeC38wjIJhr98N4yDuxcEn5OOsgbg0s9uPggFVzR4PAlD6ouAY0b++u0Oi
+        JSsUQ6plQe5IhUymdb7EqA69AD5vn7SUq0SKioLBd8GVPqtkmdaJRpjUouQgNVg183ZENOZS24T2
+        Z1KoG83zHZ5a1phKAZGdyCCMbJ0uaoQ3oa6/a2bOhjeMqOOSr4Km4XgK3ZMd5WOtQ0e94UV3YHpL
+        w9SOb4TtaXKGNqvbud8Pwn6I1BCHhA1Yg6B/EisY3hRJVqeteUu5xqCcQnAC6GzTDnE1RwScNPRu
+        J0hD8nUDk/l3BIcvtRTKpU8eRjBlOfHZ7WwymhJPEenxkVJiXfDUHXFjaTlpPF0431SYOXMKOrKG
+        I4uysHi6lprZkIZj/W4Y+fiZNr0CgI08q3VV08ihg/N6SVLqijdrRLaEuWZFymR6RhTbaEa13pQS
+        /OlcYtwChFeLJgywlJp9mQuDCE5qmzaHqC6Enq3+YErQxXDLpePyeyigF2paFrdMqcVG1juSFeqa
+        o8uWcncEa5tErohGY00w2pFFnH39vrphTeu6r4Kb7esuGEQHNWeCLUVmm4Ni5jzLwBFPn889AEg1
+        6I0s6/XmajejUG3cCKHYpFT6plA1KCfh15KL9QbUbpJ5YHo3avMOEB93OmYwoWjIyEHiP52/lbzo
+        tP0Eeb0PP803oqpwWyI3Ylo38QHasM9S5l74NZYKu5GZ2zZL0QsOhtkZ2t5f39FJ82k30M8sFV9e
+        NqR3ghX/JynM8B5JubYe7b/ljf+UpEwCjo7orFquA7BO+j4k1Uzdjld+k6SashzjvSApo3xfkro+
+        TVKgPpamkiv12r61xD2Ie2g74Q+cVsBPoupZcqAFZZaxb+orOwvoVBJj2F2FHiPoIU1Aynj6eDcb
+        T0YfCWN3t+O5AumyzKLdizqBT9FfLAM47XfGx2wlfi/wsUJiLxYa20fzkqws1ru/P+TgVwpa8OSf
+        8hs7u0QaP65HlgmKf6WeC9/sqHaZsMvNT9cDuFSd5/TNRsvxi/bs+mmupL3tZrfEvG1dQmJ7SwY+
+        SLBiAKHDJQqmp6mCBgONgc2JbcYdcxi2Dj/s259BZEQX8B55NR9N+wuAkeGWXzh/c5k0S6PZIvH/
+        6fPTv/Wozpx7DwAA
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 14 Dec 2021 09:31:58 GMT
+      Location:
+      - /api/v2/companies/242975/transactions/0
+      ServerDuration:
+      - '00:00:00.0195162'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - 64001418-2720-4b3f-b055-4953150b7898
+      x-correlation-id:
+      - 64001418-2720-4b3f-b055-4953150b7898
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1
