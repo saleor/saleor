@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Dict, List, Optional, cast
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -492,7 +492,14 @@ def try_void_or_refund_inactive_payment(
     if transaction.is_success:
         update_payment_charge_status(payment, transaction)
         channel_slug = get_channel_slug_from_payment(payment)
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        try:
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        except PaymentError:
+            logger.exception(
+                "Unable to void/refund an inactive payment %s, %s.",
+                payment.id,
+                payment.psp_reference,
+            )
 
 
 def payment_owned_by_user(payment_pk: int, user) -> bool:
