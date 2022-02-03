@@ -1,21 +1,21 @@
 import json
 import logging
+import os
 
+import requests
 from django.core.exceptions import ValidationError
-from django.http import HttpRequest, HttpResponseNotFound
+from django.http import HttpRequest, HttpResponseNotFound, JsonResponse
 from django.utils.translation import gettext_lazy as _
 
 from saleor.graphql.core.enums import PluginErrorCode
-from saleor.payment.gateways.adyen.utils.apple_pay import initialize_apple_pay
+from saleor.payment.gateways.adyen.utils.apple_pay import (
+    validate_payment_data_for_apple_pay,
+)
 from saleor.payment.gateways.utils import (
     get_supported_currencies,
     require_active_plugin,
 )
-from saleor.payment.interface import (
-    GatewayResponse,
-    InitializedPaymentResponse,
-    PaymentData,
-)
+from saleor.payment.interface import GatewayResponse, PaymentData
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.models import PluginConfiguration
 
@@ -36,7 +36,6 @@ class CheckoutGatewayPlugin(BasePlugin):
         {"name": "use_sandbox", "value": True},
         {"name": "public_api_key", "value": None},
         {"name": "secret_api_key", "value": None},
-        {"name": "apple_pay_cert", "value": None},
         {"name": "supported_currencies", "value": "SAR"},
     ]
 
@@ -61,17 +60,6 @@ class CheckoutGatewayPlugin(BasePlugin):
             "help_text": "Supported Currencies for Checkout",
             "label": "Supported Currencies",
         },
-        "apple_pay_cert": {
-            "type": ConfigurationTypeField.SECRET_MULTILINE,
-            "help_text": (
-                "Follow the Adyen docs related to activating the Apple Pay for the "
-                "web - https://docs.adyen.com/payment-methods/apple-pay/"
-                "enable-apple-pay. This certificate is only required when you offer "
-                "the Apple Pay as a web payment method.  Leave it blank if you don't "
-                "offer Apple Pay or offer it only as a payment method in your iOS app."
-            ),
-            "label": "Apple Pay certificate",
-        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -84,7 +72,6 @@ class CheckoutGatewayPlugin(BasePlugin):
                 "sandbox": configuration["use_sandbox"],
                 "public_key": configuration["public_api_key"],
                 "private_key": configuration["secret_api_key"],
-                "apple_pay_cert": configuration["apple_pay_cert"],
             },
             supported_currencies=configuration["supported_currencies"],
         )
@@ -103,8 +90,6 @@ class CheckoutGatewayPlugin(BasePlugin):
             missing_fields.append("public_api_key")
         if not configuration["secret_api_key"]:
             missing_fields.append("secret_api_key")
-        if not configuration["apple_pay_cert"]:
-            missing_fields.append("apple_pay_cert")
 
         if plugin_configuration.active and missing_fields:
             error_msg = (
@@ -168,26 +153,38 @@ class CheckoutGatewayPlugin(BasePlugin):
             )
             logger.info(msg="Finish handling webhook")
             return response
-        elif path == "/apple-pay/validate-session/" and request.method == "POST":
+        elif path == "/apple-pay/validate-/" and request.method == "POST":
             # Apple Pay session
             payment_data = json.loads(request.body.decode("utf-8").replace("'", '"'))
-            domain = payment_data.get("domain", "")
-            display_name = payment_data.get("display_name", "")
-            validation_url = payment_data.get("validation_url", "")
-            merchant_identifier = payment_data.get("merchant_identifier", "")
+            display_name = payment_data.get("displayName", "")
+            validation_url = payment_data.get("validationUrl", "")
+            initiative_context = payment_data.get("initiativeContext", "")
+            merchant_identifier = payment_data.get("merchantIdentifier", "")
 
             payment_data = {
-                "domain": domain,
+                "initiative": "web",
                 "displayName": display_name,
                 "validationUrl": validation_url,
+                "initiativeContext": initiative_context,
                 "merchantIdentifier": merchant_identifier,
             }
-            session_obj = initialize_apple_pay(
-                payment_data=payment_data,
-                certificate=self.config.connection_params["apple_pay_cert"],
+            validate_payment_data_for_apple_pay(
+                certificate="certificate",
+                domain=initiative_context,
+                display_name=display_name,
+                validation_url=validation_url,
+                merchant_identifier=merchant_identifier,
+            )
+            cwd = os.path.join(os.path.dirname(__file__))
+            response = requests.post(
+                validation_url,
+                json=payment_data,
+                cert=(
+                    cwd + "/certificate_sandbox.pem",
+                    cwd + "/certificate_sandbox.key",
+                ),
             )
             logger.info(msg="Finish validating Apple Pay session")
-            return InitializedPaymentResponse(
-                gateway=self.PLUGIN_ID, name=self.PLUGIN_NAME, data=session_obj
-            )
+            return JsonResponse(data=response.json(), status=response.status_code)
+
         return HttpResponseNotFound("This path is not valid!")
