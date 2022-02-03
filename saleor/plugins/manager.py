@@ -203,6 +203,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
+        currency = checkout_info.checkout.currency
         default_value = base_calculations.base_checkout_total(
             subtotal=self.calculate_checkout_subtotal(
                 checkout_info, lines, address, discounts
@@ -211,8 +212,15 @@ class PluginsManager(PaymentInterface):
                 checkout_info, lines, address, discounts
             ),
             discount=checkout_info.checkout.discount,
-            currency=checkout_info.checkout.currency,
+            currency=currency,
         )
+
+        if default_value <= zero_taxed_money(currency):
+            return quantize_price(
+                default_value,
+                currency,
+            )
+
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_total",
@@ -223,7 +231,7 @@ class PluginsManager(PaymentInterface):
                 discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
-            checkout_info.checkout.currency,
+            currency,
         )
 
     def calculate_checkout_subtotal(
