@@ -298,8 +298,7 @@ type AppExtension implements Node {
   permissions: [Permission!]!
   label: String!
   url: String!
-  view: AppExtensionViewEnum!
-  type: AppExtensionTypeEnum!
+  mount: AppExtensionMountEnum!
   target: AppExtensionTargetEnum!
   app: App!
   accessToken: String
@@ -317,23 +316,25 @@ type AppExtensionCountableEdge {
 }
 
 input AppExtensionFilterInput {
-  view: AppExtensionViewEnum
-  type: AppExtensionTypeEnum
+  mount: [AppExtensionMountEnum]
   target: AppExtensionTargetEnum
 }
 
+enum AppExtensionMountEnum {
+  PRODUCT_OVERVIEW_CREATE
+  PRODUCT_OVERVIEW_MORE_ACTIONS
+  PRODUCT_DETAILS_MORE_ACTIONS
+  NAVIGATION_CATALOG
+  NAVIGATION_ORDERS
+  NAVIGATION_CUSTOMERS
+  NAVIGATION_DISCOUNTS
+  NAVIGATION_TRANSLATIONS
+  NAVIGATION_PAGES
+}
+
 enum AppExtensionTargetEnum {
-  MORE_ACTIONS
-  CREATE
-}
-
-enum AppExtensionTypeEnum {
-  OVERVIEW
-  DETAILS
-}
-
-enum AppExtensionViewEnum {
-  PRODUCT
+  POPUP
+  APP_PAGE
 }
 
 type AppFetchManifest {
@@ -380,8 +381,7 @@ type AppManifestExtension {
   permissions: [Permission!]!
   label: String!
   url: String!
-  view: AppExtensionViewEnum!
-  type: AppExtensionTypeEnum!
+  mount: AppExtensionMountEnum!
   target: AppExtensionTargetEnum!
 }
 

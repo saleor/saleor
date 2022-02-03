@@ -82,9 +82,8 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
-def trigger_webhooks_async(data, event_type):
+def trigger_webhooks_async(data, event_type, webhooks):
     payload = EventPayload.objects.create(payload=data)
-    webhooks = _get_webhooks_for_event(event_type)
     deliveries = create_event_delivery_list_for_webhooks(
         webhooks=webhooks,
         event_payload=payload,
@@ -342,7 +341,9 @@ def send_webhook_request_sync(app_name, delivery):
                 attempt.id,
             )
             response.status = EventDeliveryStatus.FAILED
-            response.content = e.response
+            if e.response:
+                response.content = e.response.text
+                response.response_headers = dict(e.response.headers)
 
         except JSONDecodeError as e:
             logger.warning(
@@ -353,7 +354,6 @@ def send_webhook_request_sync(app_name, delivery):
                 attempt.id,
             )
             response.status = EventDeliveryStatus.FAILED
-            response.content = e.msg
         else:
             logger.debug(
                 "[Webhook] Success response from %r."

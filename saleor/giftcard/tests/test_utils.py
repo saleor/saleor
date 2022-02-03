@@ -745,7 +745,7 @@ def test_is_gift_card_expired_true(gift_card):
 
 
 @pytest.mark.parametrize(
-    "expiry_date", [date.today(), date.today() + timedelta(days=1)]
+    "expiry_date", [timezone.now().date(), timezone.now().date() + timedelta(days=1)]
 )
 def test_is_gift_card_expired_false(expiry_date, gift_card):
     # given

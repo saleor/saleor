@@ -1,14 +1,37 @@
 {
-  "id": "saleor.app.sample",
-  "version": "1.0.0",
-  "name": "My Wonderful App",
-  "about": "My Wonderful App is a wonderful App for Saleor.",
-  "permissions": ["MANAGE_USERS", "MANAGE_STAFF"],
-  "appUrl": "http://localhost:3000/app",
-  "configurationUrl": "htpp://localhost:3000/configuration",
-  "tokenTargetUrl": "http://localhost:3000/register",
-  "dataPrivacy": "Lorem ipsum",
-  "dataPrivacyUrl": "http://localhost:3000/app-data-privacy",
-  "homepageUrl": "http://localhost:3000/homepage",
-  "supportUrl": "http://localhost:3000/support"
+    "name": "Saleor App",
+    "version": "1.0.0",
+    "about": "",
+    "dataPrivacy": "",
+    "dataPrivacyUrl": "",
+    "homepageUrl": "https://example.com/homepage",
+    "supportUrl": "https://example.com/support",
+    "id": "sample-app",
+    "permissions": [
+        "MANAGE_PRODUCTS",
+        "MANAGE_ORDERS"
+    ],
+    "appUrl": "https://example.com/app",
+    "extensions": [
+      {
+        "label": "Create with Sample app",
+        "mount": "PRODUCT_OVERVIEW_CREATE",
+        "target": "POPUP",
+        "permissions": [
+            "MANAGE_PRODUCTS"
+        ],
+        "url": "https://example.com/extension/"
+      },
+      {
+        "label": "Create with App and redirect",
+        "mount": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+        "target": "APP_PAGE",
+        "permissions": [
+            "MANAGE_PRODUCTS"
+        ],
+        "url": "/extension/redirect"
+      }
+    ],
+    "configurationUrl": "https://example.com/configuration/",
+    "tokenTargetUrl": "https://example.com/configuration/install"
 }

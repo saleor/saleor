@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 from django.conf import settings
-from requests import RequestException
+from requests import RequestException, TooManyRedirects
 
 from ....app.models import App
 from ....core import EventDeliveryStatus
@@ -171,9 +171,30 @@ def test_send_webhook_request_sync_request_exception(
     assert event_delivery.status == "failed"
     assert attempt.status == "failed"
     assert attempt.duration == 0.0
-    assert attempt.response is None
+    assert attempt.response == ""
     assert attempt.response_headers == "null"
     assert attempt.request_headers == "null"
+
+
+@pytest.mark.parametrize(
+    "target_url",
+    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
+)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_send_webhook_request_sync_when_exception_with_response(
+    mock_post, target_url, site_settings, app, event_delivery
+):
+    mock_response = mock.Mock()
+    mock_response.text = "response_content"
+    mock_response.headers = {"response": "headers"}
+    mock_post.side_effect = TooManyRedirects(response=mock_response)
+    # when
+    send_webhook_request_sync(app.name, event_delivery)
+    attempt = EventDeliveryAttempt.objects.first()
+
+    # then
+    assert attempt.response == "response_content"
+    assert attempt.response_headers == '{"response": "headers"}'
 
 
 @pytest.mark.parametrize(
@@ -202,7 +223,7 @@ def test_send_webhook_request_sync_json_parsing_error(
     assert event_delivery.status == "failed"
     assert attempt.status == "failed"
     assert attempt.duration == expected_data["duration"].total_seconds()
-    assert attempt.response == "Expecting property name enclosed in double quotes"
+    assert attempt.response == expected_data["incorrect_content"]
     assert attempt.response_headers == json.dumps(expected_data["response_headers"])
 
 

@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ..installation_utils import install_app
 from ..models import App
-from ..types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from ..types import AppExtensionMount, AppExtensionTarget
 
 
 def test_install_app_created_app(
@@ -40,17 +40,12 @@ def test_install_app_with_extension(
     # given
     label = "Create product with app"
     url = "http://127.0.0.1:8080/app-extension"
-    view = "PRODUCT"
-    type = "OVERVIEW"
-    target = "CREATE"
     app_manifest["permissions"] = ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
     app_manifest["extensions"] = [
         {
             "label": label,
             "url": url,
-            "view": view,
-            "type": type,
-            "target": target,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
             "permissions": ["MANAGE_PRODUCTS"],
         }
     ]
@@ -73,9 +68,8 @@ def test_install_app_with_extension(
 
     assert app_extension.label == label
     assert app_extension.url == url
-    assert app_extension.view == AppExtensionView.PRODUCT
-    assert app_extension.type == AppExtensionType.OVERVIEW
-    assert app_extension.target == AppExtensionTarget.CREATE
+    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.target == AppExtensionTarget.POPUP
     assert list(app_extension.permissions.all()) == [permission_manage_products]
 
 
