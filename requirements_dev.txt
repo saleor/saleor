@@ -20,10 +20,10 @@ cachetools==4.2.2; python_version >= "3.5" and python_version < "4.0" and (pytho
 cairocffi==1.2.0; python_version >= "3.6"
 cairosvg==2.5.2; python_version >= "3.6"
 celery==5.1.2; python_version >= "3.6"
-certifi==2021.5.30; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
+certifi==2021.5.30; python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.0" and python_version < "3.10"
 cffi==1.14.6; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 cfgv==3.3.0; python_full_version >= "3.6.1"
-charset-normalizer==2.0.4; python_full_version >= "3.6.0" and python_version >= "3"
+charset-normalizer==2.0.4; python_full_version >= "3.6.0" and python_version >= "3" and python_version < "3.10"
 click-didyoumean==0.0.3; python_version >= "3.6"
 click-plugins==1.1.1; python_version >= "3.6"
 click-repl==0.2.0; python_version >= "3.6"
@@ -58,7 +58,7 @@ django-stubs-ext==0.2.0; python_version >= "3.6"
 django-stubs==1.8.0; python_version >= "3.6"
 django-timezone-field==4.2.1; python_version >= "3.5"
 django-versatileimagefield==2.1
-django==3.2.6; python_version >= "3.6"
+django==3.2.12; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
@@ -69,7 +69,7 @@ flake8==3.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (p
 freezegun==1.1.0; python_version >= "3.5"
 gitdb==4.0.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
 gitpython==3.1.20; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"
-google-api-core==2.0.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.4.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.34.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.7.0; python_version >= "3.6"
@@ -85,6 +85,7 @@ graphene==2.1.9
 graphql-core==2.3.2
 graphql-relay==2.0.1
 grpc-google-iam-v1==0.12.3; python_version >= "3.6"
+grpcio-status==1.39.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 grpcio==1.39.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 gunicorn==20.1.0; python_version >= "3.5"
 h11==0.12.0; python_version >= "3.6"
@@ -93,7 +94,7 @@ html2text==2020.1.16; python_version >= "3.5"
 html5lib==1.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 httptools==0.1.2; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
 identify==2.2.13; python_full_version >= "3.6.1"
-idna==3.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+idna==3.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6" and python_version < "3.10"
 iniconfig==1.1.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 isort==5.9.3; python_full_version >= "3.6.1" and python_version < "4.0"
 jaeger-client==4.6.0; python_version >= "3.5"
@@ -147,7 +148,7 @@ pylint-django==2.4.4
 pylint-plugin-utils==0.6
 pylint==2.9.6; python_version >= "3.6" and python_version < "4.0"
 pymeta3==0.5.1
-pyparsing==2.4.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6"
+pyparsing==2.4.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pyphen==0.11.0; python_version >= "3.6"
 pytest-celery==0.0.0
 pytest-cov==2.12.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
