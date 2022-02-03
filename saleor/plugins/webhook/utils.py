@@ -231,11 +231,17 @@ def parse_tax_codes(
     tax_types = []
 
     for tax in response_tax_data:
+        print(tax)
         code = tax.get("code")
         description = tax.get("description")
 
-        if not code or not description:
+        if not code:
             return None
+
+        # We assume here that the integration does not provide descriptions
+        # and tax codes have enough details for displaying them in dashboard
+        if not description:
+            description = code
 
         tax_types.append(TaxType(code, description))
 

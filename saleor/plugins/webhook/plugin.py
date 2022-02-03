@@ -1,13 +1,26 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+from django.core.cache import cache
 
 from ...app.models import App
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
+from ...core.taxes import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
+    WEBHOOK_TAX_CODES_CACHE_KEY,
+    TaxData,
+    TaxType,
+    get_current_tax_app,
+    get_meta_code_key,
+    get_meta_description_key,
+)
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
+from ...product.models import Collection, Product, ProductType, ProductVariant
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -49,14 +62,12 @@ from .utils import (
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
-    from ...core.taxes import TaxData, TaxType
     from ...discount.models import Sale
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
-    from ...product.models import Collection, Product, ProductVariant
     from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
@@ -578,13 +589,101 @@ class WebhookPlugin(BasePlugin):
                     methods.extend(shipping_methods)
         return methods
 
-    def get_tax_codes(self, previous_value) -> List["TaxType"]:
-        return (
+    def __fetch_tax_codes(self) -> Dict[str, str]:
+        tax_types = (
             trigger_tax_webhook_sync(
                 WebhookEventSyncType.FETCH_TAX_CODES, "", parse_tax_codes
             )
             or []
         )
+
+        return {tax_type.code: tax_type.description for tax_type in tax_types}
+
+    def __get_cached_tax_codes_or_fetch(self) -> Dict[str, str]:
+        if cached_tax_codes_dict := cache.get(WEBHOOK_TAX_CODES_CACHE_KEY):
+            return cached_tax_codes_dict
+
+        if fetched_tax_codes_dict := self.__fetch_tax_codes():
+            cache.set(WEBHOOK_TAX_CODES_CACHE_KEY, fetched_tax_codes_dict)
+            return fetched_tax_codes_dict
+
+        return {}
+
+    def get_tax_rate_type_choices(self, previous_value) -> List["TaxType"]:
+        return [
+            TaxType(code=tax_code, description=desc)
+            for tax_code, desc in self.__get_cached_tax_codes_or_fetch().items()
+        ]
+
+    def fetch_taxes_data(self, previous_value) -> bool:
+        self.__get_cached_tax_codes_or_fetch()
+        return True
+
+    def get_tax_code_from_object_meta(
+        self, obj: Union["Product", "ProductType"], previous_value: Any
+    ):
+        """Get tax code and description for a product or product type.
+
+        If there is no active tax app, returns tax code from tax plugin.
+        If there is no tax code defined for the product/product type,
+        then return dummy values.
+        """
+        if not (tax_app := get_current_tax_app()):
+            return previous_value
+
+        meta_code_key = get_meta_code_key(tax_app)
+        meta_description_key = get_meta_description_key(tax_app)
+
+        default_tax_code = DEFAULT_TAX_CODE
+        default_tax_description = DEFAULT_TAX_DESCRIPTION
+
+        code = obj.get_value_from_metadata(meta_code_key, default_tax_code)
+        description = obj.get_value_from_metadata(
+            meta_description_key, default_tax_description
+        )
+
+        return TaxType(
+            code=code,
+            description=description,
+        )
+
+    def assign_tax_code_to_object_meta(
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
+    ):
+        """Update tax code for a product or product type.
+
+        If there is no active tax app, then the operation is delegated to a tax plugin.
+        If parameter `tax_code` is None, then currently saved tax code is deleted from
+        product/product type.
+        if all tax codes for a current tax app cannot be fetched
+        (either from cache or by sync webhook), then the code is not saved.
+        """
+        if not (tax_app := get_current_tax_app()):
+            return previous_value
+
+        meta_code_key = get_meta_code_key(tax_app)
+        meta_description_key = get_meta_description_key(tax_app)
+
+        if not tax_code:
+            obj.delete_value_from_metadata(meta_code_key)
+            obj.delete_value_from_metadata(meta_description_key)
+            return previous_value
+
+        if not (codes := self.__get_cached_tax_codes_or_fetch()):
+            return previous_value
+
+        if tax_code not in codes:
+            return previous_value
+
+        tax_description = codes[tax_code]
+        tax_item = {
+            meta_code_key: tax_code,
+            meta_description_key: tax_description,
+        }
+        obj.store_value_in_metadata(items=tax_item)
 
     def is_event_active(self, event: str, channel=Optional[str]):
         map_event = {"invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED}

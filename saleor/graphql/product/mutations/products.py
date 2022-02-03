@@ -12,7 +12,6 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied, PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
-from ....core.taxes import set_tax_code
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
@@ -611,7 +610,9 @@ class ProductCreate(ModelMutation):
             raise ValidationError({"slug": error})
 
         if "tax_code" in cleaned_input:
-            set_tax_code(info.context.plugins, instance, cleaned_input["tax_code"])
+            info.context.plugins.assign_tax_code_to_object_meta(
+                instance, cleaned_input["tax_code"]
+            )
 
         if attributes and product_type:
             try:
@@ -1234,7 +1235,7 @@ class ProductTypeCreate(ModelMutation):
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
-            set_tax_code(info.context.plugins, instance, tax_code)
+            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
 
         cls.validate_attributes(cleaned_input)
 

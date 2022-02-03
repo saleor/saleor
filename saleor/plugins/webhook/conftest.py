@@ -45,7 +45,7 @@ def tax_codes_response():
 
 
 @pytest.fixture
-def tax_app(app, permission_handle_taxes):
+def tax_app(app, permission_handle_taxes, webhook):
     app.permissions.add(permission_handle_taxes)
     return app
 
@@ -81,6 +81,13 @@ def tax_codes_webhook(tax_app):
     )
     webhook.events.create(event_type=WebhookEventSyncType.FETCH_TAX_CODES)
     return webhook
+
+
+@pytest.fixture
+def tax_app_with_webhooks(
+    tax_app, tax_checkout_webhook, tax_order_webhook, tax_codes_webhook
+):
+    return tax_app
 
 
 @pytest.fixture

@@ -101,7 +101,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
         return {"id": None, "type": None}
     if isinstance(requestor, (User, AnonymousUser)):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
-    return {"id": requestor.name, "type": "app"}  # type: ignore
+    return {"id": requestor.identifier, "type": "app"}  # type: ignore
 
 
 def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
@@ -196,13 +196,17 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
 
 
 def get_product_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
-    return None if not (variant := line.variant) else variant.product.metadata
+    variant = line.variant
+    if not variant:
+        return None
+    return variant.product.metadata
 
 
 def get_product_type_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
-    return (
-        None if not (variant := line.variant) else variant.product.product_type.metadata
-    )
+    variant = line.variant
+    if not variant:
+        return None
+    return variant.product.product_type.metadata
 
 
 def _generate_collection_point_payload(warehouse: "Warehouse"):

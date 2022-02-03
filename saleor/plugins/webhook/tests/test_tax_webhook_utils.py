@@ -2,7 +2,7 @@ import decimal
 
 import pytest
 
-from ....core.taxes import TaxData
+from ....core.taxes import TaxData, TaxType
 from ..utils import (
     _unsafe_parse_tax_data,
     _unsafe_parse_tax_line_data,
@@ -131,20 +131,37 @@ def test_parse_tax_data_decimalexception(tax_data_response):
 
 
 def test_parse_tax_codes_success(tax_codes_response):
-    assert parse_tax_codes(tax_codes_response)
+    assert parse_tax_codes(tax_codes_response) == [
+        TaxType(code=tax["code"], description=tax["description"])
+        for tax in tax_codes_response
+    ]
 
 
-def test_parse_tax_codes_malformed(tax_codes_response):
+def test_parse_tax_codes_malformed():
     assert not parse_tax_codes({})
 
 
-@pytest.mark.parametrize("key", ["code", "description"])
-def test_parse_tax_codes_keyerror(key, tax_codes_response):
+def test_parse_tax_codes_keyerror(tax_codes_response):
     # given
-    tax_codes_response[0][key + "_bad"] = tax_codes_response[0].pop(key)
+    tax_codes_response[0]["code_bad"] = tax_codes_response[0].pop("code")
 
     # when
     tax_codes = parse_tax_codes(tax_codes_response)
 
     # then
     assert not tax_codes
+
+
+def test_parse_tax_codes_no_description(tax_codes_response):
+    # given
+    tax_codes_without_description_response = [
+        {"code": tax["code"]} for tax in tax_codes_response
+    ]
+
+    # when
+    tax_codes = parse_tax_codes(tax_codes_without_description_response)
+
+    # then
+    assert tax_codes == [
+        TaxType(code=tax["code"], description=tax["code"]) for tax in tax_codes_response
+    ]

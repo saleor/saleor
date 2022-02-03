@@ -29,7 +29,11 @@ def tax_checkout_webhooks(tax_app):
         for webhook in webhooks
     )
 
-    return list(Webhook.objects.all())
+    return list(
+        Webhook.objects.filter(
+            events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+        )
+    )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

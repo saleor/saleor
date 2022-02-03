@@ -1,5 +1,3 @@
-from unittest.mock import Mock, patch
-
 import pytest
 
 from ...app.models import App
@@ -10,17 +8,7 @@ from ..permissions import (
     OrderPermissions,
     get_permissions_from_codenames,
 )
-from ..taxes import (
-    DEFAULT_TAX_CODE,
-    DEFAULT_TAX_DESCRIPTION,
-    WEBHOOK_TAX_CODES_CACHE_KEY,
-    TaxType,
-    _get_cached_tax_codes_or_fetch,
-    _get_current_tax_app,
-    fetch_tax_types,
-    get_tax_type,
-    set_tax_code,
-)
+from ..taxes import get_current_tax_app
 
 
 @pytest.fixture
@@ -52,6 +40,7 @@ def tax_app_factory(app_factory):
             webhook_event_types = [
                 WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
                 WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                WebhookEventSyncType.FETCH_TAX_CODES,
             ]
         if permissions is None:
             permissions = [CheckoutPermissions.HANDLE_TAXES]
@@ -74,7 +63,7 @@ def tax_app(tax_app_factory):
 
 
 def test_get_current_tax_app(tax_app):
-    assert tax_app == _get_current_tax_app()
+    assert tax_app == get_current_tax_app()
 
 
 def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
@@ -102,6 +91,12 @@ def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
     tax_app_factory(
         name="Partial Tax App 2",
         webhook_event_types=[
+            WebhookEventSyncType.FETCH_TAX_CODES,
+        ],
+    )
+    tax_app_factory(
+        name="Partial Tax App 2",
+        webhook_event_types=[
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,
         ],
     )
@@ -117,193 +112,170 @@ def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
     )
 
     # when
-    app = _get_current_tax_app()
+    app = get_current_tax_app()
 
     # then
     assert expected_app == app
 
 
 def test_get_current_tax_app_no_app():
-    assert _get_current_tax_app() is None
+    assert get_current_tax_app() is None
 
 
-@pytest.fixture
-def tax_type():
-    return TaxType(
-        code="code",
-        description="description",
-    )
-
-
-@pytest.fixture
-def tax_types(tax_type):
-    return [tax_type]
-
-
-@patch("saleor.core.taxes.cache")
-def test_get_cached_tax_codes_or_fetch(mocked_cache, tax_types):
-    # given
-    mocked_cache.get = Mock(return_value=tax_types)
-
-    # when
-    fetched_tax_types = _get_cached_tax_codes_or_fetch(Mock())
-
-    # then
-    assert fetched_tax_types == tax_types
-
-
-@patch("saleor.core.taxes.cache")
-def test_get_cached_tax_codes_or_fetch_cache_miss(mocked_cache, tax_types):
-    # given
-    mocked_cache_set = Mock()
-    mocked_cache.get = Mock(return_value=None)
-    mocked_cache.set = mocked_cache_set
-    manager = Mock(get_tax_codes=Mock(return_value=tax_types))
-
-    # when
-    fetched_tax_types = _get_cached_tax_codes_or_fetch(manager)
-
-    # then
-    assert fetched_tax_types == tax_types
-    mocked_cache_set.assert_called_once_with(WEBHOOK_TAX_CODES_CACHE_KEY, tax_types)
-
-
-def test_get_cached_tax_codes_or_fetch_empty_response():
-    # given
-    manager = Mock(get_tax_codes=Mock(return_value=None))
-
-    # when
-    fetched_tax_types = _get_cached_tax_codes_or_fetch(manager)
-
-    # then
-    assert fetched_tax_types == []
-
-
-@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
-def test_set_tax_code(mocked_function, tax_app, tax_types, tax_type, product):
-    # given
-    mocked_function.return_value = tax_types
-
-    # when
-    set_tax_code(Mock(), product, tax_type.code)
-
-    # then
-    assert product.metadata == {
-        f"{tax_app.name}.code": tax_type.code,
-        f"{tax_app.name}.description": tax_type.description,
-    }
-
-
-def test_set_tax_code_delete(tax_app, product, tax_types, tax_type):
-    # given
-    product.metadata = {
-        f"{tax_app.name}.code": tax_type.code,
-        f"{tax_app.name}.description": tax_type.description,
-    }
-
-    # when
-    set_tax_code(Mock(), product, None)
-
-    # then
-    assert product.metadata == {}
-
-
-@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
-def test_set_tax_code_no_tax_types(mocked_function, tax_app, tax_types, product):
-    # given
-    mocked_function.return_value = None
-
-    # when
-    set_tax_code(Mock(), product, tax_types[0].code)
-
-    # then
-    assert product.metadata == {}
-
-
-@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
-def test_set_tax_code_wrong_code(mocked_function, tax_app, tax_types, product):
-    # given
-    mocked_function.return_value = tax_types
-
-    # when
-    set_tax_code(Mock(), product, "wrong code")
-
-    # then
-    assert product.metadata == {}
-
-
-def test_set_tax_code_old_method(product):
-    # given
-    mocked_assign_tax_code_to_object_meta = Mock()
-    manager = Mock(assign_tax_code_to_object_meta=mocked_assign_tax_code_to_object_meta)
-    tax_code = "tax code"
-
-    # when
-    set_tax_code(manager, product, tax_code)
-
-    # then
-    mocked_assign_tax_code_to_object_meta.assert_called_once_with(product, tax_code)
-
-
-def test_get_tax_code(tax_app, product, tax_type):
-    # given
-    product.metadata = {
-        f"{tax_app.name}.code": tax_type.code,
-        f"{tax_app.name}.description": tax_type.description,
-    }
-
-    # when
-    fetched_tax_type = get_tax_type(Mock(), product)
-
-    # then
-    assert fetched_tax_type == tax_type
-
-
-def test_get_tax_code_defaults(tax_app, product):
-    # when
-    fetched_tax_type = get_tax_type(Mock(), product)
-
-    # then
-    assert fetched_tax_type == TaxType(
-        code=DEFAULT_TAX_CODE,
-        description=DEFAULT_TAX_DESCRIPTION,
-    )
-
-
-def test_get_tax_code_old_method(product, tax_type):
-    # given
-    mocked_get_tax_code_from_object_meta = Mock(return_value=tax_type)
-    manager = Mock(get_tax_code_from_object_meta=mocked_get_tax_code_from_object_meta)
-
-    # when
-    fetched_tax_type = get_tax_type(manager, product)
-
-    # then
-    assert fetched_tax_type == tax_type
-    mocked_get_tax_code_from_object_meta.assert_called_once_with(product)
-
-
-@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
-def test_fetch_tax_types(mocked_get_cached_tax_codes_or_fetch, tax_types):
-    # given
-    mocked_get_cached_tax_codes_or_fetch.return_value = tax_types
-    manager = Mock(get_tax_rate_type_choices=Mock(return_value=Mock()))
-
-    # when
-    expected_tax_types = fetch_tax_types(manager)
-
-    # then
-    assert tax_types == expected_tax_types
-
-
-@patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
-def test_fetch_tax_types_old_method(mocked_get_cached_tax_codes_or_fetch, tax_types):
-    # given
-    mocked_get_cached_tax_codes_or_fetch.return_value = []
-    manager = Mock(get_tax_rate_type_choices=Mock(return_value=tax_types))
-
-    # when
-    expected_tax_types = fetch_tax_types(manager)
-
-    # then
-    assert tax_types == expected_tax_types
+# @pytest.fixture
+# def tax_type():
+#     return TaxType(
+#         code="code",
+#         description="description",
+#     )
+#
+#
+# @pytest.fixture
+# def tax_types(tax_type):
+#     return [tax_type]
+#
+#
+# @patch("saleor.core.taxes.cache")
+# def test_get_cached_tax_codes_or_fetch(mocked_cache, tax_types):
+#     # given
+#     mocked_cache.get = Mock(return_value=tax_types)
+#
+#     # when
+#     fetched_tax_types = _get_cached_tax_codes_or_fetch(Mock())
+#
+#     # then
+#     assert fetched_tax_types == tax_types
+#
+#
+# @patch("saleor.core.taxes.cache")
+# def test_get_cached_tax_codes_or_fetch_cache_miss(mocked_cache, tax_types):
+#     # given
+#     mocked_cache_set = Mock()
+#     mocked_cache.get = Mock(return_value=None)
+#     mocked_cache.set = mocked_cache_set
+#     manager = Mock(get_tax_codes=Mock(return_value=tax_types))
+#
+#     # when
+#     fetched_tax_types = _get_cached_tax_codes_or_fetch(manager)
+#
+#     # then
+#     assert fetched_tax_types == tax_types
+#     mocked_cache_set.assert_called_once_with(WEBHOOK_TAX_CODES_CACHE_KEY, tax_types)
+#
+#
+# def test_get_cached_tax_codes_or_fetch_empty_response():
+#     # given
+#     manager = Mock(get_tax_codes=Mock(return_value=None))
+#
+#     # when
+#     fetched_tax_types = _get_cached_tax_codes_or_fetch(manager)
+#
+#     # then
+#     assert fetched_tax_types == []
+#
+#
+# @patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
+# def test_set_tax_code(mocked_function, tax_app, tax_types, tax_type, product):
+#     # given
+#     mocked_function.return_value = tax_types
+#
+#     # when
+#     set_tax_code(Mock(), product, tax_type.code)
+#
+#     # then
+#     assert product.metadata == {
+#         f"{tax_app.name}.code": tax_type.code,
+#         f"{tax_app.name}.description": tax_type.description,
+#     }
+#
+#
+# def test_set_tax_code_delete(tax_app, product, tax_types, tax_type):
+#     # given
+#     product.metadata = {
+#         f"{tax_app.name}.code": tax_type.code,
+#         f"{tax_app.name}.description": tax_type.description,
+#     }
+#
+#     # when
+#     set_tax_code(Mock(), product, None)
+#
+#     # then
+#     assert product.metadata == {}
+#
+#
+# @patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
+# def test_set_tax_code_no_tax_types(mocked_function, tax_app, tax_types, product):
+#     # given
+#     mocked_function.return_value = None
+#
+#     # when
+#     set_tax_code(Mock(), product, tax_types[0].code)
+#
+#     # then
+#     assert product.metadata == {}
+#
+#
+# @patch("saleor.core.taxes._get_cached_tax_codes_or_fetch")
+# def test_set_tax_code_wrong_code(mocked_function, tax_app, tax_types, product):
+#     # given
+#     mocked_function.return_value = tax_types
+#
+#     # when
+#     set_tax_code(Mock(), product, "wrong code")
+#
+#     # then
+#     assert product.metadata == {}
+#
+#
+# def test_set_tax_code_old_method(product):
+#     # given
+#     mocked_assign_tax_code_to_object_meta = Mock()
+#     manager = Mock(
+#         assign_tax_code_to_object_meta=mocked_assign_tax_code_to_object_meta
+#     )
+#     tax_code = "tax code"
+#
+#     # when
+#     set_tax_code(manager, product, tax_code)
+#
+#     # then
+#     mocked_assign_tax_code_to_object_meta.assert_called_once_with(product, tax_code)
+#
+#
+# def test_get_tax_code(tax_app, product, tax_type):
+#     # given
+#     product.metadata = {
+#         f"{tax_app.name}.code": tax_type.code,
+#         f"{tax_app.name}.description": tax_type.description,
+#     }
+#
+#     # when
+#     fetched_tax_type = get_tax_type(Mock(), product)
+#
+#     # then
+#     assert fetched_tax_type == tax_type
+#
+#
+# def test_get_tax_code_defaults(tax_app, product):
+#     # when
+#     fetched_tax_type = get_tax_type(Mock(), product)
+#
+#     # then
+#     assert fetched_tax_type == TaxType(
+#         code=DEFAULT_TAX_CODE,
+#         description=DEFAULT_TAX_DESCRIPTION,
+#     )
+#
+#
+# def test_get_tax_code_old_method(product, tax_type):
+#     # given
+#     mocked_get_tax_code_from_object_meta = Mock(return_value=tax_type)
+#     manager = Mock(get_tax_code_from_object_meta=mocked_get_tax_code_from_object_meta)
+#
+#     # when
+#     fetched_tax_type = get_tax_type(manager, product)
+#
+#     # then
+#     assert fetched_tax_type == tax_type
+#     mocked_get_tax_code_from_object_meta.assert_called_once_with(product)
+#
