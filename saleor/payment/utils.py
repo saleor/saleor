@@ -696,4 +696,11 @@ def try_void_or_refund_inactive_payment(
     if transaction.is_success:
         update_payment_charge_status(payment, transaction)
         channel_slug = get_channel_slug_from_payment(payment)
-        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        try:
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        except PaymentError:
+            logger.exception(
+                "Unable to void/refund an inactive payment %s, %s.",
+                payment.id,
+                payment.psp_reference,
+            )
