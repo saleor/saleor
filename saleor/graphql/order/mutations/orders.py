@@ -349,6 +349,15 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 shipping_method=method, channel=order.channel
             ).first()
         )
+        if not shipping_channel_listing:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not available in the given channel.",
+                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
         clean_order_update_shipping(
             order, method, shipping_channel_listing.price, info.context.plugins
         )
