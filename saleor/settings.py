@@ -11,6 +11,7 @@ import jaeger_client.config
 import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from graphql.utils import schema_printer
@@ -67,10 +68,22 @@ ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
+DATABASE_CONNECTION_DEFAULT_NAME = "default"
+# TODO: For local envs will be activated in separate PR.
+# We need to update docs an saleor platform.
+# This variable should be set to `replica`
+DATABASE_CONNECTION_REPLICA_NAME = "default"
+
 DATABASES = {
-    "default": dj_database_url.config(
+    DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
-    )
+    ),
+    # TODO: We need to add read only user to saleor platfrom, and we need to update
+    # docs.
+    # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
+    #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+    #     conn_max_age=600,
+    # ),
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -386,8 +399,6 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
-MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
-
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
@@ -476,6 +487,17 @@ AUTHENTICATION_BACKENDS = [
     "saleor.core.auth_backend.PluginBackend",
 ]
 
+# Expired checkouts settings - defines after what time checkouts will be deleted
+ANONYMOUS_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("ANONYMOUS_CHECKOUTS_TIMEDELTA", "30 days"))
+)
+USER_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("USER_CHECKOUTS_TIMEDELTA", "90 days"))
+)
+EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
+)
+
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
@@ -500,7 +522,23 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
         "schedule": timedelta(days=1),
     },
+    "delete-expired-checkouts": {
+        "task": "saleor.checkout.tasks.delete_expired_checkouts",
+        "schedule": crontab(hour=0, minute=0),
+    },
+    "delete-outdated-event-data": {
+        "task": "saleor.core.tasks.delete_event_payloads_task",
+        "schedule": timedelta(days=1),
+    },
+    "deactivate-expired-gift-cards": {
+        "task": "saleor.giftcard.tasks.deactivate_expired_cards_task",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
+
+EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
+    seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
+)
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
@@ -532,10 +570,6 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
-    "MIDDLEWARE": [
-        "saleor.graphql.middleware.app_middleware",
-        "saleor.graphql.middleware.JWTMiddleware",
-    ],
 }
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)

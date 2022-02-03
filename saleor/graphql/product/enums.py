@@ -1,9 +1,10 @@
 import graphene
 
-from ...product import ProductTypeKind
+from ...product import ProductMediaTypes, ProductTypeKind
 from ..core.enums import to_enum
 
 ProductTypeKindEnum = to_enum(ProductTypeKind)
+ProductMediaType = to_enum(ProductMediaTypes, type_name="ProductMediaType")
 
 
 class ProductAttributeType(graphene.Enum):

@@ -15,16 +15,24 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
-from ..core.connection import CountableDjangoObjectType
+from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
-from ..core.types.money import Money
+from ..core.types import ModelObjectType, Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
 from ..utils import get_user_or_app_from_context
-from .dataloaders import GiftCardEventsByGiftCardIdLoader
+from .dataloaders import (
+    GiftCardEventsByGiftCardIdLoader,
+    GiftCardTagsByGiftCardIdLoader,
+)
 from .enums import GiftCardEventsEnum
+from .filters import (
+    GiftCardEventFilterInput,
+    filter_events_by_orders,
+    filter_events_by_type,
+)
 
 
 class GiftCardEventBalance(graphene.ObjectType):
@@ -47,7 +55,8 @@ class GiftCardEventBalance(graphene.ObjectType):
     )
 
 
-class GiftCardEvent(CountableDjangoObjectType):
+class GiftCardEvent(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -67,8 +76,14 @@ class GiftCardEvent(CountableDjangoObjectType):
             "User-friendly number of an order where gift card was used or bought."
         )
     )
-    tag = graphene.String(description="The gift card tag.")
-    old_tag = graphene.String(description="Old gift card tag.")
+    tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="The list of gift card tags.",
+    )
+    old_tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="The list of old gift card tags.",
+    )
     balance = graphene.Field(GiftCardEventBalance, description="The gift card balance.")
     expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
     old_expiry_date = graphene.types.datetime.Date(
@@ -79,7 +94,6 @@ class GiftCardEvent(CountableDjangoObjectType):
         description = f"{ADDED_IN_31} History log of the gift card."
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
-        only_fields = ["id"]
 
     @staticmethod
     def resolve_user(root: models.GiftCardEvent, info):
@@ -130,12 +144,12 @@ class GiftCardEvent(CountableDjangoObjectType):
         return str(order_id) if order_id else None
 
     @staticmethod
-    def resolve_tag(root: models.GiftCardEvent, _info):
-        return root.parameters.get("tag")
+    def resolve_tags(root: models.GiftCardEvent, _info):
+        return root.parameters.get("tags")
 
     @staticmethod
-    def resolve_old_tag(root: models.GiftCardEvent, _info):
-        return root.parameters.get("old_tag")
+    def resolve_old_tags(root: models.GiftCardEvent, _info):
+        return root.parameters.get("old_tags")
 
     @staticmethod
     @traced_resolver
@@ -172,9 +186,24 @@ class GiftCardEvent(CountableDjangoObjectType):
         )
 
 
-class GiftCard(CountableDjangoObjectType):
+class GiftCardTag(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+
+    class Meta:
+        description = f"{ADDED_IN_31} The gift card tag."
+        model = models.GiftCardTag
+        interfaces = [graphene.relay.Node]
+
+
+class GiftCard(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     display_code = graphene.String(
         description="Code in format which allows displaying in a user interface.",
+        required=True,
+    )
+    last_4_code_chars = graphene.String(
+        description="Last 4 characters of gift card code.",
         required=True,
     )
     code = graphene.String(
@@ -185,6 +214,7 @@ class GiftCard(CountableDjangoObjectType):
         ),
         required=True,
     )
+    created = graphene.DateTime(required=True)
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description=f"{ADDED_IN_31} The user who bought or issued a gift card.",
@@ -205,6 +235,8 @@ class GiftCard(CountableDjangoObjectType):
             f"{ADDED_IN_31} Email address of the customer who used a gift card."
         ),
     )
+    last_used_on = graphene.DateTime()
+    expiry_date = graphene.Date()
     app = graphene.Field(
         App,
         description=f"{ADDED_IN_31} App which created the gift card.",
@@ -215,16 +247,26 @@ class GiftCard(CountableDjangoObjectType):
     )
     events = graphene.List(
         graphene.NonNull(GiftCardEvent),
+        filter=GiftCardEventFilterInput(
+            description="Filtering options for gift card events."
+        ),
         description=f"{ADDED_IN_31} List of events associated with the gift card.",
         required=True,
     )
-    tag = graphene.String(description=f"{ADDED_IN_31} The gift card tag.")
+    tags = graphene.List(
+        graphene.NonNull(GiftCardTag),
+        description=f"{ADDED_IN_31} The gift card tag.",
+        required=True,
+    )
     bought_in_channel = graphene.String(
         description=(
             "{ADDED_IN_31} Slug of the channel where the gift card was bought."
         ),
         required=False,
     )
+    is_active = graphene.Boolean(required=True)
+    initial_balance = graphene.Field(Money)
+    current_balance = graphene.Field(Money)
 
     # DEPRECATED
     user = graphene.Field(
@@ -246,22 +288,11 @@ class GiftCard(CountableDjangoObjectType):
             "A gift card is a prepaid electronic payment card accepted in stores. They "
             "can be used during checkout by providing a valid gift card codes."
         )
-        only_fields = [
-            "code",
-            "created",
-            "start_date",
-            "last_used_on",
-            "is_active",
-            "initial_balance",
-            "current_balance",
-            "expiry_date",
-            "tag",
-        ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.GiftCard
 
     @staticmethod
-    def resolve_display_code(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_last_4_code_chars(root: models.GiftCard, *_args, **_kwargs):
         return root.display_code
 
     @staticmethod
@@ -377,8 +408,25 @@ class GiftCard(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
-    def resolve_events(root: models.GiftCard, _info):
-        return GiftCardEventsByGiftCardIdLoader(_info.context).load(root.id)
+    def resolve_events(root: models.GiftCard, info, **kwargs):
+        def filter_events(events):
+            event_filter = kwargs.get("filter", {})
+            if event_type_value := event_filter.get("type"):
+                events = filter_events_by_type(events, event_type_value)
+            if orders_value := event_filter.get("orders"):
+                events = filter_events_by_orders(events, orders_value)
+            return events
+
+        return (
+            GiftCardEventsByGiftCardIdLoader(info.context)
+            .load(root.id)
+            .then(filter_events)
+        )
+
+    @staticmethod
+    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
+    def resolve_tags(root: models.GiftCard, info):
+        return GiftCardTagsByGiftCardIdLoader(info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
@@ -439,3 +487,13 @@ class GiftCard(CountableDjangoObjectType):
     @staticmethod
     def resolve_start_date(root: models.GiftCard, *_args, **_kwargs):
         return None
+
+
+class GiftCardCountableConnection(CountableConnection):
+    class Meta:
+        node = GiftCard
+
+
+class GiftCardTagCountableConnection(CountableConnection):
+    class Meta:
+        node = GiftCardTag

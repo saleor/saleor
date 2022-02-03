@@ -6,14 +6,16 @@ from oauthlib.common import generate_token
 
 from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
-from ..webhook.event_types import WebhookEventType
-from .types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .types import AppExtensionMount, AppExtensionTarget, AppType
 
 
 class AppQueryset(models.QuerySet):
     def for_event_type(self, event_type: str):
         permissions = {}
-        required_permission = WebhookEventType.PERMISSIONS.get(event_type)
+        required_permission = WebhookEventAsyncType.PERMISSIONS.get(
+            event_type, WebhookEventSyncType.PERMISSIONS.get(event_type)
+        )
         if required_permission:
             app_label, codename = required_permission.value.split(".")
             permissions["permissions__content_type__app_label"] = app_label
@@ -107,9 +109,12 @@ class AppExtension(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="extensions")
     label = models.CharField(max_length=256)
     url = models.URLField()
-    view = models.CharField(choices=AppExtensionView.CHOICES, max_length=128)
-    type = models.CharField(choices=AppExtensionType.CHOICES, max_length=128)
-    target = models.CharField(choices=AppExtensionTarget.CHOICES, max_length=128)
+    mount = models.CharField(choices=AppExtensionMount.CHOICES, max_length=256)
+    target = models.CharField(
+        choices=AppExtensionTarget.CHOICES,
+        max_length=128,
+        default=AppExtensionTarget.POPUP,
+    )
     permissions = models.ManyToManyField(
         Permission,
         blank=True,

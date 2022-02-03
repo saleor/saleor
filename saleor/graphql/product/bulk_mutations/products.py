@@ -15,6 +15,10 @@ from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import models
 from ....product.error_codes import ProductErrorCode
+from ....product.search import (
+    prepare_product_search_document_value,
+    update_product_search_document,
+)
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
@@ -40,7 +44,14 @@ from ..mutations.products import (
     ProductVariantInput,
     StockInput,
 )
-from ..types import Product, ProductType, ProductVariant
+from ..types import (
+    Category,
+    Collection,
+    Product,
+    ProductMedia,
+    ProductType,
+    ProductVariant,
+)
 from ..utils import (
     clean_variant_sku,
     create_stocks,
@@ -58,6 +69,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes categories."
         model = models.Category
+        object_type = Category
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -76,6 +88,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes collections."
         model = models.Collection
+        object_type = Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -88,7 +101,11 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             .filter(collections__in=collections_ids)
             .distinct()
         )
+
+        for collection in queryset.iterator():
+            info.context.plugins.collection_deleted(collection)
         queryset.delete()
+
         for product in products:
             info.context.plugins.product_updated(product)
 
@@ -102,6 +119,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes products."
         model = models.Product
+        object_type = Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -531,6 +549,8 @@ class ProductVariantBulkCreate(BaseMutation):
             ChannelContext(node=instance, channel_slug=None) for instance in instances
         ]
 
+        update_product_search_document(product)
+
         transaction.on_commit(
             lambda: [
                 info.context.plugins.product_variant_created(instance.node)
@@ -554,6 +574,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes product variants."
         model = models.ProductVariant
+        object_type = ProductVariant
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -614,8 +635,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=product_pks, default_variant__isnull=True
         )
         for product in products:
+            product.search_document = prepare_product_search_document_value(product)
             product.default_variant = product.variants.first()
-            product.save(update_fields=["default_variant"])
+            product.save(update_fields=["default_variant", "search_document"])
 
         return response
 
@@ -826,6 +848,7 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes product types."
         model = models.ProductType
+        object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -862,6 +885,7 @@ class ProductMediaBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes product media."
         model = models.ProductMedia
+        object_type = ProductMedia
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

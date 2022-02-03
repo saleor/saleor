@@ -28,9 +28,10 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
-from ..product.models import Product
+from ..product.models import Collection, Product
 from ..warehouse.models import Stock, Warehouse
-from .event_types import WebhookEventType
+from . import traced_payload_generator
+from .event_types import WebhookEventAsyncType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
     serialize_checkout_lines,
@@ -66,6 +67,7 @@ ADDRESS_FIELDS = (
 )
 
 ORDER_FIELDS = (
+    "token",
     "created",
     "status",
     "origin",
@@ -128,6 +130,7 @@ def prepare_order_lines_allocations_payload(line):
     return warehouse_id_quantity_allocated_map
 
 
+@traced_payload_generator
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
     line_fields = (
         "product_name",
@@ -149,6 +152,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "undiscounted_total_price_net_amount",
         "undiscounted_total_price_gross_amount",
         "tax_rate",
+        "sale_id",
+        "voucher_code",
     )
     line_price_fields = (
         "unit_price_gross_amount",
@@ -194,6 +199,7 @@ def _generate_collection_point_payload(warehouse: "Warehouse"):
     return collection_point_data
 
 
+@traced_payload_generator
 def generate_order_payload(
     order: "Order",
     requestor: Optional["RequestorOrLazyObject"] = None,
@@ -318,6 +324,7 @@ def _calculate_removed(
     return _calculate_added(current_catalogue, previous_catalogue, key)
 
 
+@traced_payload_generator
 def generate_sale_payload(
     sale: "Sale",
     previous_catalogue: Optional["NodeCatalogueInfo"] = None,
@@ -365,6 +372,7 @@ def generate_sale_payload(
     )
 
 
+@traced_payload_generator
 def generate_invoice_payload(
     invoice: "Invoice", requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -382,6 +390,7 @@ def generate_invoice_payload(
     )
 
 
+@traced_payload_generator
 def generate_checkout_payload(
     checkout: "Checkout", requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -441,6 +450,7 @@ def generate_checkout_payload(
     return checkout_data
 
 
+@traced_payload_generator
 def generate_customer_payload(
     customer: "User", requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -477,6 +487,30 @@ def generate_customer_payload(
     return data
 
 
+@traced_payload_generator
+def generate_collection_payload(
+    collection: "Collection", requestor: Optional["RequestorOrLazyObject"] = None
+):
+    serializer = PayloadSerializer()
+    data = serializer.serialize(
+        [collection],
+        fields=[
+            "name",
+            "description",
+            "background_image_alt",
+            "private_metadata",
+            "metadata",
+        ],
+        extra_dict_data={
+            "background_image": build_absolute_uri(collection.background_image.url)
+            if collection.background_image
+            else None,
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+        },
+    )
+    return data
+
+
 PRODUCT_FIELDS = (
     "name",
     "description",
@@ -507,6 +541,7 @@ def serialize_product_channel_listing_payload(channel_listings):
     return channel_listing_payload
 
 
+@traced_payload_generator
 def generate_product_payload(
     product: "Product", requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -547,6 +582,7 @@ def generate_product_payload(
     return product_payload
 
 
+@traced_payload_generator
 def generate_product_deleted_payload(
     product: "Product", variants_id, requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -575,6 +611,7 @@ PRODUCT_VARIANT_FIELDS = (
 )
 
 
+@traced_payload_generator
 def generate_product_variant_listings_payload(variant_channel_listings):
     serializer = PayloadSerializer()
     fields = (
@@ -590,6 +627,7 @@ def generate_product_variant_listings_payload(variant_channel_listings):
     return channel_listing_payload
 
 
+@traced_payload_generator
 def generate_product_variant_media_payload(product_variant):
     return [
         {
@@ -604,6 +642,7 @@ def generate_product_variant_media_payload(product_variant):
     ]
 
 
+@traced_payload_generator
 def generate_product_variant_with_stock_payload(
     stocks: Iterable["Stock"], requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -624,6 +663,7 @@ def generate_product_variant_with_stock_payload(
     return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
 
 
+@traced_payload_generator
 def generate_product_variant_payload(
     product_variants: Iterable["ProductVariant"],
     requestor: Optional["RequestorOrLazyObject"] = None,
@@ -653,10 +693,12 @@ def generate_product_variant_payload(
     return payload
 
 
+@traced_payload_generator
 def generate_product_variant_stocks_payload(product_variant: "ProductVariant"):
     return product_variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] or 0
 
 
+@traced_payload_generator
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
     lines = FulfillmentLine.objects.prefetch_related(
@@ -720,10 +762,13 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             )
             if fl.stock
             else None,
+            "sale_id": lambda fl: fl.order_line.sale_id,
+            "voucher_code": lambda fl: fl.order_line.voucher_code,
         },
     )
 
 
+@traced_payload_generator
 def generate_fulfillment_payload(
     fulfillment: Fulfillment, requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -768,6 +813,7 @@ def generate_fulfillment_payload(
     return fulfillment_data
 
 
+@traced_payload_generator
 def generate_page_payload(
     page: Page, requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -791,6 +837,7 @@ def generate_page_payload(
     return page_payload
 
 
+@traced_payload_generator
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
@@ -803,6 +850,7 @@ def generate_payment_payload(
     return json.dumps(data, cls=CustomJsonEncoder)
 
 
+@traced_payload_generator
 def generate_list_gateways_payload(
     currency: Optional[str], checkout: Optional["Checkout"]
 ):
@@ -838,19 +886,19 @@ def _generate_sample_order_payload(event_name):
         "fulfillments",
     )
     order = None
-    if event_name == WebhookEventType.ORDER_CREATED:
+    if event_name == WebhookEventAsyncType.ORDER_CREATED:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.UNFULFILLED))
-    elif event_name == WebhookEventType.ORDER_FULLY_PAID:
+    elif event_name == WebhookEventAsyncType.ORDER_FULLY_PAID:
         order = _get_sample_object(
             order_qs.filter(payments__charge_status=ChargeStatus.FULLY_CHARGED)
         )
-    elif event_name == WebhookEventType.ORDER_FULFILLED:
+    elif event_name == WebhookEventAsyncType.ORDER_FULFILLED:
         order = _get_sample_object(
             order_qs.filter(fulfillments__status=FulfillmentStatus.FULFILLED)
         )
     elif event_name in [
-        WebhookEventType.ORDER_CANCELLED,
-        WebhookEventType.ORDER_UPDATED,
+        WebhookEventAsyncType.ORDER_CANCELLED,
+        WebhookEventAsyncType.ORDER_UPDATED,
     ]:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.CANCELED))
     if order:
@@ -858,22 +906,26 @@ def _generate_sample_order_payload(event_name):
         return generate_order_payload(anonymized_order)
 
 
+@traced_payload_generator
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
-        WebhookEventType.CHECKOUT_UPDATED,
-        WebhookEventType.CHECKOUT_CREATED,
+        WebhookEventAsyncType.CHECKOUT_UPDATED,
+        WebhookEventAsyncType.CHECKOUT_CREATED,
     ]
     pages_events = [
-        WebhookEventType.PAGE_CREATED,
-        WebhookEventType.PAGE_DELETED,
-        WebhookEventType.PAGE_UPDATED,
+        WebhookEventAsyncType.PAGE_CREATED,
+        WebhookEventAsyncType.PAGE_DELETED,
+        WebhookEventAsyncType.PAGE_UPDATED,
     ]
-    user_events = [WebhookEventType.CUSTOMER_CREATED, WebhookEventType.CUSTOMER_UPDATED]
+    user_events = [
+        WebhookEventAsyncType.CUSTOMER_CREATED,
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+    ]
 
     if event_name in user_events:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
-    elif event_name == WebhookEventType.PRODUCT_CREATED:
+    elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(
             Product.objects.prefetch_related("category", "collections", "variants")
         )
@@ -890,7 +942,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         page = _get_sample_object(Page.objects.all())
         if page:
             payload = generate_page_payload(page)
-    elif event_name == WebhookEventType.FULFILLMENT_CREATED:
+    elif event_name == WebhookEventAsyncType.FULFILLMENT_CREATED:
         fulfillment = _get_sample_object(
             Fulfillment.objects.prefetch_related("lines__order_line__variant")
         )
@@ -918,6 +970,7 @@ def process_translation_context(context):
     return result
 
 
+@traced_payload_generator
 def generate_translation_payload(
     translation: "Translation", requestor: Optional["RequestorOrLazyObject"] = None
 ):

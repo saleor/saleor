@@ -20,6 +20,7 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
 from ...utils.validators import check_for_duplicates
+from ..types import Group
 
 if TYPE_CHECKING:
     from ....account.models import User
@@ -51,6 +52,7 @@ class PermissionGroupCreate(ModelMutation):
     class Meta:
         description = "Create new permission group."
         model = auth_models.Group
+        object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
@@ -190,6 +192,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     class Meta:
         description = "Update permission group."
         model = auth_models.Group
+        object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
@@ -411,6 +414,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
     class Meta:
         description = "Delete permission group."
         model = auth_models.Group
+        object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"

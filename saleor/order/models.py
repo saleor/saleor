@@ -550,6 +550,12 @@ class OrderLine(models.Model):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
+    # Fulfilled when voucher code was used for product in the line
+    voucher_code = models.CharField(max_length=255, null=True, blank=True)
+
+    # Fulfilled when sale was applied to product in the line
+    sale_id = models.CharField(max_length=255, null=True, blank=True)
+
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:

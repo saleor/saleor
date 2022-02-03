@@ -5,7 +5,8 @@ from ...core.permissions import (
     ProductPermissions,
     ShippingPermissions,
 )
-from ..core.fields import FilterInputConnectionField
+from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import one_of_permissions_required, permission_required
 from .filters import StockFilterInput, WarehouseFilterInput
@@ -23,7 +24,12 @@ from .resolvers import (
     resolve_warehouses,
 )
 from .sorters import WarehouseSortingInput
-from .types import Stock, Warehouse
+from .types import (
+    Stock,
+    StockCountableConnection,
+    Warehouse,
+    WarehouseCountableConnection,
+)
 
 
 class WarehouseQueries(graphene.ObjectType):
@@ -34,8 +40,8 @@ class WarehouseQueries(graphene.ObjectType):
             graphene.ID, description="ID of an warehouse", required=True
         ),
     )
-    warehouses = FilterInputConnectionField(
-        Warehouse,
+    warehouses = FilterConnectionField(
+        WarehouseCountableConnection,
         description="List of warehouses.",
         filter=WarehouseFilterInput(),
         sort_by=WarehouseSortingInput(),
@@ -60,8 +66,10 @@ class WarehouseQueries(graphene.ObjectType):
             ShippingPermissions.MANAGE_SHIPPING,
         ]
     )
-    def resolve_warehouses(self, info, **_kwargs):
-        return resolve_warehouses()
+    def resolve_warehouses(self, info, **kwargs):
+        qs = resolve_warehouses()
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
 
 
 class WarehouseMutations(graphene.ObjectType):
@@ -78,8 +86,10 @@ class StockQueries(graphene.ObjectType):
         description="Look up a stock by ID",
         id=graphene.ID(required=True, description="ID of an warehouse"),
     )
-    stocks = FilterInputConnectionField(
-        Stock, description="List of stocks.", filter=StockFilterInput()
+    stocks = FilterConnectionField(
+        StockCountableConnection,
+        description="List of stocks.",
+        filter=StockFilterInput(),
     )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -89,5 +99,7 @@ class StockQueries(graphene.ObjectType):
         return resolve_stock(id)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_stocks(self, info, **_kwargs):
-        return resolve_stocks()
+    def resolve_stocks(self, info, **kwargs):
+        qs = resolve_stocks()
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, StockCountableConnection)

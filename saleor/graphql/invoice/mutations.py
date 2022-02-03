@@ -9,8 +9,9 @@ from ...invoice.notifications import send_invoice
 from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
-from ..invoice.types import Invoice
 from ..order.types import Order
+from .types import Invoice
+from .utils import is_event_active_for_any_plugin
 
 
 class InvoiceRequest(ModelMutation):
@@ -19,6 +20,7 @@ class InvoiceRequest(ModelMutation):
     class Meta:
         description = "Request an invoice for the order using plugin."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -61,15 +63,28 @@ class InvoiceRequest(ModelMutation):
         )
         cls.clean_order(order)
 
+        if not is_event_active_for_any_plugin(
+            "invoice_request", info.context.plugins.all_plugins
+        ):
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "No app or plugin is configured to handle invoice requests.",
+                        code=InvoiceErrorCode.NO_INVOICE_PLUGIN,
+                    )
+                }
+            )
+
         shallow_invoice = models.Invoice.objects.create(
             order=order,
             number=data.get("number"),
         )
+
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
         )
 
-        if invoice.status == JobStatus.SUCCESS:
+        if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
                 order=order,
                 user=info.context.user,
@@ -107,6 +122,7 @@ class InvoiceCreate(ModelMutation):
     class Meta:
         description = "Creates a ready to send invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -182,6 +198,7 @@ class InvoiceRequestDelete(ModelMutation):
     class Meta:
         description = "Requests deletion of an invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -205,6 +222,7 @@ class InvoiceDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes an invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -234,6 +252,7 @@ class InvoiceUpdate(ModelMutation):
     class Meta:
         description = "Updates an invoice."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -287,6 +306,7 @@ class InvoiceSendNotification(ModelMutation):
     class Meta:
         description = "Send an invoice notification to the customer."
         model = models.Invoice
+        object_type = Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"

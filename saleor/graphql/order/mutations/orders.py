@@ -8,7 +8,7 @@ from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_order_gift_cards, order_has_gift_card_lines
-from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
+from ....order import FulfillmentStatus, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -20,6 +20,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderLineInfo, fetch_order_info
 from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
@@ -34,6 +35,8 @@ from ....order.utils import (
 )
 from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
+from ....shipping.interface import ShippingMethodData
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -55,27 +58,30 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method):
+def clean_order_update_shipping(order, method: ShippingMethodData):
     if not order.shipping_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Cannot choose a shipping method for an order without "
                     "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
                 )
             }
         )
 
-    valid_methods = get_valid_shipping_methods_for_order(order)
-    if valid_methods is None or method.pk not in valid_methods.values_list(
-        "id", flat=True
-    ):
+    valid_methods_ids = {
+        method.id
+        for method in get_valid_shipping_methods_for_order(
+            order, order.channel.shipping_method_listings.all()
+        )
+    }
+    if valid_methods_ids is None or method.id not in valid_methods_ids:
         raise ValidationError(
             {
                 "shipping_method": ValidationError(
                     "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -196,6 +202,7 @@ class OrderUpdate(DraftOrderCreate):
     class Meta:
         description = "Updates an order."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -299,7 +306,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("lines"),
+            qs=models.Order.objects.prefetch_related(
+                "lines", "channel__shipping_method_listings"
+            ),
         )
         cls.validate_order(order)
 
@@ -361,8 +370,14 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
-
-        clean_order_update_shipping(order, method)
+        shipping_method_data = convert_to_shipping_method_data(
+            method,
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method,
+                channel=order.channel,
+            ).first(),
+        )
+        clean_order_update_shipping(order, shipping_method_data)
 
         order.shipping_method = method
         shipping_price = info.context.plugins.calculate_order_shipping(order)
@@ -546,7 +561,8 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
         clean_order_capture(payment)
 
         transaction = try_payment_action(
@@ -560,11 +576,12 @@ class OrderCapture(BaseMutation):
             amount=amount,
             channel_slug=order.channel.slug,
         )
+        order_info.payment.refresh_from_db()
         # Confirm that we changed the status to capture. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.CAPTURE:
             order_captured(
-                order,
+                order_info,
                 info.context.user,
                 info.context.app,
                 amount,
@@ -686,6 +703,7 @@ class OrderConfirm(ModelMutation):
     class Meta:
         description = "Confirms an unconfirmed order by changing status to unfulfilled."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -720,14 +738,15 @@ class OrderConfirm(ModelMutation):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
-        payment = order.get_last_payment()
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
         manager = info.context.plugins
         if payment and payment.is_authorized and payment.can_capture():
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
             order_captured(
-                order,
+                order_info,
                 info.context.user,
                 info.context.app,
                 payment.total,
@@ -804,7 +823,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_to_add, user, app, manager):
+    def add_lines_to_order(
+        order, lines_to_add, user, app, manager, settings, discounts
+    ):
         try:
             return [
                 add_variant_to_order(
@@ -814,6 +835,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
+                    settings,
+                    discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
                 for quantity, variant in lines_to_add
@@ -839,6 +862,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             info.context.user,
             info.context.app,
             info.context.plugins,
+            info.context.site.settings,
+            info.context.discounts,
         )
 
         # Create the products added event
@@ -891,7 +916,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             if order.is_unconfirmed()
             else None
         )
-        line_info = OrderLineData(
+        line_info = OrderLineInfo(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
@@ -940,6 +965,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
     class Meta:
         description = "Updates an order line of an order."
         model = models.OrderLine
+        object_type = OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -971,7 +997,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             if instance.order.is_unconfirmed()
             else None
         )
-        line_info = OrderLineData(
+        line_info = OrderLineInfo(
             line=instance,
             quantity=instance.quantity,
             variant=instance.variant,

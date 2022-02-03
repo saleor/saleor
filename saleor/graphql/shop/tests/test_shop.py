@@ -464,6 +464,69 @@ def test_shop_reservation_set_negative_settings_mutation(
     assert site_settings.reserve_stock_duration_authenticated_user is None
 
 
+@pytest.mark.parametrize("quantity_value", [25, 1, None])
+def test_limit_quantity_per_checkout_mutation(
+    staff_api_client, site_settings, permission_manage_settings, quantity_value
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    limitQuantityPerCheckout
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {"input": {"limitQuantityPerCheckout": quantity_value}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    site_settings.refresh_from_db()
+
+    assert data["limitQuantityPerCheckout"] == quantity_value
+    assert site_settings.limit_quantity_per_checkout == quantity_value
+
+
+@pytest.mark.parametrize("quantity_value", [0, -25])
+def test_limit_quantity_per_checkout_neg_or_zero_value(
+    staff_api_client, site_settings, permission_manage_settings, quantity_value
+):
+    query = """
+        mutation updateSettings($input: ShopSettingsInput!) {
+            shopSettingsUpdate(input: $input) {
+                shop {
+                    limitQuantityPerCheckout
+                }
+                errors {
+                    field,
+                    message
+                }
+            }
+        }
+    """
+    variables = {"input": {"limitQuantityPerCheckout": quantity_value}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["shopSettingsUpdate"]["errors"]
+    site_settings.refresh_from_db()
+
+    assert len(errors) == 1
+    assert errors.pop() == {
+        "field": "limitQuantityPerCheckout",
+        "message": "Quantity limit cannot be lower than 1.",
+    }
+
+    assert site_settings.limit_quantity_per_checkout == 50  # default
+
+
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
     mutation updateDefaultSenderSettings($input: ShopSettingsInput!) {
       shopSettingsUpdate(input: $input) {
@@ -833,9 +896,13 @@ def test_query_available_shipping_methods_for_given_address(
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) == shipping_method_count - 1
-    assert graphene.Node.to_global_id(
-        "ShippingMethod", shipping_zone_without_countries.shipping_methods.first().pk
-    ) not in {ship_meth["id"] for ship_meth in data}
+    assert (
+        graphene.Node.to_global_id(
+            "ShippingMethodType",
+            shipping_zone_without_countries.shipping_methods.first().pk,
+        )
+        not in {ship_meth["id"] for ship_meth in data}
+    )
 
 
 def test_query_available_shipping_methods_no_address_vatlayer_set(
@@ -886,7 +953,7 @@ def test_query_available_shipping_methods_for_given_address_vatlayer_set(
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) == shipping_method_count - 1
     assert graphene.Node.to_global_id(
-        "ShippingMethod", shipping_zone_without_countries.pk
+        "ShippingMethodType", shipping_zone_without_countries.pk
     ) not in {ship_meth["id"] for ship_meth in data}
 
 
@@ -909,7 +976,7 @@ def test_query_available_shipping_methods_for_excluded_postal_code(
     # then
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availableShippingMethods"]
-    assert graphene.Node.to_global_id("ShippingMethod", shipping_method.pk) not in {
+    assert graphene.Node.to_global_id("ShippingMethodType", shipping_method.pk) not in {
         ship_meth["id"] for ship_meth in data
     }
 
@@ -1603,3 +1670,71 @@ def test_fetch_channel_currencies_by_customer(api_client, channel_PLN, channel_U
     query = CHANNEL_CURRENCIES_QUERY
     response = api_client.post_graphql(query)
     assert_no_permission(response)
+
+
+COUNTRY_FILTER_QUERY = """
+    query($filter: CountryFilterInput!) {
+        shop {
+            countries(filter: $filter){
+            code
+            }
+        }
+    }
+
+"""
+
+
+def test_query_countries_filter_shiping_zones_attached_true(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": True}}
+    fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+    countries_codes_results = {country["code"] for country in data}
+
+    # then
+    assert countries_codes_results == fixture_countries_code_set
+    assert len(data) == len(shipping_zones)
+
+
+def test_query_countries_filter_shiping_zones_attached_false(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": False}}
+    fixture_countries_code_set = {zone.countries[0].code for zone in shipping_zones}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+    countries_codes_results = {country["code"] for country in data}
+
+    # then
+    assert not any(
+        code in countries_codes_results for code in fixture_countries_code_set
+    )
+    assert len(data) == (len(countries) - len(shipping_zones))
+
+
+def test_query_countries_filter_shiping_zones_attached_none(
+    user_api_client, shipping_zones
+):
+    # given
+    variables = {"filter": {"attachedToShippingZones": None}}
+
+    # when
+    response = user_api_client.post_graphql(COUNTRY_FILTER_QUERY, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]["countries"]
+
+    # then
+    assert len(data) == len(countries)

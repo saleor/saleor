@@ -17,7 +17,7 @@ from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
-from .types import App, AppToken, Manifest
+from .types import App, AppInstallation, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
 
 T_ERRORS = Dict[str, List[ValidationError]]
@@ -49,13 +49,10 @@ class AppTokenCreate(ModelMutation):
     class Meta:
         description = "Creates a new token."
         model = models.AppToken
+        object_type = AppToken
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return AppToken
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -89,13 +86,10 @@ class AppTokenDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes an authentication token assigned to app."
         model = models.AppToken
+        object_type = AppToken
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return AppToken
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -145,13 +139,10 @@ class AppCreate(ModelMutation):
     class Meta:
         description = "Creates a new app."
         model = models.App
+        object_type = App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return App
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
@@ -187,13 +178,10 @@ class AppUpdate(ModelMutation):
     class Meta:
         description = "Updates an existing app."
         model = models.App
+        object_type = App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return App
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
@@ -221,13 +209,10 @@ class AppDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes an app."
         model = models.App
+        object_type = App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return App
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -247,6 +232,7 @@ class AppActivate(ModelMutation):
     class Meta:
         description = "Activate the app."
         model = models.App
+        object_type = App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -266,6 +252,7 @@ class AppDeactivate(ModelMutation):
     class Meta:
         description = "Deactivate the app."
         model = models.App
+        object_type = App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -287,6 +274,7 @@ class AppDeleteFailedInstallation(ModelDeleteMutation):
     class Meta:
         description = "Delete failed installation."
         model = models.AppInstallation
+        object_type = AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -311,6 +299,7 @@ class AppRetryInstall(ModelMutation):
     class Meta:
         description = "Retry failed installation of new app."
         model = models.AppInstallation
+        object_type = AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -362,6 +351,7 @@ class AppInstall(ModelMutation):
     class Meta:
         description = "Install new app by using app manifest."
         model = models.AppInstallation
+        object_type = AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"

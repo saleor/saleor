@@ -7,6 +7,7 @@ import pytest
 
 from ....checkout import calculations
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.utils import add_variant_to_checkout
 from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
 from ....payment.gateways.dummy_credit_card import (
@@ -325,6 +326,37 @@ def test_checkout_add_payment_bad_amount(
     )
 
 
+def test_checkout_add_payment_no_checkout_email(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    checkout = checkout_without_shipping_required
+    checkout.email = None
+    checkout.save(update_fields=["email"])
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == PaymentErrorCode.CHECKOUT_EMAIL_NOT_SET.name
+
+
 def test_checkout_add_payment_not_supported_gateways(
     user_api_client, checkout_without_shipping_required, address
 ):
@@ -385,16 +417,19 @@ def test_use_checkout_billing_address_as_payment_billing(
 
 
 def test_create_payment_for_checkout_with_active_payments(
-    checkout_with_payments, user_api_client, address
+    checkout_with_payments, user_api_client, address, product_without_shipping
 ):
     # given
     checkout = checkout_with_payments
     address.street_address_1 = "spanish-inqusition"
     address.save()
     checkout.billing_address = address
+    manager = get_plugins_manager()
+    variant = product_without_shipping.variants.get()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
 
-    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
