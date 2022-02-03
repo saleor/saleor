@@ -101,7 +101,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
         return {"id": None, "type": None}
     if isinstance(requestor, (User, AnonymousUser)):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
-    return {"id": requestor.identifier, "type": "app"}  # type: ignore
+    return {"id": requestor.name, "type": "app"}  # type: ignore
 
 
 def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):

@@ -1063,7 +1063,7 @@ def test_generate_requestor_returns_dict_with_app_id_and_app_type(app, rf):
     request.app = app
     requestor = get_user_or_app_from_context(request)
 
-    assert generate_requestor(requestor) == {"id": app.identifier, "type": "app"}
+    assert generate_requestor(requestor) == {"id": app.name, "type": "app"}
 
 
 @freeze_time("1914-06-28 10:50")
@@ -1078,7 +1078,7 @@ def test_generate_meta(app, rf):
     ).isoformat()
 
     assert generate_meta(requestor_data=generate_requestor(requestor)) == {
-        "issuing_principal": {"id": "saleor.apps.dummy", "type": "app"},
+        "issuing_principal": {"id": "Sample app objects", "type": "app"},
         "issued_at": timestamp,
         "version": __version__,
     }
