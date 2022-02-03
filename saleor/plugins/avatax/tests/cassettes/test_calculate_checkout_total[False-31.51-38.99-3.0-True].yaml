@@ -1,0 +1,90 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "PS081282", "taxIncluded":
+      true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
+      "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
+      "description": null}], "code": "93c18734-f2bd-459a-93f9-4a303bba826d", "date":
+      "2021-12-14", "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa
+      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
+      "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
+      "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
+      "USD", "email": ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '757'
+      User-Agent:
+      - python-requests/2.26.0
+    method: POST
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEA+1X227iSBD9lcjPgHyBcHljyUSKhCAKZEea1Tw0dgM9Y2xvdzsTdpR/31N9cSCQ
+        SWZXO0/Lk11dXa46p/p08T0QWTAKW0FaZjwYBcMkjQb9pNtex6us3e0NWXuYrIftLkvCZLVig/gy
+        C8h7V7Fif4O9cTce9nutIGOaAsRhHLWjuB114Vax/Y4X+urMktJM1woblnxXlZLJPfz1vqIYC5Zz
+        NZcZl7CtmE63E5sdfbmWkhfp3lnuF1cw8sd0y4oNv8OHJucc0lrpcsflvWIbvrRfoX2FFnp/r/hh
+        fOv5Oy+yUjp7aD5sFw5M/BG561mJlOEgeVoWqcg5QFmzXPFWkJcp06IsnsNLjmK1KDbTk6WqlqhC
+        cVP4c9A1p3oPMlSETsWlOoyrS83y8a6sCx2MkrjTi4Em2T6YHEFxByQby5VQqfV7ti3ZYzDqd7oD
+        54N3tsrBxWEoGCcsT+scKKNG686yL8CWWL7jDCkBi1mpx8YKL4PB1wNIHpA4EAlG0TFtH9Zrnmrx
+        wM81yyG/2Eml8B0TuQV+V2ZiLXh2snMZDkdJNOoNO2jey35v8An5eG+wLk3/DpJoSGixx5MAlL4o
+        ONr0j+/+oGjJCsWQalnQdqRCLrN6t0K7joIIe97fbRlXqRQVBcPeJVf6opJlVqcaYTJHlKfV0GV7
+        7oxpwqV2CR33pVA3mu8aRrWs0ZkCJteVUZy4On3UuNtJhq3gz5qZ84EuIMQlX0cWcDzF/sm18zno
+        gGgw6nUuwTQeqZ9efADWw4ZqXF1it4twEMWDGNmRJyTA8jWMqE3P0wXzTZHmdUYtZ0vNuEarvMbh
+        FOQ52E6ZNecEyjQKbqfIQvKNJcq8nWHiSy2F8tnTDmOYsR2p2u18Op6RWpH08bFSYlPwzB904+mU
+        aTJb+r2ZMJ3mF+jcGqUsymJ5jKnpDmmUNuzESYifQelNClzsea2rmtoOEC7qFVkJl2BuTa6IhWZF
+        xmR2QVJrV8a13pYSOuq3dHEbIMgptZSd+5qPgxDe6nBbwFQXQs/XvzEl6Ia45dKL+j0WsC7UrCxu
+        mVLLrawbtRXqmgNop72N0jqcaCuiud5uVhHo2MHi6GXayqfbe7yEbR7bJhpsp2Xngq1E7gBCPQue
+        59CKp8+tADRSGXory3qzvWo6FUtb30ioNy2VvilUDelJ+bXkYrOFzJt0HphuGm7RBu+Tdtu0Jxas
+        KHlawqfWe0WMjtxPiNiv0anFVlQVbk7kRorrtWTQiZJDrTK3wz/Tqqgz6JvWPdQqG18fE9t4Ouyv
+        7+i8hTQnkKeTqm6/DxmF4RV1/F+pXihVA+tZApx0/KdCZTPwkkSH1QkemPXWXyNUtu8aZfmXOuXq
+        8rL2Qqfs6q/VqevXdQrqx7JMcqXeGr1WuBBxHe2n/IHTNPhJVD2nDzSrzHP2TX1lFxEdTBINN7bQ
+        Y4J1WFPoMp4+3s0n0/FHYtlf8niuoLssd3z3knYUUvQXUwHO953ZY6aTsBeFmCYxIwuNKcR+JC+L
+        TfP6Qxl+o6AlT/8qv7GLPtL4cT2yTFH8G/VchmZcdVOFm3J+uh7Qperdjv7C0Zz8Ap4GT3MrHY05
+        zTTzvrkJiR3NGsGIJg0wdDpNwfV1taDGADDweWWo8QcdjgfHH/5H/4nIiy7ho1nL/Yc6vi2sEXf9
+        0ocwV7cdIM1Eifenz09/AwkuvU2NDwAA
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 14 Dec 2021 09:31:59 GMT
+      Location:
+      - /api/v2/companies/242975/transactions/0
+      ServerDuration:
+      - '00:00:00.0192906'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      referrer-policy:
+      - same-origin
+      strict-transport-security:
+      - max-age=31536000; includeSubdomains
+      x-avalara-uid:
+      - fee332ee-6bd0-44e3-aa40-1da88c44f602
+      x-correlation-id:
+      - fee332ee-6bd0-44e3-aa40-1da88c44f602
+      x-frame-options:
+      - sameorigin
+      x-permitted-cross-domain-policies:
+      - none
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 201
+      message: Created
+version: 1

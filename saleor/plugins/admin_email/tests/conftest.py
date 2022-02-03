@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from ....plugins.models import EmailTemplate, PluginConfiguration
 from ...email_common import DEFAULT_EMAIL_VALUE
 from ...manager import get_plugins_manager
 from ..constants import (
@@ -125,3 +126,14 @@ def admin_email_plugin(settings):
         return manager.global_plugins[0]
 
     return fun
+
+
+@pytest.fixture
+def admin_email_template(admin_email_plugin):
+    plugin = admin_email_plugin()
+    config = PluginConfiguration.objects.get(identifier=plugin.PLUGIN_ID)
+    return EmailTemplate.objects.create(
+        name=STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
+        value="Custom staff reset password email template",
+        plugin_configuration=config,
+    )

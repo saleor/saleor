@@ -6,6 +6,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -23,7 +24,10 @@ from ..product.dataloaders import (
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-from ..shipping.dataloaders import ShippingMethodByIdLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByChannelSlugLoader,
+)
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
@@ -32,7 +36,6 @@ from .dataloaders import (
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
-from .resolvers import resolve_checkout_shipping_methods
 
 
 class GatewayConfigLine(graphene.ObjectType):
@@ -122,7 +125,7 @@ class CheckoutLine(CountableDjangoObjectType):
                             checkout_line_info=line_info,
                             address=address,
                             discounts=discounts,
-                        )
+                        ).price_with_sale
                 return None
 
             return Promise.all(
@@ -251,24 +254,49 @@ class Checkout(CountableDjangoObjectType):
     def resolve_email(root: models.Checkout, _info):
         return root.get_customer_email()
 
-    @staticmethod
+    @classmethod
     @traced_resolver
-    def resolve_available_shipping_methods(root: models.Checkout, info):
-        return resolve_checkout_shipping_methods(root, info, include_active_only=True)
+    def resolve_available_shipping_methods(cls, root: models.Checkout, info):
+        return cls.resolve_shipping_methods(root, info).then(
+            lambda methods: [m for m in methods if m.active]
+        )
 
-    @staticmethod
+    @classmethod
     @traced_resolver
-    def resolve_shipping_methods(root: models.Checkout, info):
-        return resolve_checkout_shipping_methods(root, info)
+    def resolve_shipping_methods(cls, root: models.Checkout, info):
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+        discounts = DiscountsByDateTimeLoader(info.context).load(
+            info.context.request_time
+        )
 
-    @staticmethod
-    def resolve_shipping_method(root: models.Checkout, info):
+        def calculate_available_shipping_methods(data):
+            lines, checkout_info, discounts, channel = data
+            return checkout_info.all_shipping_methods
+
+        return Promise.all([lines, checkout_info, discounts, channel]).then(
+            calculate_available_shipping_methods
+        )
+
+    @classmethod
+    def resolve_shipping_method(cls, root: models.Checkout, info):
         if not root.shipping_method_id:
             return None
 
-        def wrap_shipping_method_with_channel_context(data):
+        def with_shipping_method_and_channel(data):
             shipping_method, channel = data
-            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+
+            def process_listing(listings):
+                for listing in listings:
+                    if listing.shipping_method_id == shipping_method.id:
+                        return convert_to_shipping_method_data(shipping_method, listing)
+
+            return (
+                ShippingMethodChannelListingByChannelSlugLoader(info.context)
+                .load(channel.slug)
+                .then(process_listing)
+            )
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
             root.shipping_method_id
@@ -276,7 +304,7 @@ class Checkout(CountableDjangoObjectType):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
         return Promise.all([shipping_method, channel]).then(
-            wrap_shipping_method_with_channel_context
+            with_shipping_method_and_channel
         )
 
     @staticmethod

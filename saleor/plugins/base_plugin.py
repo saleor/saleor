@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple, Union
@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional, Tuple
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
-from measurement.measures import Weight
 from prices import Money, TaxedMoney
+from promise.promise import Promise
 
+from ..checkout.interface import CheckoutTaxedPricesData
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -16,6 +17,7 @@ from ..payment.interface import (
     PaymentData,
     PaymentGateway,
 )
+from ..shipping.interface import ShippingMethodData
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -69,17 +71,6 @@ class ExcludedShippingMethod:
     reason: Optional[str]
 
 
-@dataclass
-class ShippingMethod:
-    id: str
-    price: Money
-    name: str
-    maximum_order_weight: Optional[Weight]
-    minimum_order_weight: Optional[Weight]
-    maximum_delivery_days: Optional[int]
-    minimum_delivery_days: Optional[int]
-
-
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -106,11 +97,13 @@ class BasePlugin:
         *,
         configuration: PluginConfigurationType,
         active: bool,
-        channel: Optional["Channel"] = None
+        channel: Optional["Channel"] = None,
+        db_config: Optional["PluginConfiguration"] = None
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
         self.channel = channel
+        self.db_config = db_config
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -153,7 +146,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
-        TaxedMoney,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate checkout line unit price.
@@ -166,7 +159,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             Any,
         ],
-        Any,
+        CheckoutTaxedPricesData,
     ]
 
     #  Calculate the shipping costs for checkout.
@@ -357,9 +350,11 @@ class BasePlugin:
     invoice_delete: Callable[["Invoice", Any], Any]
 
     #  Trigger when invoice creation starts.
-    #
+    #  May return Invoice object.
     #  Overwrite to create invoice with proper data, call invoice.update_invoice.
-    invoice_request: Callable[["Order", "Invoice", Union[str, NoneType], Any], Any]
+    invoice_request: Callable[
+        ["Order", "Invoice", Union[str, NoneType], Any], Optional["Invoice"]
+    ]
 
     #  Trigger after invoice is sent.
     invoice_sent: Callable[["Invoice", str, Any], Any]
@@ -501,10 +496,16 @@ class BasePlugin:
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
-        payment_config = self.get_payment_config(previous_value)  # type: ignore
-        payment_config = payment_config if payment_config != NotImplemented else []
-        currencies = self.get_supported_currencies(previous_value=[])  # type: ignore
-        currencies = currencies if currencies != NotImplemented else []
+        payment_config = (
+            self.get_payment_config(previous_value)  # type: ignore
+            if hasattr(self, "get_payment_config")
+            else []
+        )
+        currencies = (
+            self.get_supported_currencies(previous_value=[])  # type: ignore
+            if hasattr(self, "get_supported_currencies")
+            else []
+        )
         if currency and currency not in currencies:
             return []
         gateway = PaymentGateway(
@@ -556,7 +557,9 @@ class BasePlugin:
             )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct.
 
         Raise django.core.exceptions.ValidationError otherwise.
@@ -579,11 +582,14 @@ class BasePlugin:
         configuration_to_update = cleaned_data.get("configuration")
         if configuration_to_update:
             cls._update_config_items(configuration_to_update, current_config)
+
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
+
         cls.validate_plugin_configuration(plugin_configuration)
         cls.pre_save_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
+
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
@@ -653,10 +659,16 @@ class BasePlugin:
             self._append_config_structure(configuration)
         return configuration
 
+    def resolve_plugin_configuration(
+        self, request
+    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+        # Override this function to customize resolving plugin configuration in API.
+        return self.configuration
+
     def excluded_shipping_methods_for_order(
         self,
         order: "Order",
-        available_shipping_methods: List[ShippingMethod],
+        available_shipping_methods: List[ShippingMethodData],
         previous_value,
     ) -> List[ExcludedShippingMethod]:
         return NotImplemented
@@ -664,7 +676,10 @@ class BasePlugin:
     def excluded_shipping_methods_for_checkout(
         self,
         checkout: "Checkout",
-        available_shipping_methods: List[ShippingMethod],
+        available_shipping_methods: List[ShippingMethodData],
         previous_value,
     ) -> List[ExcludedShippingMethod]:
         return NotImplemented
+
+    def is_event_active(self, event: str, channel=Optional[str]):
+        return hasattr(self, event)

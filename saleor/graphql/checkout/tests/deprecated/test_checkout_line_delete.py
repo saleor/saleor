@@ -39,7 +39,7 @@ def test_checkout_line_delete_by_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -55,7 +55,7 @@ def test_checkout_line_delete_by_id(
     data = content["data"]["checkoutLineDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 0
     assert calculate_checkout_quantity(lines) == 0
     manager = get_plugins_manager()

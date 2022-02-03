@@ -2,7 +2,6 @@ import json
 from typing import List, Optional
 from urllib.parse import urlencode, urljoin
 
-import Adyen
 import opentracing
 import opentracing.tags
 from django.contrib.auth.hashers import make_password
@@ -37,12 +36,13 @@ from .utils.common import (
     PENDING_STATUSES,
     api_call,
     call_capture,
+    call_refund,
     get_payment_method_info,
     get_request_data_for_check_payment,
+    initialize_adyen_client,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
-    request_for_payment_refund,
     update_payment_with_action_required_data,
 )
 from .webhooks import handle_additional_actions, handle_webhook
@@ -217,13 +217,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "apple_pay_cert": configuration["apple-pay-cert"],
             },
         )
-        api_key = self.config.connection_params["api_key"]
-
-        live_endpoint = self.config.connection_params["live"] or None
-        platform = "live" if live_endpoint else "test"
-        self.adyen = Adyen.Adyen(
-            xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
-        )
+        self.adyen = initialize_adyen_client(self.config)
 
     def _insert_webhook_endpoint_to_configuration(self, raw_configuration, channel):
         updated = False
@@ -248,6 +242,17 @@ class AdyenGatewayPlugin(BasePlugin):
         return urljoin(base_url, "webhooks")  # type: ignore
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        """Handle a request received from Adyen.
+
+        The method handles two types of requests:
+            - webhook notification received from Adyen. It is required to properly
+            update the current status of payment and order based on the type of
+            received notification.
+            - additional actions, called when a user is redirected to an external page
+            and after processing a payment is redirecting back to the storefront page.
+            The redirect request comes through the Saleor which calls Adyen API to
+            validate the current status of payment.
+        """
         config = self._get_gateway_config()
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
@@ -276,6 +281,11 @@ class AdyenGatewayPlugin(BasePlugin):
     def initialize_payment(
         self, payment_data, previous_value
     ) -> "InitializedPaymentResponse":
+        """Initialize a payment for ApplePay.
+
+        ApplePay requires an additional action that initializes a payment action. It is
+        done by a separate mutation which calls this method.
+        """
         payment_method = payment_data.get("paymentMethod")
         if payment_method == "applepay":
             # The apple pay on the web requires additional step
@@ -291,6 +301,16 @@ class AdyenGatewayPlugin(BasePlugin):
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
+        """Fetch current configuration for given checkout.
+
+        It calls an Adyen API to fetch all available payment methods for given checkout.
+        Adyen defines available payment methods based on the data that we send like
+        amount, currency, and country. Some payment methods are only available if the
+        given data matches their conditions. Like to display payment method X, which is
+        available in UK, we need to set GBP as currency, and country-code needs to
+        point to UK. We don't fetch anything if checkout is none, as we don't have
+        enough info to provide the required data in the request.
+        """
         local_config = self._get_gateway_config()
         config = [
             {
@@ -325,6 +345,11 @@ class AdyenGatewayPlugin(BasePlugin):
 
     @require_active_plugin
     def check_payment_balance(self, data: dict, previous_value=None) -> dict:
+        """Check current payment balance.
+
+        For Adyen, we use it only for checking the balance of the gift cards. It builds
+        a request based on the input and send a request to Adyen's API.
+        """
         request_data = get_request_data_for_check_payment(
             data, self.config.connection_params["merchant_account"]
         )
@@ -355,6 +380,19 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        """Process a payment on Adyen's side.
+
+        This method is called when payment.to_confirm is set to False.
+        It builds a request data required for a given payment method and sends the data
+        to Adyen's side.
+        If Adyen doesn't return any additional action required and the result code is
+        a success, the payment is finalized with success. If auto_capture is set to
+        True, and the payment status is AUTH, it will immediately call capture.
+        If Adyen returns an additional action to process by customer, the payment is
+        not finished yet. In that case, in the response from the method, we set
+        action_required and add to action_required_data all Adyen's data required to
+        finalize payment by the customer.
+        """
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
         except ObjectDoesNotExist:
@@ -516,6 +554,22 @@ class AdyenGatewayPlugin(BasePlugin):
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        """Confirm a payment on Adyen side.
+
+        In case when we have a transaction with `ACTION_TO_CONFIRM`, we just need to
+        finalize the payment process on our side. Transaction ACTION_TO_CONFIRM is
+        created only when we receive a webhook with a notification that the payment
+        process has been finished with success.
+        In case when we can't find an ACTION_TO_CONFIRM transaction, we call logic
+        responsible for confirming additional data received as an input. The data
+        comes from the storefront when the customer finishes an additional action,
+        which was requested in process_payment call. We still check the value of the
+        action field in the Adyen's response, as there is a possibility that the given
+        payment method will require more additional actions. In that case, we will
+        return action_required set to True and action_required_data fulfilled with
+        action data received from Adyen and required for the next additional action on
+        the customer side.
+        """
         config = self._get_gateway_config()
         # The additional checks are proceed asynchronously so we try to confirm that
         # the payment is already processed
@@ -615,21 +669,18 @@ class AdyenGatewayPlugin(BasePlugin):
         if not transaction:
             raise PaymentError("Cannot find a payment reference to refund.")
 
-        request = request_for_payment_refund(
-            payment_information=payment_information,
-            merchant_account=self.config.connection_params["merchant_account"],
-            token=transaction.token,
-        )
-        with opentracing.global_tracer().start_active_span(
-            "adyen.payment.refund"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
-            result = api_call(request, self.adyen.payment.refund)
-
         amount = payment_information.amount
         currency = payment_information.currency
+
+        result = call_refund(
+            amount=amount,
+            currency=currency,
+            graphql_payment_id=payment_information.graphql_payment_id,
+            merchant_account=self.config.connection_params["merchant_account"],
+            token=transaction.token,
+            adyen_client=self.adyen,
+        )
+
         if transaction.payment.order:
             msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
             external_notification_event(
@@ -714,7 +765,9 @@ class AdyenGatewayPlugin(BasePlugin):
         )
 
     @classmethod
-    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
         """Validate if provided configuration is correct."""
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}

@@ -20,7 +20,7 @@ def clean_checkout_shipping(
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
 ):
     if is_shipping_required(lines):
-        if not checkout_info.shipping_method:
+        if not checkout_info.delivery_method_info.delivery_method:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(

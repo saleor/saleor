@@ -1,8 +1,11 @@
+import os
+
 import pytest
 
 from ....account.models import Address
-from ....checkout.fetch import CheckoutInfo
+from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
 from ....shipping.models import ShippingMethodChannelListing
+from ....shipping.utils import convert_to_shipping_method_data
 from ...models import PluginConfiguration
 from ..plugin import AvataxPlugin
 
@@ -16,9 +19,12 @@ def vcr_config():
 
 @pytest.fixture
 def plugin_configuration(db, channel_USD):
+    default_username = os.environ.get("AVALARA_USERNAME", "test")
+    default_password = os.environ.get("AVALARA_PASSWORD", "test")
+
     def set_configuration(
-        username="test",
-        password="test",
+        username=default_username,
+        password=default_password,
         sandbox=False,
         channel=None,
         active=True,
@@ -93,9 +99,10 @@ def checkout_with_items_and_shipping_info(checkout_with_items_and_shipping):
         channel=channel,
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
-        shipping_method=shipping_method,
-        shipping_method_channel_listings=shipping_channel_listing,
-        valid_shipping_methods=[],
+        delivery_method_info=get_delivery_method_info(
+            convert_to_shipping_method_data(shipping_method, shipping_channel_listing)
+        ),
+        all_shipping_methods=[],
     )
     return checkout_info
 

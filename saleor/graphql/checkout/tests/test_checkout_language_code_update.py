@@ -23,6 +23,7 @@ def test_checkout_update_language_code(
 ):
     language_code = "PL"
     checkout = checkout_with_gift_card
+    previous_last_change = checkout.last_change
     variables = {"token": checkout.token, "languageCode": language_code}
 
     response = user_api_client.post_graphql(
@@ -36,3 +37,4 @@ def test_checkout_update_language_code(
     assert data["checkout"]["languageCode"] == language_code
     checkout.refresh_from_db()
     assert checkout.language_code == language_code.lower()
+    assert checkout.last_change != previous_last_change

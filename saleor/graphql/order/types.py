@@ -1,5 +1,4 @@
 from decimal import Decimal
-from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -35,6 +34,7 @@ from ...payment.model_helpers import (
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.product_images import get_product_image_thumbnail
+from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -64,8 +64,11 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..product.types import ProductVariant
-from ..shipping.dataloaders import ShippingMethodByIdLoader
-from ..shipping.types import ShippingMethod
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
+from ..shipping.types import ShippingMethod, ShippingMethodChannelListing
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -862,12 +865,22 @@ class Order(CountableDjangoObjectType):
 
         def wrap_shipping_method_with_channel_context(data):
             shipping_method, channel = data
-            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+            listing = (
+                ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    info.context
+                ).load((shipping_method.id, channel.slug))
+            )
+
+            def calculate_price(listing: Optional[ShippingMethodChannelListing]):
+                return convert_to_shipping_method_data(shipping_method, listing)
+
+            return listing.then(calculate_price)
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
             root.shipping_method_id
         )
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
         return Promise.all([shipping_method, channel]).then(
             wrap_shipping_method_with_channel_context
         )
@@ -972,7 +985,7 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
         def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+            if last_payment := get_last_payment(payments):
                 return last_payment.charge_status
             return ChargeStatus.NOT_CHARGED
 
@@ -985,7 +998,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
         def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+            if last_payment := get_last_payment(payments):
                 return last_payment.get_charge_status_display()
             return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
 

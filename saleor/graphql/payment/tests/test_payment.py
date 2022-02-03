@@ -6,7 +6,9 @@ import graphene
 import pytest
 
 from ....checkout import calculations
+from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.utils import add_variant_to_checkout
 from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
 from ....payment.gateways.dummy_credit_card import (
@@ -100,6 +102,7 @@ CREATE_PAYMENT_MUTATION = """
             errors {
                 code
                 field
+                variants
             }
         }
     }
@@ -114,7 +117,7 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -152,7 +155,7 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -183,7 +186,7 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -223,7 +226,7 @@ def test_checkout_add_payment(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -265,7 +268,7 @@ def test_checkout_add_payment_default_amount(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -296,7 +299,7 @@ def test_checkout_add_payment_bad_amount(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -342,7 +345,7 @@ def test_use_checkout_billing_address_as_payment_billing(
 ):
     checkout = checkout_without_shipping_required
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -378,17 +381,20 @@ def test_use_checkout_billing_address_as_payment_billing(
 
 
 def test_create_payment_for_checkout_with_active_payments(
-    checkout_with_payments, user_api_client, address
+    checkout_with_payments, user_api_client, address, product_without_shipping
 ):
     # given
     checkout = checkout_with_payments
     address.street_address_1 = "spanish-inqusition"
     address.save()
     checkout.billing_address = address
+    manager = get_plugins_manager()
+    variant = product_without_shipping.variants.get()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
 
-    manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -422,6 +428,125 @@ def test_create_payment_for_checkout_with_active_payments(
     active_payments = checkout.payments.all().filter(is_active=True)
     assert active_payments.count() == 1
     assert active_payments.first().pk not in previous_active_payments_ids
+
+
+def test_checkout_add_payment_no_variant_channel_listings(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.save()
+
+    variant = checkout.lines.first().variant
+    variant.product.channel_listings.filter(channel=checkout.channel_id).delete()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "token"
+    assert errors[0]["variants"] == [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+    ]
+
+
+def test_checkout_add_payment_no_product_channel_listings(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.save()
+
+    variant = checkout.lines.first().variant
+    variant.channel_listings.filter(channel=checkout.channel_id).delete()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "token"
+    assert errors[0]["variants"] == [
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+    ]
+
+
+def test_checkout_add_payment_checkout_without_lines(
+    user_api_client, checkout_without_shipping_required, address, customer_user
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
+    checkout.save()
+
+    checkout.lines.all().delete()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    return_url = "https://www.example.com"
+    variables = {
+        "token": checkout.token,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "returnUrl": return_url,
+        },
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == PaymentErrorCode.NO_CHECKOUT_LINES.name
 
 
 CAPTURE_QUERY = """

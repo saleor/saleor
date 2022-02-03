@@ -74,7 +74,7 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
 def checkout_with_voucher(checkout_with_billing_address, voucher):
     checkout = checkout_with_billing_address
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     return checkout
@@ -84,7 +84,7 @@ def checkout_with_voucher(checkout_with_billing_address, voucher):
 def checkout_with_charged_payment(checkout_with_voucher):
     checkout = checkout_with_voucher
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(

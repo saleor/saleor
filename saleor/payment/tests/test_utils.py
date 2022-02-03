@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from ...checkout.calculations import checkout_line_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import FulfillmentLineData, OrderLineData
 from ...order.actions import create_refund_fulfillment
@@ -387,22 +386,13 @@ def get_expected_checkout_payment_lines(
     expected_payment_lines = []
 
     for line_info in lines:
-        total_price = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         unit_gross = manager.calculate_checkout_line_unit_price(
-            total_price,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
-        ).gross.amount
+        ).price_with_sale.gross.amount
         quantity = line_info.line.quantity
         variant_id = line_info.variant.id
         product_name = f"{line_info.variant.product.name}, {line_info.variant.name}"
@@ -446,7 +436,7 @@ def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_
     payment_lines = create_payment_lines_information(payment_dummy, manager)
 
     # then
-    lines = fetch_checkout_lines(checkout_with_items)
+    lines, _ = fetch_checkout_lines(checkout_with_items)
     discounts = []
     checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
     address = checkout_with_items.shipping_address
@@ -471,7 +461,7 @@ def test_create_payment_lines_information_checkout_with_voucher(
     payment_lines = create_payment_lines_information(payment_dummy, manager)
 
     # then
-    lines = fetch_checkout_lines(checkout_with_items)
+    lines, _ = fetch_checkout_lines(checkout_with_items)
     discounts = []
     checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
     address = checkout_with_items.shipping_address

@@ -6,14 +6,11 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 import Adyen
 import opentracing
 import opentracing.tags
+from Adyen.httpclient import HTTPClient
 from django.conf import settings
 from django_countries.fields import Country
 
-from .....checkout.calculations import (
-    checkout_line_total,
-    checkout_shipping_price,
-    checkout_total,
-)
+from .....checkout.calculations import checkout_shipping_price, checkout_total
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import is_shipping_required
@@ -21,7 +18,7 @@ from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
-from ....interface import PaymentMethodInfo
+from ....interface import GatewayConfig, PaymentMethodInfo
 from ....utils import price_to_minor_unit
 
 if TYPE_CHECKING:
@@ -34,6 +31,30 @@ logger = logging.getLogger(__name__)
 FAILED_STATUSES = ["refused", "error", "cancelled"]
 PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
+HTTP_TIMEOUT = 20  # in seconds
+
+
+def initialize_adyen_client(config: GatewayConfig) -> Adyen.Adyen:
+    api_key = config.connection_params["api_key"]
+
+    live_endpoint = config.connection_params.get("live")
+    platform = "live" if live_endpoint else "test"
+    adyen = Adyen.Adyen(
+        xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
+    )
+    init_http_client(adyen)
+    return adyen
+
+
+def init_http_client(adyen: Adyen.Adyen):
+    adyen_client = adyen.client
+    adyen_client.http_client = HTTPClient(
+        user_agent_suffix=adyen_client.USER_AGENT_SUFFIX,
+        lib_version=adyen_client.LIB_VERSION,
+        force_request=adyen_client.http_force,
+        timeout=HTTP_TIMEOUT,
+    )
+    adyen_client.http_init = True
 
 
 def get_tax_percentage_in_adyen_format(total_gross, total_net):
@@ -184,6 +205,9 @@ def request_data_for_payment(
     # klarna in method - because there is a lot of variable klarna methods - like pay
     # later with klarna or pay with klarna etc
     if "klarna" in method or method in methods_that_require_checkout_details:
+        # Some payment methods like afterpay or klarna, requires more context for
+        # processing a payment. If user pick up such payment method we add more
+        # checkout details to request
         request_data = append_checkout_details(payment_information, request_data)
     return request_data
 
@@ -208,8 +232,10 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
         "quantity": 1,
         "amountExcludingTax": price_to_minor_unit(total_net, currency),
         "taxPercentage": tax_percentage_in_adyen_format,
-        "description": f"Shipping - {checkout_info.shipping_method.name}",
-        "id": f"Shipping:{checkout_info.shipping_method.id}",
+        "description": (
+            f"Shipping - {checkout_info.delivery_method_info.delivery_method.name}"
+        ),
+        "id": f"Shipping:{checkout_info.delivery_method_info.delivery_method.id}",
         "taxAmount": price_to_minor_unit(tax_amount, currency),
         "amountIncludingTax": price_to_minor_unit(total_gross, currency),
     }
@@ -228,7 +254,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
         raise PaymentError("Unable to calculate products for klarna.")
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     currency = payment_information.currency
@@ -239,23 +265,14 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
 
     line_items = []
     for line_info in lines:
-        total = checkout_line_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=discounts,
-        )
         address = checkout_info.shipping_address or checkout_info.billing_address
         unit_price = manager.calculate_checkout_line_unit_price(
-            total,
-            line_info.line.quantity,
             checkout_info,
             lines,
             line_info,
             address,
             discounts,
-        )
+        ).price_with_sale
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
         tax_amount = unit_price.tax.amount
@@ -276,7 +293,9 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
         }
         line_items.append(line_data)
 
-    if checkout_info.shipping_method and is_shipping_required(lines):
+    if checkout_info.delivery_method_info.delivery_method and is_shipping_required(
+        lines
+    ):
         line_items.append(get_shipping_data(manager, checkout_info, lines, discounts))
 
     payment_data["lineItems"] = line_items
@@ -314,7 +333,7 @@ def request_data_for_gateway_config(
     manager = get_plugins_manager()
     address = checkout.billing_address or checkout.shipping_address
     discounts = fetch_active_discounts()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     total = checkout_total(
         manager=manager,
@@ -342,18 +361,20 @@ def request_data_for_gateway_config(
 
 
 def request_for_payment_refund(
-    payment_information: "PaymentData", merchant_account, token
+    amount: Decimal,
+    currency: str,
+    graphql_payment_id: str,
+    merchant_account: str,
+    token: str,
 ) -> Dict[str, Any]:
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": price_to_minor_unit(
-                payment_information.amount, payment_information.currency
-            ),
-            "currency": payment_information.currency,
+            "value": price_to_minor_unit(amount, currency),
+            "currency": currency,
         },
         "originalReference": token,
-        "reference": payment_information.graphql_payment_id,
+        "reference": graphql_payment_id,
     }
 
 
@@ -392,6 +413,28 @@ def update_payment_with_action_required_data(
 
     payment.extra_data = json.dumps(extra_data)
     payment.save(update_fields=["extra_data"])
+
+
+def call_refund(
+    amount: Decimal,
+    currency: str,
+    graphql_payment_id: str,
+    merchant_account: str,
+    token: str,
+    adyen_client: Adyen.Adyen,
+):
+    request = request_for_payment_refund(
+        amount,
+        currency,
+        graphql_payment_id,
+        merchant_account=merchant_account,
+        token=token,
+    )
+    with opentracing.global_tracer().start_active_span("adyen.payment.refund") as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "adyen")
+        return api_call(request, adyen_client.payment.refund)
 
 
 def call_capture(

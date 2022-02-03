@@ -409,7 +409,7 @@ def test_specific_products_voucher_checkout_discount(
     )
     checkout = checkout_with_item
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
@@ -462,7 +462,7 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         collection_ids=set(),
         variants_ids=set(),
     )
-    product_discount = get_product_discount_on_sale(
+    _, product_discount = get_product_discount_on_sale(
         variant.product, set(), discount, channel_USD
     )
 
