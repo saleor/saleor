@@ -171,6 +171,7 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
+        "partial": False,
         "psp_reference": external_reference or "",
         "store_payment_method": store_payment_method,
         "metadata": {} if metadata is None else metadata,
