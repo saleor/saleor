@@ -2174,6 +2174,32 @@ def test_permission_groups_query(
     assert len(data) == count
 
 
+def test_permission_groups_query_with_filter_by_ids(
+    permission_group_manage_users,
+    permission_manage_staff,
+    staff_api_client,
+):
+    # given
+    query = QUERY_PERMISSION_GROUP_WITH_FILTER
+    variables = {
+        "filter": {
+            "ids": [
+                graphene.Node.to_global_id("Group", permission_group_manage_users.pk)
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["permissionGroups"]["edges"]
+    assert len(data) == 1
+
+
 def test_permission_groups_app_no_permission(
     permission_group_manage_users,
     permission_manage_staff,

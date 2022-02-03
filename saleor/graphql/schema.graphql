@@ -5233,6 +5233,7 @@ enum PermissionGroupErrorCode {
 
 input PermissionGroupFilterInput {
   search: String
+  ids: [ID]
 }
 
 enum PermissionGroupSortField {
@@ -6797,6 +6798,7 @@ input StaffUpdateInput {
 input StaffUserInput {
   status: StaffMemberStatus
   search: String
+  ids: [ID]
 }
 
 type Stock implements Node {

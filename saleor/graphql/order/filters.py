@@ -14,7 +14,7 @@ from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_by_id, filter_range_field
 from .enums import OrderStatusFilter
 
 
@@ -106,13 +106,6 @@ def filter_is_preorder(qs, _, values):
     return qs
 
 
-def filter_order_ids(qs, _, values):
-    if values:
-        _, order_ids = resolve_global_ids_to_primary_keys(values, "Order")
-        qs = qs.filter(id__in=order_ids)
-    return qs
-
-
 def filter_gift_card_used(qs, _, value):
     return filter_by_gift_card(qs, value, GiftCardEvents.USED_IN_ORDER)
 
@@ -153,7 +146,7 @@ class OrderFilter(DraftOrderFilter):
         method=filter_is_click_and_collect
     )
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
-    ids = GlobalIDMultipleChoiceFilter(method=filter_order_ids)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Order"))
     gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
     gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
 
