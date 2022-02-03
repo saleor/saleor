@@ -2669,6 +2669,12 @@ def order_line_with_allocation_in_many_stocks(
         ]
     )
 
+    stocks_to_update = list(stocks)
+    stocks_to_update[0].quantity_allocated = 2
+    stocks_to_update[1].quantity_allocated = 1
+
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+
     return order_line
 
 
@@ -2712,6 +2718,9 @@ def order_line_with_one_allocation(
     Allocation.objects.create(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
+    stock = stocks[0]
+    stock.quantity_allocated = 1
+    stock.save(update_fields=["quantity_allocated"])
 
     return order_line
 

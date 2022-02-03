@@ -498,6 +498,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
         "schedule": timedelta(days=1),
     },
+    "update-stocks-quantity-allocated": {
+        "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
+        "schedule": timedelta(days=1),
+    },
 }
 
 # Change this value if your application is running behind a proxy,

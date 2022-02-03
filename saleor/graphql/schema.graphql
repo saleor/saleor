@@ -6268,8 +6268,8 @@ type Stock implements Node {
   warehouse: Warehouse!
   productVariant: ProductVariant!
   quantity: Int!
-  id: ID!
   quantityAllocated: Int!
+  id: ID!
 }
 
 enum StockAvailability {
