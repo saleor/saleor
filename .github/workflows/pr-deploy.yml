@@ -19,7 +19,7 @@ jobs:
         env:
           HD_ALLOWED_CLIENT_HOSTS: "*"
           HD_ALLOWED_HOSTS: "*"
-          HD_DJANGO_SETTINGS_MODULE: "saleor.settings"
+          HD_DJANGO_SETTINGS_MODULE: "saleor.wecre8_settings"
           HD_DEBUG: "True"
           HD_NPM_CONFIG_PRODUCTION: "false"
           HD_DEFAULT_FROM_EMAIL: "noreply@wecre8.com"

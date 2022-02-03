@@ -1,14 +1,24 @@
+import json
 import logging
+import os
 
+import requests
 from django.core.exceptions import ValidationError
-from django.http import HttpRequest, HttpResponseNotFound
+from django.http import HttpRequest, HttpResponseNotFound, JsonResponse
 from django.utils.translation import gettext_lazy as _
 
+from saleor.graphql.core.enums import PluginErrorCode
+from saleor.payment.gateways.adyen.utils.apple_pay import (
+    validate_payment_data_for_apple_pay,
+)
+from saleor.payment.gateways.utils import (
+    get_supported_currencies,
+    require_active_plugin,
+)
+from saleor.payment.interface import GatewayResponse, PaymentData
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.models import PluginConfiguration
 
-from ...interface import GatewayResponse, PaymentData
-from ..utils import get_supported_currencies, require_active_plugin
 from . import GatewayConfig, capture, confirm_payment, process_payment, refund
 from .utils import handle_webhook
 
@@ -88,10 +98,12 @@ class CheckoutGatewayPlugin(BasePlugin):
             )
             raise ValidationError(
                 {
-                    missing_fields[0]: ValidationError(
-                        error_msg + ", ".join(missing_fields), code="invalid"
+                    f"{field}": ValidationError(
+                        error_msg.format(field),
+                        code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                     )
-                }
+                    for field in missing_fields
+                },
             )
 
     def get_client_token(self):
@@ -134,10 +146,45 @@ class CheckoutGatewayPlugin(BasePlugin):
 
     def webhook(self, request: HttpRequest, path: str, *args, **kwargs):
         if path == "/paid/" and request.method == "POST":
-            handle_webhook(
+            response = handle_webhook(
                 request=request,
                 gateway=self.PLUGIN_ID,
                 config=self._get_gateway_config(),
             )
             logger.info(msg="Finish handling webhook")
+            return response
+        elif path == "/apple-pay/validate-session/" and request.method == "POST":
+            # Apple Pay session
+            payment_data = json.loads(request.body.decode("utf-8").replace("'", '"'))
+            display_name = payment_data.get("displayName", "")
+            validation_url = payment_data.get("validationUrl", "")
+            initiative_context = payment_data.get("initiativeContext", "")
+            merchant_identifier = payment_data.get("merchantIdentifier", "")
+
+            payment_data = {
+                "initiative": "web",
+                "displayName": display_name,
+                "validationUrl": validation_url,
+                "initiativeContext": initiative_context,
+                "merchantIdentifier": merchant_identifier,
+            }
+            validate_payment_data_for_apple_pay(
+                certificate="certificate",
+                domain=initiative_context,
+                display_name=display_name,
+                validation_url=validation_url,
+                merchant_identifier=merchant_identifier,
+            )
+            cwd = os.path.join(os.path.dirname(__file__))
+            response = requests.post(
+                validation_url,
+                json=payment_data,
+                cert=(
+                    cwd + "/certificate_sandbox.pem",
+                    cwd + "/certificate_sandbox.key",
+                ),
+            )
+            logger.info(msg="Finish validating Apple Pay session")
+            return JsonResponse(data=response.json(), status=response.status_code)
+
         return HttpResponseNotFound("This path is not valid!")
