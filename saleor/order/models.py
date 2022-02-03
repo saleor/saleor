@@ -303,7 +303,11 @@ class Order(ModelWithMetadata):
         return "#%d" % (self.id,)
 
     def get_last_payment(self):
-        return max(self.payments.all(), default=None, key=attrgetter("pk"))
+        # Skipping a partial payment is a temporary workaround for storing a basic data
+        # about partial payment from Adyen plugin. This is something that will removed
+        # in 3.1 by introducing a partial payments feature.
+        payments = [payment for payment in self.payments.all() if not payment.partial]
+        return max(payments, default=None, key=attrgetter("pk"))
 
     def is_pre_authorized(self):
         return (
