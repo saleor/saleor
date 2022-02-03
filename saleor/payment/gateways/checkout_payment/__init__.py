@@ -68,7 +68,11 @@ def process_payment_using_frames(
                 currency=payment_information.currency,
                 payment_response=payment.http_response.body,
                 customer_id=get_payment_customer_id(payment_information),
-                action_required_data={"3ds_url": payment.redirect_link.get("href")},
+                action_required_data={
+                    "3ds_url": payment.redirect_link.get("href")
+                    if hasattr(payment, "redirect_link")
+                    else None,
+                },
             )
             from saleor.payment.models import Payment
 
