@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ...graphql.core.enums import PluginErrorCode
 from ...payment.gateways.utils import require_active_plugin
-from ...product.models import Product, ProductTranslation
+from ...product.models import Product, ProductTranslation, ProductVariant
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
 from .client import AlgoliaApiClient
@@ -161,3 +161,36 @@ class AlgoliaPlugin(BasePlugin):
                         obj=product_data, request_options={"createIfNotExists": True}
                     )
                     logger.info("Translation %s updated in Algolia", translation)
+
+    @require_active_plugin
+    def product_variant_created(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        """Index product variant to Algolia."""
+        for locale, index in self.get_client().indices.items():
+            product_data = get_product_data(
+                language_code=locale.upper(),
+                product_pk=product_variant.product.pk,
+            )
+            if product_data:
+                index.save_object(
+                    obj=product_data,
+                    request_options={"autoGenerateObjectIDIfNotExist": False},
+                )
+                logger.info("Product variant %s indexed to Algolia", product_variant)
+
+    @require_active_plugin
+    def product_variant_updated(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        """Index product variant to Algolia."""
+        for locale, index in self.get_client().indices.items():
+            product_data = get_product_data(
+                language_code=locale.upper(),
+                product_pk=product_variant.product.pk,
+            )
+            if product_data:
+                index.partial_update_object(
+                    obj=product_data, request_options={"createIfNotExists": True}
+                )
+                logger.info("Product variant %s updated in Algolia", product_variant)
