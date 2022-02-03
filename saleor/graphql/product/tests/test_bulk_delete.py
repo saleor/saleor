@@ -590,7 +590,7 @@ def test_delete_products_removes_checkout_lines(
     # given
     checkout = checkout_with_items
     lines_count = checkout.lines.count()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     old_quantity = calculate_checkout_quantity(lines)
 
     query = DELETE_PRODUCTS_MUTATION
@@ -608,7 +608,7 @@ def test_delete_products_removes_checkout_lines(
     assert content["data"]["productBulkDelete"]["count"] == 3
 
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == lines_count - 3
     assert old_quantity == calculate_checkout_quantity(lines) + 3
 
@@ -936,7 +936,7 @@ def test_delete_product_variants_removes_checkout_lines(
         add_variant_to_checkout(checkout_info, variant, 1)
 
     lines_count = checkout.lines.count()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     old_quantity = calculate_checkout_quantity(lines)
 
     assert ProductVariantChannelListing.objects.filter(
@@ -960,7 +960,7 @@ def test_delete_product_variants_removes_checkout_lines(
         id__in=[variant.id for variant in variant_list]
     ).exists()
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == lines_count - 2
     assert old_quantity == calculate_checkout_quantity(lines) + 2
