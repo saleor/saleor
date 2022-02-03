@@ -213,7 +213,7 @@ def test_handle_authorization_for_checkout_partial_payment(
 
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
@@ -1519,7 +1519,7 @@ def test_handle_order_closed_success_true(
 
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
@@ -1570,7 +1570,7 @@ def test_handle_order_closed_with_adyen_partial_payments_success_true(
 
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
@@ -1655,7 +1655,7 @@ def test_handle_order_closed_with_adyen_partial_payments_success_true_without_am
 
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
@@ -1750,7 +1750,7 @@ def test_order_closed_with_adyen_partial_payments_unable_to_create_order(
 
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
