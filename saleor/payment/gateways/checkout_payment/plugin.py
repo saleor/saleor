@@ -153,7 +153,7 @@ class CheckoutGatewayPlugin(BasePlugin):
             )
             logger.info(msg="Finish handling webhook")
             return response
-        elif path == "/apple-pay/validate-/" and request.method == "POST":
+        elif path == "/apple-pay/validate-session/" and request.method == "POST":
             # Apple Pay session
             payment_data = json.loads(request.body.decode("utf-8").replace("'", '"'))
             display_name = payment_data.get("displayName", "")
