@@ -1,9 +1,9 @@
 import pytest
 
-from saleor.app.models import App
-from saleor.plugins.webhook.tasks import _get_webhooks_for_event
-from saleor.webhook.event_types import WebhookEventAsyncType
-from saleor.webhook.models import Webhook, WebhookEvent
+from ....app.models import App
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.models import Webhook, WebhookEvent
+from ..tasks import _get_webhooks_for_event
 
 
 @pytest.fixture
