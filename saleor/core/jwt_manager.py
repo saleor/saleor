@@ -1,6 +1,6 @@
 import json
 import logging
-from os.path import exists
+from os.path import exists, join
 from typing import Union
 
 import jwt
@@ -68,7 +68,7 @@ class JWTManager(JWTManagerBase):
 
     @classmethod
     def _load_debug_private_key(cls):
-        key_path = f"{settings.PROJECT_ROOT}/{cls.KEY_FILE_FOR_DEBUG}"
+        key_path = join(settings.PROJECT_ROOT, cls.KEY_FILE_FOR_DEBUG)
         if exists(key_path):
             return cls._load_local_private_key(key_path)
 
@@ -152,7 +152,7 @@ class JWTManager(JWTManagerBase):
         try:
             cls.get_private_key()
         except Exception as e:
-            raise ImproperlyConfigured(f"Unable to load provided pem private key. {e}")
+            raise ImproperlyConfigured(f"Unable to load provided PEM private key. {e}")
 
 
 def get_jwt_manager() -> JWTManagerBase:
