@@ -1801,3 +1801,77 @@ def test_order_closed_with_adyen_partial_payments_unable_to_create_order(
         graphql_payment_id=mock.ANY,
         adyen_client=mock.ANY,
     )
+
+
+@patch("saleor.payment.gateway.void")
+@mock.patch("saleor.payment.gateways.adyen.webhooks.call_refund")
+def test_order_closed_with_not_active_payment(
+    mock_call_refund,
+    mock_void,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    # given
+
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = False
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification_data = notification(
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+        success="true",
+    )
+    notification_data["additionalData"] = {
+        "order-2-paymentMethod": "visa",
+        "order-2-pspReference": "881643125782168B",
+        "order-2-paymentAmount": "GBP 29.10",
+        "order-1-pspReference": "861643125754056E",
+        "order-1-paymentAmount": "GBP 41.90",
+        "order-1-paymentMethod": "givex",
+    }
+    merchant_account = "SaleorEcom"
+    config = adyen_plugin(merchant_account=merchant_account).config
+
+    # when
+    handle_order_closed(notification_data, config)
+
+    # then
+    assert payment.checkout
+    assert payment.order is None
+    mock_call_refund.assert_any_call(
+        amount=Decimal("41.90"),
+        currency="GBP",
+        merchant_account=merchant_account,
+        token="861643125754056E",
+        graphql_payment_id=mock.ANY,
+        adyen_client=mock.ANY,
+    )
+    mock_call_refund.assert_any_call(
+        amount=Decimal("29.10"),
+        currency="GBP",
+        merchant_account=merchant_account,
+        token="881643125782168B",
+        graphql_payment_id=mock.ANY,
+        adyen_client=mock.ANY,
+    )

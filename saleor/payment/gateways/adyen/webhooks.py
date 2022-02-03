@@ -801,7 +801,9 @@ def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayCon
             "previously are automatically cancelled or refunded by Adyen."
         )
         return
-    payment = get_payment(notification.get("merchantReference"), psp_reference)
+    payment = get_payment(
+        notification.get("merchantReference"), psp_reference, check_if_active=False
+    )
 
     if not payment:
         # We don't know anything about that payment
@@ -811,12 +813,20 @@ def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayCon
     if payment.order:
         logger.info(f"Order already created for payment: {payment.pk}")
         return
+
+    adyen_partial_payments = get_or_create_adyen_partial_payments(notification, payment)
+    if not payment.is_active:
+        logger.info(
+            "Immediately refund an Adyen payments: %s as payment %s is not active."
+        )
+        refund_partial_payments(adyen_partial_payments, config=gateway_config)
+        return
+
     checkout = payment.checkout
 
     adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
     kind = TransactionKind.CAPTURE if adyen_auto_capture else TransactionKind.AUTH
 
-    adyen_partial_payments = get_or_create_adyen_partial_payments(notification, payment)
     try:
         order = handle_not_created_order(
             notification, payment, checkout, kind, get_plugins_manager()
