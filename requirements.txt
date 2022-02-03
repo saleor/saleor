@@ -13,7 +13,7 @@ cachetools==4.2.2; python_version >= "3.5" and python_version < "4.0" and (pytho
 cairocffi==1.2.0; python_version >= "3.6"
 cairosvg==2.5.2; python_version >= "3.6"
 celery==5.1.2; python_version >= "3.6"
-certifi==2021.5.30; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
+certifi==2021.5.30; python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.0"
 cffi==1.14.6; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 charset-normalizer==2.0.4; python_full_version >= "3.6.0" and python_version >= "3"
 click-didyoumean==0.0.3; python_version >= "3.6"
@@ -41,13 +41,13 @@ django-redis==5.0.0; python_version >= "3.6"
 django-storages==1.12.3; python_version >= "3.5"
 django-timezone-field==4.2.1; python_version >= "3.5"
 django-versatileimagefield==2.1
-django==3.2.6; python_version >= "3.6"
+django==3.2.12; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 faker==8.11.0; python_version >= "3.6"
 freezegun==1.1.0; python_version >= "3.5"
-google-api-core==2.0.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.4.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.34.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.7.0; python_version >= "3.6"
@@ -63,6 +63,7 @@ graphene==2.1.9
 graphql-core==2.3.2
 graphql-relay==2.0.1
 grpc-google-iam-v1==0.12.3; python_version >= "3.6"
+grpcio-status==1.39.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 grpcio==1.39.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 gunicorn==20.1.0; python_version >= "3.5"
 h11==0.12.0; python_version >= "3.6"

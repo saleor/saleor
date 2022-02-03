@@ -1,5 +1,4 @@
 from decimal import Decimal
-from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -986,7 +985,7 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
         def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+            if last_payment := get_last_payment(payments):
                 return last_payment.charge_status
             return ChargeStatus.NOT_CHARGED
 
@@ -999,7 +998,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
         def _resolve_payment_status(payments):
-            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+            if last_payment := get_last_payment(payments):
                 return last_payment.get_charge_status_display()
             return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
 

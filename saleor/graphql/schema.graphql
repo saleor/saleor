@@ -1064,6 +1064,7 @@ enum CheckoutErrorCode {
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
+  NO_LINES
 }
 
 type CheckoutLanguageCodeUpdate {
@@ -1631,6 +1632,10 @@ type CountryDisplay {
   code: String!
   country: String!
   vat: VAT
+}
+
+input CountryFilterInput {
+  attachedToShippingZones: Boolean
 }
 
 type CreateToken {
@@ -4635,6 +4640,7 @@ type PaymentError {
   field: String
   message: String
   code: PaymentErrorCode!
+  variants: [ID!]
 }
 
 enum PaymentErrorCode {
@@ -4652,6 +4658,8 @@ enum PaymentErrorCode {
   NOT_SUPPORTED_GATEWAY
   CHANNEL_INACTIVE
   BALANCE_CHECK_ERROR
+  UNAVAILABLE_VARIANT_IN_CHANNEL
+  NO_CHECKOUT_LINES
 }
 
 input PaymentFilterInput {
@@ -4768,6 +4776,7 @@ enum PermissionGroupErrorCode {
 
 input PermissionGroupFilterInput {
   search: String
+  ids: [ID]
 }
 
 enum PermissionGroupSortField {
@@ -6053,7 +6062,7 @@ type Shop {
   availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
+  countries(languageCode: LanguageCodeEnum, filter: CountryFilterInput): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
@@ -6252,6 +6261,7 @@ input StaffUpdateInput {
 input StaffUserInput {
   status: StaffMemberStatus
   search: String
+  ids: [ID]
 }
 
 type Stock implements Node {

@@ -46,7 +46,7 @@ def test_checkout_lines_add(
     variant = stock.product_variant
     checkout = checkout_with_item
     line = checkout.lines.first()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     previous_last_change = checkout.last_change
@@ -61,14 +61,14 @@ def test_checkout_lines_add(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -411,7 +411,7 @@ def test_checkout_lines_update(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     assert calculate_checkout_quantity(lines) == 3
     line = checkout.lines.first()
@@ -431,7 +431,7 @@ def test_checkout_lines_update(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.variant == variant
@@ -439,7 +439,7 @@ def test_checkout_lines_update(
     assert calculate_checkout_quantity(lines) == 1
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -573,7 +573,7 @@ def test_checkout_line_delete_by_zero_quantity(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -608,7 +608,7 @@ def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purc
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
@@ -643,7 +643,7 @@ def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -723,7 +723,7 @@ def test_checkout_lines_update_with_chosen_shipping(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 1
 
 
@@ -757,7 +757,7 @@ def test_checkout_line_delete(
 ):
     checkout = checkout_with_item
     previous_last_change = checkout.last_change
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -772,7 +772,7 @@ def test_checkout_line_delete(
     data = content["data"]["checkoutLineDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 0
     assert calculate_checkout_quantity(lines) == 0
     manager = get_plugins_manager()
@@ -829,7 +829,7 @@ def test_checkout_lines_delete(
     data = content["data"]["checkoutLinesDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() + len(lines_list) == checkout_lines_count
     remaining_lines = data["checkout"]["lines"]
     lines_ids = [line["id"] for line in remaining_lines]

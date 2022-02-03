@@ -565,7 +565,7 @@ def test_checkout_payment_charge(
     """
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_billing_address)
+    lines, _ = fetch_checkout_lines(checkout_with_billing_address)
     checkout_info = fetch_checkout_info(
         checkout_with_billing_address, lines, [], manager
     )
