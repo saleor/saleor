@@ -2,7 +2,7 @@ import decimal
 
 import pytest
 
-from ....core.taxes import TaxData, TaxType
+from ....core.taxes import TaxData
 from ..utils import (
     _unsafe_parse_tax_data,
     _unsafe_parse_tax_line_data,
@@ -131,10 +131,9 @@ def test_parse_tax_data_decimalexception(tax_data_response):
 
 
 def test_parse_tax_codes_success(tax_codes_response):
-    assert parse_tax_codes(tax_codes_response) == [
-        TaxType(code=tax["code"], description=tax["description"])
-        for tax in tax_codes_response
-    ]
+    assert parse_tax_codes(tax_codes_response) == {
+        tax["code"]: tax["description"] for tax in tax_codes_response
+    }
 
 
 def test_parse_tax_codes_malformed():
@@ -162,6 +161,4 @@ def test_parse_tax_codes_no_description(tax_codes_response):
     tax_codes = parse_tax_codes(tax_codes_without_description_response)
 
     # then
-    assert tax_codes == [
-        TaxType(code=tax["code"], description=tax["code"]) for tax in tax_codes_response
-    ]
+    assert tax_codes == {tax["code"]: tax["code"] for tax in tax_codes_response}

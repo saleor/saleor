@@ -4,7 +4,7 @@ import json
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from django.db.models import QuerySet
 from prices import Money
@@ -15,7 +15,7 @@ from ...core.models import (
     EventDeliveryStatus,
     EventPayload,
 )
-from ...core.taxes import TaxData, TaxLineData, TaxType
+from ...core.taxes import TaxData, TaxLineData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...shipping.interface import ShippingMethodData
 
@@ -224,11 +224,11 @@ def parse_list_shipping_methods_response(
 
 def parse_tax_codes(
     response_tax_data: Any,
-) -> Optional[List[TaxType]]:
+) -> Optional[Dict[str, str]]:
     if not isinstance(response_tax_data, list):
         return None
 
-    tax_types = []
+    tax_types = {}
 
     for tax in response_tax_data:
         print(tax)
@@ -243,7 +243,7 @@ def parse_tax_codes(
         if not description:
             description = code
 
-        tax_types.append(TaxType(code, description))
+        tax_types[code] = description
 
     return tax_types
 

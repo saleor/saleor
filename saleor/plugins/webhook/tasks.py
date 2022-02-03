@@ -95,7 +95,7 @@ def trigger_webhooks_async(data, event_type):
 
 
 def trigger_webhook_sync(event_type: str, data: str, app: "App"):
-    """Send a synchronous payment webhook request."""
+    """Send a synchronous webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
     event_payload = EventPayload.objects.create(payload=data)
@@ -114,10 +114,17 @@ def trigger_webhook_sync(event_type: str, data: str, app: "App"):
 R = TypeVar("R")
 
 
-def trigger_tax_webhook_sync(
+def trigger_all_webhooks_sync(
     event_type: str, data: str, parse_response: Callable[[Any], Optional[R]]
 ) -> Optional[R]:
-    """Send a synchronous tax webhook request."""
+    """Send all synchronous webhook request for given event type.
+
+    Requests are send sequentially.
+    If the current webhook does not return expected response,
+    the next one is send.
+    If no webhook responds with expected response,
+    this function returns None.
+    """
     webhooks = _get_webhooks_for_event(event_type)
     event_payload = EventPayload.objects.create(payload=data)
     for webhook in webhooks:

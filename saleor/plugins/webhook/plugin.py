@@ -45,7 +45,7 @@ from ..base_plugin import BasePlugin
 from .tasks import (
     _get_webhooks_for_event,
     send_webhook_request_async,
-    trigger_tax_webhook_sync,
+    trigger_all_webhooks_sync,
     trigger_webhook_sync,
     trigger_webhooks_async,
 )
@@ -555,7 +555,7 @@ class WebhookPlugin(BasePlugin):
         self, checkout: "Checkout", previous_value
     ) -> Optional["TaxData"]:
         payload = generate_checkout_payload(checkout, self.requestor)
-        return trigger_tax_webhook_sync(
+        return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, payload, parse_tax_data
         )
 
@@ -563,7 +563,7 @@ class WebhookPlugin(BasePlugin):
         self, order: "Order", previous_value
     ) -> Optional["TaxData"]:
         payload = generate_order_payload(order, self.requestor)
-        return trigger_tax_webhook_sync(
+        return trigger_all_webhooks_sync(
             WebhookEventSyncType.ORDER_CALCULATE_TAXES, payload, parse_tax_data
         )
 
@@ -590,14 +590,12 @@ class WebhookPlugin(BasePlugin):
         return methods
 
     def __fetch_tax_codes(self) -> Dict[str, str]:
-        tax_types = (
-            trigger_tax_webhook_sync(
+        return (
+            trigger_all_webhooks_sync(
                 WebhookEventSyncType.FETCH_TAX_CODES, "", parse_tax_codes
             )
-            or []
+            or {}
         )
-
-        return {tax_type.code: tax_type.description for tax_type in tax_types}
 
     def __get_cached_tax_codes_or_fetch(self) -> Dict[str, str]:
         if cached_tax_codes_dict := cache.get(WEBHOOK_TAX_CODES_CACHE_KEY):
@@ -624,7 +622,7 @@ class WebhookPlugin(BasePlugin):
     ):
         """Get tax code and description for a product or product type.
 
-        If there is no active tax app, returns tax code from tax plugin.
+        If there is no active tax app, returns tax code from previous plugin.
         If there is no tax code defined for the product/product type,
         then return dummy values.
         """
@@ -655,7 +653,7 @@ class WebhookPlugin(BasePlugin):
     ):
         """Update tax code for a product or product type.
 
-        If there is no active tax app, then the operation is delegated to a tax plugin.
+        Tax code is updated only if there is active tax app.
         If parameter `tax_code` is None, then currently saved tax code is deleted from
         product/product type.
         if all tax codes for a current tax app cannot be fetched
