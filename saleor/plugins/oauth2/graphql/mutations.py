@@ -91,7 +91,6 @@ class SocialLoginByAccessToken(BaseMutation):
     def get_user(cls, info, input, **data):
         provider = data["provider"]
         auth_response = data["auth_response"]
-        print(auth_response)
         created, user = get_or_create_user(provider, info.context, auth_response)
         return created, user
 
