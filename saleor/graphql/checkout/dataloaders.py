@@ -30,11 +30,7 @@ class CheckoutByTokenLoader(DataLoader):
     context_key = "checkout_by_token"
 
     def batch_load(self, keys):
-        checkouts = (
-            Checkout.objects.using(self.database_connection_name)
-            .filter(token__in=keys)
-            .in_bulk()
-        )
+        checkouts = Checkout.objects.using(self.database_connection_name).in_bulk(keys)
         return [checkouts.get(token) for token in keys]
 
 
@@ -114,14 +110,6 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             keys
         )
         return Promise.all([checkouts, checkout_lines]).then(with_checkout_lines)
-
-
-class CheckoutByIdLoader(DataLoader):
-    context_key = "checkout_by_id"
-
-    def batch_load(self, keys):
-        checkouts = Checkout.objects.using(self.database_connection_name).in_bulk(keys)
-        return [checkouts.get(checkout_id) for checkout_id in keys]
 
 
 class CheckoutByUserLoader(DataLoader):
