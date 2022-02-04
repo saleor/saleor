@@ -26,6 +26,10 @@ class Provider:
         if scope:
             self.scope = scope
 
+    @property
+    def client_secret(self):
+        return self._client_secret
+
     def get_url_for(self, _for):
         """URL validators are functions that return the validated URLs of the service.
 
@@ -48,9 +52,6 @@ class Provider:
             raise TypeError(f"Missing URL in {self.__class__.__name__} urls map")
 
         return url
-
-    def get_client_secret(self):
-        return self._client_secret
 
     def get_scope(self):
         return " ".join(self.scope)
@@ -98,7 +99,7 @@ class Provider:
             return session.fetch_token(
                 token_uri,
                 client_id=self.client_id,
-                client_secret=self.get_client_secret(),
+                client_secret=self.client_secret,
                 code=code,
                 grant_type="authorization_code",
                 redirect_uri=redirect_uri,
