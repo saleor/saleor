@@ -113,11 +113,9 @@ class Provider:
 
     def fetch_profile(self, **kwargs):
         auth_response = kwargs["auth_response"]
-
         access_token = auth_response.get("access_token")
 
         if access_token is None:
-            print(auth_response)
             raise TypeError("access_token must not be None")
 
         profile_url = self.get_url_for("userinfo")

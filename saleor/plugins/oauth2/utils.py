@@ -1,4 +1,3 @@
-import jwt
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import _get_new_csrf_token
@@ -58,16 +57,6 @@ def map_many(*fs, iter):
 
 def filter_truthy(iter):
     return filter(bool, iter)
-
-
-def decode_jwt(token, algorithms, verify=False):
-    return jwt.decode(
-        token, algorithms=algorithms, options={"verify_signature": verify}
-    )
-
-
-def decode_es256(token):
-    return decode_jwt(token, algorithms=["ES256"])
 
 
 def get_or_create_user(provider: Provider, request, auth_response):
