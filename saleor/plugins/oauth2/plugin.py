@@ -106,8 +106,6 @@ class OAuth2Plugin(BasePlugin):
         errors: Mapping[str, List] = {provider: [] for provider in providers}
 
         for provider in providers:
-            provider = provider
-
             client_id = configuration.get(f"{provider}_client_id", None)
             client_secret = configuration.get(f"{provider}_client_secret", None)
 
