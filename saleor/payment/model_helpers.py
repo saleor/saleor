@@ -9,7 +9,11 @@ if TYPE_CHECKING:
 
 
 def get_last_payment(payments: List[Payment]):
-    return max(payments, default=None, key=attrgetter("pk"))
+    # Skipping a partial payment is a temporary workaround for storing a basic data
+    # about partial payment from Adyen plugin. This is something that will removed in
+    # 3.1 by introducing a partial payments feature
+    valid_payments = [payment for payment in payments if not payment.partial]
+    return max(valid_payments, default=None, key=attrgetter("pk"))
 
 
 def get_total_authorized(payments: List[Payment], fallback_currency: str):

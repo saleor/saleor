@@ -92,14 +92,8 @@ def test_trigger_webhook_sync_no_webhook_available():
         trigger_webhook_sync(WebhookEventSyncType.PAYMENT_REFUND, {}, app)
 
 
-@pytest.mark.parametrize(
-    "target_url",
-    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
-)
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
-def test_send_webhook_request_sync_failed_attempt(
-    mock_post, target_url, site_settings, app, event_delivery
-):
+def test_send_webhook_request_sync_failed_attempt(mock_post, app, event_delivery):
     # given
     expected_data = {
         "content": '{"key": "response_text"}',
@@ -122,14 +116,10 @@ def test_send_webhook_request_sync_failed_attempt(
     assert attempt.response_headers == json.dumps(expected_data["headers"])
 
 
-@pytest.mark.parametrize(
-    "target_url",
-    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
-)
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 def test_send_webhook_request_sync_successful_attempt(
-    mock_clear_delivery, mock_post, target_url, site_settings, app, event_delivery
+    mock_clear_delivery, mock_post, app, event_delivery
 ):
     # given
     expected_data = {
@@ -155,14 +145,8 @@ def test_send_webhook_request_sync_successful_attempt(
     assert attempt.response_headers == json.dumps(expected_data["headers"])
 
 
-@pytest.mark.parametrize(
-    "target_url",
-    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
-)
 @mock.patch("saleor.plugins.webhook.tasks.requests.post", side_effect=RequestException)
-def test_send_webhook_request_sync_request_exception(
-    mock_post, target_url, site_settings, app, event_delivery
-):
+def test_send_webhook_request_sync_request_exception(mock_post, app, event_delivery):
     # when
     send_webhook_request_sync(app.name, event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
@@ -176,13 +160,9 @@ def test_send_webhook_request_sync_request_exception(
     assert attempt.request_headers == "null"
 
 
-@pytest.mark.parametrize(
-    "target_url",
-    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
-)
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_sync_when_exception_with_response(
-    mock_post, target_url, site_settings, app, event_delivery
+    mock_post, app, event_delivery
 ):
     mock_response = mock.Mock()
     mock_response.text = "response_content"
@@ -197,14 +177,8 @@ def test_send_webhook_request_sync_when_exception_with_response(
     assert attempt.response_headers == '{"response": "headers"}'
 
 
-@pytest.mark.parametrize(
-    "target_url",
-    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
-)
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
-def test_send_webhook_request_sync_json_parsing_error(
-    mock_post, target_url, site_settings, app, event_delivery
-):
+def test_send_webhook_request_sync_json_parsing_error(mock_post, app, event_delivery):
     # given
     expected_data = {
         "incorrect_content": "{key: response}",
@@ -227,14 +201,8 @@ def test_send_webhook_request_sync_json_parsing_error(
     assert attempt.response_headers == json.dumps(expected_data["response_headers"])
 
 
-@pytest.mark.parametrize(
-    "target_url",
-    ("http://payment-gateway.com/api/", "https://payment-gateway.com/api/"),
-)
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
-def test_send_webhook_request_with_proper_timeout(
-    mock_post, event_delivery, app, target_url, webhook_response, site_settings
-):
+def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app):
     mock_post().text = '{"key": "response_text"}'
     mock_post().headers = {"header_key": "header_val"}
     mock_post().elapsed = datetime.timedelta(seconds=1)

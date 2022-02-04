@@ -4,8 +4,9 @@ import hashlib
 import hmac
 import json
 import logging
+from decimal import Decimal
 from json.decoder import JSONDecodeError
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 from urllib.parse import urlencode, urlparse
 
 import Adyen
@@ -14,6 +15,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
+from django.forms.models import model_to_dict
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -28,6 +30,7 @@ from ....checkout.calculations import calculate_checkout_total_with_gift_cards
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
+from ....core.prices import quantize_price
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
@@ -50,7 +53,12 @@ from ...utils import (
     gateway_postprocess,
     price_from_minor_unit,
 )
-from .utils.common import FAILED_STATUSES, api_call
+from .utils.common import (
+    FAILED_STATUSES,
+    api_call,
+    call_refund,
+    initialize_adyen_client,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +172,11 @@ def create_payment_notification_for_order(
 def create_order(payment, checkout, manager):
     try:
         discounts = fetch_active_discounts()
-        lines = fetch_checkout_lines(checkout)
+        lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+        if unavailable_variant_pks:
+            raise ValidationError(
+                "Some of the checkout lines variants are unavailable."
+            )
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=manager,
@@ -259,6 +271,26 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     kind = TransactionKind.AUTH
     if adyen_auto_capture:
         kind = TransactionKind.CAPTURE
+
+    amount = notification.get("amount", {})
+    try:
+        notification_payment_amount = price_from_minor_unit(
+            amount.get("value"), amount.get("currency")
+        )
+    except TypeError as e:
+        logger.exception("Cannot convert amount from minor unit", extra={"error": e})
+        return
+
+    if notification_payment_amount < payment.total:
+        # If amount from the notification is lower than payment total then we have
+        # a partial payment so we create an order in separate webhook (order_closed)
+        # after payment finished.
+        logger.info(
+            f"This is a partial payment notification. We can't create an order. "
+            f"pspReference: {transaction_id}, payment_id: {payment.pk}"
+        )
+        return
+
     if not payment.order:
         handle_not_created_order(notification, payment, checkout, kind, manager)
     else:
@@ -329,7 +361,7 @@ def handle_cancellation(
 
     reason = notification.get("reason", "-")
     success_msg = f"Adyen: The cancel {transaction_id} request was successful."
-    failed_msg = f"Adyen: The camcel {transaction_id} request failed. Reason: {reason}"
+    failed_msg = f"Adyen: The cancel {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, new_transaction.is_success
     )
@@ -592,6 +624,205 @@ def webhook_not_implemented(
     create_payment_notification_for_order(payment, msg, None, True)
 
 
+def handle_order_opened(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    # From Adyen's documentation:
+    # Sent when the first payment for your payment request is a partial payment, and an
+    # order has been created.
+    #
+    # In this case we just logging here that we received the webhook properly.
+    logger.info(f"First payment request as a partial payment. {notification}")
+
+
+def get_or_create_adyen_partial_payments(
+    notification: Dict[str, Any], payment: Payment
+) -> Optional[List[Payment]]:
+    """Store basic data about partial payments created by Adyen.
+
+    This is a workaround for not supporting partial payments in Saleor. Adyen can
+    handle partial payments on their side and send us info about them. We want to
+    somehow store some basic information about this but without modifying a whole
+    Saleor logic. We're going to change it by introducing partial payments feature on
+    Saleor side.
+    """
+    additional_data = notification.get("additionalData", {})
+    new_payments = []
+    currency = payment.currency
+    payment_total_to_cover = payment.total
+    for (
+        payment_method_key,
+        payment_amount_key,
+        psp_reference_key,
+    ) in get_adyen_partial_payment_keys(additional_data):
+        # payment amount key has structure - "{currency} {amount}", like 'GBP 41.90',
+        # for payments with 3d secure, the last payment could not have an amount field,
+        # in that case we need to handle it on our side.
+        if payment_amount_key in additional_data:
+            currency, amount = additional_data[payment_amount_key].split()
+            amount = Decimal(amount)
+        else:
+            amount = quantize_price(max(payment_total_to_cover, Decimal(0)), currency)
+
+        new_payment = Payment(**model_to_dict(payment, exclude=["id", "checkout"]))
+        new_payment.checkout_id = payment.checkout_id
+        new_payment.is_active = False
+        new_payment.partial = True
+        new_payment.total = Decimal(amount)
+        # Increasing captured amount increases a total paid of the order.
+        new_payment.captured_amount = 0
+        new_payment.currency = currency
+        new_payment.payment_method_type = additional_data.get(
+            payment_method_key, "givex"
+        )
+        new_payment.psp_reference = additional_data.get(psp_reference_key, "")
+        new_payment.extra_data = json.dumps({"parent_payment_id": payment.id})
+        new_payments.append(new_payment)
+
+        # For some last partial payments Adyen doesn't send an amount field. We need to
+        # figure it out somehow, we calculate the total of amount covered by previous
+        # payments.
+        payment_total_to_cover -= new_payment.total
+
+    already_existing_partial_payments = Payment.objects.filter(
+        psp_reference__in=[p.psp_reference for p in new_payments],
+        partial=True,
+        checkout_id=payment.checkout_id,
+    )
+    if already_existing_partial_payments:
+        return list(already_existing_partial_payments)
+
+    if new_payments:
+        return Payment.objects.bulk_create(new_payments)
+    return None
+
+
+def create_order_event_about_adyen_partial_payments(
+    adyen_partial_payments: Iterable[Payment], payment
+):
+    msg = "Adyen: "
+
+    for payment in adyen_partial_payments:
+        payment_method = payment.payment_method_type
+        payment_amount = payment.total
+        psp_reference = payment.psp_reference
+        currency = payment.currency
+        msg += (
+            f"Partial payment with {payment_method} (PSP: {psp_reference}) "
+            f"for {currency} {payment_amount}.\n"
+        )
+    if adyen_partial_payments:
+        payment.refresh_from_db()
+        create_payment_notification_for_order(
+            payment, msg, failed_msg=None, is_success=True
+        )
+
+
+def get_adyen_partial_payment_keys(additiona_data):
+    """Get keys that contains adyen partial data.
+
+    The data received from Adyen has strange structure. In middle of dict key, there is
+    a int number pointing to the given payment method. So we need to convert it and
+    match somehow a paymentMethod, paymentAmount and payment psp reference
+    """
+    index = 1
+    while True:
+        payment_method_key = f"order-{index}-paymentMethod"
+        payment_amount_key = f"order-{index}-paymentAmount"
+        psp_reference_key = f"order-{index}-pspReference"
+
+        # stop iterating when there is no more an additional payment method fields
+        if payment_method_key not in additiona_data:
+            return
+        yield (payment_method_key, payment_amount_key, psp_reference_key)
+        index += 1
+
+
+def refund_partial_payments(payments, config):
+    for payment in payments:
+        adyen_client = initialize_adyen_client(config)
+        merchant_account = config.connection_params["merchant_account"]
+        logger.info("Calling refund for partial payment: %s", payment.psp_reference)
+        call_refund(
+            amount=payment.total,
+            currency=payment.currency,
+            merchant_account=merchant_account,
+            token=payment.psp_reference,
+            graphql_payment_id=graphene.Node.to_global_id("Payment", payment.pk),
+            adyen_client=adyen_client,
+        )
+
+
+def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    # From Adyen's documentation:
+    # The success field informs you of the outcome of the shopper's last payment when
+    # paying for an order in partial payments.
+    #
+    # Possible values:
+    # true: The full amount has been paid.
+    # false: The shopper did not pay the full amount within the sessionValidity.
+    # All partial payments that were processed previously are automatically cancelled
+    # or refunded.
+    is_success = True if notification.get("success") == "true" else False
+    psp_reference = notification.get("pspReference")
+    logger.info(
+        f"Partial payment has been finished with result: {is_success}."
+        f"psp: {psp_reference}"
+    )
+
+    if not is_success:
+        logger.info(
+            "The shopper did not pay the full amount within the "
+            "sessionValidity. All partial payments that were processed "
+            "previously are automatically cancelled or refunded by Adyen."
+        )
+        return
+    payment = get_payment(notification.get("merchantReference"), psp_reference)
+
+    if not payment:
+        # We don't know anything about that payment
+        logger.info(f"There is no payment with psp: {psp_reference}")
+        return
+
+    if payment.order:
+        logger.info(f"Order already created for payment: {payment.pk}")
+        return
+    checkout = payment.checkout
+
+    adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
+    kind = TransactionKind.CAPTURE if adyen_auto_capture else TransactionKind.AUTH
+
+    adyen_partial_payments = get_or_create_adyen_partial_payments(notification, payment)
+    try:
+        order = handle_not_created_order(
+            notification, payment, checkout, kind, get_plugins_manager()
+        )
+        if not order and adyen_partial_payments:
+            refund_partial_payments(adyen_partial_payments, config=gateway_config)
+            # There is a possibility that user will try once again to pay with partial
+            # payments, we update partial objects, as we agree that partial==True points
+            # always to valid payments. This is temporary workaround to handle Adyen
+            # partial payments in 3.0, and will be properly handled in partial payment
+            # feature.
+            Payment.objects.filter(
+                id__in=[p.id for p in adyen_partial_payments]
+            ).update(partial=False)
+
+    except Exception as e:
+        logger.exception("Exception during order creation", extra={"error": e})
+        return
+
+    if adyen_partial_payments:
+        create_order_event_about_adyen_partial_payments(adyen_partial_payments, payment)
+    else:
+        reason = notification.get("reason", "-")
+        success_msg = f"Adyen: The payment  {psp_reference} request  was successful."
+        failed_msg = (
+            f"Adyen: The payment {psp_reference} request failed. Reason: {reason}."
+        )
+        create_payment_notification_for_order(
+            payment, success_msg, failed_msg, is_success
+        )
+
+
 EVENT_MAP = {
     "AUTHORISATION": handle_authorization,
     "AUTHORISATION_ADJUSTMENT": webhook_not_implemented,
@@ -600,8 +831,8 @@ EVENT_MAP = {
     "CAPTURE": handle_capture,
     "CAPTURE_FAILED": handle_failed_capture,
     "HANDLED_EXTERNALLY": webhook_not_implemented,
-    "ORDER_OPENED": webhook_not_implemented,
-    "ORDER_CLOSED": webhook_not_implemented,
+    "ORDER_OPENED": handle_order_opened,
+    "ORDER_CLOSED": handle_order_closed,
     "PENDING": handle_pending,
     "PROCESS_RETRY": webhook_not_implemented,
     "REFUND": handle_refund,
@@ -882,7 +1113,16 @@ def handle_api_response(payment: Payment, response: Adyen.Adyen, channel_slug: s
         confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug)
         payment.refresh_from_db()  # refresh charge_status
 
+        adyen_partial_payments = get_or_create_adyen_partial_payments(
+            response.message, payment
+        )
+
         create_order(payment, checkout, manager)
+
+        if adyen_partial_payments:
+            create_order_event_about_adyen_partial_payments(
+                adyen_partial_payments, payment
+            )
 
 
 def confirm_payment_and_set_back_to_confirm(payment, manager, channel_slug):

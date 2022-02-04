@@ -295,7 +295,9 @@ def test_check_stock_quantity_bulk_with_reservations(
         )
 
     # test that it passes if checkout lines are excluded
-    checkout_lines = fetch_checkout_lines(checkout_line_with_one_reservation.checkout)
+    checkout_lines, _ = fetch_checkout_lines(
+        checkout_line_with_one_reservation.checkout
+    )
     assert (
         check_stock_quantity_bulk(
             [variant_with_many_stocks],

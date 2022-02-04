@@ -220,6 +220,7 @@ def generate_order_payload(
         "cc_brand",
         "is_active",
         "created",
+        "partial",
         "modified",
         "charge_status",
         "psp_reference",
