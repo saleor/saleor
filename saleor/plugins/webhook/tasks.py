@@ -287,14 +287,15 @@ def send_webhook_request_async(self, event_delivery_id):
                     delivery.id,
                 )
                 delivery_status = EventDeliveryStatus.FAILED
+        elif response.status == EventDeliveryStatus.SUCCESS:
+            task_logger.info(
+                "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
+                webhook.id,
+                webhook.target_url,
+                delivery.event_type,
+                delivery.id,
+            )
         delivery_update(delivery, delivery_status)
-        task_logger.info(
-            "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
-            webhook.id,
-            webhook.target_url,
-            delivery.event_type,
-            delivery.id,
-        )
     except ValueError as e:
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
