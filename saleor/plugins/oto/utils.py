@@ -124,6 +124,7 @@ def handle_webhook(request: HttpRequest, config: "dict"):
                 items={
                     "otoStatus": status,
                     "printAWBURL": data.get("printAWBURL", ""),
+                    "trackingURL": data.get("trackingURL", ""),
                     "feedbackLink": data.get("feedbackLink", ""),
                     "shippingCompanyStatus": data.get("dcStatus", ""),
                     "deliveryCompany": data.get("deliveryCompany", ""),
