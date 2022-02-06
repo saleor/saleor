@@ -165,4 +165,6 @@ django-celery-results==2.2.0
 -e saleor/plugins/customer_group/
 -e saleor/plugins/vendor
 django-iban
+django-cities-light==3.8.1
 -e saleor/payment/gateways/checkout_payment/
+-e saleor/plugins/provinces
