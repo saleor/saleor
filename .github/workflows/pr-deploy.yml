@@ -33,6 +33,7 @@ jobs:
 
       - name: Seed Data
         run: heroku run python manage.py populatedb --createsuperuser
+        run: heroku run python manage.py cities_light --force-import-all
 
       - name: Comment Build Fail
         if: ${{ failure() }}

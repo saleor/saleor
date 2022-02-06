@@ -1,6 +1,5 @@
 from ...graphql.views import GraphQLView
 from ..base_plugin import BasePlugin
-
 from .graphql.schema import schema
 
 
