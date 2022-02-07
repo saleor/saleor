@@ -1,63 +1,63 @@
 repos:
-#  - repo: https://github.com/ambv/black
-#    rev: 21.12b0
+  - repo: https://github.com/ambv/black
+    rev: 21.12b0
+    hooks:
+      - id: black
+        language_version: python3.8
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^templates/templated_email/compiled/
+        exclude_types: [svg]
+      - id: end-of-file-fixer
+        exclude: ^templates/templated_email/compiled/
+        exclude_types: [svg]
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.4
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/asottile/seed-isort-config
+    rev: v2.2.0
+    hooks:
+      - id: seed-isort-config
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.9.3
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.0.0
+    hooks:
+      - id: pydocstyle
+        files: ^saleor/
+        exclude: tests/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.910
+    hooks:
+      - id: mypy
+        language: system
+        exclude: tests/
+
+#  - repo: local
 #    hooks:
-#      - id: black
-#        language_version: python3.8
-#
-#  - repo: https://github.com/pre-commit/pre-commit-hooks
-#    rev: v3.3.0
-#    hooks:
-#      - id: trailing-whitespace
-#        exclude: ^templates/templated_email/compiled/
-#        exclude_types: [svg]
-#      - id: end-of-file-fixer
-#        exclude: ^templates/templated_email/compiled/
-#        exclude_types: [svg]
-#
-#  - repo: https://gitlab.com/pycqa/flake8
-#    rev: 3.8.4
-#    hooks:
-#      - id: flake8
-#
-#  - repo: https://github.com/asottile/seed-isort-config
-#    rev: v2.2.0
-#    hooks:
-#      - id: seed-isort-config
-#
-#  - repo: https://github.com/pre-commit/mirrors-isort
-#    rev: v5.9.3
-#    hooks:
-#      - id: isort
-#        args: ["--profile", "black"]
-#
-#  - repo: https://github.com/pycqa/pydocstyle
-#    rev: 6.0.0
-#    hooks:
-#      - id: pydocstyle
-#        files: ^saleor/
-#        exclude: tests/
-#
-#  - repo: https://github.com/pre-commit/mirrors-mypy
-#    rev: v0.910
-#    hooks:
-#      - id: mypy
+#      - id: migrations-check
 #        language: system
-#        exclude: tests/
+#        name: Check for uncreated migrations.
+#        entry: sh -c "./manage.py makemigrations --settings saleor.wecre8_settings --check --dry-run"
+#        files: "models\\.py$"
+#        stages: [commit]
 
-  - repo: local
-    hooks:
-      - id: migrations-check
-        language: system
-        name: Check for uncreated migrations.
-        entry: sh -c "export DJANGO_SETTINGS_MODULE='saleor.wecre8_settings'; ./manage.py makemigrations --settings=saleor.wecre8_settings --check --dry-run"
-        files: "models\\.py$"
-        stages: [commit]
-
-  - repo: local
-    hooks:
-      - id: gql-schema-check
-        language: system
-        name: Check GraphQL schema is up to date.
-        entry: sh -c "./manage.py get_graphql_schema --settings=saleor.wecre8_settings  | diff saleor/graphql/schema.graphql -"
-        stages: [commit]
+#  - repo: local
+#    hooks:
+#      - id: gql-schema-check
+#        language: system
+#        name: Check GraphQL schema is up to date.
+#        entry: sh -c "./manage.py get_graphql_schema --settings saleor.wecre8_settings | diff saleor/graphql/schema.graphql -"
+#        stages: [commit]

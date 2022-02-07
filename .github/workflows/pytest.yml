@@ -48,13 +48,13 @@ jobs:
         run: |
           python -m pip install wheel
           python -m pip install -r requirements_dev.txt
-#
-#      - name: Run tests
-#        run: |
-#          pytest \
-#            --cov \
-#            --junitxml=junit/test-results.xml \
-#            --django-db-bench=${{ env.BENCH_PATH }}
+
+      - name: Run tests
+        run: |
+          pytest \
+            --cov \
+            --junitxml=junit/test-results.xml \
+            --django-db-bench=${{ env.BENCH_PATH }}
 
       - uses: actions/cache@v2
         with:
@@ -64,12 +64,12 @@ jobs:
             ${{ runner.os }}-pre-commit-
 
       # Publish coverage and test results
-#      - uses: codecov/codecov-action@v1
-#      - uses: actions/upload-artifact@v1
-#        with:
-#          name: pytest-results
-#          path: junit/test-results.xml
-#        if: ${{ always() }}
+      - uses: codecov/codecov-action@v1
+      - uses: actions/upload-artifact@v1
+        with:
+          name: pytest-results
+          path: junit/test-results.xml
+        if: ${{ always() }}
 
       # Publish detected differences as comment
       #      - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
@@ -91,6 +91,4 @@ jobs:
       - name: Run Linters and Checks
         run: |
           pre-commit run --all
-        env:
-          DJANGO_SETTINGS_MODULE: "saleor.wecre8_settings"
         if: ${{ always() }}
