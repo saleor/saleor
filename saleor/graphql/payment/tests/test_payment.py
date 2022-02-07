@@ -959,6 +959,9 @@ QUERY_PAYMENT_BY_ID = """
     query payment($id: ID!) {
         payment(id: $id) {
             id
+            checkout {
+                token
+            }
         }
     }
 """
@@ -973,8 +976,30 @@ def test_query_payment(payment_dummy, user_api_client, permission_manage_orders)
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    received_id = content["data"]["payment"]["id"]
+    payment_data = content["data"]["payment"]
+    received_id = payment_data["id"]
     assert received_id == payment_id
+    assert not payment_data["checkout"]
+
+
+def test_query_payment_with_checkout(
+    payment_dummy, user_api_client, permission_manage_orders, checkout
+):
+    query = QUERY_PAYMENT_BY_ID
+    payment = payment_dummy
+    payment.order = None
+    payment.checkout = checkout
+    payment.save()
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {"id": payment_id}
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    payment_data = content["data"]["payment"]
+    received_id = payment_data["id"]
+    assert received_id == payment_id
+    assert payment_data["checkout"]["token"] == str(checkout.pk)
 
 
 def test_staff_query_payment_by_invalid_id(
