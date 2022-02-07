@@ -91,4 +91,6 @@ jobs:
       - name: Run Linters and Checks
         run: |
           pre-commit run --all
+        env:
+          DJANGO_SETTINGS_MODULE: "saleor.wecre8_settings"
         if: ${{ always() }}
