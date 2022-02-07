@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest import mock
 
 import graphene
+import pytest
 from prices import Money
 
 from ....checkout import calculations
@@ -890,6 +891,103 @@ def test_checkout_add_promo_code_no_checkout_email(
 
     assert data["errors"]
     assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
+
+
+@pytest.mark.parametrize("shipping_price", [12, 10, 5])
+def test_checkout_add_free_shipping_voucher_do_not_invalidate_shipping_method(
+    shipping_price,
+    api_client,
+    checkout_with_item,
+    voucher_free_shipping,
+    shipping_method,
+    address_usa,
+):
+    """Ensure that adding free shipping voucher do not invalidate
+    current shipping method.
+    """
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.shipping_address = address_usa
+    checkout_with_item.save(update_fields=["shipping_method", "shipping_address"])
+
+    channel = checkout_with_item.channel
+
+    line = checkout_with_item.lines.first()
+    line.quantity = 1
+    line.save(update_fields=["quantity"])
+
+    variant_listing = line.variant.channel_listings.get(channel=channel)
+    variant_listing.price = Money(10, "USD")
+    variant_listing.save(update_fields=["price_amount"])
+
+    # set minimal price similar to order subtotal price;
+    # set shipping price so big, that in case the discount will be applied
+    # substracted from subtotal the shipping method will be not valid anymore
+    shipping_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_listing.price = Money(shipping_price, "USD")
+    shipping_listing.minimum_order_price = Money(8, "USD")
+    shipping_listing.save(update_fields=["price_amount", "minimum_order_price_amount"])
+
+    variables = {
+        "token": checkout_with_item.token,
+        "promoCode": voucher_free_shipping.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # ensure that shipping method wasn't invalidate
+    assert data["checkout"]["shippingMethod"]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.id
+    )
+
+
+@pytest.mark.parametrize("shipping_discount", [12, 10, 5])
+def test_checkout_add_shipping_voucher_do_not_invalidate_shipping_method(
+    shipping_discount,
+    api_client,
+    checkout_with_item,
+    voucher_shipping_type,
+    shipping_method,
+    address_usa,
+):
+    """Ensure that adding shipping voucher do not invalidate current shipping method."""
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.shipping_address = address_usa
+    checkout_with_item.save(update_fields=["shipping_method", "shipping_address"])
+
+    channel = checkout_with_item.channel
+
+    line = checkout_with_item.lines.first()
+    line.quantity = 1
+    line.save(update_fields=["quantity"])
+
+    variant_listing = line.variant.channel_listings.get(channel=channel)
+    variant_listing.price = Money(10, "USD")
+    variant_listing.save(update_fields=["price_amount"])
+
+    # set minimal price similar to order subtotal price;
+    shipping_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_listing.price = Money(20, "USD")
+    shipping_listing.minimum_order_price = Money(8, "USD")
+    shipping_listing.save(update_fields=["price_amount", "minimum_order_price_amount"])
+
+    # set shipping voucher price so big, that in case the discount will be
+    # substracted from subtotal price the shipping method will be not valid anymore
+    voucher_listing = voucher_shipping_type.channel_listings.get(channel=channel)
+    voucher_listing.discount = Money(shipping_discount, "USD")
+    voucher_listing.save(update_fields=["discount_value"])
+
+    voucher_shipping_type.countries = []
+    voucher_shipping_type.save(update_fields=["countries"])
+
+    variables = {
+        "token": checkout_with_item.token,
+        "promoCode": voucher_shipping_type.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # ensure that shipping method wasn't invalidate
+    assert data["checkout"]["shippingMethod"]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.id
+    )
 
 
 MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
