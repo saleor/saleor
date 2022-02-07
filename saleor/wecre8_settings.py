@@ -18,7 +18,7 @@ CITIES_LIGHT_INCLUDE_COUNTRIES = ["SA"]
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ["ar"]
 CITIES_LIGHT_APP_NAME = "provinces"  # noqa F405
 
-INSTALLED_APPS += ["cities_light", "django_celery_results"]  # noqa F405
+INSTALLED_APPS += ["django_celery_results"]  # noqa F405
 
 CELERY_BEAT_SCHEDULE.update(  # noqa F405
     {
