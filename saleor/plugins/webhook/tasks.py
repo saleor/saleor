@@ -93,7 +93,9 @@ def trigger_webhooks_async(data, event_type, webhooks):
         send_webhook_request_async.delay(delivery.id)
 
 
-def trigger_webhook_sync(event_type: str, data: str, app: "App"):
+def trigger_webhook_sync(
+    event_type: str, data: str, app: "App"
+) -> Optional[WebhookResponse]:
     """Send a synchronous webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
@@ -136,7 +138,6 @@ def send_webhook_using_http(
     }
 
     response = requests.post(target_url, data=message, headers=headers, timeout=timeout)
-    response.raise_for_status()
     return WebhookResponse(
         content=response.text,
         request_headers=headers,
@@ -303,7 +304,7 @@ def send_webhook_request_async(self, event_delivery_id):
     clear_successful_delivery(delivery)
 
 
-def send_webhook_request_sync(app_name, delivery):
+def send_webhook_request_sync(app_name, delivery) -> Optional[WebhookResponse]:
     event_payload = delivery.payload
     data = event_payload.payload
     webhook = delivery.webhook
@@ -312,65 +313,68 @@ def send_webhook_request_sync(app_name, delivery):
     message = data.encode("utf-8")
     signature = signature_for_payload(message, webhook.secret_key)
 
-    response = WebhookResponse(content="")
-    response_data = None
-    if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
-        logger.debug(
-            "[Webhook] Sending payload to %r for event %r.",
-            webhook.target_url,
-            delivery.event_type,
-        )
-        attempt = create_attempt(delivery=delivery, task_id=None)
-        try:
-            with webhooks_opentracing_trace(
-                delivery.event_type, domain, sync=True, app_name=app_name
-            ):
-                response = send_webhook_using_http(
-                    webhook.target_url,
-                    message,
-                    domain,
-                    signature,
-                    delivery.event_type,
-                    timeout=WEBHOOK_SYNC_TIMEOUT,
-                )
-                response_data = json.loads(response.content)
-        except RequestException as e:
-            logger.warning(
-                "[Webhook] Failed request to %r: %r. "
-                "ID of failed DeliveryAttempt: %r . ",
-                webhook.target_url,
-                e,
-                attempt.id,
-            )
-            response.status = EventDeliveryStatus.FAILED
-            if e.response:
-                response.content = e.response.text
-                response.response_headers = dict(e.response.headers)
-
-        except JSONDecodeError as e:
-            logger.warning(
-                "[Webhook] Failed parsing JSON response from %r: %r."
-                "ID of failed DeliveryAttempt: %r . ",
-                webhook.target_url,
-                e,
-                attempt.id,
-            )
-            response.status = EventDeliveryStatus.FAILED
-        else:
-            logger.debug(
-                "[Webhook] Success response from %r."
-                "Succesfull DeliveryAttempt id: %r",
-                webhook.target_url,
-                attempt.id,
-            )
-
-        attempt_update(attempt, response)
-    else:
+    if parts.scheme.lower() not in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         delivery_update(delivery, EventDeliveryStatus.FAILED)
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+
+    logger.debug(
+        "[Webhook] Sending payload to %r for event %r.",
+        webhook.target_url,
+        delivery.event_type,
+    )
+    attempt = create_attempt(delivery=delivery, task_id=None)
+    response = WebhookResponse(content="")
+    response_data = None
+
+    try:
+        with webhooks_opentracing_trace(
+            delivery.event_type, domain, sync=True, app_name=app_name
+        ):
+            response = send_webhook_using_http(
+                webhook.target_url,
+                message,
+                domain,
+                signature,
+                delivery.event_type,
+                timeout=WEBHOOK_SYNC_TIMEOUT,
+            )
+            response_data = json.loads(response.content)
+    except RequestException as e:
+        logger.warning(
+            "[Webhook] Failed request to %r: %r. "
+            "ID of failed DeliveryAttempt: %r . ",
+            webhook.target_url,
+            e,
+            attempt.id,
+        )
+        response.status = EventDeliveryStatus.FAILED
+        if e.response:
+            response.content = e.response.text
+            response.response_headers = dict(e.response.headers)
+
+    except JSONDecodeError as e:
+        logger.warning(
+            "[Webhook] Failed parsing JSON response from %r: %r."
+            "ID of failed DeliveryAttempt: %r . ",
+            webhook.target_url,
+            e,
+            attempt.id,
+        )
+        response.status = EventDeliveryStatus.FAILED
+    else:
+        if response.status == EventDeliveryStatus.SUCCESS:
+            logger.debug(
+                "[Webhook] Success response from %r."
+                "Successfull DeliveryAttempt id: %r",
+                webhook.target_url,
+                attempt.id,
+            )
+
+    attempt_update(attempt, response)
     delivery_update(delivery, response.status)
     clear_successful_delivery(delivery)
-    return response_data
+
+    return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
 
 # DEPRECATED
