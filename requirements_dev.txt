@@ -1,3 +1,4 @@
+
 adyen==4.0.0
 amqp==5.0.9; python_version >= "3.7"
 aniso8601==7.0.0
@@ -29,6 +30,7 @@ click==7.1.2; python_full_version >= "3.6.2" and python_version >= "3.6" and (py
 codecov==2.1.12; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 colorama==0.4.4; sys_platform == "win32" and python_full_version >= "3.6.2" and (python_version >= "3.6" and python_full_version < "3.0.0" and sys_platform == "win32" or sys_platform == "win32" and python_version >= "3.6" and python_full_version >= "3.5.0") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0") and (python_version >= "2.7" and python_full_version < "3.0.0" and platform_system == "Windows" or python_full_version >= "3.5.0" and platform_system == "Windows")
 coverage==6.3.1; python_version >= "3.7"
+cryptography==36.0.1; python_version >= "3.6"
 cssselect2==0.4.1; python_version >= "3.6"
 deprecated==1.2.13; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
 distlib==0.3.4; python_full_version >= "3.6.1"
