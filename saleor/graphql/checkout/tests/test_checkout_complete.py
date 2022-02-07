@@ -2027,6 +2027,16 @@ def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_wareho
     checkout_line.variant.preorder_global_threshold = 100
     checkout_line.variant.save()
 
+    for line in checkout.lines.all():
+        if line.variant.channel_listings.filter(channel=checkout.channel).exists():
+            continue
+
+        line.variant.channel_listings.create(
+            channel=checkout.channel,
+            price_amount=Decimal(15),
+            currency=checkout.currency,
+        )
+
     checkout.save(
         update_fields=["shipping_address", "billing_address", "collection_point"]
     )
@@ -2035,7 +2045,7 @@ def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_wareho
     warehouse_for_cc.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
