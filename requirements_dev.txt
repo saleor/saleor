@@ -226,15 +226,14 @@ checkout-sdk==2.0b8
 algoliasearch>=2.0,<3.0
 gql==2.0.0
 django-celery-results==2.2.0
+django-cities-light==3.8.1
+django-iban==0.3.1
 -e saleor/plugins/oto/
+-e saleor/plugins/vendor/
 -e saleor/plugins/oauth2/
 -e saleor/plugins/algolia/
--e saleor/plugins/countries
+-e saleor/plugins/provinces/
 -e saleor/payment/gateways/cod/
 -e saleor/payment/gateways/tabby/
 -e saleor/plugins/customer_group/
--e saleor/plugins/vendor
-django-iban
 -e saleor/payment/gateways/checkout_payment/
-django-cities-light==3.8.1
--e saleor/plugins/provinces

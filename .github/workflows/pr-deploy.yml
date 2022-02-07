@@ -24,7 +24,7 @@ jobs:
           HD_NPM_CONFIG_PRODUCTION: "false"
           HD_DEFAULT_FROM_EMAIL: "noreply@wecre8.com"
           HD_EMAIL_URL: "${{secrets.EMAIL_URL}}"
-          HD_SECRET_KEY: "alibide"
+          HD_SECRET_KEY: "MESHA_SECRET_KEY"
           HD_AWS_MEDIA_BUCKET_NAME: "${{secrets.AWS_MEDIA_BUCKET_NAME}}"
           HD_AWS_ACCESS_KEY_ID: "${{secrets.AWS_ACCESS_KEY_ID}}"
           HD_AWS_SECRET_ACCESS_KEY: "${{secrets.AWS_SECRET_ACCESS_KEY}}"
@@ -33,7 +33,11 @@ jobs:
 
       - name: Seed Data
         run: heroku run python manage.py populatedb --createsuperuser
-        run: heroku run python manage.py cities_light --force-import-all
+
+      - name: Import Cities
+        run: heroku run python manage.py cities_light  --force-import-all --keep-slugs
+        env:
+          HD_DJANGO_SETTINGS_MODULE: "saleor.wecre8_settings"
 
       - name: Comment Build Fail
         if: ${{ failure() }}
@@ -42,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           message: |
-            🐞	🐞	🐞	🐞	🐞	🐞	🐞	🐞	BUILD FAIL 🐞	🐞	🐞	🐞	🐞	🐞	🐞	🐞
+            🐞🐞🐞🐞🐞🐞🐞🐞 BUILD FAIL 🐞🐞🐞🐞🐞🐞🐞🐞
 
   deploy-federation-pr:
     needs: deploy-saleor-pr
