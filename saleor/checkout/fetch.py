@@ -16,6 +16,7 @@ from typing import (
 from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
 
+from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo, VoucherType
 from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
@@ -23,6 +24,7 @@ from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
+from . import base_calculations
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -469,9 +471,18 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     from .utils import get_valid_internal_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, discounts
-    )
+
+    line_totals = [
+        base_calculations.calculate_base_line_total_price(
+            line,
+            checkout_info.channel,
+            discounts,
+        ).price_with_sale
+        for line in lines
+    ]
+
+    subtotal = sum(line_totals, zero_taxed_money(checkout_info.checkout.currency))
+
     # if a voucher is applied to shipping, we don't want to subtract the discount amount
     # as some methods based on shipping price may become unavailable,
     # for example, method on which the discount was applied
@@ -480,6 +491,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     )
     if not is_shipping_voucher:
         subtotal -= checkout_info.checkout.discount
+
     valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
         checkout_info,
         lines,
