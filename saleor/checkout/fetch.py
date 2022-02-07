@@ -48,6 +48,7 @@ class CheckoutInfo:
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
     all_shipping_methods: List["ShippingMethodData"]
+    voucher: Optional["Voucher"] = None
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -251,6 +252,7 @@ def fetch_checkout_info(
     manager: "PluginsManager",
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
+    from .utils import get_voucher_for_checkout
 
     channel = checkout.channel
     shipping_address = checkout.shipping_address
@@ -273,6 +275,7 @@ def fetch_checkout_info(
         )
 
     delivery_method_info = get_delivery_method_info(shipping_method, shipping_address)
+    voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
 
     checkout_info = CheckoutInfo(
         checkout=checkout,
@@ -282,6 +285,7 @@ def fetch_checkout_info(
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
         all_shipping_methods=[],
+        voucher=voucher,
     )
     checkout_info.all_shipping_methods = SimpleLazyObject(
         lambda: get_shipping_method_list_for_checkout_info(
@@ -329,7 +333,14 @@ def get_valid_shipping_method_list_for_checkout_info(
     subtotal = manager.calculate_checkout_subtotal(
         checkout_info, lines, checkout_info.shipping_address, discounts
     )
-    subtotal -= checkout_info.checkout.discount
+    # if a voucher is applied to shipping, we don't want to subtract the discount amount
+    # as some methods based on shipping price may become unavailable,
+    # for example, method on which the discount was applied
+    is_shipping_voucher = (
+        checkout_info.voucher and checkout_info.voucher.type == VoucherType.SHIPPING
+    )
+    if not is_shipping_voucher:
+        subtotal -= checkout_info.checkout.discount
     valid_shipping_methods = get_valid_shipping_methods_for_checkout(
         checkout_info,
         lines,

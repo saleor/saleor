@@ -14,6 +14,7 @@ from ...checkout.models import Checkout, CheckoutLine
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
+from ..discount.dataloaders import VoucherByCodeLoader
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -201,6 +202,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         self.context
                     ).load_many(channel_slugs)
                 )
+                voucher_codes = {
+                    checkout.voucher_code
+                    for checkout in checkouts
+                    if checkout.voucher_code
+                }
+                vouchers = VoucherByCodeLoader(self.context).load_many(voucher_codes)
 
                 def with_checkout_info(results):
                     (
@@ -208,6 +215,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         users,
                         shipping_methods,
                         listings_for_channels,
+                        vouchers,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -221,6 +229,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         for listing in channel_listings
                         if listing
                     }
+                    voucher_map = {voucher.code: voucher for voucher in vouchers}
 
                     checkout_info_map = {}
                     for key, checkout, channel, checkout_lines in zip(
@@ -243,6 +252,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         delivery_method_info = get_delivery_method_info(
                             delivery_method, shipping_address
                         )
+                        voucher = voucher_map.get(checkout.voucher_code)
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -255,6 +265,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             ),
                             delivery_method_info=delivery_method_info,
                             all_shipping_methods=[],
+                            voucher=voucher,
                         )
 
                         def fetch_valid_shipping_methods():
@@ -291,6 +302,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         users,
                         shipping_methods,
                         shipping_method_channel_listings,
+                        vouchers,
                     ]
                 ).then(with_checkout_info)
 
