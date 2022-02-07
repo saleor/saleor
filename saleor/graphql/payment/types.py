@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
+from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
 from ..decorators import permission_required
@@ -169,6 +170,12 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+    @staticmethod
+    def resolve_checkout(root: models.Payment, info):
+        if not root.checkout_id:
+            return None
+        return CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
 
 class PaymentInitialized(graphene.ObjectType):
