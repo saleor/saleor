@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -95,7 +95,7 @@ def trigger_webhooks_async(data, event_type, webhooks):
 
 def trigger_webhook_sync(
     event_type: str, data: str, app: "App"
-) -> Optional[WebhookResponse]:
+) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
@@ -304,7 +304,7 @@ def send_webhook_request_async(self, event_delivery_id):
     clear_successful_delivery(delivery)
 
 
-def send_webhook_request_sync(app_name, delivery) -> Optional[WebhookResponse]:
+def send_webhook_request_sync(app_name, delivery) -> Optional[Dict[Any, Any]]:
     event_payload = delivery.payload
     data = event_payload.payload
     webhook = delivery.webhook
@@ -365,7 +365,7 @@ def send_webhook_request_sync(app_name, delivery) -> Optional[WebhookResponse]:
         if response.status == EventDeliveryStatus.SUCCESS:
             logger.debug(
                 "[Webhook] Success response from %r."
-                "Successfull DeliveryAttempt id: %r",
+                "Successful DeliveryAttempt id: %r",
                 webhook.target_url,
                 attempt.id,
             )
