@@ -316,6 +316,7 @@ All notable, unreleased changes to this project will be documented in this file.
   and `CheckoutPricesData` instead of `PricesData`
 - Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
   - Use `token` instead
+- Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
 
 ### Other
 
