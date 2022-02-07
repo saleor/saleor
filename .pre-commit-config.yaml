@@ -50,7 +50,7 @@ repos:
       - id: migrations-check
         language: system
         name: Check for uncreated migrations.
-        entry: sh -c "./manage.py makemigrations --settings=saleor.wecre8_settings --check --dry-run"
+        entry: sh -c "export DJANGO_SETTINGS_MODULE='saleor.wecre8_settings'; ./manage.py makemigrations --settings=saleor.wecre8_settings --check --dry-run"
         files: "models\\.py$"
         stages: [commit]
 
