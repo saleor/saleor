@@ -289,6 +289,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
 - Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
+- Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
 
 ### Other
 

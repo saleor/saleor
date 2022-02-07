@@ -13,7 +13,7 @@ cachetools==4.2.2; python_version >= "3.5" and python_version < "4.0" and (pytho
 cairocffi==1.2.0; python_version >= "3.6"
 cairosvg==2.5.2; python_version >= "3.6"
 celery==5.1.2; python_version >= "3.6"
-certifi==2021.5.30; python_version >= "3.0" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.0"
+certifi==2021.5.30; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
 cffi==1.14.6; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 charset-normalizer==2.0.4; python_full_version >= "3.6.0" and python_version >= "3"
 click-didyoumean==0.0.3; python_version >= "3.6"
@@ -21,6 +21,7 @@ click-plugins==1.1.1; python_version >= "3.6"
 click-repl==0.2.0; python_version >= "3.6"
 click==7.1.2; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 colorama==0.4.4; python_version >= "2.7" and python_full_version < "3.0.0" and sys_platform == "win32" or sys_platform == "win32" and python_full_version >= "3.5.0"
+cryptography==36.0.1; python_version >= "3.6"
 cssselect2==0.4.1; python_version >= "3.6"
 defusedxml==0.7.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 dj-database-url==0.5.0
@@ -47,7 +48,7 @@ enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 faker==8.11.0; python_version >= "3.6"
 freezegun==1.1.0; python_version >= "3.5"
-google-api-core==2.4.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+google-api-core==2.5.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.34.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-core==2.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-cloud-pubsub==2.7.0; python_version >= "3.6"
@@ -56,7 +57,7 @@ google-crc32c==1.1.2; python_version >= "3.6" and python_full_version < "3.0.0" 
 google-i18n-address==2.5.0
 google-measurement-protocol==1.1.0
 google-resumable-media==1.3.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-googleapis-common-protos==1.53.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+googleapis-common-protos==1.54.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 graphene-django==2.13.0
 graphene-federation==0.1.0
 graphene==2.1.9
