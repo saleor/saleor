@@ -4,9 +4,8 @@ from unittest import mock
 
 import Adyen
 import pytest
-import requests
 from django.core.exceptions import ValidationError
-from requests.exceptions import RequestException, SSLError
+from requests.exceptions import ConnectTimeout, RequestException, SSLError
 
 from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
@@ -670,9 +669,7 @@ def test_adyen_check_payment_balance(
 
 
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
-def test_adyen_check_payment_balance_adyen_raises_error(
-    api_call_mock, adyen_plugin, adyen_check_balance_response
-):
+def test_adyen_check_payment_balance_adyen_raises_error(api_call_mock, adyen_plugin):
 
     api_call_mock.return_value = Adyen.AdyenError("Error")
     plugin = adyen_plugin()
@@ -705,8 +702,8 @@ def test_adyen_check_payment_balance_adyen_raises_error(
     )
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.common.HTTP_TIMEOUT", 0.001)
-def test_adyen_check_payment_timeout(adyen_plugin, adyen_check_balance_response):
+@mock.patch("requests.post")
+def test_adyen_check_payment_timeout(request_post_mock, adyen_plugin):
     plugin = adyen_plugin()
 
     data = {
@@ -719,5 +716,6 @@ def test_adyen_check_payment_timeout(adyen_plugin, adyen_check_balance_response)
         },
     }
 
-    with pytest.raises(requests.exceptions.ConnectTimeout):
-        plugin.check_payment_balance(data)
+    request_post_mock.side_effect = ConnectTimeout()
+    res = plugin.check_payment_balance(data)
+    assert res.startswith("Unable to process the payment request")
