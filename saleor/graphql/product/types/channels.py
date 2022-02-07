@@ -156,7 +156,6 @@ class ProductChannelListing(ModelObjectType):
         return root.is_available_for_purchase()
 
     @staticmethod
-    @traced_resolver
     def resolve_pricing(root: models.ProductChannelListing, info, address=None):
         context = info.context
 
