@@ -1,4 +1,4 @@
-from tests.settings import *  # noqa
+from saleor.tests.settings import *  # noqa
 
 CITIES_LIGHT_INCLUDE_CITY_TYPES = [
     "PPL",
