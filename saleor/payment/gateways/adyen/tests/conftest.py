@@ -94,6 +94,13 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
 
 
 @pytest.fixture
+def inactive_payment_adyen_for_checkout(payment_adyen_for_checkout):
+    payment_adyen_for_checkout.is_active = False
+    payment_adyen_for_checkout.save(update_fields=["is_active"])
+    return payment_adyen_for_checkout
+
+
+@pytest.fixture
 def payment_adyen_for_order(order_with_lines):
     payment = create_payment(
         gateway=AdyenGatewayPlugin.PLUGIN_ID,
