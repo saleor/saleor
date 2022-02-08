@@ -29,7 +29,6 @@ class OTPError(Error):
 def send_password_reset_notification(
     user, manager, channel_slug: Optional[str], staff=False, reset_url=None
 ):
-
     otp = OTP.objects.create(user=user)
 
     payload = {
@@ -78,7 +77,8 @@ class RequestPasswordRecovery(BaseMutation):
         description = "Sends an email with the account password modification link."
         error_type_class = OTPError
 
-    def clean_user(email):
+    @classmethod
+    def clean_user(cls, email):
         try:
             return User.objects.get(email=email)
         except ObjectDoesNotExist:
@@ -86,13 +86,17 @@ class RequestPasswordRecovery(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=OTPErrorCode.USER_NOT_FOUND,
+                        code=OTPErrorCode.USER_NOT_FOUND.value,
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, email, redirect_url, channel=None):
+    def perform_mutation(cls, _root, info, **data):
+        email = data.get("email", "")
+        channel = data.get("channel", "")
+        redirect_url = data.get("redirect_url", "")
+
         user = cls.clean_user(email)
 
         if not user.is_staff:
@@ -104,7 +108,7 @@ class RequestPasswordRecovery(BaseMutation):
             validate_storefront_url(redirect_url)
         except ValidationError as error:
             raise ValidationError(
-                {"redirect_url": error}, code=OTPErrorCode.INVALID_URL
+                {"redirect_url": error}, code=OTPErrorCode.INVALID_URL.value
             )
 
         send_password_reset_notification(
@@ -166,7 +170,7 @@ class SetPasswordByCode(CreateToken):
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "User doesn't exist", code=OTPErrorCode.USER_NOT_FOUND
+                        "User doesn't exist", code=OTPErrorCode.USER_NOT_FOUND.value
                     )
                 }
             )
@@ -177,7 +181,7 @@ class SetPasswordByCode(CreateToken):
             otp = OTP.objects.get(code=code, user=user)
         except OTP.DoesNotExist:
             raise ValidationError(
-                "Invalid or expired OTP supplied", code=OTPErrorCode.INVALID
+                "Invalid or expired OTP supplied", code=OTPErrorCode.INVALID.value
             )
 
         cls.handle_used_otp(otp)
@@ -188,6 +192,7 @@ class SetPasswordByCode(CreateToken):
         cls.validate_otp(user, code)
 
         try:
+            pass
             password_validation.validate_password(password, user)
         except ValidationError as error:
             raise ValidationError({"password": error})
@@ -196,10 +201,14 @@ class SetPasswordByCode(CreateToken):
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
 
+        otp = OTP.objects.get(code=code, user=user)
+        otp.is_used = True
+        otp.save(update_fields=["is_used"])
+
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        password = data["password"]
         code = data["code"]
+        password = data["password"]
 
         try:
             user = cls.get_user(info, data)
