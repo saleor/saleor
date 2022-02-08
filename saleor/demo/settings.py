@@ -28,7 +28,8 @@ ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
-GRAPHENE["MIDDLEWARE"].insert(0, "saleor.graphql.middleware.ReadOnlyMiddleware")  # type: ignore
+if "MIDDLEWARE" in GRAPHENE.keys():
+    GRAPHENE["MIDDLEWARE"].insert(0, "saleor.graphql.middleware.ReadOnlyMiddleware")  # type: ignore
 
 BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
 BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
@@ -87,3 +88,5 @@ if DEMO_SENTRY_DSN:
         before_send=before_send,
     )
     ignore_logger("graphql.execution.utils")
+    ignore_logger("graphql.execution.executor")
+    ignore_logger("django.security.DisallowedHost")
