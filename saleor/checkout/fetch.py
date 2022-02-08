@@ -24,7 +24,6 @@ from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
-from . import base_calculations
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -465,9 +464,9 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
-    manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ) -> List["ShippingMethodData"]:
+    from . import base_calculations
     from .utils import get_valid_internal_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
@@ -542,7 +541,6 @@ def update_delivery_method_lists_for_checkout_info(
                     shipping_address,
                     lines,
                     discounts,
-                    manager,
                     shipping_channel_listings,
                 ),
                 get_valid_external_shipping_method_list_for_checkout_info(

@@ -39,6 +39,7 @@ from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import get_plugins_manager
+from ....plugins.models import PluginConfiguration
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
@@ -3576,6 +3577,72 @@ def test_checkout_shipping_method_update_external_shipping_method(
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
+
+
+@mock.patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_checkout_shipping_method_update_external_shipping_method_with_avatax(
+    mock_send_request,
+    mock_tax_data,
+    staff_api_client,
+    address,
+    checkout_with_item,
+    shipping_app,
+    channel_USD,
+    settings,
+):
+    PluginConfiguration.objects.create(
+        active=True,
+        channel=channel_USD,
+        identifier="mirumee.taxes.avalara",
+        configuration=[
+            {"name": "Username or account", "type": "String", "value": "00000000"},
+            {"name": "Password or license", "type": "Password", "value": "00000000"},
+        ],
+    )
+
+    settings.PLUGINS = [
+        "saleor.plugins.avatax.plugin.AvataxPlugin",
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+    mock_tax_data.return_value = {"lines": []}
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save()
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    # Set external shipping method for first time
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    assert not data["errors"]
+
+    # Set external shipping for second time
+    # Without a fix this request results in infinite recursion
+    # between Avalara and Webhooks plugins
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    assert not data["errors"]
 
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
