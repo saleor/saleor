@@ -2,7 +2,6 @@ import graphene
 from graphene import ObjectType, relay
 
 from ...core.permissions import ShippingPermissions
-from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
@@ -204,7 +203,6 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         only_fields = ["default", "id", "name"]
 
     @staticmethod
-    @traced_resolver
     def resolve_price_range(root: ChannelContext[models.ShippingZone], *_args):
         return resolve_price_range(root.channel_slug)
 

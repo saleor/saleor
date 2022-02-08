@@ -445,7 +445,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    @traced_resolver
     def resolve_revenue(root: ChannelContext[models.ProductVariant], info, period):
         start_date = reporting_period_to_date(period)
         variant = root.node
@@ -671,7 +670,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    @traced_resolver
     def resolve_thumbnail(root: ChannelContext[models.Product], info, *, size=255):
         def return_first_thumbnail(product_media):
             if product_media:
@@ -883,7 +881,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
 
@@ -939,7 +936,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    @traced_resolver
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -957,7 +953,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1062,7 +1057,6 @@ class ProductType(CountableDjangoObjectType):
         return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    @traced_resolver
     def resolve_variant_attributes(
         root: models.ProductType,
         info,
@@ -1291,7 +1285,6 @@ class Category(CountableDjangoObjectType):
         return ""
 
     @staticmethod
-    @traced_resolver
     def resolve_products(root: models.Category, info, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(

@@ -5,7 +5,6 @@ import graphene
 from ...attribute import AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
-from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
@@ -56,7 +55,6 @@ class AttributeValue(CountableDjangoObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info, *_args):
         def _resolve_input_type(attribute):
             requester = get_user_or_app_from_context(info.context)

@@ -4,7 +4,6 @@ import graphene
 from django_countries.fields import Country
 
 from ....core.permissions import ProductPermissions
-from ....core.tracing import traced_resolver
 from ....core.utils import get_currency_for_country
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
@@ -76,7 +75,6 @@ class ProductChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    @traced_resolver
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
@@ -114,7 +112,6 @@ class ProductChannelListing(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)

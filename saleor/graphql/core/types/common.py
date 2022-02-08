@@ -3,7 +3,6 @@ from urllib.parse import urljoin
 import graphene
 from django.conf import settings
 
-from ....core.tracing import traced_resolver
 from ....product.product_images import get_thumbnail
 from ...account.enums import AddressTypeEnum
 from ..enums import (
@@ -435,7 +434,6 @@ class Job(graphene.Interface):
     message = graphene.String(description="Job message.")
 
     @classmethod
-    @traced_resolver
     def resolve_type(cls, instance, _info):
         """Map a data object to a Graphene type."""
         MODEL_TO_TYPE_MAP = {
