@@ -1587,7 +1587,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [[package]]
 name = "petl"
-version = "1.7.4"
+version = "1.7.7"
 description = "A Python package for extracting, transforming and loading tables of data."
 category = "main"
 optional = false
@@ -1605,7 +1605,7 @@ pandas = ["pandas (>=0.24.2)"]
 remote = ["fsspec (>=0.7.4)"]
 smb = ["smbprotocol (>=1.0.1)"]
 whoosh = ["whoosh"]
-xls = ["xlrd (>=1.2.0)", "xlwt (>=1.3.0)"]
+xls = ["xlrd (>=2.0.1)", "xlwt (>=1.3.0)"]
 xlsx = ["openpyxl (>=2.6.2)"]
 xpath = ["lxml (>=4.4.0)"]
 
@@ -2765,7 +2765,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "110551b5e959e65e3ea910826f8c75a3c05b7575915e8ef75e55037dfeed790b"
+content-hash = "014e9770ae62aa524663f5c36e0890d7c031588d10aeb4b19d38e1f007a70323"
 
 [metadata.files]
 adyen = [
@@ -3809,7 +3809,7 @@ pathspec = [
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
 ]
 petl = [
-    {file = "petl-1.7.4.tar.gz", hash = "sha256:e57d9d50397e35a0aead8c028494474742edb9b320a89472207778241f57b694"},
+    {file = "petl-1.7.7.tar.gz", hash = "sha256:75976361472da58b12780fe07c1520aebeae89ffa51df3a2c1760ef85de32bff"},
 ]
 phonenumberslite = [
     {file = "phonenumberslite-8.12.42-py2.py3-none-any.whl", hash = "sha256:656230684742fa4bb24eda791e38f6766fd9197ea3f14fe940b1c1306aecbacc"},
