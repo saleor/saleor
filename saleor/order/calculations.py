@@ -289,3 +289,35 @@ def order_shipping_tax_rate(
     """
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
     return order.shipping_tax_rate
+
+
+def order_total(
+    order: Order,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> TaxedMoney:
+    """Return the total price of the order.
+
+    It takes in account all plugins.
+    If the prices are expired, calls all order price calculation methods
+    and saves them in the model directly.
+    """
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    return order.total
+
+
+def order_undiscounted_total(
+    order: Order,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> TaxedMoney:
+    """Return the total price of the order.
+
+    It takes in account all plugins.
+    If the prices are expired, calls all order price calculation methods
+    and saves them in the model directly.
+    """
+    order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    return order.undiscounted_total
