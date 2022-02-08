@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Exists, IntegerField, OuterRef, Q, Sum
+from django.db.models import Exists, IntegerField, OuterRef, Q
 from django.db.models.functions import Cast
 from django.utils import timezone
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
@@ -44,9 +44,6 @@ def filter_status(qs, _, value):
         query_objects |= qs.filter(status__in=value)
 
     if OrderStatusFilter.READY_TO_FULFILL in value:
-        # to use & between queries both of them need to have applied the same
-        # annotate
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
