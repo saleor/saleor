@@ -7,7 +7,6 @@ from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...attribute.models import AttributeValue
 from ...core.permissions import DiscountPermissions, ShippingPermissions
-from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -59,7 +58,6 @@ class BaseTranslationType(CountableDjangoObjectType):
         abstract = True
 
     @staticmethod
-    @traced_resolver
     def resolve_language(root, *_args):
         try:
             language = next(

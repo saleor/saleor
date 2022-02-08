@@ -1,6 +1,5 @@
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
 from ..core.utils import from_global_id_or_error
@@ -37,7 +36,6 @@ def resolve_webhook_events():
     ]
 
 
-@traced_resolver
 def resolve_sample_payload(info, event_name):
     app = info.context.app
     required_permission = WebhookEventType.PERMISSIONS.get(event_name)

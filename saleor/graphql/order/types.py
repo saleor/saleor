@@ -273,7 +273,6 @@ class OrderEvent(CountableDjangoObjectType):
         return root.parameters.get("invoice_number")
 
     @staticmethod
-    @traced_resolver
     def resolve_lines(root: models.OrderEvent, info):
         raw_lines = root.parameters.get("lines", None)
 
@@ -472,7 +471,6 @@ class OrderLine(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @traced_resolver
     def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
         if not root.variant_id:
             return None
@@ -753,7 +751,6 @@ class Order(CountableDjangoObjectType):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_discount(root: models.Order, info):
         def return_voucher_discount(discounts) -> Optional[Money]:
             if not discounts:
@@ -770,7 +767,6 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_discount_name(root: models.Order, info):
         def return_voucher_name(discounts) -> Optional[Money]:
             if not discounts:
@@ -787,7 +783,6 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_translated_discount_name(root: models.Order, info):
         def return_voucher_translated_name(discounts) -> Optional[Money]:
             if not discounts:
@@ -832,7 +827,6 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_shipping_address(root: models.Order, info):
         def _resolve_shipping_address(data):
             if isinstance(data, Address):
@@ -909,7 +903,6 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_subtotal(root: models.Order, info):
         def _resolve_subtotal(order_lines):
             return get_subtotal(order_lines, root.currency)
@@ -1017,7 +1010,6 @@ class Order(CountableDjangoObjectType):
         return root.get_status_display()
 
     @staticmethod
-    @traced_resolver
     def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
@@ -1063,12 +1055,10 @@ class Order(CountableDjangoObjectType):
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
-    @traced_resolver
     def resolve_available_shipping_methods(root: models.Order, info):
         return resolve_order_shipping_methods(root, info, include_active_only=True)
 
     @staticmethod
-    @traced_resolver
     def resolve_shipping_methods(root: models.Order, info):
         return resolve_order_shipping_methods(root, info)
 
