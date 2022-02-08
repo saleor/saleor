@@ -14,37 +14,36 @@ class PossiblePhoneNumberField(PhoneNumberField):
 
 
 class Vendor(models.Model):
+    class CommercialInfoChoices(models.IntegerChoices):
+        CR = 1
+        MAROOF = 2
 
-    COMMERCIAL_INFO_CHOICES = (
-        ("cr", "CR"),
-        ("maroof", "MAROOF"),
-    )
-    SELLS_GENDER_CHOICES = (
-        ("men", "MEN"),
-        ("women", "WOMEN"),
-        ("unisex", "UNISEX"),
-    )
+    class SellsGenderChoices(models.IntegerChoices):
+        MEN = 1
+        WOMEN = 2
+        UNISEX = 3
+
     name = models.CharField(max_length=256, db_index=True)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=256, unique=True)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL)
     description = models.TextField(blank=True, default="")
     country = CountryField()
     phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
     national_id = models.CharField(max_length=256)
     is_active = models.BooleanField(default=True)
-    commercial_info = models.CharField(
-        max_length=6, choices=COMMERCIAL_INFO_CHOICES, default="cr"
+    commercial_info = models.IntegerField(
+        choices=CommercialInfoChoices.choices, default=CommercialInfoChoices.CR
     )
     commercial_description = models.TextField(blank=True, default="")
-    sells_gender = models.CharField(
-        max_length=6, choices=SELLS_GENDER_CHOICES, default="men"
+    sells_gender = models.IntegerField(
+        choices=SellsGenderChoices.choices, default=SellsGenderChoices.MEN
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class Billing(models.Model):
-    iban_num = IBANField()
+    iban = IBANField()
     bank_name = models.CharField(max_length=256)
     vendor = models.ForeignKey(Vendor, blank=True, null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
