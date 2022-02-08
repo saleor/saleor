@@ -1,6 +1,7 @@
 import pytest
 
 from ...app.models import App
+from ...plugins.webhook.utils import get_current_tax_app
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.models import Webhook, WebhookEvent
 from ..permissions import (
@@ -8,7 +9,6 @@ from ..permissions import (
     OrderPermissions,
     get_permissions_from_codenames,
 )
-from ..taxes import get_current_tax_app
 
 
 @pytest.fixture

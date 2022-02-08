@@ -8,16 +8,7 @@ from ...app.models import App
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
-from ...core.taxes import (
-    DEFAULT_TAX_CODE,
-    DEFAULT_TAX_DESCRIPTION,
-    WEBHOOK_TAX_CODES_CACHE_KEY,
-    TaxData,
-    TaxType,
-    get_current_tax_app,
-    get_meta_code_key,
-    get_meta_description_key,
-)
+from ...core.taxes import TaxData, TaxType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
 from ...product.models import Collection, Product, ProductType, ProductVariant
@@ -50,8 +41,14 @@ from .tasks import (
     trigger_webhooks_async,
 )
 from .utils import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
+    WEBHOOK_TAX_CODES_CACHE_KEY,
     delivery_update,
     from_payment_app_id,
+    get_current_tax_app,
+    get_meta_code_key,
+    get_meta_description_key,
     parse_list_payment_gateways_response,
     parse_list_shipping_methods_response,
     parse_payment_action_response,

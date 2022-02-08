@@ -1,12 +1,9 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import List, Optional, Union
+from typing import List, Union
 
 from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
-
-from ..app.models import App
-from ..webhook.event_types import WebhookEventSyncType
 
 
 class TaxError(Exception):
@@ -85,28 +82,3 @@ class TaxData:
     shipping_price_net_amount: Decimal
     shipping_tax_rate: Decimal
     lines: List[TaxLineData]
-
-
-WEBHOOK_TAX_CODES_CACHE_KEY = "webhook_tax_codes"
-
-DEFAULT_TAX_CODE = "SA0000"
-DEFAULT_TAX_DESCRIPTION = "Unmapped Product/Product Type"
-
-
-def get_current_tax_app() -> Optional[App]:
-    """Return currently used tax app or None, if there aren't any."""
-    return (
-        App.objects.order_by("pk")
-        .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
-        .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-        .for_event_type(WebhookEventSyncType.FETCH_TAX_CODES)
-        .last()
-    )
-
-
-def get_meta_code_key(app: App) -> str:
-    return f"{app.identifier}.code"
-
-
-def get_meta_description_key(app: App) -> str:
-    return f"{app.identifier}.description"

@@ -6,15 +6,15 @@ from freezegun import freeze_time
 
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
-from ....core.taxes import (
+from ....core.taxes import TaxType
+from ....webhook.event_types import WebhookEventSyncType
+from ....webhook.payloads import generate_checkout_payload, generate_order_payload
+from ..utils import (
     DEFAULT_TAX_CODE,
     DEFAULT_TAX_DESCRIPTION,
     WEBHOOK_TAX_CODES_CACHE_KEY,
-    TaxType,
+    parse_tax_data,
 )
-from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.payloads import generate_checkout_payload, generate_order_payload
-from ..utils import parse_tax_data
 
 
 @freeze_time()
