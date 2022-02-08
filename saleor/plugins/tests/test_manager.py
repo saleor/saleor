@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...core.taxes import TaxType
+from ...core.taxes import TaxType, zero_taxed_money
 from ...discount.utils import fetch_catalogue_info
 from ...graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ...payment.interface import PaymentGateway
@@ -1066,3 +1066,33 @@ def test_manager_delivery_retry(event_delivery):
     manager = PluginsManager(plugins=plugins)
     delivery_retry = manager.event_delivery_retry(event_delivery=event_delivery)
     assert delivery_retry
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_single_plugin"
+)
+@mock.patch("saleor.plugins.manager.base_calculations.base_checkout_total")
+def test_calculate_checkout_total_zero_default_value(
+    mocked_base_checkout_total,
+    mocked_run_method,
+    checkout_with_item,
+    discount_info,
+):
+    # given
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    currency = checkout_with_item.currency
+    mocked_base_checkout_total.return_value = zero_taxed_money(currency)
+    manager = PluginsManager(plugins=plugins)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [discount_info], manager
+    )
+
+    # when
+    taxed_total = manager.calculate_checkout_total(
+        checkout_info, lines, None, [discount_info]
+    )
+
+    # then
+    assert "calculate_checkout_total" not in mocked_run_method.call_args_list
+    assert taxed_total == zero_taxed_money(currency)
