@@ -332,21 +332,6 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     assert checkout_with_item.last_change == previous_checkout_last_change
 
 
-def test_checkout_add_voucher_code_variant_unavailable(
-    api_client, checkout_with_item, voucher
-):
-    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
-    checkout_with_item.lines.first().variant.channel_listings.filter(
-        channel=checkout_with_item.channel
-    ).delete()
-    data = _mutate_checkout_add_promo_code(api_client, variables)
-
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
-    assert errors[0]["field"] == "lines"
-
-
 def test_checkout_add_voucher_code_checkout_with_sale(
     api_client, checkout_with_item, voucher_percentage, discount_info
 ):

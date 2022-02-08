@@ -2845,35 +2845,6 @@ def test_checkout_shipping_method_update_excluded_postal_code(
     )
 
 
-def test_checkout_shipping_method_update_unavailable_variant(
-    staff_api_client,
-    shipping_method,
-    checkout_with_item,
-    address,
-):
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.save(update_fields=["shipping_address"])
-    checkout_with_item.lines.first().variant.channel_listings.filter(
-        channel=checkout_with_item.channel
-    ).delete()
-    query = MUTATION_UPDATE_SHIPPING_METHOD
-
-    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-
-    response = staff_api_client.post_graphql(
-        query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
-    )
-    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
-
-    checkout.refresh_from_db()
-
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "lines"
-    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
-
-
 @patch(
     "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
 )
