@@ -482,10 +482,16 @@ def test_order_queryset_to_ship(settings, channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
     orders_to_ship = [
         Order.objects.create(
-            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.UNFULFILLED,
+            total=total,
+            total_paid_amount=total.gross.amount,
+            channel=channel_USD,
         ),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.PARTIALLY_FULFILLED,
+            total=total,
+            total_paid_amount=total.gross.amount,
+            channel=channel_USD,
         ),
     ]
     for order in orders_to_ship:
