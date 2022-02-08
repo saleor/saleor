@@ -3861,6 +3861,22 @@ def test_draft_order_complete_insufficient_stock_preorders(
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
 
 
+def test_draft_order_complete_not_draft_order(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert data["errors"][0]["code"] == OrderErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "id"
+
+
 ORDER_LINES_CREATE_MUTATION = """
     mutation OrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
         orderLinesCreate(id: $orderId,
