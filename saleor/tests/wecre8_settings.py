@@ -1,4 +1,4 @@
-from saleor.settings import *  # noqa F405
+from saleor.tests.settings import *  # noqa
 
 CITIES_LIGHT_INCLUDE_CITY_TYPES = [
     "PPL",
@@ -19,12 +19,3 @@ CITIES_LIGHT_TRANSLATION_LANGUAGES = ["ar"]
 CITIES_LIGHT_APP_NAME = "provinces"  # noqa F405
 
 INSTALLED_APPS += ["cities_light", "django_celery_results"]  # noqa F405
-
-CELERY_BEAT_SCHEDULE.update(  # noqa F405
-    {
-        "update-oto-access-token": {
-            "task": "saleor.plugins.oto.tasks.update_oto_access_token_task",
-            "schedule": timedelta(minutes=30),  # noqa F405
-        },
-    }
-)
