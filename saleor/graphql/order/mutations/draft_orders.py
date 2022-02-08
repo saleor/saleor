@@ -418,8 +418,21 @@ class DraftOrderComplete(BaseMutation):
                 order.user = None
 
     @classmethod
+    def validate_order(cls, order):
+        if not order.is_draft():
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "The order is not draft.", code=OrderErrorCode.INVALID.value
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, id):
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.validate_order(order)
+
         country = get_order_country(order)
         validate_draft_order(order, country, info.context.plugins)
         cls.update_user_fields(order)
