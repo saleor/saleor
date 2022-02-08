@@ -7896,9 +7896,9 @@ def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
     line.save()
 
     query = ORDER_LINE_DELETE_MUTATION
-    line = order.lines.get(product_sku="SKU_B")
-    line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    variables = {"id": line_id}
+    line_2 = order.lines.get(product_sku="SKU_B")
+    line_2_id = graphene.Node.to_global_id("OrderLine", line_2.id)
+    variables = {"id": line_2_id}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -7906,9 +7906,10 @@ def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
 
+    order.refresh_from_db()
     assert data["order"]["total"]["gross"]["amount"] == float(
-        order.total_gross_amount
-    ) - float(line.total_price_gross_amount)
+        line.total_price_gross_amount
+    ) + float(order.shipping_price_gross_amount)
 
 
 ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL = """

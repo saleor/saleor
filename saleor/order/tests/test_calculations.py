@@ -233,6 +233,7 @@ def fetch_kwargs(order_with_lines, manager):
     return {
         "order": order_with_lines,
         "manager": manager,
+        "force_update": True,
     }
 
 

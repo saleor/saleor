@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -132,56 +133,57 @@ def fetch_order_prices_if_expired(
     or if order price expiration time was exceeded
     (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
     """
-    if order.status not in ORDER_EDITABLE_STATUS:
+    with transaction.atomic():
+        if order.status not in ORDER_EDITABLE_STATUS:
+            return order, lines
+
+        if not force_update and order.price_expiration_for_unconfirmed > timezone.now():
+            return order, lines
+
+        if lines is None:
+            lines = list(order.lines.prefetch_related("variant__product"))
+        else:
+            prefetch_related_objects(lines, "variant__product")
+
+        order.price_expiration_for_unconfirmed = (
+            timezone.now() + settings.ORDER_PRICES_TTL
+        )
+
+        manager_tax_data = _get_tax_data_from_manager(manager, order, lines)
+
+        if manager_tax_data is not None:
+            _apply_tax_data_from_manager(manager_tax_data, order, lines)
+
+        tax_data = manager.get_taxes_for_order(order)
+
+        if tax_data:
+            _apply_tax_data(order, lines, tax_data)
+
+        order.save(
+            update_fields=[
+                "total_net_amount",
+                "total_gross_amount",
+                "shipping_price_net_amount",
+                "shipping_price_gross_amount",
+                "shipping_tax_rate",
+                "price_expiration_for_unconfirmed",
+            ]
+        )
+        order.lines.bulk_update(
+            lines,
+            [
+                "unit_price_net_amount",
+                "unit_price_gross_amount",
+                "undiscounted_unit_price_net_amount",
+                "undiscounted_unit_price_gross_amount",
+                "total_price_net_amount",
+                "total_price_gross_amount",
+                "undiscounted_total_price_net_amount",
+                "undiscounted_total_price_gross_amount",
+                "tax_rate",
+            ],
+        )
         return order, lines
-
-    if not force_update and order.price_expiration_for_unconfirmed < timezone.now():
-        return order, lines
-
-    if lines is None:
-        lines = list(order.lines.prefetch_related("variant__product"))
-    else:
-        prefetch_related_objects(lines, "variant__product")
-
-    manager_tax_data = _get_tax_data_from_manager(manager, order, lines)
-
-    if manager_tax_data is None:
-        return order, lines
-
-    _apply_tax_data_from_manager(manager_tax_data, order, lines)
-
-    tax_data = manager.get_taxes_for_order(order)
-
-    if tax_data:
-        _apply_tax_data(order, lines, tax_data)
-
-    order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
-    order.save(
-        update_fields=[
-            "total_net_amount",
-            "total_gross_amount",
-            "shipping_price_net_amount",
-            "shipping_price_gross_amount",
-            "shipping_tax_rate",
-            "price_expiration_for_unconfirmed",
-        ]
-    )
-    order.lines.bulk_update(
-        lines,
-        [
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "undiscounted_unit_price_net_amount",
-            "undiscounted_unit_price_gross_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "undiscounted_total_price_net_amount",
-            "undiscounted_total_price_gross_amount",
-            "tax_rate",
-        ],
-    )
-
-    return order, lines
 
 
 def _find_order_line(
@@ -192,10 +194,8 @@ def _find_order_line(
 
     The return value represents the updated version of order_line parameter.
     """
-    return (
-        order_line
-        if lines is None
-        else next(line for line in lines if line.pk == order_line.pk)
+    return next(
+        (line for line in (lines or []) if line.pk == order_line.pk), order_line
     )
 
 

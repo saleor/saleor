@@ -766,6 +766,7 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        price_expiration_for_unconfirmed=timezone.now() + timedelta(hours=24),
     )
     return order
 
