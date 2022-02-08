@@ -3,9 +3,9 @@ from ..base_plugin import BasePlugin
 from .graphql.schema import schema
 
 
-class CountriesPlugin(BasePlugin):
-    PLUGIN_ID = "countries"
-    PLUGIN_NAME = "Countries"
+class ProvincesPlugin(BasePlugin):
+    PLUGIN_ID = "provinces"
+    PLUGIN_NAME = "Provinces"
     DEFAULT_ACTIVE = True
     PLUGIN_DESCRIPTION = "A plugin for handling providing addresses data"
     CONFIGURATION_PER_CHANNEL = False
