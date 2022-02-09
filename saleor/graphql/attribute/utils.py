@@ -257,17 +257,33 @@ class AttributeAssignmentMixin:
             attribute.entity_type  # type: ignore
         ]
         get_or_create = attribute.values.get_or_create
-        return tuple(
-            get_or_create(
-                attribute=attribute,
-                slug=slugify(
-                    f"{instance.id}_{reference.id}",  # type: ignore
-                    allow_unicode=True,
-                ),
-                defaults={"name": getattr(reference, field_name)},
-            )[0]
-            for reference in attr_values.references
-        )
+
+        if attribute.entity_type == AttributeEntityType.PAGE:
+            return tuple(
+                get_or_create(
+                    attribute=attribute,
+                    reference_page=reference,
+                    slug=slugify(
+                        f"{instance.id}_{reference.id}",  # type: ignore
+                        allow_unicode=True,
+                    ),
+                    defaults={"name": getattr(reference, field_name)},
+                )[0]
+                for reference in attr_values.references
+            )
+        if attribute.entity_type == AttributeEntityType.PRODUCT:
+            return tuple(
+                get_or_create(
+                    attribute=attribute,
+                    reference_product=reference,
+                    slug=slugify(
+                        f"{instance.id}_{reference.id}",  # type: ignore
+                        allow_unicode=True,
+                    ),
+                    defaults={"name": getattr(reference, field_name)},
+                )[0]
+                for reference in attr_values.references
+            )
 
     @classmethod
     def _pre_save_file_value(

@@ -6816,6 +6816,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
         attribute=product_type_page_reference_attribute,
         name=page.title,
         slug=f"{product.pk}_{page.pk}",
+        reference_page=page,
     )
     associate_attribute_values_to_instance(
         product, product_type_page_reference_attribute, attr_value
@@ -7003,6 +7004,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
         attribute=product_type_product_reference_attribute,
         name=product_ref.name,
         slug=f"{product.pk}_{product_ref.pk}",
+        reference_product=product_ref,
     )
     associate_attribute_values_to_instance(
         product, product_type_product_reference_attribute, attr_value
@@ -7123,11 +7125,13 @@ def test_update_product_change_values_ordering(
         attribute=product_type_page_reference_attribute,
         name=page_list[0].title,
         slug=f"{product.pk}_{page_list[0].pk}",
+        reference_page=page_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
         name=page_list[1].title,
         slug=f"{product.pk}_{page_list[1].pk}",
+        reference_page=page_list[1],
     )
 
     associate_attribute_values_to_instance(
@@ -7868,6 +7872,129 @@ def test_delete_product_variant_in_draft_order(
     ]
     for param in expected_params:
         assert param in event.parameters
+
+
+def test_product_delete_removes_reference_to_product(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = DELETE_PRODUCT_MUTATION
+
+    product = product_list[0]
+    product_ref = product_list[1]
+
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_ref.name,
+        slug=f"{product.pk}_{product_ref.pk}",
+        reference_product=product_ref,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_product_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Product", product_ref.pk)
+
+    variables = {"id": reference_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product_ref._meta.model.DoesNotExist):
+        product_ref.refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_product_variant(
+    staff_api_client,
+    variant,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    product_list,
+):
+    query = DELETE_PRODUCT_MUTATION
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([product_type_product_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_list[0].name,
+        slug=f"{variant.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
+    )
+
+    associate_attribute_values_to_instance(
+        variant,
+        product_type_product_reference_attribute,
+        attr_value,
+    )
+    reference_id = graphene.Node.to_global_id("Product", product_list[0].pk)
+
+    variables = {"id": reference_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product_list[0]._meta.model.DoesNotExist):
+        product_list[0].refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_page(
+    staff_api_client,
+    permission_manage_products,
+    page,
+    page_type_product_reference_attribute,
+    product,
+):
+    query = DELETE_PRODUCT_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(page_type_product_reference_attribute)
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        name=page.title,
+        slug=f"{page.pk}_{product.pk}",
+        reference_product=product,
+    )
+    associate_attribute_values_to_instance(
+        page, page_type_product_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"id": reference_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+
+    assert not data["errors"]
 
 
 def test_product_type(user_api_client, product_type, channel_USD):
@@ -9288,6 +9415,24 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         order_line_in_draft.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
+
+
+def test_product_type_delete_product_reference():
+    # given
+
+    # when
+
+    # then
+    assert False
+
+
+def test_product_type_delete_page_reference():
+    # given
+
+    # when
+
+    # then
+    assert False
 
 
 PRODUCT_MEDIA_CREATE_QUERY = """
