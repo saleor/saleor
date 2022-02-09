@@ -37,20 +37,21 @@ def get_shipping_method_availability_error(
     manager: "PluginsManager",
 ):
     """Validate whether shipping method is still available for the order."""
-    valid_methods_ids = (
-        {
-            method.id
-            for method in get_valid_shipping_methods_for_order(
+    if method:
+        valid_methods_ids = {
+            m.id
+            for m in get_valid_shipping_methods_for_order(
                 order,
                 order.channel.shipping_method_listings.all(),
                 manager,
             )
-            if method.active
+            if m.active
         }
-        if method
-        else {}
-    )
-    if not method or method.id not in valid_methods_ids:
+        is_valid = method.id in valid_methods_ids
+    else:
+        is_valid = False
+
+    if not is_valid:
         return ValidationError(
             "Shipping method cannot be used with this order.",
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
