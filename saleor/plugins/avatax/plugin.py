@@ -657,10 +657,17 @@ class AvataxPlugin(BasePlugin):
                     gross = Money(amount=net + tax, currency=currency)
                     net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
+
+        # Ignore typing checks because it is checked in _validate_order
+        channel_listing = order.shipping_method.channel_listings.filter(  # type: ignore
+            channel_id=order.channel_id
+        ).first()
+        if not channel_listing:
+            return previous_value
+        price = channel_listing.price
         return TaxedMoney(
-            # Ignore typing checks because it is checked in _validate_order
-            net=order.shipping_method.price,  # type: ignore
-            gross=order.shipping_method.price,  # type: ignore
+            net=price,
+            gross=price,
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:

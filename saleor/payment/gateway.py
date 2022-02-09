@@ -184,7 +184,6 @@ def capture(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
 def refund(
@@ -227,7 +226,6 @@ def refund(
 
 
 @raise_payment_error
-@require_active_payment
 @with_locked_payment
 @payment_postprocess
 def void(
@@ -333,7 +331,7 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
 
 
 def payment_refund_or_void(
-    payment: Optional[Payment], manager: "PluginsManager", channel_slug: str
+    payment: Optional[Payment], manager: "PluginsManager", channel_slug: Optional[str]
 ):
     if payment is None:
         return

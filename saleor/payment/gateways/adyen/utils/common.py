@@ -9,6 +9,7 @@ import opentracing.tags
 from Adyen.httpclient import HTTPClient
 from django.conf import settings
 from django_countries.fields import Country
+from requests.exceptions import ConnectTimeout
 
 from .....checkout.calculations import checkout_shipping_price, checkout_total
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -73,7 +74,7 @@ def api_call(
 ) -> Adyen.Adyen:
     try:
         return method(request_data, **kwargs)
-    except (Adyen.AdyenError, ValueError, TypeError) as e:
+    except (Adyen.AdyenError, ValueError, TypeError, ConnectTimeout) as e:
         logger.warning(f"Unable to process the payment: {e}")
         raise PaymentError(f"Unable to process the payment request: {e}.")
 

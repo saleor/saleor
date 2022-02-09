@@ -18,7 +18,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, TaxType
+from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ....discount import DiscountValueType, OrderDiscountType, VoucherType
 from ....order import OrderStatus
 from ....product import ProductTypeKind
@@ -1136,6 +1136,55 @@ def test_calculate_order_shipping(
     price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_zero_shipping_amount(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    channel_listing = method.channel_listings.get(channel=order.channel)
+    channel_listing.price_amount = 0
+    channel_listing.save(update_fields=["price_amount"])
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_no_channel_listing(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    method.channel_listings.all().delete()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == zero_taxed_money(order.currency)
 
 
 @pytest.mark.vcr

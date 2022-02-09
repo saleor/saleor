@@ -80,6 +80,46 @@ def test_handle_successful_payment_intent_for_checkout(
     assert transaction.token == payment_intent.id
 
 
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+@patch("saleor.payment.gateway.refund")
+def test_handle_successful_payment_intent_for_checkout_inactive_payment(
+    refund_mock,
+    wrapped_checkout_complete,
+    inactive_payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+):
+    payment = inactive_payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
+    payment_intent["setup_future_usage"] = None
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = SUCCESS_STATUS
+
+    handle_successful_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+    payment.refresh_from_db()
+
+    assert refund_mock.called
+    assert not wrapped_checkout_complete.called
+
+
 @patch("saleor.payment.gateway.refund")
 @patch("saleor.checkout.complete_checkout._get_order_data")
 def test_handle_successful_payment_intent_when_order_creation_raises_exception(
@@ -429,6 +469,36 @@ def test_handle_authorized_payment_intent_for_checkout_with_payment_details(
     assert transaction.token == intent.id
 
 
+@patch("saleor.payment.gateway.void")
+def test_handle_authorized_payment_intent_for_checkout_inactive_payment(
+    void_mock,
+    inactive_payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+):
+    payment = inactive_payment_stripe_for_checkout
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = AUTHORIZED_STATUS
+
+    handle_authorized_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+    payment.refresh_from_db()
+
+    assert void_mock.called
+
+
 @patch("saleor.checkout.complete_checkout._get_order_data")
 @patch("saleor.payment.gateway.void")
 def test_handle_authorized_payment_intent_when_order_creation_raises_exception(
@@ -694,6 +764,39 @@ def test_handle_processing_payment_intent_for_checkout(
     assert payment.order.checkout_token == str(checkout_with_items.token)
     transaction = payment.transactions.get(kind=TransactionKind.PENDING)
     assert transaction.token == payment_intent.id
+
+
+@patch(
+    "saleor.payment.gateways.stripe.webhooks.complete_checkout", wraps=complete_checkout
+)
+def test_handle_processing_payment_intent_for_checkout_inactive_payment(
+    wrapped_checkout_complete,
+    inactive_payment_stripe_for_checkout,
+    checkout_with_items,
+    stripe_plugin,
+    channel_USD,
+):
+    payment = inactive_payment_stripe_for_checkout
+    payment.to_confirm = True
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="ABC", last_response={})
+    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["currency"] = payment.currency
+    payment_intent["status"] = PROCESSING_STATUS
+
+    handle_processing_payment_intent(payment_intent, plugin.config, channel_USD.slug)
+
+    assert not wrapped_checkout_complete.called
 
 
 @patch("saleor.checkout.complete_checkout._get_order_data")

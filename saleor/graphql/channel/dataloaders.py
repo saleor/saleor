@@ -5,7 +5,7 @@ from django.db.models import Exists, OuterRef
 from ...channel.models import Channel
 from ...order.models import Order
 from ...shipping.models import ShippingZone
-from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
+from ..checkout.dataloaders import CheckoutByTokenLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader
 from ..shipping.dataloaders import ShippingZoneByIdLoader
@@ -42,7 +42,7 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
                 return ChannelByIdLoader(self.context).load_many(channel_ids)
 
             return (
-                CheckoutByIdLoader(self.context)
+                CheckoutByTokenLoader(self.context)
                 .load_many(checkout_ids)
                 .then(channels_by_checkout)
             )

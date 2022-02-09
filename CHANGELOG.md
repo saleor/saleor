@@ -201,6 +201,8 @@ unavailable - #8978 by @IKarbowiak
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
   - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
+- Fix incorrect handling of unavailable products in checkout - #8978 by @IKarbowiak
+- Revert the additional validation for unavailable products introduced in #8978 - #9119 by @korycins
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -320,6 +322,7 @@ unavailable - #8978 by @IKarbowiak
   and `CheckoutPricesData` instead of `PricesData`
 - Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
   - Use `token` instead
+- Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
 
 ### Other
 
