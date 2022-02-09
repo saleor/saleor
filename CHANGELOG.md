@@ -9,8 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
     * X-Saleor-Domain -> Saleor-Domain
     * X-Saleor-Signature -> Saleor-Signature
     * X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
-- Improve draft orders and orders webhooks - #SALEOR-4008 by @jakubkuc
-- Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
+- Extend Editor.js validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
@@ -175,6 +174,61 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect stock allocation - #8931 by @IKarbowiak
 - Fix incorrect handling of unavailable products in checkout - #8978 by @IKarbowiak
 - Revert the additional validation for unavailable products introduced in #8978 - #9119 by @korycins
+- Add draft orders webhooks - #8102 by @jakubkuc
+- Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
+- Fix creating translations with app - #6804 by @krzysztofwolski
+- Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
+- Add basic rating for `Products` - #6284 by @korycins
+- Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
+- Add Page Types - #6261 by @IKarbowiak
+- Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
+- Add editorjs sanitizer - #6456 by @IKarbowiak
+- Add generic FileUpload mutation - #6470 by @IKarbowiak
+- Order confirmation backend - #6498 by @tomaszszymanski129
+- Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
+- Refund products support - #6530 by @korycins
+- Add possibility to exclude products from shipping method - #6506 by @korycins
+- Add availableShippingMethods to the Shop type - #6551 by @IKarbowiak
+- Add delivery time to shipping method - #6564 by @IKarbowiak
+- Introduce file attributes - #6568 by @IKarbowiak
+- Shipping zone description - #6653 by @tomaszszymanski129
+- Add metadata to menu and menu item - #6648 by @tomaszszymanski129
+- Get tax rate from plugins - #6649 by @IKarbowiak
+- Added support for querying user by email - #6632 @LeOndaz
+- Add order shipping tax rate - #6678 by @IKarbowiak
+- Deprecate field `descriptionJSON` from `Product`, `Category`, `Collection` and field `contentJSON` from `Page` - #6692 by @d-wysocki
+- Fix products visibility - #6704 by @IKarbowiak
+- Introduce page reference attributes - #6624 by @IKarbowiak
+- Introduce product reference attributes - #6711 by @IKarbowiak
+- Add metadata to warehouse - #6727 by @d-wysocki
+- Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
+- Introduce numeric attributes - #6790 by @IKarbowiak
+- Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
+- Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
+- Add interface for integrating the auth plugins - #6799 by @korycins
+- Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
+- Add SendgridPlugin - #6793 by @korycins
+- Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
+- Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
+- Add product description_plaintext to populatedb - #6894 by @d-wysocki
+- Add uploading video URLs to product's gallery - #6838 by @GrzegorzDerdak
+- Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
+- Prevent negative available quantity - #6897 by @d-wysocki
+- Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
+- Change the `app` query to return info about the currently authenticated app - #6928 by @d-wysocki
+- Add default sorting by rank for search products - #6936 by @d-wysocki
+- Fix exporting product description to xlsx - #6959 by @IKarbowiak
+- Add `Shop.version` field to query API version - #6980 by @maarcingebala
+- Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
+- Add new authorization header `Authorization-Bearer` - #6998 by @korycins
+- Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
+- Unify Warehouse Address API - #7481 by @d-wysocki
+    - deprecate `companyName` on `Warehouse` type
+    - remove `companyName` on `WarehouseInput` type
+    - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
+- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
+- Add HTTP meta tag for Content-Security-Policy in GraphQL Playground - #7662 by @NyanKiyoshi
+
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -244,7 +298,6 @@ All notable, unreleased changes to this project will be documented in this file.
     - Use /plugins/channel/<channel_slug>/<plugin_id> for plugins with channel configuration
     - Use /plugins/global/<plugin_id> for plugins with global configuration
     - Remove /plugin/<plugin_id> endpoint
-
 - Add description to shipping method - #7116 by @IKarbowiak
   - `ShippingMethod` was extended with `description` field.
   - `ShippingPriceInput` was extended with `description` field
@@ -265,11 +318,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `created` argument from `draftOrders` query
   - drop `productType` from `ProductFilter`
   - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
-- Add channel data to Order webhook - #7299 by @krzysztofwolski
 - Deprecated Stripe plugin - will be removed in Saleor 4.0
   - rename `StripeGatewayPlugin` to `DeprecatedStripeGatewayPlugin`.
   - introduce new `StripeGatewayPlugin` plugin.
-
 - Always create new checkout in `checkoutCreate` mutation - #7318 by @IKarbowiak
   - deprecate `created` return field on `checkoutCreate` mutation
 - Return empty values list for attribute without choices - #7394 by @fowczarek
@@ -292,60 +343,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
 - Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
 
-### Other
-
-- Fix creating translations with app - #6804 by @krzysztofwolski
-- Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
-- Add basic rating for `Products` - #6284 by @korycins
-- Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
-- Add Page Types - #6261 by @IKarbowiak
-- Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
-- Add editorjs sanitizer - #6456 by @IKarbowiak
-- Add generic FileUpload mutation - #6470 by @IKarbowiak
-- Order confirmation backend - #6498 by @tomaszszymanski129
-- Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
-- Refund products support - #6530 by @korycins
-- Add possibility to exclude products from shipping method - #6506 by @korycins
-- Add availableShippingMethods to the Shop type - #6551 by @IKarbowiak
-- Add delivery time to shipping method - #6564 by @IKarbowiak
-- Introduce file attributes - #6568 by @IKarbowiak
-- Shipping zone description - #6653 by @tomaszszymanski129
-- Add metadata to menu and menu item - #6648 by @tomaszszymanski129
-- Get tax rate from plugins - #6649 by @IKarbowiak
-- Added support for querying user by email - #6632 @LeOndaz
-- Add order shipping tax rate - #6678 by @IKarbowiak
-- Deprecate field `descriptionJSON` from `Product`, `Category`, `Collection` and field `contentJSON` from `Page` - #6692 by @d-wysocki
-- Fix products visibility - #6704 by @IKarbowiak
-- Introduce page reference attributes - #6624 by @IKarbowiak
-- Introduce product reference attributes - #6711 by @IKarbowiak
-- Add metadata to warehouse - #6727 by @d-wysocki
-- Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
-- Introduce numeric attributes - #6790 by @IKarbowiak
-- Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
-- Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
-- Add interface for integrating the auth plugins - #6799 by @korycins
-- Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
-- Add SendgridPlugin - #6793 by @korycins
-- Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
-- Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
-- Add product description_plaintext to populatedb - #6894 by @d-wysocki
-- Add uploading video URLs to product's gallery - #6838 by @GrzegorzDerdak
-- Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
-- Prevent negative available quantity - #6897 by @d-wysocki
-- Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
-- Change the `app` query to return info about the currently authenticated app - #6928 by @d-wysocki
-- Add default sorting by rank for search products - #6936 by @d-wysocki
-- Fix exporting product description to xlsx - #6959 by @IKarbowiak
-- Add `Shop.version` field to query API version - #6980 by @maarcingebala
-- Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
-- Add new authorization header `Authorization-Bearer` - #6998 by @korycins
-- Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
-- Unify Warehouse Address API - #7481 by @d-wysocki
-    - deprecate `companyName` on `Warehouse` type
-    - remove `companyName` on `WarehouseInput` type
-    - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
-- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
-- Add HTTP meta tag for Content-Security-Policy in GraphQL Playground - #7662 by @NyanKiyoshi
 
 # 2.11.1
 
