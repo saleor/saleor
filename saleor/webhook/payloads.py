@@ -1015,6 +1015,7 @@ def _generate_payload_for_shipping_method(method: ShippingMethodData):
     return payload
 
 
+@traced_payload_generator
 def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
     available_shipping_methods: List[ShippingMethodData],
@@ -1030,6 +1031,7 @@ def generate_excluded_shipping_methods_for_order_payload(
     return json.dumps(payload, cls=CustomJsonEncoder)
 
 
+@traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
     available_shipping_methods: List[ShippingMethodData],
