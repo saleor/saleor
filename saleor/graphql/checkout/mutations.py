@@ -1118,21 +1118,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         manager = info.context.plugins
 
-        lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
-            not_available_variants_ids = {
-                graphene.Node.to_global_id("ProductVariant", pk)
-                for pk in unavailable_variant_pks
-            }
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Some of the checkout lines variants are unavailable.",
-                        code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
-                        params={"variants": not_available_variants_ids},
-                    )
-                }
-            )
+        lines, _ = fetch_checkout_lines(checkout)
 
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
@@ -1392,21 +1378,7 @@ class CheckoutAddPromoCode(BaseMutation):
         manager = info.context.plugins
         discounts = info.context.discounts
 
-        lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        if unavailable_variant_pks:
-            not_available_variants_ids = {
-                graphene.Node.to_global_id("ProductVariant", pk)
-                for pk in unavailable_variant_pks
-            }
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Some of the checkout lines variants are unavailable.",
-                        code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
-                        params={"variants": not_available_variants_ids},
-                    )
-                }
-            )
+        lines, _ = fetch_checkout_lines(checkout)
 
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
