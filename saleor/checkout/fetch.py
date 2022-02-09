@@ -127,11 +127,14 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
 
-        if not _is_variant_valid(
-            checkout, product, variant_channel_listing, product_channel_listing_mapping
-        ):
+        # This is a temporary solution to keep backward compatibility for all
+        # checkout's mutations. This will be changed in Saleor3.1
+        if not variant_channel_listing or variant_channel_listing.price is None:
             unavailable_variant_pks.append(variant.pk)
             continue
+
+        if not _is_variant_valid(checkout, product, product_channel_listing_mapping):
+            unavailable_variant_pks.append(variant.pk)
 
         lines_info.append(
             CheckoutLineInfo(
@@ -169,12 +172,8 @@ def _get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
 def _is_variant_valid(
     checkout: "Checkout",
     product: "Product",
-    variant_channel_listing: "ProductVariantChannelListing",
     product_channel_listing_mapping: dict,
 ):
-    if not variant_channel_listing or variant_channel_listing.price is None:
-        return False
-
     product_channel_listing = _get_product_channel_listing(
         product_channel_listing_mapping, checkout.channel_id, product
     )
@@ -182,6 +181,7 @@ def _is_variant_valid(
     if (
         not product_channel_listing
         or product_channel_listing.is_available_for_purchase() is False
+        or not product_channel_listing.is_visible
     ):
         return False
 
