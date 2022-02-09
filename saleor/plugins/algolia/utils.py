@@ -1,5 +1,6 @@
 from decimal import Decimal
 from threading import Lock
+from typing import List
 
 import graphene
 from django.contrib.auth.models import Permission
@@ -46,10 +47,6 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
       node {
         name
         slug
-        metadata {
-          key
-          value
-        }
         description
         media {
           url
@@ -69,6 +66,7 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
             slug
           }
           isPublished
+          publicationDate
           isAvailableForPurchase
         }
         attributes {
@@ -98,7 +96,7 @@ def get_hierarchical_categories(product: Product, language_code: str):
     hierarchical_list = []
     if product.category:
         categories = product.category.get_ancestors(include_self=True)
-        if language_code == "EN":
+        if language_code == "en":
             categories = [str(category) for category in categories]
         else:
             categories = [
@@ -224,8 +222,10 @@ def get_product_data(product_pk: int, language_code="EN"):
 
             if is_available_for_purchase and is_published:
                 name = channel.pop("channel").get("slug")
+                publication_date = channel.pop("publicationDate", "")
                 channel[name] = {
                     "name": name,
+                    "publication_date": publication_date,
                     "currency": price_net.pop("currency", 0),
                     "price": Decimal(price_net.pop("amount", 0)),
                 }
@@ -236,7 +236,6 @@ def get_product_data(product_pk: int, language_code="EN"):
         skus.append(sku)
 
     if not product_data.errors and channels:
-        product_dict.pop("metadata")
         slug = product_dict.pop("slug")
         media = product_dict.pop("media", [])[:2]
         product_dict.update(
@@ -249,6 +248,7 @@ def get_product_data(product_pk: int, language_code="EN"):
                 "description": description,
                 "images": map_product_media(media=media),
                 "gender": product.get_value_from_metadata("gender"),
+                "popularity": product.get_value_from_metadata("popularity", 0),
                 "collections": map_product_collections(
                     product=product, language_code=language_code.lower()
                 ),
@@ -270,3 +270,10 @@ class SingletonMeta(type):
                 instance = super().__call__(*args, **kwargs)
                 cls._instances[cls] = instance
         return cls._instances[cls]
+
+
+def get_attributes_for_faceting(attributes, categories) -> List:
+    attributes_for_faceting = [
+        f"attributes.{list(attribute.keys())[0]}" for attribute in attributes
+    ] + [f"categories.{category}" for category in categories]
+    return attributes_for_faceting
