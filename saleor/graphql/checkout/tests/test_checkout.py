@@ -3606,11 +3606,9 @@ def test_checkout_shipping_method_update_external_shipping_method(
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
 
 
-@mock.patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_checkout_shipping_method_update_external_shipping_method_with_avatax(
+def test_checkout_shipping_method_update_external_shipping_method_with_tax_plugin(
     mock_send_request,
-    mock_tax_data,
     staff_api_client,
     address,
     checkout_with_item,
@@ -3618,18 +3616,8 @@ def test_checkout_shipping_method_update_external_shipping_method_with_avatax(
     channel_USD,
     settings,
 ):
-    PluginConfiguration.objects.create(
-        active=True,
-        channel=channel_USD,
-        identifier="mirumee.taxes.avalara",
-        configuration=[
-            {"name": "Username or account", "type": "String", "value": "00000000"},
-            {"name": "Password or license", "type": "Password", "value": "00000000"},
-        ],
-    )
-
     settings.PLUGINS = [
-        "saleor.plugins.avatax.plugin.AvataxPlugin",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
         "saleor.plugins.webhook.plugin.WebhookPlugin",
     ]
     response_method_id = "abcd"
@@ -3643,7 +3631,6 @@ def test_checkout_shipping_method_update_external_shipping_method_with_avatax(
         }
     ]
     mock_send_request.return_value = mock_json_response
-    mock_tax_data.return_value = {"lines": []}
 
     checkout = checkout_with_item
     checkout.shipping_address = address
