@@ -19,6 +19,12 @@ class AlgoliaApiClient(metaclass=SingletonMeta):
                         "skus",
                         "name",
                         "description",
-                    ]
+                    ],
+                    "replicas": [
+                        f"{index.name}.price_asc",
+                        f"{index.name}.price_desc",
+                        f"{index.name}.popularity_desc",
+                        f"{index.name}.publication_date_asc",
+                    ],
                 }
             )
