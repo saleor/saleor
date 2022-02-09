@@ -1,10 +1,12 @@
 import os
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import patch
-
+from urllib.parse import urlparse
 import django_filters
 import graphene
 import pytest
+import vcr
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -359,16 +361,11 @@ def test_requestor_is_superuser_for_anonymous_user():
     assert result is False
 
 
-@pytest.mark.vcr
 @pytest.mark.parametrize(
     "url, expected_media_type",
     [
         (
             "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-        ),
-        (
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             ProductMediaTypes.VIDEO,
         ),
         (
@@ -386,8 +383,13 @@ def test_requestor_is_superuser_for_anonymous_user():
     ],
 )
 def test_get_oembed_data(url, expected_media_type):
-    oembed_data, media_type = get_oembed_data(url, "media_url")
-
+    from urllib.parse import urlparse
+    parsed_url = urlparse(url)
+    script_wkdir = Path(__file__).resolve().parent
+    cassette_path = script_wkdir / Path("cassettes/test_get_oembed_data") / parsed_url.netloc / parsed_url.query.replace('=','-').with_suffix('.yaml')
+    with vcr.use_cassette(cassette_path) as cass:
+        oembed_data, media_type = get_oembed_data(url, "media_url")
+    
     assert oembed_data is not {}
     assert media_type == expected_media_type
 
