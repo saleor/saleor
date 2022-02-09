@@ -224,14 +224,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add app support for events - #7622 by @IKarbowiak
 - Fix creating translations with app - #6804 by @krzysztofwolski
 - Change the `app` query to return info about the currently authenticated app - #6928 by @d-wysocki
-
-#### Other changes
-
 - Mark `X-` headers as deprecated and add headers without prefix. All deprecated headers will be removed in Saleor 4.0 - #8179 by @L3str4nge
   - X-Saleor-Event -> Saleor-Event
   - X-Saleor-Domain -> Saleor-Domain
   - X-Saleor-Signature -> Saleor-Signature
   - X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
+
+#### Other changes
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Fix Sentry reporting - #6902 by @fowczarek
