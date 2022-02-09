@@ -31,6 +31,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `COLLECTION_CREATED`, `COLLECTION_UPDATED`, `COLLECTION_DELETED` events and webhooks - #8974 by @rafalp
 - Fix crash when too long translation strings were passed to `translate` mutations - #8942 by rafalp
 - Make collections names non-unique - #8986 by @rafalp
+- Add validation of unavailable products in the checkout. Mutations: `CheckoutShippingMethodUpdate`,
+`CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
+unavailable - #8978 by @IKarbowiak
 - Fix #8069 #9012 #7385 #7135 #7279 by renaming files for windows 10
 
 # 3.0.0 [Unreleased]
