@@ -18,7 +18,11 @@ from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
 )
-from ....order.utils import add_variant_to_order, get_order_country
+from ....order.utils import (
+    add_variant_to_order,
+    get_order_country,
+    recalculate_order_weight,
+)
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
@@ -330,6 +334,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         # Post-process the results
         if cls.invalidate_prices(instance, cleaned_input, new_instance):
             invalidate_order_prices(instance, save=True)
+        recalculate_order_weight(instance)
         update_order_search_document(instance)
 
 
