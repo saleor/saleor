@@ -15,11 +15,11 @@ class BillingErrorCode(Enum):
 
 
 class CommercialInfo(graphene.Enum):
-    CR = "cr"
-    MAROOF = "maroof"
+    CR = 1
+    MAROOF = 2
 
 
 class SellsGender(graphene.Enum):
-    MEN = "men"
-    WOMEN = "women"
-    UNISEX = "unisex"
+    MEN = 1
+    WOMEN = 2
+    UNISEX = 3

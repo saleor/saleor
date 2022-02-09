@@ -21,7 +21,7 @@ class VendorConnection(relay.Connection):
 class Billing(CountableDjangoObjectType):
     class Meta:
         model = models.Billing
-        filter_fields = ["id", "iban_num", "bank_name"]
+        filter_fields = ["id", "iban", "bank_name"]
         interfaces = (graphene.relay.Node,)
 
 
