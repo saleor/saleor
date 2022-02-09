@@ -279,17 +279,17 @@ class GraphQLView(View):
                 except GraphQLError as e:
                     return ExecutionResult(errors=[e], invalid=True)
 
-                if settings.GRAPHQL_QUERY_MAX_COMPLEXITY:
-                    query_cost, cost_errors = validate_query_cost(
-                        schema,
-                        document,
-                        variables,
-                        COST_MAP,
-                        settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
-                    )
-                    if cost_errors:
-                        result = ExecutionResult(errors=cost_errors, invalid=True)
-                        return set_query_cost_on_result(result, query_cost)
+                query_cost, cost_errors = validate_query_cost(
+                    schema,
+                    document,
+                    variables,
+                    COST_MAP,
+                    settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+                )
+                span.set_tag("graphql.query_cost", query_cost)
+                if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
+                    result = ExecutionResult(errors=cost_errors, invalid=True)
+                    return set_query_cost_on_result(result, query_cost)
 
             extra_options: Dict[str, Optional[Any]] = {}
 
