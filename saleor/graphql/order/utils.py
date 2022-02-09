@@ -60,7 +60,6 @@ def get_shipping_method_availability_error(
 def validate_shipping_method(
     order: "Order", errors: T_ERRORS, manager: "PluginsManager"
 ):
-    error = None
     if not order.shipping_method:
         error = ValidationError(
             "Shipping method is required.",
