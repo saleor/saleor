@@ -293,6 +293,7 @@ def _is_variant_valid(
     if (
         not product_channel_listing
         or product_channel_listing.is_available_for_purchase() is False
+        or not product_channel_listing.is_visible
     ):
         return False
 
