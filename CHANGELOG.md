@@ -132,7 +132,7 @@ All notable, unreleased changes to this project will be documented in this file.
 #### Features
 
 - Migrate from Draft.js to Editor.js format - #6430, #6456 by @IKarbowiak
-- Allow to use `Bearer` as an authorization prefix - #6996 by @korycins
+- Allow using `Bearer` as an authorization prefix - #6996 by @korycins
 - Add product rating - #6284 by @korycins
 - Add order confirmation - #6498 by @tomaszszymanski12
 - Extend Vatlayer functionalities - #7101 by @korycins:
@@ -141,15 +141,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend order with origin and original order values - #7326 by @IKarbowiak
 - Allow impersonating user by an app/staff - #7754 by @korycins:
   - Add `customerId` to `checkoutCustomerAttach` mutation
-  - Add new permision `IMPERSONATE_USER`
-- Add possibility to apply discount to order/order line with status `DRAFT` - #6930 by @korycins
+  - Add new permission `IMPERSONATE_USER`
+- Add possibility to apply a discount to order/order line with status `DRAFT` - #6930 by @korycins
 - Implement database read replicas - #8516, #8751 by @fowczarek
 - Propagate sale and voucher discounts over specific lines - #8793 by @korycins
   - The created order lines from checkout will now have fulfilled all undiscounted fields with a default price value
     (without any discounts).
   - Order line will now include a voucher discount (in the case when the voucher is for specific products or have a
-    flag apply_once_per_order). In that case `Order.discounts` will not have a relation to `OrderDiscount` object.
-  - Webhook payload for `OrderLine` will now include two new fields `sale_id` (graphql ID of applied sale) and
+    flag apply_once_per_order). In that case, `Order.discounts` will not have a relation to `OrderDiscount` object.
+  - Webhook payload for `OrderLine` will now include two new fields, `sale_id` (graphql ID of applied sale) and
     `voucher_code` (code of the valid voucher applied to this line).
   - When any sale or voucher discount was applied, `line.discount_reason` will be fulfilled.
   - New interface for handling more data for prices: `PricesData` and `TaxedPricesData` used in checkout calculations
@@ -168,7 +168,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata to menu and menu item - #6648 by @tomaszszymanski129
 - Add metadata to warehouse - #6727 by @d-wysocki
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz, #7421 by @korycins
-- Change metadata mutations to use token for order and checkout as identifier - #8542 by @IKarbowiak
+- Change metadata mutations to use token for order and checkout as an identifier - #8542 by @IKarbowiak
   - After changes, using the order `id` for changing order metadata is deprecated
 
 #### Attributes
