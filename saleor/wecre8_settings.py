@@ -14,9 +14,9 @@ CITIES_LIGHT_INCLUDE_CITY_TYPES = [
     "PPLS",
     "STLMT",
 ]
-CITIES_LIGHT_INCLUDE_COUNTRIES = ["SA"]
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ["ar"]
 CITIES_LIGHT_APP_NAME = "provinces"  # noqa F405
+CITIES_LIGHT_INCLUDE_COUNTRIES = ["SA", "AE", "OM", "BH", "QA", "KW"]
 
 INSTALLED_APPS += ["cities_light", "django_celery_results"]  # noqa F405
 
