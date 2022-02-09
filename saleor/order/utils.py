@@ -35,7 +35,6 @@ from ..warehouse.management import (
 )
 from ..warehouse.models import Warehouse
 from . import calculations, events
-from .calculations import fetch_order_prices_if_expired
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -864,7 +863,6 @@ def update_discount_for_order_line(
     # Save lines before calculating the taxes as some plugin can fetch all order data
     # from db
     order_line.save(update_fields=fields_to_update)
-    fetch_order_prices_if_expired(order, manager)
 
 
 def remove_discount_from_order_line(
@@ -887,5 +885,3 @@ def remove_discount_from_order_line(
             "total_price_gross_amount",
         ]
     )
-
-    fetch_order_prices_if_expired(order, manager)
