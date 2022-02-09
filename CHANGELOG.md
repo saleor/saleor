@@ -295,8 +295,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add option to set tax code for shipping in Avatax configuration view - #8596 by @korycins
 - Fix Avalara tax fetching from cache - #8647 by @fowczarek
 - Fix incorrect stock allocation - #8931 by @IKarbowiak
-- Fix incorrect handling of unavailable products in checkout - #8978 by @IKarbowiak
-- Revert the additional validation for unavailable products introduced in #8978 - #9119 by @korycins
+- Fix incorrect handling of unavailable products in checkout - #8978, #9119 by @IKarbowiak, @korycins
 - Add draft orders webhooks - #8102 by @jakubkuc
 - Handle `SameSite` cookie attribute in jwt refresh token middleware - #8209 by @jakubkuc
 - Fix creating translations with app - #6804 by @krzysztofwolski
