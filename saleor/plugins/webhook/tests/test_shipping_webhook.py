@@ -17,7 +17,7 @@ from ..const import (
     CACHE_EXCLUDED_SHIPPING_TIME,
     EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
 )
-from ..shipping import get_excluded_shipping_methods_from_response
+from ..shipping import get_excluded_shipping_methods_from_response, to_shipping_app_id
 from ..tasks import trigger_webhook_sync
 
 ORDER_QUERY_SHIPPING_METHOD = """
@@ -219,8 +219,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
     )
 
 
-def test_parse_excluded_shipping_methods_response():
+def test_parse_excluded_shipping_methods_response(app):
     # given
+    external_id = to_shipping_app_id(app, "test-1234")
     response = {
         "excluded_methods": [
             {
@@ -235,13 +236,17 @@ def test_parse_excluded_shipping_methods_response():
             {
                 "id": graphene.Node.to_global_id("ShippingMethod", "2"),
             },
+            {
+                "id": external_id,
+            },
         ]
     }
     # when
     excluded_methods = get_excluded_shipping_methods_from_response(response)
     # then
-    assert len(excluded_methods) == 1
+    assert len(excluded_methods) == 2
     assert excluded_methods[0]["id"] == "2"
+    assert excluded_methods[1]["id"] == external_id
 
 
 @mock.patch(

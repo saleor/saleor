@@ -1003,7 +1003,7 @@ def generate_translation_payload(
 
 def _generate_payload_for_shipping_method(method: ShippingMethodData):
     payload = {
-        "id": graphene.Node.to_global_id("ShippingMethod", method.id),
+        "id": method.graphql_id,
         "price": method.price.amount,
         "currency": method.price.currency,
         "name": method.name,

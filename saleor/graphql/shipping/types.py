@@ -353,9 +353,7 @@ class ShippingMethod(graphene.ObjectType):
 
     @staticmethod
     def resolve_id(root: ShippingMethodData, _info):
-        if root.is_external:
-            return root.id
-        return graphene.Node.to_global_id("ShippingMethod", root.id)
+        return root.graphql_id
 
     @staticmethod
     def resolve_maximum_order_weight(root: ShippingMethodData, *_args):

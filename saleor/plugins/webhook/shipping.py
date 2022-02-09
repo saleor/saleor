@@ -128,8 +128,13 @@ def get_excluded_shipping_methods_from_response(
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
-            typename, method_id = graphene.Node.from_global_id(method_data["id"])
-            if typename != "ShippingMethod":
+            raw_id = method_data["id"]
+            typename, _id = graphene.Node.from_global_id(raw_id)
+            if typename == "app":
+                method_id = raw_id
+            elif typename == "ShippingMethod":
+                method_id = _id
+            else:
                 raise ValueError(
                     f"Invalid type received. Expected ShippingMethod, got {typename}"
                 )
