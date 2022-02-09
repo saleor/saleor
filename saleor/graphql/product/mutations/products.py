@@ -936,7 +936,7 @@ class ProductVariantCreate(ModelMutation):
         ]
 
         # Check if given attributes are variant attributes
-        for attr in data["attributes"]:
+        for attr in data.get("attributes") or []:
             if attr["id"] not in variant_attributes_ids:
                 raise ValidationError(
                     "Given attribute is not a variant attribute",
