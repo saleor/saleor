@@ -6,15 +6,12 @@ from prices import Money
 
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
-from ....order import events, models
+from ....order import events
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_document
 from ....order.utils import (
     create_order_discount_for_order,
     get_order_discounts,
-    recalculate_order,
-    recalculate_order_discounts,
-    recalculate_order_prices,
     remove_discount_from_order_line,
     remove_order_discount_from_order,
     update_discount_for_order_line,
@@ -24,6 +21,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...discount.enums import DiscountValueTypeEnum
 from ..types import Order, OrderLine
+from .utils import invalidate_order_prices
 
 
 class OrderDiscountCommonInput(graphene.InputObjectType):
@@ -77,20 +75,6 @@ class OrderDiscountCommon(BaseMutation):
         elif value > 100:
             error_msg = f"The percentage value ({value}) cannot be higher than 100."
             raise cls._validation_error_for_input_value(error_msg)
-
-    @classmethod
-    def recalculate_order(cls, order: models.Order):
-        """Recalculate order data and save them."""
-        recalculate_order_prices(order)
-        recalculate_order_discounts(order)
-        order.save(
-            update_fields=[
-                "total_net_amount",
-                "total_gross_amount",
-                "undiscounted_total_net_amount",
-                "undiscounted_total_gross_amount",
-            ]
-        )
 
 
 class OrderDiscountAdd(OrderDiscountCommon):
@@ -150,6 +134,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
             app=info.context.app,
             order_discount=order_discount,
         )
+        invalidate_order_prices(order, save=True)
         return OrderDiscountAdd(order=order)
 
 
@@ -200,8 +185,6 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         order_discount.value_type = value_type
         order_discount.save()
 
-        cls.recalculate_order(order)
-
         if (
             order_discount_before_update.value_type != value_type
             or order_discount_before_update.value != value
@@ -215,6 +198,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                 order_discount=order_discount,
                 old_order_discount=order_discount_before_update,
             )
+            invalidate_order_prices(order, save=True)
         return OrderDiscountUpdate(order=order)
 
 
@@ -249,9 +233,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
             order_discount=order_discount,
         )
 
-        order.refresh_from_db()
-
-        cls.recalculate_order(order)
+        invalidate_order_prices(order, save=True)
         update_order_search_document(order)
 
         return OrderDiscountDelete(order=order)
@@ -328,7 +310,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
                 line=order_line,
                 line_before_update=order_line_before_update,
             )
-            recalculate_order(order)
+            invalidate_order_prices(order, save=True)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)
 
 
@@ -376,5 +358,5 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
             line=order_line,
         )
 
-        recalculate_order(order)
+        invalidate_order_prices(order, save=True)
         return OrderLineDiscountRemove(order_line=order_line, order=order)
