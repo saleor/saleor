@@ -36,7 +36,6 @@ from ....order.utils import (
     change_order_line_quantity,
     delete_order_line,
     get_valid_shipping_methods_for_order,
-    recalculate_order,
 )
 from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
@@ -233,6 +232,16 @@ class OrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
+    def invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+        return any(
+            cleaned_input.get(field) is not None
+            for field in [
+                "shipping_address",
+                "billing_address",
+            ]
+        )
+
+    @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         cls._save_addresses(info, instance, cleaned_input)
@@ -241,13 +250,8 @@ class OrderUpdate(DraftOrderCreate):
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
 
-        invalid_price_fields = ["shipping_address", "billing_address"]
-        invalidate_prices = any(
-            cleaned_input.get(field) is not None for field in invalid_price_fields
-        )
-
-        if invalidate_prices:
-            invalidate_order_prices(instance, save=False)
+        if cls.invalidate_prices(instance, cleaned_input, False):
+            invalidate_order_prices(instance, save=True)
 
         instance.save()
 
@@ -350,6 +354,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             order.shipping_method = None
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
+            invalidate_order_prices(order, save=False)
             order.save(
                 update_fields=[
                     "currency",
@@ -357,9 +362,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
                     "shipping_method_name",
+                    "price_expiration_for_unconfirmed",
                 ]
             )
-            recalculate_order(order)
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -376,14 +381,14 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
 
         order.shipping_method = method
         order.shipping_method_name = method.name
-        invalidate_update_fields = invalidate_order_prices(order, save=False)
+        invalidate_order_prices(order, save=False)
         order.save(
             update_fields=[
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
+                "price_expiration_for_unconfirmed",
             ]
-            + invalidate_update_fields
         )
         # Post-process the results
         order_shipping_updated(order, info.context.plugins)
@@ -857,7 +862,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order_lines=lines_to_add,
         )
 
-        recalculate_order(order, invalidate_prices=True)
+        # recalculate_order(order, invalidate_prices=True)
+        invalidate_order_prices(order, save=True)
         update_order_search_document(order)
 
         func = get_webhook_handler_by_order_status(order.status, info)
@@ -929,7 +935,8 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        recalculate_order(order, invalidate_prices=True)
+        # recalculate_order(order, invalidate_prices=True)
+        invalidate_order_prices(order, save=True)
         update_order_search_document(order)
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
@@ -1000,7 +1007,8 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order, invalidate_prices=True)
+        # recalculate_order(instance.order, invalidate_prices=True)
+        invalidate_order_prices(instance.order, save=True)
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))

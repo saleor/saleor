@@ -171,10 +171,8 @@ def recalculate_order(order: Order, invalidate_prices: bool = False, **kwargs):
     invalidate_prices argument set to True.
     """
 
-    invalidate_updated_fields = []
-
     if invalidate_prices:
-        invalidate_updated_fields = invalidate_order_prices(order, save=False)
+        invalidate_order_prices(order, save=False)
 
     recalculate_order_prices(order, **kwargs)
 
@@ -188,8 +186,8 @@ def recalculate_order(order: Order, invalidate_prices: bool = False, **kwargs):
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
             "currency",
+            "price_expiration_for_unconfirmed",
         ]
-        + invalidate_updated_fields
     )
     recalculate_order_weight(order)
 

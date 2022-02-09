@@ -18,7 +18,7 @@ from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
 )
-from ....order.utils import add_variant_to_order, get_order_country, recalculate_order
+from ....order.utils import add_variant_to_order, get_order_country
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
@@ -36,6 +36,7 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
+from .utils import invalidate_order_prices
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -87,8 +88,6 @@ class DraftOrderCreateInput(DraftOrderInput):
 
 
 class DraftOrderCreate(ModelMutation, I18nMixin):
-    _invalidate_prices = False
-
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -278,27 +277,24 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         instance.save(update_fields=["billing_address", "shipping_address"])
 
     @classmethod
-    def _refresh_lines_unit_price(cls, info, instance, cleaned_input, new_instance):
+    def invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         if new_instance:
             # It is a new instance, all new lines have already updated prices.
-            return
+            return False
 
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            cls._invalidate_prices = True
+            return True
 
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            cls._invalidate_prices = True
+            return True
 
-    @classmethod
-    def invalidate_prices(cls, instance, cleaned_input) -> bool:
-        return cls._invalidate_prices
+        return False
 
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        cls._invalidate_prices = False
         new_instance = not bool(instance.pk)
 
         # Process addresses
@@ -315,8 +311,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 cleaned_input.get("quantities"),
                 cleaned_input.get("variants"),
             )
-
-            cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),
@@ -334,7 +328,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
         # Post-process the results
-        recalculate_order(instance, cls.invalidate_prices(instance, cleaned_input))
+        if cls.invalidate_prices(instance, cleaned_input, new_instance):
+            invalidate_order_prices(instance, save=True)
         update_order_search_document(instance)
 
 
@@ -370,10 +365,13 @@ class DraftOrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
-    def invalidate_prices(cls, instance, cleaned_input) -> bool:
-        invalid_price_fields = ["shipping_address", "billing_address"]
+    def invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         return any(
-            cleaned_input.get(field) is not None for field in invalid_price_fields
+            cleaned_input.get(field) is not None
+            for field in [
+                "shipping_address",
+                "billing_address",
+            ]
         )
 
 
