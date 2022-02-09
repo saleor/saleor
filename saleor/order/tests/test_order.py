@@ -24,6 +24,7 @@ from ...product.models import Collection
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
@@ -44,7 +45,6 @@ from ..utils import (
     change_order_line_quantity,
     delete_order_line,
     get_voucher_discount_for_order,
-    recalculate_order,
     restock_fulfillment_lines,
     update_order_status,
 )
@@ -70,7 +70,9 @@ def test_order_get_subtotal(order_with_lines):
         name="Test discount",
     )
 
-    recalculate_order(order_with_lines)
+    fetch_order_prices_if_expired(
+        order_with_lines, get_plugins_manager(), force_update=True
+    )
 
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
     assert order_with_lines.get_subtotal() == target_subtotal

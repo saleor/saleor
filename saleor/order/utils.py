@@ -1,4 +1,3 @@
-import copy
 from decimal import Decimal
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
@@ -21,7 +20,6 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..graphql.order.mutations.utils import invalidate_order_prices
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
@@ -92,103 +90,6 @@ def update_voucher_discount(func):
 
 def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
-
-
-def recalculate_order_discounts(
-    order: Order,
-) -> List[Tuple[OrderDiscount, OrderDiscount]]:
-    """Recalculate all order discounts assigned to order.
-
-    It returns the list of tuples which contains order discounts where the amount has
-    been changed.
-    """
-
-    changed_order_discounts = []
-    order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
-    for order_discount in order_discounts:
-        previous_order_discount = copy.deepcopy(order_discount)
-        current_total = order.total.gross.amount
-
-        update_order_discount_for_order(
-            order,
-            order_discount,
-        )
-        discount_value = order_discount.value
-        discount_type = order_discount.value_type
-        amount = order_discount.amount
-
-        if (
-            (
-                discount_type == DiscountValueType.PERCENTAGE
-                or current_total < discount_value
-            )
-            # No need to add new event when new and old amount of discount is the same
-            and amount != previous_order_discount.amount
-        ):
-            changed_order_discounts.append(
-                # order discount before changes, order discount after update
-                (previous_order_discount, order_discount)
-            )
-    return changed_order_discounts
-
-
-@update_voucher_discount
-def recalculate_order_prices(order: Order, **kwargs):
-    # avoid using prefetched order lines
-    lines = OrderLine.objects.filter(order_id=order.pk)
-    prices = [line.total_price for line in lines]
-    total = sum(prices, order.shipping_price)
-    undiscounted_total = TaxedMoney(total.net, total.gross)
-
-    voucher_discount = kwargs.get("discount", zero_money(order.currency))
-
-    # discount amount can't be greater than order total
-    voucher_discount = min(voucher_discount, total.gross)
-    total -= voucher_discount
-
-    order.total = total
-    order.undiscounted_total = undiscounted_total
-
-    if voucher_discount:
-        assigned_order_discount = get_voucher_discount_assigned_to_order(order)
-        if assigned_order_discount:
-            assigned_order_discount.amount_value = voucher_discount.amount
-            assigned_order_discount.value = voucher_discount.amount
-            assigned_order_discount.save(update_fields=["value", "amount_value"])
-
-
-def recalculate_order(order: Order, invalidate_prices: bool = False, **kwargs):
-    """Recalculate and assign total price of order.
-
-    Total price is a sum of items in order and order shipping price minus
-    discount amount.
-
-    Voucher discount amount is recalculated by default. To avoid this, pass
-    update_voucher_discount argument set to False.
-
-    If you want to invalidate order prices, pass
-    invalidate_prices argument set to True.
-    """
-
-    if invalidate_prices:
-        invalidate_order_prices(order, save=False)
-
-    recalculate_order_prices(order, **kwargs)
-
-    changed_order_discounts = recalculate_order_discounts(order)
-    events.order_discounts_automatically_updated_event(order, changed_order_discounts)
-
-    order.save(
-        update_fields=[
-            "total_net_amount",
-            "total_gross_amount",
-            "undiscounted_total_net_amount",
-            "undiscounted_total_gross_amount",
-            "currency",
-            "price_expiration_for_unconfirmed",
-        ]
-    )
-    recalculate_order_weight(order)
 
 
 def recalculate_order_weight(order):
