@@ -930,6 +930,21 @@ class ProductVariantCreate(ModelMutation):
                 cleaned_input["product"]
             )
 
+        variant_attributes_ids = [
+            graphene.Node.to_global_id("Attribute", attr_id)
+            for attr_id in list(
+                product_type.variant_attributes.all().values_list("pk", flat=True)
+            )
+        ]
+
+        # Check if given attributes are variant attributes
+        for attr in data["attributes"]:
+            if attr["id"] not in variant_attributes_ids:
+                raise ValidationError(
+                    "Given attribute is not a variant attribute",
+                    ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
+                )
+
         # Run the validation only if product type is configurable
         if product_type.has_variants:
             # Attributes are provided as list of `AttributeValueInput` objects.
@@ -956,6 +971,11 @@ class ProductVariantCreate(ModelMutation):
                     )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+        else:
+            raise ValidationError(
+                "Product type is not configurable",
+                ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
+            )
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
