@@ -28,7 +28,7 @@ ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
-GRAPHENE.setdefault("MIDDLEWARE", []).insert(  # type: ignore # type: ignore
+GRAPHENE.setdefault("MIDDLEWARE", []).insert(  # type: ignore
     0, "saleor.graphql.middleware.ReadOnlyMiddleware"
 )
 
