@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions, PageTypePermissions
+from ...core.tracing import traced_atomic_transaction
 from ...page import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types.common import PageError
@@ -24,6 +25,7 @@ class PageBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
         try:
             pks = cls.get_global_ids_or_error(ids, only_type=Page, field="pk")
@@ -77,6 +79,7 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
         try:
             pks = cls.get_global_ids_or_error(ids, only_type=PageType, field="pk")

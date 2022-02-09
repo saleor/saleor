@@ -172,3 +172,29 @@ def test_page_type_bulk_delete_with_file_attribute(
     delete_from_storage_task_mock.assert_called_once_with(value.file_url)
 
     assert not Page.objects.filter(pk__in=pages_pks)
+
+
+def test_page_type_bulk_delete_by_app_with_invalid_ids(
+    app_api_client, page_type_list, permission_manage_page_types_and_attributes
+):
+    # given
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("PageType", page_type.pk)
+            for page_type in page_type_list
+        ]
+    }
+    variables["ids"][0] = "invalid_id"
+
+    # when
+    response = app_api_client.post_graphql(
+        PAGE_TYPE_BULK_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["pageTypeBulkDelete"]["errors"][0]
+
+    assert errors["code"] == "GRAPHQL_ERROR"
