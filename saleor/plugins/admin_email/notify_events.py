@@ -34,21 +34,19 @@ def send_set_staff_password_email(
     )
 
 
-def send_csv_product_export_success(
-    payload: dict, config: dict, plugin: "AdminEmailPlugin"
-):
+def send_csv_export_success(payload: dict, config: dict, plugin: "AdminEmailPlugin"):
     recipient_email = payload.get("recipient_email")
     if recipient_email:
         template = get_email_template_or_default(
             plugin,
-            constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
-            constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TEMPLATE,
+            constants.CSV_EXPORT_SUCCESS_TEMPLATE_FIELD,
+            constants.CSV_EXPORT_SUCCESS_DEFAULT_TEMPLATE,
             constants.DEFAULT_EMAIL_TEMPLATES_PATH,
         )
         subject = get_email_subject(
             plugin.configuration,
-            constants.CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
-            constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
+            constants.CSV_EXPORT_SUCCESS_SUBJECT_FIELD,
+            constants.CSV_EXPORT_SUCCESS_DEFAULT_SUBJECT,
         )
         send_email_with_link_to_download_file_task.delay(
             recipient_email, payload, config, subject, template

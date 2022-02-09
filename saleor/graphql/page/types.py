@@ -10,13 +10,13 @@ from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
 from ..core.connection import (
     CountableConnection,
-    CountableDjangoObjectType,
     create_connection_slice,
     filter_connection_queryset,
 )
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import resolve_federation_references
 from ..core.fields import FilterConnectionField
+from ..core.types import ModelObjectType
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -29,60 +29,11 @@ from .dataloaders import (
 )
 
 
-class Page(CountableDjangoObjectType):
-    content_json = graphene.JSONString(
-        description="Content of the page (JSON).",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
-        required=True,
-    )
-    translation = TranslationField(PageTranslation, type_name="page")
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
-        required=True,
-        description="List of attributes assigned to this product.",
-    )
-
-    class Meta:
-        description = (
-            "A static page that can be manually added by a shop operator through the "
-            "dashboard."
-        )
-        only_fields = [
-            "content",
-            "created",
-            "id",
-            "is_published",
-            "page_type",
-            "publication_date",
-            "seo_description",
-            "seo_title",
-            "slug",
-            "title",
-        ]
-        interfaces = [graphene.relay.Node, ObjectWithMetadata]
-        model = models.Page
-
-    @staticmethod
-    def resolve_page_type(root: models.Page, info):
-        return PageTypeByIdLoader(info.context).load(root.page_type_id)
-
-    @staticmethod
-    def resolve_content_json(root: models.Page, info):
-        content = root.content
-        return content if content is not None else {}
-
-    @staticmethod
-    def resolve_attributes(root: models.Page, info):
-        return SelectedAttributesByPageIdLoader(info.context).load(root.id)
-
-
-class PageCountableConnection(CountableConnection):
-    class Meta:
-        node = Page
-
-
 @key(fields="id")
-class PageType(CountableDjangoObjectType):
+class PageType(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    slug = graphene.String(required=True)
     attributes = graphene.List(
         Attribute, description="Page attributes of that page type."
     )
@@ -100,7 +51,10 @@ class PageType(CountableDjangoObjectType):
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.PageType
-        only_fields = ["id", "name", "slug"]
+
+    @staticmethod
+    def get_model():
+        return models.PageType
 
     @staticmethod
     def resolve_attributes(root: models.PageType, info):
@@ -132,3 +86,53 @@ class PageType(CountableDjangoObjectType):
 class PageTypeCountableConnection(CountableConnection):
     class Meta:
         node = PageType
+
+
+class Page(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    seo_title = graphene.String()
+    seo_description = graphene.String()
+    title = graphene.String(required=True)
+    content = graphene.JSONString(description="Content of the page (JSON).")
+    publication_date = graphene.Date()
+    is_published = graphene.Boolean(required=True)
+    slug = graphene.String(required=True)
+    page_type = graphene.Field(PageType, required=True)
+    created = graphene.DateTime(required=True)
+    content_json = graphene.JSONString(
+        description="Content of the page (JSON).",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
+        required=True,
+    )
+    translation = TranslationField(PageTranslation, type_name="page")
+    attributes = graphene.List(
+        graphene.NonNull(SelectedAttribute),
+        required=True,
+        description="List of attributes assigned to this product.",
+    )
+
+    class Meta:
+        description = (
+            "A static page that can be manually added by a shop operator through the "
+            "dashboard."
+        )
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        model = models.Page
+
+    @staticmethod
+    def resolve_page_type(root: models.Page, info):
+        return PageTypeByIdLoader(info.context).load(root.page_type_id)
+
+    @staticmethod
+    def resolve_content_json(root: models.Page, info):
+        content = root.content
+        return content if content is not None else {}
+
+    @staticmethod
+    def resolve_attributes(root: models.Page, info):
+        return SelectedAttributesByPageIdLoader(info.context).load(root.id)
+
+
+class PageCountableConnection(CountableConnection):
+    class Meta:
+        node = Page

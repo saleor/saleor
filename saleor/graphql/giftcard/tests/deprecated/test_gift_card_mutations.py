@@ -16,12 +16,14 @@ CREATE_GIFT_CARD_MUTATION = """
             giftCard {
                 id
                 code
-                displayCode
+                last4CodeChars
                 isActive
                 startDate
                 endDate
                 expiryDate
-                tag
+                tags {
+                    name
+                }
                 created
                 lastUsedOn
                 initialBalance {
@@ -67,7 +69,7 @@ def test_create_never_expiry_gift_card(
         },
         "userEmail": customer_user.email,
         "channel": channel_USD.slug,
-        "tag": tag,
+        "tags": [tag],
         "note": "This is gift card note that will be save in gift card event.",
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
@@ -87,7 +89,7 @@ def test_create_never_expiry_gift_card(
     data = content["data"]["giftCardCreate"]["giftCard"]
 
     assert not errors
-    assert data["displayCode"]
+    assert data["last4CodeChars"]
     assert data["user"]["email"] == staff_api_client.user.email
     assert data["startDate"] is None
     assert data["endDate"] is None

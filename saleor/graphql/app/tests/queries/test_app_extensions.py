@@ -1,10 +1,10 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .....app.types import AppExtensionMount, AppExtensionTarget
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AppExtensionTargetEnum, AppExtensionTypeEnum, AppExtensionViewEnum
+from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
 
 QUERY_APP_EXTENSIONS = """
 query ($filter: AppExtensionFilterInput){
@@ -13,10 +13,9 @@ query ($filter: AppExtensionFilterInput){
       node{
         label
         url
-        view
+        mount
         target
         id
-        type
         accessToken
         permissions{
           code
@@ -34,9 +33,7 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -58,9 +55,7 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     extension_data = extensions_data[0]["node"]
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
-    assert app_extension.view == extension_data["view"].lower()
-    assert app_extension.target == extension_data["target"].lower()
-    assert app_extension.type == extension_data["type"].lower()
+    assert app_extension.mount == extension_data["mount"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1
@@ -82,9 +77,7 @@ def test_app_extensions_app_not_active(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -111,9 +104,7 @@ def test_app_extensions_user_not_staff(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -131,28 +122,27 @@ def test_app_extensions_user_not_staff(
 @pytest.mark.parametrize(
     "filter, expected_count",
     [
-        ({}, 3),
-        ({"view": AppExtensionViewEnum.PRODUCT.name}, 3),
-        ({"target": AppExtensionTargetEnum.CREATE.name}, 1),
-        ({"type": AppExtensionTypeEnum.OVERVIEW.name}, 2),
+        ({}, 4),
+        ({"target": AppExtensionTargetEnum.APP_PAGE.name}, 1),
+        ({"target": AppExtensionTargetEnum.POPUP.name}, 3),
+        ({"mount": [AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name]}, 1),
+        ({"mount": [AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name]}, 2),
         (
             {
-                "type": AppExtensionTypeEnum.OVERVIEW.name,
-                "view": AppExtensionViewEnum.PRODUCT.name,
+                "mount": [
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name,
+                ]
             },
-            2,
+            3,
         ),
         (
             {
-                "type": AppExtensionTypeEnum.DETAILS.name,
-                "target": AppExtensionTargetEnum.CREATE.name,
-            },
-            0,
-        ),
-        (
-            {
-                "type": AppExtensionTypeEnum.DETAILS.name,
-                "target": AppExtensionTargetEnum.MORE_ACTIONS.name,
+                "target": AppExtensionTargetEnum.APP_PAGE.name,
+                "mount": [
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+                    AppExtensionMountEnum.PRODUCT_OVERVIEW_MORE_ACTIONS.name,
+                ],
             },
             1,
         ),
@@ -168,25 +158,27 @@ def test_app_extensions_with_filter(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.OVERVIEW,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+                target=AppExtensionTarget.APP_PAGE,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.DETAILS,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
+                target=AppExtensionTarget.POPUP,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.OVERVIEW,
-                target=AppExtensionTarget.CREATE,
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
+            ),
+            AppExtension(
+                app=app,
+                label="Create product with App4",
+                url="https://www.example.com/app-product",
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )

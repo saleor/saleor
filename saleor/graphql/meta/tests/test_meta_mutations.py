@@ -349,8 +349,9 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], checkout, checkout_id
+    )
 
 
 def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
@@ -368,7 +369,10 @@ def test_add_public_metadata_for_checkout_by_token(api_client, checkout):
     )
 
 
-def test_add_metadata_for_checkout_triggers_checkout_updated_hook(api_client, checkout):
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_add_metadata_for_checkout_triggers_checkout_updated_hook(
+    mock_checkout_updated, api_client, checkout
+):
     # given
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
@@ -378,8 +382,8 @@ def test_add_metadata_for_checkout_triggers_checkout_updated_hook(api_client, ch
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert response["data"]["updateMetadata"]["errors"] == []
+    mock_checkout_updated.assert_called_once_with(checkout)
 
 
 def test_add_public_metadata_for_order_by_id(api_client, order):
@@ -1134,7 +1138,9 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
     )
 
     # then
-    assert invalid_id_graphql_error_raised(response["data"]["deleteMetadata"]["errors"])
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], checkout, checkout_id
+    )
 
 
 def test_delete_public_metadata_for_checkout_by_token(api_client, checkout):
@@ -1939,8 +1945,8 @@ def test_add_private_metadata_for_checkout(
     )
 
     # then
-    assert invalid_id_graphql_error_raised(
-        response["data"]["updatePrivateMetadata"]["errors"]
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -2784,8 +2790,8 @@ def test_delete_private_metadata_for_checkout(
     )
 
     # then
-    assert invalid_id_graphql_error_raised(
-        response["data"]["deletePrivateMetadata"]["errors"]
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], checkout, checkout_id
     )
 
 

@@ -6,12 +6,12 @@ from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.connection import (
     CountableConnection,
-    CountableDjangoObjectType,
     create_connection_slice,
     filter_connection_queryset,
 )
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterConnectionField
+from ..core.types import ModelObjectType
 from ..webhook.enums import EventDeliveryStatusEnum, WebhookEventTypeEnum
 from ..webhook.filters import EventDeliveryFilterInput
 from ..webhook.sorters import (
@@ -22,7 +22,7 @@ from . import enums
 from .dataloaders import PayloadByIdLoader
 
 
-class WebhookEvent(CountableDjangoObjectType):
+class WebhookEvent(ModelObjectType):
     name = graphene.String(description="Display name of the event.", required=True)
     event_type = enums.WebhookEventTypeEnum(
         description="Internal name of the event type.", required=True
@@ -31,14 +31,13 @@ class WebhookEvent(CountableDjangoObjectType):
     class Meta:
         model = models.WebhookEvent
         description = "Webhook event."
-        only_fields = ["event_type"]
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
         return WebhookEventType.DISPLAY_LABELS.get(root.event_type) or root.event_type
 
 
-class WebhookEventAsync(CountableDjangoObjectType):
+class WebhookEventAsync(ModelObjectType):
     name = graphene.String(description="Display name of the event.", required=True)
     event_type = enums.WebhookEventTypeAsyncEnum(
         description="Internal name of the event type.", required=True
@@ -47,7 +46,6 @@ class WebhookEventAsync(CountableDjangoObjectType):
     class Meta:
         model = models.WebhookEvent
         description = "Asynchronous webhook event."
-        only_fields = ["event_type"]
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
@@ -56,7 +54,7 @@ class WebhookEventAsync(CountableDjangoObjectType):
         )
 
 
-class WebhookEventSync(CountableDjangoObjectType):
+class WebhookEventSync(ModelObjectType):
     name = graphene.String(description="Display name of the event.", required=True)
     event_type = enums.WebhookEventTypeSyncEnum(
         description="Internal name of the event type.", required=True
@@ -65,7 +63,6 @@ class WebhookEventSync(CountableDjangoObjectType):
     class Meta:
         model = models.WebhookEvent
         description = "Synchronous webhook event."
-        only_fields = ["event_type"]
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
@@ -74,10 +71,16 @@ class WebhookEventSync(CountableDjangoObjectType):
         )
 
 
-class EventDeliveryAttempt(CountableDjangoObjectType):
+class EventDeliveryAttempt(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(
         description="Event delivery creation date and time.", required=True
     )
+    task_id = graphene.String()
+    duration = graphene.Float()
+    response = graphene.String()
+    response_headers = graphene.String()
+    request_headers = graphene.String()
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
     )
@@ -86,16 +89,6 @@ class EventDeliveryAttempt(CountableDjangoObjectType):
         description = "Event delivery attempts."
         model = core_models.EventDeliveryAttempt
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "id",
-            "created_at",
-            "task_id",
-            "duration",
-            "status",
-            "response",
-            "response_headers",
-            "request_headers",
-        ]
 
 
 class EventDeliveryAttemptCountableConnection(CountableConnection):
@@ -103,28 +96,24 @@ class EventDeliveryAttemptCountableConnection(CountableConnection):
         node = EventDeliveryAttempt
 
 
-class EventDelivery(CountableDjangoObjectType):
+class EventDelivery(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    created_at = graphene.DateTime(required=True)
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
     )
+    event_type = WebhookEventTypeEnum(description="Webhook event type.", required=True)
     attempts = FilterConnectionField(
         EventDeliveryAttemptCountableConnection,
         sort_by=EventDeliveryAttemptSortingInput(description="Event delivery sorter"),
         description="Event delivery attempts.",
     )
-    event_type = WebhookEventTypeEnum(description="Webhook event type.", required=True)
     payload = graphene.String(description="Event payload.")
 
     class Meta:
         description = "Event delivery."
         model = core_models.EventDelivery
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "id",
-            "created_at",
-            "status",
-            "event_type",
-        ]
 
     @staticmethod
     def resolve_attempts(root: core_models.EventDelivery, info, *_args, **kwargs):
@@ -146,7 +135,8 @@ class EventDeliveryCountableConnection(CountableConnection):
         node = EventDelivery
 
 
-class Webhook(CountableDjangoObjectType):
+class Webhook(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     events = graphene.List(
         graphene.NonNull(WebhookEvent),
@@ -173,17 +163,14 @@ class Webhook(CountableDjangoObjectType):
         filter=EventDeliveryFilterInput(description="Event delivery filter options."),
         description="Event deliveries.",
     )
+    target_url = graphene.String(required=True)
+    is_active = graphene.Boolean(required=True)
+    secret_key = graphene.String()
 
     class Meta:
         description = "Webhook."
         model = models.Webhook
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "target_url",
-            "is_active",
-            "secret_key",
-            "name",
-        ]
 
     @staticmethod
     def resolve_async_events(root: models.Webhook, *_args, **_kwargs):

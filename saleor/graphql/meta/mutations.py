@@ -57,13 +57,12 @@ class BaseMetadataMutation(BaseMutation):
 
         try:
             type_name, _ = from_global_id_or_error(object_id)
-            if type_name in ["Order", "Checkout"]:
-                type_name = type_name.lower()
+            if type_name == "Order":
                 raise ValidationError(
                     {
                         "id": ValidationError(
-                            f"Changing {type_name} metadata with use of `id` "
-                            f"is forbidden. Use {type_name} token instead.",
+                            "Changing order metadata with `Order.id` is forbidden. "
+                            "Use `Order.token` as an identifier instead.",
                             code=MetadataErrorCode.GRAPHQL_ERROR.value,
                         )
                     }
@@ -140,7 +139,12 @@ class BaseMetadataMutation(BaseMutation):
     def get_model_for_type_name(cls, info, type_name):
         if type_name in ["ShippingMethodType", "ShippingMethod"]:
             return shipping_models.ShippingMethod
+
         graphene_type = info.schema.get_type(type_name).graphene_type
+
+        if hasattr(graphene_type, "get_model"):
+            return graphene_type.get_model()
+
         return graphene_type._meta.model
 
     @classmethod

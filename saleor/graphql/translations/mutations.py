@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Model
 
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
@@ -10,44 +11,61 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
-from ..attribute import types as attribute_types
+from ...site.models import SiteSettings
+from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
-from ..core.mutations import BaseMutation, ModelMutation, registry
+from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import TranslationError
-from ..discount import types as discount_types
-from ..menu import types as menu_types
-from ..page import types as page_types
-from ..product import types as product_types
-from ..shipping import types as shipping_types
+from ..discount.types import Sale, Voucher
+from ..menu.types import MenuItem
+from ..product.types import Category, Collection, Product, ProductVariant
+from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
 from . import types as translation_types
 
-# discount and menu types need to be imported to get
-# Voucher and Menu in the graphene registry
-from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
-from ..menu import types  # type: ignore # noqa # pylint: disable=unused-import, isort:skip
-
-
-TRANSLATABLE_CONTENT_TO_TYPE = {
-    str(translation_types.ProductTranslatableContent): str(product_types.Product),
-    str(translation_types.CollectionTranslatableContent): str(product_types.Collection),
-    str(translation_types.CategoryTranslatableContent): str(product_types.Category),
-    str(translation_types.AttributeTranslatableContent): str(attribute_types.Attribute),
-    str(translation_types.AttributeValueTranslatableContent): str(
-        attribute_types.AttributeValue
-    ),
-    str(translation_types.ProductVariantTranslatableContent): str(
-        product_types.ProductVariant
-    ),
-    str(translation_types.PageTranslatableContent): str(page_types.Page),
-    str(translation_types.ShippingMethodTranslatableContent): str(
-        shipping_types.ShippingMethodType
-    ),
-    str(translation_types.SaleTranslatableContent): str(discount_types.Sale),
-    str(translation_types.VoucherTranslatableContent): str(discount_types.Voucher),
-    str(translation_types.MenuItemTranslatableContent): str(menu_types.MenuItem),
+TRANSLATABLE_CONTENT_TO_MODEL = {
+    str(
+        translation_types.ProductTranslatableContent
+    ): product_models.Product._meta.object_name,
+    str(
+        translation_types.CollectionTranslatableContent
+    ): product_models.Collection._meta.object_name,
+    str(
+        translation_types.CategoryTranslatableContent
+    ): product_models.Category._meta.object_name,
+    str(
+        translation_types.AttributeTranslatableContent
+    ): attribute_models.Attribute._meta.object_name,
+    str(
+        translation_types.AttributeValueTranslatableContent
+    ): attribute_models.AttributeValue._meta.object_name,
+    str(
+        translation_types.ProductVariantTranslatableContent
+    ): product_models.ProductVariant._meta.object_name,
+    # Page Translation mutation reverses model and TranslatableContent
+    page_models.Page._meta.object_name: str(translation_types.PageTranslatableContent),
+    str(
+        translation_types.ShippingMethodTranslatableContent
+    ): shipping_models.ShippingMethod._meta.object_name,
+    str(
+        translation_types.SaleTranslatableContent
+    ): discount_models.Sale._meta.object_name,
+    str(
+        translation_types.VoucherTranslatableContent
+    ): discount_models.Voucher._meta.object_name,
+    str(
+        translation_types.MenuItemTranslatableContent
+    ): menu_models.MenuItem._meta.object_name,
 }
+
+
+def validate_input_against_model(model: Model, input_data: dict):
+    data_to_validate = {key: value for key, value in input_data.items() if value}
+    instance = model(**data_to_validate)  # type: ignore
+    all_fields = [field.name for field in model._meta.fields]
+    exclude_fields = set(all_fields) - set(data_to_validate)
+    instance.full_clean(exclude=exclude_fields, validate_unique=False)
 
 
 class BaseTranslateMutation(ModelMutation):
@@ -63,22 +81,28 @@ class BaseTranslateMutation(ModelMutation):
 
         node_id = data["id"]
         node_type, node_pk = graphene.Node.from_global_id(node_id)
-        model_type = registry.get_type_for_model(cls._meta.model)
 
         # This mutation accepts either model IDs or translatable content IDs. Below we
         # check if provided ID refers to a translatable content which matches with the
         # expected model_type. If so, we transform the translatable content ID to model
         # ID.
-        tc_model_type = TRANSLATABLE_CONTENT_TO_TYPE.get(node_type)
-        if tc_model_type and tc_model_type == str(model_type):
+        tc_model_type = TRANSLATABLE_CONTENT_TO_MODEL.get(node_type)
+
+        if tc_model_type and tc_model_type == str(cls._meta.object_type):
             node_id = graphene.Node.to_global_id(tc_model_type, node_pk)
 
-        return node_id, model_type
+        return node_id, cls._meta.object_type
+
+    @classmethod
+    def validate_input(cls, input_data):
+        validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id, model_type = cls.clean_node_id(**data)
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+        cls.validate_input(data["input"])
+
         translation, created = instance.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -130,6 +154,7 @@ class CategoryTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a category."
         model = product_models.Category
+        object_type = Category
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -149,6 +174,7 @@ class ProductTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a product."
         model = product_models.Product
+        object_type = Product
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -157,7 +183,8 @@ class ProductTranslate(BaseTranslateMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
-        product = cls.get_node_or_error(info, node_id, only_type=product_types.Product)
+        product = cls.get_node_or_error(info, node_id, only_type=Product)
+        cls.validate_input(data["input"])
 
         translation, created = product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -189,6 +216,7 @@ class CollectionTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a collection."
         model = product_models.Collection
+        object_type = Collection
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -214,6 +242,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a product variant."
         model = product_models.ProductVariant
+        object_type = ProductVariant
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -222,12 +251,11 @@ class ProductVariantTranslate(BaseTranslateMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = cls.clean_node_id(**data)[0]
-        variant_pk = cls.get_global_id_or_error(
-            node_id, only_type=product_types.ProductVariant
-        )
+        variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
+        cls.validate_input(data["input"])
         translation, created = variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -260,6 +288,7 @@ class AttributeTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for an attribute."
         model = attribute_models.Attribute
+        object_type = Attribute
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -279,6 +308,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for an attribute value."
         model = attribute_models.AttributeValue
+        object_type = AttributeValue
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -297,6 +327,7 @@ class SaleTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a sale."
         model = discount_models.Sale
+        object_type = Sale
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -321,6 +352,7 @@ class VoucherTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a voucher."
         model = discount_models.Voucher
+        object_type = Voucher
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -348,6 +380,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a shipping method."
         model = shipping_models.ShippingMethod
+        object_type = ShippingMethodType
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -357,10 +390,6 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         response = super().perform_mutation(_root, info, **data)
         instance = ChannelContext(node=response.shippingMethod, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})
-
-    @classmethod
-    def get_type_for_model(cls):
-        return shipping_types.ShippingMethodType
 
     @classmethod
     def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
@@ -382,6 +411,7 @@ class MenuItemTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a menu item."
         model = menu_models.MenuItem
+        object_type = MenuItem
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
@@ -411,16 +441,11 @@ class PageTranslate(BaseTranslateMutation):
     class Meta:
         description = "Creates/updates translations for a page."
         model = page_models.Page
+        # Note: `PageTranslate` is only mutation that returns "TranslatableContent"
+        object_type = translation_types.PageTranslatableContent
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
-
-    @classmethod
-    def get_type_for_model(cls):
-        # This method prevents type PageTranslate page field in GraphQL schema
-        # to be automatically changed to Page model, since we want to address that
-        # problem in a separate PR.
-        return translation_types.PageTranslatableContent
 
 
 class ShopSettingsTranslationInput(graphene.InputObjectType):
@@ -450,6 +475,7 @@ class ShopSettingsTranslate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, language_code, **data):
         instance = info.context.site.settings
+        validate_input_against_model(SiteSettings, data["input"])
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=data.get("input")
         )

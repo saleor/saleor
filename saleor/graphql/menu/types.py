@@ -10,14 +10,17 @@ from ..channel.types import (
     ChannelContextType,
     ChannelContextTypeWithMetadata,
 )
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..core.connection import CountableConnection
+from ..core.types import ModelObjectType
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
+from ..page.types import Page
 from ..product.dataloaders import (
     CategoryByIdLoader,
     CollectionByIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
 )
+from ..product.types import Category, Collection
 from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
 from ..utils import get_user_or_app_from_context
@@ -29,7 +32,10 @@ from .dataloaders import (
 )
 
 
-class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class Menu(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    slug = graphene.String(required=True)
     items = graphene.List(lambda: MenuItem)
 
     class Meta:
@@ -39,7 +45,6 @@ class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "through the store."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
-        only_fields = ["id", "name", "slug"]
         model = models.Menu
 
     @staticmethod
@@ -58,7 +63,15 @@ class MenuCountableConnection(CountableConnection):
         node = Menu
 
 
-class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    menu = graphene.Field(Menu, required=True)
+    parent = graphene.Field(lambda: MenuItem)
+    category = graphene.Field(Category)
+    collection = graphene.Field(Collection)
+    page = graphene.Field(Page)
+    level = graphene.Int(required=True)
     children = graphene.List(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
     translation = TranslationField(
@@ -69,22 +82,11 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
-
         description = (
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
         )
         interfaces = [relay.Node, ObjectWithMetadata]
-        only_fields = [
-            "category",
-            "collection",
-            "id",
-            "level",
-            "menu",
-            "name",
-            "page",
-            "parent",
-        ]
         model = models.MenuItem
 
     @staticmethod

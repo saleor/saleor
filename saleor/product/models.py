@@ -377,6 +377,8 @@ class ProductsQueryset(models.QuerySet):
             "variants__attributes__assignment__attribute",
             "variants__variant_media__media",
             "variants__stocks__allocations",
+            "variants__channel_listings__channel",
+            "channel_listings__channel",
         )
         if single_object:
             return self.prefetch_related(*common_fields)
@@ -846,7 +848,7 @@ class CollectionsQueryset(models.QuerySet):
 
 
 class Collection(SeoModel, ModelWithMetadata):
-    name = models.CharField(max_length=250, unique=True)
+    name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     products = models.ManyToManyField(
         Product,

@@ -193,6 +193,7 @@ class OrderUpdate(DraftOrderCreate):
     class Meta:
         description = "Updates an order."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -693,6 +694,7 @@ class OrderConfirm(ModelMutation):
     class Meta:
         description = "Confirms an unconfirmed order by changing status to unfulfilled."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -954,6 +956,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
     class Meta:
         description = "Updates an order line of an order."
         model = models.OrderLine
+        object_type = OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

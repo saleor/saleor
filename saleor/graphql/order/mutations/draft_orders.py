@@ -100,6 +100,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     class Meta:
         description = "Creates a new draft order."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -352,6 +353,7 @@ class DraftOrderUpdate(DraftOrderCreate):
     class Meta:
         description = "Updates a draft order."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -381,6 +383,7 @@ class DraftOrderDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a draft order."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
