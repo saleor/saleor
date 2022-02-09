@@ -52,7 +52,7 @@ repos:
         name: Check for uncreated migrations.
         entry: sh -c "./manage.py makemigrations --settings saleor.wecre8_settings --check --dry-run"
         files: "models\\.py$"
-        exclude: "^django_cities/migrations\\.py$"
+        exclude: "^cities_light/migrations\\.py$"
         stages: [commit]
 
   - repo: local
