@@ -31,6 +31,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `COLLECTION_CREATED`, `COLLECTION_UPDATED`, `COLLECTION_DELETED` events and webhooks - #8974 by @rafalp
 - Fix crash when too long translation strings were passed to `translate` mutations - #8942 by rafalp
 - Make collections names non-unique - #8986 by @rafalp
+- Add validation of unavailable products in the checkout. Mutations: `CheckoutShippingMethodUpdate`,
+`CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
+unavailable - #8978 by @IKarbowiak
 
 # 3.0.0 [Unreleased]
 
@@ -197,6 +200,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
   and `CheckoutPricesData` instead of `PricesData`
   - New interface for handling more data for prices: `OrderTaxedPricesData` used in plugins/pluginManager.
+- Fix incorrect handling of unavailable products in checkout - #8978 by @IKarbowiak
+- Revert the additional validation for unavailable products introduced in #8978 - #9119 by @korycins
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
