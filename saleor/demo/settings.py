@@ -28,8 +28,9 @@ ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
-if "MIDDLEWARE" in GRAPHENE.keys():
-    GRAPHENE["MIDDLEWARE"].insert(0, "saleor.graphql.middleware.ReadOnlyMiddleware")  # type: ignore
+GRAPHENE.setdefault("MIDDLEWARE", []).insert(  # type: ignore # type: ignore
+    0, "saleor.graphql.middleware.ReadOnlyMiddleware"
+)
 
 BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
 BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
