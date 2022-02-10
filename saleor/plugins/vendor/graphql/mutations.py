@@ -99,7 +99,7 @@ class VendorDelete(ModelDeleteMutation):
 
 
 class BillingCreateInput(graphene.InputObjectType):
-    iban_num = graphene.String(
+    iban = graphene.String(
         description="you should enter the real IBAN number", required=True
     )
     bank_name = graphene.String(
@@ -125,7 +125,7 @@ class BillingCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         validation_errors = {}
-        for field in ["iban_num", "bank_name"]:
+        for field in ["iban", "bank_name"]:
             if data["input"][field] == "":
                 validation_errors[field] = ValidationError(
                     f"{field} cannot be empty.",
@@ -152,7 +152,7 @@ class BillingCreate(ModelMutation):
 
 
 class BillingUpdateInput(graphene.InputObjectType):
-    iban_num = graphene.String(description="you should enter the real IBAN number")
+    iban = graphene.String(description="you should enter the real IBAN number")
     bank_name = graphene.String(description="bank name related to the IBAN number")
 
 

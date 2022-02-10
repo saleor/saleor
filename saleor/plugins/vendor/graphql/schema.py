@@ -1,12 +1,16 @@
 import graphene
-from graphene_federation import build_schema
 
-from saleor.graphql.core.connection import create_connection_slice
+from saleor.graphql.core.connection import (
+    create_connection_slice,
+    filter_connection_queryset,
+)
 from saleor.graphql.core.fields import FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
 
+from ....graphql.core.federation import build_federated_schema
 from .. import models
 from . import types
+from .filters import GroupFilterInput
 from .mutations import (
     BillingCreate,
     BillingDelete,
@@ -26,7 +30,10 @@ class Query(graphene.ObjectType):
         ),
         description="Look up a vendor by ID",
     )
-    vendors = FilterConnectionField(types.VendorConnection)
+    vendors = FilterConnectionField(
+        types.VendorConnection,
+        filter=GroupFilterInput(description="Filtering options for group."),
+    )
 
     billing = graphene.Field(
         types.Billing,
@@ -36,12 +43,11 @@ class Query(graphene.ObjectType):
     billings = FilterConnectionField(types.BillingConnection)
 
     def resolve_vendors(root, info, **kwargs):
-        # Querying a list
         qs = models.Vendor.objects.all()
+        qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, types.VendorConnection)
 
     def resolve_vendor(self, info, id, **data):
-        # Querying a single vebndor
         _, id = from_global_id_or_error(id, types.Vendor)
         return models.Vendor.objects.get(id=id)
 
@@ -63,7 +69,7 @@ class Mutation(graphene.ObjectType):
     billing_delete = BillingDelete.Field()
 
 
-schema = build_schema(
+schema = build_federated_schema(
     query=Query,
     mutation=Mutation,
     types=[types.Vendor],
