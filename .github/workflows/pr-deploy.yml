@@ -69,7 +69,7 @@ jobs:
         env:
           HD_NODE_ENV: development
           HD_API_URL: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
-          HD_PLUGINS: social-login, provinces, vendor
+          HD_PLUGINS: social-login provinces
 
   pr-comments:
     needs: deploy-federation-pr
