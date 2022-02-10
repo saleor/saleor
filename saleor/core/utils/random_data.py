@@ -1695,6 +1695,7 @@ def create_checkout_with_preorders():
                 "is_preorder",
                 "preorder_global_threshold",
                 "preorder_end_date",
+                "updated_at",
             ]
         )
         add_variant_to_checkout(checkout_info, product_variant, 2)

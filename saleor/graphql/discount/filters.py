@@ -75,6 +75,10 @@ def filter_voucher_search(qs, _, value):
     return qs
 
 
+def filter_updated_at_range(qs, _, value):
+    return filter_range_field(qs, "updated_at", value)
+
+
 class VoucherFilter(MetadataFilterBase):
     status = ListObjectTypeFilter(input_class=DiscountStatusEnum, method=filter_status)
     times_used = ObjectTypeFilter(input_class=IntRangeInput, method=filter_times_used)
@@ -96,6 +100,9 @@ class SaleFilter(MetadataFilterBase):
         input_class=DiscountValueTypeEnum, method=filter_sale_type
     )
     started = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_started)
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput, method=filter_updated_at_range
+    )
     search = django_filters.CharFilter(method=filter_sale_search)
 
     class Meta:
