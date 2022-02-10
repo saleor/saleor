@@ -58,12 +58,15 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
           pricing {
             priceRange {
               start {
-                net {
+                gross {
                   amount
                   currency
                 }
               }
             }
+          }
+          discountedPrice {
+              amount
           }
           channel {
             slug
@@ -218,8 +221,11 @@ def get_product_data(product_pk: int, language_code="EN"):
     channel_listings = product_dict.pop("channelListings", [])
     for channel in channel_listings:
         pricing = channel.pop("pricing", {})
+        discounted_price = channel.pop("discountedPrice", None)
         if pricing:
-            price_net = pricing.pop("priceRange", {}).pop("start", {}).pop("net", {})
+            gross_price = (
+                pricing.pop("priceRange", {}).pop("start", {}).pop("gross", {})
+            )
             is_published = channel.pop("isPublished", False)
             is_available_for_purchase = channel.pop("isAvailableForPurchase", False)
 
@@ -229,8 +235,11 @@ def get_product_data(product_pk: int, language_code="EN"):
                 channel[name] = {
                     "name": name,
                     "publication_date": publication_date,
-                    "currency": price_net.pop("currency", 0),
-                    "price": Decimal(price_net.pop("amount", 0)),
+                    "currency": gross_price.pop("currency", 0),
+                    "price": Decimal(gross_price.pop("amount", 0)),
+                    "discounted_price": Decimal(
+                        discounted_price.get("amount", 0) if discounted_price else 0
+                    ),
                 }
                 channels.append(channel)
 
