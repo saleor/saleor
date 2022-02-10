@@ -1125,7 +1125,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         # if the product default variant has been removed set the new one
         if not product.default_variant:
             product.default_variant = product.variants.first()
-            product.save(update_fields=["default_variant"])
+            product.save(update_fields=["default_variant", "updated_at"])
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 
@@ -1693,7 +1693,7 @@ class ProductVariantReorder(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
 
-        product.save(update_fields=["updated_at"])
+        product.save(update_fields=["updated_at", "updated_at"])
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)

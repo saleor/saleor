@@ -29,12 +29,12 @@ def update_products_search_document(products: "QuerySet"):
             product, already_prefetched=True
         )
 
-    Product.objects.bulk_update(products, ["search_document"])
+    Product.objects.bulk_update(products, ["search_document", "updated_at"])
 
 
 def update_product_search_document(product: "Product"):
     product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.save(update_fields=["search_document", "updated_at"])
 
 
 def prepare_product_search_document_value(

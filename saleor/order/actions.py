@@ -165,7 +165,7 @@ def cancel_order(
     events.order_canceled_event(order=order, user=user, app=app)
     deallocate_stock_for_order(order, manager)
     order.status = OrderStatus.CANCELED
-    order.save(update_fields=["status"])
+    order.save(update_fields=["status", "updated_at"])
 
     transaction.on_commit(lambda: manager.order_cancelled(order))
     transaction.on_commit(lambda: manager.order_updated(order))
