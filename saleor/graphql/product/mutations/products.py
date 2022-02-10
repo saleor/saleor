@@ -934,14 +934,14 @@ class ProductVariantCreate(ModelMutation):
                 product_type.variant_attributes.all().values_list("pk", flat=True)
             )
         ]
-
-        # Check if given attributes are variant attributes
-        for attr in data.get("attributes") or []:
-            if attr["id"] not in variant_attributes_ids:
-                raise ValidationError(
-                    "Given attribute is not a variant attribute",
-                    ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
-                )
+        attributes_ids = [attr["id"] for attr in data.get("attributes") or []]
+        invalid_attributes = set(attributes_ids) - set(variant_attributes_ids)
+        if len(invalid_attributes) > 0:
+            raise ValidationError(
+                "Given attributes are not a variant attributes.",
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
+                params={"attributes": invalid_attributes},
+            )
 
         # Run the validation only if product type is configurable
         if product_type.has_variants:
@@ -971,7 +971,7 @@ class ProductVariantCreate(ModelMutation):
                 raise ValidationError({"attributes": exc})
         else:
             raise ValidationError(
-                "Product type is not configurable",
+                "Product type is not configurable.",
                 ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
             )
 

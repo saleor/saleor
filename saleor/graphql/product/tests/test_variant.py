@@ -5826,6 +5826,8 @@ VARIANT_CREATE_MUTATION = """
             errors {
                 field,
                 message,
+                code,
+                attributes
             }
         }
     }
@@ -5851,7 +5853,9 @@ def test_variant_create_product_without_variant_attributes(
 
     errors = content["data"]["productVariantCreate"]["errors"]
     assert errors
-    assert errors[0]["message"] == "Given attribute is not a variant attribute"
+    assert errors[0]["code"] == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
+    assert len(errors[0]["attributes"]) == 1
+    assert errors[0]["attributes"][0] == attr_id
 
 
 def test_variant_create_product_with_variant_attributes_variant_flag_false(
@@ -5877,4 +5881,4 @@ def test_variant_create_product_with_variant_attributes_variant_flag_false(
 
     errors = content["data"]["productVariantCreate"]["errors"]
     assert errors
-    assert errors[0]["message"] == "Product type is not configurable"
+    assert errors[0]["code"] == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
