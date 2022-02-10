@@ -107,11 +107,11 @@ class WarehouseQueryset(models.QuerySet):
         )
 
     def _for_country_click_and_collect(self, country: str) -> QuerySet["Warehouse"]:
-        warehouse_cc_option_enum = WarehouseClickAndCollectOption
-
         return self.for_country(country).filter(
-            Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
-            | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
+            click_and_collect_option__in=[
+                WarehouseClickAndCollectOption.LOCAL_STOCK,
+                WarehouseClickAndCollectOption.ALL_WAREHOUSES
+            ]
         )
 
 
