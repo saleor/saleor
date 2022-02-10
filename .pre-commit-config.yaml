@@ -45,19 +45,19 @@ repos:
         language: system
         exclude: tests/
 
-  - repo: local
-    hooks:
-      - id: migrations-check
-        language: system
-        name: Check for uncreated migrations.
-        entry: sh -c "./manage.py makemigrations --settings saleor.wecre8_settings --check --dry-run"
-        files: "models\\.py$"
-        stages: [commit]
+#  - repo: local
+#    hooks:
+#      - id: migrations-check
+#        language: system
+#        name: Check for uncreated migrations.
+#        entry: sh -c "export DJANGO_SETTINGS_MODULE=saleor.wecre8_settings; ./manage.py makemigrations --check --dry-run"
+#        files: "models\\.py$"
+#        stages: [commit]
 
   - repo: local
     hooks:
       - id: gql-schema-check
         language: system
         name: Check GraphQL schema is up to date.
-        entry: sh -c "./manage.py get_graphql_schema --settings saleor.wecre8_settings | diff saleor/graphql/schema.graphql -"
+        entry: sh -c "export DJANGO_SETTINGS_MODULE=saleor.wecre8_settings; ./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
         stages: [commit]

@@ -3,13 +3,15 @@ from typing import Any, List
 
 from django.core.exceptions import ValidationError
 
+from saleor.order.models import Order
+
 from ...graphql.core.enums import PluginErrorCode
 from ...payment.gateways.utils import require_active_plugin
 from ...product.models import Product, ProductTranslation, ProductVariant
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
 from .client import AlgoliaApiClient
-from .utils import UserAdminContext, get_product_data
+from .utils import UserAdminContext, get_attributes_for_faceting, get_product_data
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +104,14 @@ class AlgoliaPlugin(BasePlugin):
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
+                index.set_settings(
+                    {
+                        "attributesForFaceting": get_attributes_for_faceting(
+                            attributes=product_data["attributes"],
+                            categories=product_data["categories"],
+                        )
+                    }
+                )
                 logger.info("Product %s indexed to Algolia", product.slug)
 
     @require_active_plugin
@@ -115,6 +125,14 @@ class AlgoliaPlugin(BasePlugin):
             if product_data:
                 index.partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
+                )
+                index.set_settings(
+                    {
+                        "attributesForFaceting": get_attributes_for_faceting(
+                            attributes=product_data["attributes"],
+                            categories=product_data["categories"],
+                        )
+                    }
                 )
                 logger.info("Product %s updated in Algolia", product.slug)
 
@@ -177,6 +195,14 @@ class AlgoliaPlugin(BasePlugin):
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
+                index.set_settings(
+                    {
+                        "attributesForFaceting": get_attributes_for_faceting(
+                            attributes=product_data["attributes"],
+                            categories=product_data["categories"],
+                        )
+                    }
+                )
                 logger.info("Product variant %s indexed to Algolia", product_variant)
 
     @require_active_plugin
@@ -193,4 +219,36 @@ class AlgoliaPlugin(BasePlugin):
                 index.partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
                 )
+                index.set_settings(
+                    {
+                        "attributesForFaceting": get_attributes_for_faceting(
+                            attributes=product_data["attributes"],
+                            categories=product_data["categories"],
+                        )
+                    }
+                )
                 logger.info("Product variant %s updated in Algolia", product_variant)
+
+    def order_created(self, order: "Order", previous_value: Any) -> Any:
+        """Index order to Algolia."""
+        for line in order.lines.all():
+            product = getattr(line.variant, "product", None)
+            if product:
+                popularity = product.get_value_from_metadata("", 0)
+                popularity += line.quantity
+                product.store_value_in_metadata(items={"popularity": popularity})
+                product.save(update_fields=["metadata"])
+
+                for locale, index in self.get_client().indices.items():
+                    product_data = get_product_data(
+                        product_pk=product.pk,
+                        language_code=locale.upper(),
+                    )
+                    if product_data:
+                        index.save_object(
+                            obj=product_data,
+                            request_options={"autoGenerateObjectIDIfNotExist": False},
+                        )
+                        logger.info(
+                            "Product popularity %s indexed to Algolia", popularity
+                        )
