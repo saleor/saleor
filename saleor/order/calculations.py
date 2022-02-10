@@ -9,8 +9,9 @@ from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
+from ..discount import OrderDiscountType
 from ..plugins.manager import PluginsManager
-from . import ORDER_EDITABLE_STATUS
+from . import ORDER_EDITABLE_STATUS, utils
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -102,20 +103,27 @@ def _apply_tax_data(
         order_line.unit_price = _quantize_price(
             net=tax_line.unit_net_amount, gross=tax_line.unit_gross_amount
         )
-        order_line.undiscounted_unit_price = (
-            order_line.unit_price + order_line.unit_discount
-        )
-
         order_line.total_price = _quantize_price(
             net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
         )
-        order_line.undiscounted_total_price = (
-            order_line.undiscounted_unit_price * order_line.quantity
-            if order_line.unit_discount
-            else order_line.total_price
+        order_line.tax_rate = tax_line.tax_rate
+
+
+def _recalculate_discounts(order: Order, lines: Iterable[OrderLine]):
+    for line in lines:
+        line.undiscounted_unit_price = line.unit_price + line.unit_discount
+        line.undiscounted_total_price = (
+            line.undiscounted_unit_price * line.quantity
+            if line.unit_discount
+            else line.total_price
         )
 
-        order_line.tax_rate = tax_line.tax_rate
+    order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
+    for order_discount in order_discounts:
+        utils.update_order_discount_for_order(
+            order,
+            order_discount,
+        )
 
 
 def fetch_order_prices_if_expired(
@@ -158,6 +166,8 @@ def fetch_order_prices_if_expired(
 
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
+
+        _recalculate_discounts(order, lines)
 
         order.save(
             update_fields=[
