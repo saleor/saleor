@@ -45,16 +45,17 @@ def _get_tax_data_from_manager(
         shipping_price = manager.calculate_order_shipping(order)
         shipping_tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
         total = shipping_price + subtotal
+
     except TaxError:
         return None
-    else:
-        return {
-            "total": total,
-            "subtotal": subtotal,
-            "shipping_price": shipping_price,
-            "shipping_tax_rate": shipping_tax_rate,
-            "lines": price_lines,
-        }
+
+    return {
+        "total": total,
+        "subtotal": subtotal,
+        "shipping_price": shipping_price,
+        "shipping_tax_rate": shipping_tax_rate,
+        "lines": price_lines,
+    }
 
 
 def _apply_tax_data_from_manager(
