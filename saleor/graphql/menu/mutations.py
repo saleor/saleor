@@ -1,10 +1,9 @@
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Model, QuerySet
+from django.db.models import Model
 
 from ...core.permissions import MenuPermissions, SitePermissions
 from ...core.tracing import traced_atomic_transaction
@@ -442,28 +441,17 @@ class MenuItemMove(BaseMutation):
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
         operations = cls.clean_moves(info, menu, moves)
-        sort_operations: Dict[Optional[int], Dict[int, int]] = defaultdict(dict)
-        sort_querysets: Dict[Optional[int], QuerySet] = {}
 
         for operation in operations:
             cls.perform_change_parent_operation(operation)
 
             menu_item = operation.menu_item
-            parent_pk = operation.menu_item.parent_id
 
-            # we want to keep the final relative value, as moves are performed
-            # sequentially
-            new_sort_value = (
-                sort_operations[parent_pk].get(menu_item.pk, 0) + operation.sort_order
-                if operation.sort_order is not None
-                else None
-            )
-            sort_operations[parent_pk][menu_item.pk] = new_sort_value
-            sort_querysets[parent_pk] = menu_item.get_ordering_queryset()
-
-        for parent_pk, operations in sort_operations.items():
-            ordering_qs = sort_querysets[parent_pk]
-            perform_reordering(ordering_qs, operations)
+            if operation.sort_order:
+                perform_reordering(
+                    menu_item.get_ordering_queryset(),
+                    {menu_item.pk: operation.sort_order},
+                )
 
         menu = qs.get(pk=menu.pk)
         MenuItemsByParentMenuLoader(info.context).clear(menu.id)
