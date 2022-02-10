@@ -51,6 +51,9 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
         media {
           url
         }
+        thumbnail {
+          url
+        }
         channelListings {
           pricing {
             priceRange {
@@ -160,7 +163,7 @@ def map_product_attributes(product_dict: dict, language_code: str):
         return attrs if language_code == "EN" else attrs_ar
 
 
-def map_product_media(media: list):
+def map_product_media_or_thumbnail(media: list):
     return [url.get("url") for url in media if url.get("url")]
 
 
@@ -238,6 +241,7 @@ def get_product_data(product_pk: int, language_code="EN"):
     if not product_data.errors and channels:
         slug = product_dict.pop("slug")
         media = product_dict.pop("media", [])[:2]
+        thumbnail = product_dict.pop("thumbnail", "")
         product_dict.update(
             {
                 "skus": skus,
@@ -246,9 +250,10 @@ def get_product_data(product_pk: int, language_code="EN"):
                 "name": product_name,
                 "attributes": attributes,
                 "description": description,
-                "images": map_product_media(media=media),
                 "gender": product.get_value_from_metadata("gender"),
+                "images": map_product_media_or_thumbnail(media=media),
                 "popularity": product.get_value_from_metadata("popularity", 0),
+                "thumbnail": map_product_media_or_thumbnail(media=[thumbnail])[0],
                 "collections": map_product_collections(
                     product=product, language_code=language_code.lower()
                 ),
@@ -273,7 +278,10 @@ class SingletonMeta(type):
 
 
 def get_attributes_for_faceting(attributes, categories) -> List:
-    attributes_for_faceting = [
-        f"attributes.{list(attribute.keys())[0]}" for attribute in attributes
-    ] + [f"categories.{category}" for category in categories]
+    try:
+        attributes_for_faceting = [
+            f"attributes.{list(attribute.keys())[0]}" for attribute in attributes
+        ] + [f"categories.{category}" for category in categories]
+    except IndexError:
+        attributes_for_faceting = [f"categories.{category}" for category in categories]
     return attributes_for_faceting
