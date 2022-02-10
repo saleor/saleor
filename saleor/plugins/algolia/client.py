@@ -24,7 +24,7 @@ class AlgoliaApiClient(metaclass=SingletonMeta):
                         f"{index.name}.price_asc",
                         f"{index.name}.price_desc",
                         f"{index.name}.popularity_desc",
-                        f"{index.name}.publication_date_asc",
+                        f"{index.name}.publication_date_desc",
                     ],
                 }
             )
