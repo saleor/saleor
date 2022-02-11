@@ -23,11 +23,16 @@ from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
 
-def _has_updated_at(instance):
+def _save_instance(instance, metadata_field: str):
+    fields = [metadata_field]
+
     try:
-        return bool(instance._meta.get_field("updated_at"))
+        if bool(instance._meta.get_field("updated_at")):
+           fields.append("updated_at")
     except FieldDoesNotExist:
-        return False
+        pass
+
+    instance.save(update_fields=fields)
 
 
 class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -254,10 +259,7 @@ class UpdateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
-            if _has_updated_at(instance):
-                instance.save(update_fields=["metadata", "updated_at"])
-            else:
-                instance.save(update_fields=["metadata"])
+            _save_instance(instance, "metadata")
         return cls.success_response(instance)
 
 
@@ -286,11 +288,7 @@ class DeleteMetadata(BaseMetadataMutation):
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
                 instance.delete_value_from_metadata(key)
-
-            if _has_updated_at(instance):
-                instance.save(update_fields=["metadata", "updated_at"])
-            else:
-                instance.save(update_fields=["metadata"])
+            _save_instance(instance, "metadata")
         return cls.success_response(instance)
 
 
@@ -320,10 +318,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
-            if _has_updated_at(instance):
-                instance.save(update_fields=["private_metadata", "updated_at"])
-            else:
-                instance.save(update_fields=["private_metadata"])
+            _save_instance(instance, "private_metadata")
         return cls.success_response(instance)
 
 
@@ -352,8 +347,5 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
                 instance.delete_value_from_private_metadata(key)
-            if _has_updated_at(instance):
-                instance.save(update_fields=["private_metadata", "updated_at"])
-            else:
-                instance.save(update_fields=["private_metadata"])
+            _save_instance(instance, "private_metadata")
         return cls.success_response(instance)
