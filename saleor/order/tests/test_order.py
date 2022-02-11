@@ -16,7 +16,6 @@ from ...discount.models import (
 )
 from ...discount.utils import validate_voucher_in_order
 from ...graphql.tests.utils import get_graphql_content
-from ...order.interface import OrderTaxedPricesData
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
@@ -156,50 +155,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     assert line.unit_discount_amount == sale_channel_listing.discount_value
     assert line.unit_discount_value == sale_channel_listing.discount_value
     assert line.unit_discount_reason
-
-
-@patch("saleor.order.utils.calculations")
-def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
-    mocked_calculations,
-    order_with_lines,
-    product,
-    product_translation_fr,
-    settings,
-    info,
-    site_settings,
-):
-    order = order_with_lines
-    variant = product.variants.get()
-    lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
-    unit_price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
-    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
-    unit_price_data = OrderTaxedPricesData(
-        undiscounted_price=unit_price,
-        price_with_discounts=unit_price,
-    )
-    total_price_data = OrderTaxedPricesData(
-        undiscounted_price=total_price,
-        price_with_discounts=total_price,
-    )
-    mocked_calculations.order_line_unit = Mock(return_value=unit_price_data)
-    mocked_calculations.order_line_total = Mock(return_value=total_price_data)
-    mocked_calculations.order_line_tax_rate = Mock(return_value=0.25)
-
-    add_variant_to_order(
-        order, variant, 1, info.context.user, info.context.app, Mock(), site_settings
-    )
-
-    line = order.lines.last()
-    assert order.lines.count() == lines_before + 1
-    assert line.product_sku == variant.sku
-    assert line.product_variant_id == variant.get_global_id()
-    assert line.quantity == 1
-    assert line.unit_price == unit_price
-    assert line.total_price == total_price
-    assert line.translated_product_name == str(variant.product.translated)
-    assert line.variant_name == str(variant)
-    assert line.product_name == str(variant.product)
 
 
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(

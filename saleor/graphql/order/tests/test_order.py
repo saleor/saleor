@@ -22,13 +22,14 @@ from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
-from ....discount.models import OrderDiscount
+from ....discount.models import OrderDiscount, VoucherChannelListing
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event
 from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
+from ....order.interface import OrderTaxedPricesData
 from ....order.models import Order, OrderEvent, OrderLine
 from ....order.notifications import get_default_order_payload
 from ....order.search import (
@@ -1671,6 +1672,11 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             code
                         }
                         customerNote
+                        total {
+                            gross {
+                                amount
+                            }
+                        }
                     }
                 }
         }
@@ -2554,6 +2560,109 @@ def test_draft_order_create_invalid_shipping_address(
     assert errors[0]["field"] == "country"
     assert errors[0]["code"] == OrderErrorCode.REQUIRED.name
     assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
+
+
+TAX_RATE_1 = Decimal("1.23")
+TAX_RATE_2 = Decimal("1.18")
+
+
+def calculate_order_line_price_side_effect(price_name):
+    tax_rates = iter([TAX_RATE_1, TAX_RATE_2])
+
+    def inner(
+        order,
+        order_line,
+        variant,
+        product,
+    ):
+        tax_rate = next(tax_rates)
+        undiscounted_price = getattr(order_line, f"undiscounted_{price_name}")
+        undiscounted_price.gross *= tax_rate
+        price_with_discounts = getattr(order_line, price_name)
+        price_with_discounts.gross *= tax_rate
+
+        return OrderTaxedPricesData(
+            undiscounted_price=undiscounted_price.quantize(),
+            price_with_discounts=price_with_discounts.quantize(),
+        )
+
+    return inner
+
+
+@patch.object(
+    PluginsManager,
+    "calculate_order_line_unit",
+    new=Mock(side_effect=calculate_order_line_price_side_effect("unit_price")),
+)
+@patch.object(
+    PluginsManager,
+    "calculate_order_line_total",
+    new=Mock(side_effect=calculate_order_line_price_side_effect("total_price")),
+)
+def test_draft_order_create_price_recalculation(
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_available_in_many_channels,
+    product_variant_list,
+    channel_PLN,
+    graphql_address_data,
+    voucher,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    discount = "10"
+    variant_1 = product_available_in_many_channels.variants.first()
+    variant_2 = product_variant_list[2]
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_2_id = graphene.Node.to_global_id("ProductVariant", variant_2.id)
+    quantity_1 = 3
+    quantity_2 = 4
+    lines = [
+        {"variantId": variant_1_id, "quantity": quantity_1},
+        {"variantId": variant_2_id, "quantity": quantity_2},
+    ]
+    address = graphql_address_data
+    voucher_amount = 13
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_PLN,
+        discount=Money(voucher_amount, channel_PLN.currency_code),
+    )
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": lines,
+        "billingAddress": address,
+        "shippingAddress": address,
+        "voucher": voucher_id,
+        "channel": channel_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    assert Order.objects.count() == 1
+    order = Order.objects.first()
+    line1, line2 = order.lines.all()
+
+    assert line1.total_price == line1.unit_price * quantity_1
+    assert line1.unit_price.gross == line1.unit_price.net * TAX_RATE_1
+    assert line1.total_price.gross == line1.total_price.net * TAX_RATE_1
+
+    assert line2.total_price == line2.unit_price * quantity_2
+    assert line2.unit_price.gross == line2.unit_price.net * TAX_RATE_2
+    assert line2.total_price.gross == line2.total_price.net * TAX_RATE_2
+
+    assert order.total == line1.total_price + line2.total_price
 
 
 DRAFT_UPDATE_QUERY = """

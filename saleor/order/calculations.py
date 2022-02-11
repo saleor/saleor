@@ -27,21 +27,27 @@ def _get_tax_data_from_manager(
 
     try:
         price_lines: List[dict] = []
+        subtotal = zero_taxed_money(currency)
         for line in lines:
             variant = line.variant
             if not variant:
+                subtotal += line.total_price
                 continue
             product = variant.product
 
-            unit = manager.calculate_order_line_unit(order, line, variant, product)
-            total = manager.calculate_order_line_total(order, line, variant, product)
+            line_unit = manager.calculate_order_line_unit(order, line, variant, product)
+            line_total = manager.calculate_order_line_total(
+                order, line, variant, product
+            )
             tax_rate = manager.get_order_line_tax_rate(
-                order, product, variant, None, unit.undiscounted_price
+                order, product, variant, None, line_unit.undiscounted_price
             )
 
-            price_lines.append({"tax_rate": tax_rate, "unit": unit, "total": total})
+            subtotal += line_total.price_with_discounts
+            price_lines.append(
+                {"tax_rate": tax_rate, "unit": line_unit, "total": line_total}
+            )
 
-        subtotal = sum((line.total_price for line in lines), zero_taxed_money(currency))
         shipping_price = manager.calculate_order_shipping(order)
         shipping_tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
         total = shipping_price + subtotal
@@ -174,6 +180,8 @@ def fetch_order_prices_if_expired(
             update_fields=[
                 "total_net_amount",
                 "total_gross_amount",
+                "undiscounted_total_net_amount",
+                "undiscounted_total_gross_amount",
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
                 "shipping_tax_rate",

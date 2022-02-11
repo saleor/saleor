@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from prices import Money, TaxedMoney
@@ -7,7 +7,6 @@ from prices import Money, TaxedMoney
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
-from ...order.interface import OrderTaxedPricesData
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus
 from ..events import OrderEvents
@@ -233,41 +232,25 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
     assert valid_shipping_methods is None
 
 
-@patch("saleor.order.utils.calculations")
-def test_add_variant_to_order(
-    mocked_calculations, order, customer_user, variant, site_settings
-):
+def test_add_variant_to_order(order, customer_user, variant, site_settings):
     # given
-    unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
-    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
-    tax_rate = Decimal("0.23")
-    mocked_calculations.order_line_unit = Mock(
-        return_value=OrderTaxedPricesData(
-            undiscounted_price=unit_price,
-            price_with_discounts=unit_price,
-        )
-    )
-    mocked_calculations.order_line_total = Mock(
-        return_value=OrderTaxedPricesData(
-            undiscounted_price=total_price,
-            price_with_discounts=total_price,
-        )
-    )
-    mocked_calculations.order_line_tax_rate = Mock(return_value=tax_rate)
+    quantity = 4
     manager = Mock()
     app = None
 
     # when
     line = add_variant_to_order(
-        order, variant, 4, customer_user, app, manager, site_settings
+        order, variant, quantity, customer_user, app, manager, site_settings
     )
 
     # then
+    unit_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("10.00", "USD"))
+    total_price = unit_price * quantity
     assert line.unit_price == unit_price
     assert line.total_price == total_price
     assert line.undiscounted_unit_price == unit_price
     assert line.undiscounted_total_price == total_price
-    assert line.tax_rate == tax_rate
+    assert line.tax_rate == Decimal("0.00")
 
 
 def test_add_gift_cards_to_order(

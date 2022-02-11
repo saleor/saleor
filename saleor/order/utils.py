@@ -32,7 +32,7 @@ from ..warehouse.management import (
     increase_stock,
 )
 from ..warehouse.models import Warehouse
-from . import calculations, events
+from . import events
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -237,13 +237,6 @@ def add_variant_to_order(
             undiscounted_total_price=undiscounted_total_price,
             variant=variant,
         )
-        unit_price_data = calculations.order_line_unit(order, line, manager)
-        total_line_price_data = calculations.order_line_total(order, line, manager)
-        line.unit_price = unit_price_data.price_with_discounts
-        line.total_price = total_line_price_data.price_with_discounts
-        line.undiscounted_unit_price = unit_price_data.undiscounted_price
-        line.undiscounted_total_price = total_line_price_data.undiscounted_price
-        line.tax_rate = calculations.order_line_tax_rate(order, line, manager)
 
         unit_discount = line.undiscounted_unit_price - line.unit_price
         if unit_discount.gross:
@@ -271,16 +264,6 @@ def add_variant_to_order(
 
         line.save(
             update_fields=[
-                "currency",
-                "unit_price_net_amount",
-                "unit_price_gross_amount",
-                "total_price_net_amount",
-                "total_price_gross_amount",
-                "undiscounted_unit_price_gross_amount",
-                "undiscounted_unit_price_net_amount",
-                "undiscounted_total_price_gross_amount",
-                "undiscounted_total_price_net_amount",
-                "tax_rate",
                 "unit_discount_amount",
                 "unit_discount_value",
                 "unit_discount_reason",
