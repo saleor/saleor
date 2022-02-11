@@ -1804,11 +1804,11 @@ enum CustomerEventsEnum {
 
 input CustomerFilterInput {
   dateJoined: DateRangeInput
-  updatedAt: DateTimeRangeInput
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
   search: String
   metadata: [MetadataFilter]
+  updatedAt: DateTimeRangeInput
 }
 
 input CustomerInput {
