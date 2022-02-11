@@ -179,9 +179,9 @@ class CheckoutLineCountableConnection(CountableConnection):
 class DeliveryMethod(graphene.Union):
     class Meta:
         description = (
-            "Represents a delivery method chosen for the checkout. `Warehouse` "
-            'type is used when checkout is marked as "click and collect" and '
-            "`ShippingMethod` otherwise."
+            f"{ADDED_IN_31} Represents a delivery method chosen for the checkout. "
+            '`Warehouse` type is used when checkout is marked as "click and collect" '
+            "and `ShippingMethod` otherwise."
         )
         types = (Warehouse, ShippingMethod)
 
