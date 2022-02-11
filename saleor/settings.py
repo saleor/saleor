@@ -497,6 +497,11 @@ EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
     seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
 )
 
+# Exports settings - defines after what time exported files will be deleted
+EXPORT_FILES_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("EXPORT_FILES_TIMEDELTA", "30 days"))
+)
+
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
@@ -536,6 +541,10 @@ CELERY_BEAT_SCHEDULE = {
     "update-stocks-quantity-allocated": {
         "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
         "schedule": crontab(hour=0, minute=0),
+    },
+    "delete-old-export-files": {
+        "task": "saleor.csv.tasks.delete_old_export_files",
+        "schedule": crontab(hour=1, minute=0),
     },
 }
 
