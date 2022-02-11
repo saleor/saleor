@@ -56,7 +56,7 @@ def convert_to_shipping_method_data(
     )
 
 
-def annotate_active_shipping_methods(
+def initialize_shipping_method_active_status(
     shipping_methods: List["ShippingMethodData"],
     excluded_methods: List["ExcludedShippingMethod"],
 ):

@@ -28,8 +28,8 @@ from ..product.utils.digital_products import get_default_digital_content_setting
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
-    annotate_active_shipping_methods,
     convert_to_shipping_method_data,
+    initialize_shipping_method_active_status,
 )
 from ..warehouse.management import (
     decrease_allocations,
@@ -690,7 +690,7 @@ def get_valid_shipping_methods_for_order(
             valid_methods.append(shipping_method_data)
 
     excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
-    annotate_active_shipping_methods(valid_methods, excluded_methods)
+    initialize_shipping_method_active_status(valid_methods, excluded_methods)
 
     return valid_methods
 

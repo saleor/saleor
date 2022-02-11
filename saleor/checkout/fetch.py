@@ -21,8 +21,8 @@ from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
-    annotate_active_shipping_methods,
     convert_to_shipping_method_data,
+    initialize_shipping_method_active_status,
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
@@ -534,7 +534,7 @@ def update_delivery_method_lists_for_checkout_info(
         excluded_methods = manager.excluded_shipping_methods_for_checkout(
             checkout_info.checkout, all_methods
         )
-        annotate_active_shipping_methods(all_methods, excluded_methods)
+        initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
     checkout_info.all_shipping_methods = SimpleLazyObject(
