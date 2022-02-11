@@ -157,6 +157,8 @@ class CountryAwareAddressForm(AddressForm):
         ("country_code", ["country"]),
     ]
 
+    NOT_REQUIRED_FIELDS = ("street_address_2",)
+
     class Meta:
         model = Address
         exclude = []
@@ -166,6 +168,10 @@ class CountryAwareAddressForm(AddressForm):
         for field_name, error_code in errors.items():
             local_fields = field_mapping[field_name]
             for field in local_fields:
+
+                if field in self.NOT_REQUIRED_FIELDS:
+                    continue
+
                 try:
                     error_msg = self.fields[field].error_messages[error_code]
                 except KeyError:

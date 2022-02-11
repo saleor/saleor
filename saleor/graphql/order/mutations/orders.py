@@ -370,12 +370,24 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
+        shipping_channel_listing = (
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method, channel=order.channel
+            ).first()
+        )
+        if not shipping_channel_listing:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not available in the given channel.",
+                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
+
         shipping_method_data = convert_to_shipping_method_data(
             method,
-            shipping_models.ShippingMethodChannelListing.objects.filter(
-                shipping_method=method,
-                channel=order.channel,
-            ).first(),
+            shipping_channel_listing,
         )
         clean_order_update_shipping(order, shipping_method_data)
 

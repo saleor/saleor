@@ -4,6 +4,7 @@ import graphene
 from graphene_federation import key
 
 from ...app import models
+from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableConnection
@@ -16,15 +17,11 @@ from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
-from .enums import (
-    AppExtensionTargetEnum,
-    AppExtensionTypeEnum,
-    AppExtensionViewEnum,
-    AppTypeEnum,
-)
+from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
+    resolve_app_extension_url,
 )
 
 
@@ -40,17 +37,22 @@ class AppManifestExtension(graphene.ObjectType):
     url = graphene.String(
         description="URL of a view where extension's iframe is placed.", required=True
     )
-    view = AppExtensionViewEnum(
-        description="Name of a view where extension's iframe will be mounted.",
-        required=True,
-    )
-    type = AppExtensionTypeEnum(
-        description="Type of a view where extension's iframe will be mounted.",
+    mount = AppExtensionMountEnum(
+        description="Place where given extension will be mounted.",
         required=True,
     )
     target = AppExtensionTargetEnum(
-        description="Place where extension's iframe will be mounted.", required=True
+        description="Type of way how app extension will be opened.", required=True
     )
+
+    @staticmethod
+    def resolve_target(root, info):
+        return root.get("target") or AppExtensionTarget.POPUP
+
+    @staticmethod
+    def resolve_url(root, info):
+        """Return an extension url."""
+        return resolve_app_extension_url(root)
 
 
 class AppExtension(AppManifestExtension, ModelObjectType):
@@ -64,6 +66,23 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node]
         model = models.AppExtension
+
+    @staticmethod
+    def resolve_url(root, info):
+        return (
+            AppByIdLoader(info.context)
+            .load(root.app_id)
+            .then(
+                lambda app: AppManifestExtension.resolve_url(
+                    {"target": root.target, "app_url": app.app_url, "url": root.url},
+                    info,
+                )
+            )
+        )
+
+    @staticmethod
+    def resolve_target(root, info):
+        return root.target
 
     @staticmethod
     def resolve_app(root, info):
@@ -114,6 +133,12 @@ class Manifest(graphene.ObjectType):
 
     class Meta:
         description = "The manifest definition."
+
+    @staticmethod
+    def resolve_extensions(root, info):
+        for extension in root.extensions:
+            extension["app_url"] = root.app_url
+        return root.extensions
 
 
 class AppToken(graphene.ObjectType):

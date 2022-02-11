@@ -35,7 +35,7 @@ def test_checkout_add_payment_by_checkout_id(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -72,7 +72,7 @@ def test_checkout_add_payment_neither_token_and_id_given(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
@@ -101,7 +101,7 @@ def test_checkout_add_payment_both_token_and_id_given(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address

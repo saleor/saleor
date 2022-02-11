@@ -740,6 +740,7 @@ def complete_checkout(
         action_required = txn.action_required
         if action_required:
             action_data = txn.action_required_data
+            release_voucher_usage(order_data)
 
     order = None
     if not action_required:

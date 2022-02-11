@@ -1,9 +1,9 @@
 import pytest
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .....app.types import AppExtensionMount
 from ....tests.utils import get_graphql_content
-from ...enums import AppExtensionTargetEnum, AppExtensionTypeEnum, AppExtensionViewEnum
+from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
 
 
 @pytest.mark.count_queries(autouse=False)
@@ -21,10 +21,9 @@ def test_app_extensions(
           node{
             label
             url
-            view
+            mount
             target
             id
-            type
             accessToken
             permissions{
               code
@@ -41,25 +40,19 @@ def test_app_extensions(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.OVERVIEW,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.DETAILS,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.OVERVIEW,
-                target=AppExtensionTarget.CREATE,
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )
@@ -83,20 +76,11 @@ def test_app_extensions(
     "filter",
     [
         {},
-        {"view": AppExtensionViewEnum.PRODUCT.name},
-        {"target": AppExtensionTargetEnum.CREATE.name},
-        {"type": AppExtensionTypeEnum.OVERVIEW.name},
+        {"mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name},
+        {"target": AppExtensionTargetEnum.POPUP.name},
         {
-            "type": AppExtensionTypeEnum.OVERVIEW.name,
-            "view": AppExtensionViewEnum.PRODUCT.name,
-        },
-        {
-            "type": AppExtensionTypeEnum.DETAILS.name,
-            "target": AppExtensionTargetEnum.CREATE.name,
-        },
-        {
-            "type": AppExtensionTypeEnum.DETAILS.name,
-            "target": AppExtensionTargetEnum.MORE_ACTIONS.name,
+            "mount": AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name,
+            "target": AppExtensionTargetEnum.POPUP.name,
         },
     ],
 )
@@ -116,10 +100,9 @@ def test_app_extensions_with_filter(
           node{
             label
             url
-            view
             target
             id
-            type
+            mount
             accessToken
             permissions{
               code
@@ -135,25 +118,19 @@ def test_app_extensions_with_filter(
                 app=app,
                 label="Create product with App1",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.OVERVIEW,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App2",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.DETAILS,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
             ),
             AppExtension(
                 app=app,
                 label="Create product with App3",
                 url="https://www.example.com/app-product",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.OVERVIEW,
-                target=AppExtensionTarget.CREATE,
+                mount=AppExtensionMount.PRODUCT_OVERVIEW_CREATE,
             ),
         ]
     )

@@ -60,3 +60,15 @@ def filter_range_field(qs, field, value):
         lookup = {f"{field}__lte": lte}
         qs = qs.filter(**lookup)
     return qs
+
+
+def filter_by_id(object_type):
+    from . import resolve_global_ids_to_primary_keys
+
+    def inner(qs, _, value):
+        if not value:
+            return qs
+        _, obj_pks = resolve_global_ids_to_primary_keys(value, object_type)
+        return qs.filter(id__in=obj_pks)
+
+    return inner

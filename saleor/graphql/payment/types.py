@@ -5,6 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
 from ...core.tracing import traced_resolver
 from ...payment import models
+from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31
 from ..core.types import ModelObjectType, Money
@@ -185,6 +186,11 @@ class Payment(ModelObjectType):
         if not requester.has_perms(permissions):
             raise PermissionDenied()
         return resolve_metadata(root.metadata)
+
+    def resolve_checkout(root: models.Payment, info):
+        if not root.checkout_id:
+            return None
+        return CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
 
 class PaymentCountableConnection(CountableConnection):
