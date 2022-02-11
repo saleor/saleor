@@ -42,7 +42,8 @@ def _request(
     path: str = "",
     json: Optional[dict] = None,
 ) -> requests.Response:
-    with np_atobarai_opentracing_trace("np-atobarai.utilities.request"):
+    trace_name = f"np-atobarai.request.{path.lstrip('/')}"
+    with np_atobarai_opentracing_trace(trace_name):
         response = requests.request(
             method=method,
             url=get_url(config, path),
