@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 from django.conf import settings
 from django.db import transaction
@@ -16,17 +16,12 @@ from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
 
-def _get_tax_data_from_manager(
+def _recalculate_order_prices(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
-) -> Optional[dict]:
-    """Fetch tax data from manager methods.
-
-    :return: None if `TaxError` was raised, tax data dict otherwise.
-    """
+) -> None:
     currency = order.currency
 
     try:
-        price_lines: List[dict] = []
         subtotal = zero_taxed_money(currency)
         for line in lines:
             variant = line.variant
@@ -36,52 +31,29 @@ def _get_tax_data_from_manager(
             product = variant.product
 
             line_unit = manager.calculate_order_line_unit(order, line, variant, product)
+            line.undiscounted_unit_price = line_unit.undiscounted_price
+            line.unit_price = line_unit.price_with_discounts
+
             line_total = manager.calculate_order_line_total(
                 order, line, variant, product
             )
-            tax_rate = manager.get_order_line_tax_rate(
+            line.undiscounted_total_price = line_total.undiscounted_price
+            line.total_price = line_total.price_with_discounts
+
+            line.tax_rate = manager.get_order_line_tax_rate(
                 order, product, variant, None, line_unit.undiscounted_price
             )
 
             subtotal += line_total.price_with_discounts
-            price_lines.append(
-                {"tax_rate": tax_rate, "unit": line_unit, "total": line_total}
-            )
 
-        shipping_price = manager.calculate_order_shipping(order)
-        shipping_tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
-        total = shipping_price + subtotal
+        order.shipping_price = manager.calculate_order_shipping(order)
+        order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
+            order, order.shipping_price
+        )
+        order.total = order.shipping_price + subtotal
 
     except TaxError:
-        return None
-
-    return {
-        "total": total,
-        "subtotal": subtotal,
-        "shipping_price": shipping_price,
-        "shipping_tax_rate": shipping_tax_rate,
-        "lines": price_lines,
-    }
-
-
-def _apply_tax_data_from_manager(
-    tax_data: dict, order: Order, lines: Iterable[OrderLine]
-) -> None:
-    """Apply tax data from manager methods into order and lines."""
-    order.total = tax_data["total"]
-    order.shipping_price = tax_data["shipping_price"]
-    order.shipping_tax_rate = tax_data["shipping_tax_rate"]
-
-    for order_line, price_line in zip(lines, tax_data["lines"]):
-        unit = price_line["unit"]
-        order_line.undiscounted_unit_price = unit.undiscounted_price
-        order_line.unit_price = unit.price_with_discounts
-
-        total = price_line["total"]
-        order_line.undiscounted_total_price = total.undiscounted_price
-        order_line.total_price = total.price_with_discounts
-
-        order_line.tax_rate = price_line["tax_rate"]
+        pass
 
 
 def _apply_tax_data(
@@ -116,7 +88,7 @@ def _apply_tax_data(
         order_line.tax_rate = tax_line.tax_rate
 
 
-def _recalculate_discounts(order: Order, lines: Iterable[OrderLine]):
+def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]):
     for line in lines:
         line.undiscounted_unit_price = line.unit_price + line.unit_discount
         line.undiscounted_total_price = (
@@ -164,17 +136,14 @@ def fetch_order_prices_if_expired(
             timezone.now() + settings.ORDER_PRICES_TTL
         )
 
-        manager_tax_data = _get_tax_data_from_manager(manager, order, lines)
-
-        if manager_tax_data is not None:
-            _apply_tax_data_from_manager(manager_tax_data, order, lines)
+        _recalculate_order_prices(manager, order, lines)
 
         tax_data = manager.get_taxes_for_order(order)
 
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
 
-        _recalculate_discounts(order, lines)
+        _recalculate_order_discounts(order, lines)
 
         order.save(
             update_fields=[
