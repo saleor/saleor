@@ -39,7 +39,6 @@ from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import get_plugins_manager
-from ....plugins.models import PluginConfiguration
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import models as shipping_models
