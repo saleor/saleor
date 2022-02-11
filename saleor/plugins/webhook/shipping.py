@@ -72,7 +72,6 @@ def get_excluded_shipping_methods_or_fetch(
             webhook.app,
             EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
         )
-        # TODO handle a case when we didn't receive a proper response
         if response_data:
             excluded_methods.extend(
                 get_excluded_shipping_methods_from_response(response_data)
