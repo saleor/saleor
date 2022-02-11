@@ -126,8 +126,7 @@ def _get_goods_name(line: PaymentLineData, config: "ApiConfig") -> str:
         return line.product_name
     elif sku := line.product_sku:
         return sku
-    else:
-        return str(line.variant_id)
+    return str(line.variant_id)
 
 
 def get_refunded_goods(
