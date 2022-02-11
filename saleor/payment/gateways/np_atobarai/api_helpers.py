@@ -104,7 +104,7 @@ def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
         try:
             jap_ad = pp.get(ad.postal_code)
         except KeyError:
-            logger.warning(f"Invalid japanese postal code: {ad.postal_code}")
+            logger.warning("Invalid japanese postal code: %s", ad.postal_code)
             return None
         else:
             return (
