@@ -345,10 +345,8 @@ class ShippingMethod(graphene.ObjectType):
     class Meta:
         interfaces = [relay.Node, ObjectWithMetadata]
         description = (
-            (
-                "Shipping methods that can be used as means of shipping"
-                "for orders and checkouts."
-            ),
+            "Shipping methods that can be used as means of shipping"
+            "for orders and checkouts."
         )
 
     @staticmethod
