@@ -106,6 +106,27 @@ def test_category_query_object_with_invalid_object_type(
     assert content["data"]["category"] is None
 
 
+def test_category_query_doesnt_show_not_available_products(
+    user_api_client, product, channel_USD
+):
+    category = Category.objects.first()
+    variant = product.variants.get()
+    # Set product as not visible due to lack of price.
+    variant.channel_listings.update(price_amount=None)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+    content = get_graphql_content(response)
+    category_data = content["data"]["category"]
+    assert category_data is not None
+    assert category_data["name"] == category.name
+    assert not category_data["products"]["edges"]
+
+
 def test_category_query_description(user_api_client, product, channel_USD):
     category = Category.objects.first()
     description = dummy_editorjs("Test description.", json_format=True)
