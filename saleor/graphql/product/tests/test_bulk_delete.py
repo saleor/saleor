@@ -300,6 +300,33 @@ def test_delete_collections_with_images(
     } == {collection_list[0].background_image, collection_list[1].background_image}
 
 
+@patch("saleor.plugins.manager.PluginsManager.collection_deleted")
+def test_delete_collections_trigger_collection_deleted_webhook(
+    collection_deleted_mock,
+    staff_api_client,
+    collection_list,
+    permission_manage_products,
+):
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_COLLECTION_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["collectionBulkDelete"]["count"] == 3
+    assert not Collection.objects.filter(
+        id__in=[collection.id for collection in collection_list]
+    ).exists()
+    assert len(collection_list) == collection_deleted_mock.call_count
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_collections_trigger_product_updated_webhook(
     product_updated_mock,
@@ -308,13 +335,6 @@ def test_delete_collections_trigger_product_updated_webhook(
     product_list,
     permission_manage_products,
 ):
-    query = """
-    mutation collectionBulkDelete($ids: [ID]!) {
-        collectionBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
     for collection in collection_list:
         collection.products.add(*product_list)
     variables = {
@@ -324,7 +344,9 @@ def test_delete_collections_trigger_product_updated_webhook(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        MUTATION_COLLECTION_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
@@ -487,11 +509,14 @@ def test_delete_products_with_images(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task,
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     product_list,
     permission_manage_products,
@@ -499,6 +524,7 @@ def test_delete_products_trigger_webhook(
     settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     query = DELETE_PRODUCTS_MUTATION
@@ -518,9 +544,12 @@ def test_delete_products_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_products_without_variants(
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     product_list,
     permission_manage_products,
@@ -528,6 +557,7 @@ def test_delete_products_without_variants(
     settings,
 ):
     # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     for product in product_list:
@@ -560,7 +590,7 @@ def test_delete_products_removes_checkout_lines(
     # given
     checkout = checkout_with_items
     lines_count = checkout.lines.count()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     old_quantity = calculate_checkout_quantity(lines)
 
     query = DELETE_PRODUCTS_MUTATION
@@ -578,7 +608,7 @@ def test_delete_products_removes_checkout_lines(
     assert content["data"]["productBulkDelete"]["count"] == 3
 
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == lines_count - 3
     assert old_quantity == calculate_checkout_quantity(lines) + 3
 
@@ -906,7 +936,7 @@ def test_delete_product_variants_removes_checkout_lines(
         add_variant_to_checkout(checkout_info, variant, 1)
 
     lines_count = checkout.lines.count()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     old_quantity = calculate_checkout_quantity(lines)
 
     assert ProductVariantChannelListing.objects.filter(
@@ -930,7 +960,7 @@ def test_delete_product_variants_removes_checkout_lines(
         id__in=[variant.id for variant in variant_list]
     ).exists()
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == lines_count - 2
     assert old_quantity == calculate_checkout_quantity(lines) + 2

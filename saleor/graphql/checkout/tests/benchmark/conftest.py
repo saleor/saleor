@@ -120,7 +120,7 @@ def checkout_with_billing_address_for_cc(checkout_with_delivery_method_for_cc, a
 def checkout_with_voucher(checkout_with_billing_address, voucher):
     checkout = checkout_with_billing_address
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     return checkout
@@ -130,7 +130,7 @@ def checkout_with_voucher(checkout_with_billing_address, voucher):
 def checkout_with_charged_payment(checkout_with_voucher):
     checkout = checkout_with_voucher
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(
@@ -174,7 +174,7 @@ def checkout_with_digital_line_with_charged_payment(
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     taxed_total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -206,7 +206,7 @@ def checkout_with_digital_line_with_charged_payment(
 def checkout_with_charged_payment_for_cc(checkout_with_billing_address_for_cc):
     checkout = checkout_with_billing_address_for_cc
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(
@@ -245,12 +245,12 @@ def checkout_preorder_with_charged_payment(
 ):
     checkout = checkout_with_billing_address
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
     add_variant_to_checkout(checkout_info, preorder_variant_global_threshold, 1)
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(
         manager=manager,

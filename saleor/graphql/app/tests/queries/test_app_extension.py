@@ -1,7 +1,7 @@
 import graphene
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionTarget, AppExtensionType, AppExtensionView
+from .....app.types import AppExtensionMount
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -10,9 +10,8 @@ query ($id: ID!){
     appExtension(id: $id){
         label
         url
-        view
+        mount
         target
-        type
         id
         accessToken
         permissions{
@@ -29,9 +28,7 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -48,9 +45,8 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
     extension_data = content["data"]["appExtension"]
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
-    assert app_extension.view == extension_data["view"].lower()
+    assert app_extension.mount == extension_data["mount"].lower()
     assert app_extension.target == extension_data["target"].lower()
-    assert app_extension.type == extension_data["type"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1
@@ -64,9 +60,7 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -83,9 +77,8 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
     extension_data = content["data"]["appExtension"]
     assert app_extension.label == extension_data["label"]
     assert app_extension.url == extension_data["url"]
-    assert app_extension.view == extension_data["view"].lower()
+    assert app_extension.mount == extension_data["mount"].lower()
     assert app_extension.target == extension_data["target"].lower()
-    assert app_extension.type == extension_data["type"].lower()
 
     assert app_extension.permissions.count() == 1
     assert len(extension_data["permissions"]) == 1
@@ -99,9 +92,7 @@ def test_app_extension_normal_user(app, user_api_client, permission_manage_produ
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -125,9 +116,7 @@ def test_app_extension_staff_user_without_all_permissions(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -159,9 +148,7 @@ def test_app_extension_staff_user_fetching_access_token(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products, permission_manage_orders)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -202,9 +189,7 @@ def test_app_extension_staff_user_partial_permission(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products, permission_manage_orders)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -230,9 +215,8 @@ query ($id: ID!){
     appExtension(id: $id){
         label
         url
-        view
+        mount
         target
-        type
         id
         permissions{
             code
@@ -253,9 +237,7 @@ def test_app_extension_with_app_query_by_staff_without_permissions(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -279,9 +261,7 @@ def test_app_extension_with_app_query_by_app_without_permissions(
         app=external_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -309,9 +289,7 @@ def test_app_extension_with_app_query_by_app_with_permissions(
         app=external_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     app.permissions.add(permission_manage_apps)
@@ -336,9 +314,7 @@ def test_app_extension_with_app_query_by_owner_app(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -362,9 +338,7 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
         app=external_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
 
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)

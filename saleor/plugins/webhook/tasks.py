@@ -82,9 +82,8 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
-def trigger_webhooks_async(data, event_type):
+def trigger_webhooks_async(data, event_type, webhooks):
     payload = EventPayload.objects.create(payload=data)
-    webhooks = _get_webhooks_for_event(event_type)
     deliveries = create_event_delivery_list_for_webhooks(
         webhooks=webhooks,
         event_payload=payload,

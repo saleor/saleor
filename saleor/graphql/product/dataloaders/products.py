@@ -70,7 +70,7 @@ class ProductChannelListingByProductIdLoader(DataLoader[int, ProductChannelListi
             self.database_connection_name
         ).filter(product_id__in=keys)
         product_id_variant_channel_listings_map = defaultdict(list)
-        for product_channel_listing in product_channel_listings:
+        for product_channel_listing in product_channel_listings.iterator():
             product_id_variant_channel_listings_map[
                 product_channel_listing.product_id
             ].append(product_channel_listing)
@@ -147,7 +147,7 @@ class MediaByProductIdLoader(DataLoader):
             product_id__in=keys
         )
         media_map = defaultdict(list)
-        for media_obj in media:
+        for media_obj in media.iterator():
             media_map[media_obj.product_id].append(media_obj)
         return [media_map[product_id] for product_id in keys]
 
@@ -160,7 +160,7 @@ class ImagesByProductIdLoader(DataLoader):
             product_id__in=keys, type=ProductMediaTypes.IMAGE
         )
         images_map = defaultdict(list)
-        for image in images:
+        for image in images.iterator():
             images_map[image.product_id].append(image)
         return [images_map[product_id] for product_id in keys]
 
@@ -253,7 +253,7 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
         )
 
         variant_id_variant_channel_listings_map = defaultdict(list)
-        for variant_channel_listing in variant_channel_listings:
+        for variant_channel_listing in variant_channel_listings.iterator():
             variant_id_variant_channel_listings_map[
                 variant_channel_listing.variant_id
             ].append(variant_channel_listing)
@@ -421,7 +421,7 @@ class ProductImageByProductIdLoader(DataLoader):
             type=ProductMediaTypes.IMAGE, product_id__in=keys
         )
         product_id_medias_map = defaultdict(list)
-        for media in medias:
+        for media in medias.iterator():
             product_id_medias_map[media.product_id].append(media)
         return [product_id_medias_map.get(product_id, []) for product_id in keys]
 
@@ -437,7 +437,7 @@ class MediaByProductVariantIdLoader(DataLoader):
         )
 
         variant_media_pairs = defaultdict(list)
-        for variant_id, media_id in variant_media:
+        for variant_id, media_id in variant_media.iterator():
             variant_media_pairs[variant_id].append(media_id)
 
         def map_variant_media(variant_media):
@@ -465,7 +465,7 @@ class ImagesByProductVariantIdLoader(DataLoader):
         )
 
         variant_media_pairs = defaultdict(list)
-        for variant_id, media_id in variant_media:
+        for variant_id, media_id in variant_media.iterator():
             variant_media_pairs[variant_id].append(media_id)
 
         def map_variant_media(variant_media):
@@ -504,6 +504,7 @@ class CollectionsByProductIdLoader(DataLoader):
             .filter(product_id__in=keys)
             .order_by("id")
             .values_list("product_id", "collection_id")
+            .iterator()
         )
         product_collection_map = defaultdict(list)
         for pid, cid in product_collection_pairs:
@@ -583,7 +584,7 @@ class CollectionChannelListingByCollectionIdLoader(DataLoader):
             self.database_connection_name
         ).filter(collection_id__in=keys)
         collection_id_collection_channel_listings_map = defaultdict(list)
-        for collection_channel_listing in collections_channel_listings:
+        for collection_channel_listing in collections_channel_listings.iterator():
             collection_id_collection_channel_listings_map[
                 collection_channel_listing.collection_id
             ].append(collection_channel_listing)
@@ -605,7 +606,7 @@ class CollectionChannelListingByCollectionIdAndChannelSlugLoader(DataLoader):
             .annotate(channel_slug=F("channel__slug"))
         )
         collections_channel_listings_by_collection_and_channel_map = {}
-        for collections_channel_listing in collections_channel_listings:
+        for collections_channel_listing in collections_channel_listings.iterator():
             key = (
                 collections_channel_listing.collection_id,
                 collections_channel_listing.channel_slug,
@@ -627,7 +628,7 @@ class CategoryChildrenByCategoryIdLoader(DataLoader):
             parent__isnull=False
         )
         parent_to_children_mapping = defaultdict(list)
-        for category in categories:
+        for category in categories.iterator():
             parent_to_children_mapping[category.parent_id].append(category)
 
         return [parent_to_children_mapping.get(key, []) for key in keys]

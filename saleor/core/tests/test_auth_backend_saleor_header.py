@@ -7,7 +7,6 @@ from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 from ..auth_backend import JSONWebTokenBackend
 from ..jwt import (
     JWT_ACCESS_TYPE,
-    JWT_ALGORITHM,
     create_access_token,
     create_access_token_for_app,
     create_refresh_token,
@@ -93,7 +92,7 @@ def test_incorrect_token(rf, staff_user, settings):
     token = jwt.encode(
         payload,
         "Wrong secret",
-        JWT_ALGORITHM,
+        "HS256",
     )
     request = rf.request(HTTP_AUTHORIZATION_BEARER=f"{token}")
     backend = JSONWebTokenBackend()

@@ -126,7 +126,7 @@ class AttributeVariantsByProductTypeIdLoader(DataLoader):
             )
         attribute_variants = qs.filter(product_type_id__in=keys)
         producttype_to_attributevariants = defaultdict(list)
-        for attribute_variant in attribute_variants:
+        for attribute_variant in attribute_variants.iterator():
             producttype_to_attributevariants[attribute_variant.product_type_id].append(
                 attribute_variant
             )
@@ -150,7 +150,7 @@ class AssignedProductAttributesByProductIdLoader(DataLoader):
             ).filter(assignment__attribute__visible_in_storefront=True)
         assigned_product_attributes = qs.filter(product_id__in=keys)
         product_to_assignedproductattributes = defaultdict(list)
-        for assigned_product_attribute in assigned_product_attributes:
+        for assigned_product_attribute in assigned_product_attributes.iterator():
             product_to_assignedproductattributes[
                 assigned_product_attribute.product_id
             ].append(assigned_product_attribute)
@@ -176,7 +176,7 @@ class AssignedVariantAttributesByProductVariantId(DataLoader):
             "assignment__attribute"
         )
         variant_attributes = defaultdict(list)
-        for assigned_variant_attribute in assigned_variant_attributes:
+        for assigned_variant_attribute in assigned_variant_attributes.iterator():
             variant_attributes[assigned_variant_attribute.variant_id].append(
                 assigned_variant_attribute
             )
@@ -187,9 +187,11 @@ class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedproductattribute"
 
     def batch_load(self, keys):
-        attribute_values = AssignedProductAttributeValue.objects.using(
-            self.database_connection_name
-        ).filter(assignment_id__in=keys)
+        attribute_values = list(
+            AssignedProductAttributeValue.objects.using(self.database_connection_name)
+            .filter(assignment_id__in=keys)
+            .iterator()
+        )
         value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):
@@ -212,9 +214,11 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedvariantattribute"
 
     def batch_load(self, keys):
-        attribute_values = AssignedVariantAttributeValue.objects.using(
-            self.database_connection_name
-        ).filter(assignment_id__in=keys)
+        attribute_values = list(
+            AssignedVariantAttributeValue.objects.using(self.database_connection_name)
+            .filter(assignment_id__in=keys)
+            .iterator()
+        )
         value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):

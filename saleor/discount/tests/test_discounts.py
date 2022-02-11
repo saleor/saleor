@@ -410,7 +410,7 @@ def test_specific_products_voucher_checkout_discount(
     )
     checkout = checkout_with_item
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(

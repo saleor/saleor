@@ -345,14 +345,18 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_create_trigger_page_webhook(
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     permission_manage_pages,
     page_type,
     settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     page_slug = "test-slug"
@@ -384,7 +388,7 @@ def test_page_create_trigger_page_webhook(
     expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_CREATED
+        expected_data, WebhookEventAsyncType.PAGE_CREATED, [any_webhook]
     )
 
 
@@ -1235,10 +1239,18 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_delete_trigger_webhook(
-    mocked_webhook_trigger, staff_api_client, page, permission_manage_pages, settings
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    page,
+    permission_manage_pages,
+    settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = staff_api_client.post_graphql(
@@ -1251,7 +1263,7 @@ def test_page_delete_trigger_webhook(
         page.refresh_from_db()
     expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_DELETED
+        expected_data, WebhookEventAsyncType.PAGE_DELETED, [any_webhook]
     )
 
 
@@ -1393,14 +1405,22 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
         assert attr_data in expected_attributes
 
 
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @freeze_time("2020-03-18 12:00:00")
 def test_update_page_trigger_webhook(
-    mocked_webhook_trigger, staff_api_client, permission_manage_pages, page, settings
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_pages,
+    page,
+    settings,
 ):
     query = UPDATE_PAGE_MUTATION
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
 
     page_title = page.title
     new_slug = "new-slug"
@@ -1431,8 +1451,7 @@ def test_update_page_trigger_webhook(
     page.publication_date = date(2020, 3, 18)
     expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
-        WebhookEventAsyncType.PAGE_UPDATED,
+        expected_data, WebhookEventAsyncType.PAGE_UPDATED, [any_webhook]
     )
 
 
