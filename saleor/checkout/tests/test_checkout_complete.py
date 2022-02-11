@@ -9,11 +9,16 @@ from ...account.models import CustomerEvent
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
+from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
+from ...graphql.checkout.tests.test_checkout_complete import (
+    ACTION_REQUIRED_GATEWAY_RESPONSE,
+)
 from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
@@ -1192,3 +1197,60 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     assert placement_event.order == order  # check the associated order is valid
     assert placement_event.date  # ensure a date was set
     assert not placement_event.parameters  # should not have any additional parameters
+
+
+@mock.patch("saleor.checkout.complete_checkout._create_order")
+@mock.patch(
+    "saleor.checkout.complete_checkout._process_payment",
+    return_value=ACTION_REQUIRED_GATEWAY_RESPONSE,
+)
+def test_complete_checkout_action_required_voucher_once_per_customer(
+    _,
+    mocked_create_order,
+    voucher,
+    customer_user,
+    checkout,
+    app,
+    payment_txn_to_confirm,
+):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = True
+    payment.save()
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.voucher_code = voucher.code
+    checkout.save()
+
+    voucher.apply_once_per_customer = True
+    voucher.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=app,
+    )
+    # then
+    voucher_customer = VoucherCustomer.objects.filter(
+        voucher=voucher, customer_email=customer_user.email
+    )
+    assert not order
+    assert action_required is True
+    assert not voucher_customer.exists()
+    mocked_create_order.assert_not_called()
