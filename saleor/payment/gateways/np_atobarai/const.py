@@ -2,7 +2,7 @@
 NP_ATOBARAI = "02"
 NP_ATOBARAI_WIZ = "03"
 
-REQUEST_TIMEOUT = 30
+REQUEST_TIMEOUT = 20
 
 NP_PLUGIN_ID = "saleor.payments.np-atobarai"
 
