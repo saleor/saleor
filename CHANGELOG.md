@@ -72,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError in `CheckoutAddPromoCode`, `CheckoutPaymentCreate` when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Remove `graphene-django` dependency - #9170 by @rafalp
+- Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
 
 
 # 3.0.0
