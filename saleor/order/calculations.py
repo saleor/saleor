@@ -19,6 +19,10 @@ from .models import Order, OrderLine
 def _recalculate_order_prices(
     manager: PluginsManager, order: Order, lines: Iterable[OrderLine]
 ) -> None:
+    """Fetch taxes from plugins and recalculate order/lines prices.
+
+    Does not throw TaxError.
+    """
     currency = order.currency
 
     try:
@@ -59,6 +63,8 @@ def _recalculate_order_prices(
 def _apply_tax_data(
     order: Order, lines: Iterable[OrderLine], tax_data: TaxData
 ) -> None:
+    """Apply all prices from tax data to order and order lines."""
+
     def _quantize_price(net: Decimal, gross: Decimal) -> TaxedMoney:
         currency = order.currency
         return quantize_price(
@@ -88,7 +94,8 @@ def _apply_tax_data(
         order_line.tax_rate = tax_line.tax_rate
 
 
-def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]):
+def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> None:
+    """Recalculate all order discounts and update order/lines prices."""
     for line in lines:
         line.undiscounted_unit_price = line.unit_price + line.unit_discount
         line.undiscounted_total_price = (
@@ -301,7 +308,7 @@ def order_undiscounted_total(
     lines: Optional[Iterable[OrderLine]] = None,
     force_update: bool = False,
 ) -> TaxedMoney:
-    """Return the total price of the order.
+    """Return the undiscounted total price of the order.
 
     It takes in account all plugins.
     If the prices are expired, calls all order price calculation methods

@@ -1115,9 +1115,6 @@ def create_replace_order(
     lines_to_create = order_line_to_create.values()
     OrderLine.objects.bulk_create(lines_to_create)
 
-    # todo: is it needed at all?
-    #  recalculate_order(replace_order)
-
     draft_order_created_from_replace_event(
         draft_order=replace_order,
         original_order=original_order,
