@@ -1114,8 +1114,8 @@ def attribute_without_values():
 @pytest.fixture
 def product_type_with_product_attributes(attribute_without_values):
     product_type = ProductType.objects.create(
-        name="NAME",
-        slug="NAME",
+        name="product_type_with_product_attributes",
+        slug="product-type-with-product-attributes",
         has_variants=False,
         is_shipping_required=False,
         weight=0,
@@ -1127,8 +1127,8 @@ def product_type_with_product_attributes(attribute_without_values):
 @pytest.fixture
 def product_type_with_variant_attributes(attribute_without_values):
     product_type = ProductType.objects.create(
-        name="NAME",
-        slug="NAME",
+        name="product_type_with_variant_attributes",
+        slug="product-type-with-variant-attributes",
         has_variants=False,
         is_shipping_required=False,
         weight=0,
@@ -1142,8 +1142,8 @@ def product_with_product_attributes(
     product_type_with_product_attributes, non_default_category
 ):
     product = Product.objects.create(
-        name="Test product",
-        slug="test-product-11",
+        name="product_with_product_attributes",
+        slug="product-with-product-attributes",
         product_type=product_type_with_product_attributes,
         category=non_default_category,
     )
@@ -1155,8 +1155,8 @@ def product_with_variant_attributes(
     product_type_with_variant_attributes, non_default_category
 ):
     product = Product.objects.create(
-        name="Test product",
-        slug="test-product-11",
+        name="product_with_variant_attributes",
+        slug="product-with-variant-attributes",
         product_type=product_type_with_variant_attributes,
         category=non_default_category,
     )

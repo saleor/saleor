@@ -930,14 +930,14 @@ class ProductVariantCreate(ModelMutation):
                 cleaned_input["product"]
             )
 
-        variant_attributes_ids = [
+        variant_attributes_ids = {
             graphene.Node.to_global_id("Attribute", attr_id)
             for attr_id in list(
                 product_type.variant_attributes.all().values_list("pk", flat=True)
             )
-        ]
-        attributes_ids = [attr["id"] for attr in data.get("attributes") or []]
-        invalid_attributes = set(attributes_ids) - set(variant_attributes_ids)
+        }
+        attributes_ids = {attr["id"] for attr in data.get("attributes") or []}
+        invalid_attributes = attributes_ids - variant_attributes_ids
         if len(invalid_attributes) > 0:
             raise ValidationError(
                 "Given attributes are not a variant attributes.",
