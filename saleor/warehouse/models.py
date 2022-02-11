@@ -110,7 +110,7 @@ class WarehouseQueryset(models.QuerySet):
         return self.for_country(country).filter(
             click_and_collect_option__in=[
                 WarehouseClickAndCollectOption.LOCAL_STOCK,
-                WarehouseClickAndCollectOption.ALL_WAREHOUSES
+                WarehouseClickAndCollectOption.ALL_WAREHOUSES,
             ]
         )
 
