@@ -28,7 +28,7 @@ def _save_instance(instance, metadata_field: str):
 
     try:
         if bool(instance._meta.get_field("updated_at")):
-           fields.append("updated_at")
+            fields.append("updated_at")
     except FieldDoesNotExist:
         pass
 
