@@ -57,18 +57,19 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 
 ## Features
 
-- **PWA**: End users can shop offline for better sales and shopping experiences
-- **GraphQL API**: Access all data from any web or mobile client using the latest technology
-- **Headless commerce**: Build mobile apps, customize storefronts and externalize processes
-- **UX and UI**: Designed for a user experience that rivals even the top commercial platforms
-- **Dashboard**: Administrators have total control of users, processes, and products
+- **Headless / API first**: Build mobile apps, custom storefronts, POS, automation, etc
+- **Extensible**: Build anything with webhooks, apps, metadata, and attributes
+- **GraphQL API**: Get many resources in a single request and [more](https://graphql.org/)
+- **Multichannel**: Per channel control of pricing, currencies, stock, product, and more
+- **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands
+- **CMS**: Content is king, that's why we have a kingdom built-in
+- **Dashboard**: User friendly, fast and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
+- **Global by design** Multi-currency, multi-language, multi-warehouse, tutti multi!
 - **Orders**: A comprehensive system for orders, dispatch, and refunds
 - **Cart**: Advanced payment and tax options, with full control over discounts and promotions
-- **Payments**: Flexible API architecture allows integration of any payment method. It comes with Braintree support out of the box.
-- **Geo-adaptive**: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
+- **Payments**: Flexible API architecture allows integration of any payment method
 - **SEO**: Packed with features that get stores to a wider audience
 - **Cloud**: Optimized for deployments using Docker
-- **Analytics**: Server-side Google Analytics to report e-commerce metrics without affecting privacy
 
 Saleor is free and always will be.
 Help us out… If you love free stuff and great software, give us a star! 🌟
@@ -147,8 +148,6 @@ Fill out this short survey and help us grow. It will take just a minute, but mea
 ## License
 
 Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/saleor/saleor/blob/master/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
-
-Some situations do call for extra code; we can cover exotic use cases or build you a custom e-commerce appliance.
 
 #### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 

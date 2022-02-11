@@ -27,7 +27,7 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     user_api_client, checkout_with_item, voucher, channel_USD
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -77,7 +77,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert voucher.countries[0].code == address_other_country.country
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
@@ -147,7 +147,7 @@ def test_checkout_totals_use_discounts(
     ]
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     taxed_total = calculations.checkout_total(
         manager=manager,
@@ -159,7 +159,7 @@ def test_checkout_totals_use_discounts(
     assert data["totalPrice"]["gross"]["amount"] == taxed_total.gross.amount
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     checkout_line_info = lines[0]
     line_total = calculations.checkout_line_total(
@@ -384,11 +384,26 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     assert checkout_with_item.last_change == previous_checkout_last_change
 
 
+def test_checkout_add_voucher_code_variant_unavailable(
+    api_client, checkout_with_item, voucher
+):
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    checkout_with_item.lines.first().variant.channel_listings.filter(
+        channel=checkout_with_item.channel
+    ).delete()
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+
+
 def test_checkout_add_voucher_code_checkout_with_sale(
     api_client, checkout_with_item, voucher_percentage, discount_info
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     address = checkout_with_item.shipping_address
     subtotal = calculations.checkout_subtotal(
@@ -424,7 +439,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
     checkout = checkout_with_item
     expected_discount = Decimal(1.5)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     subtotal = calculations.checkout_subtotal(
@@ -464,7 +479,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     voucher.products.add(product)
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     subtotal = calculations.checkout_subtotal(
@@ -504,7 +519,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     voucher.collections.add(collection)
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -541,7 +556,7 @@ def test_checkout_add_category_code_checkout_with_sale(
     voucher.categories.add(category)
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     subtotal = calculations.checkout_subtotal(
@@ -705,7 +720,7 @@ def test_checkout_add_used_gift_card_code_invalid_user(
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     taxed_total = calculations.checkout_total(
         manager=manager,
@@ -728,7 +743,7 @@ def test_checkout_get_total_with_many_gift_card(
     api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_gift_card)
+    lines, _ = fetch_checkout_lines(checkout_with_gift_card)
     checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, [], manager)
     taxed_total = calculations.checkout_total(
         manager=manager,

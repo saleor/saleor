@@ -356,7 +356,7 @@ def test_add_gift_cards_to_order(
     checkout.user = staff_user
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
@@ -413,7 +413,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
 
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when

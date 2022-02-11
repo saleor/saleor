@@ -18,7 +18,7 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, TaxType
+from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ....discount import DiscountValueType, OrderDiscountType, VoucherType
 from ....order import OrderStatus
 from ....product import ProductTypeKind
@@ -102,7 +102,7 @@ def test_calculate_checkout_line_total(
     product.product_type.save()
     discounts = [discount_info] if with_discount else None
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     checkout_line_info = lines[0]
 
@@ -138,7 +138,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale(
     line = checkout_with_item.lines.first()
     line.quantity = quantity
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
 
     manager = get_plugins_manager()
@@ -207,7 +207,7 @@ def test_calculate_checkout_line_total_with_voucher(
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -275,7 +275,7 @@ def test_calculate_checkout_line_total_with_voucher_once_per_order(
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -343,7 +343,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher(
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -412,7 +412,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_onc
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -499,7 +499,7 @@ def test_calculate_checkout_line_without_sku_total(
     product.product_type.save()
     discounts = [discount_info] if with_discount else None
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     checkout_line_info = lines[0]
 
@@ -831,7 +831,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     discounts = [discount_info] if with_discount else None
     checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
 
     total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
@@ -900,7 +900,7 @@ def test_calculate_checkout_total(
     discounts = [discount_info] if with_discount else None
     checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_total(
         checkout_info, lines, ship_to_pl_address, discounts
     )
@@ -956,7 +956,7 @@ def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
 
     discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_total(
         checkout_info, lines, ship_to_pl_address, discounts
     )
@@ -993,7 +993,7 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -1051,7 +1051,7 @@ def test_calculate_checkout_subtotal(
 
     checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
     add_variant_to_checkout(checkout_info, variant, 2)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, discounts
     )
@@ -1095,7 +1095,7 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
     checkout_info = fetch_checkout_info(checkout, [], [], manager)
     add_variant_to_checkout(checkout_info, variant, quantity)
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert len(lines) == 1
     update_delivery_method_lists_for_checkout_info(
         checkout_info,
@@ -1136,6 +1136,55 @@ def test_calculate_order_shipping(
     price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_zero_shipping_amount(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    channel_listing = method.channel_listings.get(channel=order.channel)
+    channel_listing.price_amount = 0
+    channel_listing.save(update_fields=["price_amount"])
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_shipping_no_channel_listing(
+    order_line, shipping_zone, site_settings, address, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    method.channel_listings.all().delete()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == zero_taxed_money(order.currency)
 
 
 @pytest.mark.vcr
@@ -1280,7 +1329,7 @@ def test_calculate_checkout_line_unit_price(
     plugin_configuration()
     checkout = checkout_with_item
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
     product = checkout_line.variant.product
     product.charge_taxes = charge_taxes
@@ -1334,7 +1383,7 @@ def test_calculate_checkout_line_unit_price_in_JPY(
     checkout = checkout_JPY_with_item
     plugin_configuration(channel=channel_JPY)
 
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_line = lines[0]
 
     manager = get_plugins_manager()
@@ -1381,7 +1430,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale(
     plugin_configuration()
     checkout = checkout_with_item
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line = lines[0]
 
     manager = get_plugins_manager()
@@ -1446,7 +1495,7 @@ def test_calculate_checkout_line_unit_price_with_voucher(
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -1514,7 +1563,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_once_per_order(
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -1583,7 +1632,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher(
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -1652,7 +1701,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher_onl
 
     checkout_with_item.voucher_code = voucher.code
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     manager = get_plugins_manager()
@@ -1717,7 +1766,7 @@ def test_preprocess_order_creation(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = [discount_info]
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     manager.preprocess_order_creation(checkout_info, discounts, lines)
 
@@ -1748,7 +1797,7 @@ def test_preprocess_order_creation_no_lines_data(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = [discount_info]
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     manager.preprocess_order_creation(checkout_info, discounts)
 
@@ -1775,7 +1824,7 @@ def test_preprocess_order_creation_wrong_data(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = [discount_info]
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     with pytest.raises(TaxError):
         manager.preprocess_order_creation(checkout_info, discounts, lines)
@@ -1818,7 +1867,7 @@ def test_checkout_needs_new_fetch(checkout_with_item, address, shipping_method):
         from_country="PL",
     )
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
     assert taxes_need_new_fetch(checkout_data, None)
@@ -1837,7 +1886,7 @@ def test_taxes_need_new_fetch_uses_cached_data(checkout_with_item, address):
         from_country="PL",
     )
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
     assert not taxes_need_new_fetch(checkout_data, (checkout_data, None))
@@ -1884,7 +1933,7 @@ def test_get_checkout_line_tax_rate(
         valid_pick_up_points=[],
         all_shipping_methods=[],
     )
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
 
     # when
@@ -1943,7 +1992,7 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         valid_pick_up_points=[],
         all_shipping_methods=[],
     )
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
     product = checkout_line_info.product
     product.charge_taxes = False
@@ -2020,7 +2069,7 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
 
     assert checkout_with_item.lines.count() == 2
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     order = [checkout_with_item.lines.first().variant.pk, variant2.pk]
     lines.sort(key=lambda line: order.index(line.variant.pk))
 
@@ -2057,7 +2106,7 @@ def test_get_checkout_line_tax_rate_checkout_no_shipping_method_default_value_re
     checkout_with_item.shipping_address = address
     checkout_with_item.save(update_fields=["shipping_address"])
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
 
@@ -2093,7 +2142,7 @@ def test_get_checkout_line_tax_rate_error_in_response(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
 
@@ -2231,7 +2280,7 @@ def test_get_checkout_shipping_tax_rate(
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
     delivery_method = checkout_with_item.shipping_method
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         delivery_method_info=get_delivery_method_info(
@@ -2300,7 +2349,7 @@ def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returne
     checkout_with_item.shipping_address = address
     checkout_with_item.save(update_fields=["shipping_address"])
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
@@ -2334,7 +2383,7 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
@@ -2368,7 +2417,7 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
@@ -2681,7 +2730,7 @@ def test_plugin_uses_configuration_from_db(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = [discount_info]
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     manager.preprocess_order_creation(checkout_info, discounts, lines)
 
@@ -3130,7 +3179,7 @@ def test_get_checkout_lines_data_sets_different_tax_code_for_zero_amount(
     )
     variant.product.save()
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [], get_plugins_manager()
     )
@@ -3163,7 +3212,7 @@ def test_get_checkout_lines_data_sets_different_tax_code_only_for_zero_amount(
     )
     variant.product.save()
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [], get_plugins_manager()
     )
@@ -3205,7 +3254,7 @@ def test_get_checkout_lines_data_with_collection_point(
     checkout_with_item.collection_point = warehouse
     checkout_with_item.save()
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [], get_plugins_manager()
     )
@@ -3245,7 +3294,7 @@ def test_get_checkout_lines_data_with_shipping_method(
     checkout_with_item.collection_point = None
     checkout_with_item.save()
 
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [], get_plugins_manager()
     )

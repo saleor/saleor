@@ -4856,6 +4856,30 @@ def test_query_staff_members_with_filter_status(
     assert len(users) == count
 
 
+def test_query_staff_members_with_filter_by_ids(
+    query_staff_users_with_filter,
+    staff_api_client,
+    permission_manage_staff,
+    staff_user,
+):
+    # given
+    variables = {
+        "filter": {
+            "ids": [graphene.Node.to_global_id("User", staff_user.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query_staff_users_with_filter, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    users = content["data"]["staffUsers"]["edges"]
+    assert len(users) == 1
+
+
 def test_query_staff_members_app_no_permission(
     query_staff_users_with_filter,
     app_api_client,
