@@ -134,11 +134,12 @@ def get_excluded_shipping_methods_from_response(
             elif typename == "ShippingMethod":
                 method_id = _id
             else:
-                raise ValueError(
-                    f"Invalid type received. Expected ShippingMethod, got {typename}"
+                logger.warning(
+                    "Invalid type received. Expected ShippingMethod, got %s", typename
                 )
+                continue
         except (KeyError, ValueError, TypeError) as e:
-            logger.warning(f"Malformed ShippingMethod id was provided: {e}")
+            logger.warning("Malformed ShippingMethod id was provided: %s", e)
             continue
         excluded_methods.append(
             {"id": method_id, "reason": method_data.get("reason", "")}
