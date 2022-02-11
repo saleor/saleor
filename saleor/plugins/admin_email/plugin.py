@@ -260,7 +260,7 @@ class AdminEmailPlugin(BasePlugin):
             return previous_value
 
         if event not in event_map:
-            logger.warning(f"Missing handler for event {event}")
+            logger.warning("Missing handler for event %s", event)
             return previous_value
 
         template_map = get_admin_template_map(self.templates)

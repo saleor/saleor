@@ -93,7 +93,9 @@ def tracking_number_updated(fulfillment: Fulfillment, config: ApiConfig) -> None
         payment_graphql_id = Node.to_global_id("Payment", payment_id)
 
         if already_captured:
-            logger.warning(f"Payment with id {payment_graphql_id} was already captured")
+            logger.warning(
+                "Payment with id %s was already captured", payment_graphql_id
+            )
             msg = f"Error: Payment with id {payment_graphql_id} was already captured"
         elif errors:
             error = ", ".join(errors)
