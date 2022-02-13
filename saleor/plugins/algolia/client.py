@@ -26,5 +26,6 @@ class AlgoliaApiClient(metaclass=SingletonMeta):
                         f"{index.name}.popularity_desc",
                         f"{index.name}.publication_date_desc",
                     ],
+                    "customRanking": [f"asc({index.name}.default-channel.price)"],
                 }
             )
