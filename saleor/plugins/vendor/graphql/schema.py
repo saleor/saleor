@@ -1,4 +1,5 @@
 import graphene
+from graphene_federation import build_schema
 
 from saleor.graphql.core.connection import (
     create_connection_slice,
@@ -7,7 +8,6 @@ from saleor.graphql.core.connection import (
 from saleor.graphql.core.fields import FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
 
-from ....graphql.core.federation import build_federated_schema
 from .. import models
 from . import types
 from .filters import GroupFilterInput
@@ -69,7 +69,7 @@ class Mutation(graphene.ObjectType):
     billing_delete = BillingDelete.Field()
 
 
-schema = build_federated_schema(
+schema = build_schema(
     query=Query,
     mutation=Mutation,
     types=[types.Vendor],
