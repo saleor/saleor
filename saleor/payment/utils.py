@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 from decimal import Decimal
 from itertools import chain
-from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
+from typing import Dict, List, Optional, cast
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -18,7 +18,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentLineData, FulfillmentStatus
 from ..order.fetch import OrderLineInfo
-from ..order.models import FulfillmentLine, Order, OrderLine
+from ..order.models import FulfillmentLine, Order
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -219,14 +219,16 @@ def create_payment_information(
     )
 
 
-RefundLines = Iterator[Tuple[Any, OrderLine]]
-
-
-def _prepare_refund_lines(
+def _join_refund_lines(
     order: Order,
     order_lines_to_refund: List[OrderLineInfo],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
-) -> Iterator[Tuple[int, int]]:
+) -> Dict[int, int]:
+    """Return mapping from variant id to quantity of refunded products.
+
+    Takes into account previously refunded lines and lines from current
+    refund mutation.
+    """
     previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
         "order_line"
     ).filter(
@@ -256,11 +258,18 @@ def _prepare_refund_lines(
         if (f_variant_id := line.line.order_line.variant_id)
     )
 
-    return chain(
+    refund_lines = chain(
         previous_refund_lines,
         current_order_refund_lines,
         current_fulfillment_refund_lines,
     )
+
+    summed_refund_lines: Dict[int, int] = defaultdict(int)
+
+    for variant_id, quantity in refund_lines:
+        summed_refund_lines[variant_id] += quantity
+
+    return summed_refund_lines
 
 
 def create_refund_data(
@@ -269,20 +278,16 @@ def create_refund_data(
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     refund_shipping_costs: bool,
 ) -> RefundData:
+    """Create RefundData given previous refunds and current refund mutation."""
     order_lines = {line.variant_id: line.quantity for line in order.lines.all()}
 
-    refund_lines = _prepare_refund_lines(
+    joined_refund_lines = _join_refund_lines(
         order, order_lines_to_refund, fulfillment_lines_to_refund
     )
 
-    summed_refund_lines: Dict[int, int] = defaultdict(int)
-
-    for variant_id, quantity in refund_lines:
-        summed_refund_lines[variant_id] += quantity
-
     lines = {
-        variant_id: order_lines[variant_id] - summed_refund_lines[variant_id]
-        for variant_id in summed_refund_lines
+        variant_id: order_lines[variant_id] - joined_refund_lines[variant_id]
+        for variant_id in joined_refund_lines
     }
 
     shipping_previously_refunded = order.fulfillments.exclude(
