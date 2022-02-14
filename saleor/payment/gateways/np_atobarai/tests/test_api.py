@@ -6,7 +6,6 @@ import pytest
 import requests
 from graphene import Node
 
-from .....order import OrderEvents
 from .... import PaymentError
 from .. import PaymentStatus, api, const
 from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods
@@ -775,7 +774,7 @@ def test_register_transaction_pending(
     mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
 
     # when
-    payment_response = api.register_transaction(None, config, np_payment_data)
+    payment_response = api.register_transaction(config, np_payment_data)
 
     # then
     mocked_register.assert_called_once()
@@ -787,7 +786,7 @@ def test_register_transaction_pending(
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
 @patch("saleor.payment.gateways.np_atobarai.api.register")
 def test_register_transaction_pending_unrecoverable(
-    mocked_register, mocked_cancel, order, config, np_payment_data, caplog
+    mocked_register, mocked_cancel, config, np_payment_data, caplog
 ):
     # given
     transaction_id = "123123123"
@@ -802,7 +801,7 @@ def test_register_transaction_pending_unrecoverable(
     mocked_cancel.return_value = NPResponse(result={}, error_codes=cancel_errors)
 
     # when
-    payment_response = api.register_transaction(order, config, np_payment_data)
+    payment_response = api.register_transaction(config, np_payment_data)
 
     # then
     mocked_register.assert_called_once()
@@ -810,8 +809,6 @@ def test_register_transaction_pending_unrecoverable(
     assert payment_response.status == PaymentStatus.PENDING
     assert payment_response.errors == [f"TR#{e}" for e in errors]
     assert caplog.record_tuples == [(ANY, logging.ERROR, ANY)]
-    event = order.events.first()
-    assert event.type == OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
 
 
 def test_cancel_transaction_no_payment(np_payment_data):
