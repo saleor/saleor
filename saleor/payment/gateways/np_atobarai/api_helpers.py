@@ -52,6 +52,9 @@ def _request(
             auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
             headers={"X-NP-Terminal-Id": config.terminal_id},
         )
+        # NP Atobarai returns error codes with http status code 400
+        # Because we want to pass those errors to the end user,
+        # we treat 400 as valid response.
         if 400 < response.status_code <= 600:
             raise requests.HTTPError
         return response
