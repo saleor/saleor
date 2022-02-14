@@ -271,7 +271,7 @@ def change_shipping_address_in_checkout(
     discounts: Iterable[DiscountInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-) -> List[str]:
+):
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
