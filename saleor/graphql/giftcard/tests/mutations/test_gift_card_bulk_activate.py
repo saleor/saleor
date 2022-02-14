@@ -1,6 +1,9 @@
+from datetime import date, timedelta
+
 import graphene
 
 from .....giftcard import GiftCardEvents
+from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCard, GiftCardEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -134,3 +137,46 @@ def test_gift_card_bulk_activate_by_customer(
 
     # then
     assert_no_permission(response)
+
+
+def test_gift_card_bulk_activate_expired_cards(
+    staff_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    gift_card_created_by_staff,
+    permission_manage_gift_card,
+):
+    # given
+    gift_card.is_active = False
+    gift_card_expiry_date.is_active = True
+    gift_card_created_by_staff.expiry_date = date.today() - timedelta(days=2)
+    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_cards = [gift_card, gift_card_expiry_date, gift_card_created_by_staff]
+    GiftCard.objects.bulk_update(gift_cards, ["is_active", "expiry_date"])
+
+    ids = [graphene.Node.to_global_id("GiftCard", card.pk) for card in gift_cards]
+    variables = {"ids": ids}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_GIFT_CARD_BULK_ACTIVATE,
+        variables,
+        permissions=(permission_manage_gift_card,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardBulkActivate"]
+
+    # assert data["count"] == 0
+    errors = data["errors"]
+    assert len(errors) == 2
+    expected_errors = [
+        {
+            "field": graphene.Node.to_global_id("GiftCard", card.pk),
+            "code": GiftCardErrorCode.INVALID.name,
+        }
+        for card in [gift_card, gift_card_created_by_staff]
+    ]
+    for error in errors:
+        assert error in expected_errors

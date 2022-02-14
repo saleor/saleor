@@ -12,7 +12,7 @@ from ..fetch import fetch_checkout_info, fetch_checkout_lines
 def priced_checkout_factory():
     def factory(checkout):
         manager = get_plugins_manager()
-        lines = fetch_checkout_lines(checkout)
+        lines, _ = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
         tax = Decimal("1.23")

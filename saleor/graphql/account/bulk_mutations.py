@@ -26,6 +26,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     class Meta:
         description = "Deletes customers."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -41,6 +42,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     class Meta:
         description = "Deletes staff users."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -82,6 +84,7 @@ class UserBulkSetActive(BaseBulkMutation):
     class Meta:
         description = "Activate or deactivate users."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"

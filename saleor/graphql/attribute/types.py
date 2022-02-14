@@ -11,14 +11,13 @@ from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import (
     CountableConnection,
-    CountableDjangoObjectType,
     create_connection_slice,
     filter_connection_queryset,
 )
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField
-from ..core.types import File
+from ..core.types import File, ModelObjectType
 from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
@@ -34,7 +33,8 @@ COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+
 color_pattern = re.compile(COLOR_PATTERN)
 
 
-class AttributeValue(CountableDjangoObjectType):
+class AttributeValue(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
@@ -59,7 +59,6 @@ class AttributeValue(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a value of an attribute."
-        only_fields = ["id"]
         interfaces = [graphene.relay.Node]
         model = models.AttributeValue
 
@@ -137,7 +136,8 @@ class AttributeValueCountableConnection(CountableConnection):
         node = AttributeValue
 
 
-class Attribute(CountableDjangoObjectType):
+class Attribute(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(
         description=AttributeDescriptions.ENTITY_TYPE, required=False
@@ -195,7 +195,6 @@ class Attribute(CountableDjangoObjectType):
             "Custom attribute of a product. Attributes can be assigned to products and "
             "variants at the product type level."
         )
-        only_fields = ["id"]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Attribute
 

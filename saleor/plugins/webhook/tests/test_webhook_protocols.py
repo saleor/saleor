@@ -46,7 +46,9 @@ def test_trigger_webhooks_with_aws_sqs(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
 
     mocked_client_constructor.assert_called_once_with(
         "sqs",
@@ -99,7 +101,9 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     expected_signature = signature_for_payload(
         message.encode("utf-8"), webhook.secret_key
     )
-    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
 
     mocked_client_constructor.assert_called_once_with(
         "sqs",
@@ -136,7 +140,9 @@ def test_trigger_webhooks_with_google_pub_sub(
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
 
-    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
@@ -169,7 +175,9 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     expected_signature = signature_for_payload(
         message.encode("utf-8"), webhook.secret_key
     )
-    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         message.encode("utf-8"),
@@ -195,7 +203,9 @@ def test_trigger_webhooks_with_http(
 
     expected_data = serialize("json", [order_with_lines])
 
-    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
 
     expected_headers = {
         "Content-Type": "application/json",
@@ -227,7 +237,9 @@ def test_trigger_webhooks_with_http_and_secret_key(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    trigger_webhooks_async(expected_data, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
 
     expected_signature = signature_for_payload(
         expected_data.encode("utf-8"), webhook.secret_key

@@ -537,11 +537,6 @@ def _create_order(
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
-    if site_settings.automatically_fulfill_non_shippable_gift_card:
-        fulfill_non_shippable_gift_cards(
-            order, order_lines, site_settings, user, app, manager
-        )
-
     order_info = OrderInfo(
         order=order,
         customer_email=order_data["user_email"],
@@ -560,6 +555,11 @@ def _create_order(
     transaction.on_commit(
         lambda: send_order_confirmation(order_info, checkout.redirect_url, manager)
     )
+
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
 
     return order
 
@@ -759,6 +759,7 @@ def complete_checkout(
         action_required = txn.action_required
         if action_required:
             action_data = txn.action_required_data
+            release_voucher_usage(order_data)
 
     order = None
     if not action_required:

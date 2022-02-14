@@ -44,7 +44,7 @@ from ..core.filters import (
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_by_id, filter_range_field
 from ..warehouse import types as warehouse_types
 from . import types as product_types
 from .enums import (
@@ -380,13 +380,6 @@ def filter_product_types(qs, _, value):
     return qs.filter(product_type_id__in=product_type_pks)
 
 
-def filter_product_ids(qs, _, value):
-    if not value:
-        return qs
-    _, product_pks = resolve_global_ids_to_primary_keys(value, product_types.Product)
-    return qs.filter(id__in=product_pks)
-
-
 def filter_has_category(qs, _, value):
     return qs.filter(category__isnull=not value)
 
@@ -594,7 +587,7 @@ class ProductFilter(MetadataFilterBase):
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
     gift_card = django_filters.BooleanFilter(method=filter_gift_card)
-    ids = GlobalIDMultipleChoiceFilter(method=filter_product_ids)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants
     )

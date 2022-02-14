@@ -9,7 +9,7 @@ from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import ProductError
 from ...decorators import permission_required
-from ..types import DigitalContent, ProductVariant
+from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
 
 class DigitalContentInput(graphene.InputObjectType):
@@ -243,6 +243,7 @@ class DigitalContentUrlCreate(ModelMutation):
     class Meta:
         description = "Generate new URL to digital content."
         model = models.DigitalContentUrl
+        object_type = DigitalContentUrl
         error_type_class = ProductError
         error_type_field = "product_errors"
 

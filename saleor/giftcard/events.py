@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from ..account.models import User
 from ..app.models import App
@@ -29,6 +29,29 @@ def gift_card_issued_event(
         type=GiftCardEvents.ISSUED,
         parameters={"balance": balance_data, "expiry_date": gift_card.expiry_date},
     )
+
+
+def gift_cards_issued_event(
+    gift_cards: Iterable[GiftCard], user: UserType, app: AppType, balance: dict
+):
+    if not user_is_valid(user):
+        user = None
+    balance_data = {
+        "currency": balance["currency"],
+        "initial_balance": balance["amount"],
+        "current_balance": balance["amount"],
+    }
+    events = [
+        GiftCardEvent(
+            gift_card=gift_card,
+            user=user,
+            app=app,
+            type=GiftCardEvents.ISSUED,
+            parameters={"balance": balance_data, "expiry_date": gift_card.expiry_date},
+        )
+        for gift_card in gift_cards
+    ]
+    return GiftCardEvent.objects.bulk_create(events)
 
 
 def gift_card_sent_event(
@@ -100,9 +123,9 @@ def gift_card_expiry_date_updated_event(
     )
 
 
-def gift_card_tag_updated_event(
+def gift_card_tags_updated_event(
     gift_card: GiftCard,
-    old_gift_card: GiftCard,
+    old_tags: List[str],
     user: UserType,
     app: AppType,
 ):
@@ -112,10 +135,12 @@ def gift_card_tag_updated_event(
         gift_card=gift_card,
         user=user,
         app=app,
-        type=GiftCardEvents.TAG_UPDATED,
+        type=GiftCardEvents.TAGS_UPDATED,
         parameters={
-            "tag": gift_card.tag,
-            "old_tag": old_gift_card.tag,
+            "tags": list(
+                gift_card.tags.order_by("name").values_list("name", flat=True)
+            ),
+            "old_tags": old_tags,
         },
     )
 
