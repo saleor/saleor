@@ -7,6 +7,7 @@ import requests
 from graphene import Node
 
 from .... import PaymentError
+from ....interface import RefundData
 from .. import PaymentStatus, api, const
 from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods
 from ..api_types import NPResponse
@@ -605,7 +606,7 @@ def test_change_transaction_refunded_goods(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
-    refund_data = {i: i for i in range(1, 4)}
+    refund_data = RefundData(lines={i: i for i in range(1, 4)}, shipping=False)
     mocked_request.return_value = NPResponse(
         result={
             "authori_result": "00",

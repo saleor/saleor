@@ -34,7 +34,9 @@ from .interface import (
     GatewayResponse,
     PaymentData,
     PaymentLineData,
+    PaymentLinesData,
     PaymentMethodInfo,
+    RefundData,
     StorePaymentMethodEnum,
 )
 from .models import Payment, Transaction
@@ -48,7 +50,7 @@ ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 def create_payment_lines_information(
     payment: Payment,
     manager: PluginsManager,
-) -> List[PaymentLineData]:
+) -> PaymentLinesData:
     checkout = payment.checkout
     order = payment.order
 
@@ -57,12 +59,16 @@ def create_payment_lines_information(
     elif order:
         return create_order_payment_lines_information(order)
 
-    return []
+    return PaymentLinesData(
+        shipping_amount=Decimal("0.00"),
+        voucher_amount=Decimal("0.00"),
+        lines=[],
+    )
 
 
 def create_checkout_payment_lines_information(
     checkout: Checkout, manager: PluginsManager
-) -> List[PaymentLineData]:
+) -> PaymentLinesData:
     line_items = []
     lines, _ = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
@@ -88,7 +94,7 @@ def create_checkout_payment_lines_information(
                 product_name=product_name,
                 product_sku=product_sku,
                 variant_id=line_info.variant.id,
-                gross=unit_gross,
+                amount=unit_gross,
             )
         )
     shipping_amount = manager.calculate_checkout_shipping(
@@ -98,16 +104,16 @@ def create_checkout_payment_lines_information(
         discounts=discounts,
     ).gross.amount
 
-    line_items.append(create_shipping_payment_line_data(amount=shipping_amount))
+    voucher_amount = -checkout.discount_amount
 
-    voucher_line_item = create_checkout_voucher_payment_line_data(checkout)
-    if voucher_line_item:
-        line_items.append(voucher_line_item)
+    return PaymentLinesData(
+        shipping_amount=shipping_amount,
+        voucher_amount=voucher_amount,
+        lines=line_items,
+    )
 
-    return line_items
 
-
-def create_order_payment_lines_information(order: Order) -> List[PaymentLineData]:
+def create_order_payment_lines_information(order: Order) -> PaymentLinesData:
     line_items = []
     for order_line in order.lines.all():
         product_name = f"{order_line.product_name}, {order_line.variant_name}"
@@ -122,60 +128,17 @@ def create_order_payment_lines_information(order: Order) -> List[PaymentLineData
                 product_name=product_name,
                 product_sku=order_line.product_sku,
                 variant_id=variant_id,
-                gross=order_line.unit_price_gross_amount,
+                amount=order_line.unit_price_gross_amount,
             )
         )
 
-    line_items.append(
-        create_shipping_payment_line_data(amount=order.shipping_price_gross_amount)
-    )
+    shipping_amount = order.shipping_price_gross_amount
+    voucher_amount = order.total_gross_amount - order.undiscounted_total_gross_amount
 
-    voucher_line_item = create_order_voucher_payment_line_data(order)
-    if voucher_line_item:
-        line_items.append(voucher_line_item)
-
-    return line_items
-
-
-# Values are outside of model's pk range to resolve
-# any collision with actual product variant pk
-VOUCHER_PAYMENT_LINE_ID = 0
-SHIPPING_PAYMENT_LINE_ID = -1
-
-
-def create_shipping_payment_line_data(amount: Decimal) -> PaymentLineData:
-    return PaymentLineData(
-        quantity=1,
-        product_name="Shipping",
-        product_sku="Shipping",
-        variant_id=SHIPPING_PAYMENT_LINE_ID,
-        gross=amount,
-    )
-
-
-def create_checkout_voucher_payment_line_data(
-    checkout: Checkout,
-) -> Optional[PaymentLineData]:
-    discount_amount = -checkout.discount_amount
-    return create_voucher_payment_line_data(discount_amount)
-
-
-def create_order_voucher_payment_line_data(
-    order: Order,
-) -> Optional[PaymentLineData]:
-    discount_amount = order.total_gross_amount - order.undiscounted_total_gross_amount
-    return create_voucher_payment_line_data(discount_amount)
-
-
-def create_voucher_payment_line_data(amount: Decimal) -> Optional[PaymentLineData]:
-    if not amount:
-        return None
-    return PaymentLineData(
-        quantity=1,
-        product_name="Voucher",
-        product_sku="Voucher",
-        variant_id=VOUCHER_PAYMENT_LINE_ID,
-        gross=amount,
+    return PaymentLinesData(
+        shipping_amount=shipping_amount,
+        voucher_amount=voucher_amount,
+        lines=line_items,
     )
 
 
@@ -185,7 +148,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
-    refund_data: Optional[Dict[int, int]] = None,
+    refund_data: Optional[RefundData] = None,
     additional_data: Optional[dict] = None,
     manager: Optional[PluginsManager] = None,
 ) -> PaymentData:
@@ -250,7 +213,7 @@ def create_payment_information(
         payment_metadata=payment.metadata,
         psp_reference=payment.psp_reference,
         refund_data=refund_data,
-        _resolve_lines=lambda: create_payment_lines_information(
+        _resolve_lines_data=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
     )
@@ -305,7 +268,7 @@ def create_refund_data(
     order_lines_to_refund: List[OrderLineInfo],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     refund_shipping_costs: bool,
-) -> Dict[int, int]:
+) -> RefundData:
     order_lines = {line.variant_id: line.quantity for line in order.lines.all()}
 
     refund_lines = _prepare_refund_lines(
@@ -326,11 +289,9 @@ def create_refund_data(
         shipping_refund_amount__isnull=True
     ).exists()
 
-    lines[SHIPPING_PAYMENT_LINE_ID] = (
-        0 if shipping_previously_refunded or refund_shipping_costs else 1
+    return RefundData(
+        shipping=shipping_previously_refunded or refund_shipping_costs, lines=lines
     )
-
-    return lines
 
 
 def create_payment(

@@ -1,8 +1,8 @@
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from ....order.models import Fulfillment
-from ...interface import PaymentData
+from ...interface import PaymentData, RefundData
 from ...models import Payment
 from .api_helpers import (
     cancel,
@@ -95,7 +95,7 @@ def change_transaction(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
-    refund_data: Optional[Dict[int, int]],
+    refund_data: Optional[RefundData],
 ) -> Optional[PaymentResult]:
     """Change transaction.
 
@@ -157,7 +157,7 @@ def reregister_transaction_for_partial_return(
     payment_information: PaymentData,
     shipping_company_code: Optional[str],
     tracking_number: Optional[str],
-    refund_data: Optional[Dict[int, int]],
+    refund_data: Optional[RefundData],
 ) -> PaymentResult:
     """Change transaction.
 

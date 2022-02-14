@@ -69,11 +69,24 @@ class StorePaymentMethodEnum(str, Enum):
 
 @dataclass
 class PaymentLineData:
-    gross: Decimal
+    amount: Decimal
     variant_id: int
     product_name: str
     product_sku: Optional[str]
     quantity: int
+
+
+@dataclass
+class PaymentLinesData:
+    shipping_amount: Decimal
+    voucher_amount: Decimal
+    lines: List[PaymentLineData]
+
+
+@dataclass
+class RefundData:
+    shipping: bool
+    lines: Dict[int, int]
 
 
 @dataclass
@@ -104,18 +117,18 @@ class PaymentData:
     store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
     psp_reference: Optional[str] = None
-    refund_data: Optional[Dict[int, int]] = None
+    refund_data: Optional[RefundData] = None
     # Optional, lazy-evaluated gateway arguments
-    _resolve_lines: InitVar[Callable] = None
+    _resolve_lines_data: InitVar[Callable[[], PaymentLinesData]] = None
 
-    def __post_init__(self, _resolve_lines: Callable):
-        self.__resolve_lines = _resolve_lines
+    def __post_init__(self, _resolve_lines_data: Callable[[], PaymentLinesData]):
+        self.__resolve_lines_data = _resolve_lines_data
 
     # Note: this field does not appear in webhook payloads,
     # because it's not visible to dataclasses.asdict
     @cached_property
-    def lines(self) -> List[PaymentLineData]:
-        return self.__resolve_lines()
+    def lines_data(self) -> PaymentLinesData:
+        return self.__resolve_lines_data()
 
 
 @dataclass

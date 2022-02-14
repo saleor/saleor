@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import requests
 from django.utils import timezone
@@ -8,7 +8,7 @@ from posuto import Posuto
 from requests.auth import HTTPBasicAuth
 
 from ....order.models import Order
-from ...interface import AddressData, PaymentData, PaymentLineData
+from ...interface import AddressData, PaymentData, PaymentLineData, RefundData
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, REQUEST_TIMEOUT
@@ -132,20 +132,55 @@ def _get_goods_name(line: PaymentLineData, config: "ApiConfig") -> str:
     return str(line.variant_id)
 
 
+def _get_voucher_and_shipping_goods(
+    config: "ApiConfig",
+    payment_information: PaymentData,
+    refund_shipping: bool = False,
+) -> List[dict]:
+    """Convert voucher and shipping amount into goods lines."""
+    goods_lines = []
+    voucher_amount = payment_information.lines_data.voucher_amount
+    if voucher_amount:
+        goods_lines.append(
+            {
+                "goods_name": "Voucher",
+                "goods_price": format_price(
+                    voucher_amount, payment_information.currency
+                ),
+                "quantity": 1,
+            }
+        )
+    shipping_amount = payment_information.lines_data.shipping_amount
+    if shipping_amount and not refund_shipping:
+        goods_lines.append(
+            {
+                "goods_name": "Shipping",
+                "goods_price": format_price(
+                    shipping_amount, payment_information.currency
+                ),
+                "quantity": 1,
+            }
+        )
+
+    return goods_lines
+
+
 def get_refunded_goods(
     config: "ApiConfig",
-    refund_data: Dict[int, int],
+    refund_data: RefundData,
     payment_information: PaymentData,
 ) -> List[dict]:
     return [
         {
             "goods_name": _get_goods_name(line, config),
-            "goods_price": format_price(line.gross, payment_information.currency),
+            "goods_price": format_price(line.amount, payment_information.currency),
             "quantity": quantity,
         }
-        for line in payment_information.lines
-        if (quantity := refund_data.get(line.variant_id, line.quantity))
-    ]
+        for line in payment_information.lines_data.lines
+        if (quantity := refund_data.lines.get(line.variant_id, line.quantity))
+    ] + _get_voucher_and_shipping_goods(
+        config, payment_information, refund_data.shipping
+    )
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
@@ -153,10 +188,10 @@ def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dic
         {
             "quantity": line.quantity,
             "goods_name": _get_goods_name(line, config),
-            "goods_price": format_price(line.gross, payment_information.currency),
+            "goods_price": format_price(line.amount, payment_information.currency),
         }
-        for line in payment_information.lines
-    ]
+        for line in payment_information.lines_data.lines
+    ] + _get_voucher_and_shipping_goods(config, payment_information)
 
 
 def get_goods_with_discount(
