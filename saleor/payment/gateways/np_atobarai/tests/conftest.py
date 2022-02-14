@@ -5,7 +5,7 @@ import pytest
 
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
-from ....interface import AddressData, PaymentLineData
+from ....interface import AddressData, PaymentLineData, PaymentLinesData
 from ..api_types import get_api_config
 from ..const import (
     FILL_MISSING_ADDRESS,
@@ -57,16 +57,20 @@ def np_atobarai_plugin(settings, monkeypatch, channel_USD):
 
 
 def _resolve_lines():
-    return [
-        PaymentLineData(
-            gross=Decimal("100.00"),
-            product_name=f"Product Name {i}",
-            product_sku=f"PRODUCT_SKU_{i}",
-            variant_id=i,
-            quantity=5,
-        )
-        for i in range(3)
-    ]
+    return PaymentLinesData(
+        lines=[
+            PaymentLineData(
+                amount=Decimal("100.00"),
+                product_name=f"Product Name {i}",
+                product_sku=f"PRODUCT_SKU_{i}",
+                variant_id=i,
+                quantity=5,
+            )
+            for i in range(3)
+        ],
+        shipping_amount=Decimal("120.00"),
+        voucher_amount=Decimal("-10.00"),
+    )
 
 
 @pytest.fixture
@@ -92,7 +96,7 @@ def np_payment_data(np_address_data, dummy_payment_data):
         dummy_payment_data,
         billing=np_address_data,
         shipping=np_address_data,
-        _resolve_lines=_resolve_lines,
+        _resolve_lines_data=_resolve_lines,
     )
 
 

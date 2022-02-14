@@ -11,10 +11,8 @@ from ...order.actions import create_refund_fulfillment
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
-from ..interface import PaymentLineData
+from ..interface import PaymentLineData, PaymentLinesData
 from ..utils import (
-    SHIPPING_PAYMENT_LINE_ID,
-    VOUCHER_PAYMENT_LINE_ID,
     create_payment_lines_information,
     create_refund_data,
     get_channel_slug_from_payment,
@@ -45,12 +43,8 @@ def create_refund_fulfillment_helper(payment_dummy):
     return factory
 
 
-@pytest.mark.parametrize(
-    ["refund_shipping_costs", "shipping_line_quantity"], [(True, 0), (False, 1)]
-)
-def test_create_refund_data_order_lines(
-    order_with_lines, refund_shipping_costs, shipping_line_quantity
-):
+@pytest.mark.parametrize("refund_shipping_costs", [True, False])
+def test_create_refund_data_order_lines(order_with_lines, refund_shipping_costs):
     # given
     order_lines = order_with_lines.lines.all()
     order_refund_lines = [
@@ -68,21 +62,15 @@ def test_create_refund_data_order_lines(
     )
 
     # then
-    assert refund_data == {
-        **{
-            line.variant_id: line.quantity - refund_line.quantity
-            for line, refund_line in zip(order_lines, order_refund_lines)
-        },
-        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
+    assert refund_data.lines == {
+        line.variant_id: line.quantity - refund_line.quantity
+        for line, refund_line in zip(order_lines, order_refund_lines)
     }
+    assert refund_data.shipping == refund_shipping_costs
 
 
-@pytest.mark.parametrize(
-    ["refund_shipping_costs", "shipping_line_quantity"], [(True, 0), (False, 1)]
-)
-def test_create_refund_data_fulfillment_lines(
-    fulfilled_order, refund_shipping_costs, shipping_line_quantity
-):
+@pytest.mark.parametrize("refund_shipping_costs", [True, False])
+def test_create_refund_data_fulfillment_lines(fulfilled_order, refund_shipping_costs):
     # given
     fulfillment_lines = fulfilled_order.fulfillments.first().lines.all()
     order_refund_lines = []
@@ -106,21 +94,15 @@ def test_create_refund_data_fulfillment_lines(
     )
 
     # then
-    assert refund_data == {
-        **{
-            line.order_line.variant_id: line.quantity - refund_line.quantity
-            for line, refund_line in zip(fulfillment_lines, fulfillment_refund_lines)
-        },
-        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
+    assert refund_data.lines == {
+        line.order_line.variant_id: line.quantity - refund_line.quantity
+        for line, refund_line in zip(fulfillment_lines, fulfillment_refund_lines)
     }
+    assert refund_data.shipping == refund_shipping_costs
 
 
-@pytest.mark.parametrize(
-    ["refund_shipping_costs", "shipping_line_quantity"], [(True, 0), (False, 1)]
-)
-def test_create_refund_data_shipping_only(
-    order, refund_shipping_costs, shipping_line_quantity
-):
+@pytest.mark.parametrize("refund_shipping_costs", [True, False])
+def test_create_refund_data_shipping_only(order, refund_shipping_costs):
     # given
     order_refund_lines = []
     fulfillment_refund_lines = []
@@ -131,7 +113,8 @@ def test_create_refund_data_shipping_only(
     )
 
     # then
-    assert refund_data == {SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity}
+    assert not refund_data.lines
+    assert refund_data.shipping == refund_shipping_costs
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -139,13 +122,13 @@ def test_create_refund_data_shipping_only(
     [
         "previous_refund_shipping_costs",
         "current_refund_shipping_costs",
-        "shipping_line_quantity",
+        "refund_shipping_costs",
     ],
     [
-        (True, True, 0),
-        (True, False, 0),
-        (False, True, 0),
-        (False, False, 1),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
     ],
 )
 def test_create_refund_data_previously_refunded_order_lines(
@@ -154,7 +137,7 @@ def test_create_refund_data_previously_refunded_order_lines(
     create_refund_fulfillment_helper,
     previous_refund_shipping_costs,
     current_refund_shipping_costs,
-    shipping_line_quantity,
+    refund_shipping_costs,
 ):
     # given
     order_lines = order_with_lines.lines.all()
@@ -189,13 +172,11 @@ def test_create_refund_data_previously_refunded_order_lines(
             fillvalue=Mock(spec=OrderLineInfo, quantity=0),
         )
     ]
-    assert refund_data == {
-        **{
-            line.variant_id: line.quantity - refund_line.quantity
-            for line, refund_line in zip(order_lines, order_refund_lines)
-        },
-        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
+    assert refund_data.lines == {
+        line.variant_id: line.quantity - refund_line.quantity
+        for line, refund_line in zip(order_lines, order_refund_lines)
     }
+    assert refund_data.shipping == refund_shipping_costs
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -203,13 +184,13 @@ def test_create_refund_data_previously_refunded_order_lines(
     [
         "previous_refund_shipping_costs",
         "current_refund_shipping_costs",
-        "shipping_line_quantity",
+        "refund_shipping_costs",
     ],
     [
-        (True, True, 0),
-        (True, False, 0),
-        (False, True, 0),
-        (False, False, 1),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
     ],
 )
 def test_create_refund_data_previously_refunded_fulfillment_lines(
@@ -218,7 +199,7 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
     create_refund_fulfillment_helper,
     previous_refund_shipping_costs,
     current_refund_shipping_costs,
-    shipping_line_quantity,
+    refund_shipping_costs,
 ):
     # given
     fulfillment_lines = list(
@@ -261,15 +242,13 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
             fillvalue=Mock(spec=FulfillmentLineData, quantity=0),
         )
     ]
-    assert refund_data == {
-        **{
-            line.variant_id: line.quantity - refund_line.quantity
-            for line, refund_line in zip(
-                fulfilled_order.lines.all(), fulfillment_refund_lines
-            )
-        },
-        SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity,
+    assert refund_data.lines == {
+        line.variant_id: line.quantity - refund_line.quantity
+        for line, refund_line in zip(
+            fulfilled_order.lines.all(), fulfillment_refund_lines
+        )
     }
+    assert refund_data.shipping == refund_shipping_costs
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -277,13 +256,13 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
     [
         "previous_refund_shipping_costs",
         "current_refund_shipping_costs",
-        "shipping_line_quantity",
+        "refund_shipping_costs",
     ],
     [
-        (True, True, 0),
-        (True, False, 0),
-        (False, True, 0),
-        (False, False, 1),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
     ],
 )
 def test_create_refund_data_previously_refunded_shipping_only(
@@ -292,7 +271,7 @@ def test_create_refund_data_previously_refunded_shipping_only(
     create_refund_fulfillment_helper,
     previous_refund_shipping_costs,
     current_refund_shipping_costs,
-    shipping_line_quantity,
+    refund_shipping_costs,
 ):
     # given
     create_refund_fulfillment_helper(
@@ -310,7 +289,8 @@ def test_create_refund_data_previously_refunded_shipping_only(
     )
 
     # then
-    assert refund_data == {SHIPPING_PAYMENT_LINE_ID: shipping_line_quantity}
+    assert not refund_data.lines
+    assert refund_data.shipping == refund_shipping_costs
 
 
 def test_create_payment_lines_information_order(payment_dummy):
@@ -318,28 +298,22 @@ def test_create_payment_lines_information_order(payment_dummy):
     manager = get_plugins_manager()
 
     # when
-    payment_lines = create_payment_lines_information(payment_dummy, manager)
+    payment_lines_data = create_payment_lines_information(payment_dummy, manager)
 
     # then
     order = payment_dummy.order
-    assert payment_lines == [
+    assert payment_lines_data.lines == [
         PaymentLineData(
-            gross=line.unit_price_gross_amount,
+            amount=line.unit_price_gross_amount,
             variant_id=line.variant_id,
             product_name=f"{line.product_name}, {line.variant_name}",
             product_sku=line.product_sku,
             quantity=line.quantity,
         )
         for line in order.lines.all()
-    ] + [
-        PaymentLineData(
-            gross=order.shipping_price_gross_amount,
-            variant_id=SHIPPING_PAYMENT_LINE_ID,
-            product_name="Shipping",
-            product_sku="Shipping",
-            quantity=1,
-        )
     ]
+    assert payment_lines_data.shipping_amount == order.shipping_price_gross_amount
+    assert payment_lines_data.voucher_amount == Decimal("0.00")
 
 
 def test_create_payment_lines_information_order_with_voucher(payment_dummy):
@@ -350,35 +324,21 @@ def test_create_payment_lines_information_order_with_voucher(payment_dummy):
     manager = get_plugins_manager()
 
     # when
-    payment_lines = create_payment_lines_information(payment_dummy, manager)
+    payment_lines_data = create_payment_lines_information(payment_dummy, manager)
 
     # then
-
-    assert payment_lines == [
+    assert payment_lines_data.lines == [
         PaymentLineData(
-            gross=line.unit_price_gross_amount,
+            amount=line.unit_price_gross_amount,
             variant_id=line.variant_id,
             product_name=f"{line.product_name}, {line.variant_name}",
             product_sku=line.product_sku,
             quantity=line.quantity,
         )
         for line in order.lines.all()
-    ] + [
-        PaymentLineData(
-            gross=order.shipping_price_gross_amount,
-            variant_id=SHIPPING_PAYMENT_LINE_ID,
-            product_name="Shipping",
-            product_sku="Shipping",
-            quantity=1,
-        ),
-        PaymentLineData(
-            gross=-voucher_amount,
-            variant_id=VOUCHER_PAYMENT_LINE_ID,
-            product_name="Voucher",
-            product_sku="Voucher",
-            quantity=1,
-        ),
     ]
+    assert payment_lines_data.shipping_amount == order.shipping_price_gross_amount
+    assert payment_lines_data.voucher_amount == -voucher_amount
 
 
 def get_expected_checkout_payment_lines(
@@ -400,7 +360,7 @@ def get_expected_checkout_payment_lines(
         product_sku = line_info.variant.sku
         expected_payment_lines.append(
             PaymentLineData(
-                gross=unit_gross,
+                amount=unit_gross,
                 variant_id=variant_id,
                 product_name=product_name,
                 product_sku=product_sku,
@@ -414,17 +374,12 @@ def get_expected_checkout_payment_lines(
         address=address,
         discounts=discounts,
     ).gross.amount
-    expected_payment_lines.append(
-        PaymentLineData(
-            gross=shipping_gross,
-            variant_id=SHIPPING_PAYMENT_LINE_ID,
-            product_name="Shipping",
-            product_sku="Shipping",
-            quantity=1,
-        )
-    )
 
-    return expected_payment_lines
+    return PaymentLinesData(
+        lines=expected_payment_lines,
+        shipping_amount=shipping_gross,
+        voucher_amount=Decimal("0.00"),
+    )
 
 
 def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_items):
@@ -466,20 +421,13 @@ def test_create_payment_lines_information_checkout_with_voucher(
     discounts = []
     checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
     address = checkout_with_items.shipping_address
-    expected_payment_lines = get_expected_checkout_payment_lines(
+    expected_payment_lines_data = get_expected_checkout_payment_lines(
         manager, checkout_info, lines, address, discounts
     )
-    expected_payment_lines.append(
-        PaymentLineData(
-            gross=-voucher_amount,
-            variant_id=VOUCHER_PAYMENT_LINE_ID,
-            product_name="Voucher",
-            product_sku="Voucher",
-            quantity=1,
-        )
-    )
 
-    assert payment_lines == expected_payment_lines
+    expected_payment_lines_data.voucher_amount = -voucher_amount
+
+    assert payment_lines == expected_payment_lines_data
 
 
 def test_create_payment_lines_information_invalid_payment(payment_dummy):
@@ -488,10 +436,12 @@ def test_create_payment_lines_information_invalid_payment(payment_dummy):
     payment_dummy.order = None
 
     # when
-    payment_lines = create_payment_lines_information(payment_dummy, manager)
+    payment_lines_data = create_payment_lines_information(payment_dummy, manager)
 
     # then
-    assert not payment_lines
+    assert not payment_lines_data.lines
+    assert not payment_lines_data.shipping_amount
+    assert not payment_lines_data.voucher_amount
 
 
 def test_get_channel_slug_from_payment_with_order(payment_dummy):

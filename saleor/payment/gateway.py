@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
 from ..core.tracing import traced_atomic_transaction
 from . import GatewayError, PaymentError, TransactionKind
@@ -18,7 +18,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..payment.interface import CustomerSource, PaymentGateway
+    from ..payment.interface import CustomerSource, PaymentGateway, RefundData
     from ..plugins.manager import PluginsManager
 
 
@@ -194,7 +194,7 @@ def refund(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
-    refund_data: Optional[Dict[int, int]] = None,
+    refund_data: Optional["RefundData"] = None,
 ) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
