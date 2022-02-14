@@ -2195,7 +2195,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "razorpay"
-version = "1.2.0"
+version = "1.3.0"
 description = "Razorpay Python Client"
 category = "main"
 optional = false
@@ -2765,7 +2765,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "014e9770ae62aa524663f5c36e0890d7c031588d10aeb4b19d38e1f007a70323"
+content-hash = "188f5a474f1799bb898bb8b83dcc2fe4a7dd36ee2b1cc8f211ffe5311123188d"
 
 [metadata.files]
 adyen = [
@@ -4172,8 +4172,7 @@ pyyaml = [
     {file = "PyYAML-6.0.tar.gz", hash = "sha256:68fb519c14306fec9720a2a5b45bc9f0c8d1b9c72adf45c37baedfcd949c35a2"},
 ]
 razorpay = [
-    {file = "razorpay-1.2.0-py3-none-any.whl", hash = "sha256:0bea9e11aca8024af0cd741b779cb6d3b0a689a8488e21b5e4b345f8840a0fe4"},
-    {file = "razorpay-1.2.0.tar.gz", hash = "sha256:8bae5ba6e3d8c7aebf7e4b297d15dfdb4a4b05e6fabd8d56405ac0d2677539bd"},
+    {file = "razorpay-1.3.0-py3-none-any.whl", hash = "sha256:01cba9f0e12c130bca7ecb2eae55c54f4f96f2f92b53616faad7e5ce80b530e9"},
 ]
 redis = [
     {file = "redis-4.1.2-py3-none-any.whl", hash = "sha256:f13eea4254e302485add677cadedaf1305c1b3a4e07535e23b7b239798ce9301"},
