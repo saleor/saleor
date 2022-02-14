@@ -7,7 +7,7 @@ from ...graphql.views import GraphQLView
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
 from .graphql.schema import schema
-from .utils import normalize_config
+from .utils import filter_truthy, map_many, normalize_config
 
 
 class OAuth2Plugin(BasePlugin):
@@ -30,6 +30,8 @@ class OAuth2Plugin(BasePlugin):
         },
         {"name": "facebook_client_id", "value": None},
         {"name": "facebook_client_secret", "value": None},
+        {"name": "apple_client_id", "value": None},
+        {"name": "apple_client_secret", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -50,13 +52,23 @@ class OAuth2Plugin(BasePlugin):
         },
         "facebook_client_id": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Your Google Client ID",
+            "help_text": "Your Facebook Client ID",
             "label": "Facebook Client ID",
         },
         "facebook_client_secret": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Google Your Client secret",
             "label": "Facebook Client Secret",
+        },
+        "apple_client_id": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "Your Apple Client ID",
+            "label": "Apple Client ID",
+        },
+        "apple_client_secret": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "Apple Your Client secret",
+            "label": "Apple Client Secret",
         },
     }
 
@@ -82,12 +94,18 @@ class OAuth2Plugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         configuration = normalize_config(plugin_configuration.configuration)
-        providers = list(filter(bool, configuration["providers"].split(",")))
-        errors: Mapping[str, List] = {provider.strip(): [] for provider in providers}
+        providers = list(
+            map_many(
+                str.strip,
+                str.lower,
+                filter_truthy,
+                iter=configuration["providers"].split(","),
+            )
+        )
+
+        errors: Mapping[str, List] = {provider: [] for provider in providers}
 
         for provider in providers:
-            provider = provider.lower()
-
             client_id = configuration.get(f"{provider}_client_id", None)
             client_secret = configuration.get(f"{provider}_client_secret", None)
 
@@ -115,6 +133,6 @@ class OAuth2Plugin(BasePlugin):
             )
 
     def webhook(self, request, path, previous_value):
-        view = GraphQLView.as_view(schema=schema)
         request.app = self
+        view = GraphQLView.as_view(schema=schema)
         return view(request)
