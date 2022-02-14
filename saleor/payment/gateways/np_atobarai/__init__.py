@@ -128,7 +128,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
             config, payment, payment_information, refund_data
         )
 
-        if not result:
+        if result.status == PaymentStatus.FOR_REREGISTRATION:
             fulfillment = get_fulfillment_for_order(order)
             shipping_company_code = get_shipping_company_code(config, fulfillment)
             tracking_number = fulfillment.tracking_number

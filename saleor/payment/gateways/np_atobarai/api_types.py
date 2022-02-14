@@ -39,6 +39,7 @@ class PaymentStatus(str, Enum):
     SUCCESS = "00"
     PENDING = "10"
     FAILED = "20"
+    FOR_REREGISTRATION = "RE"
 
 
 @dataclass

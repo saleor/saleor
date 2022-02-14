@@ -10,7 +10,7 @@ from .... import PaymentError
 from ....interface import RefundData
 from .. import PaymentStatus, api, const
 from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods
-from ..api_types import NPResponse
+from ..api_types import NPResponse, PaymentResult
 from ..errors import (
     NO_PSP_REFERENCE,
     NO_TRACKING_NUMBER,
@@ -174,7 +174,9 @@ def test_refund_payment_partial_refund_reregister_transaction(
     psp_reference = "psp_reference"
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["captured_amount", "psp_reference"])
-    mocked_change_transaction.return_value = None
+    mocked_change_transaction.return_value = PaymentResult(
+        status=PaymentStatus.FOR_REREGISTRATION
+    )
     new_psp_reference = "new_psp_reference"
     response = Mock(
         spec=requests.Response,
@@ -575,7 +577,7 @@ def test_change_transaction_post_fulfillment(
     )
 
     # then
-    assert payment_response is None
+    assert payment_response.status == PaymentStatus.FOR_REREGISTRATION
 
 
 @patch("saleor.payment.gateways.np_atobarai.api_helpers.requests.request")
