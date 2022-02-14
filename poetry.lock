@@ -492,7 +492,7 @@ django = "*"
 
 [[package]]
 name = "django-cache-url"
-version = "3.2.3"
+version = "3.3.0"
 description = "Use Cache URLs in your Django application."
 category = "main"
 optional = false
@@ -2765,7 +2765,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "014e9770ae62aa524663f5c36e0890d7c031588d10aeb4b19d38e1f007a70323"
+content-hash = "ece96cb54ccb416cc55310db4a8114c3934b717436f120602c4a94046ddc9426"
 
 [metadata.files]
 adyen = [
@@ -3118,8 +3118,8 @@ django-appconf = [
     {file = "django_appconf-1.0.5-py3-none-any.whl", hash = "sha256:ae9f864ee1958c815a965ed63b3fba4874eec13de10236ba063a788f9a17389d"},
 ]
 django-cache-url = [
-    {file = "django-cache-url-3.2.3.tar.gz", hash = "sha256:c1d45626ae8a206267c1263aa7a3461e2e186be2e939bcbd8c660e25851ddac8"},
-    {file = "django_cache_url-3.2.3-py2.py3-none-any.whl", hash = "sha256:5514ca3a2075c6b956b3d0a5c540654d32b004e76340d7bdabf6661135b5f218"},
+    {file = "django-cache-url-3.3.0.tar.gz", hash = "sha256:888c6954fdb3c7223e771b61528d7f7dc5987965cd93a6881b9bb31f0ef6d394"},
+    {file = "django_cache_url-3.3.0-py2.py3-none-any.whl", hash = "sha256:dd689515d78a824f469d9cd4e447198999d2f13d1279487da20203f2f3b1e06b"},
 ]
 django-celery-beat = [
     {file = "django-celery-beat-2.2.1.tar.gz", hash = "sha256:97ae5eb309541551bdb07bf60cc57cadacf42a74287560ced2d2c06298620234"},
