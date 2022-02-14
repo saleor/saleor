@@ -5,7 +5,10 @@ import pytest
 
 from .....page.models import Page
 from ....tests.utils import get_graphql_content
+from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....page.models import Page
+from ...tests.utils import get_graphql_content
 
 PAGE_BULK_DELETE_MUTATION = """
     mutation pageBulkDelete($ids: [ID]!) {
@@ -75,6 +78,129 @@ def test_page_bulk_delete_with_file_attribute(
     delete_from_storage_task_mock.assert_called_once_with(value.file_url)
 
     assert not Page.objects.filter(id__in=[page.id for page in page_list]).exists()
+
+
+def test_page_delete_removes_reference_to_product(
+    product_type_page_reference_attribute,
+    page,
+    product_type,
+    product,
+    staff_api_client,
+    permission_manage_pages,
+):
+    query = PAGE_BULK_DELETE_MUTATION
+
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page.title,
+        slug=f"{product.pk}_{page.pk}",
+        reference_page=page,
+    )
+
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Page", page.pk)
+
+    variables = {"ids": [reference_id]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_page_delete_removes_reference_to_product_variant(
+    product_type_page_reference_attribute,
+    staff_api_client,
+    page,
+    variant,
+    permission_manage_pages,
+):
+    query = PAGE_BULK_DELETE_MUTATION
+
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([product_type_page_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page.title,
+        slug=f"{variant.pk}_{page.pk}",
+        reference_page=page,
+    )
+
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Page", page.pk)
+
+    variables = {"ids": [reference_id]}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_page_delete_removes_reference_to_page(
+    page_type_page_reference_attribute,
+    staff_api_client,
+    page_list,
+    page_type,
+    permission_manage_pages,
+):
+    page = page_list[0]
+    page_ref = page_list[1]
+
+    query = PAGE_BULK_DELETE_MUTATION
+
+    page_type.page_attributes.add(page_type_page_reference_attribute)
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_page_reference_attribute,
+        name=page.title,
+        slug=f"{page.pk}_{page_ref.pk}",
+        reference_page=page_ref,
+    )
+
+    associate_attribute_values_to_instance(
+        page, page_type_page_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Page", page_ref.pk)
+
+    variables = {"ids": [reference_id]}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(page_ref._meta.model.DoesNotExist):
+        page_ref.refresh_from_db()
+
+    assert not data["errors"]
 
 
 def test_bulk_delete_page_with_invalid_ids(

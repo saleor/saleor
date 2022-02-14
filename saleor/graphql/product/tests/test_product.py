@@ -9417,24 +9417,6 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
-def test_product_type_delete_product_reference():
-    # given
-
-    # when
-
-    # then
-    assert False
-
-
-def test_product_type_delete_page_reference():
-    # given
-
-    # when
-
-    # then
-    assert False
-
-
 PRODUCT_MEDIA_CREATE_QUERY = """
     mutation createProductMedia(
         $product: ID!,
