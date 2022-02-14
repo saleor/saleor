@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from ..celeryconf import app
 from ..core import JobStatus
-from . import ExportEvents, events
+from . import events
 from .models import ExportEvent, ExportFile
 from .notifications import send_export_failed_info
 from .utils.export import export_gift_cards, export_products
@@ -75,7 +75,6 @@ def delete_old_export_files():
     now = timezone.now()
 
     events = ExportEvent.objects.filter(
-        type=ExportEvents.EXPORT_PENDING,
         date__lte=now - settings.EXPORT_FILES_TIMEDELTA,
     ).values("export_file_id")
     export_files = ExportFile.objects.filter(
@@ -87,11 +86,12 @@ def delete_old_export_files():
 
     paths_to_delete = list(export_files.values_list("content_file", flat=True))
 
+    counter = 0
     for path in paths_to_delete:
-        if path:
+        if path and default_storage.exists(path):
             default_storage.delete(path)
+            counter += 1
 
-    count = export_files.count()
     export_files.delete()
 
-    task_logger.debug("Delete %s export files.", count)
+    task_logger.debug("Delete %s export files.", counter)

@@ -142,8 +142,9 @@ def test_on_task_success(user_export_file):
 
 
 @override_settings(EXPORT_FILES_TIMEDELTA=datetime.timedelta(days=5))
+@patch("django.core.files.storage.default_storage.exists", lambda x: True)
 @patch("django.core.files.storage.default_storage.delete")
-def test_delete_old_export_files(default_storage_mock, staff_user):
+def test_delete_old_export_files(default_storage_delete_mock, staff_user):
     # given
     now = timezone.now()
     expired_success_file_1_mock = MagicMock(spec=File)
@@ -230,9 +231,9 @@ def test_delete_old_export_files(default_storage_mock, staff_user):
     delete_old_export_files()
 
     # then
-    assert default_storage_mock.call_count == 2
+    assert default_storage_delete_mock.call_count == 2
     assert {
-        arg for call in default_storage_mock.call_args_list for arg in call.args
+        arg for call in default_storage_delete_mock.call_args_list for arg in call.args
     } == {expired_success_file_1_mock.name, expired_success_file_2_mock.name}
     assert not ExportFile.objects.filter(
         id__in=[export_file.id for export_file in expired_export_files]
