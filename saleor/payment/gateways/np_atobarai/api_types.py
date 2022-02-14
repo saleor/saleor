@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, NamedTuple
+from typing import Dict, List, NamedTuple, Optional
 
 from .const import (
     FILL_MISSING_ADDRESS,
@@ -44,7 +44,7 @@ class PaymentStatus(str, Enum):
 @dataclass
 class PaymentResult:
     status: PaymentStatus
-    psp_reference: str = ""
+    psp_reference: Optional[str] = None
     raw_response: Dict[str, str] = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
 
