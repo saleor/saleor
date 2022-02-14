@@ -96,11 +96,11 @@ def change_transaction(
     payment: Payment,
     payment_information: PaymentData,
     refund_data: Optional[RefundData],
-) -> Optional[PaymentResult]:
+) -> PaymentResult:
     """Change transaction.
 
     If the fulfillment was reported prior to changing given transaction,
-    then this function is a noop and return value is None.
+    then no change is applied and payment status is set to FOR_REREGISTRATION.
     """
     if refund_data:
         goods = get_refunded_goods(config, refund_data, payment_information)
@@ -143,7 +143,7 @@ def change_transaction(
             "Fulfillment for payment with id %s was reported",
             payment_information.graphql_payment_id,
         )
-        return None
+        return PaymentResult(status=PaymentStatus.FOR_REREGISTRATION)
 
     error_messages = get_error_messages_from_codes(
         action=TRANSACTION_CHANGE, error_codes=error_codes
