@@ -35,20 +35,8 @@ def process_payment(
 
     Returns unsuccessful response if payment status from
     NP response is PENDING or FAILED.
-
-    :raises PaymentError: When the specified payment does not exist.
     """
-    payment_id = payment_information.payment_id
-    payment = Payment.objects.filter(pk=payment_id).first()
-
-    if not payment:
-        logger.error(
-            "Payment with id %s does not exist",
-            payment_information.graphql_payment_id,
-        )
-        raise PaymentError("Payment does not exist.")
-
-    result = api.register_transaction(payment.order, config, payment_information)
+    result = api.register_transaction(config, payment_information)
 
     return GatewayResponse(
         is_success=result.status == PaymentStatus.SUCCESS,

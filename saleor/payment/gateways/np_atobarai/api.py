@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from ....order.models import Fulfillment, Order
+from ....order.models import Fulfillment
 from ...interface import PaymentData
 from ...models import Payment
 from .api_helpers import (
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 def register_transaction(
-    order: Optional[Order], config: ApiConfig, payment_information: "PaymentData"
+    config: ApiConfig, payment_information: "PaymentData"
 ) -> PaymentResult:
     """Create a new transaction in NP Atobarai.
 
@@ -58,7 +58,7 @@ def register_transaction(
     if status == PaymentStatus.PENDING:
         if cancel_error_codes := cancel(config, transaction_id).error_codes:
             handle_unrecoverable_state(
-                order, "cancel", transaction_id, cancel_error_codes
+                None, "cancel", transaction_id, cancel_error_codes
             )
         error_messages = get_error_messages_from_codes(
             action, error_codes=result["authori_hold"]
