@@ -9,6 +9,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
   - Use `token` instead
 - Remove `graphene-django` dependency - #9170 by @rafalp
+- Require manage orders for fetching `user.orders` - #9128 by @IKarbowiak
+  - only staff with `manage orders` and can fetch customer orders
+  - the customer can fetch his own orders, except drafts
 
 ## Other
 
