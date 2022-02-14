@@ -137,7 +137,7 @@ def _get_voucher_and_shipping_goods(
     payment_information: PaymentData,
     refund_shipping: bool = False,
 ) -> List[dict]:
-    """Convert voucher and shipping amount into goods lines."""
+    """Convert voucher and shipping amount into NP Atobarai goods lines."""
     goods_lines = []
     voucher_amount = payment_information.lines_data.voucher_amount
     if voucher_amount:
@@ -170,6 +170,12 @@ def get_refunded_goods(
     refund_data: RefundData,
     payment_information: PaymentData,
 ) -> List[dict]:
+    """Convert payment lines and refund lines into NP Atobarai goods lines.
+
+    Used for refunds with specific lines refunded.
+    Returns remaining lines after refunds,
+    not lines removed by refunds.
+    """
     return [
         {
             "goods_name": _get_goods_name(line, config),
@@ -198,6 +204,10 @@ def get_goods_with_discount(
     config: "ApiConfig",
     payment_information: PaymentData,
 ) -> List[dict]:
+    """Convert payment lines into NP Atobarai goods lines.
+
+    Used for refunds without specific lines refunded.
+    """
     product_lines = get_goods(config, payment_information)
     return product_lines + [
         {
