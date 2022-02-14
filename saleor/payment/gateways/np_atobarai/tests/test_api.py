@@ -671,6 +671,7 @@ def test_reregister_transaction_success(
         },
         error_codes=[],
     )
+    mocked_report.return_value = NPResponse(result={}, error_codes=[])
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
@@ -726,6 +727,48 @@ def test_reregister_transaction_cancel_error(
     # then
     assert payment_response.status == PaymentStatus.FAILED
     assert payment_response.errors == [f"TC#{code}" for code in error_codes]
+
+
+@patch("saleor.payment.gateways.np_atobarai.api.report")
+@patch("saleor.payment.gateways.np_atobarai.api.register")
+@patch("saleor.payment.gateways.np_atobarai.api.cancel")
+def test_reregister_transaction_report_error(
+    mocked_cancel,
+    mocked_register,
+    mocked_report,
+    config,
+    payment_dummy,
+    np_payment_data,
+):
+    # given
+    refund_data = None
+    tracking_number = "123"
+    shipping_company_code = "50000"
+    payment_dummy.psp_reference = "123"
+    new_psp_reference = "234"
+    error_codes = ["1", "2", "3"]
+    mocked_cancel.return_value = NPResponse(result={}, error_codes=[])
+    mocked_register.return_value = NPResponse(
+        result={
+            "np_transaction_id": new_psp_reference,
+        },
+        error_codes=[],
+    )
+    mocked_report.return_value = NPResponse(result={}, error_codes=error_codes)
+
+    # when
+    payment_response = api.reregister_transaction_for_partial_return(
+        config,
+        payment_dummy,
+        np_payment_data,
+        shipping_company_code,
+        tracking_number,
+        refund_data,
+    )
+
+    # then
+    assert payment_response.status == PaymentStatus.FAILED
+    assert payment_response.errors == [f"FR#{code}" for code in error_codes]
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.register")

@@ -201,7 +201,15 @@ def reregister_transaction_for_partial_return(
     if not error_codes:
         new_psp_reference = result["np_transaction_id"]
 
-        report(config, shipping_company_code, new_psp_reference, tracking_number)
+        result, error_codes = report(
+            config, shipping_company_code, new_psp_reference, tracking_number
+        )
+
+        if error_codes:
+            error_messages = get_error_messages_from_codes(
+                FULFILLMENT_REPORT, error_codes=error_codes
+            )
+            return errors_payment_result(error_messages)
 
         return PaymentResult(
             status=PaymentStatus.SUCCESS,
