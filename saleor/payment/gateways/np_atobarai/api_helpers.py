@@ -104,20 +104,20 @@ def format_address(config: "ApiConfig", ad: AddressData) -> Optional[str]:
     # example: "東京都千代田区麹町４－２－６　住友不動産麹町ファーストビル５階"
     if not config.fill_missing_address:
         return f"{ad.country_area}{ad.street_address_1}{ad.street_address_2}"
-    with Posuto() as pp:
-        try:
+    try:
+        with Posuto() as pp:
             jap_ad = pp.get(ad.postal_code)
-        except KeyError:
-            logger.warning("Invalid japanese postal code: %s", ad.postal_code)
-            return None
-        else:
-            return (
-                f"{ad.country_area}"
-                f"{jap_ad.city}"
-                f"{jap_ad.neighborhood}"
-                f"{ad.street_address_1}"
-                f"{ad.street_address_2}"
-            )
+    except KeyError:
+        logger.warning("Invalid japanese postal code: %s", ad.postal_code)
+        return None
+    else:
+        return (
+            f"{ad.country_area}"
+            f"{jap_ad.city}"
+            f"{jap_ad.neighborhood}"
+            f"{ad.street_address_1}"
+            f"{ad.street_address_2}"
+        )
 
 
 def format_price(price: Decimal, currency: str) -> int:
