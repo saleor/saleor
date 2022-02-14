@@ -54,6 +54,7 @@ def get_oto_order_id(fulfillment: Fulfillment):
 
 def generate_create_order_data(fulfillment):
     fulfillment_line = fulfillment.lines.last()
+    fulfillments_count = fulfillment.order.fulfillments.count()
     is_cod_order = (
         True
         if fulfillment.order.get_last_payment().gateway == "payments.cash"
@@ -69,8 +70,12 @@ def generate_create_order_data(fulfillment):
         "items": get_order_items_data(order=fulfillment.order),
         "customer": get_order_customer_data(order=fulfillment.order),
         "subtotal": float(fulfillment.order.get_subtotal().net.amount),
-        "shippingAmount": float(fulfillment.order.shipping_price_net_amount),
         "amount_due": float(fulfillment.order.total_net_amount) if is_cod_order else 0,
+        "shippingAmount": float(
+            fulfillment.order.shipping_price_net_amount
+            if fulfillments_count == 1
+            else 0
+        ),
         "amount": float(
             fulfillment_line.quantity
             * fulfillment_line.order_line.unit_price_net_amount
