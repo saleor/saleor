@@ -60,9 +60,17 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
-    all_shipping_methods: List["ShippingMethodData"]
+    internal_shipping_methods: List["ShippingMethodData"]
+    external_shipping_methods: List["ShippingMethodData"]
     valid_pick_up_points: List["Warehouse"]
     voucher: Optional["Voucher"] = None
+
+    @property
+    def all_shipping_methods(self) -> List["ShippingMethodData"]:
+        # Cast to list in order to evaluate SimpleLazyObject
+        internal = list(self.internal_shipping_methods)
+        external = list(self.external_shipping_methods)
+        return internal + external
 
     @property
     def valid_shipping_methods(self) -> List["ShippingMethodData"]:
@@ -371,7 +379,8 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
-        all_shipping_methods=[],
+        internal_shipping_methods=[],
+        external_shipping_methods=[],
         valid_pick_up_points=[],
         voucher=voucher,
     )
@@ -420,7 +429,7 @@ def update_checkout_info_delivery_method_info(
         # of the lazy `all_shipping_methods` attribute
         def _resolve_external_method():
             methods = {
-                method.id: method for method in checkout_info.all_shipping_methods
+                method.id: method for method in checkout_info.external_shipping_methods
             }
             return methods.get(external_shipping_method_id)
 
@@ -527,21 +536,19 @@ def update_delivery_method_lists_for_checkout_info(
     Availability of shipping methods according to plugins is indicated
     by the `active` field.
     """
-    checkout_info.all_shipping_methods = SimpleLazyObject(
-        lambda: list(
-            itertools.chain(
-                get_valid_internal_shipping_method_list_for_checkout_info(
-                    checkout_info,
-                    shipping_address,
-                    lines,
-                    discounts,
-                    manager,
-                    shipping_channel_listings,
-                ),
-                get_valid_external_shipping_method_list_for_checkout_info(
-                    checkout_info, shipping_address, lines, discounts, manager
-                ),
-            )
+    checkout_info.internal_shipping_methods = SimpleLazyObject(
+        lambda: get_valid_internal_shipping_method_list_for_checkout_info(
+            checkout_info,
+            shipping_address,
+            lines,
+            discounts,
+            manager,
+            shipping_channel_listings,
+        )
+    )  # type: ignore
+    checkout_info.external_shipping_methods = SimpleLazyObject(
+        lambda: get_valid_external_shipping_method_list_for_checkout_info(
+            checkout_info, shipping_address, lines, discounts, manager
         )
     )  # type: ignore
     checkout_info.valid_pick_up_points = SimpleLazyObject(

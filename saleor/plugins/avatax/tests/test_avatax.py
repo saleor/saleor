@@ -1931,7 +1931,8 @@ def test_get_checkout_line_tax_rate(
         channel=checkout_with_item.channel,
         user=None,
         valid_pick_up_points=[],
-        all_shipping_methods=[],
+        internal_shipping_methods=[],
+        external_shipping_methods=[],
     )
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -1990,7 +1991,8 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         channel=checkout_with_item.channel,
         user=None,
         valid_pick_up_points=[],
-        all_shipping_methods=[],
+        internal_shipping_methods=[],
+        external_shipping_methods=[],
     )
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_line_info = lines[0]
@@ -2063,7 +2065,8 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         channel=checkout_with_item.channel,
         user=None,
         valid_pick_up_points=[],
-        all_shipping_methods=[],
+        internal_shipping_methods=[],
+        external_shipping_methods=[],
     )
     add_variant_to_checkout(checkout_info, variant2, 1)
 
@@ -2294,7 +2297,8 @@ def test_get_checkout_shipping_tax_rate(
         channel=checkout_with_item.channel,
         user=None,
         valid_pick_up_points=[],
-        all_shipping_methods=[],
+        internal_shipping_methods=[],
+        external_shipping_methods=[],
     )
 
     # when

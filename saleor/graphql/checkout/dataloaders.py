@@ -252,7 +252,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             ),
                             delivery_method_info=delivery_method_info,
                             valid_pick_up_points=[],
-                            all_shipping_methods=[],
+                            internal_shipping_methods=[],
+                            external_shipping_methods=[],
                             voucher=voucher,
                         )
 
