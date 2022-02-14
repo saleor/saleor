@@ -13,6 +13,7 @@ class OAuth2Error(Error):
 class ProviderEnum(graphene.Enum):
     GOOGLE = "google"
     FACEBOOK = "facebook"
+    APPLE = "apple"
 
 
 class OAuth2Input(graphene.InputObjectType):
@@ -24,7 +25,7 @@ class OAuth2Input(graphene.InputObjectType):
         required=True, description="A string to maintain state in the service."
     )
     redirect_url = graphene.String(
-        required=True, description="A url to redirect to after authorization is done."
+        description="A url to redirect to after authorization is done."
     )
     channel = graphene.String(
         required=False,

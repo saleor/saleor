@@ -61,6 +61,7 @@ class CashGatewayPlugin(BasePlugin):
         self.config = GatewayConfig(
             connection_params={
                 "cod_fees": configuration["cod_fees"],
+                "supported_countries": configuration["supported_countries"],
                 "maximum_allowed_value": configuration["maximum_allowed_value"],
             },
             gateway_name=GATEWAY_NAME,
@@ -118,11 +119,13 @@ class CashGatewayPlugin(BasePlugin):
 
     @require_active_plugin
     def get_payment_config(self, previous_value):
-        supported_countries = self.config.supported_currencies.split(",")
         return [
             {"field": "client_token", "value": self.get_client_token()},
-            {"field": "supported_countries", "value": supported_countries},
             {"field": "cod_fees", "value": self.config.connection_params["cod_fees"]},
+            {
+                "field": "supported_countries",
+                "value": self.config.connection_params["supported_countries"],
+            },
             {
                 "field": "maximum_allowed_value",
                 "value": self.config.connection_params["maximum_allowed_value"],
