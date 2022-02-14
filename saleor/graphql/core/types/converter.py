@@ -1,33 +1,49 @@
+"""Form fields converter subset from graphene_django for use in Saleor."""
+
+from functools import singledispatch
+
 import graphene
-from django_measurement.models import MeasurementField
-from django_prices.models import MoneyField, TaxedMoneyField
-from graphene_django.converter import convert_django_field
-from graphene_django.forms.converter import convert_form_field
+from django import forms
+from django.core.exceptions import ImproperlyConfigured
 
-from ....account.models import PossiblePhoneNumberField
-from ..filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter, GlobalIDMultipleChoiceField, GlobalIDFormField
-from .common import Weight
-from .money import Money, TaxedMoney
-
-
-@convert_django_field.register(PossiblePhoneNumberField)
-def convert_phone_number_field_to_string(*_args):
-    return graphene.String()
+from ..filters import (
+    EnumFilter,
+    ListObjectTypeFilter,
+    ObjectTypeFilter,
+    GlobalIDMultipleChoiceField,
+    GlobalIDFormField,
+)
 
 
-@convert_django_field.register(TaxedMoneyField)
-def convert_field_taxed_money(*_args):
-    return graphene.Field(TaxedMoney)
+def get_form_field_description(field):
+    return str(field.help_text) if field.help_text else None
 
 
-@convert_django_field.register(MoneyField)
-def convert_field_money(*_args):
-    return graphene.Field(Money)
+@singledispatch
+def convert_form_field(field):
+    raise ImproperlyConfigured(
+        "Don't know how to convert the Django form field %s (%s) "
+        "to Graphene type" % (field, field.__class__)
+    )
 
 
-@convert_django_field.register(MeasurementField)
-def convert_field_measurements(*_args):
-    return graphene.Field(Weight)
+@convert_form_field.register(forms.CharField)
+def convert_form_field_to_string(field):
+    return graphene.String(
+        description=get_form_field_description(field), required=field.required
+    )
+
+
+@convert_form_field.register(forms.NullBooleanField)
+def convert_form_field_to_nullboolean(field):
+    return graphene.Boolean(description=get_form_field_description(field))
+
+
+@convert_form_field.register(forms.DecimalField)
+def convert_form_field_to_decimal(field):
+    return graphene.Decimal(
+        description=get_form_field_description(field), required=field.required
+    )
 
 
 @convert_form_field.register(ObjectTypeFilter)
