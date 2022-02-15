@@ -2,13 +2,12 @@ import logging
 from typing import List, Optional, Tuple
 
 from ....order.models import Fulfillment
-from ...interface import PaymentData, RefundData
+from ...interface import PaymentData
 from ...models import Payment
 from .api_helpers import (
     cancel,
     format_price,
-    get_goods_with_discount,
-    get_refunded_goods,
+    get_goods_with_refunds,
     handle_unrecoverable_state,
     np_request,
     register,
@@ -95,17 +94,13 @@ def change_transaction(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
-    refund_data: Optional[RefundData],
 ) -> PaymentResult:
     """Change transaction.
 
     If the fulfillment was reported prior to changing given transaction,
     then no change is applied and payment status is set to FOR_REREGISTRATION.
     """
-    if refund_data:
-        goods = get_refunded_goods(config, refund_data, payment_information)
-    else:
-        goods = get_goods_with_discount(config, payment_information)
+    goods = get_goods_with_refunds(config, payment_information)
 
     data = {
         "transactions": [
@@ -157,7 +152,6 @@ def reregister_transaction_for_partial_return(
     payment_information: PaymentData,
     shipping_company_code: Optional[str],
     tracking_number: Optional[str],
-    refund_data: Optional[RefundData],
 ) -> PaymentResult:
     """Change transaction.
 
@@ -181,10 +175,7 @@ def reregister_transaction_for_partial_return(
         )
         return errors_payment_result(error_messages)
 
-    if refund_data:
-        goods = get_refunded_goods(config, refund_data, payment_information)
-    else:
-        goods = get_goods_with_discount(config, payment_information)
+    goods = get_goods_with_refunds(config, payment_information)
 
     billed_amount = format_price(
         payment.captured_amount - payment_information.amount,

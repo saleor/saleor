@@ -9,7 +9,7 @@ from graphene import Node
 from .... import PaymentError
 from ....interface import RefundData
 from .. import PaymentStatus, api, const
-from ..api_helpers import format_price, get_goods_with_discount, get_refunded_goods
+from ..api_helpers import format_price, get_goods_with_refunds
 from ..api_types import NPResponse, PaymentResult
 from ..errors import (
     NO_PSP_REFERENCE,
@@ -494,7 +494,6 @@ def test_change_transaction_success(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
-    refund_data = None
     response = Mock(
         spec=requests.Response,
         status_code=200,
@@ -512,9 +511,7 @@ def test_change_transaction_success(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(
-        config, payment_dummy, np_payment_data, refund_data
-    )
+    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
 
     # then
     assert payment_response.status == PaymentStatus.SUCCESS
@@ -526,7 +523,6 @@ def test_change_transaction_pending(
     mocked_request, mocked_cancel, config, payment_dummy, np_payment_data
 ):
     # given
-    refund_data = None
     transaction_id = "123"
     response = Mock(
         spec=requests.Response,
@@ -549,9 +545,7 @@ def test_change_transaction_pending(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(
-        config, payment_dummy, np_payment_data, refund_data
-    )
+    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
 
     # then
     mocked_cancel.assert_called_once_with(config, transaction_id)
@@ -563,7 +557,6 @@ def test_change_transaction_post_fulfillment(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
-    refund_data = None
     response = Mock(
         spec=requests.Response,
         status_code=200,
@@ -572,9 +565,7 @@ def test_change_transaction_post_fulfillment(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(
-        config, payment_dummy, np_payment_data, refund_data
-    )
+    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
 
     # then
     assert payment_response.status == PaymentStatus.FOR_REREGISTRATION
@@ -585,7 +576,6 @@ def test_change_transaction_failed(
     mocked_request, config, payment_dummy, np_payment_data
 ):
     # given
-    refund_data = None
     response = Mock(
         spec=requests.Response,
         status_code=200,
@@ -594,21 +584,30 @@ def test_change_transaction_failed(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(
-        config, payment_dummy, np_payment_data, refund_data
-    )
+    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
 
     # then
     assert payment_response.status == PaymentStatus.FAILED
     assert payment_response.errors
 
 
+@pytest.mark.parametrize("lines", [{}, {i: i for i in range(1, 4)}])
+@pytest.mark.parametrize("shipping", [False, True])
+@pytest.mark.parametrize("manual_amount", [Decimal("0.00"), Decimal("12.34")])
 @patch("saleor.payment.gateways.np_atobarai.api.np_request")
 def test_change_transaction_refunded_goods(
-    mocked_request, config, payment_dummy, np_payment_data
+    mocked_request,
+    config,
+    payment_dummy,
+    np_payment_data,
+    lines,
+    shipping,
+    manual_amount,
 ):
     # given
-    refund_data = RefundData(lines={i: i for i in range(1, 4)}, shipping=False)
+    np_payment_data.refund_data = RefundData(
+        lines=lines, shipping=shipping, manual_amount=manual_amount
+    )
     mocked_request.return_value = NPResponse(
         result={
             "authori_result": "00",
@@ -618,35 +617,12 @@ def test_change_transaction_refunded_goods(
     )
 
     # when
-    api.change_transaction(config, payment_dummy, np_payment_data, refund_data)
+    api.change_transaction(config, payment_dummy, np_payment_data)
 
     # then
     data = mocked_request.call_args[1]["json"]
     goods = data["transactions"][0]["goods"]
-    assert goods == get_refunded_goods(config, refund_data, np_payment_data)
-
-
-@patch("saleor.payment.gateways.np_atobarai.api.np_request")
-def test_change_transaction_goods_with_discount(
-    mocked_request, config, payment_dummy, np_payment_data
-):
-    # given
-    refund_data = None
-    mocked_request.return_value = NPResponse(
-        result={
-            "authori_result": "00",
-            "np_transaction_id": "123123123",
-        },
-        error_codes=[],
-    )
-
-    # when
-    api.change_transaction(config, payment_dummy, np_payment_data, refund_data)
-
-    # then
-    data = mocked_request.call_args[1]["json"]
-    goods = data["transactions"][0]["goods"]
-    assert goods == get_goods_with_discount(config, np_payment_data)
+    assert goods == get_goods_with_refunds(config, np_payment_data)
 
 
 @patch("saleor.payment.gateways.np_atobarai.api.report")
@@ -661,7 +637,6 @@ def test_reregister_transaction_success(
     np_payment_data,
 ):
     # given
-    refund_data = None
     tracking_number = "123"
     shipping_company_code = "50000"
     payment_dummy.psp_reference = "123"
@@ -682,7 +657,6 @@ def test_reregister_transaction_success(
         np_payment_data,
         shipping_company_code,
         tracking_number,
-        refund_data,
     )
 
     # then
@@ -690,7 +664,7 @@ def test_reregister_transaction_success(
     billed_amount = format_price(
         payment_dummy.captured_amount - np_payment_data.amount, np_payment_data.currency
     )
-    goods = get_goods_with_discount(config, np_payment_data)
+    goods = get_goods_with_refunds(config, np_payment_data)
     mocked_register.assert_called_once_with(
         config, np_payment_data, billed_amount, goods
     )
@@ -704,7 +678,7 @@ def test_reregister_transaction_success(
 def test_reregister_transaction_no_psp_reference(payment_dummy, np_payment_data):
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        Mock(), payment_dummy, np_payment_data, Mock(), Mock(), Mock()
+        Mock(), payment_dummy, np_payment_data, Mock(), Mock()
     )
 
     # then
@@ -723,7 +697,7 @@ def test_reregister_transaction_cancel_error(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config, payment_dummy, np_payment_data, Mock(), Mock(), Mock()
+        config, payment_dummy, np_payment_data, Mock(), Mock()
     )
 
     # then
@@ -743,7 +717,6 @@ def test_reregister_transaction_report_error(
     np_payment_data,
 ):
     # given
-    refund_data = None
     tracking_number = "123"
     shipping_company_code = "50000"
     payment_dummy.psp_reference = "123"
@@ -765,7 +738,6 @@ def test_reregister_transaction_report_error(
         np_payment_data,
         shipping_company_code,
         tracking_number,
-        refund_data,
     )
 
     # then
@@ -793,7 +765,6 @@ def test_reregister_transaction_general_error(
         config,
         payment_dummy,
         np_payment_data,
-        Mock(),
         Mock(),
         Mock(),
     )

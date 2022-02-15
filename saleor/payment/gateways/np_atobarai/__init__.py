@@ -122,10 +122,10 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
                 f"Order does not exist for payment with id {payment_id}."
             )
 
-        refund_data = payment_information.refund_data
-
         result = api.change_transaction(
-            config, payment, payment_information, refund_data
+            config,
+            payment,
+            payment_information,
         )
 
         if result.status == PaymentStatus.FOR_REREGISTRATION:
@@ -138,7 +138,6 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
                 payment_information,
                 shipping_company_code,
                 tracking_number,
-                refund_data,
             )
 
     else:

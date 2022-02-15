@@ -86,6 +86,7 @@ class PaymentLinesData:
 @dataclass
 class RefundData:
     shipping: bool
+    manual_amount: Decimal
     lines: Dict[int, int]
 
 
