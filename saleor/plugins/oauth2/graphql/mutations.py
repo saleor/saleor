@@ -1,15 +1,12 @@
 import graphene
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from ....account import events as account_events
-from ....account import search
 from ....core.utils.url import validate_storefront_url
 from ....graphql.core.mutations import BaseMutation
 from ..providers import Provider
-from ..utils import get_oauth_provider, get_user_tokens
-from . import enums, types
+from ..utils import get_oauth_provider, get_or_create_user, get_user_tokens
+from . import types
 
 User = get_user_model()
 
@@ -57,7 +54,7 @@ class SocialLogin(BaseMutation):
         cls.clean_input(root, info, **data)
 
         provider, redirect_url = data["provider"], data["redirect_url"]
-        provider: Provider = get_oauth_provider(provider, info)
+        provider: Provider = get_oauth_provider(provider, info.context.app)
 
         auth_endpoint = provider.get_url_for("auth")
         url, state = provider.get_authorization_url(redirect_url)
@@ -93,33 +90,8 @@ class SocialLoginByAccessToken(BaseMutation):
     @classmethod
     def get_user(cls, info, input, **data):
         provider = data["provider"]
-        access_token = data["access_token"]
-
-        profile_info = provider.fetch_profile_info(access_token=access_token)
-        email = profile_info.get("email", None)
-
-        if email is None:
-            raise ValidationError(
-                "Missing email in provider response, did you add the necessary scopes",  # noqa: E501
-                code=enums.OAuth2ErrorCode.OAUTH2_ERROR,
-            )
-
-        try:
-            user = User.objects.get(email=email)
-            created = False
-        except User.DoesNotExist:
-            password = User.objects.make_random_password()
-            user = User(email=email, is_active=True)
-            user.set_password(password)
-            user.search_document = search.prepare_user_search_document_value(
-                user, attach_addresses_data=False
-            )
-            user.save()
-            account_events.customer_account_created_event(user=user)
-            info.context.plugins.customer_created(customer=user)
-            # TODO: send welcome email
-            created = True
-
+        auth_response = data["auth_response"]
+        created, user = get_or_create_user(provider, info.context, auth_response)
         return created, user
 
     @classmethod
@@ -129,15 +101,19 @@ class SocialLoginByAccessToken(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **kwargs):
         input = kwargs["input"]
-        provider = get_oauth_provider(input.provider, info)
+        provider = get_oauth_provider(input.provider, info.context.app)
         created, user = cls.get_user(
-            info, input, provider=provider, access_token=cls.get_access_token(**kwargs)
+            info,
+            provider=provider,
+            access_token=cls.get_access_token(**kwargs),
+            **kwargs,
         )
+
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
         user_tokens = get_user_tokens(user)
         info.context.refresh_token = user_tokens["refresh_token"]
         info.context._cached_user = user
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
 
         return cls(
             errors=[],
@@ -155,15 +131,15 @@ class SocialLoginConfirm(SocialLoginByAccessToken):
         error_type_class = types.OAuth2Error
 
     @classmethod
-    def get_access_token(cls, **data):
-        return data["auth_response"]["access_token"]
+    def get_access_token(cls, **kwargs):
+        return kwargs["auth_response"]["access_token"]
 
     @classmethod
     def perform_mutation(cls, root, info, **kwargs):
         input = kwargs["input"]
-        provider = get_oauth_provider(input.provider, info)
+        provider = get_oauth_provider(input.provider, info.context.app)
         auth_response = provider.fetch_tokens(
-            info, input.code, input.state, input.redirect_url
+            input.code, input.state, input.redirect_url
         )
 
         kwargs["auth_response"] = auth_response
