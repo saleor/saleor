@@ -1169,6 +1169,7 @@ type CheckoutLine implements Node {
   quantity: Int!
   totalPrice: TaxedMoney
   requiresShipping: Boolean
+  undiscountedPrice: TaxedMoney!
 }
 
 type CheckoutLineCountableConnection {
