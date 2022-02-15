@@ -8,7 +8,12 @@ from graphql.error import GraphQLError
 from ...account import models as account_models
 from ...giftcard import models
 from ...product import models as product_models
-from ..core.filters import GlobalIDMultipleChoiceFilter, ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys

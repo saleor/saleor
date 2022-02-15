@@ -8,7 +8,12 @@ from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...product.models import ProductVariant
-from ..core.filters import GlobalIDMultipleChoiceFilter, ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum

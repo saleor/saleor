@@ -23,9 +23,7 @@ GLOBAL_ID_FILTERS = {
 
 class GraphQLFilterSetMixin(BaseFilterSet):
     FILTER_DEFAULTS = dict(
-        itertools.chain(
-            FILTER_FOR_DBFIELD_DEFAULTS.items(), GLOBAL_ID_FILTERS.items()
-        )
+        itertools.chain(FILTER_FOR_DBFIELD_DEFAULTS.items(), GLOBAL_ID_FILTERS.items())
     )
 
 

@@ -7,7 +7,12 @@ from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.filters import EnumFilter, GlobalIDFilter, GlobalIDMultipleChoiceFilter, MetadataFilterBase
+from ..core.filters import (
+    EnumFilter,
+    GlobalIDFilter,
+    GlobalIDMultipleChoiceFilter,
+    MetadataFilterBase,
+)
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
