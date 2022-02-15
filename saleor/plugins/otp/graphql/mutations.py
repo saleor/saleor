@@ -86,7 +86,7 @@ class RequestPasswordRecovery(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=OTPErrorCode.USER_NOT_FOUND.value,
+                        code=OTPErrorCode.USER_NOT_FOUND,
                     )
                 }
             )
@@ -108,7 +108,7 @@ class RequestPasswordRecovery(BaseMutation):
             validate_storefront_url(redirect_url)
         except ValidationError as error:
             raise ValidationError(
-                {"redirect_url": error}, code=OTPErrorCode.INVALID_URL.value
+                {"redirect_url": error}, code=OTPErrorCode.INVALID_URL
             )
 
         send_password_reset_notification(
@@ -170,7 +170,7 @@ class SetPasswordByCode(CreateToken):
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "User doesn't exist", code=OTPErrorCode.USER_NOT_FOUND.value
+                        "User doesn't exist", code=OTPErrorCode.USER_NOT_FOUND
                     )
                 }
             )
@@ -181,7 +181,7 @@ class SetPasswordByCode(CreateToken):
             otp = OTP.objects.get(code=code, user=user)
         except OTP.DoesNotExist:
             raise ValidationError(
-                "Invalid or expired OTP supplied", code=OTPErrorCode.INVALID.value
+                "Invalid or expired OTP supplied", code=OTPErrorCode.INVALID
             )
 
         cls.handle_used_otp(otp)
