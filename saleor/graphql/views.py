@@ -15,7 +15,6 @@ from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
-from graphene_django.settings import graphene_settings
 from graphql import GraphQLDocument, get_default_backend
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.error import format_error as format_graphql_error
@@ -75,8 +74,6 @@ class GraphQLView(View):
         super().__init__()
         if backend is None:
             backend = get_default_backend()
-        if middleware is None:
-            middleware = graphene_settings.MIDDLEWARE
         self.schema = self.schema or schema
         if middleware is not None:
             self.middleware = list()
