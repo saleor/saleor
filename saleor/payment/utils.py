@@ -18,7 +18,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentLineData, FulfillmentStatus
 from ..order.fetch import OrderLineInfo
-from ..order.models import FulfillmentLine, Order
+from ..order.models import Fulfillment, FulfillmentLine, Order
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -277,9 +277,15 @@ def _create_refund_manual_amount(
 
     Takes into account previous refunds and current refund mutation parameters.
     """
-    previous_manual_amount_to_refund = order.fulfillments.filter(
-        lines__order_line__variant_id__isnull=True, shipping_refund_amount__isnull=True
-    ).aggregate(discount=Sum("total_refund_amount"))["discount"]
+    previous_manual_amount_to_refund = (
+        Fulfillment.objects.prefetch_related("lines__order_line")
+        .filter(
+            order_id=order.pk,
+            lines__order_line__variant_id__isnull=True,
+            shipping_refund_amount__isnull=True,
+        )
+        .aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
+    )
 
     if previous_manual_amount_to_refund is None:
         previous_manual_amount_to_refund = Decimal("0.00")
