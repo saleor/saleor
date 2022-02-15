@@ -317,10 +317,20 @@ class PageError(Error):
 
 class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of varint IDs which causes the error.",
+        required=False,
+    )
 
 
 class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
+    tags = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="List of tag values that cause the error.",
+        required=False,
+    )
 
 
 class PluginError(Error):

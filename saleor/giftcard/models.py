@@ -14,6 +14,21 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from . import GiftCardEvents
 
 
+class GiftCardTag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        ordering = ("name",)
+        indexes = [
+            GinIndex(
+                name="gift_card_tag_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=["name"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
+
+
 class GiftCardQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
@@ -51,7 +66,7 @@ class GiftCard(ModelWithMetadata):
 
     expiry_date = models.DateField(null=True, blank=True)
 
-    tag = models.CharField(max_length=255, null=True, blank=True)
+    tags = models.ManyToManyField(GiftCardTag, "gift_cards")
     created = models.DateTimeField(auto_now_add=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey(
@@ -97,19 +112,10 @@ class GiftCard(ModelWithMetadata):
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
-        indexes = [
-            *ModelWithMetadata.Meta.indexes,
-            GinIndex(
-                name="giftcard_search_gin",
-                # `opclasses` and `fields` should be the same length
-                fields=["tag"],
-                opclasses=["gin_trgm_ops"],
-            ),
-        ]
 
     @property
     def display_code(self):
-        return "****%s" % self.code[-4:]
+        return self.code[-4:]
 
 
 class GiftCardEvent(models.Model):

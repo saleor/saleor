@@ -26,6 +26,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
+from ....plugins.webhook.tasks import _get_webhooks_for_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
@@ -101,7 +102,9 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     )
     third_webhook.events.create(event_type=WebhookEventAsyncType.ANY)
     event_payload = EventPayload.objects.create()
-    trigger_webhooks_async(event_payload, event_name)
+    trigger_webhooks_async(
+        event_payload, event_name, _get_webhooks_for_event(event_name)
+    )
     deliveries_called = {
         EventDelivery.objects.get(id=delivery_id[0][0])
         for delivery_id in mock_request.call_args_list
@@ -112,177 +115,289 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
+def test_order_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_created(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_order_confirmed(mocked_webhook_trigger, settings, order_with_lines):
+def test_order_confirmed(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_confirmed(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_CONFIRMED
+        expected_data, WebhookEventAsyncType.ORDER_CONFIRMED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_draft_order_created(mocked_webhook_trigger, settings, order_with_lines):
+def test_draft_order_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.draft_order_created(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.DRAFT_ORDER_CREATED
+        expected_data, WebhookEventAsyncType.DRAFT_ORDER_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_draft_order_deleted(mocked_webhook_trigger, settings, order_with_lines):
+def test_draft_order_deleted(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.draft_order_deleted(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.DRAFT_ORDER_DELETED
+        expected_data, WebhookEventAsyncType.DRAFT_ORDER_DELETED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_draft_order_updated(mocked_webhook_trigger, settings, order_with_lines):
+def test_draft_order_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.draft_order_updated(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.DRAFT_ORDER_UPDATED
+        expected_data, WebhookEventAsyncType.DRAFT_ORDER_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_customer_created(mocked_webhook_trigger, settings, customer_user):
+def test_customer_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    customer_user,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.customer_created(customer_user)
     expected_data = generate_customer_payload(customer_user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CUSTOMER_CREATED
+        expected_data, WebhookEventAsyncType.CUSTOMER_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_customer_updated(mocked_webhook_trigger, settings, customer_user):
+def test_customer_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    customer_user,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.customer_updated(customer_user)
     expected_data = generate_customer_payload(customer_user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CUSTOMER_UPDATED
+        expected_data, WebhookEventAsyncType.CUSTOMER_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
+def test_order_fully_paid(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_fully_paid(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_FULLY_PAID
+        expected_data, WebhookEventAsyncType.ORDER_FULLY_PAID, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_collection_created(mocked_webhook_trigger, settings, collection):
+def test_collection_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    collection,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.collection_created(collection)
     expected_data = generate_collection_payload(collection)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.COLLECTION_CREATED
+        expected_data, WebhookEventAsyncType.COLLECTION_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_collection_updated(mocked_webhook_trigger, settings, collection):
+def test_collection_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    collection,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.collection_updated(collection)
     expected_data = generate_collection_payload(collection)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.COLLECTION_UPDATED
+        expected_data, WebhookEventAsyncType.COLLECTION_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_collection_deleted(mocked_webhook_trigger, settings, collection):
+def test_collection_deleted(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    collection,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.collection_deleted(collection)
     expected_data = generate_collection_payload(collection)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.COLLECTION_DELETED
+        expected_data, WebhookEventAsyncType.COLLECTION_DELETED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_created(mocked_webhook_trigger, settings, product):
+def test_product_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    product,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_created(product)
     expected_data = generate_product_payload(product)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_CREATED
+        expected_data, WebhookEventAsyncType.PRODUCT_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_updated(mocked_webhook_trigger, settings, product):
+def test_product_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    product,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_updated(product)
     expected_data = generate_product_payload(product)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_UPDATED
+        expected_data, WebhookEventAsyncType.PRODUCT_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_deleted(mocked_webhook_trigger, settings, product):
+def test_product_deleted(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    product,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
 
@@ -304,54 +419,84 @@ def test_product_deleted(mocked_webhook_trigger, settings, product):
     assert variant_global_ids == expected_data_dict["variants"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_DELETED
+        expected_data, WebhookEventAsyncType.PRODUCT_DELETED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_variant_created(mocked_webhook_trigger, settings, variant):
+def test_product_variant_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_variant_created(variant)
     expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_CREATED
+        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
+def test_product_variant_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_variant_updated(variant)
     expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED
+        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
+def test_product_variant_deleted(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_variant_deleted(variant)
     expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_DELETED
+        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_DELETED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_product_variant_out_of_stock(
-    mocked_webhook_trigger, settings, variant_with_many_stocks
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant_with_many_stocks,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_variant_out_of_stock(variant_with_many_stocks.stocks.first())
@@ -360,15 +505,21 @@ def test_product_variant_out_of_stock(
         [variant_with_many_stocks.stocks.first()]
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
+        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_product_variant_back_in_stock(
-    mocked_webhook_trigger, settings, variant_with_many_stocks
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant_with_many_stocks,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.product_variant_back_in_stock(variant_with_many_stocks.stocks.first())
@@ -377,91 +528,139 @@ def test_product_variant_back_in_stock(
         [variant_with_many_stocks.stocks.first()]
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
+        [any_webhook],
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
+def test_order_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_updated(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_UPDATED
+        expected_data, WebhookEventAsyncType.ORDER_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
+def test_order_cancelled(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.order_cancelled(order_with_lines)
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_CANCELLED
+        expected_data, WebhookEventAsyncType.ORDER_CANCELLED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_checkout_created(mocked_webhook_trigger, settings, checkout_with_items):
+def test_checkout_created(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    checkout_with_items,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.checkout_created(checkout_with_items)
     expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CHECKOUT_CREATED
+        expected_data, WebhookEventAsyncType.CHECKOUT_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_checkout_updated(mocked_webhook_trigger, settings, checkout_with_items):
+def test_checkout_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    checkout_with_items,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.checkout_updated(checkout_with_items)
     expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CHECKOUT_UPDATED
+        expected_data, WebhookEventAsyncType.CHECKOUT_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_page_created(mocked_webhook_trigger, settings, page):
+def test_page_created(
+    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, page
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.page_created(page)
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_CREATED
+        expected_data,
+        WebhookEventAsyncType.PAGE_CREATED,
+        [any_webhook],
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_page_updated(mocked_webhook_trigger, settings, page):
+def test_page_updated(
+    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, page
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.page_updated(page)
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_UPDATED
+        expected_data, WebhookEventAsyncType.PAGE_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_page_deleted(mocked_webhook_trigger, settings, page):
+def test_page_deleted(
+    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, page
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     page_id = page.id
@@ -471,13 +670,21 @@ def test_page_deleted(mocked_webhook_trigger, settings, page):
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_DELETED
+        expected_data, WebhookEventAsyncType.PAGE_DELETED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_invoice_request(mocked_webhook_trigger, settings, fulfilled_order):
+def test_invoice_request(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    fulfilled_order,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     invoice = fulfilled_order.invoices.first()
@@ -485,13 +692,21 @@ def test_invoice_request(mocked_webhook_trigger, settings, fulfilled_order):
     expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.INVOICE_REQUESTED
+        expected_data, WebhookEventAsyncType.INVOICE_REQUESTED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_invoice_delete(mocked_webhook_trigger, settings, fulfilled_order):
+def test_invoice_delete(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    fulfilled_order,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     invoice = fulfilled_order.invoices.first()
@@ -499,13 +714,21 @@ def test_invoice_delete(mocked_webhook_trigger, settings, fulfilled_order):
     expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.INVOICE_DELETED
+        expected_data, WebhookEventAsyncType.INVOICE_DELETED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
+def test_invoice_sent(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    fulfilled_order,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     invoice = fulfilled_order.invoices.first()
@@ -513,13 +736,22 @@ def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
     expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.INVOICE_SENT
+        expected_data, WebhookEventAsyncType.INVOICE_SENT, [any_webhook]
     )
 
 
 @freeze_time("2020-03-18 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_notify_user(mocked_webhook_trigger, settings, customer_user, channel_USD):
+def test_notify_user(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    customer_user,
+    channel_USD,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager(lambda: customer_user)
     timestamp = timezone.make_aware(
@@ -554,7 +786,7 @@ def test_notify_user(mocked_webhook_trigger, settings, customer_user, channel_US
         },
     }
     mocked_webhook_trigger.assert_called_once_with(
-        json.dumps(data), WebhookEventAsyncType.NOTIFY_USER
+        json.dumps(data), WebhookEventAsyncType.NOTIFY_USER, [any_webhook]
     )
 
 
@@ -580,7 +812,9 @@ def test_create_event_payload_reference_with_error(
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
     event_payload = EventPayload.objects.create(payload=expected_data)
-    trigger_webhooks_async(event_payload, WebhookEventAsyncType.ORDER_CREATED)
+    trigger_webhooks_async(
+        event_payload, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
     delivery = EventDelivery.objects.first()
     send_webhook_request_async(delivery.id)
     attempt = EventDeliveryAttempt.objects.first()
@@ -594,8 +828,12 @@ def test_create_event_payload_reference_with_error(
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_sale_created(mocked_webhook_trigger, settings, sale):
+def test_sale_created(
+    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     sale_catalogue_info = convert_catalogue_info_to_global_ids(
@@ -604,13 +842,22 @@ def test_sale_created(mocked_webhook_trigger, settings, sale):
     manager.sale_created(sale, current_catalogue=sale_catalogue_info)
     expected_data = generate_sale_payload(sale, current_catalogue=sale_catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_CREATED
+        expected_data, WebhookEventAsyncType.SALE_CREATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_sale_updated(mocked_webhook_trigger, settings, sale, product_list):
+def test_sale_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    sale,
+    product_list,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     previous_sale_catalogue_info = convert_catalogue_info_to_global_ids(
@@ -632,14 +879,17 @@ def test_sale_updated(mocked_webhook_trigger, settings, sale, product_list):
         previous_catalogue=previous_sale_catalogue_info,
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
-        WebhookEventAsyncType.SALE_UPDATED,
+        expected_data, WebhookEventAsyncType.SALE_UPDATED, [any_webhook]
     )
 
 
 @freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_sale_deleted(mocked_webhook_trigger, settings, sale):
+def test_sale_deleted(
+    mocked_webhook_trigger, mocked_get_webhooks_for_event, any_webhook, settings, sale
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     sale_catalogue_info = convert_catalogue_info_to_global_ids(
@@ -648,7 +898,7 @@ def test_sale_deleted(mocked_webhook_trigger, settings, sale):
     manager.sale_deleted(sale, previous_catalogue=sale_catalogue_info)
     expected_data = generate_sale_payload(sale, previous_catalogue=sale_catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_DELETED
+        expected_data, WebhookEventAsyncType.SALE_DELETED, [any_webhook]
     )
 
 

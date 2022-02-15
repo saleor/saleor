@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...core.taxes import TaxType
+from ...core.taxes import TaxType, zero_taxed_money
 from ...discount.utils import fetch_catalogue_info
 from ...graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ...payment.interface import PaymentGateway
@@ -155,7 +155,7 @@ def test_manager_calculates_checkout_total(
     currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -175,7 +175,7 @@ def test_manager_calculates_checkout_subtotal(
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -195,7 +195,7 @@ def test_manager_calculates_checkout_shipping(
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -235,7 +235,7 @@ def test_manager_calculates_checkout_line_total(
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -282,7 +282,7 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -310,7 +310,7 @@ def test_manager_get_checkout_line_tax_rate_no_plugins(
     checkout_with_item, discount_info, unit_price, expected_tax_rate
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -372,7 +372,7 @@ def test_manager_get_checkout_shipping_tax_rate_sample_plugin(
     shipping_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -398,7 +398,7 @@ def test_manager_get_checkout_shipping_tax_rate_no_plugins(
     checkout_with_item, discount_info, shipping_price, expected_tax_rate
 ):
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
@@ -467,7 +467,7 @@ def test_manager_calculates_checkout_line_unit_price(
     plugins, total_line_price, quantity, checkout_with_item, address
 ):
     manager = PluginsManager(plugins=plugins)
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
 
@@ -589,23 +589,6 @@ def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
         ),
         country,
         channel_USD.slug,
-    )
-    assert TaxedMoney(expected_price, expected_price) == taxed_price
-
-
-@pytest.mark.parametrize(
-    "plugins, price_amount",
-    [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
-)
-def test_manager_apply_taxes_to_shipping(
-    shipping_method, address, plugins, price_amount, channel_USD
-):
-    shipping_price = shipping_method.channel_listings.get(
-        channel_id=channel_USD.id
-    ).price
-    expected_price = Money(price_amount, "USD")
-    taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_price, address, channel_slug=channel_USD.slug
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -1122,3 +1105,33 @@ def test_manager_delivery_retry(event_delivery):
     manager = PluginsManager(plugins=plugins)
     delivery_retry = manager.event_delivery_retry(event_delivery=event_delivery)
     assert delivery_retry
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_single_plugin"
+)
+@mock.patch("saleor.plugins.manager.base_calculations.base_checkout_total")
+def test_calculate_checkout_total_zero_default_value(
+    mocked_base_checkout_total,
+    mocked_run_method,
+    checkout_with_item,
+    discount_info,
+):
+    # given
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    currency = checkout_with_item.currency
+    mocked_base_checkout_total.return_value = zero_taxed_money(currency)
+    manager = PluginsManager(plugins=plugins)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [discount_info], manager
+    )
+
+    # when
+    taxed_total = manager.calculate_checkout_total(
+        checkout_info, lines, None, [discount_info]
+    )
+
+    # then
+    assert "calculate_checkout_total" not in mocked_run_method.call_args_list
+    assert taxed_total == zero_taxed_money(currency)

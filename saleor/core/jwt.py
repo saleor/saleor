@@ -8,13 +8,12 @@ from django.contrib.auth.models import Permission
 
 from ..account.models import User
 from ..app.models import App, AppExtension
+from .jwt_manager import get_jwt_manager
 from .permissions import (
     get_permission_names,
     get_permissions_from_codenames,
     get_permissions_from_names,
 )
-
-JWT_ALGORITHM = "HS256"
 
 JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"
@@ -60,11 +59,8 @@ def jwt_user_payload(
 
 
 def jwt_encode(payload: Dict[str, Any]) -> str:
-    return jwt.encode(
-        payload,
-        settings.SECRET_KEY,  # type: ignore
-        JWT_ALGORITHM,
-    )
+    jwt_manager = get_jwt_manager()
+    return jwt_manager.encode(payload)
 
 
 def jwt_decode_with_exception_handler(
@@ -77,12 +73,8 @@ def jwt_decode_with_exception_handler(
 
 
 def jwt_decode(token: str, verify_expiration=settings.JWT_EXPIRE) -> Dict[str, Any]:
-    return jwt.decode(
-        token,
-        settings.SECRET_KEY,  # type: ignore
-        algorithms=[JWT_ALGORITHM],
-        options={"verify_exp": verify_expiration},
-    )
+    jwt_manager = get_jwt_manager()
+    return jwt_manager.decode(token, verify_expiration)
 
 
 def create_token(payload: Dict[str, Any], exp_delta: timedelta) -> str:

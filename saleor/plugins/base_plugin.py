@@ -119,12 +119,6 @@ class BasePlugin:
         ["Product", Money, Country, TaxedMoney], TaxedMoney
     ]
 
-    #  Apply taxes to the shipping costs based on the shipping address.
-    #
-    #  Overwrite this method if you want to show available shipping methods with
-    #  taxes.
-    apply_taxes_to_shipping: Callable[[Money, "Address", TaxedMoney], TaxedMoney]
-
     #  Assign tax code dedicated to plugin.
     assign_tax_code_to_object_meta: Callable[
         [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
@@ -546,10 +540,16 @@ class BasePlugin:
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
-        payment_config = self.get_payment_config(previous_value)  # type: ignore
-        payment_config = payment_config if payment_config != NotImplemented else []
-        currencies = self.get_supported_currencies(previous_value=[])  # type: ignore
-        currencies = currencies if currencies != NotImplemented else []
+        payment_config = (
+            self.get_payment_config(previous_value)  # type: ignore
+            if hasattr(self, "get_payment_config")
+            else []
+        )
+        currencies = (
+            self.get_supported_currencies(previous_value=[])  # type: ignore
+            if hasattr(self, "get_supported_currencies")
+            else []
+        )
         if currency and currency not in currencies:
             return []
         gateway = PaymentGateway(

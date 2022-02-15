@@ -134,6 +134,9 @@ class PluginSample(BasePlugin):
         discounts: Iterable["DiscountInfo"],
         previous_value: CheckoutTaxedPricesData,
     ):
+        # See if delivery method doesn't trigger infinite recursion
+        bool(checkout_info.delivery_method_info.delivery_method)
+
         price = Money("1.0", currency=checkout_info.checkout.currency)
         return CheckoutTaxedPricesData(
             price_with_sale=TaxedMoney(price, price),
@@ -194,12 +197,6 @@ class PluginSample(BasePlugin):
         return True
 
     def apply_taxes_to_product(self, product, price, country, previous_value, **kwargs):
-        price = Money("1.0", price.currency)
-        return TaxedMoney(price, price)
-
-    def apply_taxes_to_shipping(
-        self, price, shipping_address, previous_value
-    ) -> TaxedMoney:
         price = Money("1.0", price.currency)
         return TaxedMoney(price, price)
 

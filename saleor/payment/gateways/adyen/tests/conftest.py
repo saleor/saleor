@@ -75,7 +75,7 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.shipping_method = shipping_method
     checkout_with_items.save()
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_items)
+    lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
@@ -91,6 +91,13 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
         return_url="https://www.example.com",
     )
     return payment
+
+
+@pytest.fixture
+def inactive_payment_adyen_for_checkout(payment_adyen_for_checkout):
+    payment_adyen_for_checkout.is_active = False
+    payment_adyen_for_checkout.save(update_fields=["is_active"])
+    return payment_adyen_for_checkout
 
 
 @pytest.fixture

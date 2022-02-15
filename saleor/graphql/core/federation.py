@@ -66,13 +66,22 @@ def resolve_entities(parent, info, representations):
 def set_entity_type_resolver(schema):
     """Set type resolver aware of ChannelContext on _Entity union."""
     entity = schema.get_type("_Entity")
-    org_type_resolver = entity.resolve_type
 
     def resolve_entity_type(instance, info):
+        # Use new strategy to resolve GraphQL Type for `ObjectType`
         if isinstance(instance, ChannelContext):
-            return org_type_resolver(instance.node, info)
+            model = type(instance.node)
+        else:
+            model = type(instance)
 
-        return org_type_resolver(instance, info)
+        model_type = schema.get_type(model._meta.object_name)
+        if model_type is None:
+            raise ValueError(
+                f"GraphQL type for model {model} could not be found. "
+                "This is caused by federated type missing get_model method."
+            )
+
+        return model_type
 
     entity.resolve_type = resolve_entity_type
 

@@ -9,7 +9,7 @@ from ...site import GiftCardSettingsExpiryType
 from ...site.error_codes import GiftCardSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput
+from ..account.types import AddressInput, StaffNotificationRecipient
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -262,6 +262,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
     class Meta:
         description = "Creates a new staff notification recipient."
         model = account_models.StaffNotificationRecipient
+        object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -324,6 +325,7 @@ class StaffNotificationRecipientUpdate(StaffNotificationRecipientCreate):
     class Meta:
         description = "Updates a staff notification recipient."
         model = account_models.StaffNotificationRecipient
+        object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -338,6 +340,7 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
     class Meta:
         description = "Delete staff notification recipient."
         model = account_models.StaffNotificationRecipient
+        object_type = StaffNotificationRecipient
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"

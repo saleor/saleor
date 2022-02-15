@@ -133,11 +133,6 @@ def test_void_success(payment_txn_preauth):
 @pytest.mark.parametrize(
     "is_active, charge_status, error",
     [
-        (False, ChargeStatus.NOT_CHARGED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.PARTIALLY_CHARGED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.FULLY_CHARGED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.PARTIALLY_REFUNDED, NO_LONGER_ACTIVE),
-        (False, ChargeStatus.FULLY_REFUNDED, NO_LONGER_ACTIVE),
         (True, ChargeStatus.PARTIALLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
         (True, ChargeStatus.FULLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
         (True, ChargeStatus.PARTIALLY_REFUNDED, LACK_OF_SUCCESSFUL_TRANSACTION),

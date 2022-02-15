@@ -15,7 +15,7 @@ from ..account.enums import CountryCodeEnum
 from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
-from ..core.utils import get_duplicated_values, get_duplicates_ids
+from ..core.utils import get_duplicated_values, get_duplicates_items
 from ..utils.validators import check_for_duplicates
 from .types import Channel
 
@@ -54,6 +54,7 @@ class ChannelCreate(ModelMutation):
     class Meta:
         description = "Creates new channel."
         model = models.Channel
+        object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
@@ -112,6 +113,7 @@ class ChannelUpdate(ModelMutation):
     class Meta:
         description = "Update a channel."
         model = models.Channel
+        object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
@@ -173,6 +175,7 @@ class ChannelDelete(ModelDeleteMutation):
             "Checkouts, product availability, and pricing will be removed."
         )
         model = models.Channel
+        object_type = Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
@@ -269,7 +272,7 @@ class BaseChannelListingMutation(BaseMutation):
         errors: ErrorType,
         error_code,
     ):
-        duplicated_ids = get_duplicates_ids(add_channels_ids, remove_channels_ids)
+        duplicated_ids = get_duplicates_items(add_channels_ids, remove_channels_ids)
         if duplicated_ids:
             error_msg = (
                 "The same object cannot be in both lists "

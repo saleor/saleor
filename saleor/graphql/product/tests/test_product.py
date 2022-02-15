@@ -2706,6 +2706,53 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
     assert products[0]["node"]["name"] == product_with_numeric_attr.name
 
 
+def test_products_query_with_filter_search_by_numeric_attribute_value_without_unit(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    numeric_attribute_without_unit,
+):
+    # given
+    numeric_attribute = numeric_attribute_without_unit
+    product_with_numeric_attr = product_list[1]
+
+    product_type = product_with_numeric_attr.product_type
+    product_type.product_attributes.add(numeric_attribute)
+
+    numeric_attr_value = numeric_attribute.values.first()
+    numeric_attr_value.name = "13456"
+    numeric_attr_value.save(update_fields=["name"])
+
+    associate_attribute_values_to_instance(
+        product_with_numeric_attr, numeric_attribute, numeric_attr_value
+    )
+
+    product_with_numeric_attr.refresh_from_db()
+
+    product_with_numeric_attr.search_document = prepare_product_search_document_value(
+        product_with_numeric_attr
+    )
+    product_with_numeric_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": "13456"}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_numeric_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_numeric_attr.name
+
+
 @pytest.mark.parametrize("search_value", ["2020", "2020 10 10", "2020-10-10"])
 def test_products_query_with_filter_search_by_date_attribute_value(
     search_value,
@@ -7531,16 +7578,20 @@ def test_delete_product_with_image(
 
 
 @freeze_time("1914-06-28 10:50")
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task,
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     product,
     permission_manage_products,
     settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     query = DELETE_PRODUCT_MUTATION
@@ -7560,7 +7611,7 @@ def test_delete_product_trigger_webhook(
         product, variants_id, staff_api_client.user
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_DELETED
+        expected_data, WebhookEventAsyncType.PRODUCT_DELETED, [any_webhook]
     )
     mocked_recalculate_orders_task.assert_not_called()
 
@@ -10642,9 +10693,9 @@ def test_collections_query_with_sort(
 ):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Coll1", slug="collection-published1"),
-            Collection(name="Coll2", slug="collection-unpublished2"),
-            Collection(name="Coll3", slug="collection-published"),
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
         ]
     )
     published = (True, False, True)
