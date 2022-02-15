@@ -143,11 +143,9 @@ class GlobalIDMultipleChoiceField(MultipleChoiceField):
     }
 
     def to_python(self, value):
-        print("to_python", value, type(value))
         return super().to_python(value)
 
     def valid_value(self, value):
-        print("valid_value", value)
         # Clean will raise a validation error if there is a problem
         GlobalIDFormField().clean(value)
         return True
@@ -157,6 +155,5 @@ class GlobalIDMultipleChoiceFilter(MultipleChoiceFilter):
     field_class = GlobalIDMultipleChoiceField
 
     def filter(self, qs, value):
-        print("filter", value)
         gids = [from_global_id(v)[1] for v in value]
         return super(GlobalIDMultipleChoiceFilter, self).filter(qs, gids)

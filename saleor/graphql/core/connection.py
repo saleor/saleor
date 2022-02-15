@@ -413,7 +413,6 @@ def filter_connection_queryset(iterable, args, request=None, root=None):
             queryset = iterable
 
         filterset = filterset_class(filter_input, queryset=queryset, request=request)
-        print("filter_input", filter_input)
         if not filterset.is_valid():
             raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
 
