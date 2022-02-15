@@ -5964,27 +5964,20 @@ def test_product_create_with_collections_webhook(
 def test_product_create_with_invalid_json_description(staff_api_client):
     query = """
         mutation ProductCreate {
-  productCreate(
-    input: {
-      description: "I'm not a valid JSON"
-      category: "Q2F0ZWdvcnk6MjQ="
-      name: "Breaky McErrorface"
-      productType: "UHJvZHVjdFR5cGU6NTE="
+            productCreate(
+                input: {
+                    description: "I'm not a valid JSON"
+                    category: "Q2F0ZWdvcnk6MjQ="
+                    name: "Breaky McErrorface"
+                    productType: "UHJvZHVjdFR5cGU6NTE="
+                }
+            ) {
+            errors {
+                field
+                message
+            }
+        }
     }
-  ) {
-    errors {
-      field
-      message
-    }
-    product {
-      id
-      name
-      variants{
-        id
-      }
-    }
-  }
-}
     """
 
     response = staff_api_client.post_graphql(query)
