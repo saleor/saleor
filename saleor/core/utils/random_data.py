@@ -460,7 +460,7 @@ class SaleorProvider(BaseProvider):
         return Weight(kg=fake.pydecimal(1, 2, positive=True))
 
 
-fake.add_provider(SaleorProvider)
+fake.add_provider(SaleorProvider)  # type: ignore
 
 
 def get_email(first_name, last_name):
@@ -849,7 +849,7 @@ def create_product_sales(how_many=5):
         yield "Sale: %s" % (sale,)
 
 
-def create_channel(channel_name, currency_code, slug=None):
+def create_channel(channel_name, currency_code, slug=None, country=None):
     if not slug:
         slug = slugify(channel_name)
     channel, _ = Channel.objects.get_or_create(
@@ -858,6 +858,7 @@ def create_channel(channel_name, currency_code, slug=None):
             "name": channel_name,
             "currency_code": currency_code,
             "is_active": True,
+            "default_country": country,
         },
     )
     return f"Channel: {channel}"
@@ -868,10 +869,12 @@ def create_channels():
         channel_name="Channel-USD",
         currency_code="USD",
         slug=settings.DEFAULT_CHANNEL_SLUG,
+        country=settings.DEFAULT_COUNTRY,
     )
     yield create_channel(
         channel_name="Channel-PLN",
         currency_code="PLN",
+        country="PL",
     )
 
 
