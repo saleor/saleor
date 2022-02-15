@@ -169,6 +169,11 @@ def get_goods_with_refunds(
     config: "ApiConfig",
     payment_information: PaymentData,
 ) -> List[dict]:
+    """Combine PaymentLinesData and RefundData into NP Atobarai's goods list.
+
+    Used for payment updates.
+    Returns current state of order lines after refunds.
+    """
     goods_lines = []
     refund_data = payment_information.refund_data or RefundData(
         lines={}, shipping=False, manual_amount=Decimal("0.00")
@@ -210,6 +215,10 @@ def get_goods_with_refunds(
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
+    """Convert PaymentLinesData into NP Atobarai's goods list.
+
+    Used for initial payment registration only.
+    """
     return [
         {
             "quantity": line.quantity,
