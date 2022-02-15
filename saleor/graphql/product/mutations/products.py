@@ -58,6 +58,7 @@ from ...core.utils import (
 from ...core.utils.reordering import perform_reordering
 from ...warehouse.types import Warehouse
 from ..enums import ProductTypeKindEnum
+from ..fields import JSONStringWithValidation
 from ..types import (
     Category,
     Collection,
@@ -528,7 +529,7 @@ class ProductInput(graphene.InputObjectType):
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
-    description = graphene.JSONString(description="Product description (JSON).")
+    description = JSONStringWithValidation(description="Product description (JSON).")
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")

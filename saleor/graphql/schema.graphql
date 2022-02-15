@@ -2780,6 +2780,8 @@ type InvoiceUpdate {
 
 scalar JSONString
 
+scalar JSONStringWithValidation
+
 interface Job {
   status: JobStatusEnum!
   createdAt: DateTime!
@@ -5516,7 +5518,7 @@ input ProductCreateInput {
   category: ID
   chargeTaxes: Boolean
   collections: [ID!]
-  description: JSONString
+  description: JSONStringWithValidation
   name: String
   slug: String
   taxCode: String
@@ -5608,7 +5610,7 @@ input ProductInput {
   category: ID
   chargeTaxes: Boolean
   collections: [ID!]
-  description: JSONString
+  description: JSONStringWithValidation
   name: String
   slug: String
   taxCode: String
