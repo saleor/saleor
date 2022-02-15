@@ -1,4 +1,5 @@
 from dataclasses import fields
+from decimal import Decimal
 from unittest.mock import DEFAULT, Mock, patch, sentinel
 
 import pytest
@@ -7,7 +8,7 @@ from posuto import Posuto
 from ....interface import AddressData, RefundData
 from ....utils import price_to_minor_unit
 from .. import api_helpers, errors
-from ..api_helpers import get_goods, get_refunded_goods
+from ..api_helpers import get_goods, get_goods_with_refunds
 
 
 def test_register_no_billing_address(config, np_payment_data):
@@ -193,6 +194,22 @@ def test_get_goods(
 
 
 @pytest.mark.parametrize(
+    "manual_refund, discount_goods",
+    [
+        (Decimal("0.00"), []),
+        (
+            Decimal("12.34"),
+            [
+                {
+                    "goods_name": "Discount",
+                    "goods_price": -1234,
+                    "quantity": 1,
+                }
+            ],
+        ),
+    ],
+)
+@pytest.mark.parametrize(
     "refund_shipping, shipping_goods",
     [
         (True, []),
@@ -209,20 +226,29 @@ def test_get_goods(
     ],
 )
 @pytest.mark.parametrize("sku_as_name", [True, False])
-def test_get_refunded_goods(
+@pytest.mark.parametrize(
+    "refund_lines, quantities",
+    [({0: 1, 1: 2, 2: 3}, {0: 4, 1: 3, 2: 2}), ({}, {i: 5 for i in range(3)})],
+)
+def test_get_goods_with_refunds(
     config,
     np_payment_data,
     sku_as_name,
     refund_shipping,
     shipping_goods,
+    manual_refund,
+    discount_goods,
+    refund_lines,
+    quantities,
 ):
     # given
     config.sku_as_name = sku_as_name
-    refund_data_lines = {1: 23, 2: 0, 3: 13}
-    refund_data = RefundData(lines=refund_data_lines, shipping=refund_shipping)
+    np_payment_data.refund_data = RefundData(
+        lines=refund_lines, shipping=refund_shipping, manual_amount=manual_refund
+    )
 
     # when
-    goods = get_refunded_goods(config, refund_data, np_payment_data)
+    goods = get_goods_with_refunds(config, np_payment_data)
 
     # then
     assert (
@@ -233,11 +259,11 @@ def test_get_refunded_goods(
                 "goods_price": int(
                     price_to_minor_unit(line.amount, np_payment_data.currency)
                 ),
-                "quantity": quantity,
+                "quantity": quantities[line.variant_id],
             }
             for line in np_payment_data.lines_data.lines
-            if (quantity := refund_data_lines.get(line.variant_id, line.quantity))
         ]
+        + discount_goods
         + [
             {
                 "goods_name": "Voucher",

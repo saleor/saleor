@@ -165,28 +165,48 @@ def _get_voucher_and_shipping_goods(
     return goods_lines
 
 
-def get_refunded_goods(
+def get_goods_with_refunds(
     config: "ApiConfig",
-    refund_data: RefundData,
     payment_information: PaymentData,
 ) -> List[dict]:
-    """Convert payment lines and refund lines into NP Atobarai goods lines.
-
-    Used for refunds with specific lines refunded.
-    Returns remaining lines after refunds,
-    not lines removed by refunds.
-    """
-    return [
-        {
-            "goods_name": _get_goods_name(line, config),
-            "goods_price": format_price(line.amount, payment_information.currency),
-            "quantity": quantity,
-        }
-        for line in payment_information.lines_data.lines
-        if (quantity := refund_data.lines.get(line.variant_id, line.quantity))
-    ] + _get_voucher_and_shipping_goods(
-        config, payment_information, refund_data.shipping
+    goods_lines = []
+    refund_data = payment_information.refund_data or RefundData(
+        lines={}, shipping=False, manual_amount=Decimal("0.00")
     )
+
+    for line in payment_information.lines_data.lines:
+        quantity = line.quantity
+        refunded_quantity = refund_data.lines.get(line.variant_id)
+        if refunded_quantity:
+            quantity -= refunded_quantity
+
+        goods_lines.append(
+            {
+                "goods_name": _get_goods_name(line, config),
+                "goods_price": format_price(line.amount, payment_information.currency),
+                "quantity": quantity,
+            }
+        )
+
+    discount_amount = refund_data.manual_amount
+    if discount_amount:
+        goods_lines.append(
+            {
+                "goods_name": "Discount",
+                "goods_price": format_price(
+                    -discount_amount, payment_information.currency
+                ),
+                "quantity": 1,
+            }
+        )
+
+    goods_lines.extend(
+        _get_voucher_and_shipping_goods(
+            config, payment_information, refund_data.shipping
+        )
+    )
+
+    return goods_lines
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
@@ -198,27 +218,6 @@ def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dic
         }
         for line in payment_information.lines_data.lines
     ] + _get_voucher_and_shipping_goods(config, payment_information)
-
-
-def get_goods_with_discount(
-    config: "ApiConfig",
-    payment_information: PaymentData,
-) -> List[dict]:
-    """Convert payment lines into NP Atobarai goods lines.
-
-    Used for refunds without specific lines refunded.
-    """
-    product_lines = get_goods(config, payment_information)
-    return product_lines + [
-        {
-            "goods_name": "Discount",
-            "goods_price": format_price(
-                -payment_information.amount,
-                payment_information.currency,
-            ),
-            "quantity": 1,
-        }
-    ]
 
 
 def cancel(config: "ApiConfig", transaction_id: str) -> NPResponse:

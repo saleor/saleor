@@ -1,6 +1,6 @@
 from decimal import Decimal
 from itertools import chain, zip_longest
-from typing import List
+from typing import List, Optional
 from unittest.mock import Mock, patch
 
 import pytest
@@ -13,8 +13,10 @@ from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ..interface import PaymentLineData, PaymentLinesData
 from ..utils import (
+    _create_refund_lines,
+    _create_refund_manual_amount,
+    _create_refund_shipping,
     create_payment_lines_information,
-    create_refund_data,
     get_channel_slug_from_payment,
     try_void_or_refund_inactive_payment,
 )
@@ -26,8 +28,12 @@ def create_refund_fulfillment_helper(payment_dummy):
         order: Order,
         order_lines: List[OrderLineInfo] = None,
         fulfillment_lines: List[FulfillmentLineData] = None,
+        manual_refund_amount: Optional[Decimal] = None,
         refund_shipping_costs: bool = False,
     ):
+        if manual_refund_amount:
+            payment_dummy.captured_amount = manual_refund_amount
+            payment_dummy.save(update_fields=["captured_amount"])
         with patch("saleor.order.actions.gateway.refund"):
             return create_refund_fulfillment(
                 user=None,
@@ -37,14 +43,14 @@ def create_refund_fulfillment_helper(payment_dummy):
                 order_lines_to_refund=order_lines or [],
                 fulfillment_lines_to_refund=fulfillment_lines or [],
                 manager=get_plugins_manager(),
+                amount=manual_refund_amount,
                 refund_shipping_costs=refund_shipping_costs,
             )
 
     return factory
 
 
-@pytest.mark.parametrize("refund_shipping_costs", [True, False])
-def test_create_refund_data_order_lines(order_with_lines, refund_shipping_costs):
+def test_create_refund_lines_order_lines(order_with_lines):
     # given
     order_lines = order_with_lines.lines.all()
     order_refund_lines = [
@@ -54,23 +60,17 @@ def test_create_refund_data_order_lines(order_with_lines, refund_shipping_costs)
     fulfillment_refund_lines = []
 
     # when
-    refund_data = create_refund_data(
+    lines = _create_refund_lines(
         order_with_lines,
         order_refund_lines,
         fulfillment_refund_lines,
-        refund_shipping_costs,
     )
 
     # then
-    assert refund_data.lines == {
-        line.variant_id: line.quantity - refund_line.quantity
-        for line, refund_line in zip(order_lines, order_refund_lines)
-    }
-    assert refund_data.shipping == refund_shipping_costs
+    assert lines == {line.line.variant_id: line.quantity for line in order_refund_lines}
 
 
-@pytest.mark.parametrize("refund_shipping_costs", [True, False])
-def test_create_refund_data_fulfillment_lines(fulfilled_order, refund_shipping_costs):
+def test_create_refund_lines_fulfillment_lines(fulfilled_order):
     # given
     fulfillment_lines = fulfilled_order.fulfillments.first().lines.all()
     order_refund_lines = []
@@ -86,58 +86,26 @@ def test_create_refund_data_fulfillment_lines(fulfilled_order, refund_shipping_c
     ]
 
     # when
-    refund_data = create_refund_data(
+    lines = _create_refund_lines(
         fulfilled_order,
         order_refund_lines,
         fulfillment_refund_lines,
-        refund_shipping_costs,
     )
 
     # then
-    assert refund_data.lines == {
-        line.order_line.variant_id: line.quantity - refund_line.quantity
-        for line, refund_line in zip(fulfillment_lines, fulfillment_refund_lines)
+    assert lines == {
+        line.line.order_line.variant_id: line.quantity
+        for line in fulfillment_refund_lines
     }
-    assert refund_data.shipping == refund_shipping_costs
-
-
-@pytest.mark.parametrize("refund_shipping_costs", [True, False])
-def test_create_refund_data_shipping_only(order, refund_shipping_costs):
-    # given
-    order_refund_lines = []
-    fulfillment_refund_lines = []
-
-    # when
-    refund_data = create_refund_data(
-        order, order_refund_lines, fulfillment_refund_lines, refund_shipping_costs
-    )
-
-    # then
-    assert not refund_data.lines
-    assert refund_data.shipping == refund_shipping_costs
 
 
 @patch("saleor.order.actions.gateway.refund")
-@pytest.mark.parametrize(
-    [
-        "previous_refund_shipping_costs",
-        "current_refund_shipping_costs",
-        "refund_shipping_costs",
-    ],
-    [
-        (True, True, True),
-        (True, False, True),
-        (False, True, True),
-        (False, False, False),
-    ],
-)
+@pytest.mark.parametrize("previous_refund_shipping_costs", [True, False])
 def test_create_refund_data_previously_refunded_order_lines(
     _mocked_refund,
     order_with_lines,
     create_refund_fulfillment_helper,
     previous_refund_shipping_costs,
-    current_refund_shipping_costs,
-    refund_shipping_costs,
 ):
     # given
     order_lines = order_with_lines.lines.all()
@@ -156,11 +124,10 @@ def test_create_refund_data_previously_refunded_order_lines(
     fulfillment_refund_lines = []
 
     # when
-    refund_data = create_refund_data(
+    lines = _create_refund_lines(
         order_with_lines,
         current_order_refund_lines,
         fulfillment_refund_lines,
-        current_refund_shipping_costs,
     )
 
     # then
@@ -172,34 +139,16 @@ def test_create_refund_data_previously_refunded_order_lines(
             fillvalue=Mock(spec=OrderLineInfo, quantity=0),
         )
     ]
-    assert refund_data.lines == {
-        line.variant_id: line.quantity - refund_line.quantity
-        for line, refund_line in zip(order_lines, order_refund_lines)
-    }
-    assert refund_data.shipping == refund_shipping_costs
+    assert lines == {line.line.variant_id: line.quantity for line in order_refund_lines}
 
 
 @patch("saleor.order.actions.gateway.refund")
-@pytest.mark.parametrize(
-    [
-        "previous_refund_shipping_costs",
-        "current_refund_shipping_costs",
-        "refund_shipping_costs",
-    ],
-    [
-        (True, True, True),
-        (True, False, True),
-        (False, True, True),
-        (False, False, False),
-    ],
-)
+@pytest.mark.parametrize("previous_refund_shipping_costs", [True, False])
 def test_create_refund_data_previously_refunded_fulfillment_lines(
     _mocked_refund,
     fulfilled_order,
     create_refund_fulfillment_helper,
     previous_refund_shipping_costs,
-    current_refund_shipping_costs,
-    refund_shipping_costs,
 ):
     # given
     fulfillment_lines = list(
@@ -226,11 +175,10 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
     ]
 
     # when
-    refund_data = create_refund_data(
+    lines = _create_refund_lines(
         fulfilled_order,
         order_refund_lines,
         current_fulfillment_refund_lines,
-        current_refund_shipping_costs,
     )
 
     # then
@@ -242,13 +190,61 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
             fillvalue=Mock(spec=FulfillmentLineData, quantity=0),
         )
     ]
-    assert refund_data.lines == {
-        line.variant_id: line.quantity - refund_line.quantity
-        for line, refund_line in zip(
-            fulfilled_order.lines.all(), fulfillment_refund_lines
-        )
+    assert lines == {
+        line.line.order_line.variant_id: line.quantity
+        for line in fulfillment_refund_lines
     }
-    assert refund_data.shipping == refund_shipping_costs
+
+
+@pytest.mark.parametrize(
+    "current_manual_refund_amount, expected_manual_amount",
+    [
+        (None, Decimal("0.00")),
+        (Decimal("0.00"), Decimal("0.00")),
+        (Decimal("12.34"), Decimal("12.34")),
+    ],
+)
+def test_create_refund_manual_amount(
+    order,
+    current_manual_refund_amount,
+    expected_manual_amount,
+):
+    assert (
+        _create_refund_manual_amount(order, current_manual_refund_amount)
+        == expected_manual_amount
+    )
+
+
+@pytest.mark.parametrize(
+    "previous_manual_refund_amount", [None, Decimal("0.00"), Decimal("12.34")]
+)
+@pytest.mark.parametrize(
+    "current_manual_refund_amount", [None, Decimal("0.00"), Decimal("23.45")]
+)
+def test_create_refund_manual_amount_previously_refunded(
+    order,
+    create_refund_fulfillment_helper,
+    previous_manual_refund_amount,
+    current_manual_refund_amount,
+):
+    # given
+    create_refund_fulfillment_helper(
+        order, manual_refund_amount=previous_manual_refund_amount
+    )
+
+    # when
+    manual_amount = _create_refund_manual_amount(order, current_manual_refund_amount)
+
+    # then
+    expected_manual_amount = (previous_manual_refund_amount or Decimal("0.00")) + (
+        current_manual_refund_amount or Decimal("0.00")
+    )
+    assert manual_amount == expected_manual_amount
+
+
+@pytest.mark.parametrize("refund_shipping", [True, False])
+def test_create_refund_shipping(order, refund_shipping):
+    assert _create_refund_shipping(order, refund_shipping) is refund_shipping
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -265,7 +261,7 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
         (False, False, False),
     ],
 )
-def test_create_refund_data_previously_refunded_shipping_only(
+def test_create_refund_shipping_previously_refunded(
     _mocked_refund,
     order,
     create_refund_fulfillment_helper,
@@ -277,20 +273,15 @@ def test_create_refund_data_previously_refunded_shipping_only(
     create_refund_fulfillment_helper(
         order, refund_shipping_costs=previous_refund_shipping_costs
     )
-    order_refund_lines = []
-    fulfillment_refund_lines = []
 
     # when
-    refund_data = create_refund_data(
+    refund = _create_refund_shipping(
         order,
-        order_refund_lines,
-        fulfillment_refund_lines,
         current_refund_shipping_costs,
     )
 
     # then
-    assert not refund_data.lines
-    assert refund_data.shipping == refund_shipping_costs
+    assert refund is refund_shipping_costs
 
 
 def test_create_payment_lines_information_order(payment_dummy):
