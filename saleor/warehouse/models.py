@@ -43,7 +43,7 @@ class WarehouseQueryset(models.QuerySet):
             line.variant.is_preorder_active()
             for line in lines_qs.select_related("variant").only("variant_id")
         ):
-            return self.for_country(country)
+            return self._for_country_click_and_collect(country)
 
         stocks_qs = Stock.objects.filter(
             product_variant__id__in=lines_qs.values("variant_id"),
@@ -65,7 +65,7 @@ class WarehouseQueryset(models.QuerySet):
             line.variant.is_preorder_active()
             for line in lines_qs.select_related("variant").only("variant_id")
         ):
-            return self.for_country(country)
+            return self._for_country_click_and_collect(country)
 
         lines_quantity = (
             lines_qs.filter(variant_id=OuterRef("product_variant_id"))
@@ -104,6 +104,14 @@ class WarehouseQueryset(models.QuerySet):
                 & Q(click_and_collect_option=warehouse_cc_option_enum.LOCAL_STOCK)
                 | Q(click_and_collect_option=warehouse_cc_option_enum.ALL_WAREHOUSES)
             )
+        )
+
+    def _for_country_click_and_collect(self, country: str) -> QuerySet["Warehouse"]:
+        return self.for_country(country).filter(
+            click_and_collect_option__in=[
+                WarehouseClickAndCollectOption.LOCAL_STOCK,
+                WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+            ]
         )
 
 

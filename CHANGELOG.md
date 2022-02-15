@@ -48,6 +48,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change metadata mutations to use token for order and checkout as identifier - #8426 by @IKarbowiak
   - After changes, using the order `id` for changing order metadata is deprecated
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
+`CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
+unavailable - #8978 by @IKarbowiak
+- Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
 
 
 # 3.0.0
