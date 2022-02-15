@@ -40,10 +40,9 @@ def convert_form_field_to_nullboolean(field):
 
 
 @convert_form_field.register(forms.DecimalField)
-def convert_form_field_to_decimal(field):
-    return graphene.Decimal(
-        description=get_form_field_description(field), required=field.required
-    )
+@convert_form_field.register(forms.FloatField)
+def convert_form_field_to_float(field):
+    return graphene.Float(description=field.help_text, required=field.required)
 
 
 @convert_form_field.register(ObjectTypeFilter)
