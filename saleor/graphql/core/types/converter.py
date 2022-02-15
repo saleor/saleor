@@ -8,10 +8,10 @@ from django.core.exceptions import ImproperlyConfigured
 
 from ..filters import (
     EnumFilter,
+    GlobalIDFormField,
+    GlobalIDMultipleChoiceField,
     ListObjectTypeFilter,
     ObjectTypeFilter,
-    GlobalIDMultipleChoiceField,
-    GlobalIDFormField,
 )
 
 

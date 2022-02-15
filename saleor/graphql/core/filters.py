@@ -129,7 +129,7 @@ class GlobalIDFilter(Filter):
     field_class = GlobalIDFormField
 
     def filter(self, qs, value):
-        """Convert the filter value to a primary key before filtering"""
+        """Convert the filter value to a primary key before filtering."""
         _id = None
         if value is not None:
             _, _id = from_global_id(value)

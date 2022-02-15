@@ -1,7 +1,7 @@
 import itertools
 
 from django.db import models
-from django_filters.filterset import BaseFilterSet, FILTER_FOR_DBFIELD_DEFAULTS
+from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
 from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
@@ -9,7 +9,6 @@ from graphene.types.utils import yank_fields_from_attrs
 from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from .converter import convert_form_field
-
 
 GLOBAL_ID_FILTERS = {
     models.AutoField: {"filter_class": GlobalIDFilter},
