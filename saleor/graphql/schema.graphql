@@ -1026,17 +1026,17 @@ type Checkout implements Node & ObjectWithMetadata {
   availableCollectionPoints: [Warehouse!]!
   availablePaymentGateways: [PaymentGateway!]!
   email: String
-  giftCards: [GiftCard]
+  giftCards: [GiftCard]!
   isShippingRequired: Boolean!
   quantity: Int!
   stockReservationExpires: DateTime
-  lines: [CheckoutLine]
-  shippingPrice: TaxedMoney
+  lines: [CheckoutLine]!
+  shippingPrice: TaxedMoney!
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
   deliveryMethod: DeliveryMethod
-  subtotalPrice: TaxedMoney
+  subtotalPrice: TaxedMoney!
   token: UUID!
-  totalPrice: TaxedMoney
+  totalPrice: TaxedMoney!
   languageCode: LanguageCodeEnum!
 }
 
@@ -1167,7 +1167,7 @@ type CheckoutLine implements Node {
   id: ID!
   variant: ProductVariant!
   quantity: Int!
-  totalPrice: TaxedMoney
+  totalPrice: TaxedMoney!
   requiresShipping: Boolean
   undiscountedPrice: TaxedMoney!
 }
