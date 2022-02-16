@@ -21,8 +21,9 @@ from ..payment import (
     TransactionKind,
     gateway,
 )
+from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction
-from ..payment.utils import create_payment, create_refund_data
+from ..payment.utils import create_payment
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -1445,7 +1446,6 @@ def _process_refund(
     manager: "PluginsManager",
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
-    manual_amount_to_refund = amount
     if amount is None:
         amount = _calculate_refund_amount(
             order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
@@ -1462,12 +1462,10 @@ def _process_refund(
                 manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
-                refund_data=create_refund_data(
-                    order,
-                    order_lines_to_refund,
-                    fulfillment_lines_to_refund,
-                    manual_amount_to_refund,
-                    refund_shipping_costs,
+                refund_data=RefundData(
+                    order_lines_to_refund=order_lines_to_refund,
+                    fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+                    refund_shipping_costs=refund_shipping_costs,
                 ),
             )
         except PaymentError:

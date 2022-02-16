@@ -9,6 +9,7 @@ from requests.auth import HTTPBasicAuth
 
 from ....order.models import Order
 from ...interface import AddressData, PaymentData, PaymentLineData, RefundData
+from ...models import Payment
 from ...utils import price_to_minor_unit
 from .api_types import NPResponse, error_np_response
 from .const import NP_ATOBARAI, REQUEST_TIMEOUT
@@ -22,7 +23,13 @@ from .errors import (
     SHIPPING_ADDRESS_INVALID,
     SHIPPING_COMPANY_CODE_INVALID,
 )
-from .utils import notify_dashboard, np_atobarai_opentracing_trace
+from .utils import (
+    calculate_manual_refund_amount,
+    calculate_refunded_shipping,
+    create_refunded_lines,
+    notify_dashboard,
+    np_atobarai_opentracing_trace,
+)
 
 if TYPE_CHECKING:
     from . import ApiConfig
@@ -167,6 +174,7 @@ def _get_voucher_and_shipping_goods(
 
 def get_goods_with_refunds(
     config: "ApiConfig",
+    payment: Payment,
     payment_information: PaymentData,
 ) -> List[dict]:
     """Combine PaymentLinesData and RefundData into NP Atobarai's goods list.
@@ -176,12 +184,22 @@ def get_goods_with_refunds(
     """
     goods_lines = []
     refund_data = payment_information.refund_data or RefundData(
-        lines={}, shipping=False, manual_amount=Decimal("0.00")
+        order_lines_to_refund=[],
+        fulfillment_lines_to_refund=[],
+        refund_shipping_costs=False,
+    )
+    order = payment.order
+    assert order
+
+    refunded_lines = create_refunded_lines(order, refund_data)
+    refunded_shipping = calculate_refunded_shipping(order, refund_data)
+    refunded_manual_amount = calculate_manual_refund_amount(
+        order, refund_data, payment_information
     )
 
     for line in payment_information.lines_data.lines:
         quantity = line.quantity
-        refunded_quantity = refund_data.lines.get(line.variant_id)
+        refunded_quantity = refunded_lines.get(line.variant_id)
         if refunded_quantity:
             quantity -= refunded_quantity
 
@@ -193,22 +211,19 @@ def get_goods_with_refunds(
             }
         )
 
-    discount_amount = refund_data.manual_amount
-    if discount_amount:
+    if refunded_manual_amount:
         goods_lines.append(
             {
                 "goods_name": "Discount",
                 "goods_price": format_price(
-                    -discount_amount, payment_information.currency
+                    -refunded_manual_amount, payment_information.currency
                 ),
                 "quantity": 1,
             }
         )
 
     goods_lines.extend(
-        _get_voucher_and_shipping_goods(
-            config, payment_information, refund_data.shipping
-        )
+        _get_voucher_and_shipping_goods(config, payment_information, refunded_shipping)
     )
 
     return goods_lines

@@ -1,13 +1,17 @@
+from collections import defaultdict
 from contextlib import contextmanager
-from typing import Optional
+from decimal import Decimal
+from itertools import chain
+from typing import Dict, Optional
 
-from django.db.models import Q
+from django.db.models import Q, Sum
 
 from ....core.tracing import opentracing_trace
 from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
-from ....order.models import Fulfillment, Order
+from ....order.models import Fulfillment, FulfillmentLine, Order
 from ... import PaymentError
+from ...interface import PaymentData, RefundData
 from .api_types import ApiConfig
 from .const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
@@ -62,3 +66,104 @@ def np_atobarai_opentracing_trace(span_name: str):
         service_name="np-atobarai",
     ):
         yield
+
+
+def create_refunded_lines(
+    order: Order,
+    refund_data: RefundData,
+) -> Dict[int, int]:
+    """Return all refunded product variants for specified order.
+
+    Takes into account previous refunds and current refund mutation parameters.
+    :return: Dictionary of variant ids and refunded quantities.
+    """
+    previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
+        "order_line"
+    ).filter(
+        fulfillment__order_id=order.pk,
+        fulfillment__status__in=[
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+        ],
+        order_line__variant_id__isnull=False,
+    )
+
+    previous_refund_lines = (
+        (p_variant_id, line1.quantity)
+        for line1 in previous_fulfillment_lines
+        if (p_variant_id := line1.order_line.variant_id)
+    )
+    current_order_refund_lines = (
+        (variant.id, line1.quantity)
+        for line1 in refund_data.order_lines_to_refund
+        if (variant := line1.variant)
+    )
+    current_fulfillment_refund_lines = (
+        (f_variant_id, line1.quantity)
+        for line1 in refund_data.fulfillment_lines_to_refund
+        if (f_variant_id := line1.line.order_line.variant_id)
+    )
+
+    refund_lines = chain(
+        previous_refund_lines,
+        current_order_refund_lines,
+        current_fulfillment_refund_lines,
+    )
+    summed_refund_lines: Dict[int, int] = defaultdict(int)
+
+    for variant_id, quantity in refund_lines:
+        summed_refund_lines[variant_id] += quantity
+
+    return dict(summed_refund_lines)
+
+
+def calculate_manual_refund_amount(
+    order: Order,
+    refund_data: RefundData,
+    payment_information: PaymentData,
+    # manual_amount_to_refund: Optional[Decimal],
+) -> Decimal:
+    """Return sum of all manual refunds for specified order.
+
+    Takes into account previous refunds and current refund mutation parameters.
+    """
+
+    if (
+        refund_data.fulfillment_lines_to_refund
+        or refund_data.order_lines_to_refund
+        or refund_data.refund_shipping_costs
+    ):
+        manual_amount_to_refund = Decimal("0.00")
+    else:
+        manual_amount_to_refund = payment_information.amount
+
+    previous_manual_amount_to_refund = order.fulfillments.filter(
+        status__in=[
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+        ],
+        lines__order_line__variant_id__isnull=True,
+        shipping_refund_amount__isnull=True,
+    ).aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
+
+    if previous_manual_amount_to_refund is None:
+        previous_manual_amount_to_refund = Decimal("0.00")
+    if manual_amount_to_refund is None:
+        manual_amount_to_refund = Decimal("0.00")
+
+    return previous_manual_amount_to_refund + manual_amount_to_refund
+
+
+def calculate_refunded_shipping(
+    order: Order,
+    refund_data: RefundData,
+) -> bool:
+    """Determine whether shipping is refunded for specified order.
+
+    Takes into account previous refunds and current refund mutation parameters.
+    """
+    shipping_previously_refunded = order.fulfillments.exclude(
+        shipping_refund_amount__isnull=True
+    ).exists()
+
+    return shipping_previously_refunded or refund_data.refund_shipping_costs

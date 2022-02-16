@@ -4,6 +4,9 @@ from enum import Enum
 from functools import cached_property
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from ..order import FulfillmentLineData
+from ..order.fetch import OrderLineInfo
+
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
@@ -85,9 +88,9 @@ class PaymentLinesData:
 
 @dataclass
 class RefundData:
-    shipping: bool
-    manual_amount: Decimal
-    lines: Dict[int, int]
+    order_lines_to_refund: List[OrderLineInfo]
+    fulfillment_lines_to_refund: List[FulfillmentLineData]
+    refund_shipping_costs: bool
 
 
 @dataclass

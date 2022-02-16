@@ -36,7 +36,7 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
     PLUGIN_ID = NP_PLUGIN_ID
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True
-    SUPPORTED_CURRENCIES = "JPY"
+    SUPPORTED_CURRENCIES = "PLN"
 
     DEFAULT_CONFIGURATION = [
         {"name": MERCHANT_CODE, "value": None},

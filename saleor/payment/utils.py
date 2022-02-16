@@ -1,14 +1,12 @@
 import json
 import logging
-from collections import defaultdict
 from decimal import Decimal
-from itertools import chain
 from typing import Dict, List, Optional, cast
 
 import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q, Sum
+from django.db.models import Q
 
 from ..account.models import User
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -16,9 +14,7 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
-from ..order import FulfillmentLineData, FulfillmentStatus
-from ..order.fetch import OrderLineInfo
-from ..order.models import Fulfillment, FulfillmentLine, Order
+from ..order.models import Order
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -215,115 +211,6 @@ def create_payment_information(
         refund_data=refund_data,
         _resolve_lines_data=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
-        ),
-    )
-
-
-def _create_refund_lines(
-    order: Order,
-    order_lines_to_refund: List[OrderLineInfo],
-    fulfillment_lines_to_refund: List[FulfillmentLineData],
-) -> Dict[int, int]:
-    """Return all refunded product variants for specified order.
-
-    Takes into account previous refunds and current refund mutation parameters.
-    :return: Dictionary of variant ids and refunded quantities.
-    """
-    previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
-        "order_line"
-    ).filter(
-        fulfillment__order_id=order.pk,
-        fulfillment__status__in=[
-            FulfillmentStatus.REFUNDED,
-            FulfillmentStatus.REFUNDED_AND_RETURNED,
-        ],
-        order_line__variant_id__isnull=False,
-    )
-
-    previous_refund_lines = (
-        (p_variant_id, line1.quantity)
-        for line1 in previous_fulfillment_lines
-        if (p_variant_id := line1.order_line.variant_id)
-    )
-    current_order_refund_lines = (
-        (variant.id, line1.quantity)
-        for line1 in order_lines_to_refund
-        if (variant := line1.variant)
-    )
-    current_fulfillment_refund_lines = (
-        (f_variant_id, line1.quantity)
-        for line1 in fulfillment_lines_to_refund
-        if (f_variant_id := line1.line.order_line.variant_id)
-    )
-
-    refund_lines = chain(
-        previous_refund_lines,
-        current_order_refund_lines,
-        current_fulfillment_refund_lines,
-    )
-    summed_refund_lines: Dict[int, int] = defaultdict(int)
-
-    for variant_id, quantity in refund_lines:
-        summed_refund_lines[variant_id] += quantity
-
-    return dict(summed_refund_lines)
-
-
-def _create_refund_manual_amount(
-    order: Order,
-    manual_amount_to_refund: Optional[Decimal],
-) -> Decimal:
-    """Return sum of all manual refunds for specified order.
-
-    Takes into account previous refunds and current refund mutation parameters.
-    """
-    previous_manual_amount_to_refund = (
-        Fulfillment.objects.prefetch_related("lines__order_line")
-        .filter(
-            order_id=order.pk,
-            lines__order_line__variant_id__isnull=True,
-            shipping_refund_amount__isnull=True,
-        )
-        .aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
-    )
-
-    if previous_manual_amount_to_refund is None:
-        previous_manual_amount_to_refund = Decimal("0.00")
-    if manual_amount_to_refund is None:
-        manual_amount_to_refund = Decimal("0.00")
-
-    return previous_manual_amount_to_refund + manual_amount_to_refund
-
-
-def _create_refund_shipping(
-    order: Order,
-    refund_shipping_costs: bool,
-) -> bool:
-    """Determine whether shipping is refunded for specified order.
-
-    Takes into account previous refunds and current refund mutation parameters.
-    """
-    shipping_previously_refunded = order.fulfillments.exclude(
-        shipping_refund_amount__isnull=True
-    ).exists()
-
-    return shipping_previously_refunded or refund_shipping_costs
-
-
-def create_refund_data(
-    order: Order,
-    order_lines_to_refund: List[OrderLineInfo],
-    fulfillment_lines_to_refund: List[FulfillmentLineData],
-    manual_amount_to_refund: Optional[Decimal],
-    refund_shipping_costs: bool,
-) -> RefundData:
-    """Create RefundData given previous refunds and current refund mutation."""
-
-    return RefundData(
-        shipping=_create_refund_shipping(order, refund_shipping_costs),
-        manual_amount=_create_refund_manual_amount(order, manual_amount_to_refund),
-        lines=_create_refund_lines(
-            order, order_lines_to_refund, fulfillment_lines_to_refund
         ),
     )
 
