@@ -258,32 +258,29 @@ class AttributeAssignmentMixin:
         ]
         get_or_create = attribute.values.get_or_create
 
-        if attribute.entity_type == AttributeEntityType.PAGE:
-            return tuple(
+        reference_list = []
+        for ref in attr_values.references:
+            reference_page = None
+            reference_product = None
+
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                reference_page = ref
+            else:
+                reference_product = ref
+
+            reference_list.append(
                 get_or_create(
                     attribute=attribute,
-                    reference_page=reference,
+                    reference_product=reference_product,
+                    reference_page=reference_page,
                     slug=slugify(
-                        f"{instance.id}_{reference.id}",  # type: ignore
+                        f"{instance.id}_{ref.id}",  # type: ignore
                         allow_unicode=True,
                     ),
-                    defaults={"name": getattr(reference, field_name)},
+                    defaults={"name": getattr(ref, field_name)},
                 )[0]
-                for reference in attr_values.references
             )
-        if attribute.entity_type == AttributeEntityType.PRODUCT:
-            return tuple(
-                get_or_create(
-                    attribute=attribute,
-                    reference_product=reference,
-                    slug=slugify(
-                        f"{instance.id}_{reference.id}",  # type: ignore
-                        allow_unicode=True,
-                    ),
-                    defaults={"name": getattr(reference, field_name)},
-                )[0]
-                for reference in attr_values.references
-            )
+        return tuple(reference_list)
 
     @classmethod
     def _pre_save_file_value(

@@ -659,14 +659,6 @@ def test_delete_products_with_file_attributes(
     ) == {v.file_url for v in values}
 
 
-def test_delete_products_delete_product_reference():
-    return False
-
-
-def test_delete_products_delete_page_reference():
-    return False
-
-
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_variants_in_draft_order(
     mocked_recalculate_orders_task,
@@ -845,14 +837,6 @@ def test_delete_product_types_with_file_attributes(
     assert set(
         data.args[0] for data in delete_from_storage_task_mock.call_args_list
     ) == {v.file_url for v in values}
-
-
-def test_delete_products_type_delete_product_reference():
-    return False
-
-
-def test_delete_products_type_delete_page_reference():
-    return False
 
 
 PRODUCT_VARIANT_BULK_DELETE_MUTATION = """
