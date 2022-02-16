@@ -100,14 +100,14 @@ def change_transaction(
     If the fulfillment was reported prior to changing given transaction,
     then no change is applied and payment status is set to FOR_REREGISTRATION.
     """
-    goods, billed_amount = get_goods_with_refunds(config, payment, payment_information)
+    goods = get_goods_with_refunds(config, payment, payment_information)
 
     data = {
         "transactions": [
             {
                 "np_transaction_id": payment.psp_reference,
                 "billed_amount": format_price(
-                    billed_amount,
+                    payment.captured_amount - payment_information.amount,
                     payment_information.currency,
                 ),
                 "goods": goods,
@@ -175,7 +175,12 @@ def reregister_transaction_for_partial_return(
         )
         return errors_payment_result(error_messages)
 
-    goods, billed_amount = get_goods_with_refunds(config, payment, payment_information)
+    goods = get_goods_with_refunds(config, payment, payment_information)
+
+    billed_amount = format_price(
+        payment.captured_amount - payment_information.amount,
+        payment_information.currency,
+    )
 
     result, error_codes = register(
         config,

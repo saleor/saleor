@@ -90,8 +90,6 @@ class PaymentLinesData:
 class RefundData:
     order_lines_to_refund: List[OrderLineInfo]
     fulfillment_lines_to_refund: List[FulfillmentLineData]
-    refund_shipping_costs: bool
-    amount: Optional[Decimal]
 
 
 @dataclass
