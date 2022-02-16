@@ -369,18 +369,9 @@ def decrease_stock(
     try:
         deallocate_stock(order_lines_info, manager)
     except AllocationError as exc:
-        allocations = Allocation.objects.filter(
-            order_line__in=exc.order_lines
-        ).select_related("stock")
-        stocks = []
-        for alloc in allocations:
-            stock = alloc.stock
-            stock.quantity_allocated = (
-                F("quantity_allocated") - alloc.quantity_allocated
-            )
-            stocks.append(stock)
-        Stock.objects.bulk_update(stocks, ["quantity_allocated"])
-        allocations.update(quantity_allocated=0)
+        Allocation.objects.filter(order_line__in=exc.order_lines).update(
+            quantity_allocated=0
+        )
 
     stocks = (
         Stock.objects.select_for_update(of=("self",))
