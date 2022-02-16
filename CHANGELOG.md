@@ -6,9 +6,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## Breaking
 
-- Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
-  - Use `token` instead
-
 ## Other
 
 - Extend app by `AppExtension` - #7701 by @korycins
