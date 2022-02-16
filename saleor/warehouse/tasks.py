@@ -34,7 +34,7 @@ def delete_expired_reservations_task():
 
 
 def update_stocks_quantity_allocated_task():
-    stocks_to_udpate = []
+    stocks_to_update = []
     for mismatched_stock in Stock.objects.annotate(
         allocations_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
     ).exclude(quantity_allocated=F("allocations_allocated")):
@@ -46,10 +46,10 @@ def update_stocks_quantity_allocated_task():
             mismatched_stock.allocations_allocated,
         )
         mismatched_stock.quantity_allocated = mismatched_stock.allocations_allocated
-        stocks_to_udpate.append(mismatched_stock)
+        stocks_to_update.append(mismatched_stock)
 
-    Stock.objects.bulk_update(stocks_to_udpate, ["quantity_allocated"])
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
     task_logger.info(
         "Finished updating quantity_allocated on stocks, %d were corrected.",
-        len(stocks_to_udpate),
+        len(stocks_to_update),
     )
