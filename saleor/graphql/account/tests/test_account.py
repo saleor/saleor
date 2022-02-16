@@ -3292,7 +3292,7 @@ def test_create_address_mutation_the_oldest_address_is_deleted(
     same_address = Address.objects.create(**address.as_data())
     customer_user.addresses.set([address, same_address])
 
-    nr_of_addresses = customer_user.addresses.count()
+    user_addresses_count = customer_user.addresses.count()
 
     query = ADDRESS_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
@@ -3310,7 +3310,7 @@ def test_create_address_mutation_the_oldest_address_is_deleted(
     assert data["user"]["id"] == user_id
 
     customer_user.refresh_from_db()
-    assert customer_user.addresses.count() == nr_of_addresses
+    assert customer_user.addresses.count() == user_addresses_count
 
     with pytest.raises(address._meta.model.DoesNotExist):
         address.refresh_from_db()
@@ -4020,7 +4020,7 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
 
 def test_customer_create_address(user_api_client, graphql_address_data):
     user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     mutation_name = "accountAddressCreate"
@@ -4033,7 +4033,7 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.addresses.count() == user_addresses_count + 1
 
 
 def test_account_address_create_return_user(user_api_client, graphql_address_data):
@@ -4047,7 +4047,7 @@ def test_account_address_create_return_user(user_api_client, graphql_address_dat
 
 def test_customer_create_default_address(user_api_client, graphql_address_data):
     user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     mutation_name = "accountAddressCreate"
@@ -4060,7 +4060,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.addresses.count() == user_addresses_count + 1
     assert user.default_shipping_address.id == int(
         graphene.Node.from_global_id(data["address"]["id"])[1]
     )
@@ -4073,7 +4073,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses + 2
+    assert user.addresses.count() == user_addresses_count + 2
     assert user.default_billing_address.id == int(
         graphene.Node.from_global_id(data["address"]["id"])[1]
     )
@@ -4089,7 +4089,7 @@ def test_customer_create_address_the_oldest_address_is_deleted(
     same_address = Address.objects.create(**address.as_data())
     user.addresses.set([address, same_address])
 
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     mutation_name = "accountAddressCreate"
@@ -4102,7 +4102,7 @@ def test_customer_create_address_the_oldest_address_is_deleted(
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses
+    assert user.addresses.count() == user_addresses_count
 
     with pytest.raises(address._meta.model.DoesNotExist):
         address.refresh_from_db()
@@ -4119,7 +4119,7 @@ def test_address_not_created_after_validation_fails(
     user_api_client, graphql_address_data
 ):
     user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
 
@@ -4137,7 +4137,7 @@ def test_address_not_created_after_validation_fails(
     assert data["errors"][0]["field"] == "postalCode"
     assert data["errors"][0]["addressType"] == address_type
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses
+    assert user.addresses.count() == user_addresses_count
 
 
 ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION = """

@@ -18,6 +18,10 @@ def store_user_address(
     manager: "PluginsManager",
 ):
     """Add address to user address book and set as default one."""
+
+    # user can only have specified number of addresses
+    # so we do not want to store additional one if user already reached the max
+    # number of addresses
     if is_user_address_limit_reached(user):
         return
 
@@ -43,10 +47,8 @@ def is_user_address_limit_reached(user: "User"):
 
 def remove_the_oldest_user_address_if_address_limit_is_reached(user: "User"):
     """Remove the oldest user address when max address limit is reached."""
-    if not is_user_address_limit_reached(user):
-        return
-
-    remove_the_oldest_user_address(user)
+    if is_user_address_limit_reached(user):
+        remove_the_oldest_user_address(user)
 
 
 def remove_the_oldest_user_address(user: "User"):
