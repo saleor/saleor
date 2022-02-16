@@ -9,8 +9,11 @@ def populate_products_datetimes(apps, _schema_editor):
     Product = apps.get_model("product", "Product")
 
     Product.objects.filter(updated_at__isnull=False).update(created=F("updated_at"))
-    Product.objects.filter(created__isnull=True).update(created=F("updated_at"))
+    Product.objects.filter(created__isnull=True).update(created=timezone.now())
     Product.objects.filter(updated_at__isnull=True).update(updated_at=timezone.now())
+
+    ProductVariant = apps.get_model("product", "ProductVariant")
+    ProductVariant.objects.update(created=timezone.now(), updated_at=timezone.now())
 
 
 class Migration(migrations.Migration):

@@ -13,10 +13,20 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="product",
             name="created",
-            field=models.DateTimeField(auto_now_add=True),
+            field=models.DateTimeField(auto_now_add=True, db_index=True),
         ),
         migrations.AlterField(
             model_name="product",
+            name="updated_at",
+            field=models.DateTimeField(auto_now=True, db_index=True),
+        ),
+        migrations.AlterField(
+            model_name="productvariant",
+            name="created",
+            field=models.DateTimeField(auto_now_add=True),
+        ),
+        migrations.AlterField(
+            model_name="productvariant",
             name="updated_at",
             field=models.DateTimeField(auto_now=True, db_index=True),
         ),
