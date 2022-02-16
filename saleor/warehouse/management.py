@@ -219,6 +219,7 @@ def deallocate_stock(
         line_to_allocations[allocation.order_line_id].append(allocation)
 
     allocations_to_update = []
+    stocks_to_update = []
     not_dellocated_lines = []
     for line_info in order_lines_data:
         order_line = line_info.line
@@ -237,7 +238,7 @@ def deallocate_stock(
                 stock.quantity_allocated = (
                     F("quantity_allocated") - quantity_to_deallocate
                 )
-                stock.save(update_fields=["quantity_allocated"])
+                stocks_to_update.append(stock)
                 quantity_dealocated += quantity_to_deallocate
                 allocations_to_update.append(allocation)
                 if quantity_dealocated == quantity:
@@ -269,6 +270,8 @@ def deallocate_stock(
                     allocation_before_update.stock
                 )
             )
+
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
@@ -497,16 +500,20 @@ def get_order_lines_with_track_inventory(
 @traced_atomic_transaction()
 def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
-    allocations = Allocation.objects.filter(
-        order_line__order=order,
-        quantity_allocated__gt=0,
-    ).select_related("stock")
+    allocations = (
+        Allocation.objects.filter(
+            order_line__order=order,
+            quantity_allocated__gt=0,
+        )
+        .select_related("stock")
+        .select_for_update(of=("self",))
+    )
 
-    stocks = []
+    stocks_to_update = []
     for alloc in allocations:
         stock = alloc.stock
         stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
-        stocks.append(stock)
+        stocks_to_update.append(stock)
 
     for allocation in allocations.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
@@ -515,7 +522,7 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
             )
 
     allocations.update(quantity_allocated=0)
-    Stock.objects.bulk_update(stocks, ["quantity_allocated"])
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
 
 @traced_atomic_transaction()
