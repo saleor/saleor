@@ -512,7 +512,8 @@ def test_decrease_stock(allocation):
 def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
     stock = allocation.stock
     stock.quantity = 100
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
@@ -532,6 +533,7 @@ def test_decrease_stock_without_stock_update(quantity, expected_allocated, alloc
 
     stock.refresh_from_db()
     assert stock.quantity == 100
+    assert stock.quantity_allocated == 80
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == expected_allocated
 
@@ -745,7 +747,9 @@ def test_decrease_stock_more_then_allocated(
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 0
+    assert allocations[0].stock.quantity_allocated == 0
     assert allocations[1].quantity_allocated == 0
+    assert allocations[1].stock.quantity_allocated == 0
     assert allocations[0].stock.quantity == 0
     assert allocations[1].stock.quantity == 3
 
@@ -753,7 +757,8 @@ def test_decrease_stock_more_then_allocated(
 def test_decrease_stock_insufficient_stock(allocation):
     stock = allocation.stock
     stock.quantity = 20
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
@@ -773,21 +778,28 @@ def test_decrease_stock_insufficient_stock(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 20
+    assert stock.quantity_allocated == 80
     allocation.refresh_from_db()
     assert allocation.quantity_allocated == 80
 
 
-def test_deallocate_stock_for_order(
-    order_line_with_allocation_in_many_stocks,
-):
+def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
 
     deallocate_stock_for_order(order, manager=get_plugins_manager())
 
     allocations = order_line.allocations.all()
-    assert allocations[0].quantity_allocated == 0
-    assert allocations[1].quantity_allocated == 0
+    assert (
+        allocations[0].quantity_allocated
+        == allocations[0].stock.quantity_allocated
+        == 0
+    )
+    assert (
+        allocations[1].quantity_allocated
+        == allocations[1].stock.quantity_allocated
+        == 0
+    )
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")

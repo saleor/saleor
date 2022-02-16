@@ -369,9 +369,18 @@ def decrease_stock(
     try:
         deallocate_stock(order_lines_info, manager)
     except AllocationError as exc:
-        Allocation.objects.filter(order_line__in=exc.order_lines).update(
-            quantity_allocated=0
-        )
+        allocations = Allocation.objects.filter(
+            order_line__in=exc.order_lines
+        ).select_related("stock")
+        stocks = []
+        for alloc in allocations:
+            stock = alloc.stock
+            stock.quantity_allocated = (
+                F("quantity_allocated") - alloc.quantity_allocated
+            )
+            stocks.append(stock)
+        Stock.objects.bulk_update(stocks, ["quantity_allocated"])
+        allocations.update(quantity_allocated=0)
 
     stocks = (
         Stock.objects.select_for_update(of=("self",))
@@ -396,12 +405,12 @@ def decrease_stock(
         .annotate(Sum("quantity_allocated"))
     )
 
-    quantity_allocation_for_stocks: Dict[int, int] = defaultdict(int)
-    for allocation in quantity_allocation_list:
-        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-            "quantity_allocated__sum"
-        ]
     if update_stocks:
+        quantity_allocation_for_stocks: Dict[int, int] = defaultdict(int)
+        for allocation in quantity_allocation_list:
+            quantity_allocation_for_stocks[allocation["stock"]] += allocation[
+                "quantity_allocated__sum"
+            ]
         _decrease_stocks_quantity(
             order_lines_info,
             variant_and_warehouse_to_stock,
@@ -482,8 +491,15 @@ def get_order_lines_with_track_inventory(
 def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
     allocations = Allocation.objects.filter(
-        order_line__order=order, quantity_allocated__gt=0
-    )
+        order_line__order=order,
+        quantity_allocated__gt=0,
+    ).select_related("stock")
+
+    stocks = []
+    for alloc in allocations:
+        stock = alloc.stock
+        stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
+        stocks.append(stock)
 
     for allocation in allocations.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
@@ -492,6 +508,7 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
             )
 
     allocations.update(quantity_allocated=0)
+    Stock.objects.bulk_update(stocks, ["quantity_allocated"])
 
 
 @traced_atomic_transaction()
