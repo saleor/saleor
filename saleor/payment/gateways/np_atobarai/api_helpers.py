@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 import requests
 from django.utils import timezone
@@ -26,7 +26,6 @@ from .errors import (
 )
 from .utils import (
     calculate_manual_refund_amount,
-    calculate_refunded_shipping,
     create_refunded_lines,
     notify_dashboard,
     np_atobarai_opentracing_trace,
@@ -143,7 +142,6 @@ def _get_goods_name(line: PaymentLineData, config: "ApiConfig") -> str:
 def _get_voucher_and_shipping_goods(
     config: "ApiConfig",
     payment_information: PaymentData,
-    refund_shipping: bool = False,
 ) -> List[dict]:
     """Convert voucher and shipping amount into NP Atobarai goods lines."""
     goods_lines = []
@@ -159,7 +157,7 @@ def _get_voucher_and_shipping_goods(
             }
         )
     shipping_amount = payment_information.lines_data.shipping_amount
-    if shipping_amount and not refund_shipping:
+    if shipping_amount:
         goods_lines.append(
             {
                 "goods_name": "Shipping",
@@ -177,7 +175,7 @@ def get_goods_with_refunds(
     config: "ApiConfig",
     payment: Payment,
     payment_information: PaymentData,
-) -> Tuple[List[dict], Decimal]:
+) -> List[dict]:
     """Combine PaymentLinesData and RefundData into NP Atobarai's goods list.
 
     Used for payment updates.
@@ -187,8 +185,6 @@ def get_goods_with_refunds(
     refund_data = payment_information.refund_data or RefundData(
         order_lines_to_refund=[],
         fulfillment_lines_to_refund=[],
-        refund_shipping_costs=False,
-        amount=None,
     )
 
     order = payment.order
@@ -196,12 +192,7 @@ def get_goods_with_refunds(
         raise PaymentError("Cannot refund payment without order.")
 
     refunded_lines = create_refunded_lines(order, refund_data)
-    refunded_shipping = calculate_refunded_shipping(order, refund_data)
-    refunded_manual_amount = calculate_manual_refund_amount(
-        order, refund_data, payment_information
-    )
-
-    total_order_amount = Decimal("0.00")
+    refunded_manual_amount = calculate_manual_refund_amount(order, payment_information)
 
     for line in payment_information.lines_data.lines:
         quantity = line.quantity
@@ -217,7 +208,7 @@ def get_goods_with_refunds(
             }
         )
 
-        total_order_amount += line.amount * quantity
+    goods_lines.extend(_get_voucher_and_shipping_goods(config, payment_information))
 
     if refunded_manual_amount:
         goods_lines.append(
@@ -229,17 +220,8 @@ def get_goods_with_refunds(
                 "quantity": 1,
             }
         )
-        total_order_amount -= refunded_manual_amount
 
-    goods_lines.extend(
-        _get_voucher_and_shipping_goods(config, payment_information, refunded_shipping)
-    )
-
-    total_order_amount += payment_information.lines_data.voucher_amount
-    if not refunded_shipping:
-        total_order_amount += payment_information.lines_data.shipping_amount
-
-    return goods_lines, total_order_amount
+    return goods_lines
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
@@ -265,11 +247,13 @@ def cancel(config: "ApiConfig", transaction_id: str) -> NPResponse:
 def register(
     config: "ApiConfig",
     payment_information: "PaymentData",
-    billed_amount: Optional[Decimal] = None,
+    billed_amount: Optional[int] = None,
     goods: Optional[List[dict]] = None,
 ) -> NPResponse:
     if billed_amount is None:
-        billed_amount = payment_information.amount
+        billed_amount = format_price(
+            payment_information.amount, payment_information.currency
+        )
 
     if goods is None:
         goods = get_goods(config, payment_information)
@@ -298,9 +282,7 @@ def register(
                 "shop_transaction_id": payment_information.payment_id,
                 "shop_order_date": order_date,
                 "settlement_type": NP_ATOBARAI,
-                "billed_amount": format_price(
-                    billed_amount, payment_information.currency
-                ),
+                "billed_amount": billed_amount,
                 "customer": {
                     "customer_name": format_name(billing),
                     "company_name": billing.company_name,

@@ -1,14 +1,16 @@
 from decimal import Decimal
-from unittest.mock import ANY, Mock, patch, sentinel
+from unittest.mock import ANY, patch
 
 import graphene
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
-from ....order import OrderOrigin, OrderStatus
+from ....order import FulfillmentLineData, OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderLineInfo
 from ....order.models import FulfillmentStatus, Order
 from ....payment import ChargeStatus, PaymentError
+from ....payment.interface import RefundData
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -63,8 +65,6 @@ mutation OrderFulfillmentReturnProducts(
 }
 """
 
-REFUND_DATA = sentinel.REFUND_DATA
-
 
 def test_fulfillment_return_products_order_without_payment(
     staff_api_client, permission_manage_orders, fulfilled_order
@@ -86,7 +86,6 @@ def test_fulfillment_return_products_order_without_payment(
     assert fulfillment is None
 
 
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_return_products_amount_and_shipping_costs(
     mocked_refund,
@@ -117,7 +116,10 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
         ANY,
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[],
+            fulfillment_lines_to_refund=[],
+        ),
     )
 
 
@@ -197,7 +199,6 @@ def test_fulfillment_return_products_refund_raising_payment_error(
     assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
 
 
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_return_products_order_lines(
     mocked_refund,
@@ -308,7 +309,16 @@ def test_fulfillment_return_products_order_lines(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[
+                OrderLineInfo(
+                    line=line_to_return,
+                    quantity=line_quantity_to_return,
+                    variant=line_to_return.variant,
+                ),
+            ],
+            fulfillment_lines_to_refund=[],
+        ),
     )
 
 
@@ -423,7 +433,6 @@ def test_fulfillment_return_products_order_lines_quantity_bigger_than_unfulfille
     assert return_fulfillment is None
 
 
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_return_products_order_lines_custom_amount(
     mocked_refund,
@@ -467,11 +476,19 @@ def test_fulfillment_return_products_order_lines_custom_amount(
         ANY,
         amount=amount_to_refund,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[
+                OrderLineInfo(
+                    line=line_to_return,
+                    quantity=2,
+                    variant=line_to_return.variant,
+                )
+            ],
+            fulfillment_lines_to_refund=[],
+        ),
     )
 
 
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_return_products_fulfillment_lines(
     mocked_refund,
@@ -594,7 +611,15 @@ def test_fulfillment_return_products_fulfillment_lines(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[],
+            fulfillment_lines_to_refund=[
+                FulfillmentLineData(
+                    line=fulfillment_line_to_return,
+                    quantity=quantity_to_return,
+                ),
+            ],
+        ),
     )
 
 
@@ -765,7 +790,6 @@ def test_fulfillment_return_products_lines_with_incorrect_status(
     assert return_fulfillment is None
 
 
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     mocked_refund,
@@ -818,11 +842,15 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[],
+            fulfillment_lines_to_refund=[
+                FulfillmentLineData(line=fulfillment_line_to_return, quantity=2)
+            ],
+        ),
     )
 
 
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     mocked_refund,
@@ -931,5 +959,14 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[
+                OrderLineInfo(
+                    line=order_line,
+                    quantity=2,
+                    variant=variant,
+                )
+            ],
+            fulfillment_lines_to_refund=[],
+        ),
     )

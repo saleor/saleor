@@ -119,50 +119,23 @@ def create_refunded_lines(
 
 def calculate_manual_refund_amount(
     order: Order,
-    refund_data: RefundData,
     payment_information: PaymentData,
 ) -> Decimal:
     """Return sum of all manual refunds for specified order.
 
-    Takes into account previous refunds and current refund mutation parameters.
+    Takes into account previous refunds and current refund mutation amount.
     """
-    if (
-        not refund_data.order_lines_to_refund
-        and not refund_data.fulfillment_lines_to_refund
-        and not refund_data.refund_shipping_costs
-        and not refund_data.amount
-    ):
-        manual_amount_to_refund = payment_information.amount
-    else:
-        manual_amount_to_refund = refund_data.amount or Decimal("0.00")
+    manual_amount_to_refund = payment_information.amount or Decimal("0.00")
 
-    previous_manual_amount_to_refund = order.fulfillments.filter(
-        status__in=[
-            FulfillmentStatus.REFUNDED,
-            FulfillmentStatus.REFUNDED_AND_RETURNED,
-        ],
-        lines__order_line__variant_id__isnull=True,
-        shipping_refund_amount__isnull=True,
-    ).aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
-
-    if previous_manual_amount_to_refund is None:
-        previous_manual_amount_to_refund = Decimal("0.00")
-    if manual_amount_to_refund is None:
-        manual_amount_to_refund = Decimal("0.00")
+    previous_manual_amount_to_refund = (
+        order.fulfillments.filter(
+            status__in=[
+                FulfillmentStatus.REFUNDED,
+                FulfillmentStatus.REFUNDED_AND_RETURNED,
+            ],
+            lines__order_line__variant_id__isnull=True,
+        ).aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
+        or Decimal("0.00")
+    )
 
     return previous_manual_amount_to_refund + manual_amount_to_refund
-
-
-def calculate_refunded_shipping(
-    order: Order,
-    refund_data: RefundData,
-) -> bool:
-    """Determine whether shipping is refunded for specified order.
-
-    Takes into account previous refunds and current refund mutation parameters.
-    """
-    shipping_previously_refunded = order.fulfillments.exclude(
-        shipping_refund_amount__isnull=True
-    ).exists()
-
-    return shipping_previously_refunded or refund_data.refund_shipping_costs

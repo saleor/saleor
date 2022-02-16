@@ -7,7 +7,6 @@ import requests
 from graphene import Node
 
 from .... import PaymentError
-from ....interface import RefundData
 from .. import PaymentStatus, api, const
 from ..api_helpers import format_price, get_goods_with_refunds
 from ..api_types import NPResponse, PaymentResult
@@ -591,40 +590,6 @@ def test_change_transaction_failed(
     assert payment_response.errors
 
 
-@pytest.mark.parametrize("lines", [{}, {i: i for i in range(1, 4)}])
-@pytest.mark.parametrize("shipping", [False, True])
-@pytest.mark.parametrize("manual_amount", [Decimal("0.00"), Decimal("12.34")])
-@patch("saleor.payment.gateways.np_atobarai.api.np_request")
-def test_change_transaction_refunded_goods(
-    mocked_request,
-    config,
-    payment_dummy,
-    np_payment_data,
-    lines,
-    shipping,
-    manual_amount,
-):
-    # given
-    np_payment_data.refund_data = RefundData(
-        lines=lines, shipping=shipping, manual_amount=manual_amount
-    )
-    mocked_request.return_value = NPResponse(
-        result={
-            "authori_result": "00",
-            "np_transaction_id": "123123123",
-        },
-        error_codes=[],
-    )
-
-    # when
-    api.change_transaction(config, payment_dummy, np_payment_data)
-
-    # then
-    data = mocked_request.call_args[1]["json"]
-    goods = data["transactions"][0]["goods"]
-    assert goods == get_goods_with_refunds(config, np_payment_data)
-
-
 @patch("saleor.payment.gateways.np_atobarai.api.report")
 @patch("saleor.payment.gateways.np_atobarai.api.register")
 @patch("saleor.payment.gateways.np_atobarai.api.cancel")
@@ -664,7 +629,7 @@ def test_reregister_transaction_success(
     billed_amount = format_price(
         payment_dummy.captured_amount - np_payment_data.amount, np_payment_data.currency
     )
-    goods = get_goods_with_refunds(config, np_payment_data)
+    goods = get_goods_with_refunds(config, payment_dummy, np_payment_data)
     mocked_register.assert_called_once_with(
         config, np_payment_data, billed_amount, goods
     )

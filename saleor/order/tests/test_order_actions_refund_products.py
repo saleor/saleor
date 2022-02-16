@@ -1,7 +1,8 @@
 from decimal import Decimal
-from unittest.mock import ANY, Mock, patch, sentinel
+from unittest.mock import ANY, patch
 
 from ...payment import ChargeStatus
+from ...payment.interface import RefundData
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation
@@ -10,11 +11,8 @@ from ..actions import create_refund_fulfillment
 from ..fetch import OrderLineInfo
 from ..models import FulfillmentLine
 
-REFUND_DATA = sentinel.REFUND_DATA
-
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_only_order_lines(
     mocked_refund, mocked_order_updated, order_with_lines, payment_dummy
@@ -35,14 +33,15 @@ def test_create_refund_fulfillment_only_order_lines(
     )
     lines_count = order_with_lines.lines.count()
 
+    order_refund_lines = [
+        OrderLineInfo(line=line, quantity=2) for line in order_lines_to_refund
+    ]
     returned_fulfillemnt = create_refund_fulfillment(
         user=None,
         app=None,
         order=order_with_lines,
         payment=payment,
-        order_lines_to_refund=[
-            OrderLineInfo(line=line, quantity=2) for line in order_lines_to_refund
-        ],
+        order_lines_to_refund=order_refund_lines,
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),
     )
@@ -76,13 +75,14 @@ def test_create_refund_fulfillment_only_order_lines(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=order_refund_lines, fulfillment_lines_to_refund=[]
+        ),
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_included_shipping_costs(
     mocked_refund, mocked_order_updated, order_with_lines, payment_dummy
@@ -99,14 +99,15 @@ def test_create_refund_fulfillment_included_shipping_costs(
     order_line_ids = order_lines_to_refund.values_list("id", flat=True)
     lines_count = order_with_lines.lines.count()
 
+    order_refund_lines = [
+        OrderLineInfo(line=line, quantity=2) for line in order_lines_to_refund
+    ]
     returned_fulfillemnt = create_refund_fulfillment(
         user=None,
         app=None,
         order=order_with_lines,
         payment=payment,
-        order_lines_to_refund=[
-            OrderLineInfo(line=line, quantity=2) for line in order_lines_to_refund
-        ],
+        order_lines_to_refund=order_refund_lines,
         fulfillment_lines_to_refund=[],
         manager=get_plugins_manager(),
         refund_shipping_costs=True,
@@ -135,13 +136,14 @@ def test_create_refund_fulfillment_included_shipping_costs(
         ANY,
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=order_refund_lines, fulfillment_lines_to_refund=[]
+        ),
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_only_fulfillment_lines(
     mocked_refund, mocked_order_updated, fulfilled_order, payment_dummy
@@ -156,16 +158,17 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     original_quantity = {line.id: line.quantity for line in fulfillment_lines}
     fulfillment_lines_to_refund = fulfillment_lines
 
+    fulfillment_refund_lines = [
+        FulfillmentLineData(line=line, quantity=2)
+        for line in fulfillment_lines_to_refund
+    ]
     returned_fulfillemnt = create_refund_fulfillment(
         user=None,
         app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines_to_refund=[],
-        fulfillment_lines_to_refund=[
-            FulfillmentLineData(line=line, quantity=2)
-            for line in fulfillment_lines_to_refund
-        ],
+        fulfillment_lines_to_refund=fulfillment_refund_lines,
         manager=get_plugins_manager(),
     )
 
@@ -187,7 +190,10 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[],
+            fulfillment_lines_to_refund=fulfillment_refund_lines,
+        ),
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)
 
@@ -196,7 +202,6 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.create_refund_data", new=Mock(return_value=REFUND_DATA))
 @patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_custom_amount(
     mocked_refund, mocked_order_updated, fulfilled_order, payment_dummy
@@ -212,16 +217,17 @@ def test_create_refund_fulfillment_custom_amount(
     fulfillment_lines_to_refund = fulfillment_lines
     amount = Decimal("10.00")
 
+    fulfillment_refund_lines = [
+        FulfillmentLineData(line=line, quantity=2)
+        for line in fulfillment_lines_to_refund
+    ]
     returned_fulfillemnt = create_refund_fulfillment(
         user=None,
         app=None,
         order=fulfilled_order,
         payment=payment,
         order_lines_to_refund=[],
-        fulfillment_lines_to_refund=[
-            FulfillmentLineData(line=line, quantity=2)
-            for line in fulfillment_lines_to_refund
-        ],
+        fulfillment_lines_to_refund=fulfillment_refund_lines,
         manager=get_plugins_manager(),
         amount=amount,
     )
@@ -241,7 +247,10 @@ def test_create_refund_fulfillment_custom_amount(
         ANY,
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
-        refund_data=REFUND_DATA,
+        refund_data=RefundData(
+            order_lines_to_refund=[],
+            fulfillment_lines_to_refund=fulfillment_refund_lines,
+        ),
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)
 
