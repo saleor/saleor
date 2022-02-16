@@ -23,28 +23,28 @@ def get_order_customer_data(order):
         "postcode": order.shipping_address.postal_code,
         "address": order.shipping_address.street_address_1
         or order.shipping_address.street_address_2,
-        "city": order.shipping_address.city if order.shipping_address else "",
-        "district": order.shipping_address.city_area if order.shipping_address else "",
         "name": order.user.get_full_name() if order.user else "",
+        "city": order.shipping_address.city if order.shipping_address else "",
         "mobile": str(order.shipping_address.phone) if order.shipping_address else "",
+        "district": order.shipping_address.city_area if order.shipping_address else "",
     }
 
 
-def get_order_items_data(order):
+def get_order_items_data(fulfillment):
     site = Site.objects.get_current()
     return [
         {
-            "sku": line.product_sku,
-            "name": line.product_name,
-            "quantity": line.quantity_fulfilled,
-            "productId": line.variant.product.id,
-            "price": float(line.total_price_net_amount),
+            "quantity": line.quantity,
+            "sku": line.order_line.product_sku,
+            "name": line.order_line.product_name,
+            "productId": line.order_line.product_variant_id,
+            "price": float(line.order_line.total_price_net_amount),
             "image": "%s%s"
-            % (site.domain, line.variant.product.get_first_image().image.url)
-            if line.variant.product.get_first_image()
+            % (site.domain, line.order_line.variant.product.get_first_image().image.url)
+            if line.order_line.variant.product.get_first_image()
             else "",
         }
-        for line in order.lines.all()
+        for line in fulfillment.lines.all()
     ]
 
 
@@ -67,7 +67,7 @@ def generate_create_order_data(fulfillment):
         "shippingNotes": fulfillment.order.customer_note,
         "payment_method": "cod" if is_cod_order else "paid",
         "orderId": get_oto_order_id(fulfillment=fulfillment),
-        "items": get_order_items_data(order=fulfillment.order),
+        "items": get_order_items_data(fulfillment=fulfillment),
         "customer": get_order_customer_data(order=fulfillment.order),
         "subtotal": float(fulfillment.order.get_subtotal().net.amount),
         "amount_due": float(fulfillment.order.total_net_amount) if is_cod_order else 0,
