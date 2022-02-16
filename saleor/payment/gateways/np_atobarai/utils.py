@@ -121,21 +121,20 @@ def calculate_manual_refund_amount(
     order: Order,
     refund_data: RefundData,
     payment_information: PaymentData,
-    # manual_amount_to_refund: Optional[Decimal],
 ) -> Decimal:
     """Return sum of all manual refunds for specified order.
 
     Takes into account previous refunds and current refund mutation parameters.
     """
-
     if (
-        refund_data.fulfillment_lines_to_refund
-        or refund_data.order_lines_to_refund
-        or refund_data.refund_shipping_costs
+        not refund_data.order_lines_to_refund
+        and not refund_data.fulfillment_lines_to_refund
+        and not refund_data.refund_shipping_costs
+        and not refund_data.amount
     ):
-        manual_amount_to_refund = Decimal("0.00")
-    else:
         manual_amount_to_refund = payment_information.amount
+    else:
+        manual_amount_to_refund = refund_data.amount or Decimal("0.00")
 
     previous_manual_amount_to_refund = order.fulfillments.filter(
         status__in=[
