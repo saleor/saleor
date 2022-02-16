@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, ca
 
 from django.db import transaction
 from django.db.models import F, Sum
+from django.db.models.expressions import Exists, OuterRef
 from django.db.models.functions import Coalesce
 
 from ..checkout.models import CheckoutLine
@@ -500,10 +501,10 @@ def get_order_lines_with_track_inventory(
 @traced_atomic_transaction()
 def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
+    lines = OrderLine.objects.filter(order_id=order.id)
     allocations = (
         Allocation.objects.filter(
-            order_line__order=order,
-            quantity_allocated__gt=0,
+            Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
         )
         .select_related("stock")
         .select_for_update(of=("self",))
