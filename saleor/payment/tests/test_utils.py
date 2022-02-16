@@ -11,11 +11,13 @@ from ...order.actions import create_refund_fulfillment
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
+from ..gateways.np_atobarai.utils import (
+    calculate_manual_refund_amount,
+    calculate_refunded_shipping,
+    create_refunded_lines,
+)
 from ..interface import PaymentLineData, PaymentLinesData
 from ..utils import (
-    _create_refund_lines,
-    _create_refund_manual_amount,
-    _create_refund_shipping,
     create_payment_lines_information,
     get_channel_slug_from_payment,
     try_void_or_refund_inactive_payment,
@@ -60,7 +62,7 @@ def test_create_refund_lines_order_lines(order_with_lines):
     fulfillment_refund_lines = []
 
     # when
-    lines = _create_refund_lines(
+    lines = create_refunded_lines(
         order_with_lines,
         order_refund_lines,
         fulfillment_refund_lines,
@@ -86,7 +88,7 @@ def test_create_refund_lines_fulfillment_lines(fulfilled_order):
     ]
 
     # when
-    lines = _create_refund_lines(
+    lines = create_refunded_lines(
         fulfilled_order,
         order_refund_lines,
         fulfillment_refund_lines,
@@ -124,7 +126,7 @@ def test_create_refund_data_previously_refunded_order_lines(
     fulfillment_refund_lines = []
 
     # when
-    lines = _create_refund_lines(
+    lines = create_refunded_lines(
         order_with_lines,
         current_order_refund_lines,
         fulfillment_refund_lines,
@@ -175,7 +177,7 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
     ]
 
     # when
-    lines = _create_refund_lines(
+    lines = create_refunded_lines(
         fulfilled_order,
         order_refund_lines,
         current_fulfillment_refund_lines,
@@ -210,7 +212,7 @@ def test_create_refund_manual_amount(
     expected_manual_amount,
 ):
     assert (
-        _create_refund_manual_amount(order, current_manual_refund_amount)
+        calculate_manual_refund_amount(order, current_manual_refund_amount)
         == expected_manual_amount
     )
 
@@ -233,7 +235,7 @@ def test_create_refund_manual_amount_previously_refunded(
     )
 
     # when
-    manual_amount = _create_refund_manual_amount(order, current_manual_refund_amount)
+    manual_amount = calculate_manual_refund_amount(order, current_manual_refund_amount)
 
     # then
     expected_manual_amount = (previous_manual_refund_amount or Decimal("0.00")) + (
@@ -244,7 +246,7 @@ def test_create_refund_manual_amount_previously_refunded(
 
 @pytest.mark.parametrize("refund_shipping", [True, False])
 def test_create_refund_shipping(order, refund_shipping):
-    assert _create_refund_shipping(order, refund_shipping) is refund_shipping
+    assert calculate_refunded_shipping(order, refund_shipping) is refund_shipping
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -275,7 +277,7 @@ def test_create_refund_shipping_previously_refunded(
     )
 
     # when
-    refund = _create_refund_shipping(
+    refund = calculate_refunded_shipping(
         order,
         current_refund_shipping_costs,
     )
