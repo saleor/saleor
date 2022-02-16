@@ -402,7 +402,7 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         blank=True,
     )
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
@@ -582,7 +582,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     quantity_limit_per_customer = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
     )
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     weight = MeasurementField(

@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="sale",
             name="created",
-            field=models.DateTimeField(auto_now_add=True),
+            field=models.DateTimeField(auto_now_add=True, db_index=True),
         ),
         migrations.AlterField(
             model_name="sale",
