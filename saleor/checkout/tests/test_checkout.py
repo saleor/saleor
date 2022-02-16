@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 import pytz
+from django.test import override_settings
 from django.utils import timezone
 from django_countries.fields import Country
 from freezegun import freeze_time
@@ -1107,6 +1108,23 @@ def test_store_user_address_create_new_address_if_not_associated(address):
 
     assert user.addresses.count() == expected_user_addresses_count
     assert user.default_billing_address_id != address.pk
+
+
+@override_settings(MAX_USER_ADDRESSES=2)
+def test_store_user_address_address_not_saved(address):
+    """Ensure that new address is not saved when user has already
+    more than 100 addressess.
+    """
+    same_address = Address.objects.create(**address.as_data())
+    user = User.objects.create_user("test@example.com", "password")
+    user.addresses.set([address, same_address])
+
+    address_count = user.addresses.count()
+
+    manager = get_plugins_manager()
+    store_user_address(user, address, AddressType.BILLING, manager)
+
+    assert user.addresses.count() == address_count
 
 
 def test_get_last_active_payment(checkout_with_payments):

@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from django.conf import settings
+
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
 from .models import User
@@ -16,6 +18,9 @@ def store_user_address(
     manager: "PluginsManager",
 ):
     """Add address to user address book and set as default one."""
+    if user.addresses.count() >= settings.MAX_USER_ADDRESSES:
+        return
+
     address = manager.change_user_address(address, address_type, user)
     address_data = address.as_data()
 
