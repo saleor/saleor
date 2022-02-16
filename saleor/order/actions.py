@@ -1446,6 +1446,12 @@ def _process_refund(
     manager: "PluginsManager",
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+    refund_data = RefundData(
+        order_lines_to_refund=order_lines_to_refund,
+        fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+        refund_shipping_costs=refund_shipping_costs,
+        amount=amount,
+    )
     if amount is None:
         amount = _calculate_refund_amount(
             order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
@@ -1462,11 +1468,7 @@ def _process_refund(
                 manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
-                refund_data=RefundData(
-                    order_lines_to_refund=order_lines_to_refund,
-                    fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-                    refund_shipping_costs=refund_shipping_costs,
-                ),
+                refund_data=refund_data,
             )
         except PaymentError:
             raise ValidationError(
