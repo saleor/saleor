@@ -129,6 +129,8 @@ def allocate_stocks(
 
     if allocations:
         Allocation.objects.bulk_create(allocations)
+        for stock in Stock.objects.filter(id__in=stocks_id):
+            stock.recalculate_quantity_allocated()
 
         for allocation in allocations:
             allocated_stock = (
@@ -240,6 +242,9 @@ def deallocate_stock(
     )
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
+    stock_ids = [alloc.stock_id for alloc in lines_allocations]
+    for stock in Stock.objects.filter(id__in=stock_ids):
+        stock.recalculate_quantity_allocated()
 
     for allocation_before_update in allocations_before_update:
         available_stock_now = Allocation.objects.available_quantity_for_stock(
@@ -296,6 +301,8 @@ def increase_stock(
             Allocation.objects.create(
                 order_line=order_line, stock=stock, quantity_allocated=quantity
             )
+        stock.quantity_allocated = F("quantity_allocated") + quantity
+        stock.save(update_fields=["quantity_allocated"])
 
 
 @traced_atomic_transaction()

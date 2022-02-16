@@ -245,6 +245,7 @@ class Stock(models.Model):
         ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"
     )
     quantity = models.IntegerField(default=0)
+    quantity_allocated = models.IntegerField(default=0)
 
     objects = models.Manager.from_queryset(StockQuerySet)()
 
@@ -262,6 +263,14 @@ class Stock(models.Model):
         self.quantity = F("quantity") - quantity
         if commit:
             self.save(update_fields=["quantity"])
+
+    def recalculate_quantity_allocated(self):
+        """Set quantity_allocated based on allocations."""
+        quantity_allocated = self.allocations.aggregate(
+            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
+        )["quantity_allocated"]
+        self.quantity_allocated = quantity_allocated
+        self.save(update_fields=["quantity_allocated"])
 
 
 class AllocationQueryset(models.QuerySet):

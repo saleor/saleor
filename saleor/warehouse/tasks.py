@@ -2,7 +2,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from ..celeryconf import app
-from .models import Allocation, PreorderReservation, Reservation
+from .models import Allocation, PreorderReservation, Reservation, Stock
 
 task_logger = get_task_logger(__name__)
 
@@ -29,3 +29,9 @@ def delete_expired_reservations_task():
             stock_reservations,
             preorder_reservations,
         )
+
+
+def update_stocks_quantity_allocated_task():
+    for stock in Stock.objects.iterator():
+        stock.recalculate_quantity_allocated()
+    task_logger.debug("Updated quantity_allocated on all stocks.")
