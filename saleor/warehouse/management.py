@@ -15,6 +15,7 @@ from ..core.exceptions import (
 )
 from ..core.tracing import traced_atomic_transaction
 from ..order.fetch import OrderLineInfo
+from ..order.models import OrderLine
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .models import (
@@ -27,7 +28,7 @@ from .models import (
 )
 
 if TYPE_CHECKING:
-    from ..order.models import Order, OrderLine
+    from ..order.models import Order
 
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -254,9 +255,6 @@ def deallocate_stock(
     )
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
-    stock_ids = [alloc.stock_id for alloc in lines_allocations]
-    for stock in Stock.objects.filter(id__in=stock_ids):
-        stock.recalculate_quantity_allocated()
 
     for allocation_before_update in allocations_before_update:
         available_stock_now = Allocation.objects.available_quantity_for_stock(
@@ -280,7 +278,7 @@ def deallocate_stock(
 
 @traced_atomic_transaction()
 def increase_stock(
-    order_line: "OrderLine",
+    order_line: OrderLine,
     warehouse: Warehouse,
     quantity: int,
     allocate: bool = False,
@@ -502,13 +500,9 @@ def get_order_lines_with_track_inventory(
 def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
     lines = OrderLine.objects.filter(order_id=order.id)
-    allocations = (
-        Allocation.objects.filter(
-            Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
-        )
-        .select_related("stock")
-        .select_for_update(of=("self",))
-    )
+    allocations = Allocation.objects.filter(
+        Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
+    ).select_related("stock")
 
     stocks_to_update = []
     for alloc in allocations:
