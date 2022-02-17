@@ -536,7 +536,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update-stocks-quantity-allocated": {
         "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
-        "schedule": timedelta(days=1),
+        "schedule": crontab(hour=0, minute=0),
     },
 }
 
