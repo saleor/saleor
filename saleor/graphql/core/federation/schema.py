@@ -1,19 +1,68 @@
 from collections import defaultdict
+from typing import Any
 
+import graphene
 from django.conf import settings
 from graphene.utils.str_converters import to_snake_case
-from graphene_federation import build_schema
-from graphene_federation.entity import custom_entities
-from graphql import GraphQLError
+#from graphene_federation import build_schema
+#from graphene_federation.entity import custom_entities
+from graphql import GraphQLArgument, GraphQLError, GraphQLField, GraphQLList
 
-from ..channel import ChannelContext
-from .utils import from_global_id_or_error
+from ...channel import ChannelContext
+from .entities import federated_entities
 
 
-def build_federated_schema(query=None, mutation=None, **kwargs):
+class _Any(graphene.Scalar):
+    """_Any value scalar as defined by Federation spec."""
+
+    __typename = graphene.String(required=True)
+
+    @staticmethod
+    def serialize(any_value: Any):
+        return any_value
+
+    @staticmethod
+    def parse_literal(any_value: Any):
+        raise any_value
+
+    @staticmethod
+    def parse_value(any_value: Any):
+        return any_value
+
+
+class _Entity(graphene.Union):
+    """_Entity union as defined by Federation spec."""
+
+    class Meta:
+        types = tuple(federated_entities.values())
+
+
+def build_federated_schema(query=None, mutation=None, types=None):
+    """Creates GraphQL schema that supports Apollo Federation"""
+    schema = graphene.Schema(
+        query=query,
+        mutation=mutation,
+        types=list(types) + [_Any, _Entity],
+    )
+
+    query_type = schema.get_type("Query")
+    query_type.fields["_entities"] = GraphQLField(
+        GraphQLList(schema.get_type("_Entity")),
+        args={
+            "representations": GraphQLArgument(
+                GraphQLList(schema.get_type("_Any")),
+            ),
+        },
+        resolver=resolve_entities,
+    )
+
+    return schema
+
+
+def _build_federated_schema(query=None, mutation=None, **kwargs):
     schema = build_schema(query, mutation, **kwargs)
-    set_entity_resolver(schema)
-    set_entity_type_resolver(schema)
+    #set_entity_resolver(schema)
+    #set_entity_type_resolver(schema)
     return schema
 
 
@@ -84,12 +133,3 @@ def set_entity_type_resolver(schema):
         return model_type
 
     entity.resolve_type = resolve_entity_type
-
-
-def resolve_federation_references(graphql_type, roots, queryset):
-    ids = [
-        from_global_id_or_error(root.id, graphql_type, raise_error=True)[1]
-        for root in roots
-    ]
-    objects = {str(obj.id): obj for obj in queryset.filter(id__in=ids)}
-    return [objects.get(root_id) for root_id in ids]
