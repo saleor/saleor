@@ -4,8 +4,9 @@ from typing import Any
 import graphene
 from django.conf import settings
 from graphene.utils.str_converters import to_snake_case
-#from graphene_federation import build_schema
-#from graphene_federation.entity import custom_entities
+
+# from graphene_federation import build_schema
+# from graphene_federation.entity import custom_entities
 from graphql import GraphQLArgument, GraphQLError, GraphQLField, GraphQLList
 
 from ...channel import ChannelContext
@@ -51,9 +52,12 @@ def build_federated_schema(query=None, mutation=None, types=None):
         types=list(types) + [_Any, _Entity, _Service],
     )
 
+    entity_type = schema.get_type("_Entity")
+    entity_type.resolve_type = create_entity_type_resolver(schema)
+
     query_type = schema.get_type("Query")
     query_type.fields["_entities"] = GraphQLField(
-        GraphQLList(schema.get_type("_Entity")),
+        GraphQLList(entity_type),
         args={
             "representations": GraphQLArgument(
                 GraphQLList(schema.get_type("_Any")),
@@ -75,7 +79,7 @@ def set_entity_resolver(schema):
     entity.fields["_entities"].resolver = resolve_entities
 
 
-def resolve_entities(parent, info, representations):
+def resolve_entities(_, info, *, representations):
     max_representations = settings.FEDERATED_QUERY_MAX_ENTITIES
     if max_representations and len(representations) > max_representations:
         representations_count = len(representations)
@@ -88,7 +92,7 @@ def resolve_entities(parent, info, representations):
     for representation in representations:
         if representation["__typename"] not in resolvers:
             try:
-                model = custom_entities[representation["__typename"]]
+                model = federated_entities[representation["__typename"]]
                 resolvers[representation["__typename"]] = getattr(
                     model, "_%s__resolve_references" % representation["__typename"]
                 )
@@ -97,7 +101,7 @@ def resolve_entities(parent, info, representations):
 
     batches = defaultdict(list)
     for representation in representations:
-        model = custom_entities[representation["__typename"]]
+        model = federated_entities[representation["__typename"]]
         model_arguments = representation.copy()
         typename = model_arguments.pop("__typename")
         model_arguments = {to_snake_case(k): v for k, v in model_arguments.items()}
@@ -115,9 +119,8 @@ def resolve_entities(parent, info, representations):
     return entities
 
 
-def set_entity_type_resolver(schema):
-    """Set type resolver aware of ChannelContext on _Entity union."""
-    entity = schema.get_type("_Entity")
+def create_entity_type_resolver(schema):
+    """Create type resolver aware of ChannelContext on _Entity union."""
 
     def resolve_entity_type(instance, info):
         # Use new strategy to resolve GraphQL Type for `ObjectType`
@@ -135,14 +138,21 @@ def set_entity_type_resolver(schema):
 
         return model_type
 
-    entity.resolve_type = resolve_entity_type
+    return resolve_entity_type
 
 
 def create_service_sdl_resolver(schema):
     # Render schema to string
     federated_schema_sdl = str(schema)
 
-    # Append "@key" SDL to federated types
+    # Remove "schema { ... }"
+    schema_start = federated_schema_sdl.find("schema {")
+    schema_end = federated_schema_sdl.find("}", schema_start)
+    federated_schema_sdl = (
+        federated_schema_sdl[:schema_start] + federated_schema_sdl[schema_end + 1 :]
+    ).lstrip()
+
+    # Append "@key" to federated types
     for type_name, graphql_type in federated_entities.items():
         type_sdl = f"type {type_name} "
         type_start = federated_schema_sdl.find(type_sdl)
