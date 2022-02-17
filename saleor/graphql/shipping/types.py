@@ -345,17 +345,13 @@ class ShippingMethod(graphene.ObjectType):
     class Meta:
         interfaces = [relay.Node, ObjectWithMetadata]
         description = (
-            (
-                "Shipping methods that can be used as means of shipping"
-                "for orders and checkouts."
-            ),
+            "Shipping methods that can be used as means of shipping"
+            "for orders and checkouts."
         )
 
     @staticmethod
     def resolve_id(root: ShippingMethodData, _info):
-        if root.is_external:
-            return root.id
-        return graphene.Node.to_global_id("ShippingMethod", root.id)
+        return root.graphql_id
 
     @staticmethod
     def resolve_maximum_order_weight(root: ShippingMethodData, *_args):

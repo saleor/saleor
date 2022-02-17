@@ -321,7 +321,11 @@ class Checkout(ModelObjectType):
     @classmethod
     @traced_resolver
     def resolve_shipping_methods(cls, root: models.Checkout, info):
-        return cls.resolve_available_shipping_methods(root, info)
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+        )
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):
@@ -437,19 +441,10 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-
-        def calculate_available_shipping_methods(data):
-            lines, checkout_info, discounts, channel = data
-            return checkout_info.valid_shipping_methods
-
-        return Promise.all([lines, checkout_info, discounts, channel]).then(
-            calculate_available_shipping_methods
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.valid_shipping_methods)
         )
 
     @staticmethod

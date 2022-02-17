@@ -29,11 +29,11 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
-    get_valid_shipping_methods_for_order,
     recalculate_order,
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.utils import convert_to_shipping_method_data
@@ -51,6 +51,7 @@ from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
+    get_shipping_method_availability_error,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
@@ -58,7 +59,9 @@ from ..utils import (
 ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
-def clean_order_update_shipping(order, method: ShippingMethodData):
+def clean_order_update_shipping(
+    order, method: ShippingMethodData, manager: "PluginsManager"
+):
     if not order.shipping_address:
         raise ValidationError(
             {
@@ -70,21 +73,9 @@ def clean_order_update_shipping(order, method: ShippingMethodData):
             }
         )
 
-    valid_methods_ids = {
-        method.id
-        for method in get_valid_shipping_methods_for_order(
-            order, order.channel.shipping_method_listings.all()
-        )
-    }
-    if valid_methods_ids is None or method.id not in valid_methods_ids:
-        raise ValidationError(
-            {
-                "shipping_method": ValidationError(
-                    "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
-                )
-            }
-        )
+    error = get_shipping_method_availability_error(order, method, manager)
+    if error:
+        raise ValidationError({"shipping_method": error})
 
 
 def clean_order_cancel(order):
@@ -389,7 +380,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             method,
             shipping_channel_listing,
         )
-        clean_order_update_shipping(order, shipping_method_data)
+        clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
 
         order.shipping_method = method
         shipping_price = info.context.plugins.calculate_order_shipping(order)

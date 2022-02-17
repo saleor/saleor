@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
+import graphene
 import graphql
 from measurement.measures import Weight
 from prices import Money
@@ -39,3 +40,9 @@ class ShippingMethodData:
             return str_type == "app"
 
         return False
+
+    @property
+    def graphql_id(self):
+        if self.is_external:
+            return self.id
+        return graphene.Node.to_global_id("ShippingMethod", self.id)

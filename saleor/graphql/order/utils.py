@@ -1,12 +1,16 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
+from ...order.utils import get_valid_shipping_methods_for_order
+from ...plugins.manager import PluginsManager
 from ...product.models import Product, ProductChannelListing, ProductVariant
+from ...shipping.interface import ShippingMethodData
+from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse.availability import check_stock_and_preorder_quantity
 from ..core.validators import validate_variants_available_in_channel
 
@@ -27,8 +31,36 @@ def validate_total_quantity(order: "Order", errors: T_ERRORS):
         )
 
 
-def validate_shipping_method(order: "Order", errors: T_ERRORS):
-    error = None
+def get_shipping_method_availability_error(
+    order: "Order",
+    method: Optional["ShippingMethodData"],
+    manager: "PluginsManager",
+):
+    """Validate whether shipping method is still available for the order."""
+    if method:
+        valid_methods_ids = {
+            m.id
+            for m in get_valid_shipping_methods_for_order(
+                order,
+                order.channel.shipping_method_listings.all(),
+                manager,
+            )
+            if m.active
+        }
+        is_valid = method.id in valid_methods_ids
+    else:
+        is_valid = False
+
+    if not is_valid:
+        return ValidationError(
+            "Shipping method cannot be used with this order.",
+            code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+        )
+
+
+def validate_shipping_method(
+    order: "Order", errors: T_ERRORS, manager: "PluginsManager"
+):
     if not order.shipping_method:
         error = ValidationError(
             "Shipping method is required.",
@@ -48,6 +80,18 @@ def validate_shipping_method(order: "Order", errors: T_ERRORS):
             "Shipping method not available in given channel.",
             code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
         )
+    else:
+        error = get_shipping_method_availability_error(
+            order,
+            convert_to_shipping_method_data(
+                order.shipping_method,
+                order.channel.shipping_method_listings.filter(
+                    shipping_method=order.shipping_method
+                ).last(),
+            ),
+            manager,
+        )
+
     if error:
         errors["shipping"].append(error)
 
@@ -205,7 +249,7 @@ def validate_channel_is_active(channel: "Channel", errors: T_ERRORS):
         )
 
 
-def validate_draft_order(order: "Order", country: str):
+def validate_draft_order(order: "Order", country: str, manager: "PluginsManager"):
     """Check if the given order contains the proper data.
 
     - Has proper customer data,
@@ -220,7 +264,7 @@ def validate_draft_order(order: "Order", country: str):
     validate_billing_address(order, errors)
     if order.is_shipping_required():
         validate_shipping_address(order, errors)
-        validate_shipping_method(order, errors)
+        validate_shipping_method(order, errors, manager)
     validate_total_quantity(order, errors)
     validate_order_lines(order, country, errors)
     validate_channel_is_active(order.channel, errors)
