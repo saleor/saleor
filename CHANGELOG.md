@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 `CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
+- Add support for providing shipping methods by 3rd party apps - #7975 by @bogdal
 
 
 # 3.0.0
@@ -83,6 +84,8 @@ unavailable - #8978 by @IKarbowiak
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
     and `CheckoutPricesData` instead of `PricesData`
 - Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
+- Add support for filtering available shipping methods by 3rd party apps - #8399 by @kczan, @stnatic
+  - Introduce `ShippingMethodData` interface as a root object type for ShippingMethod object
 
 #### GraphQL Schema
 
@@ -115,6 +118,10 @@ unavailable - #8978 by @IKarbowiak
   - `ShippingPriceInput` was extended with `description` field
   - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
   - Input field in `shippingPriceTranslate` changed to `ShippingPriceTranslationInput`
+- Split `ShippingMethod` into `ShippingMethod` and `ShippingMethodType` (#8399):
+  - `ShippingMethod` is used to represent methods offered for checkouts and orders
+  - `ShippingMethodType` is used to manage shipping method configurations in Saleor
+  - Deprecate `availableShippingMethods` on `Order` and `Checkout`. Use `shippingMethods` and refer to the `active` field instead
 
 #### Saleor Apps
 
