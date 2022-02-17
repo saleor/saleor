@@ -37,12 +37,18 @@ class _Entity(graphene.Union):
         types = tuple(federated_entities.values())
 
 
+class _Service(graphene.ObjectType):
+    """_Service manifest as defined by Federation spec."""
+
+    sdl = graphene.String()
+
+
 def build_federated_schema(query=None, mutation=None, types=None):
     """Creates GraphQL schema that supports Apollo Federation"""
     schema = graphene.Schema(
         query=query,
         mutation=mutation,
-        types=list(types) + [_Any, _Entity],
+        types=list(types) + [_Any, _Entity, _Service],
     )
 
     query_type = schema.get_type("Query")
@@ -54,6 +60,10 @@ def build_federated_schema(query=None, mutation=None, types=None):
             ),
         },
         resolver=resolve_entities,
+    )
+    query_type.fields["_service"] = GraphQLField(
+        schema.get_type("_Service"),
+        resolver=resolve_service_sdl,
     )
 
     return schema
@@ -133,3 +143,11 @@ def set_entity_type_resolver(schema):
         return model_type
 
     entity.resolve_type = resolve_entity_type
+
+
+def resolve_service_sdl(*_args):
+    sdl = []
+    for graphql_type in federated_entities.values():
+        print(getattr(graphql_type, "_sdl"))
+
+    return {"sdl": "\n".join(sdl)}
