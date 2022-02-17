@@ -37,6 +37,7 @@ def get_shipping_method_availability_error(
     manager: "PluginsManager",
 ):
     """Validate whether shipping method is still available for the order."""
+    is_valid = False
     if method:
         valid_methods_ids = {
             m.id
@@ -48,8 +49,6 @@ def get_shipping_method_availability_error(
             if m.active
         }
         is_valid = method.id in valid_methods_ids
-    else:
-        is_valid = False
 
     if not is_valid:
         return ValidationError(
