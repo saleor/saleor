@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Use either net or gross price depending on store configuration.
 
 ### Other changes
+- Remove `graphene-federation` dependency - #9184 by @rafalp
 
 #### Saleor Apps
 
