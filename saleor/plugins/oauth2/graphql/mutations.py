@@ -5,7 +5,7 @@ from django.utils import timezone
 from ....core.utils.url import validate_storefront_url
 from ....graphql.core.mutations import BaseMutation
 from ..providers import Provider
-from ..utils import get_oauth_provider, get_or_create_user, get_user_tokens
+from ..utils import PluginOAuthProvider, get_or_create_user, get_user_tokens
 from . import types
 
 User = get_user_model()
@@ -54,7 +54,7 @@ class SocialLogin(BaseMutation):
         cls.clean_input(root, info, **data)
 
         provider, redirect_url = data["provider"], data["redirect_url"]
-        provider: Provider = get_oauth_provider(provider, info.context.app)
+        provider: Provider = PluginOAuthProvider.from_plugin(provider, info.context.app)
 
         auth_endpoint = provider.get_url_for("auth")
         url, state = provider.get_authorization_url(redirect_url)
@@ -101,7 +101,7 @@ class SocialLoginByAccessToken(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **kwargs):
         input = kwargs["input"]
-        provider = get_oauth_provider(input.provider, info.context.app)
+        provider = PluginOAuthProvider.from_plugin(input.provider, info.context.app)
         created, user = cls.get_user(
             info,
             provider=provider,
@@ -137,7 +137,7 @@ class SocialLoginConfirm(SocialLoginByAccessToken):
     @classmethod
     def perform_mutation(cls, root, info, **kwargs):
         input = kwargs["input"]
-        provider = get_oauth_provider(input.provider, info.context.app)
+        provider = PluginOAuthProvider.from_plugin(input.provider, info.context.app)
         auth_response = provider.fetch_tokens(
             input.code, input.state, input.redirect_url
         )

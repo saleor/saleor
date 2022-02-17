@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 
 import jwt
@@ -16,11 +17,9 @@ class Provider:
     name = None
     urls = {}
     scope = []
-    callback_path = None
 
-    def __init__(self, client_id, client_secret, scope=None, **kwargs):
+    def __init__(self, client_id, scope=None, **kwargs):
         self.client_id = client_id
-        self._client_secret = client_secret
         self.kwargs = kwargs
 
         if scope:
@@ -28,7 +27,7 @@ class Provider:
 
     @property
     def client_secret(self):
-        return self._client_secret
+        return self.kwargs["client_secret"]
 
     def get_url_for(self, _for):
         """URL validators are functions that return the validated URLs of the service.
@@ -64,7 +63,7 @@ class Provider:
                 )
             )
 
-        client_secret = self.get_client_secret()
+        client_secret = self.client_secret
         if not isinstance(client_secret, str):
             raise TypeError(
                 "client_secret cannot be of type {t}".format(
@@ -127,8 +126,10 @@ class Provider:
         if response.status_code == 200:
             try:
                 return response.json()  # TODO show a better error
-            except Exception:
-                raise ValidationError("Invalid provider response")
+            except json.JSONDecodeError:
+                raise ValidationError(
+                    "Invalid provider response", code=OAuth2ErrorCode.INVALID
+                )
 
         raise ValidationError(
             message="An error occured while requesting {}: {}".format(
@@ -196,9 +197,13 @@ class Apple(Provider):
 
     @property
     def client_secret(self):
-        headers = {"kid": "Y3TS5GFSL5", "alg": "ES256", "typ": "JWT"}
+        kwargs = self.kwargs
+        kid = kwargs["key_id"]
+        team_id = kwargs["team_id"]
+
+        headers = {"kid": kid, "alg": "ES256", "typ": "JWT"}
         claims = {
-            "iss": "QMTK5DVLYC",
+            "iss": team_id,
             "iat": int(datetime.utcnow().timestamp()),
             "exp": int(datetime.utcnow().timestamp())
             + timedelta(minutes=10).total_seconds(),
@@ -206,11 +211,31 @@ class Apple(Provider):
             "sub": self.client_id,
         }
 
-        pv = self._client_secret
-
+        pv = self.kwargs["private_key"]
         return jwt.encode(claims, pv, algorithm="ES256", headers=headers)
 
     def fetch_profile(self, **kwargs):
         email = self.get_email(auth_response=kwargs["auth_response"])
 
         return User.objects.get(email=email)
+
+    def validate(self):
+        kwargs = self.kwargs
+        message = "{name} can't be of type {t}"
+
+        kid = kwargs.get("key_id")
+
+        if not kid:
+            raise ValidationError(
+                message.format(name="Apple Key ID", t=type(kid).__name__),
+                code=OAuth2ErrorCode.OAUTH2_ERROR,
+            )
+
+        team_id = kwargs.get("team_id")
+        if not kid:
+            raise ValidationError(
+                message.format(name="Apple Team ID", t=type(team_id).__name__),
+                code=OAuth2ErrorCode.OAUTH2_ERROR,
+            )
+
+        return super().validate()
