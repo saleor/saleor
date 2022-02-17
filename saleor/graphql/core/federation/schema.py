@@ -63,16 +63,9 @@ def build_federated_schema(query=None, mutation=None, types=None):
     )
     query_type.fields["_service"] = GraphQLField(
         schema.get_type("_Service"),
-        resolver=resolve_service_sdl,
+        resolver=create_service_sdl_resolver(schema),
     )
 
-    return schema
-
-
-def _build_federated_schema(query=None, mutation=None, **kwargs):
-    schema = build_schema(query, mutation, **kwargs)
-    #set_entity_resolver(schema)
-    #set_entity_type_resolver(schema)
     return schema
 
 
@@ -145,9 +138,23 @@ def set_entity_type_resolver(schema):
     entity.resolve_type = resolve_entity_type
 
 
-def resolve_service_sdl(*_args):
-    sdl = []
-    for graphql_type in federated_entities.values():
-        print(getattr(graphql_type, "_sdl"))
+def create_service_sdl_resolver(schema):
+    # Render schema to string
+    federated_schema_sdl = str(schema)
 
-    return {"sdl": "\n".join(sdl)}
+    # Append "@key" SDL to federated types
+    for type_name, graphql_type in federated_entities.items():
+        type_sdl = f"type {type_name} "
+        type_start = federated_schema_sdl.find(type_sdl)
+        type_fields_open = federated_schema_sdl.find("{", type_start)
+        federated_schema_sdl = (
+            federated_schema_sdl[:type_fields_open]
+            + getattr(graphql_type, "_sdl")
+            + " "
+            + federated_schema_sdl[type_fields_open:]
+        )
+
+    def resolve_service_sdl(*_args):
+        return {"sdl": federated_schema_sdl}
+
+    return resolve_service_sdl
