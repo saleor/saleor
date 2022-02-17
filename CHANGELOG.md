@@ -8,6 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
   - Use `token` instead
+- Remove `graphene-django` dependency - #9170 by @rafalp
 
 ## Other
 
