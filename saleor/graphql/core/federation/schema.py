@@ -45,7 +45,7 @@ class _Service(graphene.ObjectType):
 
 
 def build_federated_schema(query=None, mutation=None, types=None):
-    """Creates GraphQL schema that supports Apollo Federation"""
+    """Creates GraphQL schema that supports Apollo Federation."""
     schema = graphene.Schema(
         query=query,
         mutation=mutation,
@@ -147,9 +147,9 @@ def create_service_sdl_resolver(schema):
 
     # Remove "schema { ... }"
     schema_start = federated_schema_sdl.find("schema {")
-    schema_end = federated_schema_sdl.find("}", schema_start)
+    schema_end = federated_schema_sdl.find("}", schema_start) + 1
     federated_schema_sdl = (
-        federated_schema_sdl[:schema_start] + federated_schema_sdl[schema_end + 1 :]
+        federated_schema_sdl[:schema_start] + federated_schema_sdl[schema_end:]
     ).lstrip()
 
     # Append "@key" to federated types
