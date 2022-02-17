@@ -13,6 +13,8 @@ from ...webhook.payloads import (
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_excluded_shipping_methods_for_checkout_payload,
+    generate_excluded_shipping_methods_for_order_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -28,7 +30,9 @@ from ...webhook.payloads import (
     generate_sale_payload,
     generate_translation_payload,
 )
-from ..base_plugin import BasePlugin
+from ..base_plugin import BasePlugin, ExcludedShippingMethod
+from .const import CACHE_EXCLUDED_SHIPPING_KEY
+from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_response
 from .tasks import (
     _get_webhooks_for_event,
     send_webhook_request_async,
@@ -39,7 +43,6 @@ from .utils import (
     delivery_update,
     from_payment_app_id,
     parse_list_payment_gateways_response,
-    parse_list_shipping_methods_response,
     parse_payment_action_response,
 )
 
@@ -56,7 +59,6 @@ if TYPE_CHECKING:
     from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
-
 
 logger = logging.getLogger(__name__)
 
@@ -620,6 +622,44 @@ class WebhookPlugin(BasePlugin):
                     )
                     methods.extend(shipping_methods)
         return methods
+
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List["ShippingMethodData"],
+        previous_value: List[ExcludedShippingMethod],
+    ) -> List[ExcludedShippingMethod]:
+        generate_function = generate_excluded_shipping_methods_for_order_payload
+        payload_fun = lambda: generate_function(  # noqa: E731
+            order,
+            available_shipping_methods,
+        )
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order.token
+        return get_excluded_shipping_data(
+            event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+            previous_value=previous_value,
+            payload_fun=payload_fun,
+            cache_key=cache_key,
+        )
+
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List["ShippingMethodData"],
+        previous_value: List[ExcludedShippingMethod],
+    ) -> List[ExcludedShippingMethod]:
+        generate_function = generate_excluded_shipping_methods_for_checkout_payload
+        payload_function = lambda: generate_function(  # noqa: E731
+            checkout,
+            available_shipping_methods,
+        )
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout.token)
+        return get_excluded_shipping_data(
+            event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+            previous_value=previous_value,
+            payload_fun=payload_function,
+            cache_key=cache_key,
+        )
 
     def is_event_active(self, event: str, channel=Optional[str]):
         map_event = {"invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED}
