@@ -5,25 +5,12 @@ from django.middleware.csrf import _get_new_csrf_token
 from ...account import events as account_events
 from ...account import search
 from ...core.jwt import create_access_token, create_refresh_token
+from ..base_plugin import BasePlugin
 from .consts import providers_config_map
 from .graphql import enums
 from .providers import Provider
 
 User = get_user_model()
-
-
-def get_oauth_provider(name, plugin) -> Provider:
-    config = plugin.get_oauth2_info(name)
-
-    provider_cls = providers_config_map[name]
-    provider: Provider = provider_cls(**config)
-
-    try:
-        provider.validate()
-    except TypeError as e:
-        raise ValidationError(e, code=enums.OAuth2ErrorCode.OAUTH2_ERROR.value)
-
-    return provider
 
 
 def get_scope(provider_name):
@@ -32,6 +19,22 @@ def get_scope(provider_name):
 
 def normalize_config(config):
     return {item["name"]: item["value"] for item in config}
+
+
+def get_oauth2_info(provider, config):
+    result = {}
+
+    for key, val in config.items():
+        if key.startswith(provider):
+            prefix_length = len(f"{provider}_")
+            new_key = key[prefix_length:]
+            result.update(
+                {
+                    new_key: val,
+                }
+            )
+
+    return result
 
 
 def get_user_tokens(user):
@@ -46,11 +49,14 @@ def get_user_tokens(user):
     }
 
 
-def map_many(*fs, iter):
+def parse_providers_str(providers):
     result = []
 
-    for f in fs:
-        result = map(f, iter)
+    providers = providers.split(",")
+    providers = list(filter_truthy(providers))
+
+    for provider in providers:
+        result.append(provider.strip().lower())
 
     return result
 
@@ -79,3 +85,23 @@ def get_or_create_user(provider: Provider, request, auth_response):
         created = True
 
     return created, user
+
+
+class PluginOAuthProvider:
+    @classmethod
+    def from_plugin(cls, name, plugin: BasePlugin):
+        return cls.from_config(name, plugin.configuration)
+
+    @classmethod
+    def from_config(cls, name, config):
+        provider_cls = providers_config_map[name]
+        config = normalize_config(config)
+        config = get_oauth2_info(name, config)
+        provider: Provider = provider_cls(**config)
+
+        try:
+            provider.validate()
+        except TypeError as e:
+            raise ValidationError(e, code=enums.OAuth2ErrorCode.OAUTH2_ERROR.value)
+
+        return provider
