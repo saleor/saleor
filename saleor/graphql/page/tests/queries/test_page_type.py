@@ -1,6 +1,6 @@
 import graphene
 
-from ...tests.utils import (
+from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
     get_graphql_content_from_response,
