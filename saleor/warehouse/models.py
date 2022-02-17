@@ -245,6 +245,7 @@ class Stock(models.Model):
         ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"
     )
     quantity = models.IntegerField(default=0)
+    quantity_allocated = models.IntegerField(default=0)
 
     objects = models.Manager.from_queryset(StockQuerySet)()
 

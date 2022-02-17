@@ -534,6 +534,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.giftcard.tasks.deactivate_expired_cards_task",
         "schedule": crontab(hour=0, minute=0),
     },
+    "update-stocks-quantity-allocated": {
+        "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
