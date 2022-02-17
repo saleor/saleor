@@ -9,6 +9,8 @@ from unittest.mock import ANY
 import graphene
 from django.utils import timezone
 from freezegun import freeze_time
+from measurement.measures import Weight
+from prices import Money
 
 from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -21,6 +23,7 @@ from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
+from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     ORDER_FIELDS,
@@ -28,6 +31,8 @@ from ..payloads import (
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_excluded_shipping_methods_for_checkout_payload,
+    generate_excluded_shipping_methods_for_order_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
@@ -908,6 +913,66 @@ def test_genereate_sale_payload_calculates_set_differences(sale):
     assert set(payload["products_added"]) == {10, 20}
     assert set(payload["variants_added"]) == {"ddd"}
     assert set(payload["variants_removed"]) == {"ccc"}
+
+
+def test_generate_excluded_shipping_methods_for_order(order):
+    shipping_method = ShippingMethodData(
+        id="123",
+        price=Money(Decimal("10.59"), "USD"),
+        name="shipping",
+        maximum_order_weight=Weight(kg=10),
+        minimum_order_weight=Weight(g=1),
+        maximum_delivery_days=10,
+        minimum_delivery_days=2,
+    )
+    response = json.loads(
+        generate_excluded_shipping_methods_for_order_payload(order, [shipping_method])
+    )
+
+    assert "order" in response
+    assert response["shipping_methods"] == [
+        {
+            "id": graphene.Node.to_global_id("ShippingMethod", "123"),
+            "price": "10.59",
+            "currency": "USD",
+            "name": "shipping",
+            "maximum_order_weight": "10.0:kg",
+            "minimum_order_weight": "1.0:g",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+        }
+    ]
+
+
+def test_generate_excluded_shipping_methods_for_checkout(checkout):
+    shipping_method = ShippingMethodData(
+        id="123",
+        price=Money(Decimal("10.59"), "USD"),
+        name="shipping",
+        maximum_order_weight=Weight(kg=10),
+        minimum_order_weight=Weight(g=1),
+        maximum_delivery_days=10,
+        minimum_delivery_days=2,
+    )
+    response = json.loads(
+        generate_excluded_shipping_methods_for_checkout_payload(
+            checkout, [shipping_method]
+        )
+    )
+
+    assert "checkout" in response
+    assert response["shipping_methods"] == [
+        {
+            "id": graphene.Node.to_global_id("ShippingMethod", "123"),
+            "price": "10.59",
+            "currency": "USD",
+            "name": "shipping",
+            "maximum_order_weight": "10.0:kg",
+            "minimum_order_weight": "1.0:g",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+        }
+    ]
 
 
 def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
