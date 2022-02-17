@@ -37,7 +37,7 @@ def get_order_items_data(fulfillment):
             "quantity": line.quantity,
             "sku": line.order_line.product_sku,
             "name": line.order_line.product_name,
-            "productId": line.order_line.product_variant_id,
+            "productId": line.order_line.variant_id,
             "price": float(line.order_line.total_price_net_amount),
             "image": "%s%s"
             % (site.domain, line.order_line.variant.product.get_first_image().image.url)
@@ -60,9 +60,13 @@ def generate_create_order_data(fulfillment):
         if fulfillment.order.get_last_payment().gateway == "payments.cash"
         else False
     )
+    shipping_amount = float(
+        fulfillment.order.shipping_price_net_amount if fulfillments_count == 1 else 0
+    )
     data = {
         "storeName": "WeCre8",
         "ref1": fulfillment.order.token,
+        "shippingAmount": shipping_amount,
         "currency": fulfillment.order.currency,
         "shippingNotes": fulfillment.order.customer_note,
         "payment_method": "cod" if is_cod_order else "paid",
@@ -70,10 +74,9 @@ def generate_create_order_data(fulfillment):
         "items": get_order_items_data(fulfillment=fulfillment),
         "customer": get_order_customer_data(order=fulfillment.order),
         "subtotal": float(fulfillment.order.get_subtotal().net.amount),
-        "amount_due": float(fulfillment.order.total_net_amount) if is_cod_order else 0,
-        "shippingAmount": float(
-            fulfillment.order.shipping_price_net_amount
-            if fulfillments_count == 1
+        "amount_due": float(
+            (fulfillment.order.total_net_amount + shipping_amount)
+            if is_cod_order
             else 0
         ),
         "amount": float(

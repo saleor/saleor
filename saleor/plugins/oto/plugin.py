@@ -117,9 +117,7 @@ class OTOPlugin(BasePlugin):
                 if response.get("errorMsg")
                 else f"Can not create an OTO order because {response.get('errorMsg')}"
             )
-            logger.error(
-                msg=response.get("errorMsg"), extra={"order_id": fulfillment.order.id}
-            )
+            logger.error(msg=msg, extra={"order_id": fulfillment.order.id})
             raise ValidationError({"oto_id": ValidationError(msg, code="invalid")})
 
     @require_active_plugin
