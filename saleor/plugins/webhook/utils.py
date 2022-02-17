@@ -232,7 +232,6 @@ def parse_tax_codes(
     tax_types = {}
 
     for tax in response_tax_data:
-        print(tax)
         code = tax.get("code")
         description = tax.get("description")
 
@@ -323,7 +322,7 @@ def clear_successful_delivery(delivery: "EventDelivery"):
 
 
 WEBHOOK_TAX_CODES_CACHE_KEY = "webhook_tax_codes"
-DEFAULT_TAX_CODE = "SA0000"
+DEFAULT_TAX_CODE = "UNMAPPED"
 DEFAULT_TAX_DESCRIPTION = "Unmapped Product/Product Type"
 
 
