@@ -45,7 +45,7 @@ class _Service(graphene.ObjectType):
 
 
 def build_federated_schema(query=None, mutation=None, types=None):
-    """Creates GraphQL schema that supports Apollo Federation."""
+    """Create GraphQL schema that supports Apollo Federation."""
     schema = graphene.Schema(
         query=query,
         mutation=mutation,

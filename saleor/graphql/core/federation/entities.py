@@ -2,7 +2,6 @@ from typing import Dict
 
 import graphene
 
-
 federated_entities: Dict[str, graphene.ObjectType] = {}
 
 
