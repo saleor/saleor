@@ -513,8 +513,10 @@ def mark_order_as_paid(
         app=app,
         transaction_reference=external_reference,
     )
-    manager.order_fully_paid(order)
-    manager.order_updated(order)
+
+    transaction.on_commit(lambda: manager.order_fully_paid(order))
+    transaction.on_commit(lambda: manager.order_updated(order))
+
     order.update_total_paid()
 
 
