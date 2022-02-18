@@ -4,9 +4,6 @@ from typing import Any
 import graphene
 from django.conf import settings
 from graphene.utils.str_converters import to_snake_case
-
-# from graphene_federation import build_schema
-# from graphene_federation.entity import custom_entities
 from graphql import GraphQLArgument, GraphQLError, GraphQLField, GraphQLList
 
 from ...channel import ChannelContext
