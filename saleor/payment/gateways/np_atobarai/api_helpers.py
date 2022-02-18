@@ -182,20 +182,16 @@ def get_goods_with_refunds(
     Returns current state of order lines after refunds and total order amount.
     """
     goods_lines = []
-    if not payment_information.refund_data:
-        payment_information.refund_data = RefundData(
-            order_lines_to_refund=[],
-            fulfillment_lines_to_refund=[],
-        )
+    refund_data = payment_information.refund_data or RefundData()
 
     order = payment.order
     if not order:
         raise PaymentError("Cannot refund payment without order.")
 
-    print(payment_information.amount)
-
-    refunded_lines = create_refunded_lines(order, payment_information)
-    refunded_manual_amount = calculate_manual_refund_amount(order, payment_information)
+    refunded_lines = create_refunded_lines(order, refund_data)
+    refunded_manual_amount = calculate_manual_refund_amount(
+        order, payment_information, refund_data
+    )
 
     billed_amount = Decimal("0.00")
     for line in payment_information.lines_data.lines:
@@ -236,10 +232,6 @@ def get_goods_with_refunds(
             }
         )
         billed_amount -= refunded_manual_amount
-
-    for line in goods_lines:
-        print(line)
-    print(billed_amount)
 
     return goods_lines, billed_amount
 

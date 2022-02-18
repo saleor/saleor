@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from typing import List, Optional, Tuple
 
 from ....order.models import Fulfillment
@@ -7,7 +8,6 @@ from ...models import Payment
 from .api_helpers import (
     cancel,
     format_price,
-    get_goods_with_refunds,
     handle_unrecoverable_state,
     np_request,
     register,
@@ -94,14 +94,14 @@ def change_transaction(
     config: ApiConfig,
     payment: Payment,
     payment_information: PaymentData,
+    goods: List[dict],
+    billed_amount: Decimal,
 ) -> PaymentResult:
     """Change transaction.
 
     If the fulfillment was reported prior to changing given transaction,
     then no change is applied and payment status is set to FOR_REREGISTRATION.
     """
-    goods, billed_amount = get_goods_with_refunds(config, payment, payment_information)
-
     data = {
         "transactions": [
             {
@@ -152,6 +152,8 @@ def reregister_transaction_for_partial_return(
     payment_information: PaymentData,
     shipping_company_code: Optional[str],
     tracking_number: Optional[str],
+    goods: List[dict],
+    billed_amount: Decimal,
 ) -> PaymentResult:
     """Change transaction.
 
@@ -174,8 +176,6 @@ def reregister_transaction_for_partial_return(
             action=TRANSACTION_CANCELLATION, error_codes=cancel_error_codes
         )
         return errors_payment_result(error_messages)
-
-    goods, billed_amount = get_goods_with_refunds(config, payment, payment_information)
 
     result, error_codes = register(
         config,
