@@ -299,6 +299,13 @@ class CustomerEvent(models.Model):
         ],
     )
     order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
+    order_on_token = models.ForeignKey(
+        "order.Order",
+        to_field="token",
+        related_name="customer_events",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         User, related_name="events", on_delete=models.CASCADE, null=True
