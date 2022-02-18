@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
 from ..account.models import User
@@ -10,6 +10,10 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
 from .models import OrderEvent
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
 
 UserType = Optional[User]
 AppType = Optional[App]
@@ -37,7 +41,7 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
 
 
 def event_order_refunded_notification(
-    order_id: int, user_id: Optional[int], app_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -52,7 +56,7 @@ def event_order_refunded_notification(
 
 
 def event_order_confirmed_notification(
-    order_id: int, user_id: Optional[int], app_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -67,7 +71,7 @@ def event_order_confirmed_notification(
 
 
 def event_order_cancelled_notification(
-    order_id: int, user_id: Optional[int], app_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -82,7 +86,7 @@ def event_order_cancelled_notification(
 
 
 def event_order_confirmation_notification(
-    order_id: int, user_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -96,7 +100,7 @@ def event_order_confirmation_notification(
 
 
 def event_fulfillment_confirmed_notification(
-    order_id: int, user_id: Optional[int], app_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -111,7 +115,7 @@ def event_fulfillment_confirmed_notification(
 
 
 def event_fulfillment_digital_links_notification(
-    order_id: int, user_id: Optional[int], app_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -126,7 +130,7 @@ def event_fulfillment_digital_links_notification(
 
 
 def event_payment_confirmed_notification(
-    order_id: int, user_id: Optional[int], customer_email: str
+    order_id: "UUID", user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
@@ -188,7 +192,7 @@ def invoice_updated_event(
 
 
 def event_invoice_sent_notification(
-    *, order_id: int, user_id: Optional[int], app_id: Optional[int], email: str
+    *, order_id: "UUID", user_id: Optional[int], app_id: Optional[int], email: str
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order_id=order_id,

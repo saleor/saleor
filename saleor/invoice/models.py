@@ -19,7 +19,10 @@ class InvoiceQueryset(models.QuerySet):
 
 class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
-        Order, related_name="invoices", null=True, on_delete=models.SET_NULL
+        Order,
+        related_name="invoices",
+        null=True,
+        on_delete=models.SET_NULL,
     )
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
