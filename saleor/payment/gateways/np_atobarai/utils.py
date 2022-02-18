@@ -77,7 +77,7 @@ def create_refunded_lines(
     Takes into account previous refunds and current refund mutation parameters.
     :return: Dictionary of variant ids and refunded quantities.
     """
-    if refund_data.amount:
+    if not refund_data.refund_amount_is_automatically_calculated:
         order_lines_to_refund = []
         fulfillment_lines_to_refund = []
     else:
@@ -133,10 +133,20 @@ def calculate_manual_refund_amount(
 
     Takes into account previous refunds and current refund mutation amount.
     """
-    if not refund_data.amount and refund_data.refund_shipping_costs:
+    if (
+        refund_data.order_lines_to_refund or refund_data.fulfillment_lines_to_refund
+    ) and refund_data.refund_amount_is_automatically_calculated:
+        # automatic line refund
+        manual_amount_to_refund = Decimal("0.00")
+    elif (
+        refund_data.refund_shipping_costs
+        and refund_data.refund_amount_is_automatically_calculated
+    ):
+        # automatic shipping refund
         manual_amount_to_refund = payment_information.lines_data.shipping_amount
     else:
-        manual_amount_to_refund = refund_data.amount or Decimal("0.00")
+        # manual refund
+        manual_amount_to_refund = payment_information.amount or Decimal("0.00")
 
     previous_manual_amount_to_refund = (
         order.fulfillments.filter(
@@ -144,7 +154,7 @@ def calculate_manual_refund_amount(
                 FulfillmentStatus.REFUNDED,
                 FulfillmentStatus.REFUNDED_AND_RETURNED,
             ],
-            lines__order_line__variant_id__isnull=True,
+            lines__isnull=True,
         ).aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
         or Decimal("0.00")
     )

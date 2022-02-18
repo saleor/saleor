@@ -51,7 +51,7 @@ def test_refund_payment_no_order(np_atobarai_plugin, np_payment_data, payment_du
     payment_dummy.save(update_fields=["order", "captured_amount"])
 
     # then
-    with pytest.raises(PaymentError, match=rf"Order.*{payment_dummy.id}.*"):
+    with pytest.raises(PaymentError):
         # when
         plugin.refund_payment(payment_data, None)
 
@@ -510,7 +510,9 @@ def test_change_transaction_success(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
+    payment_response = api.change_transaction(
+        config, payment_dummy, np_payment_data, Mock(), Decimal("12.34")
+    )
 
     # then
     assert payment_response.status == PaymentStatus.SUCCESS
@@ -544,7 +546,9 @@ def test_change_transaction_pending(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
+    payment_response = api.change_transaction(
+        config, payment_dummy, np_payment_data, Mock(), Decimal("12.34")
+    )
 
     # then
     mocked_cancel.assert_called_once_with(config, transaction_id)
@@ -564,7 +568,9 @@ def test_change_transaction_post_fulfillment(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
+    payment_response = api.change_transaction(
+        config, payment_dummy, np_payment_data, Mock(), Decimal("12.34")
+    )
 
     # then
     assert payment_response.status == PaymentStatus.FOR_REREGISTRATION
@@ -583,7 +589,9 @@ def test_change_transaction_failed(
     mocked_request.return_value = response
 
     # when
-    payment_response = api.change_transaction(config, payment_dummy, np_payment_data)
+    payment_response = api.change_transaction(
+        config, payment_dummy, np_payment_data, Mock(), Decimal("12.34")
+    )
 
     # then
     assert payment_response.status == PaymentStatus.FAILED
@@ -616,22 +624,26 @@ def test_reregister_transaction_success(
     mocked_report.return_value = NPResponse(result={}, error_codes=[])
 
     # when
+    goods, billed_amount = get_goods_with_refunds(
+        config, payment_dummy, np_payment_data
+    )
     payment_response = api.reregister_transaction_for_partial_return(
         config,
         payment_dummy,
         np_payment_data,
         shipping_company_code,
         tracking_number,
+        goods,
+        billed_amount,
     )
 
     # then
     mocked_cancel.assert_called_once_with(config, payment_dummy.psp_reference)
-    billed_amount = format_price(
-        payment_dummy.captured_amount - np_payment_data.amount, np_payment_data.currency
-    )
-    goods = get_goods_with_refunds(config, payment_dummy, np_payment_data)
     mocked_register.assert_called_once_with(
-        config, np_payment_data, billed_amount, goods
+        config,
+        np_payment_data,
+        int(format_price(billed_amount, np_payment_data.currency)),
+        goods,
     )
     mocked_report.assert_called_once_with(
         config, shipping_company_code, new_psp_reference, tracking_number
@@ -643,7 +655,13 @@ def test_reregister_transaction_success(
 def test_reregister_transaction_no_psp_reference(payment_dummy, np_payment_data):
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        Mock(), payment_dummy, np_payment_data, Mock(), Mock()
+        Mock(),
+        payment_dummy,
+        np_payment_data,
+        Mock(),
+        Mock(),
+        Mock(),
+        Decimal("12.34"),
     )
 
     # then
@@ -662,7 +680,7 @@ def test_reregister_transaction_cancel_error(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config, payment_dummy, np_payment_data, Mock(), Mock()
+        config, payment_dummy, np_payment_data, Mock(), Mock(), Mock(), Decimal("12.34")
     )
 
     # then
@@ -703,6 +721,8 @@ def test_reregister_transaction_report_error(
         np_payment_data,
         shipping_company_code,
         tracking_number,
+        Mock(),
+        Decimal("12.34"),
     )
 
     # then
@@ -727,11 +747,7 @@ def test_reregister_transaction_general_error(
 
     # when
     payment_response = api.reregister_transaction_for_partial_return(
-        config,
-        payment_dummy,
-        np_payment_data,
-        Mock(),
-        Mock(),
+        config, payment_dummy, np_payment_data, Mock(), Mock(), Mock(), Decimal("12.34")
     )
 
     # then
