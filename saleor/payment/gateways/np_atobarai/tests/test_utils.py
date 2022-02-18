@@ -399,6 +399,5 @@ def test_calculate_manual_refund_amount_previously_refunded(
     refund_amount = calculate_manual_refund_amount(
         order, Mock(amount=current_refund_amount)
     )
-    print(refund_amount, order.shipping_price_gross_amount)
     # then
     assert refund_amount == expected_refund_amount

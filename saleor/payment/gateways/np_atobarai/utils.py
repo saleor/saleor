@@ -11,7 +11,7 @@ from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
 from ....order.models import Fulfillment, FulfillmentLine, Order
 from ... import PaymentError
-from ...interface import PaymentData
+from ...interface import PaymentData, RefundData
 from .api_types import ApiConfig
 from .const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
@@ -70,22 +70,19 @@ def np_atobarai_opentracing_trace(span_name: str):
 
 def create_refunded_lines(
     order: Order,
-    payment_information: PaymentData,
+    refund_data: RefundData,
 ) -> Dict[int, int]:
     """Return all refunded product variants for specified order.
 
     Takes into account previous refunds and current refund mutation parameters.
     :return: Dictionary of variant ids and refunded quantities.
     """
-    assert payment_information.refund_data
-    if payment_information.refund_data.amount:
+    if refund_data.amount:
         order_lines_to_refund = []
         fulfillment_lines_to_refund = []
     else:
-        order_lines_to_refund = payment_information.refund_data.order_lines_to_refund
-        fulfillment_lines_to_refund = (
-            payment_information.refund_data.fulfillment_lines_to_refund
-        )
+        order_lines_to_refund = refund_data.order_lines_to_refund
+        fulfillment_lines_to_refund = refund_data.fulfillment_lines_to_refund
 
     previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
         "order_line"
@@ -130,26 +127,16 @@ def create_refunded_lines(
 def calculate_manual_refund_amount(
     order: Order,
     payment_information: PaymentData,
+    refund_data: RefundData,
 ) -> Decimal:
     """Return sum of all manual refunds for specified order.
 
     Takes into account previous refunds and current refund mutation amount.
     """
-    assert payment_information.refund_data
-    if (
-        not payment_information.refund_data.amount
-        and payment_information.refund_data.refund_shipping_costs
-    ):
+    if not refund_data.amount and refund_data.refund_shipping_costs:
         manual_amount_to_refund = payment_information.lines_data.shipping_amount
     else:
-        manual_amount_to_refund = payment_information.refund_data.amount or Decimal(
-            "0.00"
-        )
-
-    print(f"{payment_information.refund_data.amount = }")
-    print(f"{payment_information.refund_data.refund_shipping_costs = }")
-    print(f"{payment_information.lines_data.shipping_amount = }")
-    print(f"{manual_amount_to_refund = }")
+        manual_amount_to_refund = refund_data.amount or Decimal("0.00")
 
     previous_manual_amount_to_refund = (
         order.fulfillments.filter(

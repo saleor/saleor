@@ -9,6 +9,7 @@ from ... import PaymentError, TransactionKind
 from ...interface import GatewayResponse, PaymentData
 from ...models import Payment
 from . import api
+from .api_helpers import get_goods_with_refunds
 from .api_types import ApiConfig, PaymentStatus
 from .const import NP_PLUGIN_ID
 from .utils import (
@@ -112,9 +113,12 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     if not payment:
         raise PaymentError(f"Payment with id {payment_id} does not exist.")
 
+    goods, billed_amount = get_goods_with_refunds(config, payment, payment_information)
+
     # in case of refunding less than already captured
+    # and not all lines are being refunded,
     # the transaction needs to be re-registered in NP Atobarai
-    if payment_information.amount < payment.captured_amount:
+    if payment_information.amount < payment.captured_amount and goods:
         order = payment.order
 
         if not order:
@@ -126,6 +130,8 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
             config,
             payment,
             payment_information,
+            goods,
+            billed_amount,
         )
 
         if result.status == PaymentStatus.FOR_REREGISTRATION:
@@ -138,6 +144,8 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
                 payment_information,
                 shipping_company_code,
                 tracking_number,
+                goods,
+                billed_amount,
             )
 
     else:
