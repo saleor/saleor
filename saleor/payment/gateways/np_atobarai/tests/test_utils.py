@@ -340,22 +340,68 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
 
 
 @pytest.mark.parametrize(
-    "current_manual_refund_amount, expected_manual_amount",
     [
-        (None, Decimal("0.00")),
-        (Decimal("0.00"), Decimal("0.00")),
-        (Decimal("12.34"), Decimal("12.34")),
+        "current_refund_amount",
+        "shipping_amount",
+        "refund_shipping",
+        "is_manual",
+        "order_lines",
+        "fulfillment_lines",
+        "expected_manual_amount",
+    ],
+    [
+        (None, Decimal("40.00"), False, False, [], [], Decimal("0.00")),
+        (Decimal("12.34"), Decimal("40.00"), False, False, [], [], Decimal("12.34")),
+        (None, Decimal("40.00"), True, True, [], [], Decimal("40.00")),
+        (
+            Decimal("12.34"),
+            Decimal("40.00"),
+            False,
+            False,
+            [Mock()],
+            [],
+            Decimal("0.00"),
+        ),
+        (
+            Decimal("12.34"),
+            Decimal("40.00"),
+            False,
+            False,
+            [],
+            [Mock()],
+            Decimal("0.00"),
+        ),
     ],
 )
 def test_calculate_refund_amount(
     order,
-    current_manual_refund_amount,
+    current_refund_amount,
+    shipping_amount,
+    refund_shipping,
+    is_manual,
+    order_lines,
+    fulfillment_lines,
     expected_manual_amount,
 ):
-    assert (
-        calculate_manual_refund_amount(order, Mock(amount=current_manual_refund_amount))
-        == expected_manual_amount
+    # given
+    payment_information = Mock(
+        amount=current_refund_amount,
+        lines_data=Mock(
+            shipping_amount=shipping_amount,
+        ),
     )
+    refund_data = Mock(
+        refund_shipping_costs=refund_shipping,
+        refund_is_automatically_calculated=not is_manual,
+        order_lines_to_refund=order_lines,
+        fulfillment_lines_to_refund=fulfillment_lines,
+    )
+
+    # when
+    amount = calculate_manual_refund_amount(order, payment_information, refund_data)
+
+    # then
+    assert amount == expected_manual_amount
 
 
 @pytest.mark.parametrize(
@@ -395,9 +441,17 @@ def test_calculate_manual_refund_amount_previously_refunded(
             refund_shipping_costs=refund_shipping,
         )
 
+    refund_data = Mock(
+        refund_shipping_costs=False,
+        refund_is_automatically_calculated=False,
+        order_lines_to_refund=[],
+        fulfillment_lines_to_refund=[],
+    )
+    payment_information = Mock(amount=current_refund_amount)
+
     # when
     refund_amount = calculate_manual_refund_amount(
-        order, Mock(amount=current_refund_amount)
+        order, payment_information, refund_data
     )
     # then
     assert refund_amount == expected_refund_amount

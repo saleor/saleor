@@ -117,8 +117,8 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
-            fulfillment_lines_to_refund=[],
+            refund_shipping_costs=True,
+            refund_amount_is_automatically_calculated=False,
         ),
     )
 
@@ -317,7 +317,7 @@ def test_fulfillment_return_products_order_lines(
                     variant=line_to_return.variant,
                 ),
             ],
-            fulfillment_lines_to_refund=[],
+            refund_shipping_costs=True,
         ),
     )
 
@@ -484,7 +484,7 @@ def test_fulfillment_return_products_order_lines_custom_amount(
                     variant=line_to_return.variant,
                 )
             ],
-            fulfillment_lines_to_refund=[],
+            refund_amount_is_automatically_calculated=False,
         ),
     )
 
@@ -612,13 +612,13 @@ def test_fulfillment_return_products_fulfillment_lines(
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=[
                 FulfillmentLineData(
                     line=fulfillment_line_to_return,
                     quantity=quantity_to_return,
                 ),
             ],
+            refund_shipping_costs=True,
         ),
     )
 
@@ -843,10 +843,10 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=[
                 FulfillmentLineData(line=fulfillment_line_to_return, quantity=2)
             ],
+            refund_shipping_costs=True,
         ),
     )
 
@@ -967,6 +967,5 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
                     variant=variant,
                 )
             ],
-            fulfillment_lines_to_refund=[],
         ),
     )

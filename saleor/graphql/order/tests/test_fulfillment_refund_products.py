@@ -164,8 +164,8 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
-            fulfillment_lines_to_refund=[],
+            refund_shipping_costs=True,
+            refund_amount_is_automatically_calculated=False,
         ),
     )
 
@@ -284,7 +284,6 @@ def test_fulfillment_refund_products_order_lines(
                     variant=line_to_refund.variant,
                 )
             ],
-            fulfillment_lines_to_refund=[],
         ),
     )
 
@@ -395,7 +394,6 @@ def test_fulfillment_refund_products_fulfillment_lines(
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 2,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=[
                 FulfillmentLineData(
                     line=fulfillment_line_to_refund,
@@ -458,7 +456,6 @@ def test_fulfillment_refund_products_waiting_fulfillment_lines(
         amount=fulfillment_line_to_refund.order_line.unit_price_gross_amount * 3,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=[
                 FulfillmentLineData(
                     line=fulfillment_line_to_refund,
@@ -630,10 +627,10 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=[
                 FulfillmentLineData(line=fulfillment_line_to_refund, quantity=2)
             ],
+            refund_shipping_costs=True,
         ),
     )
 
@@ -685,7 +682,7 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
                     line=line_to_refund, quantity=2, variant=line_to_refund.variant
                 )
             ],
-            fulfillment_lines_to_refund=[],
+            refund_shipping_costs=True,
         ),
     )
 
@@ -739,13 +736,13 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
         amount=amount_to_refund,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=[
                 FulfillmentLineData(
                     line=fulfillment_line_to_refund,
                     quantity=2,
                 )
             ],
+            refund_amount_is_automatically_calculated=False,
         ),
     )
 
@@ -796,7 +793,7 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
                     line=line_to_refund, quantity=2, variant=line_to_refund.variant
                 )
             ],
-            fulfillment_lines_to_refund=[],
+            refund_amount_is_automatically_calculated=False,
         ),
     )
 

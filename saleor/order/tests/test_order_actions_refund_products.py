@@ -76,7 +76,7 @@ def test_create_refund_fulfillment_only_order_lines(
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=order_refund_lines, fulfillment_lines_to_refund=[]
+            order_lines_to_refund=order_refund_lines,
         ),
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
@@ -137,7 +137,8 @@ def test_create_refund_fulfillment_included_shipping_costs(
         amount=amount,
         channel_slug=order_with_lines.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=order_refund_lines, fulfillment_lines_to_refund=[]
+            order_lines_to_refund=order_refund_lines,
+            refund_shipping_costs=True,
         ),
     )
     mocked_order_updated.assert_called_once_with(order_with_lines)
@@ -191,7 +192,6 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=fulfillment_refund_lines,
         ),
     )
@@ -248,8 +248,8 @@ def test_create_refund_fulfillment_custom_amount(
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
         refund_data=RefundData(
-            order_lines_to_refund=[],
             fulfillment_lines_to_refund=fulfillment_refund_lines,
+            refund_amount_is_automatically_calculated=False,
         ),
     )
     mocked_order_updated.assert_called_once_with(fulfilled_order)

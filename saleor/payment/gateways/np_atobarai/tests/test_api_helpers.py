@@ -5,7 +5,7 @@ from unittest.mock import DEFAULT, Mock, patch, sentinel
 import pytest
 from posuto import Posuto
 
-from ....interface import AddressData
+from ....interface import AddressData, RefundData
 from ....utils import price_to_minor_unit
 from .. import api_helpers, errors
 from ..api_helpers import get_goods, get_goods_with_refunds
@@ -215,9 +215,14 @@ def test_get_goods_with_refunds(
     # given
     config.sku_as_name = sku_as_name
     np_payment_data.amount = refund_amount
+    np_payment_data.refund_data = RefundData(
+        refund_amount_is_automatically_calculated=False
+    )
 
     # when
-    goods = get_goods_with_refunds(config, payment_dummy, np_payment_data)
+    goods, billed_amount = get_goods_with_refunds(
+        config, payment_dummy, np_payment_data
+    )
 
     # then
     assert (
@@ -255,4 +260,12 @@ def test_get_goods_with_refunds(
             },
         ]
         + discount_goods
+    )
+    manual_refund_amount = refund_amount or Decimal("0.00")
+    assert (
+        billed_amount
+        == sum(line.amount * line.quantity for line in np_payment_data.lines_data.lines)
+        + np_payment_data.lines_data.voucher_amount
+        + np_payment_data.lines_data.shipping_amount
+        - manual_refund_amount
     )
