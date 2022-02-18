@@ -36,6 +36,9 @@ from ...core.types.common import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...warehouse.dataloaders import (
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
+)
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
@@ -691,8 +694,11 @@ class ProductVariantStocksCreate(BaseMutation):
                     lambda: manager.product_variant_back_in_stock(stock)
                 )
 
-        variant = ChannelContext(node=variant, channel_slug=None)
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -764,6 +770,10 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             manager = info.context.plugins
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
+
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
@@ -827,13 +837,16 @@ class ProductVariantStocksDelete(BaseMutation):
             product_variant=variant, warehouse__pk__in=warehouses_pks
         )
 
-        variant = ChannelContext(node=variant, channel_slug=None)
-
         for stock in stocks_to_delete:
             transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
 
         stocks_to_delete.delete()
 
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
 
