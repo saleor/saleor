@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import requests
 from django.utils import timezone
@@ -175,40 +175,55 @@ def get_goods_with_refunds(
     config: "ApiConfig",
     payment: Payment,
     payment_information: PaymentData,
-) -> List[dict]:
+) -> Tuple[List[dict], Decimal]:
     """Combine PaymentLinesData and RefundData into NP Atobarai's goods list.
 
     Used for payment updates.
     Returns current state of order lines after refunds and total order amount.
     """
     goods_lines = []
-    refund_data = payment_information.refund_data or RefundData(
-        order_lines_to_refund=[],
-        fulfillment_lines_to_refund=[],
-    )
+    if not payment_information.refund_data:
+        payment_information.refund_data = RefundData(
+            order_lines_to_refund=[],
+            fulfillment_lines_to_refund=[],
+        )
 
     order = payment.order
     if not order:
         raise PaymentError("Cannot refund payment without order.")
 
-    refunded_lines = create_refunded_lines(order, refund_data)
+    print(payment_information.amount)
+
+    refunded_lines = create_refunded_lines(order, payment_information)
     refunded_manual_amount = calculate_manual_refund_amount(order, payment_information)
 
+    billed_amount = Decimal("0.00")
     for line in payment_information.lines_data.lines:
         quantity = line.quantity
         refunded_quantity = refunded_lines.get(line.variant_id)
         if refunded_quantity:
             quantity -= refunded_quantity
 
-        goods_lines.append(
-            {
-                "goods_name": _get_goods_name(line, config),
-                "goods_price": format_price(line.amount, payment_information.currency),
-                "quantity": quantity,
-            }
-        )
+        if quantity:
+            goods_lines.append(
+                {
+                    "goods_name": _get_goods_name(line, config),
+                    "goods_price": format_price(
+                        line.amount, payment_information.currency
+                    ),
+                    "quantity": quantity,
+                }
+            )
+            billed_amount += line.amount * quantity
+
+    # if there are no products in goods lines,
+    # do not calculate shipping/voucher/manual refund
+    if not goods_lines:
+        return [], Decimal("0.00")
 
     goods_lines.extend(_get_voucher_and_shipping_goods(config, payment_information))
+    billed_amount += payment_information.lines_data.shipping_amount
+    billed_amount += payment_information.lines_data.voucher_amount
 
     if refunded_manual_amount:
         goods_lines.append(
@@ -220,8 +235,13 @@ def get_goods_with_refunds(
                 "quantity": 1,
             }
         )
+        billed_amount -= refunded_manual_amount
 
-    return goods_lines
+    for line in goods_lines:
+        print(line)
+    print(billed_amount)
+
+    return goods_lines, billed_amount
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:

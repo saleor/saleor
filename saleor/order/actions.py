@@ -1448,6 +1448,8 @@ def _process_refund(
     refund_data = RefundData(
         order_lines_to_refund=order_lines_to_refund,
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+        refund_shipping_costs=refund_shipping_costs,
+        amount=amount,
     )
     if amount is None:
         amount = _calculate_refund_amount(

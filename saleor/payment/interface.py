@@ -88,8 +88,10 @@ class PaymentLinesData:
 
 @dataclass
 class RefundData:
-    order_lines_to_refund: List[OrderLineInfo]
-    fulfillment_lines_to_refund: List[FulfillmentLineData]
+    order_lines_to_refund: List[OrderLineInfo] = field(default_factory=list)
+    fulfillment_lines_to_refund: List[FulfillmentLineData] = field(default_factory=list)
+    refund_shipping_costs: bool = False
+    amount: Optional[Decimal] = None
 
 
 @dataclass
