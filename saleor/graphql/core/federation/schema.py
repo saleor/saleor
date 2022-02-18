@@ -70,6 +70,28 @@ def build_federated_schema(query=None, mutation=None, types=None):
     return schema
 
 
+def create_entity_type_resolver(schema):
+    """Create type resolver aware of ChannelContext on _Entity union."""
+
+    def resolve_entity_type(instance, info):
+        # Use new strategy to resolve GraphQL Type for `ObjectType`
+        if isinstance(instance, ChannelContext):
+            model = type(instance.node)
+        else:
+            model = type(instance)
+
+        model_type = schema.get_type(model._meta.object_name)
+        if model_type is None:
+            raise ValueError(
+                f"GraphQL type for model {model} could not be found. "
+                "This is caused by federated type missing get_model method."
+            )
+
+        return model_type
+
+    return resolve_entity_type
+
+
 def resolve_entities(_, info, *, representations):
     max_representations = settings.FEDERATED_QUERY_MAX_ENTITIES
     if max_representations and len(representations) > max_representations:
@@ -108,28 +130,6 @@ def resolve_entities(_, info, *, representations):
         entities.extend(resolver(batch, info))
 
     return entities
-
-
-def create_entity_type_resolver(schema):
-    """Create type resolver aware of ChannelContext on _Entity union."""
-
-    def resolve_entity_type(instance, info):
-        # Use new strategy to resolve GraphQL Type for `ObjectType`
-        if isinstance(instance, ChannelContext):
-            model = type(instance.node)
-        else:
-            model = type(instance)
-
-        model_type = schema.get_type(model._meta.object_name)
-        if model_type is None:
-            raise ValueError(
-                f"GraphQL type for model {model} could not be found. "
-                "This is caused by federated type missing get_model method."
-            )
-
-        return model_type
-
-    return resolve_entity_type
 
 
 def create_service_sdl_resolver(schema):
