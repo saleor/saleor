@@ -1202,7 +1202,7 @@ class PluginsManager(PaymentInterface):
 
     def perform_mutation(
         self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
-    ) -> Optional[ExecutionResult]:  # TODO: check whether we can include GraphQLError
+    ) -> Optional[ExecutionResult]:
         """Invoke before each mutation is executed.
 
         This allows to trigger specific logic before the mutation is executed
@@ -1211,7 +1211,7 @@ class PluginsManager(PaymentInterface):
         Returns one of:
             - null if the execution shall continue
             - graphql.GraphQLError
-            - a supported GraphQL response object
+            - graphql.execution.ExecutionResult
         """
         return self.__run_method_on_plugins(
             "perform_mutation",
