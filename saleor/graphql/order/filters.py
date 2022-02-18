@@ -1,15 +1,19 @@
 import django_filters
-from django.db.models import Exists, IntegerField, OuterRef, Q, Sum
+from django.db.models import Exists, IntegerField, OuterRef, Q
 from django.db.models.functions import Cast
 from django.utils import timezone
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...product.models import ProductVariant
-from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
@@ -44,9 +48,6 @@ def filter_status(qs, _, value):
         query_objects |= qs.filter(status__in=value)
 
     if OrderStatusFilter.READY_TO_FULFILL in value:
-        # to use & between queries both of them need to have applied the same
-        # annotate
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:

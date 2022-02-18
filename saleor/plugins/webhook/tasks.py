@@ -94,7 +94,7 @@ def trigger_webhooks_async(data, event_type, webhooks):
 
 
 def trigger_webhook_sync(
-    event_type: str, data: str, app: "App"
+    event_type: str, data: str, app: "App", timeout=None
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
@@ -109,7 +109,10 @@ def trigger_webhook_sync(
     if not webhooks:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
-    return send_webhook_request_sync(app.name, delivery)
+    kwargs = {}
+    if timeout:
+        kwargs = {"timeout": timeout}
+    return send_webhook_request_sync(app.name, delivery, **kwargs)
 
 
 def send_webhook_using_http(
@@ -304,7 +307,9 @@ def send_webhook_request_async(self, event_delivery_id):
     clear_successful_delivery(delivery)
 
 
-def send_webhook_request_sync(app_name, delivery) -> Optional[Dict[Any, Any]]:
+def send_webhook_request_sync(
+    app_name, delivery, timeout=WEBHOOK_SYNC_TIMEOUT
+) -> Optional[Dict[Any, Any]]:
     event_payload = delivery.payload
     data = event_payload.payload
     webhook = delivery.webhook
@@ -336,7 +341,7 @@ def send_webhook_request_sync(app_name, delivery) -> Optional[Dict[Any, Any]]:
                 domain,
                 signature,
                 delivery.event_type,
-                timeout=WEBHOOK_SYNC_TIMEOUT,
+                timeout=timeout,
             )
             response_data = json.loads(response.content)
     except RequestException as e:

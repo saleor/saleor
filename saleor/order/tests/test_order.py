@@ -21,6 +21,7 @@ from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
+from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
@@ -482,10 +483,16 @@ def test_order_queryset_to_ship(settings, channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
     orders_to_ship = [
         Order.objects.create(
-            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.UNFULFILLED,
+            total=total,
+            total_paid_amount=total.gross.amount,
+            channel=channel_USD,
         ),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.PARTIALLY_FULFILLED,
+            total=total,
+            total_paid_amount=total.gross.amount,
+            channel=channel_USD,
         ),
     ]
     for order in orders_to_ship:
@@ -1296,7 +1303,11 @@ def test_available_collection_points_for_preorders_variants_in_order(
     api_client, staff_api_client, order_with_preorder_lines, permission_manage_orders
 ):
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").values("name")
+        Warehouse.objects.for_country("US")
+        .exclude(
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        )
+        .values("name")
     )
     response = staff_api_client.post_graphql(
         GET_ORDER_AVAILABLE_COLLECTION_POINTS,
@@ -1317,10 +1328,15 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
     staff_api_client,
     order_with_preorder_lines,
     permission_manage_orders,
-    warehouse,
 ):
+    expected_collection_points = list(
+        Warehouse.objects.for_country("US")
+        .exclude(
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        )
+        .values("name")
+    )
 
-    expected_collection_points = [{"name": warehouse.name}]
     response = staff_api_client.post_graphql(
         GET_ORDER_AVAILABLE_COLLECTION_POINTS,
         variables={

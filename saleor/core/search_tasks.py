@@ -63,9 +63,12 @@ def set_order_search_document_values(total_count, updated_count):
 
 @app.task
 def set_product_search_document_values(total_count, updated_count):
+    # set lower batch size as it was crashing for products with
+    # lots of attributes because out of memory issues
+    batch_size = 500
     qs = Product.objects.filter(search_document="").prefetch_related(
         *PRODUCT_FIELDS_TO_PREFETCH
-    )[:BATCH_SIZE]
+    )[:batch_size]
     if not qs:
         task_logger.info("No products to update.")
         return

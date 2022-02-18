@@ -175,7 +175,7 @@ def test_get_valid_shipping_methods_for_order(order_line_with_one_allocation, ad
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all()
+        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
     )
 
     # then
@@ -197,7 +197,7 @@ def test_get_valid_shipping_methods_for_order_no_channel_shipping_zones(
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all()
+        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
     )
 
     # then
@@ -216,7 +216,7 @@ def test_get_valid_shipping_methods_for_order_no_shipping_address(
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all()
+        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
     )
 
     # then
@@ -237,7 +237,7 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
     # when
     valid_shipping_methods = get_valid_shipping_methods_for_order(
-        order, order.channel.shipping_method_listings.all()
+        order, order.channel.shipping_method_listings.all(), get_plugins_manager()
     )
 
     # then

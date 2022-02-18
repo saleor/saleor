@@ -27,7 +27,10 @@ from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ..shipping.utils import convert_to_shipping_method_data
+from ..shipping.utils import (
+    convert_to_shipping_method_data,
+    initialize_shipping_method_active_status,
+)
 from ..warehouse.management import (
     decrease_allocations,
     get_order_lines_with_track_inventory,
@@ -653,7 +656,9 @@ def sum_order_totals(qs, currency_code):
 
 
 def get_valid_shipping_methods_for_order(
-    order: Order, shipping_channel_listings: Iterable["ShippingMethodChannelListing"]
+    order: Order,
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
+    manager: "PluginsManager",
 ) -> List[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic.
 
@@ -683,6 +688,9 @@ def get_valid_shipping_methods_for_order(
         shipping_method_data = convert_to_shipping_method_data(method, listing)
         if shipping_method_data:
             valid_methods.append(shipping_method_data)
+
+    excluded_methods = manager.excluded_shipping_methods_for_order(order, valid_methods)
+    initialize_shipping_method_active_status(valid_methods, excluded_methods)
 
     return valid_methods
 
