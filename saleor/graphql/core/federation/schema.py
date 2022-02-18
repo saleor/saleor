@@ -70,12 +70,6 @@ def build_federated_schema(query=None, mutation=None, types=None):
     return schema
 
 
-def set_entity_resolver(schema):
-    """Set type resolver aware of ChannelContext on _Entity union."""
-    entity = schema.get_type("Query")
-    entity.fields["_entities"].resolver = resolve_entities
-
-
 def resolve_entities(_, info, *, representations):
     max_representations = settings.FEDERATED_QUERY_MAX_ENTITIES
     if max_representations and len(representations) > max_representations:
