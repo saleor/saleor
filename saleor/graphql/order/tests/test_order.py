@@ -37,7 +37,8 @@ from ....order.search import (
 )
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
-from ....plugins.manager import PluginsManager
+from ....plugins.base_plugin import ExcludedShippingMethod
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
@@ -3120,14 +3121,14 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
 
 def test_validate_draft_order(draft_order):
     # should not raise any errors
-    assert validate_draft_order(draft_order, "US") is None
+    assert validate_draft_order(draft_order, "US", get_plugins_manager()) is None
 
 
 def test_validate_draft_order_without_sku(draft_order):
     ProductVariant.objects.update(sku=None)
     draft_order.lines.update(product_sku=None)
     # should not raise any errors
-    assert validate_draft_order(draft_order, "US") is None
+    assert validate_draft_order(draft_order, "US", get_plugins_manager()) is None
 
 
 def test_validate_draft_order_wrong_shipping(draft_order):
@@ -3137,7 +3138,7 @@ def test_validate_draft_order_wrong_shipping(draft_order):
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Shipping method is not valid for chosen shipping address"
     assert e.value.error_dict["shipping"][0].message == msg
 
@@ -3145,7 +3146,7 @@ def test_validate_draft_order_wrong_shipping(draft_order):
 def test_validate_draft_order_no_order_lines(order, shipping_method):
     order.shipping_method = shipping_method
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Could not create order without any products."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -3159,7 +3160,7 @@ def test_validate_draft_order_non_existing_variant(draft_order):
     assert line.variant is None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Could not create orders with non-existing products."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -3174,7 +3175,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Can't finalize draft with unpublished product."
     error = e.value.error_dict["lines"][0]
 
@@ -3190,7 +3191,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Can't finalize draft with product unavailable for purchase."
     error = e.value.error_dict["lines"][0]
 
@@ -3210,7 +3211,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Can't finalize draft with product unavailable for purchase."
     error = e.value.error_dict["lines"][0]
 
@@ -3228,7 +3229,7 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
     stock.save(update_fields=["quantity"])
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Insufficient product stock: SKU_AA"
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -3238,7 +3239,7 @@ def test_validate_draft_order_no_shipping_address(draft_order):
     order.shipping_address = None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no shipping address."
     assert error.code == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
@@ -3249,7 +3250,7 @@ def test_validate_draft_order_no_billing_address(draft_order):
     order.billing_address = None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no billing address."
     assert error.code == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
@@ -3260,7 +3261,7 @@ def test_validate_draft_order_no_shipping_method(draft_order):
     order.shipping_method = None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     error = e.value.error_dict["shipping"][0]
     assert error.message == "Shipping method is required."
     assert error.code == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
@@ -3272,7 +3273,7 @@ def test_validate_draft_order_no_shipping_method_shipping_not_required(draft_ord
     required_mock = Mock(return_value=False)
     order.is_shipping_required = required_mock
 
-    assert validate_draft_order(order, "US") is None
+    assert validate_draft_order(order, "US", get_plugins_manager()) is None
 
 
 def test_validate_draft_order_no_shipping_address_no_method_shipping_not_required(
@@ -3284,7 +3285,7 @@ def test_validate_draft_order_no_shipping_address_no_method_shipping_not_require
     required_mock = Mock(return_value=False)
     order.is_shipping_required = required_mock
 
-    assert validate_draft_order(order, "US") is None
+    assert validate_draft_order(order, "US", get_plugins_manager()) is None
 
 
 DRAFT_ORDER_COMPLETE_MUTATION = """
@@ -3293,6 +3294,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
             errors {
                 field
                 code
+                message
                 variants
             }
             order {
@@ -3642,6 +3644,69 @@ def test_draft_order_complete_not_available_shipping_method(
         OrderErrorCode.INSUFFICIENT_STOCK.name,
     }
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_draft_order_complete_with_excluded_shipping_method(
+    mocked_webhook,
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
+    ]
+    order = draft_order
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = shipping_method
+    order.save()
+    query = DRAFT_ORDER_COMPLETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert (
+        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["errors"][0]["field"] == "shipping"
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_draft_order_complete_with_not_excluded_shipping_method(
+    mocked_webhook,
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    other_shipping_method_id = "1337"
+    assert other_shipping_method_id != shipping_method.id
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(other_shipping_method_id, webhook_reason)
+    ]
+    order = draft_order
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = shipping_method
+    order.save()
+    query = DRAFT_ORDER_COMPLETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["errors"]) == 0
 
 
 def test_draft_order_complete_out_of_stock_variant(

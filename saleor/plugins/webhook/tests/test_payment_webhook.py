@@ -14,7 +14,6 @@ from ....payment import PaymentError, TransactionKind
 from ....payment.utils import create_payment_information
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
-from ...manager import get_plugins_manager
 from ..tasks import send_webhook_request_sync, trigger_webhook_sync
 from ..utils import (
     parse_list_payment_gateways_response,
@@ -31,16 +30,6 @@ def payment_invalid_app(payment_dummy):
     payment_dummy.gateway = gateway
     payment_dummy.save()
     return payment_dummy
-
-
-@pytest.fixture
-def webhook_plugin(settings):
-    def factory():
-        settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-        manager = get_plugins_manager()
-        return manager.global_plugins[0]
-
-    return factory
 
 
 WebhookTestData = namedtuple("WebhookTestData", "secret, event_type, data, message")

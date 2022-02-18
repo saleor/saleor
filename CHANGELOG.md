@@ -6,6 +6,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## Breaking
 
+- Remove `graphene-django` dependency - #9170 by @rafalp
+
+
 ## Other
 
 - Extend app by `AppExtension` - #7701 by @korycins

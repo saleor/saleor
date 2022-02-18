@@ -20,7 +20,10 @@ from ..discount import DiscountInfo, VoucherType
 from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ..shipping.utils import convert_to_shipping_method_data
+from ..shipping.utils import (
+    convert_to_shipping_method_data,
+    initialize_shipping_method_active_status,
+)
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 
@@ -522,8 +525,10 @@ def update_delivery_method_lists_for_checkout_info(
     Availability of shipping methods according to plugins is indicated
     by the `active` field.
     """
-    checkout_info.all_shipping_methods = SimpleLazyObject(
-        lambda: list(
+
+    def _resolve_all_shipping_methods():
+        # Fetch all shipping method from all sources, including sync webhooks
+        all_methods = list(
             itertools.chain(
                 get_valid_internal_shipping_method_list_for_checkout_info(
                     checkout_info,
@@ -538,6 +543,15 @@ def update_delivery_method_lists_for_checkout_info(
                 ),
             )
         )
+        # Filter shipping methods using sync webhooks
+        excluded_methods = manager.excluded_shipping_methods_for_checkout(
+            checkout_info.checkout, all_methods
+        )
+        initialize_shipping_method_active_status(all_methods, excluded_methods)
+        return all_methods
+
+    checkout_info.all_shipping_methods = SimpleLazyObject(
+        _resolve_all_shipping_methods
     )  # type: ignore
     checkout_info.valid_pick_up_points = SimpleLazyObject(
         lambda: (
