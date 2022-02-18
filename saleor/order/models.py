@@ -178,7 +178,7 @@ class Order(ModelWithMetadata):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    token = models.CharField(max_length=36, unique=True, blank=True)
+    token = models.UUIDField(unique=True, default=uuid4)
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
 
