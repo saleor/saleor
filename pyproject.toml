@@ -66,6 +66,7 @@ documentation = "https://docs.saleor.io/"
   django-celery-beat = "^2.2.1"
   posuto = "^2021.10.0"
   cryptography = "^36.0.0"
+  graphene = "<3.0"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
