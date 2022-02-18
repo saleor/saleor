@@ -515,7 +515,6 @@ def mark_order_as_paid(
     )
 
     transaction.on_commit(lambda: manager.order_fully_paid(order))
-
     transaction.on_commit(lambda: manager.order_updated(order))
 
     order.update_total_paid()
