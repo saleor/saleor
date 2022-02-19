@@ -466,15 +466,20 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
-    manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ) -> List["ShippingMethodData"]:
+    from . import base_calculations
     from .utils import get_valid_internal_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, discounts
+
+    subtotal = base_calculations.base_checkout_lines_total(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+        discounts,
     )
+
     # if a voucher is applied to shipping, we don't want to subtract the discount amount
     # as some methods based on shipping price may become unavailable,
     # for example, method on which the discount was applied
@@ -483,6 +488,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     )
     if not is_shipping_voucher:
         subtotal -= checkout_info.checkout.discount
+
     valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
         checkout_info,
         lines,
@@ -535,7 +541,6 @@ def update_delivery_method_lists_for_checkout_info(
                     shipping_address,
                     lines,
                     discounts,
-                    manager,
                     shipping_channel_listings,
                 ),
                 get_valid_external_shipping_method_list_for_checkout_info(
