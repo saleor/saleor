@@ -9,6 +9,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
   - Use `token` instead
 - Remove `graphene-django` dependency - #9170 by @rafalp
+- Don't run plugins when calculating checkout's total price for available shipping methods resolution - #9121 by @rafalp
+  - Use either net or gross price depending on store configuration.
 
 ## Other
 
@@ -52,6 +54,7 @@ All notable, unreleased changes to this project will be documented in this file.
 `CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
+- Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
 
 
 # 3.0.0
