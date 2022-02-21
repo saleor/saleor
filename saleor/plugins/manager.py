@@ -20,7 +20,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from graphene import Mutation
-from graphql import ResolveInfo
+from graphql import GraphQLError, ResolveInfo
 from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 
@@ -1202,7 +1202,7 @@ class PluginsManager(PaymentInterface):
 
     def perform_mutation(
         self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
-    ) -> Optional[ExecutionResult]:
+    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
         """Invoke before each mutation is executed.
 
         This allows to trigger specific logic before the mutation is executed
