@@ -151,14 +151,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.21.0"
+version = "1.21.3"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.24.0,<1.25.0"
+botocore = ">=1.24.3,<1.25.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -167,7 +167,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.24.0"
+version = "1.24.3"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -2770,8 +2770,8 @@ python-versions = "*"
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "ec299ffb4d5d0d43adbc157c3311d9b6928d942fa9c73b086ece66a466e8f6f5"
+python-versions = "~3.9"
+content-hash = "d188ff07ce63c932a10ee96e065c8cf8f84a903a7fa6994069dc925cc8d1754b"
 
 [metadata.files]
 adyen = [
@@ -2826,12 +2826,12 @@ black = [
     {file = "black-21.12b0.tar.gz", hash = "sha256:77b80f693a569e2e527958459634f18df9b0ba2625ba4e0c2d5da5be42e6f2b3"},
 ]
 boto3 = [
-    {file = "boto3-1.21.0-py3-none-any.whl", hash = "sha256:25a76b7b530a124d9e526c62ff2b7da5782315195badb9a6273714898d689820"},
-    {file = "boto3-1.21.0.tar.gz", hash = "sha256:cc40566dec3f48611a82ace07b29489848e9bd35a51e3e992d1902a3c037e9fc"},
+    {file = "boto3-1.21.3-py3-none-any.whl", hash = "sha256:ab4ab2392f7520c01ce6e40e6df4b5b65a575ee6bd9fb78db0239cb2a06de557"},
+    {file = "boto3-1.21.3.tar.gz", hash = "sha256:aa00024cc1f3d24b2318dae4d5dbaa173c8da8bc6f9d12f0b2e67467ec460989"},
 ]
 botocore = [
-    {file = "botocore-1.24.0-py3-none-any.whl", hash = "sha256:2bf4463513bd89817aa5d7341ed81c7c76d906e6c70672c8762d64ecf3275771"},
-    {file = "botocore-1.24.0.tar.gz", hash = "sha256:47723cef6112f451630bf2446cfd6be2782cc1d6b1b92acb12ff00797588c5f3"},
+    {file = "botocore-1.24.3-py3-none-any.whl", hash = "sha256:ca33f747c67cd0e109fab9398d39c38c1a2df352c1e1f9823839df8f1db58046"},
+    {file = "botocore-1.24.3.tar.gz", hash = "sha256:979e5c5e826ff115f4903fe9887b191f3809229f694a747f910e1221fe63efc7"},
 ]
 braintree = [
     {file = "braintree-4.13.1-py2.py3-none-any.whl", hash = "sha256:10f88c894f190f9d2d4e5b435733aca607926a8f365b569c0630b62dc1fb64fb"},
