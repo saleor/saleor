@@ -184,8 +184,8 @@ type AddressValidationData {
   countryName: String
   addressFormat: String
   addressLatinFormat: String
-  allowedFields: [String]
-  requiredFields: [String]
+  allowedFields: [String!]!
+  requiredFields: [String!]!
   upperFields: [String]
   countryAreaType: String
   countryAreaChoices: [ChoiceValue]
