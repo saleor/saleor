@@ -124,16 +124,6 @@ def item_contains_multiple_proper_public_metadata(
     )
 
 
-def invalid_id_graphql_error_raised(errors_from_respone):
-    return all(
-        [
-            len(errors_from_respone) == 1,
-            errors_from_respone[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name,
-            errors_from_respone[0]["field"] == "id",
-        ]
-    )
-
-
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_base_metadata_mutation_handles_errors_from_extra_action(
     mock_checkout_updated, api_client, checkout
@@ -142,10 +132,11 @@ def test_base_metadata_mutation_handles_errors_from_extra_action(
     error_field = "field"
     error_msg = "boom"
     mock_checkout_updated.side_effect = ValidationError({error_field: error_msg})
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, checkout.token, "Checkout"
+        api_client, None, checkout_id, "Checkout"
     )
 
     # then
@@ -396,8 +387,9 @@ def test_add_public_metadata_for_order_by_id(api_client, order):
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], order, order_id
+    )
 
 
 def test_add_public_metadata_for_order_by_token(api_client, order):
@@ -425,8 +417,9 @@ def test_add_public_metadata_for_draft_order_by_id(api_client, draft_order):
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
+    )
 
 
 def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
@@ -1172,8 +1165,9 @@ def test_delete_public_metadata_for_order_by_id(api_client, order):
     )
 
     # then
-    errors = response["data"]["deleteMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], order, order_id
+    )
 
 
 def test_delete_public_metadata_for_order_by_token(api_client, order):
@@ -1205,10 +1199,9 @@ def test_delete_public_metadata_for_draft_order_by_id(api_client, draft_order):
     )
 
     # then
-    errors = response["data"]["deleteMetadata"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == MetadataErrorCode.GRAPHQL_ERROR.name
-    assert errors[0]["field"] == "id"
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
+    )
 
 
 def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order):
@@ -1600,7 +1593,7 @@ def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, checkout.token, "Checkout", key="Not-exits"
+        api_client, None, checkout_id, "Checkout", key="Not-exits"
     )
 
     # then
@@ -1619,7 +1612,7 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, checkout.token, "Checkout", key="to_clear"
+        api_client, None, checkout_id, "Checkout", key="to_clear"
     )
 
     # then
@@ -1979,8 +1972,9 @@ def test_add_private_metadata_for_order_by_id(
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], order, order_id
+    )
 
 
 def test_add_private_metadata_for_order_by_token(
@@ -2012,8 +2006,9 @@ def test_add_private_metadata_for_draft_order_by_id(
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
+    )
 
 
 def test_add_private_metadata_for_draft_order_by_token(
@@ -2828,8 +2823,9 @@ def test_delete_private_metadata_for_order_by_id(
     )
 
     # then
-    errors = response["data"]["deletePrivateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], order, order_id
+    )
 
 
 def test_delete_private_metadata_for_order_by_token(
@@ -2865,8 +2861,9 @@ def test_delete_private_metadata_for_draft_order_by_id(
     )
 
     # then
-    errors = response["data"]["deletePrivateMetadata"]["errors"]
-    assert invalid_id_graphql_error_raised(errors)
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
+    )
 
 
 def test_delete_private_metadata_for_draft_order_by_token(
