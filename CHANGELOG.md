@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
     and `CheckoutPricesData` instead of `PricesData`
 - Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
+- Limit number of user addresses - #9173 by @IKarbowiak
 
 #### GraphQL Schema
 
