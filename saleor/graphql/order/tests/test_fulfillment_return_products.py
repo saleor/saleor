@@ -5,10 +5,12 @@ import graphene
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
-from ....order import OrderOrigin, OrderStatus
+from ....order import FulfillmentLineData, OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import OrderLineInfo
 from ....order.models import FulfillmentStatus, Order
 from ....payment import ChargeStatus, PaymentError
+from ....payment.interface import RefundData
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -114,6 +116,10 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
         ANY,
         amount=quantize_price(amount_to_refund, fulfilled_order.currency),
         channel_slug=fulfilled_order.channel.slug,
+        refund_data=RefundData(
+            refund_shipping_costs=True,
+            refund_amount_is_automatically_calculated=False,
+        ),
     )
 
 
@@ -299,7 +305,20 @@ def test_fulfillment_return_products_order_lines(
     amount = line_to_return.unit_price_gross_amount * line_quantity_to_return
     amount += order_with_lines.shipping_price_gross_amount
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=order_with_lines.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=order_with_lines.channel.slug,
+        refund_data=RefundData(
+            order_lines_to_refund=[
+                OrderLineInfo(
+                    line=line_to_return,
+                    quantity=line_quantity_to_return,
+                    variant=line_to_return.variant,
+                ),
+            ],
+            refund_shipping_costs=True,
+        ),
     )
 
 
@@ -457,6 +476,16 @@ def test_fulfillment_return_products_order_lines_custom_amount(
         ANY,
         amount=amount_to_refund,
         channel_slug=order_with_lines.channel.slug,
+        refund_data=RefundData(
+            order_lines_to_refund=[
+                OrderLineInfo(
+                    line=line_to_return,
+                    quantity=2,
+                    variant=line_to_return.variant,
+                )
+            ],
+            refund_amount_is_automatically_calculated=False,
+        ),
     )
 
 
@@ -578,7 +607,19 @@ def test_fulfillment_return_products_fulfillment_lines(
     )
     amount += fulfilled_order.shipping_price_gross_amount
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=RefundData(
+            fulfillment_lines_to_refund=[
+                FulfillmentLineData(
+                    line=fulfillment_line_to_return,
+                    quantity=quantity_to_return,
+                ),
+            ],
+            refund_shipping_costs=True,
+        ),
     )
 
 
@@ -797,7 +838,16 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     amount = fulfillment_line_to_return.order_line.unit_price_gross_amount * 2
     amount += fulfilled_order.shipping_price_gross_amount
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=RefundData(
+            fulfillment_lines_to_refund=[
+                FulfillmentLineData(line=fulfillment_line_to_return, quantity=2)
+            ],
+            refund_shipping_costs=True,
+        ),
     )
 
 
@@ -905,5 +955,17 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     amount = order_line.unit_price_gross_amount * 2
     amount = quantize_price(amount, fulfilled_order.currency)
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+        payment_dummy,
+        ANY,
+        amount=amount,
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=RefundData(
+            order_lines_to_refund=[
+                OrderLineInfo(
+                    line=order_line,
+                    quantity=2,
+                    variant=variant,
+                )
+            ],
+        ),
     )

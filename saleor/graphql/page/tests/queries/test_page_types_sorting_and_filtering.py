@@ -1,8 +1,8 @@
 import graphene
 import pytest
 
-from ....page.models import PageType
-from ...tests.utils import get_graphql_content
+from .....page.models import PageType
+from ....tests.utils import get_graphql_content
 
 PAGE_TYPES_QUERY = """
     query PageTypes($filter: PageTypeFilterInput, $sortBy: PageTypeSortingInput) {
