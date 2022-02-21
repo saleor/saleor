@@ -398,6 +398,8 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
+MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
+
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
