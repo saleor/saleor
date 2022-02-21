@@ -1,9 +1,9 @@
 import graphene
 
-from ....attribute.models import AttributeValue
-from ....attribute.utils import associate_attribute_values_to_instance
-from ....page.error_codes import PageErrorCode
-from ...tests.utils import get_graphql_content
+from .....attribute.models import AttributeValue
+from .....attribute.utils import associate_attribute_values_to_instance
+from .....page.error_codes import PageErrorCode
+from ....tests.utils import get_graphql_content
 
 PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION = """
     mutation PageReorderAttributeValues(
