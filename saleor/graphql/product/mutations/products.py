@@ -19,7 +19,7 @@ from ....order import OrderStatus
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
-from ....product import ProductMediaTypes, models
+from ....product import ProductMediaTypes, ProductTypeKind, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.search import (
     update_product_search_document,
@@ -1224,8 +1224,17 @@ class ProductTypeCreate(ModelMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    def clean_product_kind(cls, _instance, data):
+        # Fallback to ProductTypeKind.NORMAL if kind is not provided in the input.
+        # This method can be dropped when we separate inputs for `productTypeCreate`
+        # and `productTypeUpdate` - now they reuse the input class and all fields are
+        # optional, while `kind` is required in the model.
+        return data.get("kind") or ProductTypeKind.NORMAL
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input["kind"] = cls.clean_product_kind(instance, cleaned_input)
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -1300,6 +1309,10 @@ class ProductTypeUpdate(ProductTypeCreate):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def clean_product_kind(cls, instance, data):
+        return data.get("kind", instance.kind)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):

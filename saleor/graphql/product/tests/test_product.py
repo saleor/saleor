@@ -8244,6 +8244,22 @@ def test_product_type_create_mutation(
     assert tax_code == "wine"
 
 
+def test_product_type_create_mutation_optional_kind(
+    staff_api_client, permission_manage_product_types_and_attributes
+):
+    variables = {"name": "Default Kind Test"}
+    response = staff_api_client.post_graphql(
+        PRODUCT_TYPE_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["productTypeCreate"]["productType"]["kind"]
+        == ProductTypeKindEnum.NORMAL.name
+    )
+
+
 def test_create_gift_card_product_type(
     staff_api_client,
     product_type,
@@ -8940,19 +8956,14 @@ def test_update_product_type_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-def test_update_product_type_type(
+def test_update_product_type_kind(
     staff_api_client,
     product_type,
     permission_manage_product_types_and_attributes,
 ):
     query = """
         mutation($id: ID!, $kind: ProductTypeKindEnum) {
-            productTypeUpdate(
-                id: $id
-                input: {
-                    kind: $kind
-                }
-            ) {
+            productTypeUpdate(id: $id, input: { kind: $kind }) {
                 productType{
                     name
                     kind
@@ -8972,13 +8983,53 @@ def test_update_product_type_type(
     variables = {"kind": kind, "id": node_id}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
     errors = data["errors"]
     assert not errors
     assert data["productType"]["kind"] == kind
+
+
+def test_update_product_type_kind_omitted(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+):
+    query = """
+        mutation($id: ID!, $name: String) {
+            productTypeUpdate(id: $id, input: { name: $name }) {
+                productType{
+                    name
+                    kind
+                }
+                errors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    assert product_type.kind == ProductTypeKindEnum.NORMAL.value
+    name = "New name"
+    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {"id": node_id, "name": name}
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeUpdate"]
+    errors = data["errors"]
+    assert not errors
+    assert data["productType"]["kind"] == ProductTypeKindEnum.NORMAL.name
+    assert data["productType"]["name"] == name
 
 
 PRODUCT_TYPE_DELETE_MUTATION = """
