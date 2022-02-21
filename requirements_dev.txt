@@ -127,6 +127,7 @@ phonenumberslite==8.12.43
 pillow==9.0.1; python_version >= "3.7"
 platformdirs==2.5.1; python_version >= "3.7" and python_full_version >= "3.6.2"
 pluggy==1.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
+posuto==2021.10.0
 pre-commit==2.17.0; python_full_version >= "3.6.1"
 prices==1.1.0
 promise==2.3; python_version >= "3.6" and python_version < "4.0"
