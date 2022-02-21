@@ -57,16 +57,6 @@ class BaseMetadataMutation(BaseMutation):
 
         try:
             type_name, _ = from_global_id_or_error(object_id)
-            if type_name == "Order":
-                raise ValidationError(
-                    {
-                        "id": ValidationError(
-                            "Changing order metadata with `Order.id` is forbidden. "
-                            "Use `Order.token` as an identifier instead.",
-                            code=MetadataErrorCode.GRAPHQL_ERROR.value,
-                        )
-                    }
-                )
             # ShippingMethodType represents the ShippingMethod model
             if type_name == "ShippingMethodType":
                 qs = shipping_models.ShippingMethod.objects

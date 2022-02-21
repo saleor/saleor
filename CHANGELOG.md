@@ -6,11 +6,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## Breaking
 
-- Do no allow using `id` for updating checkout and order metadata - #8906 by @IKarbowiak
-  - Use `token` instead
 - Remove `graphene-django` dependency - #9170 by @rafalp
 - Don't run plugins when calculating checkout's total price for available shipping methods resolution - #9121 by @rafalp
   - Use either net or gross price depending on store configuration.
+
 
 ## Other
 
