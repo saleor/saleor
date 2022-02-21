@@ -3,18 +3,6 @@
 from django.db import migrations
 
 
-def populate_orders_updated_at_date_from_events(apps, _schema_editor):
-    Order = apps.get_model("order", "Order")
-
-    for order in Order.objects.filter(updated_at__isnull=True).iterator():
-        last_event = order.events.last()
-        if last_event:
-            order.updated_at = last_event.date
-        else:
-            order.updated_at = order.created
-        order.save(update_fields=["updated_at"])
-
-
 class Migration(migrations.Migration):
     atomic = False
 
@@ -23,8 +11,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(
-            populate_orders_updated_at_date_from_events,
-            migrations.RunPython.noop,
+        migrations.RunSQL(
+            """
+            UPDATE order_order
+            SET updated_at = (
+                SELECT MAX (order_orderevent.date)
+                FROM order_orderevent
+                WHERE order_orderevent.order_id = order_order.id
+            )
+            WHERE updated_at IS NULL;
+            """,
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+        migrations.RunSQL(
+            """
+            UPDATE order_order
+            SET updated_at = created
+            WHERE updated_at IS NULL;
+            """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]
