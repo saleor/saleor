@@ -212,11 +212,6 @@ def get_goods_with_refunds(
             )
             billed_amount += line.amount * quantity
 
-    # if there are no products in goods lines,
-    # do not calculate shipping/voucher/manual refund
-    if not goods_lines:
-        return [], Decimal("0.00")
-
     goods_lines.extend(_get_voucher_and_shipping_goods(config, payment_information))
     billed_amount += payment_information.lines_data.shipping_amount
     billed_amount += payment_information.lines_data.voucher_amount
