@@ -53,6 +53,8 @@ All notable, unreleased changes to this project will be documented in this file.
 `CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
+- Add support for providing shipping methods by Saleor Apps - #7975 by @bogdal:
+  - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook
 - Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
 - Allow fetching unpublished pages by app with manage pages permission - #9181 by @IKarbowiak
 
@@ -87,6 +89,8 @@ unavailable - #8978 by @IKarbowiak
   - Rename checkout interfaces: `CheckoutTaxedPricesData` instead of `TaxedPricesData`
     and `CheckoutPricesData` instead of `PricesData`
 - Sign JWT tokens with RS256 instead of HS256 - #7990 by @korycins
+- Add support for filtering available shipping methods by Saleor Apps - #8399 by @kczan, @stnatic
+  - Introduce `ShippingMethodData` interface as a root object type for ShippingMethod object
 - Limit number of user addresses - #9173 by @IKarbowiak
 
 #### GraphQL Schema
@@ -120,6 +124,10 @@ unavailable - #8978 by @IKarbowiak
   - `ShippingPriceInput` was extended with `description` field
   - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
   - Input field in `shippingPriceTranslate` changed to `ShippingPriceTranslationInput`
+- Split `ShippingMethod` into `ShippingMethod` and `ShippingMethodType` (#8399):
+  - `ShippingMethod` is used to represent methods offered for checkouts and orders
+  - `ShippingMethodType` is used to manage shipping method configurations in Saleor
+  - Deprecate `availableShippingMethods` on `Order` and `Checkout`. Use `shippingMethods` and refer to the `active` field instead
 
 #### Saleor Apps
 
@@ -130,6 +138,7 @@ unavailable - #8978 by @IKarbowiak
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling `ProductVariantCreate` mutation. Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
   - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
+- Added `CHECKOUT_FILTER_SHIPPING_METHODS`, `ORDER_FILTER_SHIPPING_METHODS` sync webhooks - #8399 by @kczan, @stnatic
 
 #### Plugins
 
