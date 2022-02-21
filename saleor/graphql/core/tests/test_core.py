@@ -10,6 +10,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from graphene import InputField
+from micawber import ProviderException, ProviderRegistry
 from PIL import Image
 
 from ....core.utils.validators import get_oembed_data
@@ -402,7 +403,9 @@ def test_get_oembed_data(url, expected_media_type):
         "http://onet.pl/",
     ],
 )
-def test_get_oembed_data_unsupported_media_provider(url):
+@patch.object(ProviderRegistry, "request")
+def test_get_oembed_data_unsupported_media_provider(mocked_provider, url):
+    mocked_provider.side_effect = ProviderException()
     with pytest.raises(
         ValidationError, match="Unsupported media provider or incorrect URL."
     ):

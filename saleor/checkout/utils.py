@@ -483,8 +483,7 @@ def recalculate_checkout_discount(
     applicable.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout_info(checkout_info)
-    if voucher is not None:
+    if voucher := checkout_info.voucher:
         address = checkout_info.shipping_address or checkout_info.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
@@ -492,6 +491,7 @@ def recalculate_checkout_discount(
             )
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
+            checkout_info.voucher = None
         else:
             subtotal = calculations.checkout_subtotal(
                 manager=manager,
@@ -612,6 +612,7 @@ def add_voucher_to_checkout(
             "last_change",
         ]
     )
+    checkout_info.voucher = voucher
 
 
 def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
@@ -624,9 +625,10 @@ def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: s
 
 def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
     """Remove voucher data from checkout by code."""
-    existing_voucher = get_voucher_for_checkout_info(checkout_info)
+    existing_voucher = checkout_info.voucher
     if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout_info.checkout)
+        checkout_info.voucher = None
 
 
 def remove_voucher_from_checkout(checkout: Checkout):

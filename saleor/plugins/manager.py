@@ -30,7 +30,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
-from .base_plugin import ExternalAccessTokens
+from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -56,7 +56,6 @@ if TYPE_CHECKING:
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
-
 
 NotifyEventTypeChoice = str
 
@@ -203,6 +202,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
+        currency = checkout_info.checkout.currency
         default_value = base_calculations.base_checkout_total(
             subtotal=self.calculate_checkout_subtotal(
                 checkout_info, lines, address, discounts
@@ -211,8 +211,15 @@ class PluginsManager(PaymentInterface):
                 checkout_info, lines, address, discounts
             ),
             discount=checkout_info.checkout.discount,
-            currency=checkout_info.checkout.currency,
+            currency=currency,
         )
+
+        if default_value <= zero_taxed_money(currency):
+            return quantize_price(
+                default_value,
+                currency,
+            )
+
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_total",
@@ -223,7 +230,7 @@ class PluginsManager(PaymentInterface):
                 discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
-            checkout_info.checkout.currency,
+            currency,
         )
 
     def calculate_checkout_subtotal(
@@ -276,9 +283,12 @@ class PluginsManager(PaymentInterface):
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.channel_listings.get(
+        channel_listing = order.shipping_method.channel_listings.filter(
             channel_id=order.channel_id
-        ).price
+        ).first()
+        if not channel_listing:
+            return zero_taxed_money(order.currency)
+        shipping_price = channel_listing.price
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
@@ -726,6 +736,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
+    def tracking_number_updated(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "tracking_number_updated",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+        )
+
     def checkout_created(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1161,6 +1180,30 @@ class PluginsManager(PaymentInterface):
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_verify", default_value, data, request
+        )
+
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List["ShippingMethodData"],
+    ) -> List[ExcludedShippingMethod]:
+        return self.__run_method_on_plugins(
+            "excluded_shipping_methods_for_order",
+            [],
+            order,
+            available_shipping_methods,
+        )
+
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List["ShippingMethodData"],
+    ) -> List[ExcludedShippingMethod]:
+        return self.__run_method_on_plugins(
+            "excluded_shipping_methods_for_checkout",
+            [],
+            checkout,
+            available_shipping_methods,
         )
 
 

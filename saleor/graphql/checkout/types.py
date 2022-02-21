@@ -2,16 +2,12 @@ import graphene
 from promise import Promise
 
 from ...checkout import calculations, models
-from ...checkout.utils import (
-    get_external_shipping_id,
-    get_valid_collection_points_for_checkout,
-)
+from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
-from ...shipping.utils import convert_to_shipping_method_data
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -33,16 +29,9 @@ from ..product.dataloaders import (
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-from ..shipping.dataloaders import (
-    ShippingMethodByIdLoader,
-    ShippingMethodChannelListingByChannelSlugLoader,
-)
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
-from ..warehouse.dataloaders import (
-    StocksReservationsByCheckoutTokenLoader,
-    WarehouseByIdLoader,
-)
+from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
 from .dataloaders import (
     CheckoutByTokenLoader,
@@ -179,9 +168,9 @@ class CheckoutLineCountableConnection(CountableConnection):
 class DeliveryMethod(graphene.Union):
     class Meta:
         description = (
-            "Represents a delivery method chosen for the checkout. `Warehouse` "
-            'type is used when checkout is marked as "click and collect" and '
-            "`ShippingMethod` otherwise."
+            f"{ADDED_IN_31} Represents a delivery method chosen for the checkout. "
+            '`Warehouse` type is used when checkout is marked as "click and collect" '
+            "and `ShippingMethod` otherwise."
         )
         types = (Warehouse, ShippingMethod)
 
@@ -315,61 +304,38 @@ class Checkout(ModelObjectType):
 
     @classmethod
     def resolve_shipping_method(cls, root: models.Checkout, info):
-        external_app_shipping_id = get_external_shipping_id(root)
+        def with_checkout_info(checkout_info):
+            delivery_method = checkout_info.delivery_method_info.delivery_method
+            if not delivery_method or not isinstance(
+                delivery_method, ShippingMethodData
+            ):
+                return
+            return delivery_method
 
-        if external_app_shipping_id:
-            shipping_method = info.context.plugins.get_shipping_method(
-                checkout=root,
-                channel_slug=root.channel.slug,
-                shipping_method_id=external_app_shipping_id,
-            )
-            if shipping_method:
-                return shipping_method
-
-        if not root.shipping_method_id:
-            return None
-
-        def with_shipping_method_and_channel(data):
-            shipping_method, channel = data
-
-            def process_listing(listings):
-                for listing in listings:
-                    if listing.shipping_method_id == shipping_method.id:
-                        shipping_method_channel_listing = listing
-                        break
-
-                return convert_to_shipping_method_data(
-                    shipping_method, shipping_method_channel_listing  # type: ignore
-                )
-
-            return (
-                ShippingMethodChannelListingByChannelSlugLoader(info.context)
-                .load(channel.slug)
-                .then(process_listing)
-            )
-
-        shipping_method = ShippingMethodByIdLoader(info.context).load(
-            root.shipping_method_id
-        )
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-
-        return Promise.all([shipping_method, channel]).then(
-            with_shipping_method_and_channel
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(with_checkout_info)
         )
 
     @classmethod
     @traced_resolver
     def resolve_shipping_methods(cls, root: models.Checkout, info):
-        return cls.resolve_available_shipping_methods(root, info)
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+        )
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):
-        external_app_shipping_id = get_external_shipping_id(root)
-        if root.shipping_method_id or external_app_shipping_id:
-            return Checkout.resolve_shipping_method(root, info)
-        if root.collection_point_id:
-            return WarehouseByIdLoader(info.context).load(root.collection_point_id)
-        return None
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(
+                lambda checkout_info: checkout_info.delivery_method_info.delivery_method
+            )
+        )
 
     @staticmethod
     def resolve_quantity(root: models.Checkout, info):
@@ -475,19 +441,10 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-
-        def calculate_available_shipping_methods(data):
-            lines, checkout_info, discounts, channel = data
-            return checkout_info.valid_shipping_methods
-
-        return Promise.all([lines, checkout_info, discounts, channel]).then(
-            calculate_available_shipping_methods
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.valid_shipping_methods)
         )
 
     @staticmethod

@@ -38,6 +38,7 @@ from ....checkout.utils import (
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
+from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
@@ -45,6 +46,7 @@ from ....shipping import models as shipping_models
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
+from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -65,7 +67,7 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     checkout.shipping_address = address
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     delivery_method = convert_to_shipping_method_data(
         shipping_method, shipping_method.channel_listings.first()
@@ -81,7 +83,7 @@ def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
     checkout.shipping_address = address
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
 
@@ -96,7 +98,7 @@ def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     checkout = checkout_with_single_item
     checkout.shipping_address = address
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     is_valid_method = clean_delivery_method(checkout_info, lines, None)
     assert is_valid_method is True
@@ -119,7 +121,7 @@ def test_update_checkout_shipping_method_if_invalid(
     shipping_method.save(update_fields=["shipping_zone"])
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
@@ -209,7 +211,7 @@ def test_checkout_create_with_default_channel(
         get_graphql_content(response)["data"]["checkoutCreate"]
 
     new_checkout = Checkout.objects.first()
-    lines = fetch_checkout_lines(new_checkout)
+    lines, _ = fetch_checkout_lines(new_checkout)
     assert new_checkout.channel == channel_USD
     assert calculate_checkout_quantity(lines) == quantity
 
@@ -241,7 +243,7 @@ def test_checkout_create_with_variant_without_sku(
     get_graphql_content(response)["data"]["checkoutCreate"]
 
     new_checkout = Checkout.objects.first()
-    lines = fetch_checkout_lines(new_checkout)
+    lines, _ = fetch_checkout_lines(new_checkout)
     assert new_checkout.channel == channel_USD
     assert calculate_checkout_quantity(lines) == quantity
     assert lines[0].variant.sku is None
@@ -278,7 +280,6 @@ def test_checkout_create_with_inactive_channel(
 def test_checkout_create_with_zero_quantity(
     api_client, stock, graphql_address_data, channel_USD
 ):
-
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -303,7 +304,6 @@ def test_checkout_create_with_zero_quantity(
 def test_checkout_create_with_unavailable_variant(
     api_client, stock, graphql_address_data, channel_USD
 ):
-
     variant = stock.product_variant
     variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -1910,7 +1910,7 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
     checkout with discounts subtotal is lower than minimal order price."""
     checkout_with_item.shipping_address = address
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     subtotal = calculations.checkout_subtotal(
@@ -1940,6 +1940,52 @@ def test_checkout_shipping_methods_with_price_based_shipping_method_and_discount
 
     shipping_methods = [method["name"] for method in data["availableShippingMethods"]]
     assert shipping_method.name not in shipping_methods
+
+
+def test_checkout_shipping_methods_with_price_based_shipping_and_shipping_discount(
+    api_client,
+    checkout_with_item,
+    address,
+    shipping_method,
+    voucher_shipping_type,
+):
+    """Ensure that price based shipping method is returned when checkout
+    has discount on shipping."""
+    checkout_with_item.shipping_address = address
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+    )
+
+    checkout_with_item.discount_amount = Decimal(5.0)
+    checkout_with_item.voucher_code = voucher_shipping_type.code
+    checkout_with_item.save(
+        update_fields=["shipping_address", "discount_amount", "voucher_code"]
+    )
+
+    shipping_method.name = "Price based"
+    shipping_method.save(update_fields=["name"])
+
+    shipping_channel_listing = shipping_method.channel_listings.get(
+        channel=checkout_with_item.channel
+    )
+    shipping_channel_listing.minimum_order_price_amount = subtotal.gross.amount - 1
+    shipping_channel_listing.save(update_fields=["minimum_order_price_amount"])
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    shipping_methods = [method["name"] for method in data["availableShippingMethods"]]
+    assert shipping_method.name in shipping_methods
 
 
 def test_checkout_available_shipping_methods_shipping_zone_without_channels(
@@ -2078,9 +2124,12 @@ query AvailableCollectionPoints($token: UUID!) {
 def test_available_collection_points_for_preorders_variants_in_checkout(
     api_client, staff_api_client, checkout_with_preorders_only
 ):
-
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").values("name")
+        Warehouse.objects.for_country("US")
+        .exclude(
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        )
+        .values("name")
     )
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
@@ -2099,7 +2148,6 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_check
     checkout_with_preorders_and_regular_variant,
     warehouses_for_cc,
 ):
-
     expected_collection_points = [{"name": warehouses_for_cc[1].name}]
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
@@ -2660,7 +2708,7 @@ def test_checkout_shipping_address_update(
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -2712,7 +2760,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.country == shipping_address["country"]
@@ -2952,6 +3000,32 @@ def test_checkout_shipping_address_update_without_phone_country_prefix(
     assert not data["errors"]
 
 
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_address_update_exclude_shipping_method(
+    mocked_webhook,
+    user_api_client,
+    checkout_with_items_and_shipping,
+    graphql_address_data,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_items_and_shipping
+    shipping_method = checkout.shipping_method
+    assert shipping_method is not None
+    webhook_reason = "hello-there"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    shipping_address = graphql_address_data
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
+
+    user_api_client.post_graphql(MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    checkout.refresh_from_db()
+    assert checkout.shipping_method is None
+
+
 def test_checkout_billing_address_update(
     user_api_client, checkout_with_item, graphql_address_data
 ):
@@ -3080,7 +3154,6 @@ TRANSACTION_CONFIRM_GATEWAY_RESPONSE = GatewayResponse(
     transaction_id="1234",
     error=None,
 )
-
 
 QUERY_CHECKOUT_USER_ID = """
     query getCheckout($token: UUID!) {
@@ -3364,7 +3437,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = calculations.checkout_total(
         manager=manager,
@@ -3457,7 +3530,7 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
@@ -3532,6 +3605,59 @@ def test_checkout_shipping_method_update_external_shipping_method(
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_checkout_shipping_method_update_external_shipping_method_with_tax_plugin(
+    mock_send_request,
+    staff_api_client,
+    address,
+    checkout_with_item,
+    shipping_app,
+    channel_USD,
+    settings,
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save()
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    # Set external shipping method for first time
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    assert not data["errors"]
+
+    # Set external shipping for second time
+    # Without a fix this request results in infinite recursion
+    # between Avalara and Webhooks plugins
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    assert not data["errors"]
+
+
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
 @pytest.mark.parametrize(
     "delivery_method, node_name, attribute_name",
@@ -3556,7 +3682,7 @@ def test_checkout_delivery_method_update(
 
     checkout = checkout_with_item_for_cc
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     shipping_method_data = delivery_method
@@ -3708,6 +3834,43 @@ def test_checkout_delivery_method_with_empty_fields_results_None(
     assert checkout.collection_point is None
 
 
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_method_update_excluded_webhook(
+    mocked_webhook,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    # given
+    webhook_reason = "spanish-inquisition"
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    # then
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
+
+
 # Deprecated
 @patch("saleor.shipping.postal_codes.is_shipping_method_applicable_for_postal_code")
 def test_checkout_shipping_method_update_excluded_postal_code(
@@ -3741,6 +3904,35 @@ def test_checkout_shipping_method_update_excluded_postal_code(
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
     )
+
+
+def test_checkout_delivery_method_update_unavailable_variant(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    checkout_with_item.lines.first().variant.channel_listings.filter(
+        channel=checkout_with_item.channel
+    ).delete()
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    response = staff_api_client.post_graphql(
+        query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
 
 
 @patch("saleor.shipping.postal_codes.is_shipping_method_applicable_for_postal_code")
@@ -3991,7 +4183,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_item)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     manager = get_plugins_manager()
     total = calculations.checkout_total(
@@ -4019,7 +4211,7 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
@@ -4034,7 +4226,7 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
@@ -4052,7 +4244,7 @@ def test_clean_checkout_invalid_shipping_method(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     with pytest.raises(ValidationError) as e:
         clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
@@ -4071,7 +4263,7 @@ def test_clean_checkout_no_billing_address(
     checkout.save()
     payment = checkout.get_last_active_payment()
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     with pytest.raises(ValidationError) as e:
@@ -4090,7 +4282,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.save()
     payment = checkout.get_last_active_payment()
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     with pytest.raises(ValidationError) as e:

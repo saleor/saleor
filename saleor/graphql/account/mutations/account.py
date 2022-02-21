@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from ....account import events as account_events
 from ....account import models, notifications, search, utils
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import remove_the_oldest_user_address_if_address_limit_is_reached
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
 from ....core.tokens import account_delete_token_generator
@@ -315,6 +316,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         return context.user.is_authenticated
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         address_type = data.get("type", None)
         user = info.context.user
@@ -335,6 +337,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         user = info.context.user
+        remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
         info.context.plugins.customer_updated(user)
         user.search_document = search.prepare_user_search_document_value(user)

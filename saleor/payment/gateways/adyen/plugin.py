@@ -2,10 +2,8 @@ import json
 from typing import List, Optional
 from urllib.parse import urlencode, urljoin
 
-import Adyen
 import opentracing
 import opentracing.tags
-from Adyen.httpclient import HTTPClient
 from django.contrib.auth.hashers import make_password
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -38,12 +36,13 @@ from .utils.common import (
     PENDING_STATUSES,
     api_call,
     call_capture,
+    call_refund,
     get_payment_method_info,
     get_request_data_for_check_payment,
+    initialize_adyen_client,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
-    request_for_payment_refund,
     update_payment_with_action_required_data,
 )
 from .webhooks import handle_additional_actions, handle_webhook
@@ -51,7 +50,6 @@ from .webhooks import handle_additional_actions, handle_webhook
 GATEWAY_NAME = "Adyen"
 WEBHOOK_PATH = "/webhooks"
 ADDITIONAL_ACTION_PATH = "/additional-actions"
-HTTP_TIMEOUT = 20  # in seconds
 
 
 class AdyenGatewayPlugin(BasePlugin):
@@ -219,24 +217,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "apple_pay_cert": configuration["apple-pay-cert"],
             },
         )
-        api_key = self.config.connection_params["api_key"]
-
-        live_endpoint = self.config.connection_params["live"] or None
-        platform = "live" if live_endpoint else "test"
-        self.adyen = Adyen.Adyen(
-            xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
-        )
-        self._init_http_client()
-
-    def _init_http_client(self):
-        adyen_client = self.adyen.client
-        adyen_client.http_client = HTTPClient(
-            user_agent_suffix=adyen_client.USER_AGENT_SUFFIX,
-            lib_version=adyen_client.LIB_VERSION,
-            force_request=adyen_client.http_force,
-            timeout=HTTP_TIMEOUT,
-        )
-        adyen_client.http_init = True
+        self.adyen = initialize_adyen_client(self.config)
 
     def _insert_webhook_endpoint_to_configuration(self, raw_configuration, channel):
         updated = False
@@ -693,21 +674,18 @@ class AdyenGatewayPlugin(BasePlugin):
         if not transaction:
             raise PaymentError("Cannot find a payment reference to refund.")
 
-        request = request_for_payment_refund(
-            payment_information=payment_information,
-            merchant_account=self.config.connection_params["merchant_account"],
-            token=transaction.token,
-        )
-        with opentracing.global_tracer().start_active_span(
-            "adyen.payment.refund"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
-            result = api_call(request, self.adyen.payment.refund)
-
         amount = payment_information.amount
         currency = payment_information.currency
+
+        result = call_refund(
+            amount=amount,
+            currency=currency,
+            graphql_payment_id=payment_information.graphql_payment_id,
+            merchant_account=self.config.connection_params["merchant_account"],
+            token=transaction.token,
+            adyen_client=self.adyen,
+        )
+
         if transaction.payment.order:
             msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
             external_notification_event(

@@ -71,6 +71,12 @@ class ExternalAccessTokens:
     user: Optional["User"] = None
 
 
+@dataclass
+class ExcludedShippingMethod:
+    id: str
+    reason: Optional[str]
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -520,6 +526,9 @@ class BasePlugin:
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
+    #  Trigger when tracking number is updated.
+    tracking_number_updated: Callable[["Fulfillment", Any], Any]
+
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Handle received http request.
@@ -536,10 +545,16 @@ class BasePlugin:
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
-        payment_config = self.get_payment_config(previous_value)  # type: ignore
-        payment_config = payment_config if payment_config != NotImplemented else []
-        currencies = self.get_supported_currencies(previous_value=[])  # type: ignore
-        currencies = currencies if currencies != NotImplemented else []
+        payment_config = (
+            self.get_payment_config(previous_value)  # type: ignore
+            if hasattr(self, "get_payment_config")
+            else []
+        )
+        currencies = (
+            self.get_supported_currencies(previous_value=[])  # type: ignore
+            if hasattr(self, "get_supported_currencies")
+            else []
+        )
         if currency and currency not in currencies:
             return []
         gateway = PaymentGateway(

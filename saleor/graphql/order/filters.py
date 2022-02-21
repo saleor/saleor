@@ -1,20 +1,24 @@
 import django_filters
-from django.db.models import Exists, IntegerField, OuterRef, Q, Sum
+from django.db.models import Exists, IntegerField, OuterRef, Q
 from django.db.models.functions import Cast
 from django.utils import timezone
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...product.models import ProductVariant
-from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_range_field
+from ..utils.filters import filter_by_id, filter_range_field
 from .enums import OrderStatusFilter
 
 
@@ -44,9 +48,6 @@ def filter_status(qs, _, value):
         query_objects |= qs.filter(status__in=value)
 
     if OrderStatusFilter.READY_TO_FULFILL in value:
-        # to use & between queries both of them need to have applied the same
-        # annotate
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
@@ -106,13 +107,6 @@ def filter_is_preorder(qs, _, values):
     return qs
 
 
-def filter_order_ids(qs, _, values):
-    if values:
-        _, order_ids = resolve_global_ids_to_primary_keys(values, "Order")
-        qs = qs.filter(id__in=order_ids)
-    return qs
-
-
 def filter_gift_card_used(qs, _, value):
     return filter_by_gift_card(qs, value, GiftCardEvents.USED_IN_ORDER)
 
@@ -153,7 +147,7 @@ class OrderFilter(DraftOrderFilter):
         method=filter_is_click_and_collect
     )
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
-    ids = GlobalIDMultipleChoiceFilter(method=filter_order_ids)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Order"))
     gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
     gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
 

@@ -476,6 +476,15 @@ def checkout_with_items(checkout, product_list, product):
 
 
 @pytest.fixture
+def checkout_with_items_and_shipping(checkout_with_items, address, shipping_method):
+    checkout_with_items.shipping_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.billing_address = address
+    checkout_with_items.save()
+    return checkout_with_items
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
@@ -511,7 +520,7 @@ def checkout_with_preorders_only(
     preorder_variant_with_end_date,
     preorder_variant_channel_threshold,
 ):
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
@@ -524,7 +533,7 @@ def checkout_with_preorders_only(
 def checkout_with_preorders_and_regular_variant(
     checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
 ):
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
     add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
@@ -1842,6 +1851,7 @@ def product_price_0(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_C")
     ProductVariantChannelListing.objects.create(
@@ -2542,6 +2552,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     ProductVariantChannelListing.objects.create(
@@ -2604,6 +2615,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=10,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
+                available_for_purchase=datetime.date(1999, 1, 1),
             ),
             ProductChannelListing(
                 product=products[1],
@@ -2612,6 +2624,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=20,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
+                available_for_purchase=datetime.date(1999, 1, 1),
             ),
             ProductChannelListing(
                 product=products[2],
@@ -2620,6 +2633,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=30,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
+                available_for_purchase=datetime.date(1999, 1, 1),
             ),
         ]
     )
@@ -3181,6 +3195,12 @@ def order_line_with_allocation_in_many_stocks(
         ]
     )
 
+    stocks_to_update = list(stocks)
+    stocks_to_update[0].quantity_allocated = 2
+    stocks_to_update[1].quantity_allocated = 1
+
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+
     return order_line
 
 
@@ -3226,6 +3246,9 @@ def order_line_with_one_allocation(
     Allocation.objects.create(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
+    stock = stocks[0]
+    stock.quantity_allocated = 1
+    stock.save(update_fields=["quantity_allocated"])
 
     return order_line
 
@@ -3994,10 +4017,11 @@ def fulfillment_awaiting_approval(fulfilled_order):
 
 
 @pytest.fixture
-def draft_order(order_with_lines):
+def draft_order(order_with_lines, shipping_method):
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
+    order_with_lines.shipping_method = shipping_method
     order_with_lines.save(update_fields=["status", "origin"])
     return order_with_lines
 
@@ -4484,7 +4508,7 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
 @pytest.fixture
 def page_list(db, page_type):
     data_1 = {
-        "slug": "test-url",
+        "slug": "test-url-1",
         "title": "Test page",
         "content": dummy_editorjs("Test content."),
         "is_published": True,

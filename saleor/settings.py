@@ -177,6 +177,12 @@ if not SECRET_KEY and DEBUG:
     warnings.warn("SECRET_KEY not configured, using a random temporary key.")
     SECRET_KEY = get_random_secret_key()
 
+RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
+RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
+JWT_MANAGER_PATH = os.environ.get(
+    "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
+)
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -228,7 +234,6 @@ INSTALLED_APPS = [
     "django_prices",
     "django_prices_openexchangerates",
     "django_prices_vatlayer",
-    "graphene_django",
     "mptt",
     "django_countries",
     "django_filters",
@@ -393,6 +398,8 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
+MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
+
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
@@ -528,6 +535,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.giftcard.tasks.deactivate_expired_cards_task",
         "schedule": crontab(hour=0, minute=0),
     },
+    "update-stocks-quantity-allocated": {
+        "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
@@ -587,6 +598,7 @@ BUILTIN_PLUGINS = [
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
+    "saleor.payment.gateways.np_atobarai.plugin.NPAtobaraiGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",

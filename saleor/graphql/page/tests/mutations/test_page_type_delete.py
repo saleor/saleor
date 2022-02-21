@@ -3,9 +3,9 @@ from unittest.mock import patch
 import graphene
 import pytest
 
-from ....attribute.utils import associate_attribute_values_to_instance
-from ....page.models import Page
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....attribute.utils import associate_attribute_values_to_instance
+from .....page.models import Page
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 DELETE_PAGE_TYPE_MUTATION = """
     mutation DeletePageType($id: ID!) {

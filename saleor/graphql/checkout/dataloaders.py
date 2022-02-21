@@ -12,6 +12,7 @@ from ...checkout.fetch import (
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
+from ..discount.dataloaders import VoucherByCodeLoader
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -30,11 +31,7 @@ class CheckoutByTokenLoader(DataLoader):
     context_key = "checkout_by_token"
 
     def batch_load(self, keys):
-        checkouts = (
-            Checkout.objects.using(self.database_connection_name)
-            .filter(token__in=keys)
-            .in_bulk()
-        )
+        checkouts = Checkout.objects.using(self.database_connection_name).in_bulk(keys)
         return [checkouts.get(token) for token in keys]
 
 
@@ -114,14 +111,6 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             keys
         )
         return Promise.all([checkouts, checkout_lines]).then(with_checkout_lines)
-
-
-class CheckoutByIdLoader(DataLoader):
-    context_key = "checkout_by_id"
-
-    def batch_load(self, keys):
-        checkouts = Checkout.objects.using(self.database_connection_name).in_bulk(keys)
-        return [checkouts.get(checkout_id) for checkout_id in keys]
 
 
 class CheckoutByUserLoader(DataLoader):
@@ -208,6 +197,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                 collection_points = WarehouseByIdLoader(self.context).load_many(
                     collection_point_ids
                 )
+                voucher_codes = {
+                    checkout.voucher_code
+                    for checkout in checkouts
+                    if checkout.voucher_code
+                }
+                vouchers = VoucherByCodeLoader(self.context).load_many(voucher_codes)
 
                 def with_checkout_info(results):
                     (
@@ -216,6 +211,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_methods,
                         listings_for_channels,
                         collection_points,
+                        vouchers,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -227,6 +223,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         collection_point.id: collection_point
                         for collection_point in collection_points
                     }
+                    voucher_map = {voucher.code: voucher for voucher in vouchers}
 
                     checkout_info_map = {}
                     for key, checkout, channel, checkout_lines in zip(
@@ -242,6 +239,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         delivery_method_info = get_delivery_method_info(
                             None, shipping_address
                         )
+                        voucher = voucher_map.get(checkout.voucher_code)
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -255,6 +253,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             delivery_method_info=delivery_method_info,
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
+                            voucher=voucher,
                         )
 
                         manager = self.context.plugins
@@ -286,6 +285,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_methods,
                         shipping_method_channel_listings,
                         collection_points,
+                        vouchers,
                     ]
                 ).then(with_checkout_info)
 

@@ -468,7 +468,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         return getattr(root.node, "digital_content", None)
 
     @staticmethod
-    @traced_resolver
     def resolve_attributes(
         root: ChannelContext[models.ProductVariant],
         info,
@@ -511,7 +510,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @traced_resolver
     def resolve_pricing(
         root: ChannelContext[models.ProductVariant], info, address=None
     ):
@@ -887,7 +885,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return ""
 
     @staticmethod
-    @traced_resolver
     def resolve_pricing(root: ChannelContext[models.Product], info, address=None):
         if not root.channel_slug:
             return None
@@ -1578,7 +1575,7 @@ class Category(ModelObjectType):
         qs = models.Product.objects.all()
         if not has_required_permissions:
             qs = (
-                qs.published(channel)
+                qs.visible_to_user(requestor, channel)
                 .annotate_visible_in_listings(channel)
                 .exclude(
                     visible_in_listings=False,

@@ -1,8 +1,8 @@
 import graphene
 
-from ....page.error_codes import PageErrorCode
-from ....page.models import PageType
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....page.error_codes import PageErrorCode
+from .....page.models import PageType
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 PAGE_TYPE_CREATE_MUTATION = """
     mutation PageTypeCreate($name: String, $slug: String, $addAttributes: [ID!]) {
