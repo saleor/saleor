@@ -8,7 +8,9 @@ from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
 from ..core.permissions import (
     PagePermissions,
+    PageTypePermissions,
     ProductPermissions,
+    ProductTypePermissions,
     has_one_of_permissions,
 )
 from ..core.permissions import permission_required as core_permission_required
@@ -100,9 +102,19 @@ def check_attribute_required_permissions():
     def check_perms(context, attribute):
         requestor = get_user_or_app_from_context(context)
         if attribute.type == AttributeType.PAGE_TYPE:
-            return core_permission_required((PagePermissions.MANAGE_PAGES,), requestor)
-        return core_permission_required(
-            (ProductPermissions.MANAGE_PRODUCTS,), requestor
+            return has_one_of_permissions(
+                requestor,
+                (
+                    PagePermissions.MANAGE_PAGES,
+                    PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+                ),
+            )
+        return has_one_of_permissions(
+            requestor,
+            (
+                ProductPermissions.MANAGE_PRODUCTS,
+                ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            ),
         )
 
     return account_passes_test_for_attribute(check_perms)
