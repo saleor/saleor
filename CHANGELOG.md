@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 unavailable - #8978 by @IKarbowiak
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
 - Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
+- Allow fetching unpublished pages by app with manage pages permission - #9181 by @IKarbowiak
 
 
 # 3.0.0
