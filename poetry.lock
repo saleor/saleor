@@ -2384,7 +2384,7 @@ python-versions = "*"
 
 [[package]]
 name = "stripe"
-version = "2.65.0"
+version = "2.66.0"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -2770,8 +2770,8 @@ python-versions = "*"
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "ec299ffb4d5d0d43adbc157c3311d9b6928d942fa9c73b086ece66a466e8f6f5"
+python-versions = "~3.9"
+content-hash = "e095aeb88bcb9dcab6e399d2ad2462544ea99818172fbe3e825a6e9ecac0fc4f"
 
 [metadata.files]
 adyen = [
@@ -4236,8 +4236,8 @@ starkbank-ecdsa = [
     {file = "starkbank-ecdsa-2.0.3.tar.gz", hash = "sha256:73b62b1b3de54bbaa05dedb1a2d951c033432bb074de899e19d4a96a36b21df6"},
 ]
 stripe = [
-    {file = "stripe-2.65.0-py2.py3-none-any.whl", hash = "sha256:16a8d1dfc0ba414b24612d31ede0f57ff260bccebd6dc18e17277cb24f58c6b7"},
-    {file = "stripe-2.65.0.tar.gz", hash = "sha256:2e55d4d7262085de9cef2228f14581925c35350ba58a332352b1ec9e19a7b7a6"},
+    {file = "stripe-2.66.0-py2.py3-none-any.whl", hash = "sha256:283f6f80d16cc5b473116697e0f4569df46b44826d1c78197880bce6dc066d0d"},
+    {file = "stripe-2.66.0.tar.gz", hash = "sha256:77c6032230f7714b1a1b459074f08c60d60c229b9c3beac372719063e3d1409c"},
 ]
 sympy = [
     {file = "sympy-1.9-py3-none-any.whl", hash = "sha256:8bc5de4608b7aa4e7ffd1b25452ae87ccc5f6ca667c661aafb854a1ade337d0c"},
