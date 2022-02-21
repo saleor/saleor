@@ -17,6 +17,7 @@ from ...site import models as site_models
 from ..channel import ChannelContext
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import JSONString
 from ..core.types import LanguageDisplay, ModelObjectType
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
@@ -68,7 +69,7 @@ class BaseTranslationType(ModelObjectType):
 class AttributeValueTranslation(BaseTranslationType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
-    rich_text = graphene.JSONString()
+    rich_text = JSONString()
 
     class Meta:
         model = attribute_models.AttributeValueTranslation
@@ -78,7 +79,7 @@ class AttributeValueTranslation(BaseTranslationType):
 class AttributeValueTranslatableContent(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
-    rich_text = graphene.JSONString()
+    rich_text = JSONString()
     translation = TranslationField(
         AttributeValueTranslation, type_name="attribute value"
     )
@@ -181,8 +182,8 @@ class ProductTranslation(BaseTranslationType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String()
-    description = graphene.JSONString()
-    description_json = graphene.JSONString(
+    description = JSONString()
+    description_json = JSONString(
         description="Translated description of the product (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -204,8 +205,8 @@ class ProductTranslatableContent(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
-    description_json = graphene.JSONString(
+    description = JSONString()
+    description_json = JSONString(
         description="Description of the product (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -252,8 +253,8 @@ class CollectionTranslation(BaseTranslationType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String()
-    description = graphene.JSONString()
-    description_json = graphene.JSONString(
+    description = JSONString()
+    description_json = JSONString(
         description="Translated description of the product (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -275,8 +276,8 @@ class CollectionTranslatableContent(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
-    description_json = graphene.JSONString(
+    description = JSONString()
+    description_json = JSONString(
         description="Description of the collection (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -313,8 +314,8 @@ class CategoryTranslation(BaseTranslationType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String()
-    description = graphene.JSONString()
-    description_json = graphene.JSONString(
+    description = JSONString()
+    description_json = JSONString(
         description="Translated description of the product (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -336,8 +337,8 @@ class CategoryTranslatableContent(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
-    description_json = graphene.JSONString(
+    description = JSONString()
+    description_json = JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -371,8 +372,8 @@ class PageTranslation(BaseTranslationType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String()
-    content = graphene.JSONString()
-    content_json = graphene.JSONString(
+    content = JSONString()
+    content_json = JSONString(
         description="Translated description of the page (JSON).",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
     )
@@ -392,8 +393,8 @@ class PageTranslatableContent(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String(required=True)
-    content = graphene.JSONString()
-    content_json = graphene.JSONString(
+    content = JSONString()
+    content_json = JSONString(
         description="Content of the page (JSON).",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
     )
@@ -555,7 +556,7 @@ class MenuItemTranslatableContent(ModelObjectType):
 class ShippingMethodTranslation(BaseTranslationType):
     id = graphene.GlobalID(required=True)
     name = graphene.String()
-    description = graphene.JSONString()
+    description = JSONString()
 
     class Meta:
         model = shipping_models.ShippingMethodTranslation
@@ -565,7 +566,7 @@ class ShippingMethodTranslation(BaseTranslationType):
 class ShippingMethodTranslatableContent(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     translation = TranslationField(
         ShippingMethodTranslation, type_name="shipping method"
     )

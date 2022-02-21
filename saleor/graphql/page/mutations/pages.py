@@ -13,6 +13,7 @@ from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
+from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
 class PageInput(graphene.InputObjectType):
     slug = graphene.String(description="Page internal name.")
     title = graphene.String(description="Page title.")
-    content = graphene.JSONString(description="Page content in JSON format.")
+    content = JSONString(description="Page content in JSON format.")
     attributes = graphene.List(
         graphene.NonNull(AttributeValueInput), description="List of attributes."
     )
