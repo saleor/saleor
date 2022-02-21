@@ -1,9 +1,8 @@
 import django_filters
 from django.db.models import Q
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...page import models
-from ..core.filters import MetadataFilterBase
+from ..core.filters import GlobalIDMultipleChoiceFilter, MetadataFilterBase
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_id

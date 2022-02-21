@@ -20,7 +20,10 @@ from ..discount import DiscountInfo, VoucherType
 from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ..shipping.utils import convert_to_shipping_method_data
+from ..shipping.utils import (
+    convert_to_shipping_method_data,
+    initialize_shipping_method_active_status,
+)
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 
@@ -294,6 +297,7 @@ def _is_variant_valid(
     if (
         not product_channel_listing
         or product_channel_listing.is_available_for_purchase() is False
+        or not product_channel_listing.is_visible
     ):
         return False
 
@@ -462,15 +466,20 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
-    manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ) -> List["ShippingMethodData"]:
+    from . import base_calculations
     from .utils import get_valid_internal_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, discounts
+
+    subtotal = base_calculations.base_checkout_lines_total(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+        discounts,
     )
+
     # if a voucher is applied to shipping, we don't want to subtract the discount amount
     # as some methods based on shipping price may become unavailable,
     # for example, method on which the discount was applied
@@ -479,6 +488,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     )
     if not is_shipping_voucher:
         subtotal -= checkout_info.checkout.discount
+
     valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
         checkout_info,
         lines,
@@ -521,15 +531,16 @@ def update_delivery_method_lists_for_checkout_info(
     Availability of shipping methods according to plugins is indicated
     by the `active` field.
     """
-    checkout_info.all_shipping_methods = SimpleLazyObject(
-        lambda: list(
+
+    def _resolve_all_shipping_methods():
+        # Fetch all shipping method from all sources, including sync webhooks
+        all_methods = list(
             itertools.chain(
                 get_valid_internal_shipping_method_list_for_checkout_info(
                     checkout_info,
                     shipping_address,
                     lines,
                     discounts,
-                    manager,
                     shipping_channel_listings,
                 ),
                 get_valid_external_shipping_method_list_for_checkout_info(
@@ -537,6 +548,15 @@ def update_delivery_method_lists_for_checkout_info(
                 ),
             )
         )
+        # Filter shipping methods using sync webhooks
+        excluded_methods = manager.excluded_shipping_methods_for_checkout(
+            checkout_info.checkout, all_methods
+        )
+        initialize_shipping_method_active_status(all_methods, excluded_methods)
+        return all_methods
+
+    checkout_info.all_shipping_methods = SimpleLazyObject(
+        _resolve_all_shipping_methods
     )  # type: ignore
     checkout_info.valid_pick_up_points = SimpleLazyObject(
         lambda: (

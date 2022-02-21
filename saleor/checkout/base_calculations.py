@@ -197,6 +197,24 @@ def base_checkout_total(
     return total
 
 
+def base_checkout_lines_total(
+    checkout_lines: Iterable["CheckoutLineInfo"],
+    channel: "Channel",
+    currency: str,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> TaxedMoney:
+    line_totals = [
+        calculate_base_line_total_price(
+            line,
+            channel,
+            discounts,
+        ).price_with_sale
+        for line in checkout_lines
+    ]
+
+    return sum(line_totals, zero_taxed_money(currency))
+
+
 def base_checkout_line_total(
     checkout_line_info: "CheckoutLineInfo",
     channel: "Channel",

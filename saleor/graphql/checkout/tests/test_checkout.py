@@ -38,6 +38,7 @@ from ....checkout.utils import (
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
+from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing, ProductVariant
@@ -45,6 +46,7 @@ from ....shipping import models as shipping_models
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
+from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -278,7 +280,6 @@ def test_checkout_create_with_inactive_channel(
 def test_checkout_create_with_zero_quantity(
     api_client, stock, graphql_address_data, channel_USD
 ):
-
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -303,7 +304,6 @@ def test_checkout_create_with_zero_quantity(
 def test_checkout_create_with_unavailable_variant(
     api_client, stock, graphql_address_data, channel_USD
 ):
-
     variant = stock.product_variant
     variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -2124,9 +2124,12 @@ query AvailableCollectionPoints($token: UUID!) {
 def test_available_collection_points_for_preorders_variants_in_checkout(
     api_client, staff_api_client, checkout_with_preorders_only
 ):
-
     expected_collection_points = list(
-        Warehouse.objects.for_country("US").values("name")
+        Warehouse.objects.for_country("US")
+        .exclude(
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        )
+        .values("name")
     )
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
@@ -2145,7 +2148,6 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_check
     checkout_with_preorders_and_regular_variant,
     warehouses_for_cc,
 ):
-
     expected_collection_points = [{"name": warehouses_for_cc[1].name}]
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
@@ -2998,6 +3000,32 @@ def test_checkout_shipping_address_update_without_phone_country_prefix(
     assert not data["errors"]
 
 
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_address_update_exclude_shipping_method(
+    mocked_webhook,
+    user_api_client,
+    checkout_with_items_and_shipping,
+    graphql_address_data,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_items_and_shipping
+    shipping_method = checkout.shipping_method
+    assert shipping_method is not None
+    webhook_reason = "hello-there"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+    shipping_address = graphql_address_data
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
+
+    user_api_client.post_graphql(MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables)
+    checkout.refresh_from_db()
+    assert checkout.shipping_method is None
+
+
 def test_checkout_billing_address_update(
     user_api_client, checkout_with_item, graphql_address_data
 ):
@@ -3126,7 +3154,6 @@ TRANSACTION_CONFIRM_GATEWAY_RESPONSE = GatewayResponse(
     transaction_id="1234",
     error=None,
 )
-
 
 QUERY_CHECKOUT_USER_ID = """
     query getCheckout($token: UUID!) {
@@ -3578,6 +3605,59 @@ def test_checkout_shipping_method_update_external_shipping_method(
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.private_metadata
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_checkout_shipping_method_update_external_shipping_method_with_tax_plugin(
+    mock_send_request,
+    staff_api_client,
+    address,
+    checkout_with_item,
+    shipping_app,
+    channel_USD,
+    settings,
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save()
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    # Set external shipping method for first time
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    assert not data["errors"]
+
+    # Set external shipping for second time
+    # Without a fix this request results in infinite recursion
+    # between Avalara and Webhooks plugins
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"token": checkout_with_item.token, "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    assert not data["errors"]
+
+
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
 @pytest.mark.parametrize(
     "delivery_method, node_name, attribute_name",
@@ -3752,6 +3832,43 @@ def test_checkout_delivery_method_with_empty_fields_results_None(
     assert data["checkout"]["deliveryMethod"] is None
     assert checkout.shipping_method is None
     assert checkout.collection_point is None
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_checkout"
+)
+def test_checkout_shipping_method_update_excluded_webhook(
+    mocked_webhook,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    # given
+    webhook_reason = "spanish-inquisition"
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(shipping_method.id, webhook_reason)
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {"token": checkout_with_item.token, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    # then
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
 
 
 # Deprecated
