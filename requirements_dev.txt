@@ -228,13 +228,15 @@ gql==2.0.0
 django-celery-results==2.2.0
 django-cities-light==3.8.1
 django-iban==0.3.1
--e saleor/plugins/oto/
--e saleor/plugins/otp/
--e saleor/plugins/vendor/
--e saleor/plugins/oauth2/
--e saleor/plugins/algolia/
--e saleor/plugins/provinces/
--e saleor/payment/gateways/cod/
--e saleor/payment/gateways/tabby/
--e saleor/plugins/customer_group/
--e saleor/payment/gateways/checkout_payment/
+tqdm==4.62.3
+saleor/plugins/oto/
+saleor/plugins/otp/
+saleor/plugins/vendor/
+saleor/plugins/oauth2/
+saleor/plugins/algolia/
+saleor/plugins/provinces/
+saleor/payment/gateways/cod/
+saleor/plugins/datamigration/
+saleor/payment/gateways/tabby/
+saleor/plugins/customer_group/
+saleor/payment/gateways/checkout_payment/
