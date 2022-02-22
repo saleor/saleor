@@ -327,7 +327,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             "Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart "
             "with an active checkout."
         ),
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `True`.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `true`.",
     )
 
     class Arguments:

@@ -230,7 +230,7 @@ class User(ModelObjectType):
         description="Returns the last open checkout of this user.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `checkout_tokens` field to fetch the user checkouts."
+            "Use the `checkoutTokens` field to fetch the user checkouts."
         ),
     )
     checkout_tokens = graphene.List(

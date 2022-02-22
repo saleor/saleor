@@ -760,16 +760,22 @@ class Order(ModelObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
+        ),
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
+        ),
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
+        ),
     )
 
     discounts = graphene.List(
