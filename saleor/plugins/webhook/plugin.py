@@ -616,17 +616,19 @@ class WebhookPlugin(BasePlugin):
     def get_taxes_for_checkout(
         self, checkout: "Checkout", previous_value
     ) -> Optional["TaxData"]:
-        payload = generate_checkout_payload(checkout, self.requestor)
         return trigger_all_webhooks_sync(
-            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, payload, parse_tax_data
+            WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            lambda: generate_checkout_payload(checkout, self.requestor),
+            parse_tax_data,
         )
 
     def get_taxes_for_order(
         self, order: "Order", previous_value
     ) -> Optional["TaxData"]:
-        payload = generate_order_payload(order, self.requestor)
         return trigger_all_webhooks_sync(
-            WebhookEventSyncType.ORDER_CALCULATE_TAXES, payload, parse_tax_data
+            WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+            lambda: generate_order_payload(order, self.requestor),
+            parse_tax_data,
         )
 
     def get_shipping_methods_for_checkout(
@@ -654,7 +656,7 @@ class WebhookPlugin(BasePlugin):
     def __fetch_tax_codes(self) -> Dict[str, str]:
         return (
             trigger_all_webhooks_sync(
-                WebhookEventSyncType.FETCH_TAX_CODES, "", parse_tax_codes
+                WebhookEventSyncType.FETCH_TAX_CODES, lambda: "", parse_tax_codes
             )
             or {}
         )
@@ -665,7 +667,6 @@ class WebhookPlugin(BasePlugin):
             return cached_tax_codes_dict
 
         fetched_tax_codes_dict = self.__fetch_tax_codes()
-        print(fetched_tax_codes_dict)
         if fetched_tax_codes_dict is not None:
             cache.set(WEBHOOK_TAX_CODES_CACHE_KEY, fetched_tax_codes_dict)
             return fetched_tax_codes_dict

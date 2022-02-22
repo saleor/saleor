@@ -3,7 +3,6 @@ from typing import Iterable, Optional, Tuple
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -134,17 +133,15 @@ def fetch_order_prices_if_expired(
         return order, lines
 
     if lines is None:
-        lines = list(order.lines.prefetch_related("variant__product"))
-    else:
-        prefetch_related_objects(lines, "variant__product")
+        lines = list(order.lines.select_related("variant__product"))
 
     order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
 
-    with transaction.atomic():
-        _recalculate_order_prices(manager, order, lines)
+    _recalculate_order_prices(manager, order, lines)
 
-        tax_data = manager.get_taxes_for_order(order)
+    tax_data = manager.get_taxes_for_order(order)
 
+    with transaction.atomic(savepoint=False):
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
 

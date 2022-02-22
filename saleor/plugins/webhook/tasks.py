@@ -119,7 +119,9 @@ R = TypeVar("R")
 
 
 def trigger_all_webhooks_sync(
-    event_type: str, data: str, parse_response: Callable[[Any], Optional[R]]
+    event_type: str,
+    generate_payload: Callable,
+    parse_response: Callable[[Any], Optional[R]],
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -130,8 +132,11 @@ def trigger_all_webhooks_sync(
     this function returns None.
     """
     webhooks = _get_webhooks_for_event(event_type)
-    event_payload = EventPayload.objects.create(payload=data)
+    event_payload = None
     for webhook in webhooks:
+        event_payload = event_payload or EventPayload.objects.create(
+            payload=generate_payload()
+        )
         delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
             event_type=event_type,
