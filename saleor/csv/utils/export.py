@@ -1,4 +1,4 @@
-import secrets
+import uuid
 from datetime import date, datetime
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
@@ -91,7 +91,7 @@ def export_gift_cards(
 
 
 def get_filename(model_name: str, file_type: str) -> str:
-    hash = secrets.token_hex(nbytes=3)
+    hash = uuid.uuid4()
     return "{}_data_{}_{}.{}".format(
         model_name, timezone.now().strftime("%d_%m_%Y_%H_%M_%S"), hash, file_type
     )
