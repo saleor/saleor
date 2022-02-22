@@ -2719,7 +2719,7 @@ def order_line_with_one_allocation(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
     stock = stocks[0]
-    stock.quantity_allocated = 1
+    stock.quantity_allocated = 3
     stock.save(update_fields=["quantity_allocated"])
 
     return order_line
