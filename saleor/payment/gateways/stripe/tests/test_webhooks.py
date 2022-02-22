@@ -1360,6 +1360,8 @@ def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_re
     checkout = payment_stripe_for_checkout.checkout
 
     checkout.lines.first().delete()
+    checkout.price_expiration = None
+    checkout.save(update_fields=["price_expiration"])
 
     _finalize_checkout(
         checkout,
@@ -1417,6 +1419,8 @@ def test_finalize_checkout_not_created_checkout_variant_deleted_order_payment_vo
     checkout = payment_stripe_for_checkout.checkout
 
     checkout.lines.first().delete()
+    checkout.price_expiration = None
+    checkout.save(update_fields=["price_expiration"])
 
     _finalize_checkout(
         checkout,

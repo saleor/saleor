@@ -255,7 +255,7 @@ def test_user_checkout_details_with_tax_app(
           }
         }
     """
-    customer_checkout.price_expiration -= settings.CHECKOUT_PRICES_TTL
+    customer_checkout.price_expiration = None
     customer_checkout.save()
 
     # when

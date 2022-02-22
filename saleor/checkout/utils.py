@@ -145,6 +145,8 @@ def add_variant_to_checkout(
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
 
+    # invalidate calculated prices
+    checkout.price_expiration = None
     return checkout
 
 

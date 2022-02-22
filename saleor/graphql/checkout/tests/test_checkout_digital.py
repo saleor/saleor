@@ -45,11 +45,14 @@ def test_create_checkout(
     if with_shipping_address:
         checkout_input["shippingAddress"] = graphql_address_data
 
-    get_graphql_content(
-        api_client.post_graphql(
-            MUTATION_CHECKOUT_CREATE, {"checkoutInput": checkout_input}
+    print(
+        get_graphql_content(
+            api_client.post_graphql(
+                MUTATION_CHECKOUT_CREATE, {"checkoutInput": checkout_input}
+            )
         )
-    )["data"]["checkoutCreate"]
+    )
+    # ["data"]["checkoutCreate"]
 
     # Retrieve the created checkout
     checkout = Checkout.objects.get()

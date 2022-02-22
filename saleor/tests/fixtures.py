@@ -479,6 +479,7 @@ def checkout_with_items(checkout, product_list, product):
     for prod in product_list:
         variant = prod.variants.get()
         add_variant_to_checkout(checkout_info, variant, 1)
+    checkout.save()
     checkout.refresh_from_db()
     return checkout
 
@@ -5440,7 +5441,6 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
-        price_expiration=timezone.now() + settings.CHECKOUT_PRICES_TTL,
         email=customer_user.email,
     )
 

@@ -1,8 +1,6 @@
-from datetime import timedelta
 from decimal import Decimal
 
 import pytest
-from django.utils import timezone
 
 from ...plugins.manager import get_plugins_manager
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
@@ -49,9 +47,6 @@ def priced_checkout_factory():
         checkout.shipping_price_gross_amount *= tax
         checkout.subtotal_gross_amount *= tax
         checkout.total_gross_amount *= tax
-
-        checkout.price_expiration = timezone.now() - timedelta(minutes=10)
-
         checkout.save()
 
         return checkout

@@ -1756,17 +1756,11 @@ def test_complete_checkout_raises_error_for_local_stock(
         update_fields=["collection_point", "shipping_address", "billing_address"]
     )
 
-    manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    total = calculations.checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
-    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
+    payment.total = Decimal("20")
+    payment.currency = checkout.currency
     payment.checkout = checkout
     payment.save()
 

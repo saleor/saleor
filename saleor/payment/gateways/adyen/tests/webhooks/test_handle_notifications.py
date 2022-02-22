@@ -269,6 +269,8 @@ def test_handle_authorization_for_checkout_one_of_variants_deleted(
     payment.save()
 
     checkout.lines.first().delete()
+    checkout.price_expiration = None
+    checkout.save(update_fields=["price_expiration"])
 
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
@@ -628,6 +630,8 @@ def test_handle_capture_for_checkout_order_not_created_checkout_line_variant_del
     payment.save()
 
     checkout.lines.first().delete()
+    checkout.price_expiration = None
+    checkout.save(update_fields=["price_expiration"])
 
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(

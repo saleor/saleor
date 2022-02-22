@@ -153,6 +153,8 @@ def test_handle_api_response_auto_capture_cannot_create_order_variant_deleted(
 
     checkout = payment_adyen_for_checkout.checkout
     checkout.lines.first().delete()
+    checkout.price_expiration = None
+    checkout.save(update_fields=["price_expiration"])
 
     plugin = adyen_plugin(adyen_auto_capture=True)
 
