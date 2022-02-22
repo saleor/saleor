@@ -127,22 +127,20 @@ def fetch_order_prices_if_expired(
     or if order price expiration time was exceeded
     (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
     """
+    if order.status not in ORDER_EDITABLE_STATUS:
+        return order, lines
+
+    if not force_update and order.price_expiration_for_unconfirmed > timezone.now():
+        return order, lines
+
+    if lines is None:
+        lines = list(order.lines.prefetch_related("variant__product"))
+    else:
+        prefetch_related_objects(lines, "variant__product")
+
+    order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
+
     with transaction.atomic():
-        if order.status not in ORDER_EDITABLE_STATUS:
-            return order, lines
-
-        if not force_update and order.price_expiration_for_unconfirmed > timezone.now():
-            return order, lines
-
-        if lines is None:
-            lines = list(order.lines.prefetch_related("variant__product"))
-        else:
-            prefetch_related_objects(lines, "variant__product")
-
-        order.price_expiration_for_unconfirmed = (
-            timezone.now() + settings.ORDER_PRICES_TTL
-        )
-
         _recalculate_order_prices(manager, order, lines)
 
         tax_data = manager.get_taxes_for_order(order)
