@@ -236,7 +236,6 @@ saleor/plugins/oauth2/
 saleor/plugins/algolia/
 saleor/plugins/provinces/
 saleor/payment/gateways/cod/
-saleor/plugins/datamigration/
 saleor/payment/gateways/tabby/
 saleor/plugins/customer_group/
 saleor/payment/gateways/checkout_payment/
