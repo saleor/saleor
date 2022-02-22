@@ -55,6 +55,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
@@ -1401,7 +1402,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     class Meta:
         description = (
             f"{ADDED_IN_31} Updates the delivery method "
-            "(shipping method or pick up point) of the checkout."
+            f"(shipping method or pick up point) of the checkout. {PREVIEW_FEATURE}"
         )
         error_type_class = CheckoutError
 

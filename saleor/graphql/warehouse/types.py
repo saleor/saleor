@@ -9,7 +9,7 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.fields import ConnectionField
 from ..core.types import ModelObjectType
 from ..decorators import one_of_permissions_required
@@ -42,11 +42,15 @@ class WarehouseUpdateInput(WarehouseInput):
         required=False,
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        description=(
+            f"{ADDED_IN_31} Click and collect options: local, all or disabled. "
+            f"{PREVIEW_FEATURE}"
+        ),
         required=False,
     )
     is_private = graphene.Boolean(
-        description=f"{ADDED_IN_31} Visibility of warehouse stocks", required=False
+        description=f"{ADDED_IN_31} Visibility of warehouse stocks. {PREVIEW_FEATURE}",
+        required=False,
     )
 
 
@@ -65,7 +69,10 @@ class Warehouse(ModelObjectType):
         ),
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
-        description=f"{ADDED_IN_31} Click and collect options: local, all or disabled",
+        description=(
+            f"{ADDED_IN_31} Click and collect options: local, all or disabled. "
+            f"{PREVIEW_FEATURE}"
+        ),
         required=True,
     )
     shipping_zones = ConnectionField(
