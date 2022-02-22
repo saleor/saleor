@@ -56,7 +56,6 @@ unavailable - #8978 by @IKarbowiak
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
 - Add support for providing shipping methods by Saleor Apps - #7975 by @bogdal:
   - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook
-- Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
 - Allow fetching unpublished pages by app with manage pages permission - #9181 by @IKarbowiak
 - Update required permissions for attribute options - #9204 by @IKarbowiak
   - Product attribute options can be fetched by requestors with manage product types and attributes permission.
