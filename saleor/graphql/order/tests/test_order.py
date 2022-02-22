@@ -2,6 +2,8 @@ import uuid
 from copy import deepcopy
 from datetime import date, timedelta
 from decimal import Decimal
+from functools import reduce
+from operator import getitem
 from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 
@@ -22,13 +24,14 @@ from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
-from ....discount.models import OrderDiscount
+from ....discount.models import OrderDiscount, VoucherChannelListing
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
 from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
+from ....order.interface import OrderTaxedPricesData
 from ....order.models import Order, OrderEvent, OrderLine
 from ....order.notifications import get_default_order_payload
 from ....order.search import (
@@ -1739,6 +1742,11 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             code
                         }
                         customerNote
+                        total {
+                            gross {
+                                amount
+                            }
+                        }
                     }
                 }
         }
@@ -2624,6 +2632,109 @@ def test_draft_order_create_invalid_shipping_address(
     assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
 
 
+TAX_RATE_1 = Decimal("1.23")
+TAX_RATE_2 = Decimal("1.18")
+
+
+def calculate_order_line_price_side_effect(price_name):
+    tax_rates = iter([TAX_RATE_1, TAX_RATE_2])
+
+    def inner(
+        order,
+        order_line,
+        variant,
+        product,
+    ):
+        tax_rate = next(tax_rates)
+        undiscounted_price = getattr(order_line, f"undiscounted_{price_name}")
+        undiscounted_price.gross *= tax_rate
+        price_with_discounts = getattr(order_line, price_name)
+        price_with_discounts.gross *= tax_rate
+
+        return OrderTaxedPricesData(
+            undiscounted_price=undiscounted_price.quantize(),
+            price_with_discounts=price_with_discounts.quantize(),
+        )
+
+    return inner
+
+
+@patch.object(
+    PluginsManager,
+    "calculate_order_line_unit",
+    new=Mock(side_effect=calculate_order_line_price_side_effect("unit_price")),
+)
+@patch.object(
+    PluginsManager,
+    "calculate_order_line_total",
+    new=Mock(side_effect=calculate_order_line_price_side_effect("total_price")),
+)
+def test_draft_order_create_price_recalculation(
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_available_in_many_channels,
+    product_variant_list,
+    channel_PLN,
+    graphql_address_data,
+    voucher,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    discount = "10"
+    variant_1 = product_available_in_many_channels.variants.first()
+    variant_2 = product_variant_list[2]
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_2_id = graphene.Node.to_global_id("ProductVariant", variant_2.id)
+    quantity_1 = 3
+    quantity_2 = 4
+    lines = [
+        {"variantId": variant_1_id, "quantity": quantity_1},
+        {"variantId": variant_2_id, "quantity": quantity_2},
+    ]
+    address = graphql_address_data
+    voucher_amount = 13
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_PLN,
+        discount=Money(voucher_amount, channel_PLN.currency_code),
+    )
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": lines,
+        "billingAddress": address,
+        "shippingAddress": address,
+        "voucher": voucher_id,
+        "channel": channel_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    assert Order.objects.count() == 1
+    order = Order.objects.first()
+    line1, line2 = order.lines.all()
+
+    assert line1.total_price == line1.unit_price * quantity_1
+    assert line1.unit_price.gross == line1.unit_price.net * TAX_RATE_1
+    assert line1.total_price.gross == line1.total_price.net * TAX_RATE_1
+
+    assert line2.total_price == line2.unit_price * quantity_2
+    assert line2.unit_price.gross == line2.unit_price.net * TAX_RATE_2
+    assert line2.total_price.gross == line2.total_price.net * TAX_RATE_2
+
+    assert order.total == line1.total_price + line2.total_price
+
+
 DRAFT_UPDATE_QUERY = """
         mutation draftUpdate(
         $id: ID!,
@@ -2770,45 +2881,6 @@ def test_draft_order_update_with_non_draft_order(
     error = content["data"]["draftOrderUpdate"]["errors"][0]
     assert error["field"] == "id"
     assert error["code"] == OrderErrorCode.INVALID.name
-
-
-@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
-def test_draft_order_update_tax_error(
-    update_order_prices_mock,
-    staff_api_client,
-    permission_manage_orders,
-    draft_order,
-    voucher,
-    graphql_address_data,
-):
-    err_msg = "Test error"
-    update_order_prices_mock.side_effect = TaxError(err_msg)
-    order = draft_order
-    assert not order.voucher
-    assert not order.customer_note
-    query = DRAFT_ORDER_UPDATE_MUTATION
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    customer_note = "Test customer note"
-    variables = {
-        "id": order_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "shippingAddress": graphql_address_data,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["draftOrderUpdate"]
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
-    assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
-
-    order.refresh_from_db()
-    assert not order.voucher
-    assert not order.customer_note
 
 
 def test_draft_order_update_invalid_address(
@@ -5905,9 +5977,13 @@ def test_order_update_shipping_tax_included(
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
+    shipping_price = TaxedMoney(
+        shipping_total / Decimal("1.19"), shipping_total
+    ).quantize()
     assert order.status == OrderStatus.UNCONFIRMED
     assert order.shipping_method == shipping_method
-    assert order.shipping_price_gross == shipping_total
+    assert order.shipping_price_net == shipping_price.net
+    assert order.shipping_price_gross == shipping_price.gross
     assert order.shipping_tax_rate == Decimal("0.19")
     assert order.shipping_method_name == shipping_method.name
 
@@ -8223,9 +8299,9 @@ def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
     line.save()
 
     query = ORDER_LINE_DELETE_MUTATION
-    line = order.lines.get(product_sku="SKU_B")
-    line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    variables = {"id": line_id}
+    line_2 = order.lines.get(product_sku="SKU_B")
+    line_2_id = graphene.Node.to_global_id("OrderLine", line_2.id)
+    variables = {"id": line_2_id}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -8233,9 +8309,10 @@ def test_draft_order_properly_recalculate_total_after_shipping_product_removed(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
 
+    order.refresh_from_db()
     assert data["order"]["total"]["gross"]["amount"] == float(
-        order.total_gross_amount
-    ) - float(line.total_price_gross_amount)
+        line.total_price_gross_amount
+    ) + float(order.shipping_price_gross_amount)
 
 
 ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL = """
@@ -8418,3 +8495,194 @@ def test_order_by_token_query_payment_details_available_fields_with_permissions(
     content = get_graphql_content(response)
 
     assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+@freeze_time()
+@pytest.mark.parametrize(
+    "fun_to_patch, price_name",
+    [
+        ("order_total", "total"),
+        ("order_undiscounted_total", "undiscountedTotal"),
+        ("order_shipping", "shippingPrice"),
+    ],
+)
+def test_order_resolver_tax_recalculation(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    fun_to_patch,
+    price_name,
+):
+    # given
+    price = TaxedMoney(
+        net=Money(amount="1234.56", currency="USD"),
+        gross=Money(amount="1267.89", currency="USD"),
+    )
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.price_expiration_for_unconfirmed = timezone.now()
+    order.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    query = (
+        """
+    query OrderPrices($id: ID!) {
+        order(id: $id) {
+            %s { net { amount } gross { amount } }
+        }
+    }
+    """
+        % price_name
+    )
+    variables = {"id": order_id}
+
+    # when
+    with patch(
+        f"saleor.order.calculations.{fun_to_patch}", new=Mock(return_value=price)
+    ):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_orders]
+        )
+        content = get_graphql_content(response)
+        data = content["data"]["order"]
+
+    # then
+    assert str(data[price_name]["net"]["amount"]) == str(price.net.amount)
+    assert str(data[price_name]["gross"]["amount"]) == str(price.gross.amount)
+
+
+ORDER_LINE_PRICE_DATA = OrderTaxedPricesData(
+    price_with_discounts=TaxedMoney(
+        net=Money(amount="1234.56", currency="USD"),
+        gross=Money(amount="1267.89", currency="USD"),
+    ),
+    undiscounted_price=TaxedMoney(
+        net=Money(amount="7234.56", currency="USD"),
+        gross=Money(amount="7267.89", currency="USD"),
+    ),
+)
+
+
+@freeze_time()
+@pytest.mark.parametrize(
+    "fun_to_patch, price_name, expected_price",
+    [
+        ("order_line_unit", "unitPrice", ORDER_LINE_PRICE_DATA.price_with_discounts),
+        (
+            "order_line_unit",
+            "undiscountedUnitPrice",
+            ORDER_LINE_PRICE_DATA.undiscounted_price,
+        ),
+        ("order_line_total", "totalPrice", ORDER_LINE_PRICE_DATA.price_with_discounts),
+    ],
+)
+def test_order_line_resolver_tax_recalculation(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    fun_to_patch,
+    price_name,
+    expected_price,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.price_expiration_for_unconfirmed = timezone.now()
+    order.save()
+
+    order.lines.last().delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    query = (
+        """
+    query OrderLinePrices($id: ID!) {
+        order(id: $id) {
+            lines {
+                %s { net { amount } gross { amount } }
+            }
+        }
+    }
+    """
+        % price_name
+    )
+    variables = {"id": order_id}
+
+    # when
+    with patch(
+        f"saleor.order.calculations.{fun_to_patch}",
+        new=Mock(return_value=ORDER_LINE_PRICE_DATA),
+    ):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_orders]
+        )
+        content = get_graphql_content(response)
+        data = content["data"]["order"]["lines"][0]
+
+    # then
+    assert str(data[price_name]["net"]["amount"]) == str(expected_price.net.amount)
+    assert str(data[price_name]["gross"]["amount"]) == str(expected_price.gross.amount)
+
+
+ORDER_SHIPPING_TAX_RATE_QUERY = """
+query OrderShippingTaxRate($id: ID!) {
+    order(id: $id) {
+        shippingTaxRate
+    }
+}
+"""
+
+
+ORDER_LINE_TAX_RATE_QUERY = """
+query OrderLineTaxRate($id: ID!) {
+    order(id: $id) {
+        lines {
+            taxRate
+        }
+    }
+}
+"""
+
+
+@freeze_time()
+@pytest.mark.parametrize(
+    "query, fun_to_patch, path",
+    [
+        (ORDER_SHIPPING_TAX_RATE_QUERY, "order_shipping_tax_rate", ["shippingTaxRate"]),
+        (ORDER_LINE_TAX_RATE_QUERY, "order_line_tax_rate", ["lines", 0, "taxRate"]),
+    ],
+)
+def test_order_tax_rate_resolver_tax_recalculation(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    query,
+    fun_to_patch,
+    path,
+):
+    # given
+    tax_rate = Decimal("0.01")
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.price_expiration_for_unconfirmed = timezone.now()
+    order.save()
+
+    order.lines.last().delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {"id": order_id}
+
+    # when
+    with patch(
+        f"saleor.order.calculations.{fun_to_patch}", new=Mock(return_value=tax_rate)
+    ):
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_orders]
+        )
+        content = get_graphql_content(response)
+        data = content["data"]["order"]
+
+    # then
+    assert str(reduce(getitem, path, data)) == str(tax_rate)

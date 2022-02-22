@@ -691,6 +691,11 @@ CHECKOUT_PRICES_TTL = timedelta(
     seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "5 minutes"))
 )
 
+ORDER_PRICES_TTL = timedelta(
+    seconds=parse(os.environ.get("ORDER_PRICES_TTL", "5 minutes"))
+)
+
+
 # Support multiple interface notation in schema for Apollo tooling.
 
 # In `graphql-core` V2 separator for interface is `,`.

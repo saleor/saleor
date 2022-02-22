@@ -2,7 +2,7 @@ from typing import Iterable, Union
 
 from ..celeryconf import app
 from ..checkout.models import Checkout
-from ..graphql.order.mutations.orders import ORDER_EDITABLE_STATUS
+from ..order import ORDER_EDITABLE_STATUS
 from ..order.models import Order
 
 
