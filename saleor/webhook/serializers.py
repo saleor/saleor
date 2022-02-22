@@ -47,6 +47,8 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
                 "product_name": product.name,
                 "variant_name": variant.name,
                 "attributes": serialize_product_or_variant_attributes(variant),
+                "product_metadata": line_info.product.metadata,
+                "product_type_metadata": line_info.product_type.metadata,
             }
         )
     return data

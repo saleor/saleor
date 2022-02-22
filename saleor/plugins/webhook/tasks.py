@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type, TypeVar
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -31,7 +31,6 @@ from .utils import (
     create_attempt,
     create_event_delivery_list_for_webhooks,
     delivery_update,
-    parse_tax_data,
 )
 
 if TYPE_CHECKING:
@@ -71,7 +70,7 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     if webhooks is None:
         webhooks = Webhook.objects.all()
 
-    webhooks = webhooks.filter(
+    webhooks = webhooks.order_by("app_id", "pk").filter(
         is_active=True,
         app__is_active=True,
         events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
@@ -116,8 +115,20 @@ def trigger_webhook_sync(
     return send_webhook_request_sync(app.name, delivery, **kwargs)
 
 
-def trigger_tax_webhook_sync(event_type: str, data: str):
-    """Send a synchronous tax webhook request."""
+R = TypeVar("R")
+
+
+def trigger_all_webhooks_sync(
+    event_type: str, data: str, parse_response: Callable[[Any], Optional[R]]
+) -> Optional[R]:
+    """Send all synchronous webhook request for given event type.
+
+    Requests are send sequentially.
+    If the current webhook does not return expected response,
+    the next one is send.
+    If no webhook responds with expected response,
+    this function returns None.
+    """
     webhooks = _get_webhooks_for_event(event_type)
     event_payload = EventPayload.objects.create(payload=data)
     for webhook in webhooks:
@@ -128,9 +139,9 @@ def trigger_tax_webhook_sync(event_type: str, data: str):
             webhook=webhook,
         )
         response_data = send_webhook_request_sync(webhook.app.name, delivery)
-        tax_data = parse_tax_data(response_data)
-        if tax_data:
-            return tax_data
+        parsed_response = parse_response(response_data)
+        if parsed_response:
+            return parsed_response
     return None
 
 

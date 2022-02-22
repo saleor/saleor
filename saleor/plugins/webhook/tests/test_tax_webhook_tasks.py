@@ -6,7 +6,7 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
-from ..tasks import trigger_tax_webhook_sync
+from ..tasks import trigger_all_webhooks_sync
 from ..utils import parse_tax_data
 
 
@@ -29,7 +29,11 @@ def tax_checkout_webhooks(tax_app):
         for webhook in webhooks
     )
 
-    return webhooks
+    return list(
+        Webhook.objects.filter(
+            events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+        )
+    )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -44,7 +48,7 @@ def test_trigger_tax_webhook_sync(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_all_webhooks_sync(event_type, data, parse_tax_data)
 
     # then
     payload = EventPayload.objects.get()
@@ -70,14 +74,14 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_all_webhooks_sync(event_type, data, parse_tax_data)
 
     # then
     successful_webhook = tax_checkout_webhooks[0]
 
     payload = EventPayload.objects.get()
     assert payload.payload == data
-    delivery = EventDelivery.objects.get()
+    delivery = EventDelivery.objects.order_by("pk").first()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
     assert delivery.payload == payload
@@ -98,13 +102,13 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_all_webhooks_sync(event_type, data, parse_tax_data)
 
     # then
 
     payload = EventPayload.objects.get()
     assert payload.payload == data
-    deliveries = EventDelivery.objects.order_by("pk")
+    deliveries = list(EventDelivery.objects.order_by("pk"))
     for call, delivery, webhook in zip(
         mock_request.call_args_list, deliveries, tax_checkout_webhooks
     ):
@@ -130,7 +134,7 @@ def test_trigger_tax_webhook_sync_invalid_webhooks(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_tax_webhook_sync(event_type, data)
+    tax_data = trigger_all_webhooks_sync(event_type, data, parse_tax_data)
 
     # then
     assert mock_request.call_count == len(tax_checkout_webhooks)

@@ -155,6 +155,8 @@ def test_serialize_checkout_lines(
             "variant_name": variant.name,
             "attributes": ANY,
             "variant_id": ANY,
+            "product_metadata": product.metadata,
+            "product_type_metadata": product.product_type.metadata,
         }
         data_len += 1
     assert len(checkout_lines_data) == data_len

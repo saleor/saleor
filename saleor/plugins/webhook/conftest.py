@@ -34,7 +34,18 @@ def tax_data_response(tax_line_data_response):
 
 
 @pytest.fixture
-def tax_app(app, permission_handle_taxes):
+def tax_codes_response():
+    return [
+        {
+            "code": f"code_{i}",
+            "description": f"description_{i}",
+        }
+        for i in range(1, 4)
+    ]
+
+
+@pytest.fixture
+def tax_app(app, permission_handle_taxes, webhook):
     app.permissions.add(permission_handle_taxes)
     return app
 
@@ -59,6 +70,24 @@ def tax_order_webhook(tax_app):
     )
     webhook.events.create(event_type=WebhookEventSyncType.ORDER_CALCULATE_TAXES)
     return webhook
+
+
+@pytest.fixture
+def tax_codes_webhook(tax_app):
+    webhook = Webhook.objects.create(
+        name="Tax codes webhook",
+        app=tax_app,
+        target_url="https://www.example.com/tax-codes",
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.FETCH_TAX_CODES)
+    return webhook
+
+
+@pytest.fixture
+def tax_app_with_webhooks(
+    tax_app, tax_checkout_webhook, tax_order_webhook, tax_codes_webhook
+):
+    return tax_app
 
 
 @pytest.fixture

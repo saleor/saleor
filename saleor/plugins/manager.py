@@ -1,4 +1,3 @@
-import sys
 from collections import defaultdict
 from decimal import Decimal
 from typing import (
