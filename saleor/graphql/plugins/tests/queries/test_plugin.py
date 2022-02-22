@@ -256,7 +256,7 @@ def test_cannot_retrieve_hidden_plugin(settings, staff_api_client_can_manage_plu
     """Ensure one cannot retrieve the details of a hidden global plugin"""
     client = staff_api_client_can_manage_plugins
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
-    variables = {"id": ChannelPluginSample.PLUGIN_ID}
+    variables = {"id": PluginSample.PLUGIN_ID}
 
     # Ensure when visible we find the plugin
     response = client.post_graphql(PLUGIN_QUERY, variables)

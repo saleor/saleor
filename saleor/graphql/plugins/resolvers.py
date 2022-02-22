@@ -44,11 +44,12 @@ def aggregate_plugins_configuration(
 
     for plugin in manager.all_plugins:
         hide_private_configuration_fields(plugin.configuration, plugin.CONFIG_STRUCTURE)
-        if plugin.HIDDEN is False:
-            if not getattr(plugin, "CONFIGURATION_PER_CHANNEL", False):
-                global_plugins[plugin.PLUGIN_ID] = plugin
-            else:
-                plugins_per_channel[plugin.PLUGIN_ID].append(plugin)
+        if plugin.HIDDEN is True:
+            continue
+        if not getattr(plugin, "CONFIGURATION_PER_CHANNEL", False):
+            global_plugins[plugin.PLUGIN_ID] = plugin
+        else:
+            plugins_per_channel[plugin.PLUGIN_ID].append(plugin)
     return global_plugins, plugins_per_channel
 
 
