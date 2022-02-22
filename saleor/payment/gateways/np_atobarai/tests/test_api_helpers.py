@@ -253,13 +253,16 @@ def test_get_goods_with_refunds(
     )
 
 
-def test_get_goods_with_refunds_previous_manual_product_refund(
-    create_refund, order_with_lines, config, np_payment_data, payment_dummy
+@pytest.fixture
+def order_lines(order_with_lines):
+    return list(order_with_lines.lines.all())
+
+
+def test_get_goods_with_refunds_manual_product_refund_product_refund(
+    create_refund, order_with_lines, config, np_payment_data, payment_dummy, order_lines
 ):
     # given
-    lines = list(order_with_lines.lines.all())
-    line_to_refund = lines[0]
-    payment_dummy.captured_amount = order_with_lines.total_gross_amount
+    line_to_refund = order_lines[0]
 
     create_refund(
         order_with_lines,
@@ -270,7 +273,6 @@ def test_get_goods_with_refunds_previous_manual_product_refund(
         ],
         manual_refund_amount=Decimal("3.00"),
     )
-    payment_dummy.captured_amount -= Decimal("3.00")
 
     # when
     np_payment_data.refund_data = RefundData(
@@ -280,7 +282,7 @@ def test_get_goods_with_refunds_previous_manual_product_refund(
             ),
         ]
     )
-    payment_dummy.captured_amount -= line_to_refund.unit_price_gross_amount
+    np_payment_data.amount = line_to_refund.unit_price_gross_amount
     goods, billed_amount = get_goods_with_refunds(
         config, payment_dummy, np_payment_data
     )
@@ -291,5 +293,99 @@ def test_get_goods_with_refunds_previous_manual_product_refund(
     )
     assert billed_amount == expected_billed_amount
     assert goods[0]["quantity"] == line_to_refund.quantity - 1
-    for goods_line, order_line in zip(goods[1:], lines[1:]):
+    for goods_line, order_line in zip(goods[1:], order_lines[1:]):
+        assert goods_line["quantity"] == order_line.quantity
+
+
+def test_get_goods_with_refunds_product_refund_shipping_refund(
+    create_refund, order_with_lines, config, np_payment_data, payment_dummy, order_lines
+):
+    # given
+    line_to_refund = order_lines[0]
+
+    create_refund(
+        order_with_lines,
+        order_lines=[
+            OrderLineInfo(
+                line=line_to_refund, quantity=1, variant=line_to_refund.variant
+            )
+        ],
+    )
+
+    # when
+    np_payment_data.refund_data = RefundData(refund_shipping_costs=True)
+    np_payment_data.amount = order_with_lines.shipping_price_gross_amount
+    goods, billed_amount = get_goods_with_refunds(
+        config, payment_dummy, np_payment_data
+    )
+
+    # then
+    expected_billed_amount = order_with_lines.total_gross_amount - (
+        line_to_refund.unit_price_gross_amount
+        + order_with_lines.shipping_price_gross_amount
+    )
+    assert billed_amount == expected_billed_amount
+    assert goods[0]["quantity"] == line_to_refund.quantity - 1
+    for goods_line, order_line in zip(goods[1:], order_lines[1:]):
+        assert goods_line["quantity"] == order_line.quantity
+
+
+def test_get_goods_with_refunds_manual_shipping_misc_refund(
+    create_refund, order_with_lines, config, np_payment_data, payment_dummy, order_lines
+):
+    # given
+    create_refund(
+        order_with_lines,
+        refund_shipping_costs=True,
+        manual_refund_amount=Decimal("5.30"),
+    )
+
+    # when
+    np_payment_data.refund_data = RefundData(refund_shipping_costs=True)
+    np_payment_data.amount = Decimal("4.30")
+    goods, billed_amount = get_goods_with_refunds(
+        config, payment_dummy, np_payment_data
+    )
+
+    # then
+    expected_billed_amount = order_with_lines.total_gross_amount - (
+        Decimal("5.30") + Decimal("4.30")
+    )
+    assert billed_amount == expected_billed_amount
+    for goods_line, order_line in zip(goods, order_lines):
+        assert goods_line["quantity"] == order_line.quantity
+
+
+def test_get_goods_with_refunds_shipping_refund_manual_product_refund(
+    create_refund, order_with_lines, config, np_payment_data, payment_dummy, order_lines
+):
+    # given
+    create_refund(
+        order_with_lines,
+        refund_shipping_costs=True,
+    )
+
+    # when
+    line_to_refund = order_lines[0]
+    np_payment_data.refund_data = RefundData(
+        order_lines_to_refund=[
+            OrderLineInfo(
+                line=line_to_refund,
+                quantity=1,
+                variant=line_to_refund.variant,
+            )
+        ],
+        refund_amount_is_automatically_calculated=False,
+    )
+    np_payment_data.amount = Decimal("8.20")
+    goods, billed_amount = get_goods_with_refunds(
+        config, payment_dummy, np_payment_data
+    )
+
+    # then
+    expected_billed_amount = order_with_lines.total_gross_amount - (
+        order_with_lines.shipping_price_gross_amount + Decimal("8.20")
+    )
+    assert billed_amount == expected_billed_amount
+    for goods_line, order_line in zip(goods, order_lines):
         assert goods_line["quantity"] == order_line.quantity
