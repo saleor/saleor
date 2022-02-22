@@ -72,8 +72,15 @@ class BaseMetadataMutation(BaseMutation):
             # ShippingMethodType represents the ShippingMethod model
             if type_name == "ShippingMethodType":
                 qs = shipping_models.ShippingMethod.objects
+
+            if qs:
+                qs = qs.select_for_update(of=("self",))
+
             return cls.get_node_or_error(info, object_id, qs=qs)
         except GraphQLError as e:
+            if qs:
+                qs = qs.select_for_update(of=("self",))
+
             if instance := cls.get_instance_by_token(object_id, qs):
                 return instance
             raise ValidationError(
