@@ -335,6 +335,12 @@ class BaseMutation(graphene.Mutation):
         if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
         try:
             response = cls.perform_mutation(root, info, **data)
             if response.errors is None:
@@ -669,8 +675,15 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
         if not cls.check_permissions(info.context):
             raise PermissionDenied()
+
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
 
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:

@@ -16,7 +16,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types import ModelObjectType, Money, TaxedMoney
@@ -170,7 +170,7 @@ class DeliveryMethod(graphene.Union):
         description = (
             f"{ADDED_IN_31} Represents a delivery method chosen for the checkout. "
             '`Warehouse` type is used when checkout is marked as "click and collect" '
-            "and `ShippingMethod` otherwise."
+            f"and `ShippingMethod` otherwise. {PREVIEW_FEATURE}"
         )
         types = (Warehouse, ShippingMethod)
 
@@ -211,7 +211,10 @@ class Checkout(ModelObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+        description=(
+            f"{ADDED_IN_31} Collection points that can be used for this order. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -251,7 +254,10 @@ class Checkout(ModelObjectType):
 
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+        description=(
+            f"{ADDED_IN_31} The delivery method selected for this checkout. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
 
     subtotal_price = graphene.Field(
