@@ -131,8 +131,7 @@ def test_fetch_taxes_data(
     # given
     plugin = webhook_plugin()
     mock_request.return_value = tax_codes_response
-    mocked_cache.get = Mock(return_value={})
-    mocked_cache.set = Mock()
+    mocked_cache.get.return_value = None
 
     # when
     plugin.fetch_taxes_data(None)
@@ -156,7 +155,7 @@ def test_get_tax_rate_type_choices(
     # given
     plugin = webhook_plugin()
     mock_request.return_value = tax_codes_response
-    mocked_cache.get = Mock(return_value={})
+    mocked_cache.get.return_value = None
 
     # when
     tax_types = plugin.get_tax_rate_type_choices(None)
