@@ -171,7 +171,7 @@ def test_create_refund_lines_order_lines(order_with_lines):
 
 def test_create_refund_lines_fulfillment_lines(fulfilled_order):
     # given
-    fulfillment_lines = fulfilled_order.fulfillments.first().lines.all()
+    fulfillment_lines = list(fulfilled_order.fulfillments.first().lines.all())
     order_refund_lines = []
     fulfillment_refund_lines = [
         FulfillmentLineData(

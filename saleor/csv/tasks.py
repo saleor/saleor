@@ -1,11 +1,20 @@
 from typing import Dict, Union
 
+from celery.utils.log import get_task_logger
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.db.models import Q
+from django.db.models.expressions import Exists, OuterRef
+from django.utils import timezone
+
 from ..celeryconf import app
 from ..core import JobStatus
 from . import events
-from .models import ExportFile
+from .models import ExportEvent, ExportFile
 from .notifications import send_export_failed_info
 from .utils.export import export_gift_cards, export_products
+
+task_logger = get_task_logger(__name__)
 
 
 def on_task_failure(self, exc, task_id, args, kwargs, einfo):
@@ -59,3 +68,30 @@ def export_gift_cards_task(
 ):
     export_file = ExportFile.objects.get(pk=export_file_id)
     export_gift_cards(export_file, scope, file_type, delimiter)
+
+
+@app.task
+def delete_old_export_files():
+    now = timezone.now()
+
+    events = ExportEvent.objects.filter(
+        date__lte=now - settings.EXPORT_FILES_TIMEDELTA,
+    ).values("export_file_id")
+    export_files = ExportFile.objects.filter(
+        Q(events__isnull=True) | Exists(events.filter(export_file_id=OuterRef("id")))
+    )
+
+    if not export_files:
+        return
+
+    paths_to_delete = list(export_files.values_list("content_file", flat=True))
+
+    counter = 0
+    for path in paths_to_delete:
+        if path and default_storage.exists(path):
+            default_storage.delete(path)
+            counter += 1
+
+    export_files.delete()
+
+    task_logger.debug("Delete %s export files.", counter)
