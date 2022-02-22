@@ -330,11 +330,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     # add page reference attribute
     product_page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
+        reference_page=page_list[0],
         slug=f"{product.pk}_{page_list[0].pk}",
         name=page_list[0].title,
     )
     variant_page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
+        reference_page=page_list[1],
         slug=f"{variant_with_many_stocks.pk}_{page_list[1].pk}",
         name=page_list[1].title,
     )
@@ -350,6 +352,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     # add product reference attribute
     variant_product_ref_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
+        reference_product=product_with_variant_with_two_attributes,
         slug=(
             f"{variant_with_many_stocks.pk}"
             f"_{product_with_variant_with_two_attributes.pk}"
@@ -358,6 +361,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     )
     product_product_ref_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
+        reference_product=product_with_image,
         slug=f"{product.pk}_{product_with_image.pk}",
         name=product_with_image.name,
     )

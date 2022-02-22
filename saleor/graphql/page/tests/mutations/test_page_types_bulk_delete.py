@@ -4,9 +4,8 @@ import graphene
 import pytest
 
 from .....page.models import Page
-from ....tests.utils import assert_no_permission, get_graphql_content
 from ....attribute.utils import associate_attribute_values_to_instance
-
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 PAGE_TYPE_BULK_DELETE_MUTATION = """
     mutation PageTypeBulkDelete($ids: [ID!]!) {

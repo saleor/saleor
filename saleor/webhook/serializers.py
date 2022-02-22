@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import graphene
 
-from ..attribute import AttributeInputType
+from ..attribute import AttributeEntityType, AttributeInputType
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
 from ..product.models import Product
@@ -46,11 +46,16 @@ def serialize_product_or_variant_attributes(
 ) -> List[Dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_slug):
+    def _prepare_reference(attribute, attr_value):
         if attribute.input_type != AttributeInputType.REFERENCE:
             return
+        if attribute.entity_type == AttributeEntityType.PAGE:
+            reference_pk = attr_value.reference_page_id
+        elif attribute.entity_type == AttributeEntityType.PRODUCT:
+            reference_pk = attr_value.reference_product_id
+        else:
+            reference_pk = attr_value.slug.split("_")[1]
 
-        reference_pk = attr_slug.split("_")[1]
         reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
         return reference_id
 
@@ -79,7 +84,7 @@ def serialize_product_or_variant_attributes(
                 "boolean": attr_value.boolean,
                 "date_time": attr_value.date_time,
                 "date": attr_value.date_time,
-                "reference": _prepare_reference(attribute, attr_slug),
+                "reference": _prepare_reference(attribute, attr_value),
                 "file": None,
             }
 

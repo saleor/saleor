@@ -3,12 +3,10 @@ from unittest import mock
 import graphene
 import pytest
 
+from .....attribute.models import AttributeValue
 from .....page.models import Page
-from ....tests.utils import get_graphql_content
-from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....page.models import Page
-from ...tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content
 
 PAGE_BULK_DELETE_MUTATION = """
     mutation pageBulkDelete($ids: [ID]!) {

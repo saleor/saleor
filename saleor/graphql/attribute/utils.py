@@ -21,8 +21,10 @@ from ...core.utils import generate_unique_slug
 from ...core.utils.editorjs import clean_editor_js
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
+from ...page.models import Page
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
+from ...product.models import Product
 from ..core.utils import from_global_id_or_error
 from ..utils import get_nodes
 
@@ -264,9 +266,15 @@ class AttributeAssignmentMixin:
             reference_product = None
 
             if attribute.entity_type == AttributeEntityType.PAGE:
-                reference_page = ref
+                if isinstance(ref, Page):
+                    reference_page = ref
+                else:
+                    raise GraphQLError
             else:
-                reference_product = ref
+                if isinstance(ref, Product):
+                    reference_product = ref
+                else:
+                    raise GraphQLError
 
             reference_list.append(
                 get_or_create(

@@ -434,6 +434,7 @@ def test_update_page_with_page_reference_attribute_existing_value(
         attribute=page_type_page_reference_attribute,
         name=page.title,
         slug=f"{page.pk}_{ref_page.pk}",
+        reference_page=ref_page,
     )
     associate_attribute_values_to_instance(
         page, page_type_page_reference_attribute, attr_value
@@ -551,6 +552,7 @@ def test_update_page_with_product_reference_attribute_existing_value(
         attribute=page_type_product_reference_attribute,
         name=page.title,
         slug=f"{page.pk}_{product.pk}",
+        reference_product=product,
     )
     associate_attribute_values_to_instance(
         page, page_type_product_reference_attribute, attr_value
@@ -728,16 +730,19 @@ def test_update_page_change_attribute_values_ordering(
         attribute=page_type_product_reference_attribute,
         name=product_list[0].name,
         slug=f"{page.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=page_type_product_reference_attribute,
         name=product_list[1].name,
         slug=f"{page.pk}_{product_list[1].pk}",
+        reference_product=product_list[1],
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=page_type_product_reference_attribute,
         name=product_list[2].name,
         slug=f"{page.pk}_{product_list[2].pk}",
+        reference_product=product_list[2],
     )
 
     associate_attribute_values_to_instance(
