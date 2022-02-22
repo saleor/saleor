@@ -1,6 +1,8 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from django.utils import timezone
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
@@ -120,7 +122,7 @@ def test_get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher, taxes_included
     )
 
-    excepted_value = [
+    expected_value = [
         line.variant.get_price(
             product, [collection], channel, variant_channel_listing, []
         )
@@ -128,7 +130,7 @@ def test_get_prices_of_discounted_specific_product(
         for item in range(line.quantity)
     ]
 
-    assert prices == excepted_value
+    assert prices == expected_value
 
 
 @pytest.mark.parametrize(
@@ -154,20 +156,23 @@ def test_get_prices_of_discounted_specific_product_only_product(
     checkout_info = fetch_checkout_info(checkout, [], [], manager)
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.products.add(product)
+    # assume that cache is correct
+    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher, taxes_included
     )
 
-    excepted_value = [
+    expected_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
         * tax_multiplier
         for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
-    assert prices == excepted_value
+    assert prices == expected_value
 
 
 @pytest.mark.parametrize(
@@ -195,13 +200,16 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     product.collections.add(collection)
     voucher.collections.add(collection)
+    # assume that cache is correct
+    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher, taxes_included
     )
 
-    excepted_value = [
+    expected_value = [
         line.variant.get_price(
             product, [collection], channel, variant_channel_listing, []
         )
@@ -210,7 +218,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     ]
 
     assert checkout.lines.count() > 1
-    assert prices == excepted_value
+    assert prices == expected_value
 
 
 @pytest.mark.parametrize(
@@ -240,20 +248,23 @@ def test_get_prices_of_discounted_specific_product_only_category(
     checkout_info = fetch_checkout_info(checkout, [], [], manager)
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.categories.add(category)
+    # assume that cache is correct
+    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher, taxes_included
     )
 
-    excepted_value = [
+    expected_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
         * tax_multiplier
         for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
-    assert prices == excepted_value
+    assert prices == expected_value
 
 
 @pytest.mark.parametrize(
@@ -280,13 +291,13 @@ def test_get_prices_of_discounted_specific_product_all_products(
         manager, checkout_info, lines, voucher, taxes_included
     )
 
-    excepted_value = [
+    expected_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
         * tax_multiplier
         for item in range(line.quantity)
     ]
 
-    assert prices == excepted_value
+    assert prices == expected_value
 
 
 def test_checkout_line_repr(product, checkout_with_single_item):

@@ -1248,6 +1248,8 @@ def test_handle_not_created_order_order_not_created_checkout_line_variant_delete
     # given
     checkout = payment_adyen_for_checkout.checkout
     checkout.lines.first().variant.delete()
+    checkout.price_expiration = None
+    checkout.save()
 
     payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
     payment_adyen_for_checkout.captured_amount = payment_adyen_for_checkout.total
