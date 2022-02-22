@@ -54,7 +54,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -656,7 +656,10 @@ class Order(ModelObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+        description=(
+            f"{ADDED_IN_31} Collection points that can be used for this order. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
@@ -739,7 +742,10 @@ class Order(ModelObjectType):
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+        description=(
+            f"{ADDED_IN_31} The delivery method selected for this checkout. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -1026,11 +1032,11 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_can_finalize(root: models.Order, _info):
+    def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
             try:
-                validate_draft_order(root, country)
+                validate_draft_order(root, country, info.context.plugins)
             except ValidationError:
                 return False
         return True
@@ -1125,7 +1131,9 @@ class Order(ModelObjectType):
     def resolve_shipping_methods(cls, root: models.Order, info):
         def with_channel(channel):
             def with_listings(channel_listings):
-                return get_valid_shipping_methods_for_order(root, channel_listings)
+                return get_valid_shipping_methods_for_order(
+                    root, channel_listings, info.context.plugins
+                )
 
             return (
                 ShippingMethodChannelListingByChannelSlugLoader(info.context)
@@ -1195,11 +1203,11 @@ class Order(ModelObjectType):
         return graphene.Node.to_global_id("Order", root.original_id)
 
     @traced_resolver
-    def resolve_errors(root, _info, **_kwargs):
+    def resolve_errors(root, info, **_kwargs):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
             try:
-                validate_draft_order(root, country)
+                validate_draft_order(root, country, info.context.plugins)
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []

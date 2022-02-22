@@ -1,10 +1,14 @@
 import django_filters
 from django.db.models import Count
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...account.models import User
 from ...account.search import search_users
-from ..core.filters import EnumFilter, MetadataFilterBase, ObjectTypeFilter
+from ..core.filters import (
+    EnumFilter,
+    GlobalIDMultipleChoiceFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_by_id, filter_range_field
 from . import types as account_types

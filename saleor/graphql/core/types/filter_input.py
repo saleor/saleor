@@ -1,10 +1,37 @@
+import itertools
+
+from django.db import models
+from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
 from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
-from graphene_django.filter.utils import get_filterset_class
 
 from ..descriptions import DEPRECATED_IN_3X_INPUT
+from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from .converter import convert_form_field
+
+GLOBAL_ID_FILTERS = {
+    models.AutoField: {"filter_class": GlobalIDFilter},
+    models.OneToOneField: {"filter_class": GlobalIDFilter},
+    models.ForeignKey: {"filter_class": GlobalIDFilter},
+    models.ManyToManyField: {"filter_class": GlobalIDMultipleChoiceFilter},
+    models.ManyToOneRel: {"filter_class": GlobalIDMultipleChoiceFilter},
+    models.ManyToManyRel: {"filter_class": GlobalIDMultipleChoiceFilter},
+}
+
+
+class GraphQLFilterSetMixin(BaseFilterSet):
+    FILTER_DEFAULTS = dict(
+        itertools.chain(FILTER_FOR_DBFIELD_DEFAULTS.items(), GLOBAL_ID_FILTERS.items())
+    )
+
+
+def get_filterset_class(filterset_class=None):
+    return type(
+        "GraphQL{}".format(filterset_class.__name__),
+        (filterset_class, GraphQLFilterSetMixin),
+        {},
+    )
 
 
 class FilterInputObjectType(InputObjectType):
@@ -43,13 +70,9 @@ class FilterInputObjectType(InputObjectType):
         These arguments will be available to filter against in the GraphQL.
         """
         if not cls.custom_filterset_class:
-            assert cls.model and cls.fields, (
-                "Provide filterset class or model and fields requested to "
-                "create default filterset"
-            )
+            raise ValueError("Provide filterset class")
 
-        meta = dict(model=cls.model, fields=cls.fields)
-        cls.filterset_class = get_filterset_class(cls.custom_filterset_class, **meta)
+        cls.filterset_class = get_filterset_class(cls.custom_filterset_class)
 
         args = {}
         for name, filter_field in cls.filterset_class.base_filters.items():

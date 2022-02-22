@@ -16,7 +16,7 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.types import ModelObjectType, Money
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -91,7 +91,7 @@ class GiftCardEvent(ModelObjectType):
     )
 
     class Meta:
-        description = f"{ADDED_IN_31} History log of the gift card."
+        description = f"{ADDED_IN_31} History log of the gift card. {PREVIEW_FEATURE}"
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
 
@@ -191,7 +191,7 @@ class GiftCardTag(ModelObjectType):
     name = graphene.String(required=True)
 
     class Meta:
-        description = f"{ADDED_IN_31} The gift card tag."
+        description = f"{ADDED_IN_31} The gift card tag. {PREVIEW_FEATURE}"
         model = models.GiftCardTag
         interfaces = [graphene.relay.Node]
 
@@ -217,50 +217,61 @@ class GiftCard(ModelObjectType):
     created = graphene.DateTime(required=True)
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=f"{ADDED_IN_31} The user who bought or issued a gift card.",
+        description=(
+            f"{ADDED_IN_31} The user who bought or issued a gift card. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=f"{ADDED_IN_31} The customer who used a gift card.",
+        description=(
+            f"{ADDED_IN_31} The customer who used a gift card. {PREVIEW_FEATURE}"
+        ),
     )
     created_by_email = graphene.String(
         required=False,
         description=(
-            f"{ADDED_IN_31} Email address of the user who bought or issued gift card."
+            f"{ADDED_IN_31} Email address of the user who bought or issued gift card. "
+            f"{PREVIEW_FEATURE}"
         ),
     )
     used_by_email = graphene.String(
         required=False,
         description=(
-            f"{ADDED_IN_31} Email address of the customer who used a gift card."
+            f"{ADDED_IN_31} Email address of the customer who used a gift card. "
+            f"{PREVIEW_FEATURE}"
         ),
     )
     last_used_on = graphene.DateTime()
     expiry_date = graphene.Date()
     app = graphene.Field(
         App,
-        description=f"{ADDED_IN_31} App which created the gift card.",
+        description=f"{ADDED_IN_31} App which created the gift card. {PREVIEW_FEATURE}",
     )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
-        description=f"{ADDED_IN_31} Related gift card product.",
+        description=f"{ADDED_IN_31} Related gift card product. {PREVIEW_FEATURE}",
     )
     events = graphene.List(
         graphene.NonNull(GiftCardEvent),
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
-        description=f"{ADDED_IN_31} List of events associated with the gift card.",
+        description=(
+            f"{ADDED_IN_31} List of events associated with the gift card. "
+            f"{PREVIEW_FEATURE}"
+        ),
         required=True,
     )
     tags = graphene.List(
         graphene.NonNull(GiftCardTag),
-        description=f"{ADDED_IN_31} The gift card tag.",
+        description=f"{ADDED_IN_31} The gift card tag. {PREVIEW_FEATURE}",
         required=True,
     )
     bought_in_channel = graphene.String(
         description=(
-            "{ADDED_IN_31} Slug of the channel where the gift card was bought."
+            f"{ADDED_IN_31} Slug of the channel where the gift card was bought. "
+            f"{PREVIEW_FEATURE}"
         ),
         required=False,
     )

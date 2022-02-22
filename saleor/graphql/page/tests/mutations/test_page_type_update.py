@@ -2,9 +2,9 @@ from unittest.mock import ANY
 
 import graphene
 
-from ....page.error_codes import PageErrorCode
-from ....page.models import PageType
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....page.error_codes import PageErrorCode
+from .....page.models import PageType
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 PAGE_TYPE_UPDATE_MUTATION = """
     mutation PageTypeUpdate(

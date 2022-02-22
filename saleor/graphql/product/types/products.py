@@ -50,6 +50,7 @@ from ...core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import resolve_federation_references
@@ -316,7 +317,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=f"{ADDED_IN_31} Preorder data for product variant.",
+        description=(
+            f"{ADDED_IN_31} Preorder data for product variant. {PREVIEW_FEATURE}"
+        ),
     )
 
     class Meta:
@@ -1575,7 +1578,7 @@ class Category(ModelObjectType):
         qs = models.Product.objects.all()
         if not has_required_permissions:
             qs = (
-                qs.published(channel)
+                qs.visible_to_user(requestor, channel)
                 .annotate_visible_in_listings(channel)
                 .exclude(
                     visible_in_listings=False,

@@ -206,6 +206,8 @@ class WebhookEventSyncType:
     ORDER_CALCULATE_TAXES = "order_calculate_taxes"
 
     SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
+    CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
+    ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
@@ -218,6 +220,8 @@ class WebhookEventSyncType:
         CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
         ORDER_CALCULATE_TAXES: "Order calculate taxes",
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
+        ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
+        CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
     }
 
     CHOICES = [
@@ -233,6 +237,11 @@ class WebhookEventSyncType:
         (
             SHIPPING_LIST_METHODS_FOR_CHECKOUT,
             DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
+        ),
+        (ORDER_FILTER_SHIPPING_METHODS, DISPLAY_LABELS[ORDER_FILTER_SHIPPING_METHODS]),
+        (
+            CHECKOUT_FILTER_SHIPPING_METHODS,
+            DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
         ),
     ]
 
@@ -259,4 +268,6 @@ class WebhookEventSyncType:
         CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
+        ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
+        CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
     }
