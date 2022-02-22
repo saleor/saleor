@@ -413,6 +413,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     subtotal = calculations.checkout_subtotal(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
+    checkout_with_item.price_expiration = None
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -452,6 +453,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout_with_item.price_expiration = None
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -493,6 +495,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         address=checkout.shipping_address,
     )
 
+    checkout.price_expiration = None
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -531,6 +534,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = None
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -569,6 +573,7 @@ def test_checkout_add_category_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = None
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -871,6 +876,7 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     variant = variant_with_many_stocks_different_shipping_zones
     add_variant_to_checkout(checkout_info, variant, 5)
+    checkout.save()
 
     # Apply voucher
     variables = {"token": checkout.token, "promoCode": voucher.code}

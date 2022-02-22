@@ -816,6 +816,8 @@ class CheckoutLineDelete(BaseMutation):
         if line and line in checkout.lines.all():
             line.delete()
 
+        invalidate_checkout_prices(checkout, save=True)
+
         manager = info.context.plugins
         lines, _ = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
@@ -831,7 +833,6 @@ class CheckoutLineDelete(BaseMutation):
             info.context.discounts,
             taxes_included,
         )
-        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
 
         return CheckoutLineDelete(checkout=checkout)
