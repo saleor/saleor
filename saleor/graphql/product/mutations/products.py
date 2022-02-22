@@ -19,7 +19,7 @@ from ....order import OrderStatus
 from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
-from ....product import ProductMediaTypes, models
+from ....product import ProductMediaTypes, ProductTypeKind, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.search import (
     update_product_search_document,
@@ -41,7 +41,7 @@ from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_31
+from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
@@ -804,13 +804,15 @@ class ProductVariantInput(graphene.InputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=f"{ADDED_IN_31} Determines if variant is in preorder."
+        description=(
+            f"{ADDED_IN_31} Determines if variant is in preorder. {PREVIEW_FEATURE}"
+        )
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
             f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`,"
-            "that can be bought in a single checkout."
+            f"that can be bought in a single checkout. {PREVIEW_FEATURE}"
         ),
     )
 
@@ -1224,8 +1226,17 @@ class ProductTypeCreate(ModelMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    def clean_product_kind(cls, _instance, data):
+        # Fallback to ProductTypeKind.NORMAL if kind is not provided in the input.
+        # This method can be dropped when we separate inputs for `productTypeCreate`
+        # and `productTypeUpdate` - now they reuse the input class and all fields are
+        # optional, while `kind` is required in the model.
+        return data.get("kind") or ProductTypeKind.NORMAL
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input["kind"] = cls.clean_product_kind(instance, cleaned_input)
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -1300,6 +1311,10 @@ class ProductTypeUpdate(ProductTypeCreate):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def clean_product_kind(cls, instance, data):
+        return data.get("kind", instance.kind)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -1822,8 +1837,9 @@ class ProductVariantPreorderDeactivate(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Deactivates product variant preorder."
-            "It changes all preorder allocation into regular allocation."
+            f"{ADDED_IN_31} Deactivates product variant preorder. "
+            f"It changes all preorder allocation into regular allocation. "
+            f"{PREVIEW_FEATURE}"
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError

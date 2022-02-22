@@ -1,8 +1,8 @@
 import django_filters
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...shipping.models import ShippingZone
 from ..channel.types import Channel
+from ..core.filters import GlobalIDMultipleChoiceFilter
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value

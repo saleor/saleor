@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import traceback
+from inspect import isclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing
@@ -14,8 +15,6 @@ from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
-from graphene_django.settings import graphene_settings
-from graphene_django.views import instantiate_middleware
 from graphql import GraphQLDocument, get_default_backend
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.error import format_error as format_graphql_error
@@ -73,15 +72,11 @@ class GraphQLView(View):
         self, schema=None, executor=None, middleware=None, root_value=None, backend=None
     ):
         super().__init__()
-        if schema is None:
-            schema = graphene_settings.SCHEMA
         if backend is None:
             backend = get_default_backend()
-        if middleware is None:
-            middleware = graphene_settings.MIDDLEWARE
         self.schema = self.schema or schema
         if middleware is not None:
-            self.middleware = list(instantiate_middleware(middleware))
+            self.middleware = list()
         self.executor = executor
         self.root_value = root_value
         self.backend = backend
@@ -442,6 +437,14 @@ def obj_set(obj, path, value, do_not_replace):
         except IndexError:
             pass
     return obj_set(obj[current_path], path[1:], value, do_not_replace)
+
+
+def instantiate_middleware(middlewares):
+    for middleware in middlewares:
+        if isclass(middleware):
+            yield middleware()
+            continue
+        yield middleware
 
 
 def generate_cache_key(raw_query: str) -> str:

@@ -16,7 +16,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types import ModelObjectType, Money, TaxedMoney
@@ -163,9 +163,9 @@ class CheckoutLineCountableConnection(CountableConnection):
 class DeliveryMethod(graphene.Union):
     class Meta:
         description = (
-            "Represents a delivery method chosen for the checkout. `Warehouse` "
-            'type is used when checkout is marked as "click and collect" and '
-            "`ShippingMethod` otherwise."
+            f"{ADDED_IN_31} Represents a delivery method chosen for the checkout. "
+            '`Warehouse` type is used when checkout is marked as "click and collect" '
+            f"and `ShippingMethod` otherwise. {PREVIEW_FEATURE}"
         )
         types = (Warehouse, ShippingMethod)
 
@@ -206,7 +206,10 @@ class Checkout(ModelObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+        description=(
+            f"{ADDED_IN_31} Collection points that can be used for this order. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -246,7 +249,10 @@ class Checkout(ModelObjectType):
 
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+        description=(
+            f"{ADDED_IN_31} The delivery method selected for this checkout. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
 
     subtotal_price = graphene.Field(
@@ -316,7 +322,11 @@ class Checkout(ModelObjectType):
     @classmethod
     @traced_resolver
     def resolve_shipping_methods(cls, root: models.Checkout, info):
-        return cls.resolve_available_shipping_methods(root, info)
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+        )
 
     @staticmethod
     def resolve_delivery_method(root: models.Checkout, info):
@@ -432,19 +442,10 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_shipping_methods(root: models.Checkout, info):
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-
-        def calculate_available_shipping_methods(data):
-            lines, checkout_info, discounts, channel = data
-            return checkout_info.valid_shipping_methods
-
-        return Promise.all([lines, checkout_info, discounts, channel]).then(
-            calculate_available_shipping_methods
+        return (
+            CheckoutInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(lambda checkout_info: checkout_info.valid_shipping_methods)
         )
 
     @staticmethod
