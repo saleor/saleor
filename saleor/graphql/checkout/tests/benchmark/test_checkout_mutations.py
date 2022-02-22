@@ -447,7 +447,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(53):
+    with django_assert_num_queries(55):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -465,7 +465,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(53):
+    with django_assert_num_queries(55):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -706,7 +706,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(57):
+    with django_assert_num_queries(59):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "token": checkout.token,
@@ -720,7 +720,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(57):
+    with django_assert_num_queries(59):
         variables = {
             "token": checkout.token,
             "lines": [],
@@ -912,9 +912,10 @@ def test_add_checkout_lines_with_external_shipping(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    # One api call:
+    # Two api calls:
     # - post-mutate() logic used to validate currently selected method
-    assert mock_send_request.call_count == 1
+    # - fetch_checkout_prices_if_expired - calculating all prices for checkout
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
@@ -961,7 +962,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(57):
+    with django_assert_num_queries(59):
         variables = {
             "checkoutId": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -974,7 +975,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(57):
+    with django_assert_num_queries(59):
         variables = {
             "checkoutId": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
