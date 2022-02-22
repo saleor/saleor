@@ -131,9 +131,6 @@ def create_refund(payment_dummy):
         manual_refund_amount=None,
         refund_shipping_costs=False,
     ):
-        # payment_dummy.captured_amount = order.total_gross_amount
-        # payment_dummy.save(update_fields=["captured_amount"])
-
         with patch("saleor.order.actions.gateway.refund"):
             return create_refund_fulfillment(
                 user=None,

@@ -68,6 +68,14 @@ def np_atobarai_opentracing_trace(span_name: str):
         yield
 
 
+_FULFILLMENT_LINE_HAS_MANUAL_AMOUNT_EXPRESSION = CombinedExpression(
+    F("fulfillment__total_refund_amount") % F("order_line__unit_price_gross_amount"),
+    "!=",
+    Value(0),
+    output_field=BooleanField(),
+)
+
+
 def create_refunded_lines(
     order: Order,
     refund_data: RefundData,
@@ -87,15 +95,7 @@ def create_refunded_lines(
     # Refund fulfillments for product refunds with automatic amount
     previous_fulfillment_lines = (
         FulfillmentLine.objects.prefetch_related("order_line")
-        .annotate(
-            has_manual_amount=CombinedExpression(
-                F("fulfillment__total_refund_amount")
-                % F("order_line__unit_price_gross_amount"),
-                "!=",
-                Value(0),
-                output_field=BooleanField(),
-            )
-        )
+        .annotate(has_manual_amount=_FULFILLMENT_LINE_HAS_MANUAL_AMOUNT_EXPRESSION)
         .filter(
             fulfillment__order_id=order.pk,
             fulfillment__status__in=[
@@ -136,59 +136,3 @@ def create_refunded_lines(
         summed_refund_lines[variant_id] += quantity
 
     return dict(summed_refund_lines)
-
-
-# def calculate_manual_refund_amount(
-#     order: Order,
-#     payment_information: PaymentData,
-#     refund_data: RefundData,
-# ) -> Decimal:
-#     """Return sum of all manual refunds for specified order.
-#
-#     Takes into account previous refunds and current refund mutation amount.
-#     """
-#     if (
-#         refund_data.order_lines_to_refund or refund_data.fulfillment_lines_to_refund
-#     ) and refund_data.refund_amount_is_automatically_calculated:
-#         # automatic line refund
-#         manual_amount_to_refund = Decimal("0.00")
-#     elif (
-#         refund_data.refund_shipping_costs
-#         and refund_data.refund_amount_is_automatically_calculated
-#     ):
-#         # automatic shipping refund
-#         manual_amount_to_refund = payment_information.lines_data.shipping_amount
-#     else:
-#         # manual refund
-#         manual_amount_to_refund = payment_information.amount or Decimal("0.00")
-#
-#     # Sum of all previous manual refunds
-#     previous_manual_amount_to_refund = (
-#         order.fulfillments.annotate(
-#             has_manual_amount=CombinedExpression(
-#                 lhs=F("total_refund_amount")
-#                 % F("lines__order_line__unit_price_gross_amount"),
-#                 connector="!=",
-#                 rhs=Value(0),
-#                 output_field=BooleanField(),
-#             )
-#         )
-#         .filter(
-#             Q(
-#                 # Misc refunds
-#                 lines__isnull=True,
-#             )
-#             | Q(
-#                 # Product refunds with manual amount
-#                 lines__isnull=False,
-#                 has_manual_amount=True,
-#             ),
-#             status__in=[
-#                 FulfillmentStatus.REFUNDED,
-#                 FulfillmentStatus.REFUNDED_AND_RETURNED,
-#             ],
-#         )
-#         .aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
-#         or Decimal("0.00")
-#     )
-#     return previous_manual_amount_to_refund + manual_amount_to_refund
