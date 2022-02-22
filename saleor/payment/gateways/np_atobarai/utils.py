@@ -1,17 +1,17 @@
 from collections import defaultdict
 from contextlib import contextmanager
-from decimal import Decimal
 from itertools import chain
 from typing import Dict, Optional
 
-from django.db.models import Q, Sum
+from django.db.models import BooleanField, F, Q, Value
+from django.db.models.expressions import CombinedExpression
 
 from ....core.tracing import opentracing_trace
 from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
 from ....order.models import Fulfillment, FulfillmentLine, Order
 from ... import PaymentError
-from ...interface import PaymentData, RefundData
+from ...interface import RefundData
 from .api_types import ApiConfig
 from .const import SHIPPING_COMPANY_CODE_METADATA_KEY, SHIPPING_COMPANY_CODES
 
@@ -84,15 +84,29 @@ def create_refunded_lines(
         order_lines_to_refund = refund_data.order_lines_to_refund
         fulfillment_lines_to_refund = refund_data.fulfillment_lines_to_refund
 
-    previous_fulfillment_lines = FulfillmentLine.objects.prefetch_related(
-        "order_line"
-    ).filter(
-        fulfillment__order_id=order.pk,
-        fulfillment__status__in=[
-            FulfillmentStatus.REFUNDED,
-            FulfillmentStatus.REFUNDED_AND_RETURNED,
-        ],
-        order_line__variant_id__isnull=False,
+    # Refund fulfillments for product refunds with automatic amount
+    previous_fulfillment_lines = (
+        FulfillmentLine.objects.prefetch_related("order_line")
+        .annotate(
+            has_manual_amount=CombinedExpression(
+                F("fulfillment__total_refund_amount")
+                % F("order_line__unit_price_gross_amount"),
+                "!=",
+                Value(0),
+                output_field=BooleanField(),
+            )
+        )
+        .filter(
+            fulfillment__order_id=order.pk,
+            fulfillment__status__in=[
+                FulfillmentStatus.REFUNDED,
+                FulfillmentStatus.REFUNDED_AND_RETURNED,
+            ],
+            # No misc refunds
+            order_line__variant_id__isnull=False,
+            # No product refunds with manual amount
+            has_manual_amount=False,
+        )
     )
 
     previous_refund_lines = (
@@ -124,39 +138,57 @@ def create_refunded_lines(
     return dict(summed_refund_lines)
 
 
-def calculate_manual_refund_amount(
-    order: Order,
-    payment_information: PaymentData,
-    refund_data: RefundData,
-) -> Decimal:
-    """Return sum of all manual refunds for specified order.
-
-    Takes into account previous refunds and current refund mutation amount.
-    """
-    if (
-        refund_data.order_lines_to_refund or refund_data.fulfillment_lines_to_refund
-    ) and refund_data.refund_amount_is_automatically_calculated:
-        # automatic line refund
-        manual_amount_to_refund = Decimal("0.00")
-    elif (
-        refund_data.refund_shipping_costs
-        and refund_data.refund_amount_is_automatically_calculated
-    ):
-        # automatic shipping refund
-        manual_amount_to_refund = payment_information.lines_data.shipping_amount
-    else:
-        # manual refund
-        manual_amount_to_refund = payment_information.amount or Decimal("0.00")
-
-    previous_manual_amount_to_refund = (
-        order.fulfillments.filter(
-            status__in=[
-                FulfillmentStatus.REFUNDED,
-                FulfillmentStatus.REFUNDED_AND_RETURNED,
-            ],
-            lines__isnull=True,
-        ).aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
-        or Decimal("0.00")
-    )
-
-    return previous_manual_amount_to_refund + manual_amount_to_refund
+# def calculate_manual_refund_amount(
+#     order: Order,
+#     payment_information: PaymentData,
+#     refund_data: RefundData,
+# ) -> Decimal:
+#     """Return sum of all manual refunds for specified order.
+#
+#     Takes into account previous refunds and current refund mutation amount.
+#     """
+#     if (
+#         refund_data.order_lines_to_refund or refund_data.fulfillment_lines_to_refund
+#     ) and refund_data.refund_amount_is_automatically_calculated:
+#         # automatic line refund
+#         manual_amount_to_refund = Decimal("0.00")
+#     elif (
+#         refund_data.refund_shipping_costs
+#         and refund_data.refund_amount_is_automatically_calculated
+#     ):
+#         # automatic shipping refund
+#         manual_amount_to_refund = payment_information.lines_data.shipping_amount
+#     else:
+#         # manual refund
+#         manual_amount_to_refund = payment_information.amount or Decimal("0.00")
+#
+#     # Sum of all previous manual refunds
+#     previous_manual_amount_to_refund = (
+#         order.fulfillments.annotate(
+#             has_manual_amount=CombinedExpression(
+#                 lhs=F("total_refund_amount")
+#                 % F("lines__order_line__unit_price_gross_amount"),
+#                 connector="!=",
+#                 rhs=Value(0),
+#                 output_field=BooleanField(),
+#             )
+#         )
+#         .filter(
+#             Q(
+#                 # Misc refunds
+#                 lines__isnull=True,
+#             )
+#             | Q(
+#                 # Product refunds with manual amount
+#                 lines__isnull=False,
+#                 has_manual_amount=True,
+#             ),
+#             status__in=[
+#                 FulfillmentStatus.REFUNDED,
+#                 FulfillmentStatus.REFUNDED_AND_RETURNED,
+#             ],
+#         )
+#         .aggregate(manual_amount=Sum("total_refund_amount"))["manual_amount"]
+#         or Decimal("0.00")
+#     )
+#     return previous_manual_amount_to_refund + manual_amount_to_refund

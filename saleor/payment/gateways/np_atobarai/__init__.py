@@ -118,7 +118,7 @@ def refund(payment_information: PaymentData, config: ApiConfig) -> GatewayRespon
     # in case of refunding less than already captured
     # and not all lines are being refunded,
     # the transaction needs to be re-registered in NP Atobarai
-    if payment_information.amount < payment.captured_amount and goods:
+    if payment_information.amount < payment.captured_amount:
         order = payment.order
 
         if not order:
