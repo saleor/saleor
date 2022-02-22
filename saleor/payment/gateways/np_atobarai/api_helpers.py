@@ -25,7 +25,6 @@ from .errors import (
     SHIPPING_COMPANY_CODE_INVALID,
 )
 from .utils import (
-    calculate_manual_refund_amount,
     create_refunded_lines,
     notify_dashboard,
     np_atobarai_opentracing_trace,
@@ -189,11 +188,8 @@ def get_goods_with_refunds(
         raise PaymentError("Cannot refund payment without order.")
 
     refunded_lines = create_refunded_lines(order, refund_data)
-    refunded_manual_amount = calculate_manual_refund_amount(
-        order, payment_information, refund_data
-    )
 
-    billed_amount = Decimal("0.00")
+    subtotal = Decimal("0.00")
     for line in payment_information.lines_data.lines:
         quantity = line.quantity
         refunded_quantity = refunded_lines.get(line.variant_id)
@@ -210,25 +206,28 @@ def get_goods_with_refunds(
                     "quantity": quantity,
                 }
             )
-            billed_amount += line.amount * quantity
+            subtotal += line.amount * quantity
 
     goods_lines.extend(_get_voucher_and_shipping_goods(config, payment_information))
-    billed_amount += payment_information.lines_data.shipping_amount
-    billed_amount += payment_information.lines_data.voucher_amount
+    subtotal += payment_information.lines_data.shipping_amount
+    subtotal += payment_information.lines_data.voucher_amount
+
+    total = payment.captured_amount - payment_information.amount
+
+    refunded_manual_amount = total - subtotal
 
     if refunded_manual_amount:
         goods_lines.append(
             {
                 "goods_name": "Discount",
                 "goods_price": format_price(
-                    -refunded_manual_amount, payment_information.currency
+                    refunded_manual_amount, payment_information.currency
                 ),
                 "quantity": 1,
             }
         )
-        billed_amount -= refunded_manual_amount
 
-    return goods_lines, billed_amount
+    return goods_lines, total
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:

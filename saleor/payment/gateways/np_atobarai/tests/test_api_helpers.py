@@ -5,6 +5,8 @@ from unittest.mock import DEFAULT, Mock, patch, sentinel
 import pytest
 from posuto import Posuto
 
+from saleor.order.fetch import OrderLineInfo
+
 from ....interface import AddressData, RefundData
 from ....utils import price_to_minor_unit
 from .. import api_helpers, errors
@@ -173,15 +175,6 @@ def test_get_goods(
         for line in np_payment_data.lines_data.lines
     ] + [
         {
-            "goods_name": "Voucher",
-            "goods_price": int(
-                price_to_minor_unit(
-                    np_payment_data.lines_data.voucher_amount, np_payment_data.currency
-                )
-            ),
-            "quantity": 1,
-        },
-        {
             "goods_name": "Shipping",
             "goods_price": int(
                 price_to_minor_unit(
@@ -196,7 +189,7 @@ def test_get_goods(
 @pytest.mark.parametrize(
     "refund_amount, discount_goods",
     [
-        (None, []),
+        (Decimal("0.00"), []),
         (
             Decimal("5.00"),
             [{"goods_name": "Discount", "goods_price": -500, "quantity": 1}],
@@ -239,16 +232,6 @@ def test_get_goods_with_refunds(
         ]
         + [
             {
-                "goods_name": "Voucher",
-                "goods_price": int(
-                    price_to_minor_unit(
-                        np_payment_data.lines_data.voucher_amount,
-                        np_payment_data.currency,
-                    )
-                ),
-                "quantity": 1,
-            },
-            {
                 "goods_name": "Shipping",
                 "goods_price": int(
                     price_to_minor_unit(
@@ -269,3 +252,45 @@ def test_get_goods_with_refunds(
         + np_payment_data.lines_data.shipping_amount
         - manual_refund_amount
     )
+
+
+def test_get_goods_with_refunds_previous_manual_product_refund(
+    create_refund, order_with_lines, config, np_payment_data, payment_dummy
+):
+    # given
+    lines = list(order_with_lines.lines.all())
+    line_to_refund = lines[0]
+    payment_dummy.captured_amount = order_with_lines.total_gross_amount
+
+    create_refund(
+        order_with_lines,
+        order_lines=[
+            OrderLineInfo(
+                line=line_to_refund, quantity=1, variant=line_to_refund.variant
+            )
+        ],
+        manual_refund_amount=Decimal("3.00"),
+    )
+    payment_dummy.captured_amount -= Decimal("3.00")
+
+    # when
+    np_payment_data.refund_data = RefundData(
+        order_lines_to_refund=[
+            OrderLineInfo(
+                line=line_to_refund, quantity=1, variant=line_to_refund.variant
+            ),
+        ]
+    )
+    payment_dummy.captured_amount -= line_to_refund.unit_price_gross_amount
+    goods, billed_amount = get_goods_with_refunds(
+        config, payment_dummy, np_payment_data
+    )
+
+    # then
+    expected_billed_amount = order_with_lines.total_gross_amount - (
+        Decimal("3.00") + line_to_refund.unit_price_gross_amount
+    )
+    assert billed_amount == expected_billed_amount
+    assert goods[0]["quantity"] == line_to_refund.quantity - 1
+    for goods_line, order_line in zip(goods[1:], lines[1:]):
+        assert goods_line["quantity"] == order_line.quantity
