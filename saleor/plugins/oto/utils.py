@@ -75,7 +75,7 @@ def generate_create_order_data(fulfillment):
         "customer": get_order_customer_data(order=fulfillment.order),
         "subtotal": float(fulfillment.order.get_subtotal().net.amount),
         "amount_due": float(
-            (fulfillment.order.total_net_amount + shipping_amount)
+            (float(fulfillment.order.total_net_amount) + shipping_amount)
             if is_cod_order
             else 0
         ),
