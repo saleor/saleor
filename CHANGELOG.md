@@ -57,6 +57,9 @@ unavailable - #8978 by @IKarbowiak
   - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook
 - Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
 - Allow fetching unpublished pages by app with manage pages permission - #9181 by @IKarbowiak
+- Update required permissions for attribute options - #9204 by @IKarbowiak
+  - Product attribute options can be fetched by requestors with manage product types and attributes permission.
+  - Page attribute options can be fetched by requestors with manage page types and attributes permission.
 
 
 # 3.0.0
