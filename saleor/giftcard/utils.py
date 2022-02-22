@@ -4,11 +4,13 @@ from typing import TYPE_CHECKING, Iterable, Optional
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 
 from ..checkout.error_codes import CheckoutErrorCode
 from ..checkout.models import Checkout
+from ..core.tracing import traced_atomic_transaction
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
 from ..core.utils.validators import user_is_valid
 from ..order.actions import create_fulfillments
@@ -151,6 +153,7 @@ def fulfill_gift_card_lines(
     )
 
 
+@traced_atomic_transaction()
 def gift_cards_create(
     order: "Order",
     gift_card_lines_info: Iterable["GiftCardLineData"],
@@ -190,14 +193,16 @@ def gift_cards_create(
 
     channel_slug = order.channel.slug
     # send to customer all non-shippable gift cards
-    send_gift_cards_to_customer(
-        non_shippable_gift_cards,
-        user_email,
-        requestor_user,
-        app,
-        customer_user,
-        manager,
-        channel_slug,
+    transaction.on_commit(
+        lambda: send_gift_cards_to_customer(
+            non_shippable_gift_cards,
+            user_email,
+            requestor_user,
+            app,
+            customer_user,
+            manager,
+            channel_slug,
+        )
     )
     return gift_cards
 
@@ -257,3 +262,9 @@ def order_has_gift_card_lines(order):
 def assign_user_gift_cards(user):
     GiftCard.objects.filter(used_by_email=user.email).update(used_by=user)
     GiftCard.objects.filter(created_by_email=user.email).update(created_by=user)
+
+
+def is_gift_card_expired(gift_card: GiftCard):
+    """Return True when gift card expiry date pass."""
+    today = timezone.now().date()
+    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore

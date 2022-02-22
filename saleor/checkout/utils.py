@@ -26,7 +26,9 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
-from ..shipping.models import ShippingMethod
+from ..shipping.interface import ShippingMethodData
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.utils import convert_to_shipping_method_data
 from ..warehouse.availability import (
     check_stock_and_preorder_quantity,
     check_stock_and_preorder_quantity_bulk,
@@ -268,7 +270,8 @@ def change_shipping_address_in_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     manager: "PluginsManager",
-) -> List[str]:
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
+):
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
@@ -285,7 +288,7 @@ def change_shipping_address_in_checkout(
             checkout.shipping_address.delete()  # type: ignore
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
-            checkout_info, address, lines, discounts, manager
+            checkout_info, address, lines, discounts, manager, shipping_channel_listings
         )
         updated_fields = ["shipping_address", "last_change"]
     return updated_fields
@@ -521,8 +524,7 @@ def recalculate_checkout_discount(
     applicable.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout_info(checkout_info)
-    if voucher is not None:
+    if voucher := checkout_info.voucher:
         address = checkout_info.shipping_address or checkout_info.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
@@ -536,6 +538,7 @@ def recalculate_checkout_discount(
             )
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
+            checkout_info.voucher = None
         else:
             subtotal = calculations.checkout_subtotal(
                 manager=manager,
@@ -678,6 +681,7 @@ def add_voucher_to_checkout(
             "last_change",
         ]
     )
+    checkout_info.voucher = voucher
 
 
 def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
@@ -690,9 +694,10 @@ def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: s
 
 def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
     """Remove voucher data from checkout by code."""
-    existing_voucher = get_voucher_for_checkout_info(checkout_info)
+    existing_voucher = checkout_info.voucher
     if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout_info.checkout)
+        checkout_info.voucher = None
 
 
 def remove_voucher_from_checkout(checkout: Checkout):
@@ -713,23 +718,38 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_valid_shipping_methods_for_checkout(
+def get_valid_internal_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     subtotal: "TaxedMoney",
+    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
-):
+) -> List[ShippingMethodData]:
     if not is_shipping_required(lines):
-        return None
+        return []
     if not checkout_info.shipping_address:
-        return None
-    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        return []
+
+    shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,  # type: ignore
+        country_code=country_code,
         lines=lines,
     )
+
+    channel_listings_map = {
+        listing.shipping_method_id: listing for listing in shipping_channel_listings
+    }
+
+    internal_methods = []
+    for method in shipping_methods:
+        listing = channel_listings_map.get(method.pk)
+        shipping_method_data = convert_to_shipping_method_data(method, listing)
+        if shipping_method_data:
+            internal_methods.append(shipping_method_data)
+
+    return internal_methods
 
 
 def get_valid_collection_points_for_checkout(

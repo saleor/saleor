@@ -25,7 +25,7 @@ from ...shipping import types as shipping_types
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.validators import check_for_duplicates
 from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
-from ..types import ShippingMethod, ShippingMethodPostalCodeRule, ShippingZone
+from ..types import ShippingMethodPostalCodeRule, ShippingMethodType, ShippingZone
 
 
 class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
@@ -204,6 +204,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Creates a new shipping zone."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -226,6 +227,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Updates a new shipping zone."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -245,6 +247,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a shipping zone."
         model = models.ShippingZone
+        object_type = ShippingZone
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -260,7 +263,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
 class ShippingMethodTypeMixin:
     @classmethod
     def get_type_for_model(cls):
-        return shipping_types.ShippingMethod
+        return shipping_types.ShippingMethodType
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -275,6 +278,10 @@ class ShippingMethodTypeMixin:
 
 
 class ShippingPriceMixin:
+    @classmethod
+    def get_type_for_model(cls):
+        return ShippingMethodType
+
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
@@ -433,7 +440,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
         description="A shipping zone to which the shipping method belongs.",
     )
     shipping_method = graphene.Field(
-        ShippingMethod, description="A shipping method to create."
+        ShippingMethodType, description="A shipping method to create."
     )
 
     class Arguments:
@@ -444,6 +451,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     class Meta:
         description = "Creates a new shipping price."
         model = models.ShippingMethod
+        object_type = ShippingMethodType
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -464,7 +472,9 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
     )
-    shipping_method = graphene.Field(ShippingMethod, description="A shipping method.")
+    shipping_method = graphene.Field(
+        ShippingMethodType, description="A shipping method."
+    )
 
     class Arguments:
         id = graphene.ID(description="ID of a shipping price to update.", required=True)
@@ -475,6 +485,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
     class Meta:
         description = "Updates a new shipping price."
         model = models.ShippingMethod
+        object_type = ShippingMethodType
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -493,7 +504,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
 
 class ShippingPriceDelete(BaseMutation):
     shipping_method = graphene.Field(
-        ShippingMethod, description="A shipping method to delete."
+        ShippingMethodType, description="A shipping method to delete."
     )
     shipping_zone = graphene.Field(
         ShippingZone,
@@ -534,7 +545,7 @@ class ShippingPriceExcludeProductsInput(graphene.InputObjectType):
 
 class ShippingPriceExcludeProducts(BaseMutation):
     shipping_method = graphene.Field(
-        ShippingMethod,
+        ShippingMethodType,
         description="A shipping method with new list of excluded products.",
     )
 
@@ -578,7 +589,7 @@ class ShippingPriceExcludeProducts(BaseMutation):
 
 class ShippingPriceRemoveProductFromExclude(BaseMutation):
     shipping_method = graphene.Field(
-        ShippingMethod,
+        ShippingMethodType,
         description="A shipping method with new list of excluded products.",
     )
 

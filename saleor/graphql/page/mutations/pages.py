@@ -17,7 +17,7 @@ from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
 from ...utils.validators import check_for_duplicates
-from ..types import PageType
+from ..types import Page, PageType
 
 if TYPE_CHECKING:
     from ....attribute.models import Attribute
@@ -54,6 +54,7 @@ class PageCreate(ModelMutation):
     class Meta:
         description = "Creates a new page."
         model = models.Page
+        object_type = Page
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -123,6 +124,7 @@ class PageUpdate(PageCreate):
     class Meta:
         description = "Updates an existing page."
         model = models.Page
+        object_type = Page
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -148,6 +150,7 @@ class PageDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a page."
         model = models.Page
+        object_type = Page
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -221,6 +224,7 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
     class Meta:
         description = "Create a new page type."
         model = models.PageType
+        object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -264,6 +268,7 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
     class Meta:
         description = "Update page type."
         model = models.PageType
+        object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -316,6 +321,7 @@ class PageTypeDelete(ModelDeleteMutation):
     class Meta:
         description = "Delete a page type."
         model = models.PageType
+        object_type = PageType
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"

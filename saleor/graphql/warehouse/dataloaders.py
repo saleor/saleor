@@ -72,25 +72,37 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     ) -> Iterable[Tuple[int, int]]:
         # get stocks only for warehouses assigned to the shipping zones
         # that are available in the given channel
-        stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
+        stocks = Stock.objects.using(self.database_connection_name).filter(
+            product_variant_id__in=variant_ids
+        )
         WarehouseShippingZone = Warehouse.shipping_zones.through  # type: ignore
-        warehouse_shipping_zones = WarehouseShippingZone.objects.all()
+        warehouse_shipping_zones = WarehouseShippingZone.objects.using(
+            self.database_connection_name
+        ).all()
         additional_warehouse_filter = False
         if country_code or channel_slug:
             additional_warehouse_filter = True
             if country_code:
-                shipping_zones = ShippingZone.objects.filter(
-                    countries__contains=country_code
-                ).values("pk")
+                shipping_zones = (
+                    ShippingZone.objects.using(self.database_connection_name)
+                    .filter(countries__contains=country_code)
+                    .values("pk")
+                )
                 warehouse_shipping_zones = warehouse_shipping_zones.filter(
                     Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id")))
                 )
             if channel_slug:
                 ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
-                channels = Channel.objects.filter(slug=channel_slug).values("pk")
-                shipping_zone_channels = ShippingZoneChannel.objects.filter(
-                    Exists(channels.filter(pk=OuterRef("channel_id")))
-                ).values("shippingzone_id")
+                channels = (
+                    Channel.objects.using(self.database_connection_name)
+                    .filter(slug=channel_slug)
+                    .values("pk")
+                )
+                shipping_zone_channels = (
+                    ShippingZoneChannel.objects.using(self.database_connection_name)
+                    .filter(Exists(channels.filter(pk=OuterRef("channel_id"))))
+                    .values("shippingzone_id")
+                )
                 warehouse_shipping_zones = warehouse_shipping_zones.filter(
                     Exists(
                         shipping_zone_channels.filter(
@@ -113,7 +125,8 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             # available_quantity annotated value incorrect thanks to how
             # Django's ORM builds SQLs with annotations
             reservations_qs = (
-                Stock.objects.filter(product_variant_id__in=variant_ids)
+                Stock.objects.using(self.database_connection_name)
+                .filter(product_variant_id__in=variant_ids)
                 .annotate_reserved_quantity()
                 .values_list("id", "reserved_quantity")
             )
@@ -210,7 +223,9 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         channel_slug: Optional[str],
         variant_ids: Iterable[int],
     ) -> Iterable[Tuple[int, List[Stock]]]:
-        stocks = Stock.objects.filter(product_variant_id__in=variant_ids)
+        stocks = Stock.objects.using(self.database_connection_name).filter(
+            product_variant_id__in=variant_ids
+        )
         if country_code:
             stocks = stocks.filter(
                 warehouse__shipping_zones__countries__contains=country_code
@@ -273,16 +288,20 @@ class ActiveReservationsByCheckoutLineIdLoader(DataLoader):
 
     def batch_load(self, keys):
         reservations_by_checkout_line = defaultdict(list)
-        queryset = Reservation.objects.filter(
-            checkout_line_id__in=keys
-        ).not_expired()  # type: ignore
+        queryset = (
+            Reservation.objects.using(self.database_connection_name)
+            .filter(checkout_line_id__in=keys)
+            .not_expired()
+        )  # type: ignore
         for reservation in queryset:
             reservations_by_checkout_line[reservation.checkout_line_id].append(
                 reservation
             )
-        queryset = PreorderReservation.objects.filter(
-            checkout_line_id__in=keys
-        ).not_expired()  # type: ignore
+        queryset = (
+            PreorderReservation.objects.using(self.database_connection_name)
+            .filter(checkout_line_id__in=keys)
+            .not_expired()
+        )  # type: ignore
         for reservation in queryset:
             reservations_by_checkout_line[reservation.checkout_line_id].append(
                 reservation
@@ -295,7 +314,8 @@ class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader):
 
     def batch_load(self, keys):
         queryset = (
-            ProductVariantChannelListing.objects.filter(id__in=keys)
+            ProductVariantChannelListing.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
             .annotate(
                 quantity_reserved=Coalesce(
                     Sum("preorder_reservations__quantity_reserved"),
@@ -316,5 +336,7 @@ class WarehouseByIdLoader(DataLoader):
     context_key = "warehouse_by_id"
 
     def batch_load(self, keys: Iterable[UUID]) -> List[Optional[Warehouse]]:
-        warehouses = Warehouse.objects.in_bulk(keys)
+        warehouses = Warehouse.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
         return [warehouses.get(warehouse_uuid) for warehouse_uuid in keys]

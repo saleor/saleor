@@ -29,7 +29,7 @@ from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppExtension, AppInstallation
-from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
+from ..app.types import AppExtensionMount, AppExtensionTarget, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -59,7 +59,7 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..giftcard import GiftCardEvents
-from ..giftcard.models import GiftCard, GiftCardEvent
+from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
@@ -115,6 +115,7 @@ from ..shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
@@ -408,6 +409,14 @@ def checkout_with_shipping_required(checkout_with_item, product):
 
 
 @pytest.fixture
+def checkout_with_item_and_shipping_method(checkout_with_item, shipping_method):
+    checkout = checkout_with_item
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def other_shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="DPD",
@@ -470,6 +479,15 @@ def checkout_with_items(checkout, product_list, product):
 
 
 @pytest.fixture
+def checkout_with_items_and_shipping(checkout_with_items, address, shipping_method):
+    checkout_with_items.shipping_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.billing_address = address
+    checkout_with_items.save()
+    return checkout_with_items
+
+
+@pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
@@ -505,7 +523,7 @@ def checkout_with_preorders_only(
     preorder_variant_with_end_date,
     preorder_variant_channel_threshold,
 ):
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
     add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
@@ -518,7 +536,7 @@ def checkout_with_preorders_only(
 def checkout_with_preorders_and_regular_variant(
     checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
 ):
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
     add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
@@ -1018,6 +1036,14 @@ def shipping_method(shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def shipping_method_data(shipping_method, channel_USD):
+    listing = ShippingMethodChannelListing.objects.filter(
+        channel=channel_USD, shipping_method=shipping_method
+    ).get()
+    return convert_to_shipping_method_data(shipping_method, listing)
+
+
+@pytest.fixture
 def shipping_method_weight_based(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="weight based method",
@@ -1302,6 +1328,22 @@ def numeric_attribute(db):
     )
     AttributeValue.objects.create(attribute=attribute, name="9.5", slug="10_5")
     AttributeValue.objects.create(attribute=attribute, name="15.2", slug="15_2")
+    return attribute
+
+
+@pytest.fixture
+def numeric_attribute_without_unit(db):
+    attribute = Attribute.objects.create(
+        slug="count",
+        name="Count",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.NUMERIC,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="9", slug="9")
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
     return attribute
 
 
@@ -1817,6 +1859,7 @@ def product_price_0(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_C")
     ProductVariantChannelListing.objects.create(
@@ -2517,6 +2560,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     ProductVariantChannelListing.objects.create(
@@ -2579,6 +2623,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=10,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
+                available_for_purchase=datetime.date(1999, 1, 1),
             ),
             ProductChannelListing(
                 product=products[1],
@@ -2587,6 +2632,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=20,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
+                available_for_purchase=datetime.date(1999, 1, 1),
             ),
             ProductChannelListing(
                 product=products[2],
@@ -2595,6 +2641,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=30,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
+                available_for_purchase=datetime.date(1999, 1, 1),
             ),
         ]
     )
@@ -3156,6 +3203,12 @@ def order_line_with_allocation_in_many_stocks(
         ]
     )
 
+    stocks_to_update = list(stocks)
+    stocks_to_update[0].quantity_allocated = 2
+    stocks_to_update[1].quantity_allocated = 1
+
+    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+
     return order_line
 
 
@@ -3201,6 +3254,9 @@ def order_line_with_one_allocation(
     Allocation.objects.create(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
+    stock = stocks[0]
+    stock.quantity_allocated = 1
+    stock.save(update_fields=["quantity_allocated"])
 
     return order_line
 
@@ -3293,15 +3349,23 @@ def checkout_line_with_reserved_preorder_item(
 
 
 @pytest.fixture
+def gift_card_tag_list(db):
+    tags = [GiftCardTag(name=f"test-tag-{i}") for i in range(5)]
+    return GiftCardTag.objects.bulk_create(tags)
+
+
+@pytest.fixture
 def gift_card(customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="never_expiry",
         created_by=customer_user,
         created_by_email=customer_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        tag="test-tag",
     )
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
@@ -3318,20 +3382,22 @@ def gift_card_with_metadata(customer_user):
 
 @pytest.fixture
 def gift_card_expiry_date(customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="expiry_date",
         created_by=customer_user,
         created_by_email=customer_user.email,
         initial_balance=Money(20, "USD"),
         current_balance=Money(20, "USD"),
         expiry_date=datetime.date.today() + datetime.timedelta(days=100),
-        tag="another-tag",
     )
+    tag = GiftCardTag.objects.create(name="another-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
 def gift_card_used(staff_user, customer_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="giftcard_used",
         created_by=staff_user,
         used_by=customer_user,
@@ -3339,20 +3405,24 @@ def gift_card_used(staff_user, customer_user):
         used_by_email=customer_user.email,
         initial_balance=Money(100, "USD"),
         current_balance=Money(80, "USD"),
-        tag="tag",
     )
+    tag = GiftCardTag.objects.create(name="tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
 def gift_card_created_by_staff(staff_user):
-    return GiftCard.objects.create(
+    gift_card = GiftCard.objects.create(
         code="created_by_staff",
         created_by=staff_user,
         created_by_email=staff_user.email,
         initial_balance=Money(10, "USD"),
         current_balance=Money(10, "USD"),
-        tag="test-tag",
     )
+    tag, _ = GiftCardTag.objects.get_or_create(name="test-tag")
+    gift_card.tags.add(tag)
+    return gift_card
 
 
 @pytest.fixture
@@ -3361,8 +3431,8 @@ def gift_card_event(gift_card, order, app, staff_user):
         "message": "test message",
         "email": "testemail@email.com",
         "order_id": order.pk,
-        "tag": "test tag",
-        "old_tag": "test old tag",
+        "tags": ["test tag"],
+        "old_tags": ["test old tag"],
         "balance": {
             "currency": "USD",
             "initial_balance": 10,
@@ -3955,10 +4025,11 @@ def fulfillment_awaiting_approval(fulfilled_order):
 
 
 @pytest.fixture
-def draft_order(order_with_lines):
+def draft_order(order_with_lines, shipping_method):
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
+    order_with_lines.shipping_method = shipping_method
     order_with_lines.save(update_fields=["status", "origin"])
     return order_with_lines
 
@@ -4445,7 +4516,7 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
 @pytest.fixture
 def page_list(db, page_type):
     data_1 = {
-        "slug": "test-url",
+        "slug": "test-url-1",
         "title": "Test page",
         "content": dummy_editorjs("Test content."),
         "is_published": True,
@@ -4993,9 +5064,7 @@ def app_with_extensions(app, permission_manage_products):
         app=app,
         label="Create product with App",
         url="www.example.com/app-product",
-        view=AppExtensionView.PRODUCT,
-        type=AppExtensionType.OVERVIEW,
-        target=AppExtensionTarget.MORE_ACTIONS,
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
     )
     extensions = AppExtension.objects.bulk_create(
         [
@@ -5004,9 +5073,7 @@ def app_with_extensions(app, permission_manage_products):
                 app=app,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
-                view=AppExtensionView.PRODUCT,
-                type=AppExtensionType.DETAILS,
-                target=AppExtensionTarget.MORE_ACTIONS,
+                mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
             ),
         ]
     )
@@ -5082,6 +5149,15 @@ def webhook(app):
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
     )
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
+def any_webhook(app):
+    webhook = Webhook.objects.create(
+        name="Any webhook", app=app, target_url="http://www.example.com/any"
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.ANY)
     return webhook
 
 

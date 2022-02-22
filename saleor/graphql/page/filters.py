@@ -1,11 +1,11 @@
 import django_filters
 from django.db.models import Q
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...page import models
-from ..core.filters import MetadataFilterBase
+from ..core.filters import GlobalIDMultipleChoiceFilter, MetadataFilterBase
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_by_id
 from .types import Page, PageType
 
 
@@ -26,13 +26,6 @@ def filter_page_page_types(qs, _, value):
     return qs.filter(page_type_id__in=page_types_pks)
 
 
-def filter_page_ids(qs, _, value):
-    if not value:
-        return qs
-    _, page_pks = resolve_global_ids_to_primary_keys(value, Page)
-    return qs.filter(id__in=page_pks)
-
-
 def filter_page_type_search(qs, _, value):
     if not value:
         return qs
@@ -42,7 +35,7 @@ def filter_page_type_search(qs, _, value):
 class PageFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_page_search)
     page_types = GlobalIDMultipleChoiceFilter(method=filter_page_page_types)
-    ids = GlobalIDMultipleChoiceFilter(method=filter_page_ids)
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id(Page))
 
     class Meta:
         model = models.Page

@@ -1,7 +1,11 @@
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from functools import cached_property
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from ..order import FulfillmentLineData
+from ..order.fetch import OrderLineInfo
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -67,6 +71,30 @@ class StorePaymentMethodEnum(str, Enum):
 
 
 @dataclass
+class PaymentLineData:
+    amount: Decimal
+    variant_id: int
+    product_name: str
+    product_sku: Optional[str]
+    quantity: int
+
+
+@dataclass
+class PaymentLinesData:
+    shipping_amount: Decimal
+    voucher_amount: Decimal
+    lines: List[PaymentLineData]
+
+
+@dataclass
+class RefundData:
+    order_lines_to_refund: List[OrderLineInfo] = field(default_factory=list)
+    fulfillment_lines_to_refund: List[FulfillmentLineData] = field(default_factory=list)
+    refund_shipping_costs: bool = False
+    refund_amount_is_automatically_calculated: bool = True
+
+
+@dataclass
 class PaymentData:
     """Dataclass for storing all payment information.
 
@@ -94,6 +122,18 @@ class PaymentData:
     store_payment_method: StorePaymentMethodEnum = StorePaymentMethodEnum.NONE
     payment_metadata: Dict[str, str] = field(default_factory=dict)
     psp_reference: Optional[str] = None
+    refund_data: Optional[RefundData] = None
+    # Optional, lazy-evaluated gateway arguments
+    _resolve_lines_data: InitVar[Callable[[], PaymentLinesData]] = None
+
+    def __post_init__(self, _resolve_lines_data: Callable[[], PaymentLinesData]):
+        self.__resolve_lines_data = _resolve_lines_data
+
+    # Note: this field does not appear in webhook payloads,
+    # because it's not visible to dataclasses.asdict
+    @cached_property
+    def lines_data(self) -> PaymentLinesData:
+        return self.__resolve_lines_data()
 
 
 @dataclass

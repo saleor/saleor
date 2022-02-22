@@ -10,7 +10,7 @@ from ...warehouse.models import Warehouse
 from . import ProductExportFields
 
 
-def get_export_fields_and_headers_info(
+def get_product_export_fields_and_headers_info(
     export_info: Dict[str, list]
 ) -> Tuple[List[str], List[str], List[str]]:
     """Get export fields, all headers and headers mapping.

@@ -5,7 +5,7 @@ from django.db.models import Exists, OuterRef
 from ...channel.models import Channel
 from ...order.models import Order
 from ...shipping.models import ShippingZone
-from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
+from ..checkout.dataloaders import CheckoutByTokenLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader
 from ..shipping.dataloaders import ShippingZoneByIdLoader
@@ -15,7 +15,7 @@ class ChannelByIdLoader(DataLoader):
     context_key = "channel_by_id"
 
     def batch_load(self, keys):
-        channels = Channel.objects.in_bulk(keys)
+        channels = Channel.objects.using(self.database_connection_name).in_bulk(keys)
         return [channels.get(channel_id) for channel_id in keys]
 
 
@@ -23,7 +23,9 @@ class ChannelBySlugLoader(DataLoader):
     context_key = "channel_by_slug"
 
     def batch_load(self, keys):
-        channels = Channel.objects.in_bulk(keys, field_name="slug")
+        channels = Channel.objects.using(self.database_connection_name).in_bulk(
+            keys, field_name="slug"
+        )
         return [channels.get(slug) for slug in keys]
 
 
@@ -40,7 +42,7 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
                 return ChannelByIdLoader(self.context).load_many(channel_ids)
 
             return (
-                CheckoutByIdLoader(self.context)
+                CheckoutByTokenLoader(self.context)
                 .load_many(checkout_ids)
                 .then(channels_by_checkout)
             )
@@ -75,8 +77,14 @@ class ChannelWithHasOrdersByIdLoader(DataLoader):
     context_key = "channel_with_has_orders_by_id"
 
     def batch_load(self, keys):
-        orders = Order.objects.filter(channel=OuterRef("pk"))
-        channels = Channel.objects.annotate(has_orders=Exists(orders)).in_bulk(keys)
+        orders = Order.objects.using(self.database_connection_name).filter(
+            channel=OuterRef("pk")
+        )
+        channels = (
+            Channel.objects.using(self.database_connection_name)
+            .annotate(has_orders=Exists(orders))
+            .in_bulk(keys)
+        )
         return [channels.get(channel_id) for channel_id in keys]
 
 
@@ -84,9 +92,11 @@ class ShippingZonesByChannelIdLoader(DataLoader):
     context_key = "shippingzone_by_channel"
 
     def batch_load(self, keys):
-        zone_and_channel_is_pairs = ShippingZone.objects.filter(
-            channels__id__in=keys
-        ).values_list("pk", "channels__id")
+        zone_and_channel_is_pairs = (
+            ShippingZone.objects.using(self.database_connection_name)
+            .filter(channels__id__in=keys)
+            .values_list("pk", "channels__id")
+        )
         channel_shipping_zone_map = defaultdict(list)
         for zone_id, channel_id in zone_and_channel_is_pairs:
             channel_shipping_zone_map[channel_id].append(zone_id)

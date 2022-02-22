@@ -3,13 +3,18 @@ from graphene import relay
 
 from ....product import models
 from ...channel import ChannelContext
-from ...core.connection import CountableConnection, CountableDjangoObjectType
+from ...core.connection import CountableConnection
 from ...core.scalars import UUID
+from ...core.types import ModelObjectType
 from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
 
 
-class DigitalContentUrl(CountableDjangoObjectType):
+class DigitalContentUrl(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    content = graphene.Field(lambda: DigitalContent, required=True)
+    created = graphene.DateTime(required=True)
+    download_num = graphene.Int(required=True)
     url = graphene.String(description="URL for digital content.")
     token = graphene.Field(
         UUID, description=("UUID of digital content."), required=True
@@ -17,7 +22,6 @@ class DigitalContentUrl(CountableDjangoObjectType):
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ["content", "created", "download_num"]
         interfaces = (relay.Node,)
 
     @staticmethod
@@ -25,7 +29,13 @@ class DigitalContentUrl(CountableDjangoObjectType):
         return root.get_absolute_url()
 
 
-class DigitalContent(CountableDjangoObjectType):
+class DigitalContent(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    use_default_settings = graphene.Boolean(required=True)
+    automatic_fulfillment = graphene.Boolean(required=True)
+    content_file = graphene.String(required=True)
+    max_downloads = graphene.Int()
+    url_valid_days = graphene.Int()
     urls = graphene.List(
         lambda: DigitalContentUrl,
         description="List of URLs for the digital variant.",
@@ -38,14 +48,6 @@ class DigitalContent(CountableDjangoObjectType):
 
     class Meta:
         model = models.DigitalContent
-        only_fields = [
-            "automatic_fulfillment",
-            "content_file",
-            "max_downloads",
-            "url_valid_days",
-            "urls",
-            "use_default_settings",
-        ]
         interfaces = (relay.Node, ObjectWithMetadata)
 
     @staticmethod

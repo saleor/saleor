@@ -2,7 +2,7 @@ import graphene
 
 from ...core.permissions import AppPermission
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -75,14 +75,14 @@ class AppQueries(graphene.ObjectType):
         filter=AppExtensionFilterInput(
             description="Filtering options for apps extensions."
         ),
-        description=f"{ADDED_IN_31} List of all extensions",
+        description=f"{ADDED_IN_31} List of all extensions. {PREVIEW_FEATURE}",
     )
     app_extension = graphene.Field(
         AppExtension,
         id=graphene.Argument(
             graphene.ID, description="ID of the app extension.", required=True
         ),
-        description=f"{ADDED_IN_31} Look up an app extension by ID.",
+        description=f"{ADDED_IN_31} Look up an app extension by ID. {PREVIEW_FEATURE}",
     )
 
     @permission_required(AppPermission.MANAGE_APPS)

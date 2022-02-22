@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from ....account import events as account_events
 from ....account import models, notifications, search, utils
 from ....account.error_codes import AccountErrorCode
+from ....account.utils import remove_the_oldest_user_address_if_address_limit_is_reached
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
 from ....core.tokens import account_delete_token_generator
@@ -15,14 +16,14 @@ from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
-from ...account.enums import AddressTypeEnum
-from ...account.types import Address, AddressInput, User
 from ...channel.utils import clean_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ...meta.mutations import MetadataInput
+from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
+from ..types import Address, AddressInput, User
 from .base import (
     INVALID_TOKEN,
     BaseAddressDelete,
@@ -80,6 +81,7 @@ class AccountRegister(ModelMutation):
         description = "Register a new user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -173,6 +175,7 @@ class AccountUpdate(BaseCustomerCreate):
         description = "Updates the account of the logged-in user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -246,6 +249,7 @@ class AccountDelete(ModelDeleteMutation):
     class Meta:
         description = "Remove user account."
         model = models.User
+        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -303,6 +307,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     class Meta:
         description = "Create a new address for the customer."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -311,6 +316,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         return context.user.is_authenticated
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         address_type = data.get("type", None)
         user = info.context.user
@@ -331,6 +337,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         user = info.context.user
+        remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
         info.context.plugins.customer_updated(user)
         user.search_document = search.prepare_user_search_document_value(user)
@@ -341,6 +348,7 @@ class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -349,6 +357,7 @@ class AccountAddressDelete(BaseAddressDelete):
     class Meta:
         description = "Delete an address of the logged-in user."
         model = models.Address
+        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
 
