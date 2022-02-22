@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....core.db.utils import set_mutation_flag_in_context
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
@@ -135,9 +136,16 @@ class DigitalContentDelete(BaseMutation):
 
     @classmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def mutate(cls, _root, info, variant_id):
+    def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
         variant = cls.get_node_or_error(
-            info, variant_id, "id", only_type=ProductVariant
+            info, data["variant_id"], "id", only_type=ProductVariant
         )
 
         if hasattr(variant, "digital_content"):
