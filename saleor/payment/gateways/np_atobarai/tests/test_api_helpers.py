@@ -5,8 +5,7 @@ from unittest.mock import DEFAULT, Mock, patch, sentinel
 import pytest
 from posuto import Posuto
 
-from saleor.order.fetch import OrderLineInfo
-
+from .....order.fetch import OrderLineInfo
 from ....interface import AddressData, RefundData
 from ....utils import price_to_minor_unit
 from .. import api_helpers, errors

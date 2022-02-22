@@ -146,7 +146,7 @@ def test_get_shipping_company_code_invalid_metadata(
     assert shipping_company_code == config_shipping_company_code
 
 
-def test_create_refund_lines_order_lines(order_with_lines):
+def test_create_refunded_lines_order_lines(order_with_lines):
     # given
     order_lines = order_with_lines.lines.all()
     order_refund_lines = [
@@ -169,7 +169,7 @@ def test_create_refund_lines_order_lines(order_with_lines):
     assert lines == {line.line.variant_id: line.quantity for line in order_refund_lines}
 
 
-def test_create_refund_lines_fulfillment_lines(fulfilled_order):
+def test_create_refunded_lines_fulfillment_lines(fulfilled_order):
     # given
     fulfillment_lines = list(fulfilled_order.fulfillments.first().lines.all())
     order_refund_lines = []
@@ -203,7 +203,7 @@ def test_create_refund_lines_fulfillment_lines(fulfilled_order):
 
 @patch("saleor.order.actions.gateway.refund")
 @pytest.mark.parametrize("previous_refund_shipping_costs", [True, False])
-def test_create_refund_data_previously_refunded_order_lines(
+def test_create_refunded_lines_previously_refunded_order_lines(
     _mocked_refund,
     order_with_lines,
     create_refund,
@@ -249,7 +249,7 @@ def test_create_refund_data_previously_refunded_order_lines(
 
 @patch("saleor.order.actions.gateway.refund")
 @pytest.mark.parametrize("previous_refund_shipping_costs", [True, False])
-def test_create_refund_data_previously_refunded_fulfillment_lines(
+def test_create_refunded_lines_previously_refunded_fulfillment_lines(
     _mocked_refund,
     fulfilled_order,
     create_refund,
@@ -302,119 +302,3 @@ def test_create_refund_data_previously_refunded_fulfillment_lines(
         line.line.order_line.variant_id: line.quantity
         for line in fulfillment_refund_lines
     }
-
-
-# @pytest.mark.parametrize(
-#     [
-#         "current_refund_amount",
-#         "shipping_amount",
-#         "refund_shipping",
-#         "is_manual",
-#         "order_lines",
-#         "fulfillment_lines",
-#         "expected_manual_amount",
-#     ],
-#     [
-#         (None, Decimal("40.00"), False, False, [], [], Decimal("0.00")),
-#         (Decimal("12.34"), Decimal("40.00"), False, False, [], [], Decimal("12.34")),
-#         (None, Decimal("40.00"), True, True, [], [], Decimal("40.00")),
-#         (
-#             Decimal("12.34"),
-#             Decimal("40.00"),
-#             False,
-#             False,
-#             [Mock()],
-#             [],
-#             Decimal("0.00"),
-#         ),
-#         (
-#             Decimal("12.34"),
-#             Decimal("40.00"),
-#             False,
-#             False,
-#             [],
-#             [Mock()],
-#             Decimal("0.00"),
-#         ),
-#     ],
-# )
-# def test_calculate_refund_amount(
-#     order,
-#     current_refund_amount,
-#     shipping_amount,
-#     refund_shipping,
-#     is_manual,
-#     order_lines,
-#     fulfillment_lines,
-#     expected_manual_amount,
-# ):
-#     # given
-#     payment_information = Mock(
-#         amount=current_refund_amount,
-#         lines_data=Mock(
-#             shipping_amount=shipping_amount,
-#         ),
-#     )
-#     refund_data = Mock(
-#         refund_shipping_costs=refund_shipping,
-#         refund_is_automatically_calculated=not is_manual,
-#         order_lines_to_refund=order_lines,
-#         fulfillment_lines_to_refund=fulfillment_lines,
-#     )
-#
-#     # when
-#     amount = calculate_manual_refund_amount(order, payment_information, refund_data)
-#
-#     # then
-#     assert amount == expected_manual_amount
-
-
-# @pytest.mark.parametrize(
-#     [
-#         "previous_manual_refund_amount",
-#         "current_refund_amount",
-#         "refund_shipping",
-#         "expected_refund_amount",
-#     ],
-#     [
-#         (None, None, False, Decimal("0.00")),
-#         (None, None, True, Decimal("12.30")),
-#         (None, Decimal("8.00"), False, Decimal("8.00")),
-#         (None, Decimal("8.00"), True, Decimal("20.30")),
-#         (Decimal("5.00"), None, False, Decimal("5.00")),
-#         (Decimal("5.00"), None, True, Decimal("17.30")),
-#         (Decimal("5.00"), Decimal("8.00"), False, Decimal("13.00")),
-#         (Decimal("5.00"), Decimal("8.00"), True, Decimal("25.30")),
-#     ],
-# )
-# def test_calculate_manual_refund_amount_previously_refunded(
-#     order,
-#     create_refund,
-#     previous_manual_refund_amount,
-#     current_refund_amount,
-#     refund_shipping,
-#     expected_refund_amount,
-# ):
-#     # given
-#     if previous_manual_refund_amount:
-#         create_refund(order, manual_refund_amount=previous_manual_refund_amount)
-#     if refund_shipping:
-#         create_refund(
-#             order,
-#             refund_shipping_costs=refund_shipping,
-#         )
-#
-#     refund_data = Mock(
-#         refund_shipping_costs=False,
-#         refund_is_automatically_calculated=False,
-#         order_lines_to_refund=[],
-#         fulfillment_lines_to_refund=[],
-#     )
-#     payment_information = Mock(amount=current_refund_amount)
-#
-#     # when
-#     refund_amount = calculate_manual_refund_amount(
-#         order, payment_information, refund_data
-#     )
-#     # then
-#     assert refund_amount == expected_refund_amount
