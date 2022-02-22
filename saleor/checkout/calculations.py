@@ -258,8 +258,7 @@ def fetch_checkout_prices_if_expired(
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
     checkout = checkout_info.checkout
-
-    if not force_update and checkout.price_expiration < timezone.now():
+    if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines
 
     _apply_tax_data_from_plugins(

@@ -5158,6 +5158,30 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
+def tax_app(db, permission_handle_taxes):
+    app = App.objects.create(name="Tax App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_handle_taxes)
+
+    webhook = Webhook.objects.create(
+        name="tax-webhook-1",
+        app=app,
+        target_url="https://tax-app.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.FETCH_TAX_CODES,
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def external_app(db):
     app = App.objects.create(
         name="External App",

@@ -525,7 +525,7 @@ def update_delivery_method_lists_for_checkout_info(
 ):
     """Update the list of shipping methods for checkout info.
 
-    Shipping <methods excluded by Saleor's own business logic are not present
+    Shipping methods excluded by Saleor's own business logic are not present
     in the result list.
 
     Availability of shipping methods according to plugins is indicated
