@@ -54,7 +54,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -656,7 +656,10 @@ class Order(ModelObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+        description=(
+            f"{ADDED_IN_31} Collection points that can be used for this order. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
@@ -739,7 +742,10 @@ class Order(ModelObjectType):
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+        description=(
+            f"{ADDED_IN_31} The delivery method selected for this checkout. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     language_code = graphene.String(
         deprecation_reason=(

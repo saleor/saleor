@@ -8,7 +8,7 @@ from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import resolve_federation_references
 from ..core.types import ModelObjectType, Permission
 from ..core.types.common import Job
@@ -202,7 +202,7 @@ class App(ModelObjectType):
     )
     extensions = graphene.List(
         graphene.NonNull(AppExtension),
-        description=f"{ADDED_IN_31} App's dashboard extensions.",
+        description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
         required=True,
     )
 

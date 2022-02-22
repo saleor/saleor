@@ -14,7 +14,7 @@ from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.types import ModelObjectType
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission, TimePeriod
@@ -231,11 +231,10 @@ class Shop(graphene.ObjectType):
             "authenticated checkout or null when stock reservation is disabled."
         )
     )
-
     limit_quantity_per_checkout = graphene.Int(
         description=(
             f"{ADDED_IN_31} Default number of maximum line quantity in single checkout "
-            "(per single checkout line)."
+            f"(per single checkout line). {PREVIEW_FEATURE}"
         )
     )
 
