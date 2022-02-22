@@ -183,7 +183,7 @@ crt = ["awscrt (==0.12.5)"]
 
 [[package]]
 name = "braintree"
-version = "4.13.1"
+version = "4.14.0"
 description = "Braintree Python Library"
 category = "main"
 optional = false
@@ -1656,6 +1656,14 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "posuto"
+version = "2021.12.0"
+description = "Japanese Postal Code Data"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pre-commit"
 version = "2.17.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -2763,7 +2771,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "5d7127e24fd4976f402e20b76bc8a693b442cf69f53f6c85a1deef2310ce3bfe"
+content-hash = "06d663800bc0f455417b59913fda436cfb4de368802e4310eaac3e22246f48f1"
 
 [metadata.files]
 adyen = [
@@ -2826,8 +2834,8 @@ botocore = [
     {file = "botocore-1.24.3.tar.gz", hash = "sha256:979e5c5e826ff115f4903fe9887b191f3809229f694a747f910e1221fe63efc7"},
 ]
 braintree = [
-    {file = "braintree-4.13.1-py2.py3-none-any.whl", hash = "sha256:10f88c894f190f9d2d4e5b435733aca607926a8f365b569c0630b62dc1fb64fb"},
-    {file = "braintree-4.13.1.tar.gz", hash = "sha256:4f6addf89f5cd6123243ddc89db325e50fceec825845901dad553fde115bd938"},
+    {file = "braintree-4.14.0-py2.py3-none-any.whl", hash = "sha256:befa671221f7747033b35dbecdf25a53ce621d3c5e0f098e222bc33d8d83a56b"},
+    {file = "braintree-4.14.0.tar.gz", hash = "sha256:d209e56f99ba29002b770699a0517a75cbc02f789026265380b54c429fc4a011"},
 ]
 brotli = [
     {file = "Brotli-1.0.9-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:268fe94547ba25b58ebc724680609c8ee3e5a843202e9a381f6f9c5e8bdb5c70"},
@@ -3829,6 +3837,9 @@ platformdirs = [
 pluggy = [
     {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
+]
+posuto = [
+    {file = "posuto-2021.12.0.tar.gz", hash = "sha256:a2b10692c2c6c2ab0edb800cd38f8233faa90eb6bc0262f3202ab213ba7f17e7"},
 ]
 pre-commit = [
     {file = "pre_commit-2.17.0-py2.py3-none-any.whl", hash = "sha256:725fa7459782d7bec5ead072810e47351de01709be838c2ce1726b9591dad616"},
