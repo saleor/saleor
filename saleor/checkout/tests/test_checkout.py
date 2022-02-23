@@ -212,10 +212,6 @@ def test_get_discount_for_checkout_value_voucher(
         "saleor.checkout.base_calculations.base_checkout_subtotal",
         lambda *args: subtotal,
     )
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: subtotal,
-    )
     checkout_info = CheckoutInfo(
         checkout=checkout,
         shipping_address=None,
@@ -317,10 +313,6 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         "saleor.checkout.base_calculations.base_checkout_subtotal",
         lambda *args: subtotal,
     )
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: subtotal,
-    )
     checkout_info = CheckoutInfo(
         checkout=checkout,
         delivery_method_info=None,
@@ -415,12 +407,6 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     monkeypatch.setattr(
         "saleor.checkout.calculations.checkout_shipping_price",
         lambda _: TaxedMoney(Money(0, "USD"), Money(0, "USD")),
-    )
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
-            Money(total, "USD"), Money(total, "USD")
-        ),
     )
     monkeypatch.setattr(
         "saleor.checkout.base_calculations.base_checkout_subtotal",
@@ -559,10 +545,6 @@ def test_get_discount_for_checkout_shipping_voucher(
         lambda *args: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_shipping_price",
-        lambda manager, checkout_info, lines, address, discounts: shipping,
-    )
-    monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: True
     )
     checkout = Mock(
@@ -612,10 +594,6 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     monkeypatch.setattr(
         "saleor.checkout.base_calculations.base_checkout_subtotal",
         lambda *args: subtotal,
-    )
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: True
@@ -669,10 +647,6 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
 ):
     subtotal = Money(100, "USD")
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: subtotal,
-    )
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
         channel=channel_USD,
@@ -806,10 +780,6 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     monkeypatch.setattr(
         "saleor.checkout.base_calculations.base_checkout_subtotal",
         lambda *args: subtotal,
-    )
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: is_shipping_required

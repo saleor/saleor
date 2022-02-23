@@ -15,7 +15,6 @@ from ....checkout.utils import (
     add_voucher_to_checkout,
     set_external_shipping_id,
 )
-from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
 from ....warehouse.models import Stock
@@ -367,13 +366,6 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     voucher_channel_listing = voucher.channel_listings.first()
     voucher_channel_listing.min_spent_amount = 100
     voucher_channel_listing.save()
-
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
-            Money(95, "USD"), Money(100, "USD")
-        ),
-    )
 
     variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
