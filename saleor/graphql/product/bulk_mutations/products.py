@@ -4,7 +4,9 @@ from typing import Iterable
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models.fields import IntegerField
+from django.db.models.functions import Coalesce
 from graphene.types import InputObjectType
 
 from ....attribute import AttributeInputType
@@ -654,29 +656,28 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     def delete_product_channel_listing_without_available_variants(
         product_pks: Iterable[int], variant_pks: Iterable[int]
     ):
-        for product_pk in product_pks:
-            channel_ids = set(
-                models.ProductVariantChannelListing.objects.filter(
-                    variant_id__in=variant_pks
-                ).values_list("channel_id", flat=True)
+        variants = models.ProductVariant.objects.filter(
+            product_id__in=product_pks
+        ).exclude(id__in=variant_pks)
+
+        variant_subquery = Subquery(
+            queryset=variants.filter(id=OuterRef("variant_id")).values("product_id"),
+            output_field=IntegerField(),
+        )
+        variant_channel_listings = models.ProductVariantChannelListing.objects.annotate(
+            product_id=Coalesce(variant_subquery, 0)
+        )
+
+        invalid_product_channel_listings = models.ProductChannelListing.objects.filter(
+            product_id__in=product_pks
+        ).exclude(
+            Exists(
+                variant_channel_listings.filter(
+                    channel_id=OuterRef("channel_id"), product_id=OuterRef("product_id")
+                )
             )
-            variants = (
-                models.ProductVariant.objects.filter(product_id=product_pk)
-                .exclude(id__in=variant_pks)
-                .values("id")
-            )
-            available_channel_ids = set(
-                models.ProductVariantChannelListing.objects.filter(
-                    Exists(
-                        variants.filter(id=OuterRef("variant_id")),
-                        channel_id__in=channel_ids,
-                    )
-                ).values_list("channel_id", flat=True)
-            )
-            not_available_channel_ids = channel_ids - available_channel_ids
-            models.ProductChannelListing.objects.filter(
-                product_id=product_pk, channel_id__in=not_available_channel_ids
-            ).delete()
+        )
+        invalid_product_channel_listings.delete()
 
 
 class ProductVariantStocksCreate(BaseMutation):
