@@ -293,4 +293,4 @@ def get_attributes_for_faceting(attributes, categories) -> List:
         ] + [f"categories.{category}" for category in categories]
     except IndexError:
         attributes_for_faceting = [f"categories.{category}" for category in categories]
-    return attributes_for_faceting
+    return attributes_for_faceting + ["gender"]
