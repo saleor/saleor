@@ -189,7 +189,7 @@ def get_goods_with_refunds(
 
     refunded_lines = create_refunded_lines(order, refund_data)
 
-    subtotal = Decimal("0.00")
+    total = Decimal("0.00")
     for line in payment_information.lines_data.lines:
         quantity = line.quantity
         refunded_quantity = refunded_lines.get(line.variant_id)
@@ -206,15 +206,15 @@ def get_goods_with_refunds(
                     "quantity": quantity,
                 }
             )
-            subtotal += line.amount * quantity
+            total += line.amount * quantity
 
     goods_lines.extend(_get_voucher_and_shipping_goods(config, payment_information))
-    subtotal += payment_information.lines_data.shipping_amount
-    subtotal += payment_information.lines_data.voucher_amount
+    total += payment_information.lines_data.shipping_amount
+    total += payment_information.lines_data.voucher_amount
 
-    total = payment.captured_amount - payment_information.amount
-
-    refunded_manual_amount = total - subtotal
+    billed_amount = payment.captured_amount - payment_information.amount
+    # NP requires that the sum of all goods prices is equal to billing amount
+    refunded_manual_amount = billed_amount - total
 
     if refunded_manual_amount:
         goods_lines.append(
@@ -227,7 +227,7 @@ def get_goods_with_refunds(
             }
         )
 
-    return goods_lines, total
+    return goods_lines, billed_amount
 
 
 def get_goods(config: "ApiConfig", payment_information: PaymentData) -> List[dict]:
