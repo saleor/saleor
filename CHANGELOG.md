@@ -2,66 +2,69 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.1.0
 
-# 3.1.0 [Unreleased]
+### Breaking changes
 
-## Breaking
+#### Plugins
 
-- Remove `graphene-django` dependency - #9170 by @rafalp
 - Don't run plugins when calculating checkout's total price for available shipping methods resolution - #9121 by @rafalp
   - Use either net or gross price depending on store configuration.
 
+### Other changes
 
-## Other
+#### Saleor Apps
 
-- Extend app by `AppExtension` - #7701 by @korycins
-- Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
-- Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
-- Add ExternalNotificationTrigger mutation - #7821 by @mstrumeck
-- Add Click&Collect feature - #7673 by @kuchichan
-- Add fulfillment confirmation - #7675 by @tomaszszymanski129
-- Introduce swatch attributes - #7261 by @IKarbowiak
-- Introduce gift card feature - #7827 by @IKarbowiak, @tomaszszymanski129
-- Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
-- Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
-- Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
-- Improve draft orders and orders webhooks by @jakubkuc
-- Fix cursor-based pagination in products search - #8011 by @rafalp
-- Extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
-- Introduce sales / vouchers per product variant - #8064 by @kuchichan
-- Introduce sales webhooks - #8157 @kuchichan
-- Batch loads in queries for Apollo Federation - #8273 by @rafalp
-- Add webhooks for stock changes: `PRODUCT_VARIANT_OUT_OF_STOCK` and `PRODUCT_VARIANT_BACK_IN_STOCK` - #7590 by @mstrumeck
-- Reserve stocks for checkouts - #7589 by @rafalp
-- Add `variant_selection` to `ProductAttributeAssign` operations - #8235 by @kuchichan
-- Add query complexity limit to GraphQL API - #8526 by rafalp
-- Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
 - Add API for webhook payloads and deliveries - #8227 by @jakubkuc
-- Optimize products stock availability filter - #8809 by @fowczarek
+- Extend app by `AppExtension` - #7701 by @korycins
+- Add webhooks for stock changes: `PRODUCT_VARIANT_OUT_OF_STOCK` and `PRODUCT_VARIANT_BACK_IN_STOCK` - #7590 by @mstrumeck
+- Add `COLLECTION_CREATED`, `COLLECTION_UPDATED`, `COLLECTION_DELETED` events and webhooks - #8974 by @rafalp
+- Add draft orders webhooks by @jakubkuc
+- Add support for providing shipping methods by Saleor Apps - #7975 by @bogdal:
+  - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook
+- Add sales webhooks - #8157 @kuchichan
+- Allow fetching unpublished pages by apps with manage pages permission - #9181 by @IKarbowiak
+
+#### Metadata
+- Add ability to use metadata mutations with tokens as an identifier for orders and checkouts - #8426 by @IKarbowiak
+
+#### Attributes
+- Introduce swatch attributes - #7261 by @IKarbowiak
+- Add `variant_selection` to `ProductAttributeAssign` operations - #8235 by @kuchichan
 - Refactor attributes validation - #8905 by @IKarbowiak
   - in create mutations: require all required attributes
   - in update mutations: do not require providing any attributes; when any attribute is given, validate provided values.
-- Fix crash when querying external shipping methods `translation` field - #8971 by @rafalp
-- Add `COLLECTION_CREATED`, `COLLECTION_UPDATED`, `COLLECTION_DELETED` events and webhooks - #8974 by @rafalp
-- Fix crash when too long translation strings were passed to `translate` mutations - #8942 by rafalp
+
+#### Other features and changes
+- Add gift cards - #7827 by @IKarbowiak, @tomaszszymanski129
+- Add Click & Collect - #7673 by @kuchichan
+- Add fulfillment confirmation - #7675 by @tomaszszymanski129
+- Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
+- Possibility to pass metadata in input of `checkoutPaymentCreate` - #8076 by @mateuszgrzyb
+- Add `ExternalNotificationTrigger` mutation - #7821 by @mstrumeck
+- Extend `accountRegister` mutation to consume first & last name - #8184 by @piotrgrundas
+- Introduce sales/vouchers per product variant - #8064 by @kuchichan
+- Batch loads in queries for Apollo Federation - #8273 by @rafalp
+- Reserve stocks for checkouts - #7589 by @rafalp
+- Add query complexity limit to GraphQL API - #8526 by @rafalp
+- Add `quantity_limit_per_customer` field to ProductVariant #8405 by @kuchichan
 - Make collections names non-unique - #8986 by @rafalp
 - Add validation of unavailable products in the checkout. Mutations: `CheckoutShippingMethodUpdate`,
   `CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
   unavailable - #8978 by @IKarbowiak
-- Change metadata mutations to use token for order and checkout as identifier - #8426 by @IKarbowiak
-  - After changes, using the order `id` for changing order metadata is deprecated
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
-`CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
-unavailable - #8978 by @IKarbowiak
-- Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
-- Add support for providing shipping methods by Saleor Apps - #7975 by @bogdal:
-  - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook
-- Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
-- Allow fetching unpublished pages by app with manage pages permission - #9181 by @IKarbowiak
 - Update required permissions for attribute options - #9204 by @IKarbowiak
   - Product attribute options can be fetched by requestors with manage product types and attributes permission.
   - Page attribute options can be fetched by requestors with manage page types and attributes permission.
-
+- Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
+- Deprecate `setup_future_usage` from `checkoutComplete.paymentData` input - will be removed in Saleor 4.0 - #7994 by @mateuszgrzyb
+- Fix shipping address issue in `availableCollectionPoints` resolver for checkout - #8143 by @kuchichan
+- Fix cursor-based pagination in products search - #8011 by @rafalp
+- Fix crash when querying external shipping methods `translation` field - #8971 by @rafalp
+- Fix crash when too long translation strings were passed to `translate` mutations - #8942 by @rafalp
+- Raise ValidationError in `CheckoutAddPromoCode`, `CheckoutPaymentCreate` when product in the checkout is
+unavailable - #8978 by @IKarbowiak
+- Remove `graphene-django` dependency - #9170 by @rafalp
 
 # 3.0.0
 
