@@ -49,8 +49,8 @@ def allocate_stocks(
     stocks_id = (stock.pop("id") for stock in stocks)
 
     quantity_allocation_for_stocks = {
-        item.pk: item.quantity_allocated
-        for item in Stock.objects.filter(pk__in=stocks_id, quantity_allocated__gt=0)
+        stock.pk: stock.quantity_allocated
+        for stock in Stock.objects.filter(pk__in=stocks_id, quantity_allocated__gt=0)
     }
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
@@ -314,7 +314,7 @@ def decrease_stock(
 
     if update_stocks:
         quantity_allocation_for_stocks = {
-            item.pk: item.quantity_allocated for item in stocks
+            stock.pk: stock.quantity_allocated for stock in stocks
         }
         _decrease_stocks_quantity(
             order_lines_info,
