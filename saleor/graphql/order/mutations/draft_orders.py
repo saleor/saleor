@@ -367,6 +367,7 @@ class DraftOrderUpdate(DraftOrderCreate):
             for field in [
                 "shipping_address",
                 "billing_address",
+                "shipping_method",
             ]
         )
 
