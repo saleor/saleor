@@ -431,14 +431,12 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        subtotal = calculations.checkout_subtotal(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=address,
-            discounts=discounts,
+        subtotal = base_calculations.base_checkout_subtotal(
+            lines,
+            checkout_info.channel,
+            checkout_info.checkout.currency,
+            discounts,
         )
-        subtotal = get_base_price_from_taxed_money(subtotal, taxes_included)
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
@@ -530,14 +528,12 @@ def recalculate_checkout_discount(
             remove_voucher_from_checkout(checkout)
             checkout_info.voucher = None
         else:
-            subtotal = calculations.checkout_subtotal(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                discounts=discounts,
+            subtotal = base_calculations.base_checkout_subtotal(
+                lines,
+                checkout_info.channel,
+                checkout_info.checkout.currency,
+                discounts,
             )
-            subtotal = get_base_price_from_taxed_money(subtotal, taxes_included)
             checkout.discount = (
                 min(discount, subtotal)
                 if voucher.type != VoucherType.SHIPPING
@@ -711,7 +707,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
 def get_valid_internal_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    subtotal: "TaxedMoney",
+    subtotal: "Money",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     country_code: Optional[str] = None,
 ) -> List[ShippingMethodData]:
@@ -723,7 +719,7 @@ def get_valid_internal_shipping_methods_for_checkout(
     shipping_methods = ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
-        price=subtotal.gross,
+        price=subtotal,
         country_code=country_code,
         lines=lines,
     )

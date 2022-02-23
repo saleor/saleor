@@ -7,7 +7,7 @@ import graphene
 import pytest
 from prices import Money
 
-from ....checkout import calculations
+from ....checkout import base_calculations, calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
@@ -31,14 +31,13 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
-    subtotal = calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_item.shipping_address,
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
     )
     voucher.channel_listings.filter(channel=channel_USD).update(
-        min_spent_amount=subtotal.gross.amount
+        min_spent_amount=subtotal.amount
     )
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
@@ -342,10 +341,8 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     voucher_channel_listing.save()
 
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
-            Money(95, "USD"), Money(100, "USD")
-        ),
+        "saleor.checkout.base_calculations.base_checkout_subtotal",
+        lambda *args: Money(100, "USD"),
     )
 
     variables = {"token": checkout_with_item.token, "promoCode": voucher.code}

@@ -13,17 +13,17 @@ from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
-from .fetch import CheckoutLineInfo, ShippingMethodInfo
 from .interface import CheckoutPricesData, CheckoutTaxedPricesData
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
     from ..order.models import OrderLine
+    from .fetch import CheckoutLineInfo, ShippingMethodInfo
 
 
 def calculate_base_line_unit_price(
-    line_info: CheckoutLineInfo,
+    line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> CheckoutPricesData:
@@ -80,7 +80,7 @@ def calculate_base_line_unit_price(
 
 
 def calculate_base_line_total_price(
-    line_info: CheckoutLineInfo,
+    line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> CheckoutPricesData:
@@ -137,6 +137,8 @@ def calculate_base_line_total_price(
 
 def base_checkout_delivery_price(checkout_info: "CheckoutInfo", lines=None) -> Money:
     """Calculate base (untaxed) price for any kind of delivery method."""
+    from .fetch import ShippingMethodInfo
+
     delivery_method_info = checkout_info.delivery_method_info
 
     if isinstance(delivery_method_info, ShippingMethodInfo):
@@ -149,10 +151,12 @@ def base_checkout_delivery_price(checkout_info: "CheckoutInfo", lines=None) -> M
 
 def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
-    shipping_method_info: ShippingMethodInfo,
+    shipping_method_info: "ShippingMethodInfo",
     lines=None,
 ) -> Money:
     """Return checkout shipping price."""
+    from .fetch import CheckoutLineInfo
+
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = shipping_method_info.delivery_method
 
@@ -190,12 +194,12 @@ def base_checkout_total(
     return total
 
 
-def base_checkout_lines_total(
+def base_checkout_subtotal(
     checkout_lines: Iterable["CheckoutLineInfo"],
     channel: "Channel",
     currency: str,
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> TaxedMoney:
+) -> Money:
     line_totals = [
         calculate_base_line_total_price(
             line,
@@ -205,7 +209,7 @@ def base_checkout_lines_total(
         for line in checkout_lines
     ]
 
-    return sum(line_totals, zero_taxed_money(currency))
+    return sum(line_totals, zero_money(currency))
 
 
 def base_checkout_line_total(
