@@ -8,6 +8,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### Other changes
+- Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
+
 
 # 3.1.0
 

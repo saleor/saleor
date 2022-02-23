@@ -341,7 +341,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         instance.user_addresses.add(user)
         info.context.plugins.customer_updated(user)
         user.search_document = search.prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document"])
+        user.save(update_fields=["search_document", "updated_at"])
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -546,7 +546,7 @@ class ConfirmEmailChange(BaseMutation):
 
         user.email = new_email
         user.search_document = search.prepare_user_search_document_value(user)
-        user.save(update_fields=["email", "search_document"])
+        user.save(update_fields=["email", "search_document", "updated_at"])
 
         channel_slug = clean_channel(
             data.get("channel"), error_class=AccountErrorCode

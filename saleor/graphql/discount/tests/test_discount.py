@@ -5,6 +5,7 @@ import graphene
 import pytest
 from django.utils import timezone
 from django_countries import countries
+from freezegun import freeze_time
 
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
@@ -1776,6 +1777,61 @@ def test_query_sales_with_filter_started(
                 currency=channel_USD.currency_code,
             )
             for sale in sales
+        ]
+    )
+
+    variables = {"filter": sale_filter}
+    response = staff_api_client.post_graphql(
+        query_sales_with_filter, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["sales"]["edges"]
+    assert len(data) == count
+
+
+@pytest.mark.parametrize(
+    "sale_filter, count",
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:59:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T11:05:00+00:00"}}, 1),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_query_sales_with_filter_updated_at(
+    sale_filter,
+    count,
+    staff_api_client,
+    query_sales_with_filter,
+    permission_manage_discounts,
+    channel_USD,
+):
+    with freeze_time("2012-01-14 11:00:00"):
+        sale_1 = Sale.objects.create(name="Sale1")
+
+    with freeze_time("2012-01-14 12:00:00"):
+        sale_2 = Sale.objects.create(name="Sale2")
+
+    SaleChannelListing.objects.bulk_create(
+        [
+            SaleChannelListing(
+                sale=sale,
+                discount_value=123,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            )
+            for sale in [sale_1, sale_2]
         ]
     )
 

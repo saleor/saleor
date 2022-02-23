@@ -279,7 +279,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 order=instance, user=info.context.user, app=info.context.app
             )
 
-        instance.save(update_fields=["billing_address", "shipping_address"])
+        instance.save(
+            update_fields=["billing_address", "shipping_address", "updated_at"]
+        )
 
     @classmethod
     def _refresh_lines_unit_price(cls, info, instance, cleaned_input, new_instance):

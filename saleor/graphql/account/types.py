@@ -279,6 +279,7 @@ class User(ModelObjectType):
 
     last_login = graphene.DateTime()
     date_joined = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
 
     class Meta:
         description = "Represents user data."

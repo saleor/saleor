@@ -623,6 +623,7 @@ class OrderLine(ModelObjectType):
 class Order(ModelObjectType):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
     status = OrderStatusEnum(required=True)
     user = graphene.Field(User)
     tracking_client_id = graphene.String(required=True)

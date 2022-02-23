@@ -89,6 +89,7 @@ class OrderDiscountCommon(BaseMutation):
                 "total_gross_amount",
                 "undiscounted_total_net_amount",
                 "undiscounted_total_gross_amount",
+                "updated_at",
             ]
         )
 

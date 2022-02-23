@@ -486,7 +486,7 @@ def store_customer_id(user: User, gateway: str, customer_id: str):
     """Store customer_id in users private meta for desired gateway."""
     meta_key = prepare_key_for_gateway_customer_id(gateway)
     user.store_value_in_private_metadata(items={meta_key: customer_id})
-    user.save(update_fields=["private_metadata"])
+    user.save(update_fields=["private_metadata", "updated_at"])
 
 
 def prepare_key_for_gateway_customer_id(gateway_name: str) -> str:
