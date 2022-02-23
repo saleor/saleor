@@ -446,10 +446,9 @@ def prepare_attribute_value(attribute_data: AttributeData):
     ):
         if attribute_data.reference_page:
             reference_id = attribute_data.reference_page
-            value = f"{attribute_data.entity_type}_{reference_id}"
         else:
             reference_id = attribute_data.reference_product
-            value = f"{attribute_data.entity_type}_{reference_id}"
+        value = f"{attribute_data.entity_type}_{reference_id}"
     elif input_type == AttributeInputType.NUMERIC:
         value = f"{attribute_data.value_name}"
         if attribute_data.unit:
