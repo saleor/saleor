@@ -405,10 +405,6 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         lambda checkout, discounts, product: [],
     )
     monkeypatch.setattr(
-        "saleor.checkout.calculations.checkout_shipping_price",
-        lambda _: TaxedMoney(Money(0, "USD"), Money(0, "USD")),
-    )
-    monkeypatch.setattr(
         "saleor.checkout.base_calculations.base_checkout_subtotal",
         lambda *args: Money(total, "USD"),
     )
@@ -599,10 +595,6 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
         "saleor.checkout.utils.is_shipping_required", lambda lines: True
     )
     shipping_total = TaxedMoney(Money(10, "USD"), Money(10, "USD"))
-    monkeypatch.setattr(
-        "saleor.checkout.utils.calculations.checkout_shipping_price",
-        lambda manager, checkout_info, lines, address, discounts: shipping_total,
-    )
     checkout = Mock(
         spec=Checkout,
         channel_id=channel_USD.id,
