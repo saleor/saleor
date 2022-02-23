@@ -144,8 +144,13 @@ def validate_required_string_field(cleaned_input, field_name: str):
 def from_global_id_or_error(
     id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
 ):
-    """Resolve database ID from global ID or raise GraphQLError.
+    """Resolve global ID or raise GraphQLError.
 
+    Validates if given ID is a proper ID handled by Saleor.
+    Valid IDs formats, base64 encoded:
+    'app:<int>:<str>' : External app ID with 'app' prefix
+    '<type>:<int>' : Internal ID containing object type and ID as integer
+    '<type>:<UUID>' : Internal ID containing object type and UUID
     Optionally validate the object type, if `only_type` is provided,
     raise GraphQLError when `raise_error` is set to True.
     """
