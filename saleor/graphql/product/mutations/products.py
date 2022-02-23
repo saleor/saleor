@@ -1143,7 +1143,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         ).get(id=instance.id)
 
         cls.delete_assigned_attribute_values(variant)
-        cls.delete_product_channel_listing_without_available_variants(variant)
+        cls.delete_product_channel_listings_without_available_variants(variant)
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
@@ -1176,7 +1176,12 @@ class ProductVariantDelete(ModelDeleteMutation):
         ).delete()
 
     @staticmethod
-    def delete_product_channel_listing_without_available_variants(instance):
+    def delete_product_channel_listings_without_available_variants(instance):
+        """Delete invalid product channel listings.
+
+        Delete product channel listings for channels for which the deleted variant
+        was the last available variant.
+        """
         channel_ids = set(
             instance.channel_listings.values_list("channel_id", flat=True)
         )

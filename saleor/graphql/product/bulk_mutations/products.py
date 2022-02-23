@@ -608,7 +608,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         )
 
         cls.delete_assigned_attribute_values(pks)
-        cls.delete_product_channel_listing_without_available_variants(product_pks, pks)
+        cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids, **data)
 
         transaction.on_commit(
@@ -653,9 +653,14 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         ).delete()
 
     @staticmethod
-    def delete_product_channel_listing_without_available_variants(
+    def delete_product_channel_listings_without_available_variants(
         product_pks: Iterable[int], variant_pks: Iterable[int]
     ):
+        """Delete invalid channel listings.
+
+        Delete product channel listings for product and channel for which
+        the last available variant has been deleted.
+        """
         variants = models.ProductVariant.objects.filter(
             product_id__in=product_pks
         ).exclude(id__in=variant_pks)
