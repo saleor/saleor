@@ -7003,6 +7003,49 @@ def test_order_query_with_filter_created(
 
 
 @pytest.mark.parametrize(
+    "orders_filter, count",
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:59:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T11:05:00+00:00"}}, 1),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_order_query_with_filter_updated_at(
+    orders_filter,
+    count,
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    channel_USD,
+):
+    with freeze_time("2012-01-14 11:00:00"):
+        Order.objects.create(channel=channel_USD)
+
+    with freeze_time("2012-01-14 12:00:00"):
+        Order.objects.create(channel=channel_USD)
+
+    variables = {"filter": orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    assert len(orders) == count
+
+
+@pytest.mark.parametrize(
     "orders_filter, count, payment_status",
     [
         ({"paymentStatus": "FULLY_CHARGED"}, 1, ChargeStatus.FULLY_CHARGED),

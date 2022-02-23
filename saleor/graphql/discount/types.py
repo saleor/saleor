@@ -63,6 +63,8 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
     type = SaleType(required=True)
     start_date = graphene.DateTime(required=True)
     end_date = graphene.DateTime()
+    created = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
     categories = ConnectionField(
         CategoryCountableConnection,
         description="List of categories this sale applies to.",

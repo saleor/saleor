@@ -129,7 +129,7 @@ class CreateToken(BaseMutation):
         info.context.refresh_token = refresh_token
         info.context._cached_user = user
         user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
+        user.save(update_fields=["last_login", "updated_at"])
         return cls(
             errors=[],
             user=user,
@@ -306,7 +306,7 @@ class DeactivateAllUserTokens(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
         user.jwt_token_key = get_random_string()
-        user.save(update_fields=["jwt_token_key"])
+        user.save(update_fields=["jwt_token_key", "updated_at"])
         return cls()
 
 
@@ -386,7 +386,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         if access_tokens_response.user and access_tokens_response.user.id:
             info.context._cached_user = access_tokens_response.user
             access_tokens_response.user.last_login = timezone.now()
-            access_tokens_response.user.save(update_fields=["last_login"])
+            access_tokens_response.user.save(update_fields=["last_login", "updated_at"])
 
         return cls(
             token=access_tokens_response.token,

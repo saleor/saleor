@@ -478,7 +478,7 @@ class AddressCreate(ModelMutation):
             user.addresses.add(address)
             response.user = user
             user.search_document = prepare_user_search_document_value(user)
-            user.save(update_fields=["search_document"])
+            user.save(update_fields=["search_document", "updated_at"])
         return response
 
 

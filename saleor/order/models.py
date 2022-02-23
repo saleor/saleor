@@ -84,6 +84,7 @@ class OrderQueryset(models.QuerySet):
 
 class Order(ModelWithMetadata):
     created = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
     )
@@ -287,7 +288,7 @@ class Order(ModelWithMetadata):
         self.total_paid_amount = (
             sum(self.payments.values_list("captured_amount", flat=True)) or 0
         )
-        self.save(update_fields=["total_paid_amount"])
+        self.save(update_fields=["total_paid_amount", "updated_at"])
 
     def _index_billing_phone(self):
         return self.billing_address.phone
