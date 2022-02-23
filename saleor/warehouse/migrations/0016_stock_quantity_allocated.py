@@ -8,17 +8,21 @@ from django.db.models.functions import Coalesce
 def assign_quantity_allocated_to_stocks(apps, schema_editor):
     Stock = apps.get_model("warehouse", "Stock")
 
-    Stock.objects.update(
-        quantity_allocated=Subquery(
-            Stock.objects.filter(id=OuterRef("id"))
-            .annotate(
-                allocations_allocated=Coalesce(
-                    Sum("allocations__quantity_allocated"), 0
+    batch_size = 1000
+    stocks_ids = Stock.objects.values_list("id", flat=True)
+    for idx in range(0, len(stocks_ids), batch_size):
+        ids_to_update = stocks_ids[idx : idx + batch_size]  # noqa: E203
+        Stock.objects.filter(id__in=ids_to_update).update(
+            quantity_allocated=Subquery(
+                Stock.objects.filter(id=OuterRef("id"))
+                .annotate(
+                    allocations_allocated=Coalesce(
+                        Sum("allocations__quantity_allocated"), 0
+                    )
                 )
+                .values("allocations_allocated")[:1]
             )
-            .values("allocations_allocated")[:1]
         )
-    )
 
 
 class Migration(migrations.Migration):
