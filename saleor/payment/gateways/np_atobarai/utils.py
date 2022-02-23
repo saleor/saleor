@@ -1,10 +1,10 @@
 from collections import defaultdict
 from contextlib import contextmanager
+from decimal import Decimal
 from itertools import chain
-from typing import Dict, Optional
+from typing import Dict, Iterable, Optional
 
-from django.db.models import BooleanField, F, Q, Value
-from django.db.models.expressions import CombinedExpression
+from django.db.models import Q
 
 from ....core.tracing import opentracing_trace
 from ....order import FulfillmentStatus
@@ -68,12 +68,42 @@ def np_atobarai_opentracing_trace(span_name: str):
         yield
 
 
-_FULFILLMENT_LINE_HAS_MANUAL_AMOUNT_EXPRESSION = CombinedExpression(
-    F("fulfillment__total_refund_amount") % F("order_line__unit_price_gross_amount"),
-    "!=",
-    Value(0),
-    output_field=BooleanField(),
-)
+def _is_refunded_with_automatic_amount(line: FulfillmentLine) -> bool:
+    fulfillment = line.fulfillment
+    order_line = line.order_line
+
+    shipping_amount = fulfillment.shipping_refund_amount or Decimal("0.00")
+    if not fulfillment.total_refund_amount:
+        return False
+
+    refund_amount_is_a_multiply_of_unit_price = (
+        (fulfillment.total_refund_amount - shipping_amount)
+        % order_line.unit_price_gross_amount
+    ) == 0
+
+    return (
+        order_line.variant_id is not None
+        and refund_amount_is_a_multiply_of_unit_price
+        and fulfillment.total_refund_amount <= order_line.total_price_gross_amount
+    )
+
+
+def _get_refunded_fulfillment_lines_with_automatic_amount(
+    order: Order,
+) -> Iterable[FulfillmentLine]:
+    return (
+        line
+        for line in FulfillmentLine.objects.select_related(
+            "order_line", "fulfillment"
+        ).filter(
+            fulfillment__order_id=order.pk,
+            fulfillment__status__in=[
+                FulfillmentStatus.REFUNDED,
+                FulfillmentStatus.REFUNDED_AND_RETURNED,
+            ],
+        )
+        if _is_refunded_with_automatic_amount(line)
+    )
 
 
 def create_refunded_lines(
@@ -93,20 +123,8 @@ def create_refunded_lines(
         fulfillment_lines_to_refund = refund_data.fulfillment_lines_to_refund
 
     # Refund fulfillments for product refunds with automatic amount
-    previous_fulfillment_lines = (
-        FulfillmentLine.objects.prefetch_related("order_line")
-        .annotate(has_manual_amount=_FULFILLMENT_LINE_HAS_MANUAL_AMOUNT_EXPRESSION)
-        .filter(
-            fulfillment__order_id=order.pk,
-            fulfillment__status__in=[
-                FulfillmentStatus.REFUNDED,
-                FulfillmentStatus.REFUNDED_AND_RETURNED,
-            ],
-            # No misc refunds
-            order_line__variant_id__isnull=False,
-            # No product refunds with manual amount
-            has_manual_amount=False,
-        )
+    previous_fulfillment_lines = _get_refunded_fulfillment_lines_with_automatic_amount(
+        order
     )
 
     previous_refund_lines = (

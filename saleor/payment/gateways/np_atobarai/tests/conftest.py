@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from .....order.actions import create_refund_fulfillment
+from .....order.utils import recalculate_order
 from .....plugins.manager import get_plugins_manager
 from .....plugins.models import PluginConfiguration
 from ....interface import AddressData, PaymentLineData, PaymentLinesData
@@ -120,6 +121,24 @@ def payment_dummy(payment_dummy, order_with_lines):
     payment_dummy.captured_amount = order_with_lines.total_gross_amount
     payment_dummy.save(update_fields=["captured_amount"])
     return payment_dummy
+
+
+@pytest.fixture
+def order_with_lines(order_with_lines):
+    order_with_lines.shipping_price_net_amount = Decimal("5.55")
+    order_with_lines.shipping_price_gross_amount = Decimal("5.55") * Decimal("1.34")
+    order_with_lines.shipping_tax_rate = Decimal("1.34")
+
+    order_with_lines.save()
+
+    recalculate_order(order_with_lines)
+
+    return order_with_lines
+
+
+@pytest.fixture
+def order_lines(order_with_lines):
+    return list(order_with_lines.lines.all())
 
 
 @pytest.fixture
