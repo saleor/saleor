@@ -233,7 +233,7 @@ class OrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
-    def invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         return any(
             cleaned_input.get(field) is not None
             for field in [
@@ -251,7 +251,7 @@ class OrderUpdate(DraftOrderCreate):
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
 
-        if cls.invalidate_prices(instance, cleaned_input, False):
+        if cls.should_invalidate_prices(instance, cleaned_input, False):
             invalidate_order_prices(instance, save=True)
 
         instance.save()

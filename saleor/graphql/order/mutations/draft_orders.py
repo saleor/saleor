@@ -281,7 +281,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         instance.save(update_fields=["billing_address", "shipping_address"])
 
     @classmethod
-    def invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         # Force price recalculation for all new instances
         return new_instance
 
@@ -321,7 +321,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
         # Post-process the results
-        if cls.invalidate_prices(instance, cleaned_input, new_instance):
+        if cls.should_invalidate_prices(instance, cleaned_input, new_instance):
             invalidate_order_prices(instance, save=True)
         recalculate_order_weight(instance)
         update_order_search_document(instance)
@@ -359,7 +359,7 @@ class DraftOrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
-    def invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         return any(
             cleaned_input.get(field) is not None
             for field in [
