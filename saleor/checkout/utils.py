@@ -29,13 +29,10 @@ from ..product import models as product_models
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
-from ..warehouse.availability import (
-    check_stock_and_preorder_quantity,
-    check_stock_and_preorder_quantity_bulk,
-)
+from ..warehouse.availability import check_stock_and_preorder_quantity
 from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
-from . import AddressType, calculations
+from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
     update_checkout_info_delivery_method,
@@ -300,7 +297,6 @@ def _get_shipping_voucher_discount_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    taxes_included: bool,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate discount value for a voucher of shipping type."""
@@ -318,14 +314,9 @@ def _get_shipping_voucher_discount_for_checkout(
             msg = "This offer is not valid in your country."
             raise NotApplicable(msg)
 
-    shipping_price = calculations.checkout_shipping_price(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-        discounts=discounts,
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
     )
-    shipping_price = get_base_price_from_taxed_money(shipping_price, taxes_included)
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
 
 
@@ -456,7 +447,6 @@ def get_voucher_discount_for_checkout(
             checkout_info,
             lines,
             address,
-            taxes_included,
             discounts,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:

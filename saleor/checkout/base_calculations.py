@@ -135,9 +135,7 @@ def calculate_base_line_total_price(
     return prices_data
 
 
-def base_checkout_delivery_price(
-    checkout_info: "CheckoutInfo", lines=None
-) -> TaxedMoney:
+def base_checkout_delivery_price(checkout_info: "CheckoutInfo", lines=None) -> Money:
     """Calculate base (untaxed) price for any kind of delivery method."""
     delivery_method_info = checkout_info.delivery_method_info
 
@@ -146,14 +144,14 @@ def base_checkout_delivery_price(
             checkout_info, delivery_method_info, lines
         )
 
-    return zero_taxed_money(checkout_info.checkout.currency)
+    return zero_money(checkout_info.checkout.currency)
 
 
 def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: ShippingMethodInfo,
     lines=None,
-) -> TaxedMoney:
+) -> Money:
     """Return checkout shipping price."""
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = shipping_method_info.delivery_method
@@ -166,15 +164,10 @@ def calculate_base_price_for_shipping_method(
         shipping_required = checkout_info.checkout.is_shipping_required()
 
     if not shipping_method or not shipping_required:
-        return zero_taxed_money(checkout_info.checkout.currency)
+        return zero_money(checkout_info.checkout.currency)
 
-    # Base price does not yet contain tax information,
-    # which can be later applied by tax plugins
     return quantize_price(
-        TaxedMoney(
-            net=shipping_method.price,
-            gross=shipping_method.price,
-        ),
+        shipping_method.price,
         checkout_info.checkout.currency,
     )
 
