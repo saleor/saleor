@@ -1,8 +1,8 @@
 from typing import List
 
 from ..celeryconf import app
-from ..graphql.order.mutations.utils import invalidate_order_prices
 from .models import Order
+from .utils import invalidate_order_prices
 
 
 @app.task

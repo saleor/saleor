@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from pytz import utc
 
 from ....order import OrderStatus
-from ..mutations.utils import invalidate_order_prices
+from ....order.utils import invalidate_order_prices
 
 TEST_DATE = datetime(year=2000, month=1, day=1).replace(tzinfo=utc)
 

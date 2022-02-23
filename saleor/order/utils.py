@@ -20,9 +20,6 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..order import FulfillmentStatus, OrderStatus
-from ..order.fetch import OrderLineInfo
-from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -37,7 +34,9 @@ from ..warehouse.management import (
     increase_stock,
 )
 from ..warehouse.models import Warehouse
-from . import events
+from . import ORDER_EDITABLE_STATUS, FulfillmentStatus, OrderStatus, events
+from .fetch import OrderLineInfo
+from .models import Order, OrderLine
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -95,6 +94,21 @@ def update_voucher_discount(func):
 
 def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+
+
+def invalidate_order_prices(order: Order, *, save: bool) -> None:
+    """Mark order as ready for prices recalculation.
+
+    Does nothing if order is not editable
+    (it's status is neither draft, nor unconfirmed).
+    """
+    if order.status not in ORDER_EDITABLE_STATUS:
+        return
+
+    order.price_expiration_for_unconfirmed = timezone.now()
+
+    if save:
+        order.save(update_fields=["price_expiration_for_unconfirmed"])
 
 
 def recalculate_order_weight(order):

@@ -35,6 +35,7 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
+    invalidate_order_prices,
     recalculate_order_weight,
 )
 from ....payment import PaymentError, TransactionKind, gateway
@@ -60,7 +61,6 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-from .utils import invalidate_order_prices
 
 
 def clean_order_update_shipping(
