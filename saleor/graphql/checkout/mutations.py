@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
-from django.utils import timezone
 from graphql.error import GraphQLError
 
 from ...checkout import AddressType, models
@@ -30,6 +29,7 @@ from ...checkout.utils import (
     change_shipping_address_in_checkout,
     clear_delivery_method,
     delete_external_shipping_id,
+    invalidate_checkout_prices,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -274,15 +274,6 @@ def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
         variant_quantity_map[variant_id] += quantity
 
     return list(variant_quantity_map.values())
-
-
-def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
-    """Mark checkout as ready for prices recalculation."""
-    checkout.price_expiration = timezone.now()
-    updated_fields = ["price_expiration"]
-    if save:
-        checkout.save(update_fields=updated_fields)
-    return updated_fields
 
 
 def validate_checkout_email(checkout: models.Checkout):

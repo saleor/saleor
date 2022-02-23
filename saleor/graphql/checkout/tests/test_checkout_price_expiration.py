@@ -6,8 +6,9 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from saleor.checkout.utils import invalidate_checkout_prices
+
 from ...tests.utils import get_graphql_content
-from ..mutations import invalidate_checkout_prices
 
 ADD_CHECKOUT_LINE = """
 mutation addCheckoutLine($checkoutId: ID!, $line: CheckoutLineInput!) {

@@ -13,6 +13,7 @@ from ....order.search import update_order_search_document
 from ....order.utils import (
     create_order_discount_for_order,
     get_order_discounts,
+    invalidate_order_prices,
     remove_discount_from_order_line,
     remove_order_discount_from_order,
     update_discount_for_order_line,
@@ -22,7 +23,6 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...discount.enums import DiscountValueTypeEnum
 from ..types import Order, OrderLine
-from .utils import invalidate_order_prices
 
 
 class OrderDiscountCommonInput(graphene.InputObjectType):
