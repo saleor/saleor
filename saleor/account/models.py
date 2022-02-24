@@ -298,14 +298,16 @@ class CustomerEvent(models.Model):
             (type_name.upper(), type_name) for type_name, _ in CustomerEvents.CHOICES
         ],
     )
-    order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
-    order_on_token = models.ForeignKey(
-        "order.Order",
-        to_field="token",
-        related_name="customer_events",
-        on_delete=models.SET_NULL,
-        null=True,
+    order = models.ForeignKey(
+        "order.Order", on_delete=models.SET_NULL, null=True, to_field="number"
     )
+    order_token = models.UUIDField(null=True)
+    # order_token = models.ForeignKey(
+    #     "order.Order",
+    #     related_name="customer_events",
+    #     on_delete=models.SET_NULL,
+    #     null=True,
+    # )
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         User, related_name="events", on_delete=models.CASCADE, null=True
