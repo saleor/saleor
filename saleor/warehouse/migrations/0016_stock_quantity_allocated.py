@@ -5,6 +5,20 @@ from django.db.models import OuterRef, Subquery, Sum
 from django.db.models.functions import Coalesce
 
 
+def _update_stocks_quantity_allocated(stock_model, stock_ids):
+    stock_model.objects.filter(id__in=stock_ids).update(
+        quantity_allocated=Subquery(
+            stock_model.objects.filter(id=OuterRef("id"))
+            .annotate(
+                allocations_allocated=Coalesce(
+                    Sum("allocations__quantity_allocated"), 0
+                )
+            )
+            .values("allocations_allocated")[:1]
+        )
+    )
+
+
 def assign_quantity_allocated_to_stocks(apps, schema_editor):
     Stock = apps.get_model("warehouse", "Stock")
 
@@ -19,17 +33,7 @@ def assign_quantity_allocated_to_stocks(apps, schema_editor):
         if not stock_ids:
             break
         last_id = stock_ids[-1]
-        Stock.objects.filter(id__in=stock_ids).update(
-            quantity_allocated=Subquery(
-                Stock.objects.filter(id=OuterRef("id"))
-                .annotate(
-                    allocations_allocated=Coalesce(
-                        Sum("allocations__quantity_allocated"), 0
-                    )
-                )
-                .values("allocations_allocated")[:1]
-            )
-        )
+        _update_stocks_quantity_allocated(Stock, stock_ids)
 
 
 class Migration(migrations.Migration):
