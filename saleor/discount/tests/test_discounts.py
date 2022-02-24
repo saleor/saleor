@@ -359,23 +359,15 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
 
 
 @pytest.mark.parametrize(
-    "prices, discount_value, discount_type, apply_once_per_order, "
-    "expected_value, taxes_included",
+    "prices, discount_value, discount_type, apply_once_per_order, " "expected_value",
     [
-        ([10], 10, DiscountValueType.FIXED, True, 10, True),
-        ([10], 10, DiscountValueType.FIXED, True, 10, False),
-        ([5], 10, DiscountValueType.FIXED, True, 5, True),
-        ([5], 10, DiscountValueType.FIXED, True, 5, False),
-        ([5, 5], 10, DiscountValueType.FIXED, True, 5, True),
-        ([5, 5], 10, DiscountValueType.FIXED, True, 5, False),
-        ([2, 3], 10, DiscountValueType.FIXED, True, 2, True),
-        ([2, 3], 10, DiscountValueType.FIXED, True, 2, False),
-        ([10, 10], 5, DiscountValueType.FIXED, False, 10, True),
-        ([10, 10], 5, DiscountValueType.FIXED, False, 10, False),
-        ([5, 2], 5, DiscountValueType.FIXED, False, 7, True),
-        ([5, 2], 5, DiscountValueType.FIXED, False, 7, False),
-        ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15, True),
-        ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15, False),
+        ([10], 10, DiscountValueType.FIXED, True, 10),
+        ([5], 10, DiscountValueType.FIXED, True, 5),
+        ([5, 5], 10, DiscountValueType.FIXED, True, 5),
+        ([2, 3], 10, DiscountValueType.FIXED, True, 2),
+        ([10, 10], 5, DiscountValueType.FIXED, False, 10),
+        ([5, 2], 5, DiscountValueType.FIXED, False, 7),
+        ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15),
     ],
 )
 def test_specific_products_voucher_checkout_discount(
@@ -385,14 +377,13 @@ def test_specific_products_voucher_checkout_discount(
     discount_type,
     expected_value,
     apply_once_per_order,
-    taxes_included,
     checkout_with_item,
     channel_USD,
 ):
     discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda manager, checkout_info, lines, voucher, taxes_included, channel: (
+        lambda manager, checkout_info, lines, voucher, channel: (
             Money(price, "USD") for price in prices
         ),
     )
@@ -418,7 +409,6 @@ def test_specific_products_voucher_checkout_discount(
         checkout_info,
         lines,
         checkout.shipping_address,
-        taxes_included,
         discounts,
     )
     assert discount == Money(expected_value, "USD")
