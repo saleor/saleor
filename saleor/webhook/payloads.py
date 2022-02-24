@@ -2,6 +2,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import asdict
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 import graphene
@@ -22,11 +23,12 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..order import FulfillmentStatus, OrderStatus
+from ..order import FulfillmentStatus, OrderStatus, calculations
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product
@@ -76,16 +78,9 @@ ORDER_FIELDS = (
     "user_email",
     "shipping_method_name",
     "collection_point_name",
-    "shipping_price_net_amount",
-    "shipping_price_gross_amount",
-    "shipping_tax_rate",
     "weight",
     "private_metadata",
     "metadata",
-    "total_net_amount",
-    "total_gross_amount",
-    "undiscounted_total_net_amount",
-    "undiscounted_total_gross_amount",
 )
 
 ORDER_PRICE_FIELDS = (
@@ -227,6 +222,25 @@ def _generate_collection_point_payload(warehouse: "Warehouse"):
     return collection_point_data
 
 
+def _generate_order_prices_payload(order: "Order") -> Dict[str, Decimal]:
+    manager = get_plugins_manager()
+
+    shipping = calculations.order_shipping(order, manager)
+    shipping_tax_rate = calculations.order_shipping_tax_rate(order, manager)
+    total = calculations.order_total(order, manager)
+    undiscounted_total = calculations.order_undiscounted_total(order, manager)
+
+    return {
+        "shipping_price_net_amount": shipping.net.amount,
+        "shipping_price_gross_amount": shipping.gross.amount,
+        "shipping_tax_rate": shipping_tax_rate,
+        "total_net_amount": total.net.amount,
+        "total_gross_amount": total.gross.amount,
+        "undiscounted_total_net_amount": undiscounted_total.net.amount,
+        "undiscounted_total_gross_amount": undiscounted_total.gross.amount,
+    }
+
+
 @traced_payload_generator
 def generate_order_payload(
     order: "Order",
@@ -287,7 +301,7 @@ def generate_order_payload(
     payments = order.payments.all()
     discounts = order.discounts.all()
 
-    quantize_price_fields(order, ORDER_PRICE_FIELDS, order.currency)
+    # quantize_price_fields(order, ORDER_PRICE_FIELDS, order.currency)
 
     for fulfillment in fulfillments:
         quantize_price_fields(fulfillment, fulfillment_price_fields, order.currency)
@@ -317,6 +331,9 @@ def generate_order_payload(
         if order.collection_point
         else None,
     }
+
+    extra_dict_data.update(_generate_order_prices_payload(order))
+
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
             requestor_data=generate_requestor(requestor)
@@ -408,14 +425,23 @@ def generate_invoice_payload(
 ):
     serializer = PayloadSerializer()
     invoice_fields = ("id", "number", "external_url", "created")
+
+    order_data = None
     if invoice.order is not None:
-        quantize_price_fields(invoice.order, ORDER_PRICE_FIELDS, invoice.order.currency)
+        order_data = json.loads(
+            serializer.serialize(
+                [invoice.order],
+                fields=ORDER_FIELDS,
+                extra_dict_data=_generate_order_prices_payload(invoice.order),
+            )
+        )[0]
+
     return serializer.serialize(
         [invoice],
         fields=invoice_fields,
-        additional_fields={"order": (lambda i: i.order, ORDER_FIELDS)},
         extra_dict_data={
-            "meta": generate_meta(requestor_data=generate_requestor(requestor))
+            "order": order_data,
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
         },
     )
 

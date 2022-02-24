@@ -175,31 +175,26 @@ def test_apply_tax_data(order_with_lines, order_lines, tax_data):
     order = order_with_lines
     lines = order_lines
 
-    def qp(amount):
-        return quantize_price(amount, order.currency)
-
     # when
     calculations._apply_tax_data(order, [line for line in lines], tax_data)
 
     # then
-    assert str(order.total.net.amount) == str(qp(tax_data.total_net_amount))
-    assert str(order.total.gross.amount) == str(qp(tax_data.total_gross_amount))
+    assert str(order.total.net.amount) == str(tax_data.total_net_amount)
+    assert str(order.total.gross.amount) == str(tax_data.total_gross_amount)
 
     assert str(order.shipping_price.net.amount) == str(
-        qp(tax_data.shipping_price_net_amount)
+        tax_data.shipping_price_net_amount
     )
     assert str(order.shipping_price.gross.amount) == str(
-        qp(tax_data.shipping_price_gross_amount)
+        tax_data.shipping_price_gross_amount
     )
 
     for line, tax_line in zip(lines, tax_data.lines):
-        assert str(line.unit_price.net.amount) == str(qp(tax_line.unit_net_amount))
-        assert str(line.unit_price.gross.amount) == str(qp(tax_line.unit_gross_amount))
+        assert str(line.unit_price.net.amount) == str(tax_line.unit_net_amount)
+        assert str(line.unit_price.gross.amount) == str(tax_line.unit_gross_amount)
 
-        assert str(line.total_price.net.amount) == str(qp(tax_line.total_net_amount))
-        assert str(line.total_price.gross.amount) == str(
-            qp(tax_line.total_gross_amount)
-        )
+        assert str(line.total_price.net.amount) == str(tax_line.total_net_amount)
+        assert str(line.total_price.gross.amount) == str(tax_line.total_gross_amount)
 
 
 @pytest.fixture
@@ -343,6 +338,32 @@ def test_fetch_order_prices_if_expired_prefetch_with_lines(
 
     # then
     assert all(line._state.fields_cache for line in order_lines)
+
+
+def test_fetch_order_prices_if_expired_price_quantization(
+    fetch_kwargs, order_with_lines
+):
+    # given
+    currency = order_with_lines.currency
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    assert order.total == quantize_price(order.total, currency)
+    assert order.undiscounted_total == quantize_price(
+        order.undiscounted_total, currency
+    )
+    assert order.shipping_price == quantize_price(order.shipping_price, currency)
+    for line in lines:
+        assert line.unit_price == quantize_price(line.unit_price, currency)
+        assert line.undiscounted_unit_price == quantize_price(
+            line.undiscounted_unit_price, currency
+        )
+        assert line.total_price == quantize_price(line.total_price, currency)
+        assert line.undiscounted_total_price == quantize_price(
+            line.undiscounted_total_price, currency
+        )
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
