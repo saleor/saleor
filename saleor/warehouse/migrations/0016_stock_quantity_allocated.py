@@ -9,10 +9,17 @@ def assign_quantity_allocated_to_stocks(apps, schema_editor):
     Stock = apps.get_model("warehouse", "Stock")
 
     batch_size = 1000
-    stocks_ids = Stock.objects.values_list("id", flat=True)
-    for idx in range(0, len(stocks_ids), batch_size):
-        ids_to_update = stocks_ids[idx : idx + batch_size]  # noqa: E203
-        Stock.objects.filter(id__in=ids_to_update).update(
+    last_id = 0
+    while True:
+        stock_ids = list(
+            Stock.objects.filter(id__gt=last_id)
+            .order_by("id")
+            .values_list("id", flat=True)[:batch_size]
+        )
+        if not stock_ids:
+            break
+        last_id = stock_ids[-1]
+        Stock.objects.filter(id__in=stock_ids).update(
             quantity_allocated=Subquery(
                 Stock.objects.filter(id=OuterRef("id"))
                 .annotate(
