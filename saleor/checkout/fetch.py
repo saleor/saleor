@@ -473,7 +473,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
 
     country_code = shipping_address.country.code if shipping_address else None
 
-    subtotal = base_calculations.base_checkout_lines_total(
+    subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
