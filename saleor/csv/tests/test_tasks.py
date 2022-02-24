@@ -1,13 +1,21 @@
 import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytz
+from django.core.files import File
+from django.test import override_settings
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ...core import JobStatus
 from .. import ExportEvents, FileTypes
-from ..models import ExportEvent
-from ..tasks import export_products_task, on_task_failure, on_task_success
+from ..models import ExportEvent, ExportFile
+from ..tasks import (
+    delete_old_export_files,
+    export_products_task,
+    on_task_failure,
+    on_task_success,
+)
 
 
 @patch("saleor.csv.tasks.export_products")
@@ -131,3 +139,107 @@ def test_on_task_success(user_export_file):
         user=user_export_file.user,
         type=ExportEvents.EXPORT_SUCCESS,
     )
+
+
+@override_settings(EXPORT_FILES_TIMEDELTA=datetime.timedelta(days=5))
+@patch("django.core.files.storage.default_storage.exists", lambda x: True)
+@patch("django.core.files.storage.default_storage.delete")
+def test_delete_old_export_files(default_storage_delete_mock, staff_user):
+    # given
+    now = timezone.now()
+    expired_success_file_1_mock = MagicMock(spec=File)
+    expired_success_file_1_mock.name = "expired_success_1.csv"
+
+    expired_success_file_2_mock = MagicMock(spec=File)
+    expired_success_file_2_mock.name = "expired_success_1.csv"
+
+    not_expired_success_file_mock = MagicMock(spec=File)
+    not_expired_success_file_mock.name = "not_expired_success.csv"
+
+    export_file_list = list(
+        ExportFile.objects.bulk_create(
+            [
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.SUCCESS,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.SUCCESS,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.SUCCESS,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.PENDING,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.PENDING,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.FAILED,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.FAILED,
+                ),
+            ]
+        )
+    )
+
+    expired_success_1, not_expired_success, expired_success_2 = (
+        export_file_list[0],
+        export_file_list[1],
+        export_file_list[2],
+    )
+    expired_success_1.content_file = expired_success_file_1_mock
+    expired_success_2.content_file = expired_success_file_2_mock
+    not_expired_success.content_file = not_expired_success_file_mock
+
+    ExportFile.objects.bulk_update(export_file_list[:3], ["content_file"])
+
+    expired_export_files = export_file_list[::2]
+    expired_export_events = [
+        ExportEvent(
+            type=ExportEvents.EXPORT_PENDING,
+            date=now - datetime.timedelta(days=6),
+            export_file=export_file,
+        )
+        for export_file in expired_export_files
+    ]
+    not_expired_export_files = export_file_list[1::2]
+    not_expired_export_events = [
+        ExportEvent(
+            type=ExportEvents.EXPORT_PENDING,
+            date=now - datetime.timedelta(days=2),
+            export_file=export_file,
+        )
+        for export_file in not_expired_export_files
+    ]
+
+    ExportEvent.objects.bulk_create(expired_export_events + not_expired_export_events)
+    export_file_with_no_events = ExportFile.objects.create(
+        user=staff_user, status=JobStatus.SUCCESS
+    )
+    expired_export_files.append(export_file_with_no_events)
+
+    # when
+    delete_old_export_files()
+
+    # then
+    assert default_storage_delete_mock.call_count == 2
+    assert {
+        arg for call in default_storage_delete_mock.call_args_list for arg in call.args
+    } == {expired_success_file_1_mock.name, expired_success_file_2_mock.name}
+    assert not ExportFile.objects.filter(
+        id__in=[export_file.id for export_file in expired_export_files]
+    )
+    assert len(
+        ExportFile.objects.filter(
+            id__in=[export_file.id for export_file in not_expired_export_files]
+        )
+    ) == len(not_expired_export_files)

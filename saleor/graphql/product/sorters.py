@@ -70,10 +70,10 @@ class CategorySortingInput(ChannelSortInputObjectType):
 
 
 class CollectionSortField(graphene.Enum):
-    NAME = ["name"]
-    AVAILABILITY = ["is_published", "name"]
-    PRODUCT_COUNT = ["product_count", "name"]
-    PUBLICATION_DATE = ["publication_date", "name"]
+    NAME = ["name", "slug"]
+    AVAILABILITY = ["is_published", "slug"]
+    PRODUCT_COUNT = ["product_count", "slug"]
+    PUBLICATION_DATE = ["publication_date", "slug"]
 
     @property
     def description(self):

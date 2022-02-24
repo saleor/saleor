@@ -101,7 +101,7 @@ def manager():
 
 @pytest.fixture
 def fetch_kwargs(checkout_with_items, manager):
-    lines = fetch_checkout_lines(checkout_with_items)
+    lines, _ = fetch_checkout_lines(checkout_with_items)
     discounts = []
     return {
         "checkout_info": fetch_checkout_info(

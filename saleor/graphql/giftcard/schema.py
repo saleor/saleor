@@ -4,16 +4,17 @@ from graphql.error import GraphQLError
 from ...core.permissions import GiftcardPermissions
 from ...giftcard import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .bulk_mutations import (
     GiftCardBulkActivate,
+    GiftCardBulkCreate,
     GiftCardBulkDeactivate,
     GiftCardBulkDelete,
 )
-from .filters import GiftCardFilterInput
+from .filters import GiftCardFilterInput, GiftCardTagFilterInput
 from .mutations import (
     GiftCardActivate,
     GiftCardAddNote,
@@ -23,9 +24,9 @@ from .mutations import (
     GiftCardResend,
     GiftCardUpdate,
 )
-from .resolvers import resolve_gift_card, resolve_gift_cards
+from .resolvers import resolve_gift_card, resolve_gift_card_tags, resolve_gift_cards
 from .sorters import GiftCardSortingInput
-from .types import GiftCard, GiftCardCountableConnection
+from .types import GiftCard, GiftCardCountableConnection, GiftCardTagCountableConnection
 
 
 class GiftCardQueries(graphene.ObjectType):
@@ -38,16 +39,27 @@ class GiftCardQueries(graphene.ObjectType):
     )
     gift_cards = FilterConnectionField(
         GiftCardCountableConnection,
-        sort_by=GiftCardSortingInput(description=f"{ADDED_IN_31} Sort gift cards."),
+        sort_by=GiftCardSortingInput(
+            description=f"{ADDED_IN_31} Sort gift cards. {PREVIEW_FEATURE}"
+        ),
         filter=GiftCardFilterInput(
-            description=f"{ADDED_IN_31} Filtering options for gift cards."
+            description=(
+                f"{ADDED_IN_31} Filtering options for gift cards. {PREVIEW_FEATURE}"
+            )
         ),
         description="List of gift cards.",
     )
     gift_card_currencies = graphene.Field(
         graphene.List(graphene.NonNull(graphene.String)),
-        description=f"{ADDED_IN_31} List of gift card currencies.",
+        description=f"{ADDED_IN_31} List of gift card currencies. {PREVIEW_FEATURE}",
         required=True,
+    )
+    gift_card_tags = FilterConnectionField(
+        GiftCardTagCountableConnection,
+        filter=GiftCardTagFilterInput(
+            description="Filtering options for gift card tags."
+        ),
+        description=f"{ADDED_IN_31} List of gift card tags. {PREVIEW_FEATURE}",
     )
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
@@ -71,6 +83,12 @@ class GiftCardQueries(graphene.ObjectType):
     def resolve_gift_card_currencies(self, info, **data):
         return set(models.GiftCard.objects.values_list("currency", flat=True))
 
+    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
+    def resolve_gift_card_tags(self, info, **data):
+        qs = resolve_gift_card_tags()
+        qs = filter_connection_queryset(qs, data)
+        return create_connection_slice(qs, info, data, GiftCardTagCountableConnection)
+
 
 class GiftCardMutations(graphene.ObjectType):
     gift_card_activate = GiftCardActivate.Field()
@@ -81,6 +99,7 @@ class GiftCardMutations(graphene.ObjectType):
     gift_card_resend = GiftCardResend.Field()
     gift_card_add_note = GiftCardAddNote.Field()
 
+    gift_card_bulk_create = GiftCardBulkCreate.Field()
     gift_card_bulk_delete = GiftCardBulkDelete.Field()
     gift_card_bulk_activate = GiftCardBulkActivate.Field()
     gift_card_bulk_deactivate = GiftCardBulkDeactivate.Field()

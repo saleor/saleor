@@ -35,12 +35,14 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
-    get_valid_shipping_methods_for_order,
     invalidate_order_prices,
     recalculate_order_weight,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
+from ....shipping.interface import ShippingMethodData
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
@@ -55,35 +57,29 @@ from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
 from ..types import Order, OrderEvent, OrderLine
 from ..utils import (
+    get_shipping_method_availability_error,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
 
 
-def clean_order_update_shipping(order, method):
+def clean_order_update_shipping(
+    order, method: ShippingMethodData, manager: "PluginsManager"
+):
     if not order.shipping_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Cannot choose a shipping method for an order without "
                     "the shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value,
                 )
             }
         )
 
-    valid_methods = get_valid_shipping_methods_for_order(order)
-    if valid_methods is None or method.pk not in valid_methods.values_list(
-        "id", flat=True
-    ):
-        raise ValidationError(
-            {
-                "shipping_method": ValidationError(
-                    "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
-                )
-            }
-        )
+    error = get_shipping_method_availability_error(order, method, manager)
+    if error:
+        raise ValidationError({"shipping_method": error})
 
 
 def clean_order_cancel(order):
@@ -201,6 +197,7 @@ class OrderUpdate(DraftOrderCreate):
     class Meta:
         description = "Updates an order."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -315,7 +312,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             info,
             data.get("id"),
             only_type=Order,
-            qs=models.Order.objects.prefetch_related("lines"),
+            qs=models.Order.objects.prefetch_related(
+                "lines", "channel__shipping_method_listings"
+            ),
         )
         cls.validate_order(order)
 
@@ -378,8 +377,26 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "postal_code_rules"
             ),
         )
+        shipping_channel_listing = (
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=method, channel=order.channel
+            ).first()
+        )
+        if not shipping_channel_listing:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not available in the given channel.",
+                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                    )
+                }
+            )
 
-        clean_order_update_shipping(order, method)
+        shipping_method_data = convert_to_shipping_method_data(
+            method,
+            shipping_channel_listing,
+        )
+        clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
 
         order.shipping_method = method
         order.shipping_method_name = method.name
@@ -694,6 +711,7 @@ class OrderConfirm(ModelMutation):
     class Meta:
         description = "Confirms an unconfirmed order by changing status to unfulfilled."
         model = models.Order
+        object_type = Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -957,6 +975,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
     class Meta:
         description = "Updates an order line of an order."
         model = models.OrderLine
+        object_type = OrderLine
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

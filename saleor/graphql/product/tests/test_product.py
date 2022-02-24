@@ -2706,6 +2706,53 @@ def test_products_query_with_filter_search_by_numeric_attribute_value(
     assert products[0]["node"]["name"] == product_with_numeric_attr.name
 
 
+def test_products_query_with_filter_search_by_numeric_attribute_value_without_unit(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    numeric_attribute_without_unit,
+):
+    # given
+    numeric_attribute = numeric_attribute_without_unit
+    product_with_numeric_attr = product_list[1]
+
+    product_type = product_with_numeric_attr.product_type
+    product_type.product_attributes.add(numeric_attribute)
+
+    numeric_attr_value = numeric_attribute.values.first()
+    numeric_attr_value.name = "13456"
+    numeric_attr_value.save(update_fields=["name"])
+
+    associate_attribute_values_to_instance(
+        product_with_numeric_attr, numeric_attribute, numeric_attr_value
+    )
+
+    product_with_numeric_attr.refresh_from_db()
+
+    product_with_numeric_attr.search_document = prepare_product_search_document_value(
+        product_with_numeric_attr
+    )
+    product_with_numeric_attr.save(update_fields=["search_document"])
+
+    variables = {"filter": {"search": "13456"}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_numeric_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_numeric_attr.name
+
+
 @pytest.mark.parametrize("search_value", ["2020", "2020 10 10", "2020-10-10"])
 def test_products_query_with_filter_search_by_date_attribute_value(
     search_value,
@@ -7531,16 +7578,20 @@ def test_delete_product_with_image(
 
 
 @freeze_time("1914-06-28 10:50")
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task,
     mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
     staff_api_client,
     product,
     permission_manage_products,
     settings,
 ):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     query = DELETE_PRODUCT_MUTATION
@@ -7560,7 +7611,7 @@ def test_delete_product_trigger_webhook(
         product, variants_id, staff_api_client.user
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_DELETED
+        expected_data, WebhookEventAsyncType.PRODUCT_DELETED, [any_webhook]
     )
     mocked_recalculate_orders_task.assert_not_called()
 
@@ -8191,6 +8242,22 @@ def test_product_type_create_mutation(
     new_instance = ProductType.objects.latest("pk")
     tax_code = manager.get_tax_code_from_object_meta(new_instance).code
     assert tax_code == "wine"
+
+
+def test_product_type_create_mutation_optional_kind(
+    staff_api_client, permission_manage_product_types_and_attributes
+):
+    variables = {"name": "Default Kind Test"}
+    response = staff_api_client.post_graphql(
+        PRODUCT_TYPE_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["productTypeCreate"]["productType"]["kind"]
+        == ProductTypeKindEnum.NORMAL.name
+    )
 
 
 def test_create_gift_card_product_type(
@@ -8889,19 +8956,14 @@ def test_update_product_type_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-def test_update_product_type_type(
+def test_update_product_type_kind(
     staff_api_client,
     product_type,
     permission_manage_product_types_and_attributes,
 ):
     query = """
         mutation($id: ID!, $kind: ProductTypeKindEnum) {
-            productTypeUpdate(
-                id: $id
-                input: {
-                    kind: $kind
-                }
-            ) {
+            productTypeUpdate(id: $id, input: { kind: $kind }) {
                 productType{
                     name
                     kind
@@ -8921,13 +8983,53 @@ def test_update_product_type_type(
     variables = {"kind": kind, "id": node_id}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
     errors = data["errors"]
     assert not errors
     assert data["productType"]["kind"] == kind
+
+
+def test_update_product_type_kind_omitted(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+):
+    query = """
+        mutation($id: ID!, $name: String) {
+            productTypeUpdate(id: $id, input: { name: $name }) {
+                productType{
+                    name
+                    kind
+                }
+                errors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    assert product_type.kind == ProductTypeKindEnum.NORMAL.value
+    name = "New name"
+    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {"id": node_id, "name": name}
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeUpdate"]
+    errors = data["errors"]
+    assert not errors
+    assert data["productType"]["kind"] == ProductTypeKindEnum.NORMAL.name
+    assert data["productType"]["name"] == name
 
 
 PRODUCT_TYPE_DELETE_MUTATION = """
@@ -10642,9 +10744,9 @@ def test_collections_query_with_sort(
 ):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Coll1", slug="collection-published1"),
-            Collection(name="Coll2", slug="collection-unpublished2"),
-            Collection(name="Coll3", slug="collection-published"),
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
         ]
     )
     published = (True, False, True)

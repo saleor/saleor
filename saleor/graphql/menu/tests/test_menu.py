@@ -1011,6 +1011,93 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
     assert menu_data == expected_data
 
 
+def test_menu_reorder_move_the_same_item_multiple_times(
+    staff_api_client, permission_manage_menus, menu_item_list
+):
+
+    menu_item_list = list(menu_item_list)
+    menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
+
+    assert len(menu_item_list) == 3
+
+    items_global_ids = [
+        graphene.Node.to_global_id("MenuItem", item.pk) for item in menu_item_list
+    ]
+
+    moves_input = [
+        {"itemId": items_global_ids[0], "parentId": None, "sortOrder": 1},
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": -1},
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": -1},
+    ]
+
+    expected_data = {
+        "id": menu_global_id,
+        "items": [
+            {"id": items_global_ids[2], "parent": None, "children": []},
+            {"id": items_global_ids[1], "parent": None, "children": []},
+            {"id": items_global_ids[0], "parent": None, "children": []},
+        ],
+    }
+
+    response = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_REORDER_MENU,
+            {"moves": moves_input, "menu": menu_global_id},
+            [permission_manage_menus],
+        )
+    )["data"]["menuItemMove"]
+
+    menu_data = response["menu"]
+    assert not response["errors"]
+    assert menu_data
+
+    # Ensure the order is right
+    assert menu_data == expected_data
+
+
+def test_menu_reorder_move_without_effect(
+    staff_api_client, permission_manage_menus, menu_item_list
+):
+
+    menu_item_list = list(menu_item_list)
+    menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
+
+    assert len(menu_item_list) == 3
+
+    items_global_ids = [
+        graphene.Node.to_global_id("MenuItem", item.pk) for item in menu_item_list
+    ]
+
+    moves_input = [
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": 3},
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": -1},
+    ]
+
+    expected_data = {
+        "id": menu_global_id,
+        "items": [
+            {"id": items_global_ids[0], "parent": None, "children": []},
+            {"id": items_global_ids[2], "parent": None, "children": []},
+            {"id": items_global_ids[1], "parent": None, "children": []},
+        ],
+    }
+
+    response = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_REORDER_MENU,
+            {"moves": moves_input, "menu": menu_global_id},
+            [permission_manage_menus],
+        )
+    )["data"]["menuItemMove"]
+
+    menu_data = response["menu"]
+    assert not response["errors"]
+    assert menu_data
+
+    # Ensure the order is right
+    assert menu_data == expected_data
+
+
 def test_menu_reorder_assign_parent(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
@@ -1055,17 +1142,171 @@ def test_menu_reorder_assign_parent(
                         "children": [],
                     },
                     {
-                        "id": items_global_ids[2],
+                        "id": items_global_ids[0],
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
-                        "id": items_global_ids[0],
+                        "id": items_global_ids[2],
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                 ],
             }
+        ],
+    }
+
+    response = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_REORDER_MENU,
+            {"moves": moves_input, "menu": menu_id},
+            [permission_manage_menus],
+        )
+    )["data"]["menuItemMove"]
+
+    menu_data = response["menu"]
+    assert not response["errors"]
+    assert menu_data
+
+    # Ensure the parent and sort orders were assigned correctly
+    assert menu_data == expected_data
+
+
+def test_menu_reorder_assign_and_unassign_parent(
+    staff_api_client, permission_manage_menus, menu_item_list
+):
+    """Assign a menu item as parent of given menu items. Ensure the menu items
+    are properly pushed at the bottom of the item's children.
+    """
+
+    menu_item_list = list(menu_item_list)
+    assert len(menu_item_list) == 3
+
+    menu_id = graphene.Node.to_global_id("Menu", menu_item_list[1].menu_id)
+
+    root = menu_item_list[0]
+
+    item1 = menu_item_list[1]
+    item1.parent = root
+    item1.save()
+
+    item2 = menu_item_list[2]
+
+    item2_child = MenuItem.objects.create(menu=root.menu, parent=item2, name="Child")
+
+    root_id = graphene.Node.to_global_id("MenuItem", root.pk)
+    items_global_ids = [
+        graphene.Node.to_global_id("MenuItem", item.pk) for item in menu_item_list
+    ]
+
+    moves_input = [
+        {"itemId": items_global_ids[2], "parentId": root_id, "sortOrder": 1},
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": 1},
+    ]
+
+    expected_data = {
+        "id": menu_id,
+        "items": [
+            {
+                "id": items_global_ids[0],
+                "parent": None,
+                "children": [
+                    {
+                        "id": items_global_ids[1],
+                        "parent": {"id": root_id},
+                        "children": [],
+                    },
+                ],
+            },
+            {
+                "id": items_global_ids[2],
+                "parent": None,
+                "children": [
+                    {
+                        "id": graphene.Node.to_global_id("MenuItem", item2_child.pk),
+                        "parent": {"id": items_global_ids[2]},
+                        "children": [],
+                    },
+                ],
+            },
+        ],
+    }
+
+    response = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_REORDER_MENU,
+            {"moves": moves_input, "menu": menu_id},
+            [permission_manage_menus],
+        )
+    )["data"]["menuItemMove"]
+
+    menu_data = response["menu"]
+    assert not response["errors"]
+    assert menu_data
+
+    # Ensure the parent and sort orders were assigned correctly
+    assert menu_data == expected_data
+
+
+def test_menu_reorder_unassign_and_assign_parent(
+    staff_api_client, permission_manage_menus, menu_item_list
+):
+    """Assign a menu item as parent of given menu items. Ensure the menu items
+    are properly pushed at the bottom of the item's children.
+    """
+
+    menu_item_list = list(menu_item_list)
+    assert len(menu_item_list) == 3
+
+    menu_id = graphene.Node.to_global_id("Menu", menu_item_list[1].menu_id)
+
+    root = menu_item_list[0]
+
+    item1 = menu_item_list[1]
+    item1.parent = root
+    item1.save()
+
+    item2 = menu_item_list[2]
+    item2.parent = root
+    item2.save()
+
+    item2_child = MenuItem.objects.create(menu=root.menu, parent=item2, name="Child")
+
+    root_id = graphene.Node.to_global_id("MenuItem", root.pk)
+    items_global_ids = [
+        graphene.Node.to_global_id("MenuItem", item.pk) for item in menu_item_list
+    ]
+
+    moves_input = [
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": 1},
+        {"itemId": items_global_ids[2], "parentId": root_id, "sortOrder": -1},
+    ]
+
+    expected_data = {
+        "id": menu_id,
+        "items": [
+            {
+                "id": items_global_ids[0],
+                "parent": None,
+                "children": [
+                    {
+                        "id": items_global_ids[2],
+                        "parent": {"id": root_id},
+                        "children": [
+                            {
+                                "id": graphene.Node.to_global_id(
+                                    "MenuItem", item2_child.pk
+                                ),
+                            },
+                        ],
+                    },
+                    {
+                        "id": items_global_ids[1],
+                        "parent": {"id": root_id},
+                        "children": [],
+                    },
+                ],
+            },
         ],
     }
 

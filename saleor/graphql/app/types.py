@@ -4,27 +4,24 @@ import graphene
 from graphene_federation import key
 
 from ...app import models
+from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
-from ..core.connection import CountableConnection, CountableDjangoObjectType
-from ..core.descriptions import ADDED_IN_31
+from ..core.connection import CountableConnection
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import resolve_federation_references
-from ..core.types import Permission
+from ..core.types import ModelObjectType, Permission
 from ..core.types.common import Job
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
-from .enums import (
-    AppExtensionTargetEnum,
-    AppExtensionTypeEnum,
-    AppExtensionViewEnum,
-    AppTypeEnum,
-)
+from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
+    resolve_app_extension_url,
 )
 
 
@@ -40,20 +37,26 @@ class AppManifestExtension(graphene.ObjectType):
     url = graphene.String(
         description="URL of a view where extension's iframe is placed.", required=True
     )
-    view = AppExtensionViewEnum(
-        description="Name of a view where extension's iframe will be mounted.",
-        required=True,
-    )
-    type = AppExtensionTypeEnum(
-        description="Type of a view where extension's iframe will be mounted.",
+    mount = AppExtensionMountEnum(
+        description="Place where given extension will be mounted.",
         required=True,
     )
     target = AppExtensionTargetEnum(
-        description="Place where extension's iframe will be mounted.", required=True
+        description="Type of way how app extension will be opened.", required=True
     )
 
+    @staticmethod
+    def resolve_target(root, info):
+        return root.get("target") or AppExtensionTarget.POPUP
 
-class AppExtension(AppManifestExtension, CountableDjangoObjectType):
+    @staticmethod
+    def resolve_url(root, info):
+        """Return an extension url."""
+        return resolve_app_extension_url(root)
+
+
+class AppExtension(AppManifestExtension, ModelObjectType):
+    id = graphene.GlobalID(required=True)
     app = graphene.Field("saleor.graphql.app.types.App", required=True)
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app extension."
@@ -63,6 +66,23 @@ class AppExtension(AppManifestExtension, CountableDjangoObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node]
         model = models.AppExtension
+
+    @staticmethod
+    def resolve_url(root, info):
+        return (
+            AppByIdLoader(info.context)
+            .load(root.app_id)
+            .then(
+                lambda app: AppManifestExtension.resolve_url(
+                    {"target": root.target, "app_url": app.app_url, "url": root.url},
+                    info,
+                )
+            )
+        )
+
+    @staticmethod
+    def resolve_target(root, info):
+        return root.target
 
     @staticmethod
     def resolve_app(root, info):
@@ -114,17 +134,29 @@ class Manifest(graphene.ObjectType):
     class Meta:
         description = "The manifest definition."
 
+    @staticmethod
+    def resolve_extensions(root, info):
+        for extension in root.extensions:
+            extension["app_url"] = root.app_url
+        return root.extensions
 
-class AppToken(CountableDjangoObjectType):
+
+class AppToken(graphene.ObjectType):
+    id = graphene.GlobalID(required=True)
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
     class Meta:
         description = "Represents token data."
-        model = models.AppToken
         interfaces = [graphene.relay.Node]
         permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = ["name", "auth_token"]
+
+    @staticmethod
+    def get_node(info, id):
+        try:
+            return models.AppToken.objects.get(pk=id)
+        except models.AppToken.DoesNotExist:
+            return None
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
@@ -132,7 +164,8 @@ class AppToken(CountableDjangoObjectType):
 
 
 @key(fields="id")
-class App(CountableDjangoObjectType):
+class App(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     permissions = graphene.List(
         Permission, description="List of the app's permissions."
     )
@@ -169,7 +202,7 @@ class App(CountableDjangoObjectType):
     )
     extensions = graphene.List(
         graphene.NonNull(AppExtension),
-        description=f"{ADDED_IN_31} App's dashboard extensions.",
+        description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
         required=True,
     )
 
@@ -177,16 +210,6 @@ class App(CountableDjangoObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
-        permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = [
-            "name",
-            "permissions",
-            "created",
-            "is_active",
-            "tokens",
-            "id",
-            "tokens",
-        ]
 
     @staticmethod
     def resolve_permissions(root: models.App, _info, **_kwargs):
@@ -232,13 +255,12 @@ class AppCountableConnection(CountableConnection):
         node = App
 
 
-class AppInstallation(CountableDjangoObjectType):
+class AppInstallation(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    app_name = graphene.String(required=True)
+    manifest_url = graphene.String(required=True)
+
     class Meta:
         model = models.AppInstallation
         description = "Represents ongoing installation of app."
         interfaces = [graphene.relay.Node, Job]
-        permissions = (AppPermission.MANAGE_APPS,)
-        only_fields = [
-            "app_name",
-            "manifest_url",
-        ]

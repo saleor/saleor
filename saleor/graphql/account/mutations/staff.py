@@ -10,7 +10,10 @@ from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
 from ....account.search import USER_SEARCH_FIELDS, prepare_user_search_document_value
 from ....account.thumbnails import create_user_avatar_thumbnails
-from ....account.utils import remove_staff_member
+from ....account.utils import (
+    remove_staff_member,
+    remove_the_oldest_user_address_if_address_limit_is_reached,
+)
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
@@ -75,6 +78,7 @@ class CustomerCreate(BaseCustomerCreate):
         description = "Creates a new customer."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -91,6 +95,7 @@ class CustomerUpdate(CustomerCreate):
         description = "Updates an existing customer."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -157,6 +162,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a customer."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -181,6 +187,7 @@ class StaffCreate(ModelMutation):
         description = "Creates a new staff user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -280,6 +287,7 @@ class StaffUpdate(StaffCreate):
         description = "Updates an existing staff user."
         exclude = ["password"]
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -410,6 +418,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a staff user."
         model = models.User
+        object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
@@ -450,11 +459,13 @@ class AddressCreate(ModelMutation):
     class Meta:
         description = "Creates user address."
         model = models.Address
+        object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         user_id = data["user_id"]
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
@@ -463,6 +474,7 @@ class AddressCreate(ModelMutation):
             address = info.context.plugins.change_user_address(
                 response.address, None, user
             )
+            remove_the_oldest_user_address_if_address_limit_is_reached(user)
             user.addresses.add(address)
             response.user = user
             user.search_document = prepare_user_search_document_value(user)
@@ -474,6 +486,7 @@ class AddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address."
         model = models.Address
+        object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -483,6 +496,7 @@ class AddressDelete(BaseAddressDelete):
     class Meta:
         description = "Deletes an address."
         model = models.Address
+        object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"

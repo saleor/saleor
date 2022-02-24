@@ -26,7 +26,7 @@ from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount, VoucherChannelListing
 from ....giftcard import GiftCardEvents
-from ....giftcard.events import gift_cards_bought_event
+from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
 from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -40,7 +40,8 @@ from ....order.search import (
 )
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
-from ....plugins.manager import PluginsManager
+from ....plugins.base_plugin import ExcludedShippingMethod
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
@@ -344,14 +345,77 @@ query OrdersQuery {
                 }
                 availableShippingMethods {
                     id
-                    price {
-                        amount
+                    name
+                    description
+                    price{
+                      amount
                     }
                     minimumOrderPrice {
-                        amount
-                        currency
+                      amount
                     }
-                    type
+                    maximumOrderPrice{
+                      amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                      key
+                      value
+                    }
+                    privateMetadata{
+                      key
+                      value
+                    }
+                }
+                shippingMethods{
+                  id
+                  name
+                  description
+                  price{
+                    amount
+                  }
+                  maximumOrderPrice{
+                    amount
+                  }
+                  minimumOrderPrice{
+                    amount
+                  }
+                  maximumDeliveryDays
+                  minimumDeliveryDays
+                  metadata{
+                    key
+                    value
+                  }
+                  privateMetadata{
+                    key
+                    value
+                  }
+                }
+                shippingMethod{
+                    id
+                    name
+                    description
+                    active
+                    message
+                    price{
+                        amount
+                    }
+                    maximumOrderPrice{
+                        amount
+                    }
+                    minimumOrderPrice{
+                        amount
+                    }
+                    maximumDeliveryDays
+                    minimumDeliveryDays
+                    metadata{
+                        key
+                        value
+                    }
+                    privateMetadata{
+                        key
+                        value
+                    }
                 }
                 availableCollectionPoints {
                     id
@@ -383,7 +447,11 @@ query OrdersQuery {
 
 
 def test_order_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+    shipping_zone,
 ):
     # given
     order = fulfilled_order
@@ -393,9 +461,15 @@ def test_order_query(
     order.shipping_price = shipping_price
     shipping_tax_rate = Decimal("0.23")
     order.shipping_tax_rate = shipping_tax_rate
+    private_value = "abc123"
+    public_value = "123abc"
+    order.shipping_method.store_value_in_metadata({"test": public_value})
+    order.shipping_method.store_value_in_private_metadata({"test": private_value})
+    order.shipping_method.save()
     order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -422,9 +496,14 @@ def test_order_query(
     )
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
+    assert order_data["shippingMethod"]["active"] is True
+    assert order_data["shippingMethod"]["message"] == ""
+    assert public_value == order_data["shippingMethod"]["metadata"][0]["value"]
+    assert private_value == order_data["shippingMethod"]["privateMetadata"][0]["value"]
     assert len(order_data["lines"]) == order.lines.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data["fulfillments"][0]["fulfillmentOrder"]
+
     assert fulfillment_order == fulfillment
     assert len(order_data["payments"]) == order.payments.count()
 
@@ -453,13 +532,13 @@ def test_order_query(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines,
 ):
     # given
@@ -473,6 +552,7 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
     ).delete()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -480,14 +560,13 @@ def test_order_query_shipping_method_channel_listing_does_not_exist(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
-        "ShippingMethod", order.shipping_method.id
-    )
+    assert order_data["shippingMethod"] is None
 
 
 def test_order_query_external_shipping_method(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines,
 ):
     external_shipping_method_id = graphene.Node.to_global_id("app", "1:external123")
@@ -499,6 +578,7 @@ def test_order_query_external_shipping_method(
     order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -516,6 +596,7 @@ def test_order_query_external_shipping_method(
 def test_order_discounts_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     draft_order_with_fixed_discount_order,
 ):
     # given
@@ -526,6 +607,7 @@ def test_order_discounts_query(
     discount = order.discounts.get()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -547,6 +629,7 @@ def test_order_discounts_query(
 def test_order_line_discount_query(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     draft_order_with_fixed_discount_order,
 ):
     # given
@@ -563,6 +646,7 @@ def test_order_line_discount_query(
     line_with_discount_id = graphene.Node.to_global_id("OrderLine", line.pk)
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -605,6 +689,7 @@ def test_order_line_discount_query(
 def test_order_query_in_pln_channel(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_shipping,
     order_with_lines_channel_PLN,
     shipping_zone,
     channel_PLN,
@@ -612,6 +697,7 @@ def test_order_query_in_pln_channel(
     shipping_zone.channels.add(channel_PLN)
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -653,7 +739,6 @@ def test_order_query_in_pln_channel(
     assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
-    assert expected_method.type.upper() == method["type"]
 
 
 ORDERS_QUERY_SHIPPING_METHODS = """
@@ -663,6 +748,9 @@ ORDERS_QUERY_SHIPPING_METHODS = """
                 node {
                     availableShippingMethods {
                         name
+                        price {
+                            amount
+                        }
                     }
                 }
             }
@@ -792,20 +880,11 @@ def test_order_query_shipping_methods_excluded_postal_codes(
     assert order_data["availableShippingMethods"] == []
 
 
-@pytest.mark.parametrize(
-    "expected_price_type, expected_price, display_gross_prices",
-    (("gross", 13, True), ("net", 10, False)),
-)
 def test_order_available_shipping_methods_query(
-    expected_price_type,
-    expected_price,
-    display_gross_prices,
-    monkeypatch,
     staff_api_client,
     permission_manage_orders,
     fulfilled_order,
     shipping_zone,
-    site_settings,
 ):
     query = """
     query OrdersQuery {
@@ -817,7 +896,6 @@ def test_order_available_shipping_methods_query(
                         price {
                             amount
                         }
-                        type
                     }
                 }
             }
@@ -828,13 +906,6 @@ def test_order_available_shipping_methods_query(
     shipping_price = shipping_method.channel_listings.get(
         channel_id=fulfilled_order.channel_id
     ).price
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
-    apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
-    monkeypatch.setattr(
-        PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
-    )
-    site_settings.display_gross_prices = display_gross_prices
-    site_settings.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query)
@@ -842,10 +913,7 @@ def test_order_available_shipping_methods_query(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     method = order_data["availableShippingMethods"][0]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(
-        shipping_price, ANY, fulfilled_order.channel.slug
-    )
-    assert expected_price == method["price"]["amount"]
+    assert shipping_price.amount == method["price"]["amount"]
 
 
 def test_order_query_customer(api_client):
@@ -872,7 +940,7 @@ def test_order_query_gift_cards(
     query OrderQuery($id: ID!) {
         order(id: $id) {
             giftCards {
-                displayCode
+                last4CodeChars
                 currentBalance {
                     amount
                 }
@@ -890,7 +958,7 @@ def test_order_query_gift_cards(
     content = get_graphql_content(response)
     gift_card_data = content["data"]["order"]["giftCards"][0]
 
-    assert gift_card.display_code == gift_card_data["displayCode"]
+    assert gift_card.display_code == gift_card_data["last4CodeChars"]
     assert (
         gift_card.current_balance.amount == gift_card_data["currentBalance"]["amount"]
     )
@@ -2670,17 +2738,12 @@ def test_draft_order_create_price_recalculation(
 DRAFT_UPDATE_QUERY = """
         mutation draftUpdate(
         $id: ID!,
-        $voucher: ID,
-        $channel: ID,
-        $customerNote: String
+        $input: DraftOrderInput!,
         ) {
             draftOrderUpdate(
                 id: $id,
-                input: {
-                    voucher: $voucher,
-                    customerNote: $customerNote
-                    channelId: $channel
-                }) {
+                input: $input
+            ) {
                 errors {
                     field
                     code
@@ -2708,7 +2771,9 @@ def test_draft_order_update_existing_channel_id(
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
         "id": order_id,
-        "channel": channel_id,
+        "input": {
+            "channelId": channel_id,
+        },
     }
 
     response = staff_api_client.post_graphql(
@@ -2734,7 +2799,9 @@ def test_draft_order_update_voucher_not_available(
     voucher.channel_listings.all().delete()
     variables = {
         "id": order_id,
-        "voucher": voucher_id,
+        "input": {
+            "voucher": voucher_id,
+        },
     }
 
     response = staff_api_client.post_graphql(
@@ -3126,14 +3193,14 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
 
 def test_validate_draft_order(draft_order):
     # should not raise any errors
-    assert validate_draft_order(draft_order, "US") is None
+    assert validate_draft_order(draft_order, "US", get_plugins_manager()) is None
 
 
 def test_validate_draft_order_without_sku(draft_order):
     ProductVariant.objects.update(sku=None)
     draft_order.lines.update(product_sku=None)
     # should not raise any errors
-    assert validate_draft_order(draft_order, "US") is None
+    assert validate_draft_order(draft_order, "US", get_plugins_manager()) is None
 
 
 def test_validate_draft_order_wrong_shipping(draft_order):
@@ -3143,7 +3210,7 @@ def test_validate_draft_order_wrong_shipping(draft_order):
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Shipping method is not valid for chosen shipping address"
     assert e.value.error_dict["shipping"][0].message == msg
 
@@ -3151,7 +3218,7 @@ def test_validate_draft_order_wrong_shipping(draft_order):
 def test_validate_draft_order_no_order_lines(order, shipping_method):
     order.shipping_method = shipping_method
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Could not create order without any products."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -3165,7 +3232,7 @@ def test_validate_draft_order_non_existing_variant(draft_order):
     assert line.variant is None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Could not create orders with non-existing products."
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -3180,7 +3247,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Can't finalize draft with unpublished product."
     error = e.value.error_dict["lines"][0]
 
@@ -3196,7 +3263,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Can't finalize draft with product unavailable for purchase."
     error = e.value.error_dict["lines"][0]
 
@@ -3216,7 +3283,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Can't finalize draft with product unavailable for purchase."
     error = e.value.error_dict["lines"][0]
 
@@ -3234,7 +3301,7 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
     stock.save(update_fields=["quantity"])
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     msg = "Insufficient product stock: SKU_AA"
     assert e.value.error_dict["lines"][0].message == msg
 
@@ -3244,7 +3311,7 @@ def test_validate_draft_order_no_shipping_address(draft_order):
     order.shipping_address = None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no shipping address."
     assert error.code == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
@@ -3255,7 +3322,7 @@ def test_validate_draft_order_no_billing_address(draft_order):
     order.billing_address = None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no billing address."
     assert error.code == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
@@ -3266,7 +3333,7 @@ def test_validate_draft_order_no_shipping_method(draft_order):
     order.shipping_method = None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
+        validate_draft_order(order, "US", get_plugins_manager())
     error = e.value.error_dict["shipping"][0]
     assert error.message == "Shipping method is required."
     assert error.code == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
@@ -3278,7 +3345,7 @@ def test_validate_draft_order_no_shipping_method_shipping_not_required(draft_ord
     required_mock = Mock(return_value=False)
     order.is_shipping_required = required_mock
 
-    assert validate_draft_order(order, "US") is None
+    assert validate_draft_order(order, "US", get_plugins_manager()) is None
 
 
 def test_validate_draft_order_no_shipping_address_no_method_shipping_not_required(
@@ -3290,7 +3357,7 @@ def test_validate_draft_order_no_shipping_address_no_method_shipping_not_require
     required_mock = Mock(return_value=False)
     order.is_shipping_required = required_mock
 
-    assert validate_draft_order(order, "US") is None
+    assert validate_draft_order(order, "US", get_plugins_manager()) is None
 
 
 DRAFT_ORDER_COMPLETE_MUTATION = """
@@ -3299,6 +3366,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
             errors {
                 field
                 code
+                message
                 variants
             }
             order {
@@ -3650,6 +3718,69 @@ def test_draft_order_complete_not_available_shipping_method(
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_draft_order_complete_with_excluded_shipping_method(
+    mocked_webhook,
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(str(shipping_method.id), webhook_reason)
+    ]
+    order = draft_order
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = shipping_method
+    order.save()
+    query = DRAFT_ORDER_COMPLETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert (
+        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["errors"][0]["field"] == "shipping"
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.excluded_shipping_methods_for_order")
+def test_draft_order_complete_with_not_excluded_shipping_method(
+    mocked_webhook,
+    draft_order,
+    shipping_method,
+    staff_api_client,
+    permission_manage_orders,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook_reason = "archives-are-incomplete"
+    other_shipping_method_id = "1337"
+    assert other_shipping_method_id != shipping_method.id
+    mocked_webhook.return_value = [
+        ExcludedShippingMethod(other_shipping_method_id, webhook_reason)
+    ]
+    order = draft_order
+    order.status = OrderStatus.DRAFT
+    order.shipping_method = shipping_method
+    order.save()
+    query = DRAFT_ORDER_COMPLETE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["errors"]) == 0
+
+
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):
@@ -3865,6 +3996,22 @@ def test_draft_order_complete_insufficient_stock_preorders(
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+
+
+def test_draft_order_complete_not_draft_order(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert data["errors"][0]["code"] == OrderErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "id"
 
 
 ORDER_LINES_CREATE_MUTATION = """
@@ -5770,6 +5917,35 @@ def test_order_update_shipping(
     assert order.shipping_method_name == shipping_method.name
 
 
+@pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
+def test_order_update_shipping_no_shipping_method_channel_listings(
+    status,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+    staff_user,
+):
+    order = order_with_lines
+    order.status = status
+    order.save()
+    assert order.shipping_method != shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    shipping_method.channel_listings.all().delete()
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert errors[0]["field"] == "shippingMethod"
+
+
 def test_order_update_shipping_tax_included(
     staff_api_client,
     permission_manage_orders,
@@ -6750,6 +6926,118 @@ def test_order_query_with_filter_channels_with_empty_channel(
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
     assert len(orders) == 0
+
+
+def test_order_query_with_filter_gift_card_used_true(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[0]
+    gift_cards_used_in_order_event(
+        [(gift_card, 20.0)], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardUsed": True}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", gift_card_order.id
+    )
+
+
+def test_order_query_with_filter_gift_card_used_false(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[0]
+    gift_card_order_id = graphene.Node.to_global_id("Order", gift_card_order.id)
+    gift_cards_used_in_order_event(
+        [(gift_card, 20.0)], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardUsed": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["orders"]["edges"]
+    assert gift_card_order_id not in {
+        order_data["node"]["id"] for order_data in orders_data
+    }
+
+
+def test_order_query_with_filter_gift_card_bough_true(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[-1]
+    gift_cards_bought_event(
+        [gift_card], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardBought": True}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", gift_card_order.id
+    )
+
+
+def test_order_query_with_filter_gift_card_bought_false(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    gift_card,
+    orders,
+):
+    # given
+    gift_card_order = orders[-1]
+    gift_card_order_id = graphene.Node.to_global_id("Order", gift_card_order.id)
+    gift_cards_bought_event(
+        [gift_card], gift_card_order.id, staff_api_client.user, None
+    )
+    variables = {"filter": {"giftCardBought": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["orders"]["edges"]
+    assert gift_card_order_id not in {
+        order_data["node"]["id"] for order_data in orders_data
+    }
 
 
 @pytest.mark.parametrize(

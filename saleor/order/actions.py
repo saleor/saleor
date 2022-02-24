@@ -21,6 +21,7 @@ from ..payment import (
     TransactionKind,
     gateway,
 )
+from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
 from ..warehouse.management import (
@@ -321,6 +322,7 @@ def fulfillment_tracking_updated(
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )
+    manager.tracking_number_updated(fulfillment)
     manager.order_updated(fulfillment.order)
 
 
@@ -513,8 +515,10 @@ def mark_order_as_paid(
         app=app,
         transaction_reference=external_reference,
     )
-    manager.order_fully_paid(order)
-    manager.order_updated(order)
+
+    transaction.on_commit(lambda: manager.order_fully_paid(order))
+    transaction.on_commit(lambda: manager.order_updated(order))
+
     order.update_total_paid()
 
 
@@ -1001,7 +1005,6 @@ def create_refund_fulfillment(
             refund_shipping_costs=refund_shipping_costs,
             manager=manager,
         )
-
         refunded_fulfillment = Fulfillment.objects.create(
             status=FulfillmentStatus.REFUNDED,
             order=order,
@@ -1442,6 +1445,12 @@ def _process_refund(
     manager: "PluginsManager",
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+    refund_data = RefundData(
+        order_lines_to_refund=order_lines_to_refund,
+        fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+        refund_shipping_costs=refund_shipping_costs,
+        refund_amount_is_automatically_calculated=amount is None,
+    )
     if amount is None:
         amount = _calculate_refund_amount(
             order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
@@ -1454,7 +1463,11 @@ def _process_refund(
         amount = min(payment.captured_amount, amount)
         try:
             gateway.refund(
-                payment, manager, amount=amount, channel_slug=order.channel.slug
+                payment,
+                manager,
+                amount=amount,
+                channel_slug=order.channel.slug,
+                refund_data=refund_data,
             )
         except PaymentError:
             raise ValidationError(

@@ -7,13 +7,14 @@ from ..account.types import User
 from ..account.utils import requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
-from ..core.connection import CountableConnection, CountableDjangoObjectType
+from ..core.connection import CountableConnection
+from ..core.types import ModelObjectType
 from ..core.types.common import Job
 from ..utils import get_user_or_app_from_context
 from .enums import ExportEventEnum
 
 
-class ExportEvent(CountableDjangoObjectType):
+class ExportEvent(ModelObjectType):
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format.",
         required=True,
@@ -34,7 +35,6 @@ class ExportEvent(CountableDjangoObjectType):
         description = "History log of export file."
         model = models.ExportEvent
         interfaces = [graphene.relay.Node]
-        only_fields = ["id"]
 
     @staticmethod
     def resolve_user(root: models.ExportEvent, info):
@@ -55,18 +55,20 @@ class ExportEvent(CountableDjangoObjectType):
         return root.parameters.get("message", None)
 
 
-class ExportFile(CountableDjangoObjectType):
+class ExportFile(ModelObjectType):
+    id = graphene.GlobalID(required=True)
     url = graphene.String(description="The URL of field to download.")
     events = graphene.List(
         graphene.NonNull(ExportEvent),
         description="List of events associated with the export.",
     )
+    user = graphene.Field(User)
+    app = graphene.Field(App)
 
     class Meta:
         description = "Represents a job data of exported file."
         interfaces = [graphene.relay.Node, Job]
         model = models.ExportFile
-        only_fields = ["id", "user", "app", "url"]
 
     @staticmethod
     def resolve_url(root: models.ExportFile, info):

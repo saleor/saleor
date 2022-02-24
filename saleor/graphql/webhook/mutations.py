@@ -8,7 +8,7 @@ from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import WebhookError
 from . import enums
-from .types import EventDelivery
+from .types import EventDelivery, Webhook
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -62,6 +62,7 @@ class WebhookCreate(ModelMutation):
     class Meta:
         description = "Creates a new webhook subscription."
         model = models.Webhook
+        object_type = Webhook
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
@@ -161,6 +162,7 @@ class WebhookUpdate(ModelMutation):
     class Meta:
         description = "Updates a webhook subscription."
         model = models.Webhook
+        object_type = Webhook
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
@@ -208,6 +210,7 @@ class WebhookDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a webhook subscription."
         model = models.Webhook
+        object_type = Webhook
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookError
         error_type_field = "webhook_errors"

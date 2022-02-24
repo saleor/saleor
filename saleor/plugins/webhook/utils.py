@@ -1,14 +1,14 @@
-import base64
 import decimal
 import json
+import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from django.db.models import QuerySet
-from prices import Money
 
+from ...app.models import App
 from ...core.models import (
     EventDelivery,
     EventDeliveryAttempt,
@@ -17,16 +17,17 @@ from ...core.models import (
 )
 from ...core.taxes import TaxData, TaxLineData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
-from ...shipping.interface import ShippingMethodData
+from ...webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
-    from ...app.models import App
     from ...payment.interface import PaymentData
     from .tasks import WebhookResponse
 
 APP_GATEWAY_ID_PREFIX = "app"
 
 APP_ID_PREFIX = "app"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -41,14 +42,8 @@ class ShippingAppData:
     shipping_method_id: str
 
 
-def to_payment_app_id(app: "App", gateway_id: str) -> "str":
+def to_payment_app_id(app: App, gateway_id: str) -> "str":
     return f"{APP_ID_PREFIX}:{app.pk}:{gateway_id}"
-
-
-def to_shipping_app_id(app: "App", shipping_method_id: str) -> "str":
-    return base64.b64encode(
-        str.encode(f"{APP_ID_PREFIX}:{app.pk}:{shipping_method_id}")
-    ).decode("utf-8")
 
 
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
@@ -64,9 +59,12 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
 
 
 def parse_list_payment_gateways_response(
-    response_data: Any, app: "App"
+    response_data: Any, app: App
 ) -> List["PaymentGateway"]:
-    gateways = []
+    gateways: List[PaymentGateway] = []
+    if not isinstance(response_data, list):
+        return gateways
+
     for gateway_data in response_data:
         gateway_id = gateway_data.get("id")
         gateway_name = gateway_data.get("name")
@@ -200,26 +198,29 @@ def parse_tax_data(
         return None
 
 
-def parse_list_shipping_methods_response(
-    response_data: Any, app: "App"
-) -> List["ShippingMethodData"]:
-    shipping_methods = []
-    for shipping_method_data in response_data:
-        method_id = shipping_method_data.get("id")
-        method_name = shipping_method_data.get("name")
-        method_amount = shipping_method_data.get("amount")
-        method_currency = shipping_method_data.get("currency")
-        method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
+def parse_tax_codes(
+    response_tax_data: Any,
+) -> Optional[Dict[str, str]]:
+    if not isinstance(response_tax_data, list):
+        return None
 
-        shipping_methods.append(
-            ShippingMethodData(
-                id=to_shipping_app_id(app, method_id),
-                name=method_name,
-                price=Money(method_amount, method_currency),
-                maximum_delivery_days=method_maximum_delivery_days,
-            )
-        )
-    return shipping_methods
+    tax_types = {}
+
+    for tax in response_tax_data:
+        code = tax.get("code")
+        description = tax.get("description")
+
+        if not code:
+            return None
+
+        # We assume here that the integration does not provide descriptions
+        # and tax codes have enough details for displaying them in dashboard
+        if not description:
+            description = code
+
+        tax_types[code] = description
+
+    return tax_types
 
 
 @contextmanager
@@ -293,3 +294,27 @@ def delivery_update(delivery: "EventDelivery", status: str):
 def clear_successful_delivery(delivery: "EventDelivery"):
     if delivery.status == EventDeliveryStatus.SUCCESS:
         delivery.delete()
+
+
+WEBHOOK_TAX_CODES_CACHE_KEY = "webhook_tax_codes"
+DEFAULT_TAX_CODE = "UNMAPPED"
+DEFAULT_TAX_DESCRIPTION = "Unmapped Product/Product Type"
+
+
+def get_current_tax_app() -> Optional[App]:
+    """Return currently used tax app or None, if there aren't any."""
+    return (
+        App.objects.order_by("pk")
+        .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+        .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
+        .for_event_type(WebhookEventSyncType.FETCH_TAX_CODES)
+        .last()
+    )
+
+
+def get_meta_code_key(app: App) -> str:
+    return f"{app.identifier}.code"
+
+
+def get_meta_description_key(app: App) -> str:
+    return f"{app.identifier}.description"

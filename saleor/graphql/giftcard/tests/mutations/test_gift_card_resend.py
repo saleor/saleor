@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from unittest import mock
 
 import graphene
@@ -213,3 +214,47 @@ def test_resend_gift_card_malformed_email(
     assert error["code"] == GiftCardErrorCode.INVALID.name
 
     send_notification_mock.assert_not_called()
+
+
+def test_resend_gift_card_expired_card(
+    staff_api_client,
+    gift_card,
+    channel_USD,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+):
+    # given
+    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.save(update_fields=["expiry_date"])
+
+    email = "gift_card_receiver@example.com"
+    variables = {
+        "input": {
+            "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
+            "email": email,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GIFT_CARD_RESEND_MUTATION,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardResend"]
+    errors = data["errors"]
+
+    assert not data["giftCard"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "id"
+    assert error["code"] == GiftCardErrorCode.EXPIRED_GIFT_CARD.name

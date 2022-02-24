@@ -56,7 +56,7 @@ def test_checkout_lines_add(
     variant = stock.product_variant
     checkout = checkout_with_item
     line = checkout.lines.first()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     previous_last_change = checkout.last_change
@@ -71,7 +71,7 @@ def test_checkout_lines_add(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 1
@@ -79,7 +79,7 @@ def test_checkout_lines_add(
     assert not Reservation.objects.exists()
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -91,7 +91,7 @@ def test_checkout_lines_add_with_reservations(
     variant = stock.product_variant
     checkout = checkout_with_item
     line = checkout.lines.first()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -105,7 +105,7 @@ def test_checkout_lines_add_with_reservations(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 1
@@ -126,7 +126,7 @@ def test_checkout_lines_add_updates_reservation(
     variant = checkout_line_with_one_reservation.variant
     checkout = checkout_line_with_one_reservation.checkout
     line = checkout_line_with_one_reservation
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 2
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -140,7 +140,7 @@ def test_checkout_lines_add_updates_reservation(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 3
@@ -163,7 +163,7 @@ def test_checkout_lines_add_new_variant_updates_other_lines_reservations_expirat
     checkout = checkout_line_with_one_reservation.checkout
     line = checkout_line_with_one_reservation
     reservation = line.reservations.get()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 2
 
     variant_other = product.variants.create(sku="SKU_B")
@@ -188,7 +188,7 @@ def test_checkout_lines_add_new_variant_updates_other_lines_reservations_expirat
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line.refresh_from_db()
     assert line.variant == variant
     assert line.quantity == 2
@@ -655,7 +655,7 @@ def test_checkout_lines_update(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     assert calculate_checkout_quantity(lines) == 3
     line = checkout.lines.first()
@@ -675,7 +675,7 @@ def test_checkout_lines_update(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.variant == variant
@@ -683,7 +683,7 @@ def test_checkout_lines_update(
     assert calculate_checkout_quantity(lines) == 1
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -696,7 +696,7 @@ def test_checkout_lines_update_with_new_reservations(
 ):
     assert Reservation.objects.count() == 2
     checkout = checkout_line_with_reservation_in_many_stocks.checkout
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     assert calculate_checkout_quantity(lines) == 3
     line = checkout.lines.first()
@@ -719,7 +719,7 @@ def test_checkout_lines_update_with_new_reservations(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.variant == variant
@@ -741,7 +741,7 @@ def test_checkout_lines_update_against_reserved_stock(
 ):
     assert Reservation.objects.count() == 0
     checkout = checkout_line.checkout
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     assert calculate_checkout_quantity(lines) == 3
     variant = checkout_line.variant
@@ -776,7 +776,7 @@ def test_checkout_lines_update_against_reserved_stock(
     assert data["errors"][0]["field"] == "quantity"
 
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.variant == variant
@@ -798,7 +798,7 @@ def test_checkout_lines_update_other_lines_reservations_expirations(
     line = checkout_line_with_one_reservation
     reservation = line.reservations.get()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 2
 
     variant_other = product.variants.create(sku="SKU_B")
@@ -823,7 +823,7 @@ def test_checkout_lines_update_other_lines_reservations_expirations(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     line.refresh_from_db()
     assert line.variant == variant
     assert line.quantity == 2
@@ -975,7 +975,7 @@ def test_checkout_line_delete_by_zero_quantity(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -1010,7 +1010,7 @@ def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purc
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
@@ -1045,7 +1045,7 @@ def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
@@ -1125,7 +1125,7 @@ def test_checkout_lines_update_with_chosen_shipping(
     data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 1
 
 
@@ -1162,7 +1162,7 @@ def test_checkout_line_delete(
     assert Reservation.objects.count() == 2
     checkout = checkout_line_with_reservation_in_many_stocks.checkout
     previous_last_change = checkout.last_change
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -1177,7 +1177,7 @@ def test_checkout_line_delete(
     data = content["data"]["checkoutLineDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 0
     assert calculate_checkout_quantity(lines) == 0
     assert Reservation.objects.count() == 0
@@ -1235,7 +1235,7 @@ def test_checkout_lines_delete(
     data = content["data"]["checkoutLinesDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    lines = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() + len(lines_list) == checkout_lines_count
     remaining_lines = data["checkout"]["lines"]
     lines_ids = [line["id"] for line in remaining_lines]

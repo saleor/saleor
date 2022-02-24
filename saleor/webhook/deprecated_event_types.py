@@ -1,16 +1,3 @@
-from ..core.permissions import (
-    AccountPermissions,
-    CheckoutPermissions,
-    DiscountPermissions,
-    OrderPermissions,
-    PagePermissions,
-    PaymentPermissions,
-    ProductPermissions,
-    ShippingPermissions,
-    SitePermissions,
-)
-
-
 class WebhookEventType:
     ANY = "any_events"
     ORDER_CREATED = "order_created"
@@ -67,6 +54,8 @@ class WebhookEventType:
     PAYMENT_PROCESS = "payment_process"
 
     SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
+    CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
+    ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
@@ -114,6 +103,8 @@ class WebhookEventType:
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
+        ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
+        CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
@@ -164,64 +155,11 @@ class WebhookEventType:
             SHIPPING_LIST_METHODS_FOR_CHECKOUT,
             DISPLAY_LABELS[SHIPPING_LIST_METHODS_FOR_CHECKOUT],
         ),
+        (ORDER_FILTER_SHIPPING_METHODS, DISPLAY_LABELS[ORDER_FILTER_SHIPPING_METHODS]),
+        (
+            CHECKOUT_FILTER_SHIPPING_METHODS,
+            DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
+        ),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
-
-    PAYMENT_EVENTS = [
-        PAYMENT_AUTHORIZE,
-        PAYMENT_CAPTURE,
-        PAYMENT_CONFIRM,
-        PAYMENT_LIST_GATEWAYS,
-        PAYMENT_PROCESS,
-        PAYMENT_REFUND,
-        PAYMENT_VOID,
-    ]
-
-    SYNC_EVENTS = [SHIPPING_LIST_METHODS_FOR_CHECKOUT] + PAYMENT_EVENTS
-
-    PERMISSIONS = {
-        ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
-        ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
-        ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
-        ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
-        ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
-        ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
-        DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
-        DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
-        DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
-        SALE_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
-        SALE_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
-        SALE_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
-        INVOICE_REQUESTED: OrderPermissions.MANAGE_ORDERS,
-        INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
-        INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
-        CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
-        CUSTOMER_UPDATED: AccountPermissions.MANAGE_USERS,
-        PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_VARIANT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_VARIANT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_VARIANT_BACK_IN_STOCK: ProductPermissions.MANAGE_PRODUCTS,
-        PRODUCT_VARIANT_OUT_OF_STOCK: ProductPermissions.MANAGE_PRODUCTS,
-        CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
-        CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
-        FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
-        FULFILLMENT_CANCELED: OrderPermissions.MANAGE_ORDERS,
-        NOTIFY_USER: AccountPermissions.MANAGE_USERS,
-        PAGE_CREATED: PagePermissions.MANAGE_PAGES,
-        PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
-        PAGE_DELETED: PagePermissions.MANAGE_PAGES,
-        PAYMENT_AUTHORIZE: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_CAPTURE: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_CONFIRM: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_LIST_GATEWAYS: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
-        PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
-        SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
-        TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
-        TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
-    }

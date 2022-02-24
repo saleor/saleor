@@ -18,8 +18,8 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
-
-    for line_info in fetch_checkout_lines(checkout, prefetch_variant_attributes=True):
+    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    for line_info in lines:
         line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
         variant = line_info.variant
         channel_listing = line_info.channel_listing
@@ -47,6 +47,8 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
                 "product_name": product.name,
                 "variant_name": variant.name,
                 "attributes": serialize_product_or_variant_attributes(variant),
+                "product_metadata": line_info.product.metadata,
+                "product_type_metadata": line_info.product_type.metadata,
             }
         )
     return data

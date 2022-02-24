@@ -7,6 +7,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
+from graphene import Mutation
+from graphql import GraphQLError, ResolveInfo
+from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 from promise.promise import Promise
 
@@ -71,6 +74,12 @@ class ExternalAccessTokens:
     user: Optional["User"] = None
 
 
+@dataclass
+class ExcludedShippingMethod:
+    id: str
+    reason: Optional[str]
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -118,12 +127,6 @@ class BasePlugin:
     apply_taxes_to_product: Callable[
         ["Product", Money, Country, TaxedMoney], TaxedMoney
     ]
-
-    #  Apply taxes to the shipping costs based on the shipping address.
-    #
-    #  Overwrite this method if you want to show available shipping methods with
-    #  taxes.
-    apply_taxes_to_shipping: Callable[[Money, "Address", TaxedMoney], TaxedMoney]
 
     #  Assign tax code dedicated to plugin.
     assign_tax_code_to_object_meta: Callable[
@@ -530,6 +533,9 @@ class BasePlugin:
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
+    #  Trigger when tracking number is updated.
+    tracking_number_updated: Callable[["Fulfillment", Any], Any]
+
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Handle received http request.
@@ -540,16 +546,42 @@ class BasePlugin:
     # Triggers retry mechanism for event delivery
     event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
 
+    # Invoked before each mutation is executed
+    #
+    # This allows to trigger specific logic before the mutation is executed
+    # but only once the permissions are checked.
+    #
+    # Returns one of:
+    #     - null if the execution shall continue
+    #     - an execution result
+    #     - graphql.GraphQLError
+    perform_mutation: Callable[
+        [
+            Optional[Union[ExecutionResult, GraphQLError]],  # previous value
+            Mutation,  # mutation class
+            Any,  # mutation root
+            ResolveInfo,  # resolve info
+            dict,  # mutation data
+        ],
+        Optional[Union[ExecutionResult, GraphQLError]],
+    ]
+
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
 
     def get_payment_gateways(
         self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
     ) -> List["PaymentGateway"]:
-        payment_config = self.get_payment_config(previous_value)  # type: ignore
-        payment_config = payment_config if payment_config != NotImplemented else []
-        currencies = self.get_supported_currencies(previous_value=[])  # type: ignore
-        currencies = currencies if currencies != NotImplemented else []
+        payment_config = (
+            self.get_payment_config(previous_value)  # type: ignore
+            if hasattr(self, "get_payment_config")
+            else []
+        )
+        currencies = (
+            self.get_supported_currencies(previous_value=[])  # type: ignore
+            if hasattr(self, "get_supported_currencies")
+            else []
+        )
         if currency and currency not in currencies:
             return []
         gateway = PaymentGateway(

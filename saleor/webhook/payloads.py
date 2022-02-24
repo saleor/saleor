@@ -30,6 +30,7 @@ from ..payment import ChargeStatus
 from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Collection, Product
+from ..shipping.interface import ShippingMethodData
 from ..warehouse.models import Stock, Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
@@ -68,6 +69,7 @@ ADDRESS_FIELDS = (
 )
 
 ORDER_FIELDS = (
+    "token",
     "created",
     "status",
     "origin",
@@ -137,7 +139,7 @@ def _charge_taxes(order_line: OrderLine) -> Optional[bool]:
 
 @traced_payload_generator
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
-    prefetch_related_objects(lines, "variant__product")
+    prefetch_related_objects(lines, "variant__product__product_type")
     line_fields = (
         "product_name",
         "variant_name",
@@ -187,8 +189,26 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
             "charge_taxes": (lambda l: _charge_taxes(l)),
+            "product_metadata": (lambda l: get_product_metadata_for_order_line(l)),
+            "product_type_metadata": (
+                lambda l: get_product_type_metadata_for_order_line(l)
+            ),
         },
     )
+
+
+def get_product_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
+    variant = line.variant
+    if not variant:
+        return None
+    return variant.product.metadata
+
+
+def get_product_type_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
+    variant = line.variant
+    if not variant:
+        return None
+    return variant.product.product_type.metadata
 
 
 def _generate_collection_point_payload(warehouse: "Warehouse"):
@@ -228,6 +248,7 @@ def generate_order_payload(
         "cc_brand",
         "is_active",
         "created",
+        "partial",
         "modified",
         "charge_status",
         "psp_reference",
@@ -425,6 +446,7 @@ def generate_checkout_payload(
     checkout_price_fields = ("discount_amount",)
     quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
+    channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines_dict_data = serialize_checkout_lines(checkout)
 
@@ -440,6 +462,7 @@ def generate_checkout_payload(
         fields=checkout_fields,
         obj_id_name="token",
         additional_fields={
+            "channel": (lambda o: o.channel, channel_fields),
             "user": (lambda c: c.user, user_fields),
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
@@ -1010,3 +1033,49 @@ def generate_translation_payload(
         translation_data.update(context)
 
     return json.dumps(translation_data)
+
+
+def _generate_payload_for_shipping_method(method: ShippingMethodData):
+    payload = {
+        "id": method.graphql_id,
+        "price": method.price.amount,
+        "currency": method.price.currency,
+        "name": method.name,
+        "maximum_order_weight": method.maximum_order_weight,
+        "minimum_order_weight": method.minimum_order_weight,
+        "maximum_delivery_days": method.maximum_delivery_days,
+        "minimum_delivery_days": method.minimum_delivery_days,
+    }
+    return payload
+
+
+@traced_payload_generator
+def generate_excluded_shipping_methods_for_order_payload(
+    order: "Order",
+    available_shipping_methods: List[ShippingMethodData],
+):
+    order_data = json.loads(generate_order_payload(order))[0]
+    payload = {
+        "order": order_data,
+        "shipping_methods": [
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+@traced_payload_generator
+def generate_excluded_shipping_methods_for_checkout_payload(
+    checkout: "Checkout",
+    available_shipping_methods: List[ShippingMethodData],
+):
+    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
+    payload = {
+        "checkout": checkout_data,
+        "shipping_methods": [
+            _generate_payload_for_shipping_method(shipping_method)
+            for shipping_method in available_shipping_methods
+        ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)

@@ -9,7 +9,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import F, Max, Sum
+from django.db.models import F, Max
 from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 from django.utils.timezone import now
@@ -59,11 +59,10 @@ class OrderQueryset(models.QuerySet):
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         payments = Payment.objects.filter(is_active=True).values("id")
-        qs = self.annotate(amount_paid=Sum("payments__captured_amount"))
-        return qs.filter(
+        return self.filter(
             Exists(payments.filter(order_id=OuterRef("id"))),
             status__in=statuses,
-            total_gross_amount__lte=F("amount_paid"),
+            total_gross_amount__lte=F("total_paid_amount"),
         )
 
     def ready_to_capture(self):
@@ -307,7 +306,11 @@ class Order(ModelWithMetadata):
         return "#%d" % (self.id,)
 
     def get_last_payment(self):
-        return max(self.payments.all(), default=None, key=attrgetter("pk"))
+        # Skipping a partial payment is a temporary workaround for storing a basic data
+        # about partial payment from Adyen plugin. This is something that will removed
+        # in 3.1 by introducing a partial payments feature.
+        payments = [payment for payment in self.payments.all() if not payment.partial]
+        return max(payments, default=None, key=attrgetter("pk"))
 
     def is_pre_authorized(self):
         return (

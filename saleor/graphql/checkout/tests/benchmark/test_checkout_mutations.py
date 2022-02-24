@@ -706,7 +706,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(60):
+    with django_assert_num_queries(57):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "token": checkout.token,
@@ -829,7 +829,7 @@ def test_add_checkout_lines(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    assert mock_send_request.call_count == 1
+    assert mock_send_request.call_count == 0
 
 
 @pytest.mark.django_db
@@ -912,10 +912,9 @@ def test_add_checkout_lines_with_external_shipping(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    # Two API calls:
-    # - mutate() logic
-    # - dataloader for lines totalPrice
-    assert mock_send_request.call_count == 2
+    # One api call:
+    # - post-mutate() logic used to validate currently selected method
+    assert mock_send_request.call_count == 1
 
 
 @pytest.mark.django_db
@@ -962,7 +961,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(59):
+    with django_assert_num_queries(57):
         variables = {
             "checkoutId": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -975,7 +974,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(56):
+    with django_assert_num_queries(57):
         variables = {
             "checkoutId": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -1100,7 +1099,7 @@ def test_checkout_payment_charge(
     """
 
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout_with_billing_address)
+    lines, _ = fetch_checkout_lines(checkout_with_billing_address)
     checkout_info = fetch_checkout_info(
         checkout_with_billing_address, lines, [], manager
     )

@@ -27,6 +27,7 @@ from ...utils import (
     create_transaction,
     gateway_postprocess,
     price_from_minor_unit,
+    try_void_or_refund_inactive_payment,
     update_payment_charge_status,
     update_payment_method_details,
 )
@@ -120,7 +121,7 @@ def _get_payment(payment_intent_id: str) -> Optional[Payment]:
             Prefetch("order", queryset=Order.objects.select_related("channel")),
         )
         .select_for_update(of=("self",))
-        .filter(transactions__token=payment_intent_id, is_active=True)
+        .filter(transactions__token=payment_intent_id)
         .first()
     )
 
@@ -171,7 +172,9 @@ def _finalize_checkout(
 
     manager = get_plugins_manager()
     discounts = fetch_active_discounts()
-    lines = fetch_checkout_lines(checkout)  # type: ignore
+    lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    if unavailable_variant_pks:
+        raise ValidationError("Some of the checkout lines variants are unavailable.")
     checkout_info = fetch_checkout_info(
         checkout, lines, discounts, manager  # type: ignore
     )
@@ -286,6 +289,18 @@ def handle_authorized_payment_intent(
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
     update_payment_method_details_from_intent(payment, payment_intent)
 
+    if not payment.is_active:
+        transaction = _update_payment_with_new_transaction(
+            payment,
+            payment_intent,
+            TransactionKind.AUTH,
+            payment_intent.amount,
+            payment_intent.currency,
+        )
+        manager = get_plugins_manager()
+        try_void_or_refund_inactive_payment(payment, transaction, manager)
+        return
+
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
             _update_payment_with_new_transaction(
@@ -350,6 +365,10 @@ def handle_processing_payment_intent(
     if _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment):
         return
 
+    if not payment.is_active:
+        # we can't cancel/refund processing payment
+        return
+
     if payment.order_id:
         # Order already created
         return
@@ -381,6 +400,17 @@ def handle_successful_payment_intent(
 
     _update_payment_method_metadata(payment, payment_intent, gateway_config)
     update_payment_method_details_from_intent(payment, payment_intent)
+
+    if not payment.is_active:
+        transaction = _update_payment_with_new_transaction(
+            payment,
+            payment_intent,
+            TransactionKind.CAPTURE,
+            payment_intent.amount_received,
+            payment_intent.currency,
+        )
+        try_void_or_refund_inactive_payment(payment, transaction, get_plugins_manager())
+        return
 
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:

@@ -68,10 +68,22 @@ ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
+DATABASE_CONNECTION_DEFAULT_NAME = "default"
+# TODO: For local envs will be activated in separate PR.
+# We need to update docs an saleor platform.
+# This variable should be set to `replica`
+DATABASE_CONNECTION_REPLICA_NAME = "default"
+
 DATABASES = {
-    "default": dj_database_url.config(
+    DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
-    )
+    ),
+    # TODO: We need to add read only user to saleor platfrom, and we need to update
+    # docs.
+    # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
+    #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+    #     conn_max_age=600,
+    # ),
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -165,6 +177,12 @@ if not SECRET_KEY and DEBUG:
     warnings.warn("SECRET_KEY not configured, using a random temporary key.")
     SECRET_KEY = get_random_secret_key()
 
+RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
+RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
+JWT_MANAGER_PATH = os.environ.get(
+    "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"
+)
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -216,7 +234,6 @@ INSTALLED_APPS = [
     "django_prices",
     "django_prices_openexchangerates",
     "django_prices_vatlayer",
-    "graphene_django",
     "mptt",
     "django_countries",
     "django_filters",
@@ -381,6 +398,8 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
+MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
+
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
@@ -480,6 +499,11 @@ EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
     seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
 )
 
+# Exports settings - defines after what time exported files will be deleted
+EXPORT_FILES_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("EXPORT_FILES_TIMEDELTA", "30 days"))
+)
+
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
@@ -511,6 +535,18 @@ CELERY_BEAT_SCHEDULE = {
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),
+    },
+    "deactivate-expired-gift-cards": {
+        "task": "saleor.giftcard.tasks.deactivate_expired_cards_task",
+        "schedule": crontab(hour=0, minute=0),
+    },
+    "update-stocks-quantity-allocated": {
+        "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
+        "schedule": crontab(hour=0, minute=0),
+    },
+    "delete-old-export-files": {
+        "task": "saleor.csv.tasks.delete_old_export_files",
+        "schedule": crontab(hour=1, minute=0),
     },
 }
 
@@ -551,7 +587,9 @@ GRAPHENE = {
 }
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
-GRAPHQL_QUERY_MAX_COMPLEXITY = int(os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 250))
+GRAPHQL_QUERY_MAX_COMPLEXITY = int(
+    os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 50000)
+)
 
 # Max number entities that can be requested in single query by Apollo Federation
 # Federation protocol implements no securities on its own part - malicious actor
@@ -571,6 +609,7 @@ BUILTIN_PLUGINS = [
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
+    "saleor.payment.gateways.np_atobarai.plugin.NPAtobaraiGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
