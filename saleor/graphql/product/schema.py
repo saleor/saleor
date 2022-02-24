@@ -110,6 +110,7 @@ from .sorters import (
     CollectionSortingInput,
     ProductOrder,
     ProductTypeSortingInput,
+    ProductVariantSortingInput,
 )
 from .types import (
     Category,
@@ -236,6 +237,7 @@ class ProductQueries(graphene.ObjectType):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
+        sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description="List of product variants.",
     )
     report_product_sales = ConnectionField(

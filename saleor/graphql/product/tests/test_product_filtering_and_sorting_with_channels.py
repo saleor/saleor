@@ -124,26 +124,31 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 product=products[0],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                name="XS",
             ),
             ProductVariant(
                 product=products[1],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                name="S",
             ),
             ProductVariant(
                 product=products[2],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                name="M",
             ),
             ProductVariant(
                 product=products[3],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                name="L",
             ),
             ProductVariant(
                 product=products[4],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                name="XL",
             ),
         ]
     )
@@ -200,6 +205,19 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
             ),
         ]
     )
+
+    products[3].save()
+    products[4].save()
+    products[0].save()
+    products[2].save()
+    products[1].save()
+
+    variants[2].save()
+    variants[0].save()
+    variants[4].save()
+    variants[1].save()
+    variants[3].save()
+
     return products
 
 
@@ -283,6 +301,22 @@ def test_products_with_sorting_and_without_channel(
             {"field": "PUBLICATION_DATE", "direction": "DESC"},
             ["Product1", "Product2", "ProductProduct1", "ProductProduct2"],
         ),
+        (
+            {"field": "PUBLISHED_AT", "direction": "ASC"},
+            ["ProductProduct2", "ProductProduct1", "Product2", "Product1"],
+        ),
+        (
+            {"field": "PUBLISHED_AT", "direction": "DESC"},
+            ["Product1", "Product2", "ProductProduct1", "ProductProduct2"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
+            ["Product2", "Product1", "ProductProduct2", "ProductProduct1"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "DESC"},
+            ["ProductProduct1", "ProductProduct2", "Product1", "Product2"],
+        ),
     ],
 )
 def test_products_with_sorting_and_channel_USD(
@@ -337,6 +371,30 @@ def test_products_with_sorting_and_channel_USD(
         (
             {"field": "MINIMAL_PRICE", "direction": "DESC"},
             ["Product1", "Product3", "ProductProduct2", "ProductProduct1"],
+        ),
+        (
+            {"field": "PUBLICATION_DATE", "direction": "ASC"},
+            ["Product3", "ProductProduct1", "ProductProduct2", "Product1"],
+        ),
+        (
+            {"field": "PUBLICATION_DATE", "direction": "DESC"},
+            ["Product1", "ProductProduct2", "ProductProduct1", "Product3"],
+        ),
+        (
+            {"field": "PUBLISHED_AT", "direction": "ASC"},
+            ["Product3", "ProductProduct1", "ProductProduct2", "Product1"],
+        ),
+        (
+            {"field": "PUBLISHED_AT", "direction": "DESC"},
+            ["Product1", "ProductProduct2", "ProductProduct1", "Product3"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
+            ["Product3", "Product1", "ProductProduct2", "ProductProduct1"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "DESC"},
+            ["ProductProduct1", "ProductProduct2", "Product1", "Product3"],
         ),
     ],
 )
@@ -635,3 +693,94 @@ def test_product_query_with_filter_updated_at(
     variants = content["data"]["products"]["edges"]
 
     assert len(variants) == count
+
+
+GET_SORTED_VARIANTS_QUERY = """
+query Variants($sortBy: ProductVariantSortingInput, $channel: String) {
+    productVariants(first: 10, sortBy: $sortBy, channel: $channel) {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "sort_by, variants_order",
+    [
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
+            ["M", "XS", "S", "L"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "DESC"},
+            ["L", "S", "XS", "M"],
+        ),
+    ],
+)
+def test_products_variants_with_sorting_and_channel_USD(
+    sort_by,
+    variants_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_sorting_with_channels,
+    channel_USD,
+):
+    # given
+    variables = {"sortBy": sort_by, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        GET_SORTED_VARIANTS_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["productVariants"]["edges"]
+    for index, product_name in enumerate(variants_order):
+        assert product_name == products_nodes[index]["node"]["name"]
+
+
+@pytest.mark.parametrize(
+    "sort_by, variants_order",
+    [
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
+            ["M", "XS", "XL", "S"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "DESC"},
+            ["S", "XL", "XS", "M"],
+        ),
+    ],
+)
+def test_products_variants_with_sorting_and_channel_PLN(
+    sort_by,
+    variants_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_sorting_with_channels,
+    channel_PLN,
+):
+    # given
+    variables = {"sortBy": sort_by, "channel": channel_PLN.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        GET_SORTED_VARIANTS_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["productVariants"]["edges"]
+    for index, product_name in enumerate(variants_order):
+        assert product_name == products_nodes[index]["node"]["name"]
