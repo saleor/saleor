@@ -29,7 +29,6 @@ from ...checkout.utils import (
     delete_external_shipping_id,
     invalidate_checkout_prices,
     is_shipping_required,
-    recalculate_checkout_discount,
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
     set_external_shipping_id,
@@ -654,12 +653,6 @@ class CheckoutLinesAdd(BaseMutation):
             replace,
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        recalculate_checkout_discount(
-            manager,
-            checkout_info,
-            lines,
-            info.context.discounts,
-        )
         invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
 
@@ -757,9 +750,7 @@ class CheckoutLinesDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
-        )
+        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
         return CheckoutLinesDelete(checkout=checkout)
 
@@ -804,21 +795,13 @@ class CheckoutLineDelete(BaseMutation):
         if line and line in checkout.lines.all():
             line.delete()
 
-        invalidate_checkout_prices(checkout, save=True)
-
         manager = info.context.plugins
         lines, _ = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-
-        recalculate_checkout_discount(
-            manager,
-            checkout_info,
-            lines,
-            info.context.discounts,
-        )
+        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
 
         return CheckoutLineDelete(checkout=checkout)
@@ -1067,7 +1050,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 manager,
                 shipping_channel_listings,
             )
-        recalculate_checkout_discount(manager, checkout_info, lines, discounts)
         invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout, save=False
         )
@@ -1388,9 +1370,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             update_fields=["private_metadata", "shipping_method", "last_change"]
         )
 
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
-        )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
@@ -1412,13 +1391,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout.shipping_method = None
         checkout.save(
             update_fields=["private_metadata", "shipping_method", "last_change"]
-        )
-
-        recalculate_checkout_discount(
-            manager,
-            checkout_info,
-            lines,
-            info.context.discounts,
         )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -1473,9 +1445,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=None,
             collection_point=None,
         )
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
-        )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 
     @classmethod
@@ -1498,12 +1467,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_method=None,
             external_shipping_method=delivery_method,
             collection_point=None,
-        )
-        recalculate_checkout_discount(
-            manager,
-            checkout_info,
-            lines,
-            info.context.discounts,
         )
         return CheckoutDeliveryMethodUpdate(checkout=checkout)
 

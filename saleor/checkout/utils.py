@@ -544,15 +544,6 @@ def recalculate_checkout_discount(
                 if voucher.translated.name != voucher.name
                 else ""
             )
-            checkout.save(
-                update_fields=[
-                    "translated_discount_name",
-                    "discount_amount",
-                    "discount_name",
-                    "currency",
-                    "last_change",
-                ]
-            )
     else:
         remove_voucher_from_checkout(checkout)
 

@@ -257,6 +257,8 @@ def fetch_checkout_prices_if_expired(
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
+    from .utils import recalculate_checkout_discount
+
     checkout = checkout_info.checkout
     if (
         not force_update
@@ -274,6 +276,8 @@ def fetch_checkout_prices_if_expired(
     if tax_data:
         _apply_tax_data(checkout, lines, tax_data)
 
+    recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
+
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
@@ -285,6 +289,11 @@ def fetch_checkout_prices_if_expired(
             "shipping_price_gross_amount",
             "shipping_tax_rate",
             "price_expiration",
+            "translated_discount_name",
+            "discount_amount",
+            "discount_name",
+            "currency",
+            "last_change",
         ]
     )
 
