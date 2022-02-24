@@ -65,16 +65,12 @@ def filter_truthy(iter):
     return filter(bool, iter)
 
 
-def get_or_create_user(provider: Provider, request, auth_response):
-    email = provider.get_email(auth_response=auth_response)
-
+def get_or_create_user(request, email):
     try:
         user = User.objects.get(email=email)
         created = False
     except User.DoesNotExist:
-        password = User.objects.make_random_password()
         user = User(email=email, is_active=True)
-        user.set_password(password)
         user.search_document = search.prepare_user_search_document_value(
             user, attach_addresses_data=False
         )
