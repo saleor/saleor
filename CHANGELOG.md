@@ -11,6 +11,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
 - Add possibility for plugins to execute code before each mutation - #9193 by @NyanKiyoshi
 - Add support for hiding plugins - #9219 by @NyanKiyoshi
+- Remove `graphene-federation` dependency - #9184 by @rafalp
+
 
 # 3.1.0
 

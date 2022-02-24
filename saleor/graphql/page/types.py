@@ -1,7 +1,6 @@
 from typing import List
 
 import graphene
-from graphene_federation import key
 
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
@@ -14,7 +13,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.federation import resolve_federation_references
+from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField
 from ..core.types import ModelObjectType
 from ..decorators import permission_required
@@ -29,7 +28,7 @@ from .dataloaders import (
 )
 
 
-@key(fields="id")
+@federated_entity("id")
 class PageType(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
