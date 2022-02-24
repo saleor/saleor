@@ -141,8 +141,20 @@ def validate_required_string_field(cleaned_input, field_name: str):
     return cleaned_input
 
 
+def validate_if_int_or_uuid(id):
+    result = True
+    try:
+        int(id)
+    except ValueError:
+        try:
+            UUID(id)
+        except (AttributeError, ValueError):
+            result = False
+    return result
+
+
 def from_global_id_or_error(
-    id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+    global_id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
 ):
     """Resolve global ID or raise GraphQLError.
 
@@ -155,25 +167,20 @@ def from_global_id_or_error(
     raise GraphQLError when `raise_error` is set to True.
     """
     try:
-        _type, _id = graphene.Node.from_global_id(id)
+        type_, id_ = graphene.Node.from_global_id(global_id)
     except (binascii.Error, UnicodeDecodeError, ValueError):
-        raise GraphQLError(f"Couldn't resolve id: {id}.")
-    if _type == APP_ID_PREFIX:
-        _id = id
+        raise GraphQLError(f"Couldn't resolve id: {global_id}.")
+    if type_ == APP_ID_PREFIX:
+        id_ = global_id
     else:
-        try:
-            int(_id)
-        except ValueError:
-            try:
-                UUID(_id)
-            except (AttributeError, ValueError):
-                raise GraphQLError(f"Error occurred during ID - {id} validation.")
+        if not validate_if_int_or_uuid(id_):
+            raise GraphQLError(f"Error occurred during ID - {global_id} validation.")
 
-    if only_type and str(_type) != str(only_type):
+    if only_type and str(type_) != str(only_type):
         if not raise_error:
-            return _type, None
+            return type_, None
         raise GraphQLError(f"Must receive a {only_type} id.")
-    return _type, _id
+    return type_, id_
 
 
 def add_hash_to_file_name(file):

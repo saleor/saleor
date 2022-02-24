@@ -15,7 +15,7 @@ from ...shipping import models as shipping_models
 from ...site.models import SiteSettings
 from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
-from ..core.enums import LanguageCodeEnum
+from ..core.enums import LanguageCodeEnum, TranslationErrorCode
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import TranslationError
 from ..core.utils import from_global_id_or_error
@@ -89,7 +89,7 @@ class BaseTranslateMutation(ModelMutation):
                 {
                     "id": ValidationError(
                         "Invalid ID has been provided.",
-                        code="not_found",
+                        code=TranslationErrorCode.INVALID,
                     )
                 }
             )

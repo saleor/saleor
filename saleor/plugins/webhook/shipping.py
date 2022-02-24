@@ -9,6 +9,7 @@ from graphql import GraphQLError
 from prices import Money
 
 from ...graphql.core.utils import from_global_id_or_error
+from ...graphql.shipping.types import ShippingMethod
 from ...shipping.interface import ShippingMethodData
 from ..base_plugin import ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
@@ -129,7 +130,7 @@ def get_excluded_shipping_methods_from_response(
     for method_data in response_data.get("excluded_methods", []):
         try:
             type_name, method_id = from_global_id_or_error(method_data["id"])
-            if type_name not in (APP_ID_PREFIX, "ShippingMethod"):
+            if type_name not in (APP_ID_PREFIX, str(ShippingMethod)):
                 logger.warning(
                     "Invalid type received. Expected ShippingMethod, got %s", type_name
                 )

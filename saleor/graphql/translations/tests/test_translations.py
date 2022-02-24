@@ -970,7 +970,7 @@ def test_product_create_translation_by_invalid_translatable_content_id(
     )
     data = get_graphql_content(response)["data"]["productTranslate"]
     errors = data["errors"][0]
-    assert errors["code"] == "NOT_FOUND"
+    assert errors["code"] == "INVALID"
     assert errors["field"] == "id"
 
 
