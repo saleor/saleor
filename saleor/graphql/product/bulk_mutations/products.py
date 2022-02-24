@@ -637,7 +637,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         for product in products:
             product.search_document = prepare_product_search_document_value(product)
             product.default_variant = product.variants.first()
-            product.save(update_fields=["default_variant", "search_document"])
+            product.save(
+                update_fields=["default_variant", "search_document", "updated_at"]
+            )
 
         return response
 

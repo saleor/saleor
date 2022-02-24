@@ -12,6 +12,7 @@ from ....account.notifications import (
 )
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
+from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -70,6 +71,13 @@ class SetPassword(CreateToken):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        set_mutation_flag_in_context(info.context)
+        result = info.context.plugins.perform_mutation(
+            mutation_cls=cls, root=root, info=info, data=data
+        )
+        if result is not None:
+            return result
+
         email = data["email"]
         password = data["password"]
         token = data["token"]
@@ -102,7 +110,7 @@ class SetPassword(CreateToken):
         except ValidationError as error:
             raise ValidationError({"password": error})
         user.set_password(password)
-        user.save(update_fields=["password"])
+        user.save(update_fields=["password", "updated_at"])
         account_events.customer_password_reset_event(user=user)
 
 
@@ -229,7 +237,7 @@ class ConfirmAccount(BaseMutation):
             )
 
         user.is_active = True
-        user.save(update_fields=["is_active"])
+        user.save(update_fields=["is_active", "updated_at"])
 
         match_orders_with_new_user(user)
         assign_user_gift_cards(user)
@@ -276,7 +284,7 @@ class PasswordChange(BaseMutation):
             raise ValidationError({"new_password": error})
 
         user.set_password(new_password)
-        user.save(update_fields=["password"])
+        user.save(update_fields=["password", "updated_at"])
         account_events.customer_password_changed_event(user=user)
         return PasswordChange(user=user)
 
@@ -318,7 +326,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
 
         user = address.user_addresses.first()
         user.search_document = prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document"])
+        user.save(update_fields=["search_document", "updated_at"])
 
         info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
@@ -377,7 +385,7 @@ class BaseAddressDelete(ModelDeleteMutation):
         user.refresh_from_db()
 
         user.search_document = prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document"])
+        user.save(update_fields=["search_document", "updated_at"])
 
         response = cls.success_response(instance)
 
@@ -495,7 +503,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             instance.addresses.add(default_shipping_address)
 
         instance.search_document = prepare_user_search_document_value(instance)
-        instance.save(update_fields=["search_document"])
+        instance.save(update_fields=["search_document", "updated_at"])
 
         # The instance is a new object in db, create an event
         if is_creation:

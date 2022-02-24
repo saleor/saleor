@@ -1,15 +1,14 @@
 from typing import List
 
 import graphene
-from graphene_federation import key
 
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31
-from ..core.federation import resolve_federation_references
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import ModelObjectType, Permission
 from ..core.types.common import Job
 from ..decorators import permission_required
@@ -163,7 +162,7 @@ class AppToken(graphene.ObjectType):
         return root.auth_token[-4:]
 
 
-@key(fields="id")
+@federated_entity("id")
 class App(ModelObjectType):
     id = graphene.GlobalID(required=True)
     permissions = graphene.List(
@@ -202,7 +201,7 @@ class App(ModelObjectType):
     )
     extensions = graphene.List(
         graphene.NonNull(AppExtension),
-        description=f"{ADDED_IN_31} App's dashboard extensions.",
+        description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
         required=True,
     )
 

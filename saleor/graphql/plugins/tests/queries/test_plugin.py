@@ -1,4 +1,5 @@
 import copy
+from unittest import mock
 
 import pytest
 
@@ -249,3 +250,45 @@ def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
     response = user_api_client.post_graphql(PLUGIN_QUERY, variables)
 
     assert_no_permission(response)
+
+
+def test_cannot_retrieve_hidden_plugin(settings, staff_api_client_can_manage_plugins):
+    """Ensure one cannot retrieve the details of a hidden global plugin"""
+    client = staff_api_client_can_manage_plugins
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    variables = {"id": PluginSample.PLUGIN_ID}
+
+    # Ensure when visible we find the plugin
+    response = client.post_graphql(PLUGIN_QUERY, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"]["plugin"] is not None, "should have found plugin"
+
+    # Make the plugin hidden
+    with mock.patch.object(PluginSample, "HIDDEN", new=True):
+        response = client.post_graphql(PLUGIN_QUERY, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"] == {"plugin": None}, "shouldn't have found plugin"
+
+
+def test_cannot_retrieve_hidden_multi_channel_plugin(
+    settings, staff_api_client_can_manage_plugins, channel_PLN
+):
+    """Ensure one cannot retrieve the details of a hidden multi channel plugin"""
+    client = staff_api_client_can_manage_plugins
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
+    variables = {"id": ChannelPluginSample.PLUGIN_ID}
+
+    # Ensure when visible we find the plugin
+    response = client.post_graphql(PLUGIN_QUERY, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"]["plugin"] is not None, "should have found plugin"
+
+    # Make the plugin hidden
+    with mock.patch.object(PluginSample, "HIDDEN", new=True):
+        response = client.post_graphql(PLUGIN_QUERY, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"] == {"plugin": None}, "shouldn't have found plugin"

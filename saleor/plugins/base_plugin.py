@@ -7,6 +7,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
 from django_countries.fields import Country
+from graphene import Mutation
+from graphql import GraphQLError, ResolveInfo
+from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 from promise.promise import Promise
 
@@ -92,6 +95,7 @@ class BasePlugin:
     CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
+    HIDDEN = False
 
     @classmethod
     def check_plugin_id(cls, plugin_id: str) -> bool:
@@ -526,6 +530,9 @@ class BasePlugin:
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
+    #  Trigger when tracking number is updated.
+    tracking_number_updated: Callable[["Fulfillment", Any], Any]
+
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
 
     #  Handle received http request.
@@ -535,6 +542,26 @@ class BasePlugin:
 
     # Triggers retry mechanism for event delivery
     event_delivery_retry: Callable[["EventDelivery", Any], EventDelivery]
+
+    # Invoked before each mutation is executed
+    #
+    # This allows to trigger specific logic before the mutation is executed
+    # but only once the permissions are checked.
+    #
+    # Returns one of:
+    #     - null if the execution shall continue
+    #     - an execution result
+    #     - graphql.GraphQLError
+    perform_mutation: Callable[
+        [
+            Optional[Union[ExecutionResult, GraphQLError]],  # previous value
+            Mutation,  # mutation class
+            Any,  # mutation root
+            ResolveInfo,  # resolve info
+            dict,  # mutation data
+        ],
+        Optional[Union[ExecutionResult, GraphQLError]],
+    ]
 
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value

@@ -398,6 +398,8 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
+MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
+
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
@@ -497,6 +499,11 @@ EMPTY_CHECKOUTS_TIMEDELTA = timedelta(
     seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
 )
 
+# Exports settings - defines after what time exported files will be deleted
+EXPORT_FILES_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("EXPORT_FILES_TIMEDELTA", "30 days"))
+)
+
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
@@ -537,6 +544,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.update_stocks_quantity_allocated_task",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete-old-export-files": {
+        "task": "saleor.csv.tasks.delete_old_export_files",
+        "schedule": crontab(hour=1, minute=0),
+    },
 }
 
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
@@ -576,7 +587,9 @@ GRAPHENE = {
 }
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
-GRAPHQL_QUERY_MAX_COMPLEXITY = int(os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 250))
+GRAPHQL_QUERY_MAX_COMPLEXITY = int(
+    os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 50000)
+)
 
 # Max number entities that can be requested in single query by Apollo Federation
 # Federation protocol implements no securities on its own part - malicious actor
@@ -596,6 +609,7 @@ BUILTIN_PLUGINS = [
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
+    "saleor.payment.gateways.np_atobarai.plugin.NPAtobaraiGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",

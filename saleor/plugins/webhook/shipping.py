@@ -129,7 +129,7 @@ def get_excluded_shipping_methods_from_response(
         try:
             raw_id = method_data["id"]
             typename, _id = graphene.Node.from_global_id(raw_id)
-            if typename == "app":
+            if typename == APP_ID_PREFIX:
                 method_id = raw_id
             elif typename == "ShippingMethod":
                 method_id = _id

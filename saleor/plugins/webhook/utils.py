@@ -58,7 +58,10 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
 def parse_list_payment_gateways_response(
     response_data: Any, app: "App"
 ) -> List["PaymentGateway"]:
-    gateways = []
+    gateways: List[PaymentGateway] = []
+    if not isinstance(response_data, list):
+        return gateways
+
     for gateway_data in response_data:
         gateway_id = gateway_data.get("id")
         gateway_name = gateway_data.get("name")

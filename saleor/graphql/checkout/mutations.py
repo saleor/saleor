@@ -39,6 +39,7 @@ from ...core.permissions import AccountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
+from ...plugins.webhook.utils import APP_ID_PREFIX
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import interface as shipping_interface
@@ -54,6 +55,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
@@ -1227,7 +1229,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("ShippingMethod", "app")
+        possible_types = ("ShippingMethod", APP_ID_PREFIX)
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1400,7 +1402,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     class Meta:
         description = (
             f"{ADDED_IN_31} Updates the delivery method "
-            "(shipping method or pick up point) of the checkout."
+            f"(shipping method or pick up point) of the checkout. {PREVIEW_FEATURE}"
         )
         error_type_class = CheckoutError
 
@@ -1553,7 +1555,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("Warehouse", "ShippingMethod", "app")
+        possible_types = ("Warehouse", "ShippingMethod", APP_ID_PREFIX)
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 

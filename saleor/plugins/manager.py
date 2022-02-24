@@ -19,6 +19,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
+from graphene import Mutation
+from graphql import GraphQLError, ResolveInfo
+from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
@@ -736,6 +739,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
+    def tracking_number_updated(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "tracking_number_updated",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+        )
+
     def checkout_created(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1195,6 +1207,28 @@ class PluginsManager(PaymentInterface):
             [],
             checkout,
             available_shipping_methods,
+        )
+
+    def perform_mutation(
+        self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
+    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
+        """Invoke before each mutation is executed.
+
+        This allows to trigger specific logic before the mutation is executed
+        but only once the permissions are checked.
+
+        Returns one of:
+            - null if the execution shall continue
+            - graphql.GraphQLError
+            - graphql.execution.ExecutionResult
+        """
+        return self.__run_method_on_plugins(
+            "perform_mutation",
+            default_value=None,
+            mutation_cls=mutation_cls,
+            root=root,
+            info=info,
+            data=data,
         )
 
 

@@ -9,8 +9,7 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, User
-from ...account.utils import store_user_address
+from ...account.models import Address
 from ...core.taxes import zero_money
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
@@ -18,7 +17,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
-from .. import AddressType, calculations
+from .. import calculations
 from ..fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
@@ -1153,55 +1152,6 @@ def test_add_voucher_to_checkout_fail(
         )
 
     assert checkout_with_item.voucher_code is None
-
-
-def test_store_user_address_uses_existing_one(address):
-    """Ensure storing an address that is already associated to the given user doesn't
-    create a new address, but uses the existing one instead.
-    """
-    user = User.objects.create_user("test@example.com", "password")
-    user.addresses.add(address)
-
-    expected_user_addresses_count = 1
-
-    manager = get_plugins_manager()
-    store_user_address(user, address, AddressType.BILLING, manager)
-
-    assert user.addresses.count() == expected_user_addresses_count
-    assert user.default_billing_address_id == address.pk
-
-
-def test_store_user_address_uses_existing_one_despite_duplicated(address):
-    """Ensure storing an address handles the possibility of an user
-    having the same address associated to them multiple time is handled properly.
-
-    It should use the first identical address associated to the user.
-    """
-    same_address = Address.objects.create(**address.as_data())
-    user = User.objects.create_user("test@example.com", "password")
-    user.addresses.set([address, same_address])
-
-    expected_user_addresses_count = 2
-
-    manager = get_plugins_manager()
-    store_user_address(user, address, AddressType.BILLING, manager)
-
-    assert user.addresses.count() == expected_user_addresses_count
-    assert user.default_billing_address_id == address.pk
-
-
-def test_store_user_address_create_new_address_if_not_associated(address):
-    """Ensure storing an address that is not associated to the given user
-    triggers the creation of a new address, but uses the existing one instead.
-    """
-    user = User.objects.create_user("test@example.com", "password")
-    expected_user_addresses_count = 1
-
-    manager = get_plugins_manager()
-    store_user_address(user, address, AddressType.BILLING, manager)
-
-    assert user.addresses.count() == expected_user_addresses_count
-    assert user.default_billing_address_id != address.pk
 
 
 def test_get_last_active_payment(checkout_with_payments):

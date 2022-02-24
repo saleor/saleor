@@ -183,6 +183,7 @@ def recalculate_order(order: Order, **kwargs):
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
             "currency",
+            "updated_at",
         ]
     )
     recalculate_order_weight(order)
@@ -195,7 +196,7 @@ def recalculate_order_weight(order):
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
     order.weight = weight
-    order.save(update_fields=["weight"])
+    order.save(update_fields=["weight", "updated_at"])
 
 
 def update_taxes_for_order_line(
@@ -259,6 +260,7 @@ def update_order_prices(order: Order, manager: "PluginsManager", tax_included: b
                 "shipping_price_gross_amount",
                 "shipping_tax_rate",
                 "currency",
+                "updated_at",
             ]
         )
 
@@ -319,7 +321,7 @@ def update_order_status(order):
 
     if status != order.status:
         order.status = status
-        order.save(update_fields=["status"])
+        order.save(update_fields=["status", "updated_at"])
 
 
 @traced_atomic_transaction()
@@ -850,7 +852,7 @@ def create_order_discount_for_order(
         amount=new_amount,  # type: ignore
     )
     order.total = TaxedMoney(net_total, gross_total)
-    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    order.save(update_fields=["total_net_amount", "total_gross_amount", "updated_at"])
     return order_discount
 
 
@@ -897,7 +899,7 @@ def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount
     order_discount.delete()
 
     order.total += discount_amount
-    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    order.save(update_fields=["total_net_amount", "total_gross_amount", "updated_at"])
 
 
 def update_discount_for_order_line(

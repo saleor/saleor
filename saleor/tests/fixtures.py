@@ -4508,7 +4508,7 @@ def page_with_rich_text_attribute(db, page_type_with_rich_text_attribute):
 @pytest.fixture
 def page_list(db, page_type):
     data_1 = {
-        "slug": "test-url",
+        "slug": "test-url-1",
         "title": "Test page",
         "content": dummy_editorjs("Test content."),
         "is_published": True,
