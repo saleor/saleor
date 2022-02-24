@@ -157,7 +157,7 @@ pytest-django-queries==1.2.0
 pytest-django==4.2.0; python_version >= "3.5"
 pytest-forked==1.3.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pytest-mock==3.6.1; python_version >= "3.6"
-pytest-vcr==1.0.2
+pytest-recording==0.12.0; python_version >= "3.5"
 pytest-xdist==2.3.0; python_version >= "3.6"
 pytest==6.2.4; python_version >= "3.6"
 python-crontab==2.5.1
