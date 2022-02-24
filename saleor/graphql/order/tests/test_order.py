@@ -5874,6 +5874,11 @@ ORDER_UPDATE_SHIPPING_QUERY = """
             }
             order {
                 id
+                total {
+                    gross {
+                        amount
+                    }
+                }
             }
         }
     }
