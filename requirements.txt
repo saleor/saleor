@@ -58,14 +58,10 @@ google-crc32c==1.3.0; python_version >= "3.7"
 google-i18n-address==2.5.0
 google-measurement-protocol==1.1.0
 google-resumable-media==2.2.1; python_version >= "3.7"
-<<<<<<< HEAD
 googleapis-common-protos==1.55.0; python_version >= "3.7"
-=======
-googleapis-common-protos==1.54.0; python_version >= "3.7"
 graphene==2.1.9
 graphql-core==2.3.2
 graphql-relay==2.0.1
->>>>>>> 6a4e944bc... Add graphene to requirments
 grpc-google-iam-v1==0.12.3; python_version >= "3.6"
 grpcio-status==1.44.0; python_version >= "3.7"
 grpcio==1.44.0; python_version >= "3.7"
