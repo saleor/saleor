@@ -54,7 +54,7 @@ def serialize_product_or_variant_attributes(
         elif attribute.entity_type == AttributeEntityType.PRODUCT:
             reference_pk = attr_value.reference_product_id
         else:
-            reference_pk = attr_value.slug.split("_")[1]
+            return None
 
         reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
         return reference_id

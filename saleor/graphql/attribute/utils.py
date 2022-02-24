@@ -21,10 +21,8 @@ from ...core.utils import generate_unique_slug
 from ...core.utils.editorjs import clean_editor_js
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
-from ...page.models import Page
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
-from ...product.models import Product
 from ..core.utils import from_global_id_or_error
 from ..utils import get_nodes
 
@@ -266,15 +264,9 @@ class AttributeAssignmentMixin:
             reference_product = None
 
             if attribute.entity_type == AttributeEntityType.PAGE:
-                if isinstance(ref, Page):
-                    reference_page = ref
-                else:
-                    raise GraphQLError
+                reference_page = ref
             else:
-                if isinstance(ref, Product):
-                    reference_product = ref
-                else:
-                    raise GraphQLError
+                reference_product = ref
 
             reference_list.append(
                 get_or_create(
@@ -456,9 +448,14 @@ class AttributeAssignmentMixin:
         entity_model = cls.ENTITY_TYPE_TO_MODEL_MAPPING[
             attribute.entity_type  # type: ignore
         ]
-        ref_instances = get_nodes(references, attribute.entity_type, model=entity_model)
-        values.references = ref_instances
-        return values
+        try:
+            ref_instances = get_nodes(
+                references, attribute.entity_type, model=entity_model
+            )
+            values.references = ref_instances
+            return values
+        except GraphQLError as e:
+            raise ValidationError({ValidationError(str(e), code="graphql_error")})
 
     @classmethod
     def _validate_attributes_input(
