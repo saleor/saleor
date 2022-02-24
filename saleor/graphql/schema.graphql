@@ -953,7 +953,7 @@ input ChannelCreateInput {
   slug: String!
   currencyCode: String!
   defaultCountry: CountryCode!
-  addShippingZones: [ID!]
+  add s: [ID!]
 }
 
 type ChannelDeactivate {
@@ -1731,8 +1731,8 @@ enum CountryCode {
 }
 
 type CountryDisplay {
-  code: String!
-  country: String!
+  code: CountryCode!
+  name: String!
   vat: VAT
 }
 
@@ -6518,7 +6518,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   name: String!
   default: Boolean!
   priceRange: MoneyRange
-  countries: [CountryDisplay]
+  countries: [CountryDisplay!]!
   shippingMethods: [ShippingMethodType]
   warehouses: [Warehouse!]!
   channels: [Channel!]!
