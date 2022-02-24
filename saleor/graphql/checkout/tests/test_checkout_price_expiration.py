@@ -206,4 +206,4 @@ def test_invalidate_checkout_prices(checkout, save, minutes):
     # then
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + timedelta(minutes=minutes)
-    assert updated_fields == ["price_expiration"]
+    assert updated_fields == ["price_expiration", "last_change"]

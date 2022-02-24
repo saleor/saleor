@@ -55,7 +55,7 @@ PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
     """Mark checkout as ready for prices recalculation."""
     checkout.price_expiration = timezone.now()
-    updated_fields = ["price_expiration"]
+    updated_fields = ["price_expiration", "last_change"]
     if save:
         checkout.save(update_fields=updated_fields)
     return updated_fields
