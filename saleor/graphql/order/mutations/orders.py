@@ -250,7 +250,7 @@ class OrderUpdate(DraftOrderCreate):
         instance.search_document = prepare_order_search_document_value(instance)
 
         if cls.should_invalidate_prices(instance, cleaned_input, False):
-            invalidate_order_prices(instance, save=True)
+            invalidate_order_prices(instance)
 
         instance.save()
 
@@ -355,7 +355,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             order.shipping_method = None
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
-            invalidate_order_prices(order, save=False)
+            invalidate_order_prices(order)
             order.save(
                 update_fields=[
                     "currency",
@@ -400,7 +400,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
 
         order.shipping_method = method
         order.shipping_method_name = method.name
-        invalidate_order_prices(order, save=False)
+        invalidate_order_prices(order)
         order.save(
             update_fields=[
                 "currency",
@@ -536,7 +536,7 @@ class OrderMarkAsPaid(BaseMutation):
             order, user, app, info.context.plugins, transaction_reference
         )
 
-        update_order_search_document(order)
+        update_order_search_document(order, save=True)
 
         return OrderMarkAsPaid(order=order)
 
@@ -882,9 +882,16 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order_lines=lines_to_add,
         )
 
-        invalidate_order_prices(order, save=True)
+        invalidate_order_prices(order)
         recalculate_order_weight(order)
         update_order_search_document(order)
+        order.save(
+            update_fields=[
+                "price_expiration_for_unconfirmed",
+                "weight",
+                "search_document",
+            ]
+        )
 
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
@@ -955,9 +962,17 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        invalidate_order_prices(order, save=True)
+        invalidate_order_prices(order)
         recalculate_order_weight(order)
         update_order_search_document(order)
+        order.save(
+            update_fields=[
+                "price_expiration_for_unconfirmed",
+                "weight",
+                "search_document",
+            ]
+        )
+
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)
@@ -1028,8 +1043,11 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        invalidate_order_prices(instance.order, save=True)
+        invalidate_order_prices(instance.order)
         recalculate_order_weight(instance.order)
+        instance.order.save(
+            update_fields=["price_expiration_for_unconfirmed", "weight"]
+        )
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))

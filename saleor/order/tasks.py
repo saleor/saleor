@@ -8,5 +8,8 @@ from .utils import invalidate_order_prices
 @app.task
 def recalculate_orders_task(order_ids: List[int]):
     orders = Order.objects.filter(id__in=order_ids)
+
     for order in orders:
-        invalidate_order_prices(order, save=True)
+        invalidate_order_prices(order)
+
+    Order.objects.bulk_update(orders, ["price_expiration_for_unconfirmed"])
