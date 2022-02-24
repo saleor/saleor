@@ -1101,17 +1101,6 @@ rest_framework = ["djangorestframework (>=3.6.3)"]
 test = ["pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
 
 [[package]]
-name = "graphene-federation"
-version = "0.1.0"
-description = "Federation implementation for graphene"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-graphene = ">=2.1.0,<3"
-
-[[package]]
 name = "graphql-core"
 version = "2.3.2"
 description = "GraphQL implementation for Python"
@@ -2772,7 +2761,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "f82542398fb3311a48f2972228b2cc5b56ed297038e43fd86b0ac7b12996e0d9"
+content-hash = "df25060b9b384f5522faf88e936a5498cde70f9747ffcc1aa57b79388defedba"
 
 [metadata.files]
 adyen = [
@@ -3338,9 +3327,6 @@ graphene = [
 graphene-django = [
     {file = "graphene-django-2.15.0.tar.gz", hash = "sha256:b78c9b05bc899016b9cc5bf13faa1f37fe1faa8c5407552c6ddd1a28f46fc31a"},
     {file = "graphene_django-2.15.0-py2.py3-none-any.whl", hash = "sha256:02671d195f0c09c8649acff2a8f4ad4f297d0f7d98ea6e6cdf034b81bab92880"},
-]
-graphene-federation = [
-    {file = "graphene-federation-0.1.0.tar.gz", hash = "sha256:e44e8e354d0c8eeb03547d5c262d01c868d4ea7d1458512c994176eed80fd2bf"},
 ]
 graphql-core = [
     {file = "graphql-core-2.3.2.tar.gz", hash = "sha256:aac46a9ac524c9855910c14c48fc5d60474def7f99fd10245e76608eba7af746"},
