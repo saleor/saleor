@@ -7,35 +7,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0124_alter_order_token"),
-        ("payment", "0031_merge_0030_auto_20210908_1346_0030_payment_partial"),
+        ("order", "0127_add_order_number_and_alter_order_token"),
+        ("discount", "0035_auto_20220209_1544"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="payment",
+            model_name="orderdiscount",
             name="order_token",
             field=models.UUIDField(null=True),
         ),
         migrations.RunSQL(
             """
-            UPDATE payment_payment
+            UPDATE discount_orderdiscount
             SET order_token = (
                 SELECT token
                 FROM order_order
-                WHERE payment_payment.order_id = order_order.id
+                WHERE discount_orderdiscount.order_id = order_order.id
             )
             WHERE order_id IS NOT NULL;
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.AlterField(
-            model_name="payment",
+            model_name="orderdiscount",
             name="order",
             field=models.ForeignKey(
+                blank=True,
                 null=True,
-                on_delete=django.db.models.deletion.PROTECT,
-                related_name="payments",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="discounts",
                 to="order.order",
                 to_field="number",
             ),

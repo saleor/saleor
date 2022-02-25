@@ -8,11 +8,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0125_auto_20220224_1448"),
-        ("account", "0059_customerevent_order_token"),
-        ("discount", "0033_auto_20220224_1448"),
-        ("invoice", "0007_auto_20220224_1448"),
-        ("payment", "0032_auto_20220224_1448"),
+        ("order", "0128_save_order_token_in_relation_models"),
+        ("account", "0063_save_customerevent_order_token"),
+        ("discount", "0036_save_discocunt_order_token"),
+        ("invoice", "0007_save_invoice_order_token"),
+        ("payment", "0032_save_payment_order_token"),
     ]
 
     operations = [
@@ -33,5 +33,9 @@ class Migration(migrations.Migration):
                 serialize=False,
                 unique=True,
             ),
+        ),
+        migrations.RemoveField(
+            model_name="order",
+            name="id",
         ),
     ]

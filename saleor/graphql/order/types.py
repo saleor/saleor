@@ -793,6 +793,10 @@ class Order(ModelObjectType):
         model = models.Order
 
     @staticmethod
+    def resolve_token(root: models.Order, info):
+        return root.id
+
+    @staticmethod
     def resolve_discounts(root: models.Order, info):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
@@ -996,7 +1000,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_number(root: models.Order, _info):
-        return str(root.pk)
+        return str(root.number)
 
     @staticmethod
     @traced_resolver

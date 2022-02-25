@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0124_alter_order_token"),
+        ("order", "0127_add_order_number_and_alter_order_token"),
     ]
 
     operations = [
@@ -122,7 +122,12 @@ class Migration(migrations.Migration):
                 to_field="number",
             ),
         ),
-        # rewrite gift cards relation to use order token
+        # drop many to many gift cards relation to order id
+        # add relation to order number instead and add order token column
+        #   - add order_token column
+        #   - fill order_token with corresponding order token values
+        #   - remove constraint that uses order id
+        #   - add constraint to order number field
         migrations.RunSQL(
             """
             ALTER TABLE order_order_gift_cards
@@ -138,8 +143,15 @@ class Migration(migrations.Migration):
             DO $$
             DECLARE query text;
             BEGIN
-                query := FORMAT('alter table order_order_gift_cards drop constraint %s', (select constraint_name from information_schema.table_constraints WHERE table_name = 'order_order_gift_cards'
-                    and constraint_type = 'FOREIGN KEY' and constraint_name like '%order_order_id'));
+                query := FORMAT(
+                    'alter table order_order_gift_cards drop constraint %s',
+                    (
+                        select constraint_name from information_schema.table_constraints
+                        WHERE table_name = 'order_order_gift_cards'
+                            and constraint_type = 'FOREIGN KEY'
+                            and constraint_name like '%order_order_id'
+                    )
+                );
                 EXECUTE query;
             END $$;
 

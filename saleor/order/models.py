@@ -7,7 +7,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import connection, models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max
 from django.db.models.expressions import Exists, OuterRef
@@ -82,8 +82,18 @@ class OrderQueryset(models.QuerySet):
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
+def get_order_number():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT nextval('order_order_number_seq')")
+        result = cursor.fetchone()
+        return result[0]
+
+
 class Order(ModelWithMetadata):
-    number = models.IntegerField(unique=True)
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    number = models.IntegerField(unique=True, default=get_order_number, editable=False)
+    use_old_id = models.BooleanField(default=False)
+
     created = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
@@ -115,9 +125,8 @@ class Order(ModelWithMetadata):
         on_delete=models.SET_NULL,
     )
     user_email = models.EmailField(blank=True, default="")
-    original_token = models.UUIDField(null=True)
     original = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL, to_field="number"
+        "self", null=True, blank=True, on_delete=models.SET_NULL
     )
     origin = models.CharField(max_length=32, choices=OrderOrigin.CHOICES)
 
@@ -180,9 +189,6 @@ class Order(ModelWithMetadata):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    token = models.UUIDField(
-        primary_key=True, editable=False, unique=True, default=uuid4
-    )
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
 
@@ -273,11 +279,6 @@ class Order(ModelWithMetadata):
                 opclasses=["gin_trgm_ops"],
             ),
         ]
-
-    def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = str(uuid4())
-        return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
         return self.total_paid >= self.total.gross
@@ -431,9 +432,7 @@ class OrderLine(models.Model):
         related_name="lines",
         editable=False,
         on_delete=models.CASCADE,
-        to_field="number",
     )
-    order_token = models.UUIDField(null=True)
     variant = models.ForeignKey(
         "product.ProductVariant",
         related_name="order_lines",
@@ -602,9 +601,7 @@ class Fulfillment(ModelWithMetadata):
         related_name="fulfillments",
         editable=False,
         on_delete=models.CASCADE,
-        to_field="number",
     )
-    order_token = models.UUIDField(null=True)
     status = models.CharField(
         max_length=32,
         default=FulfillmentStatus.FULFILLED,
@@ -692,10 +689,7 @@ class OrderEvent(models.Model):
             (type_name.upper(), type_name) for type_name, _ in OrderEvents.CHOICES
         ],
     )
-    order = models.ForeignKey(
-        Order, related_name="events", on_delete=models.CASCADE, to_field="number"
-    )
-    order_token = models.UUIDField(null=True)
+    order = models.ForeignKey(Order, related_name="events", on_delete=models.CASCADE)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

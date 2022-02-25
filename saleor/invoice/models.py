@@ -21,11 +21,9 @@ class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
         Order,
         related_name="invoices",
-        to_field="number",
         null=True,
         on_delete=models.SET_NULL,
     )
-    order_token = models.UUIDField(null=True)
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     external_url = models.URLField(null=True, max_length=2048)
@@ -61,12 +59,10 @@ class InvoiceEvent(models.Model):
     order = models.ForeignKey(
         Order,
         related_name="invoice_events",
-        to_field="number",
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
     )
-    order_token = models.UUIDField(null=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,

@@ -355,12 +355,10 @@ class OrderDiscount(models.Model):
     order = models.ForeignKey(
         "order.Order",
         related_name="discounts",
-        to_field="number",
         blank=True,
         null=True,
         on_delete=models.CASCADE,
     )
-    order_token = models.UUIDField(null=True)
     type = models.CharField(
         max_length=10,
         choices=OrderDiscountType.CHOICES,

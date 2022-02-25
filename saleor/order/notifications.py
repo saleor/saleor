@@ -296,7 +296,7 @@ def get_default_fulfillment_payload(order, fulfillment):
 
 
 def prepare_order_details_url(order: Order, redirect_url: str) -> str:
-    params = urlencode({"token": order.token})
+    params = urlencode({"token": order.id})
     return prepare_url(params, redirect_url)
 
 
