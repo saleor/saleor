@@ -665,7 +665,6 @@ class WebhookPlugin(BasePlugin):
             return cached_tax_codes_dict
 
         fetched_tax_codes_dict = self.__fetch_tax_codes()
-        print(fetched_tax_codes_dict)
         if fetched_tax_codes_dict is not None:
             cache.set(WEBHOOK_TAX_CODES_CACHE_KEY, fetched_tax_codes_dict)
             return fetched_tax_codes_dict

@@ -25,39 +25,42 @@ def _recalculate_order_prices(
     """
     currency = order.currency
 
-    try:
-        subtotal = zero_taxed_money(currency)
-        for line in lines:
-            variant = line.variant
-            if not variant:
-                subtotal += line.total_price
-                continue
+    subtotal = zero_taxed_money(currency)
+    for line in lines:
+        variant = line.variant
+        if variant:
             product = variant.product
 
-            line_unit = manager.calculate_order_line_unit(order, line, variant, product)
-            line.undiscounted_unit_price = line_unit.undiscounted_price
-            line.unit_price = line_unit.price_with_discounts
+            try:
+                line_unit = manager.calculate_order_line_unit(
+                    order, line, variant, product
+                )
+                line.undiscounted_unit_price = line_unit.undiscounted_price
+                line.unit_price = line_unit.price_with_discounts
 
-            line_total = manager.calculate_order_line_total(
-                order, line, variant, product
-            )
-            line.undiscounted_total_price = line_total.undiscounted_price
-            line.total_price = line_total.price_with_discounts
+                line_total = manager.calculate_order_line_total(
+                    order, line, variant, product
+                )
+                line.undiscounted_total_price = line_total.undiscounted_price
+                line.total_price = line_total.price_with_discounts
 
-            line.tax_rate = manager.get_order_line_tax_rate(
-                order, product, variant, None, line_unit.undiscounted_price
-            )
+                line.tax_rate = manager.get_order_line_tax_rate(
+                    order, product, variant, None, line_unit.undiscounted_price
+                )
+            except TaxError:
+                pass
 
-            subtotal += line_total.price_with_discounts
+        subtotal += line.total_price
 
+    try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
             order, order.shipping_price
         )
-        order.total = order.shipping_price + subtotal
-
     except TaxError:
         pass
+
+    order.total = order.shipping_price + subtotal
 
 
 def _apply_tax_data(
