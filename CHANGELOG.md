@@ -38,6 +38,20 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid paths in VCR cassettes (#9236) (f6c268d2e)
 - Fix Razorpay comment to be inline with code (#9238) (de417af24)
 - Remove `graphene-federation` dependency (#9184) (dd43364f7)
+- Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
+- Add possibility for plugins to execute code before each mutation - #9193 by @NyanKiyoshi
+- Add support for hiding plugins - #9219 by @NyanKiyoshi
+- Remove `graphene-federation` dependency - #9184 by @rafalp
+- Add `CREATED_AT` and `LAST_MODIFIED_AT` sorting to some GraphQL fields - #9245 by @rafalp
+  - Added `LAST_MODIFIED_AT` sort option to `ExportFileSortingInput`
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `OrderSortingInput` type
+  - Added `LAST_MODIFIED_AT` and `PUBLISHED_AT` sort options to `ProductOrder` type
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `SaleSortingInput` type
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `UserSortingInput` type
+  - Added `ProductVariantSortingInput` type with `LAST_MODIFIED_AT` sort option
+  - Deprecated `UPDATED_AT` sort option on `ExportFileSortingInput`
+  - Deprecated `LAST_MODIFIED` and `PUBLICATION_DATE` sort options on `ProductOrder` type
+  - Deprecated `CREATION_DATE` sort option on `OrderSortingInput` type
 
 
 # 3.1.0
