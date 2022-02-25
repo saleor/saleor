@@ -184,7 +184,7 @@ class Payment(ModelObjectType):
         permissions = public_payment_permissions(info, root.pk)
         requester = get_user_or_app_from_context(info.context)
         if not requester.has_perms(permissions):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 
     def resolve_checkout(root: models.Payment, info):

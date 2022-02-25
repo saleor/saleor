@@ -28,7 +28,7 @@ def resolve_webhook(info, id):
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):
         return models.Webhook.objects.filter(pk=id).first()
-    raise PermissionDenied()
+    raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
 
 
 def resolve_webhook_events():
@@ -49,4 +49,4 @@ def resolve_sample_payload(info, event_name):
             return payloads.generate_sample_payload(event_name)
         if info.context.user.has_perm(required_permission):
             return payloads.generate_sample_payload(event_name)
-    raise PermissionDenied()
+    raise PermissionDenied(permissions=[required_permission])

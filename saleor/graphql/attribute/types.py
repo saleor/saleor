@@ -70,10 +70,10 @@ class AttributeValue(ModelObjectType):
             if attribute.type == AttributeType.PAGE_TYPE:
                 if requester.has_perm(PagePermissions.MANAGE_PAGES):
                     return attribute.input_type
-                raise PermissionDenied()
+                raise PermissionDenied(permissions=[PagePermissions.MANAGE_PAGES])
             elif requester.has_perm(ProductPermissions.MANAGE_PRODUCTS):
                 return attribute.input_type
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=[ProductPermissions.MANAGE_PRODUCTS])
 
         return (
             AttributesByAttributeId(info.context)

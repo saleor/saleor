@@ -11,7 +11,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
-from ..account.utils import requestor_has_access
+from ..account.utils import check_requestor_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
@@ -170,11 +170,8 @@ class CustomerEvent(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.CustomerEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
-            return (
-                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
-            )
-        raise PermissionDenied()
+        check_requestor_access(requestor, root.user, AppPermission.MANAGE_APPS)
+        return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
     def resolve_message(root: models.CustomerEvent, _info):
