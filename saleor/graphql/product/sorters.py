@@ -254,7 +254,7 @@ class ProductVariantSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 
-class ProductVariantSortingInput(ChannelSortInputObjectType):
+class ProductVariantSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = ProductVariantSortField
         type_name = "productVariants"
