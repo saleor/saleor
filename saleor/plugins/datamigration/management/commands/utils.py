@@ -8,7 +8,8 @@ from tqdm import tqdm
 from saleor.account.models import Address, User
 from saleor.channel.models import Channel
 from saleor.discount.models import Voucher
-from saleor.order.models import Order, OrderLine
+from saleor.order.models import Fulfillment, FulfillmentLine, Order, OrderLine
+from saleor.payment.models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,6 @@ class BaseMigration:
             "token": order_data["token"],
             "created": order_data["created"],
             "user_email": order_data["userEmail"],
-            "status": order_data["status"].lower(),
             "weight": order_data["weight"]["value"],
             "billing_address_id": billing_address_id,
             "shipping_address_id": shipping_address_id,
@@ -94,6 +94,8 @@ class BaseMigration:
             "tracking_client_id": order_data["trackingClientId"],
             "total_net_amount": order_data["total"]["net"]["amount"],
             "display_gross_prices": order_data["displayGrossPrices"],
+            "status": order_data["status"].replace("_", " ").lower(),
+            "total_paid_amount": order_data["totalCaptured"]["amount"],
             "total_gross_amount": order_data["total"]["gross"]["amount"],
             "channel_id": self.get_channel(channel_slug="channel-sar").id,
             "id": int(graphene.Node.from_global_id(global_id=order_data.get("id"))[1]),
@@ -137,6 +139,75 @@ class BaseMigration:
             return order_line
 
     @staticmethod
+    def get_or_create_order_fulfillments(line, order, fulfillments_data):
+        for fulfillment in fulfillments_data:
+            fulfillment_data = {
+                "order": order,
+                "created": fulfillment.get("created"),
+                "status": fulfillment.get("status").lower(),
+                "tracking_number": fulfillment.get("trackingNumber"),
+                "fulfillment_order": fulfillment.get("fulfillmentOrder"),
+            }
+            order_fulfillment, _ = Fulfillment.objects.get_or_create(**fulfillment_data)
+            order_fulfillment_line, _ = FulfillmentLine.objects.get_or_create(
+                order_line=line, fulfillment=order_fulfillment, quantity=line.quantity
+            )
+            return order_fulfillment
+
+    @staticmethod
+    def get_or_create_order_payment_transactions(payment, transactions_data):
+        for transaction in transactions_data:
+            amount = transaction.get("amount", {})
+            transaction_data = {
+                "payment": payment,
+                "already_processed": True,
+                "amount": amount.get("amount"),
+                "currency": amount.get("currency"),
+                "created": transaction.get("created"),
+                "kind": transaction.get("kind").lower(),
+                "is_success": transaction.get("isSuccess"),
+                "gateway_response": transaction.get("gatewayResponse"),
+            }
+            order_payment_transaction, _ = Transaction.objects.get_or_create(
+                **transaction_data
+            )
+            return order_payment_transaction
+
+    def get_or_create_order_payments(self, order, payments_data):
+        for payment in payments_data:
+            billing_address = payment.get("billingAddress", {})
+            payment_data = {
+                "order": order,
+                "token": payment.get("token"),
+                "gateway": payment.get("gateway"),
+                "created": payment.get("created"),
+                "is_active": payment.get("isActive"),
+                "psp_reference": payment.get("token"),
+                "extra_data": payment.get("extraData"),
+                "total": payment.get("total")["amount"],
+                "currency": payment.get("total")["currency"],
+                "billing_email": payment.get("billingEmail"),
+                "billing_last_name": billing_address.get("lastName"),
+                "billing_city_area": billing_address.get("cityArea"),
+                "billing_first_name": billing_address.get("firstName"),
+                "customer_ip_address": payment.get("customerIpAddress"),
+                "billing_postal_code": billing_address.get("postalCode"),
+                "billing_company_name": billing_address.get("companyName"),
+                "billing_address_1": billing_address.get("streetAddress1"),
+                "billing_address_2": billing_address.get("streetAddress2"),
+                "captured_amount": payment.get("capturedAmount")["amount"],
+                "billing_city": billing_address.get("city", {}).get("name"),
+                "billing_country_area": billing_address.get("countryArea", {}),
+                "billing_country_code": billing_address.get("country", {}).get("code"),
+                "charge_status": payment.get("chargeStatus").replace("_", "-").lower(),
+            }
+            order_payment, _ = Payment.objects.get_or_create(**payment_data)
+            self.get_or_create_order_payment_transactions(
+                order_payment, payment.get("transactions")
+            )
+            return order_payment
+
+    @staticmethod
     def get_or_create_voucher(voucher_data):
         if not voucher_data:
             return Voucher()
@@ -176,7 +247,65 @@ query CUSTOMER {
         node {
           id
           status
+          totalCaptured {
+            currency
+            amount
+          }
+          payments {
+            transactions {
+              created
+              token
+              kind
+              isSuccess
+              error
+              amount {
+                currency
+                amount
+              }
+              gatewayResponse
+            }
+            isActive
+            gateway
+            created
+            modified
+            chargeStatus
+            billingAddress {
+              firstName
+              lastName
+              companyName
+              streetAddress1
+              streetAddress2
+              city {
+                name
+              }
+              cityArea
+              postalCode
+              country {
+                code
+              }
+              countryArea
+            }
+            billingEmail
+            customerIpAddress
+            extraData
+            token
+            total {
+              amount
+              currency
+            }
+            capturedAmount {
+              currency
+              amount
+            }
+          }
           displayGrossPrices
+          fulfillments {
+            fulfillmentOrder
+            status
+            trackingNumber
+            created
+            statusDisplay
+          }
           lines {
             productName
             translatedVariantName
@@ -308,6 +437,8 @@ query CUSTOMER {
 class DataMigration(BaseMigration):
     def clear(self):
         User.objects.all().exclude(email="admin@example.com").delete()
+        Transaction.objects.all().delete()
+        Payment.objects.all().delete()
         Order.objects.all().delete()
 
     def migrate(self, url, token):
@@ -316,12 +447,13 @@ class DataMigration(BaseMigration):
         # Get all users from old database
         users = User.objects.using("datamigration").raw(
             """SELECT id, first_name, last_name, avatar, is_staff, password,
-            is_active, last_login, date_joined from account_user limit 10"""
+            is_active, last_login, date_joined from account_user
+            order by date_joined desc"""
         )
         for user in tqdm(
             ascii=True,
             total=len(users),
-            desc="Data migration:",
+            desc="Data migration",
             iterable=users.iterator(),
         ):
             created_user, created = User.objects.get_or_create(
@@ -378,6 +510,16 @@ class DataMigration(BaseMigration):
                                 user=created_user, order_data=order_data
                             )
                             lines = order_data.get("lines", [])
-                            self.get_or_create_order_lines(
+                            line = self.get_or_create_order_lines(
                                 order=created_order, lines_data=lines
+                            )
+                            fulfillments = order_data.get("fulfillments", [])
+                            self.get_or_create_order_fulfillments(
+                                line=line,
+                                order=created_order,
+                                fulfillments_data=fulfillments,
+                            )
+                            payments = order_data.get("payments", [])
+                            self.get_or_create_order_payments(
+                                order=created_order, payments_data=payments
                             )
