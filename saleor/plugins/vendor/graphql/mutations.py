@@ -13,7 +13,7 @@ from .errors import BillingError, VendorError
 
 class VendorInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
-        description="Active status of the vendor"
+        description="Active status of the vendor."
     )
     description = graphene.String(description="Description of the vendor.")
     phone = graphene.String(description="Phone number.")
@@ -36,7 +36,7 @@ class VendorCreateInput(VendorInput):
         description="The slug of the vendor. It will be generated if not provided.",
         required=False,
     )
-    national_id = graphene.String(description="national ID", required=True)
+    national_id = graphene.String(description="National ID.", required=True)
 
 
 class VendorCreate(ModelMutation):
@@ -46,7 +46,7 @@ class VendorCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Create a new vendor"
+        description = "Create a new vendor."
         model = Vendor
         error_type_class = VendorError
         # permissions = (VendorPermissions.MANAGE_VENDOR,)
@@ -66,23 +66,23 @@ class VendorCreate(ModelMutation):
 
 
 class VendorUpdateInput(VendorInput):
-    name = graphene.String(description="The name of the vendor")
+    name = graphene.String(description="The name of the vendor.")
     slug = graphene.String(
-        description="The slug of the vendor. It will be generated if not provided",
+        description="The slug of the vendor. It will be generated if not provided.",
         required=False,
     )
-    national_id = graphene.String(description="National ID")
+    national_id = graphene.String(description="National ID.")
 
 
 class VendorUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="Vendor ID.")
         input = VendorUpdateInput(
-            description="Fields required to update the vendor", required=True
+            description="Fields required to update the vendor.", required=True
         )
 
     class Meta:
-        description = "Update a vendor"
+        description = "Update a vendor."
         model = Vendor
         error_type_class = VendorError
         # permissions = (VendorPermissions.MANAGE_VENDOR,)
