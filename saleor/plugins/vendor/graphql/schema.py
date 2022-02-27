@@ -26,7 +26,7 @@ class Query(graphene.ObjectType):
     vendor = graphene.Field(
         types.Vendor,
         id=graphene.Argument(
-            graphene.ID, description="ID of the vendor", required=True
+            graphene.ID, description="Vendor ID.", required=True
         ),
         description="Look up a vendor by ID",
     )
@@ -38,7 +38,7 @@ class Query(graphene.ObjectType):
     billing = graphene.Field(
         types.Billing,
         id=graphene.Argument(graphene.ID, description="ID of Billing", required=True),
-        description="Look up a billing by ID",
+        description="Look up billing information by ID",
     )
     billings = FilterConnectionField(types.BillingConnection)
 
