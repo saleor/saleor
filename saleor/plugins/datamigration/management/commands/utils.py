@@ -442,7 +442,6 @@ class DataMigration(BaseMigration):
         Order.objects.all().delete()
 
     def migrate(self, url, token):
-        self.clear()
 
         # Get all users from old database
         users = User.objects.using("datamigration").raw(
