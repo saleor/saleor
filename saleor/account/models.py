@@ -56,7 +56,7 @@ class AddressQueryset(models.QuerySet):
         )
 
 
-class Address(models.Model):
+class Address(ModelWithMetadata):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
     company_name = models.CharField(max_length=256, blank=True)
@@ -103,7 +103,9 @@ class Address(models.Model):
 
         Result does not contain the primary key or an associated user.
         """
-        data = model_to_dict(self, exclude=["id", "user"])
+        data = model_to_dict(
+            self, exclude=["id", "user", "metadata", "private_metadata"]
+        )
         if isinstance(data["country"], Country):
             data["country"] = data["country"].code
         if isinstance(data["phone"], PhoneNumber):

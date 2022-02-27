@@ -116,8 +116,10 @@ type AccountUpdate {
   user: User
 }
 
-type Address implements Node {
+type Address implements Node & ObjectWithMetadata {
   id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   firstName: String!
   lastName: String!
   companyName: String!

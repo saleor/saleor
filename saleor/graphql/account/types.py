@@ -73,7 +73,7 @@ class Address(ModelObjectType):
 
     class Meta:
         description = "Represents user address data."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
 
     @staticmethod

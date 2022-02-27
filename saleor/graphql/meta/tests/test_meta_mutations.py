@@ -9,6 +9,7 @@ from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
 from ....payment.utils import payment_owned_by_user
+from ....webhook.models import Webhook
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
@@ -63,7 +64,7 @@ def execute_update_public_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=True)
     return response
 
 
@@ -87,7 +88,7 @@ def execute_update_public_metadata_for_multiple_items(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=True)
     return response
 
 
@@ -771,22 +772,21 @@ def test_update_public_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_public_metadata_for_item_without_meta(api_client, address):
+def test_update_public_metadata_for_item_without_meta(api_client, webhook):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(Webhook), ModelWithMetadata)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse UPDATE_PUBLIC_METADATA_MUTATION
     response = execute_update_public_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, webhook_id, "Webhook"
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["errors"]
-    assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
+    message = "Fragment cannot be spread here as objects of type ObjectWithMetadata can never be of type Webhook"  # noqa: E501
+    assert response["errors"][0]["message"] == message
 
 
 def test_update_public_metadata_for_payment_by_logged_user(
@@ -927,7 +927,7 @@ def execute_clear_public_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=True)
     return response
 
 
@@ -1567,22 +1567,21 @@ def test_delete_public_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_delete_public_metadata_for_item_without_meta(api_client, address):
+def test_delete_public_metadata_for_item_without_meta(api_client, webhook):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(Webhook), ModelWithMetadata)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse DELETE_PUBLIC_METADATA_MUTATION
     response = execute_clear_public_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, webhook_id, "Webhook"
     )
 
     # then
-    errors = response["data"]["deleteMetadata"]["errors"]
-    assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
+    message = "Fragment cannot be spread here as objects of type ObjectWithMetadata can never be of type Webhook"  # noqa: E501
+    assert response["errors"][0]["message"] == message
 
 
 def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
@@ -1707,7 +1706,7 @@ def execute_update_private_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=True)
     return response
 
 
@@ -2377,22 +2376,21 @@ def test_update_private_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_private_metadata_for_item_without_meta(api_client, address):
+def test_update_private_metadata_for_item_without_meta(api_client, webhook):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(Webhook), ModelWithMetadata)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse UPDATE_PRIVATE_METADATA_MUTATION
     response = execute_update_private_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, webhook_id, "Webhook"
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["errors"]
-    assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
+    message = "Fragment cannot be spread here as objects of type ObjectWithMetadata can never be of type Webhook"  # noqa: E501
+    assert response["errors"][0]["message"] == message
 
 
 def test_update_private_metadata_for_payment_by_staff(
@@ -2573,7 +2571,7 @@ def execute_clear_private_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=True)
     return response
 
 
@@ -3239,22 +3237,21 @@ def test_delete_private_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_delete_private_metadata_for_item_without_meta(api_client, address):
+def test_delete_private_metadata_for_item_without_meta(api_client, webhook):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(Webhook), ModelWithMetadata)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse DELETE_PRIVATE_METADATA_MUTATION
     response = execute_clear_private_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, webhook_id, "Webhook"
     )
 
     # then
-    errors = response["data"]["deletePrivateMetadata"]["errors"]
-    assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
+    message = "Fragment cannot be spread here as objects of type ObjectWithMetadata can never be of type Webhook"  # noqa: E501
+    assert response["errors"][0]["message"] == message
 
 
 def test_delete_private_metadata_for_not_exist_key(

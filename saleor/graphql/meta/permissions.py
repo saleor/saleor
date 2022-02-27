@@ -1,11 +1,13 @@
 from typing import Any, List
 
 from ...account import models as account_models
+from ...account.utils import address_owned_by_user
 from ...attribute import AttributeType
 from ...attribute import models as attribute_models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
+    AddressPermissions,
     AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
@@ -77,6 +79,21 @@ def app_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
     return [AppPermission.MANAGE_APPS]
 
 
+def public_address_permissions(info, address_pk: int) -> List[BasePermissionEnum]:
+    context_user = info.context.user
+    if info.context.app is not None or context_user.is_staff:
+        return [AddressPermissions.MANAGE_ADDRESSES]
+    if address_owned_by_user(address_pk, context_user):
+        return []
+    raise PermissionDenied()
+
+
+def private_address_permissions(info, address_pk: int) -> List[BasePermissionEnum]:
+    if info.context.app is not None or info.context.user.is_staff:
+        return [AddressPermissions.MANAGE_ADDRESSES]
+    raise PermissionDenied()
+
+
 def checkout_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [CheckoutPermissions.MANAGE_CHECKOUTS]
 
@@ -125,6 +142,7 @@ def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 
 PUBLIC_META_PERMISSION_MAP = {
+    "Address": public_address_permissions,
     "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
@@ -153,6 +171,7 @@ PUBLIC_META_PERMISSION_MAP = {
 
 
 PRIVATE_META_PERMISSION_MAP = {
+    "Address": private_address_permissions,
     "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
