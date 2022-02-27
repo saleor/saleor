@@ -12,9 +12,9 @@ from .. import models
 from . import types
 from .filters import VendorFilterInput
 from .mutations import (
-    BillingCreate,
-    BillingDelete,
-    BillingUpdate,
+    BillingInfoCreate,
+    BillingInfoDelete,
+    BillingInfoUpdate,
     VendorCreate,
     VendorDelete,
     VendorUpdate,
@@ -51,21 +51,21 @@ class Query(graphene.ObjectType):
         return models.Vendor.objects.get(id=id)
 
     def resolve_billings(root, info, **kwargs):
-        qs = models.Billing.objects.all()
+        qs = models.BillingInfo.objects.all()
         return create_connection_slice(qs, info, kwargs, types.BillingConnection)
 
     def resolve_billing(root, info, id, **data):
         _, id = from_global_id_or_error(id, types.Billing)
-        return models.Billing.objects.get(id=id)
+        return models.BillingInfo.objects.get(id=id)
 
 
 class Mutation(graphene.ObjectType):
     vendor_create = VendorCreate.Field()
     vendor_update = VendorUpdate.Field()
     vendor_delete = VendorDelete.Field()
-    billing_create = BillingCreate.Field()
-    billing_update = BillingUpdate.Field()
-    billing_delete = BillingDelete.Field()
+    billing_create = BillingInfoCreate.Field()
+    billing_update = BillingInfoUpdate.Field()
+    billing_delete = BillingInfoDelete.Field()
 
 
 schema = build_schema(

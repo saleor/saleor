@@ -1,10 +1,12 @@
-from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
 from django_iban.fields import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth import get_user_model
+from ...account.validators import validate_possible_number
 
-from saleor.account.validators import validate_possible_number
+
+User = get_user_model()
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
@@ -18,33 +20,37 @@ class Vendor(models.Model):
         CR = 1
         MAROOF = 2
 
-    class SellsGenderChoices(models.IntegerChoices):
+    class TargetGenderChoices(models.IntegerChoices):
         MEN = 1
         WOMEN = 2
         UNISEX = 3
 
-    name = models.CharField(max_length=256, db_index=True)
-    slug = models.SlugField(max_length=256, unique=True)
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL)
-    description = models.TextField(blank=True, default="")
+    name = models.CharField(max_length=256, unique=True, db_index=True)
+    slug = models.SlugField(max_length=256, unique=True, db_index=True)
+    users = models.ManyToManyField(User)
     country = CountryField()
-    phone = PossiblePhoneNumberField(blank=True, default="", db_index=True)
+
+    description = models.TextField(blank=True, default="")
+    phone_number = PossiblePhoneNumberField(blank=True, db_index=True)
+
     national_id = models.CharField(max_length=256)
     is_active = models.BooleanField(default=True)
     commercial_info = models.IntegerField(
         choices=CommercialInfoChoices.choices, default=CommercialInfoChoices.CR
     )
     commercial_description = models.TextField(blank=True, default="")
-    sells_gender = models.IntegerField(
-        choices=SellsGenderChoices.choices, default=SellsGenderChoices.MEN
+    target_gender = models.IntegerField(
+        choices=TargetGenderChoices.choices, default=TargetGenderChoices.UNISEX
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Billing(models.Model):
+class BillingInfo(models.Model):
     iban = IBANField()
     bank_name = models.CharField(max_length=256)
-    vendor = models.ForeignKey(Vendor, blank=True, null=True, on_delete=models.CASCADE, related_name="billing_info")
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="billing_info")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

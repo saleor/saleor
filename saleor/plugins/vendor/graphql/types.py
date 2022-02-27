@@ -1,7 +1,6 @@
 import graphene
 from graphene import relay
-
-from saleor.graphql.core.connection import CountableDjangoObjectType
+from ....graphql.core.connection import CountableDjangoObjectType
 
 from .. import models
 
@@ -21,7 +20,7 @@ class VendorConnection(relay.Connection):
 
 class Billing(CountableDjangoObjectType):
     class Meta:
-        model = models.Billing
+        model = models.BillingInfo
         filter_fields = ["id", "iban", "bank_name"]
         interfaces = (graphene.relay.Node,)
 

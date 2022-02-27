@@ -5,7 +5,7 @@ from saleor.graphql.account.enums import CountryCodeEnum
 
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
-from ..models import Billing, Vendor
+from .. import models
 from . import enums, types
 from .custom_permissions import BillingPermissions, VendorPermissions
 from .errors import BillingError, VendorError
@@ -47,7 +47,7 @@ class VendorCreate(ModelMutation):
 
     class Meta:
         description = "Create a new vendor."
-        model = Vendor
+        model = models.Vendor
         error_type_class = VendorError
         # permissions = (VendorPermissions.MANAGE_VENDOR,)
 
@@ -83,7 +83,7 @@ class VendorUpdate(ModelMutation):
 
     class Meta:
         description = "Update a vendor."
-        model = Vendor
+        model = models.Vendor
         error_type_class = VendorError
         # permissions = (VendorPermissions.MANAGE_VENDOR,)
 
@@ -94,12 +94,12 @@ class VendorDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Delete the vendor."
-        model = Vendor
+        model = models.Vendor
         error_type_class = VendorError
         # permissions = (VendorPermissions.MANAGE_VENDOR,)
 
 
-class BillingCreateInput(graphene.InputObjectType):
+class BillingInfoCreateInput(graphene.InputObjectType):
     iban = graphene.String(
         description="IBAN number of the vendor.", required=True
     )
@@ -108,18 +108,18 @@ class BillingCreateInput(graphene.InputObjectType):
     )
 
 
-class BillingCreate(ModelMutation):
+class BillingInfoCreate(ModelMutation):
     class Arguments:
         vendor_id = graphene.ID(
             required=True, description="Vendor ID."
         )
-        input = BillingCreateInput(
+        input = BillingInfoCreateInput(
             required=True, description="Fields required to add billing information to the vendor."
         )
 
     class Meta:
         description = "Create a new billing information for a vendor."
-        model = Billing
+        model = models.BillingInfo
         error_type_class = BillingError
         # permissions = (BillingPermissions.MANAGE_BILLING,)
 
@@ -142,38 +142,38 @@ class BillingCreate(ModelMutation):
             info, data["vendor_id"], only_type=types.Vendor, field="vendorId"
         )
         cleaned_input = cls.clean_input(info, vendor, data)
-        billing = Billing(**cleaned_input)
+        billing = models.BillingInfo(**cleaned_input)
         billing.vendor = vendor
         billing.save()
 
         return cls(billing=billing)
 
 
-class BillingUpdateInput(graphene.InputObjectType):
+class BillingInfoUpdateInput(graphene.InputObjectType):
     iban = graphene.String(description="IBAN number of the vendor.")
     bank_name = graphene.String(description="The bank name.")
 
 
-class BillingUpdate(ModelMutation):
+class BillingInfoUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="Billing information ID.")
-        input = BillingUpdateInput(
+        input = BillingInfoUpdateInput(
             description="Fields required to update billing information.", required=True
         )
 
     class Meta:
         description = "Update billing information."
-        model = Billing
+        model = models.BillingInfo
         error_type_class = BillingError
         permissions = (BillingPermissions.MANAGE_BILLING,)
 
 
-class BillingDelete(ModelDeleteMutation):
+class BillingInfoDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="Billing information ID.")
 
     class Meta:
         description = "Delete billing information for a vendor."
-        model = Billing
+        model = models.BillingInfo
         error_type_class = BillingError
         # permissions = (BillingPermissions.MANAGE_BILLING,)
