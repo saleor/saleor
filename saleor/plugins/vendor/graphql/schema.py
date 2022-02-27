@@ -34,12 +34,12 @@ class Query(graphene.ObjectType):
         filter=VendorFilterInput(description="Filtering options for vendor."),
     )
 
-    billing = graphene.Field(
+    billing_info = graphene.Field(
         types.Billing,
         id=graphene.Argument(graphene.ID, description="ID of Billing", required=True),
         description="Look up billing information by ID",
     )
-    billings = FilterConnectionField(types.BillingConnection)
+    billing_infos = FilterConnectionField(types.BillingConnection)
 
     def resolve_vendors(root, info, **kwargs):
         qs = models.Vendor.objects.all()
