@@ -261,11 +261,12 @@ class DataMigration(BaseMigration):
         Order.objects.all().delete()
 
     def migrate(self, url, token):
+        self.clear()
 
         # Get all users from old database
         users = User.objects.using("datamigration").raw(
             """SELECT id, first_name, last_name, avatar, is_staff, password,
-            is_active, last_login, date_joined from account_user"""
+            is_active, last_login, date_joined from account_user limit 10"""
         )
         for user in tqdm(
             ascii=True,
@@ -297,6 +298,18 @@ class DataMigration(BaseMigration):
                 )
                 user_data = response.get("data", {}).get("user")
                 if not response.get("errors") and user_data:
+                    gender = user_data.get("gender", "")
+                    birthday = user_data.get("birthday", "")
+                    user_data.update(
+                        {
+                            "role": user_data.get("role", ""),
+                            "gender": gender if gender else "",
+                            "phone": user_data.get("phone", ""),
+                            "birthday": birthday if birthday else "",
+                            "isFeatured": user_data.get("isFeatured", False),
+                            "permissionGender": user_data.get("permissionGender", ""),
+                        }
+                    )
                     created_user.store_value_in_private_metadata(items=user_data)
                     created_user.save(update_fields=["private_metadata"])
 
