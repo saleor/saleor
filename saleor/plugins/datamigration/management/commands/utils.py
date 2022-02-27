@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 import graphene
 import requests
@@ -7,7 +8,7 @@ from tqdm import tqdm
 from saleor.account.models import Address, User
 from saleor.channel.models import Channel
 from saleor.discount.models import Voucher
-from saleor.order.models import Order
+from saleor.order.models import Order, OrderLine
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,7 @@ class BaseMigration:
             "total_net_amount": order_data["total"]["net"]["amount"],
             "display_gross_prices": order_data["displayGrossPrices"],
             "total_gross_amount": order_data["total"]["gross"]["amount"],
-            "channel_id": self.get_channel(channel_slug="default-channel").id,
+            "channel_id": self.get_channel(channel_slug="channel-sar").id,
             "id": int(graphene.Node.from_global_id(global_id=order_data.get("id"))[1]),
             "shipping_price_gross_amount": order_data["shippingPrice"]["gross"][
                 "amount"
@@ -106,6 +107,34 @@ class BaseMigration:
         }
         order_obj, _ = Order.objects.get_or_create(**order_data)
         return order_obj
+
+    @staticmethod
+    def get_or_create_order_lines(order, lines_data):
+        for line in lines_data:
+            quantity = line.get("quantity")
+            currency = line.get("unitPrice")["currency"]
+            unit_price_net = line.get("unitPrice")["gross"]["amount"]
+            unit_price_gross = line.get("unitPrice")["gross"]["amount"]
+            line_data = {
+                "order": order,
+                "currency": currency,
+                "quantity": quantity,
+                "is_gift_card": False,
+                "tax_rate": line.get("taxRate"),
+                "product_sku": line.get("productSku"),
+                "variant_name": line.get("variantName"),
+                "product_name": line.get("productName"),
+                "unit_price_gross_amount": unit_price_gross,
+                "quantity_fulfilled": line.get("quantityFulfilled"),
+                "is_shipping_required": line.get("isShippingRequired"),
+                "translated_variant_name": line.get("translatedVariantName"),
+                "translated_product_name": line.get("translatedProductName"),
+                "total_price_net_amount": Decimal(unit_price_net * quantity),
+                "unit_price_net_amount": line.get("unitPrice")["net"]["amount"],
+                "total_price_gross_amount": Decimal(unit_price_gross * quantity),
+            }
+            order_line, _ = OrderLine.objects.get_or_create(**line_data)
+            return order_line
 
     @staticmethod
     def get_or_create_voucher(voucher_data):
@@ -148,6 +177,27 @@ query CUSTOMER {
           id
           status
           displayGrossPrices
+          lines {
+            productName
+            translatedVariantName
+            translatedProductName
+            variantName
+            productSku
+            quantity
+            unitPrice {
+              currency
+              net {
+                amount
+              }
+              gross {
+                amount
+              }
+            }
+            isShippingRequired
+            taxRate
+            quantityFulfilled
+            variantName
+          }
           voucher {
             id
             name
@@ -257,7 +307,7 @@ query CUSTOMER {
 
 class DataMigration(BaseMigration):
     def clear(self):
-        User.objects.all().delete()
+        User.objects.all().exclude(email="admin@example.com").delete()
         Order.objects.all().delete()
 
     def migrate(self, url, token):
@@ -271,7 +321,7 @@ class DataMigration(BaseMigration):
         for user in tqdm(
             ascii=True,
             total=len(users),
-            desc="User migrations",
+            desc="Data migration:",
             iterable=users.iterator(),
         ):
             created_user, created = User.objects.get_or_create(
@@ -324,6 +374,10 @@ class DataMigration(BaseMigration):
                     if edges:
                         for edge in edges:
                             order_data = edge.get("node")
-                            self.get_or_create_user_order(
+                            created_order = self.get_or_create_user_order(
                                 user=created_user, order_data=order_data
+                            )
+                            lines = order_data.get("lines", [])
+                            self.get_or_create_order_lines(
+                                order=created_order, lines_data=lines
                             )
