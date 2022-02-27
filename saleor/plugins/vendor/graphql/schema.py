@@ -50,11 +50,11 @@ class Query(graphene.ObjectType):
         _, id = from_global_id_or_error(id, types.Vendor)
         return models.Vendor.objects.get(id=id)
 
-    def resolve_billings(root, info, **kwargs):
+    def resolve_billing_infos(root, info, **kwargs):
         qs = models.BillingInfo.objects.all()
         return create_connection_slice(qs, info, kwargs, types.BillingConnection)
 
-    def resolve_billing(root, info, id, **data):
+    def resolve_billing_info(root, info, id, **data):
         _, id = from_global_id_or_error(id, types.Billing)
         return models.BillingInfo.objects.get(id=id)
 
