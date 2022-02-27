@@ -10,7 +10,7 @@ from saleor.graphql.core.utils import from_global_id_or_error
 
 from .. import models
 from . import types
-from .filters import GroupFilterInput
+from .filters import VendorFilterInput
 from .mutations import (
     BillingCreate,
     BillingDelete,
@@ -22,7 +22,6 @@ from .mutations import (
 
 
 class Query(graphene.ObjectType):
-
     vendor = graphene.Field(
         types.Vendor,
         id=graphene.Argument(
@@ -32,7 +31,7 @@ class Query(graphene.ObjectType):
     )
     vendors = FilterConnectionField(
         types.VendorConnection,
-        filter=GroupFilterInput(description="Filtering options for group."),
+        filter=VendorFilterInput(description="Filtering options for vendor."),
     )
 
     billing = graphene.Field(

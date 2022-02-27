@@ -45,6 +45,6 @@ class Vendor(models.Model):
 class Billing(models.Model):
     iban = IBANField()
     bank_name = models.CharField(max_length=256)
-    vendor = models.ForeignKey(Vendor, blank=True, null=True, on_delete=models.CASCADE)
+    vendor = models.ForeignKey(Vendor, blank=True, null=True, on_delete=models.CASCADE, related_name="billing_info")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

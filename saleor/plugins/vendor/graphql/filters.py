@@ -1,26 +1,23 @@
 import django_filters
 
-from saleor.graphql.core.filters import MetadataFilterBase
-from saleor.graphql.core.types.filter_input import FilterInputObjectType
-from saleor.graphql.utils.filters import filter_by_query_param
-
+from ....graphql.core.types.filter_input import FilterInputObjectType
+from ....graphql.core.filters import EnumFilter
+from ....graphql.account.enums import CountryCodeEnum
 from .. import models
 
 
-def filter_group_search(qs, _, value):
-    group_fields = ["country"]
-    qs = filter_by_query_param(qs, value, group_fields)
-    return qs
+def filter_vendor_country(qs, _, value):
+    return qs.filter(country=value)
 
 
-class GroupFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(method=filter_group_search)
+class VendorFilter(django_filters.FilterSet):
+    country = EnumFilter(input_class=CountryCodeEnum, method=filter_vendor_country)
 
     class Meta:
         model = models.Vendor
-        fields = ["search"]
+        fields = ["country"]
 
 
-class GroupFilterInput(FilterInputObjectType):
+class VendorFilterInput(FilterInputObjectType):
     class Meta:
-        filterset_class = GroupFilter
+        filterset_class = VendorFilter
