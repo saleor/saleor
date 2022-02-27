@@ -89,9 +89,9 @@ class SocialLoginByAccessToken(BaseMutation):
 
     @classmethod
     def get_user(cls, info, input, **data):
-        provider = data["provider"]
-        auth_response = data["auth_response"]
-        created, user = get_or_create_user(provider, info.context, auth_response)
+        provider: Provider = data["provider"]
+        email = provider.get_email(**data)
+        created, user = get_or_create_user(info.context, email)
         return created, user
 
     @classmethod
@@ -135,12 +135,21 @@ class SocialLoginConfirm(SocialLoginByAccessToken):
         return kwargs["auth_response"]["access_token"]
 
     @classmethod
+    def get_user(cls, info, input, **data):
+        provider: Provider = data["provider"]
+        auth_response = data["auth_response"]
+        email = provider.get_email(**auth_response)
+        created, user = get_or_create_user(info.context, email)
+        return created, user
+
+    @classmethod
     def perform_mutation(cls, root, info, **kwargs):
         input = kwargs["input"]
         provider = PluginOAuthProvider.from_plugin(input.provider, info.context.app)
         auth_response = provider.fetch_tokens(
             input.code, input.state, input.redirect_url
         )
+        print(auth_response)
 
         kwargs["auth_response"] = auth_response
         return super().perform_mutation(root, info, **kwargs)
