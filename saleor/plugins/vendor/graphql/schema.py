@@ -31,7 +31,7 @@ class Query(graphene.ObjectType):
     )
     vendors = FilterConnectionField(
         types.VendorConnection,
-        filter=VendorFilterInput(description="Filtering options for vendor."),
+        filter=VendorFilterInput(description="Filtering options for vendors."),
     )
 
     billing_info = graphene.Field(
