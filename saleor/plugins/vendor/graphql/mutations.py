@@ -7,7 +7,7 @@ from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from .. import models
 from . import enums, types
-from .custom_permissions import BillingPermissions, VendorPermissions
+from .custom_permissions import BillingPermissions
 from .errors import BillingError, VendorError
 
 
@@ -23,11 +23,11 @@ class VendorInput(graphene.InputObjectType):
         description="Users IDs to add to the vendor.",
         name="users",
     )
-    commercial_info = enums.CommercialInfo()
+    commercial_info = enums.CommericalInfoEnum()
     commercial_description = graphene.String(
         description="description of commercial info."
     )
-    sells_gender = enums.SellsGender()
+    target_gender = enums.TargetGenderEnum()
 
 
 class VendorCreateInput(VendorInput):

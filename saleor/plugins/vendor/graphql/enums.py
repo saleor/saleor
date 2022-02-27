@@ -1,6 +1,7 @@
 from enum import Enum
 
 import graphene
+from .. import models
 
 
 class VendorErrorCode(Enum):
@@ -14,12 +15,5 @@ class BillingErrorCode(Enum):
     BILLING_ERROR = "Billing_error"
 
 
-class CommercialInfo(graphene.Enum):
-    CR = 1
-    MAROOF = 2
-
-
-class SellsGender(graphene.Enum):
-    MEN = 1
-    WOMEN = 2
-    UNISEX = 3
+TargetGenderEnum = graphene.Enum.from_enum(models.Vendor.TargetGenderChoices)
+CommericalInfoEnum = graphene.Enum.from_enum(models.Vendor.CommercialInfoChoices)
