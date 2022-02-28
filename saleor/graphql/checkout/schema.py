@@ -8,24 +8,22 @@ from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
 from .filters import CheckoutFilterInput
-from .mutations import (
-    CheckoutAddPromoCode,
-    CheckoutBillingAddressUpdate,
-    CheckoutComplete,
-    CheckoutCreate,
-    CheckoutCustomerAttach,
-    CheckoutCustomerDetach,
-    CheckoutDeliveryMethodUpdate,
-    CheckoutEmailUpdate,
-    CheckoutLanguageCodeUpdate,
-    CheckoutLineDelete,
-    CheckoutLinesAdd,
-    CheckoutLinesDelete,
-    CheckoutLinesUpdate,
-    CheckoutRemovePromoCode,
-    CheckoutShippingAddressUpdate,
-    CheckoutShippingMethodUpdate,
-)
+from .mutations.checkout_add_promo_code import CheckoutAddPromoCode
+from .mutations.checkout_billing_address_update import CheckoutBillingAddressUpdate
+from .mutations.checkout_complete import CheckoutComplete
+from .mutations.checkout_create import CheckoutCreate
+from .mutations.checkout_customer_attach import CheckoutCustomerAttach
+from .mutations.checkout_customer_detach import CheckoutCustomerDetach
+from .mutations.checkout_delivery_method_update import CheckoutDeliveryMethodUpdate
+from .mutations.checkout_email_update import CheckoutEmailUpdate
+from .mutations.checkout_language_code_update import CheckoutLanguageCodeUpdate
+from .mutations.checkout_line_delete import CheckoutLineDelete
+from .mutations.checkout_lines_add import CheckoutLinesAdd
+from .mutations.checkout_lines_delete import CheckoutLinesDelete
+from .mutations.checkout_lines_update import CheckoutLinesUpdate
+from .mutations.checkout_remove_promo_code import CheckoutRemovePromoCode
+from .mutations.checkout_shipping_address_update import CheckoutShippingAddressUpdate
+from .mutations.checkout_shipping_method_update import CheckoutShippingMethodUpdate
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .sorters import CheckoutSortingInput
 from .types import (
