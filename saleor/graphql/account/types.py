@@ -4,7 +4,6 @@ import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
 from graphene import relay
-from graphene_federation import key
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -20,7 +19,7 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
-from ..core.federation import resolve_federation_references
+from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, ModelObjectType, Permission
@@ -49,7 +48,7 @@ class AddressInput(graphene.InputObjectType):
     phone = graphene.String(description="Phone number.")
 
 
-@key(fields="id")
+@federated_entity("id")
 class Address(ModelObjectType):
     id = graphene.GlobalID(required=True)
     first_name = graphene.String(required=True)
@@ -215,8 +214,8 @@ class UserPermission(Permission):
         return groups
 
 
-@key(fields="id")
-@key(fields="email")
+@federated_entity("id")
+@federated_entity("email")
 class User(ModelObjectType):
     id = graphene.GlobalID(required=True)
     email = graphene.String(required=True)
@@ -279,6 +278,7 @@ class User(ModelObjectType):
 
     last_login = graphene.DateTime()
     date_joined = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
 
     class Meta:
         description = "Represents user data."
@@ -496,7 +496,7 @@ class StaffNotificationRecipient(graphene.ObjectType):
         return root.get_email()
 
 
-@key(fields="id")
+@federated_entity("id")
 class Group(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)

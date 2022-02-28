@@ -4,6 +4,20 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.1.0
 
+
+# Unreleased
+
+### Breaking changes
+
+### Other changes
+- Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
+- Add possibility for plugins to execute code before each mutation - #9193 by @NyanKiyoshi
+- Add support for hiding plugins - #9219 by @NyanKiyoshi
+- Remove `graphene-federation` dependency - #9184 by @rafalp
+
+
+# 3.1.0
+
 ### Breaking changes
 
 #### Plugins
@@ -65,6 +79,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError in `CheckoutAddPromoCode`, `CheckoutPaymentCreate` when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Remove `graphene-django` dependency - #9170 by @rafalp
+
 
 # 3.0.0
 

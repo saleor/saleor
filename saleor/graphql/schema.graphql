@@ -1808,6 +1808,7 @@ input CustomerFilterInput {
   placedOrders: DateRangeInput
   search: String
   metadata: [MetadataFilter]
+  updatedAt: DateTimeRangeInput
 }
 
 input CustomerInput {
@@ -4197,6 +4198,7 @@ type Order implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   created: DateTime!
+  updatedAt: DateTime!
   status: OrderStatus!
   user: User
   trackingClientId: String!
@@ -4519,6 +4521,7 @@ input OrderFilterInput {
   search: String
   metadata: [MetadataFilter]
   channels: [ID]
+  updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
   isPreorder: Boolean
   ids: [ID]
@@ -5380,7 +5383,8 @@ type Product implements Node & ObjectWithMetadata {
   productType: ProductType!
   slug: String!
   category: Category
-  updatedAt: DateTime
+  created: DateTime!
+  updatedAt: DateTime!
   chargeTaxes: Boolean!
   weight: Weight
   defaultVariant: ProductVariant
@@ -5584,6 +5588,7 @@ input ProductFilterInput {
   metadata: [MetadataFilter]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
+  updatedAt: DateTimeRangeInput
   productTypes: [ID]
   giftCard: Boolean
   ids: [ID]
@@ -5683,6 +5688,7 @@ enum ProductOrderField {
   RANK
   PRICE
   MINIMAL_PRICE
+  LAST_MODIFIED
   DATE
   TYPE
   PUBLISHED
@@ -5877,6 +5883,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
   quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
+  created: DateTime!
+  updatedAt: DateTime!
 }
 
 type ProductVariantBulkCreate {
@@ -5964,6 +5972,7 @@ input ProductVariantFilterInput {
   sku: [String]
   metadata: [MetadataFilter]
   isPreorder: Boolean
+  updatedAt: DateTimeRangeInput
 }
 
 input ProductVariantInput {
@@ -6170,6 +6179,8 @@ type Sale implements Node & ObjectWithMetadata {
   type: SaleType!
   startDate: DateTime!
   endDate: DateTime
+  created: DateTime!
+  updatedAt: DateTime!
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -6244,6 +6255,7 @@ input SaleFilterInput {
   started: DateTimeRangeInput
   search: String
   metadata: [MetadataFilter]
+  updatedAt: DateTimeRangeInput
 }
 
 input SaleInput {
@@ -7020,6 +7032,7 @@ type User implements Node & ObjectWithMetadata {
   defaultBillingAddress: Address
   lastLogin: DateTime
   dateJoined: DateTime!
+  updatedAt: DateTime!
 }
 
 type UserAvatarDelete {

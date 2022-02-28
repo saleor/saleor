@@ -4634,9 +4634,23 @@ def test_query_customers_with_filter_placed_orders(
         ({"dateJoined": {"lte": "2012-01-14"}}, 1),
         ({"dateJoined": {"lte": "2012-01-14", "gte": "2012-01-13"}}, 1),
         ({"dateJoined": {"gte": "2012-01-14"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:01:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2011-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:00:00+00:00",
+                    "gte": "2012-01-14T10:00:00+00:00",
+                }
+            },
+            1,
+        ),
+        ({"updatedAt": {"gte": "2012-01-14T10:00:00+00:00"}}, 2),
     ],
 )
-def test_query_customers_with_filter_date_joined(
+def test_query_customers_with_filter_date_joined_and_updated_at(
     customer_filter,
     count,
     query_customer_with_filter,
@@ -4652,7 +4666,6 @@ def test_query_customers_with_filter_date_joined(
     )
     content = get_graphql_content(response)
     users = content["data"]["customers"]["edges"]
-
     assert len(users) == count
 
 
