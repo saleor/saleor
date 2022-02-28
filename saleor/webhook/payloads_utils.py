@@ -5,14 +5,14 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import F
 from django.utils import timezone
 
-from saleor import __version__
-from saleor.account.models import User
-from saleor.core.prices import quantize_price
-from saleor.order.models import Fulfillment, FulfillmentLine, OrderLine
-from saleor.plugins.base_plugin import RequestorOrLazyObject
-from saleor.warehouse.models import Warehouse
-from saleor.webhook import traced_payload_generator
-from saleor.webhook.payload_serializers import PayloadSerializer
+from .. import __version__
+from ..account.models import User
+from ..core.prices import quantize_price
+from ..order.models import Fulfillment, FulfillmentLine, OrderLine
+from ..plugins.base_plugin import RequestorOrLazyObject
+from ..warehouse.models import Warehouse
+from . import traced_payload_generator
+from .payload_serializers import PayloadSerializer
 
 ADDRESS_FIELDS = (
     "first_name",
