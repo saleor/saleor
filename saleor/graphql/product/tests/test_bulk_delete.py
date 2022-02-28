@@ -1343,3 +1343,64 @@ def test_delete_product_variants_from_different_products(
     assert product_1.default_variant is None
     assert product_2.default_variant.pk == product_2_second_variant.pk
     mocked_recalculate_orders_task.assert_not_called()
+
+
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_variants_delete_product_channel_listing_without_available_channel(
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    product_with_two_variants,
+    permission_manage_products,
+):
+    """Ensure that when the last available variant for channel is removed,
+    the corresponging product channel listings will be removed too, and when
+    any available variant for channel exist the product channel listing will
+    be not removed."""
+    # given
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+
+    product_1 = product
+    product_2 = product_with_two_variants
+
+    product_1_default_variant = product_1.variants.first()
+    product_2_default_variant = product_2.variants.first()
+
+    product_1.default_variant = product_1_default_variant
+    product_2.default_variant = product_2_default_variant
+
+    Product.objects.bulk_update([product_1, product_2], ["default_variant"])
+
+    product_2_second_variant = product_2.variants.last()
+
+    assert product_1.channel_listings.count() > 0
+    product_2_channel_listings_count = product_2.channel_listings.count()
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductVariant", product_1_default_variant.id),
+            graphene.Node.to_global_id("ProductVariant", product_2_default_variant.id),
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == 2
+    assert not ProductVariant.objects.filter(
+        id__in=[product_1_default_variant.id, product_2_default_variant.id]
+    ).exists()
+
+    product_1.refresh_from_db()
+    product_2.refresh_from_db()
+
+    assert product_1.default_variant is None
+    assert product_2.default_variant.pk == product_2_second_variant.pk
+    assert product_1.channel_listings.count() == 0
+    assert product_2.channel_listings.count() == product_2_channel_listings_count
+    mocked_recalculate_orders_task.assert_not_called()
