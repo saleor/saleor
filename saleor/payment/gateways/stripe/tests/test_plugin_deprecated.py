@@ -25,11 +25,13 @@ def test_process_payment_with_customer_and_future_usage(
     dummy_response = {
         "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
     }
+    dummy_charges = {}
     payment_intent_id = "payment-intent-id"
     payment_intent.id = payment_intent_id
     payment_intent.client_secret = client_secret
     payment_intent.last_response.data = dummy_response
     payment_intent.status = SUCCESS_STATUS
+    payment_intent.get.side_effect = dummy_charges.get
 
     plugin = stripe_plugin(auto_capture=True)
 
