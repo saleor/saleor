@@ -10,12 +10,11 @@ from freezegun import freeze_time
 from ...order import OrderStatus
 from ..event_types import WebhookEventAsyncType
 from ..payloads import (
-    generate_checkout_payload,
     generate_fulfillment_payload,
-    generate_order_payload,
     generate_product_payload,
     generate_sample_payload,
 )
+from ..taxed_payloads import generate_checkout_payload, generate_order_payload
 
 
 def _remove_anonymized_order_data(order_data: dict) -> dict:

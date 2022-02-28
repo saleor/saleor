@@ -29,11 +29,9 @@ from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
-    generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
     generate_invoice_payload,
-    generate_order_payload,
     generate_page_payload,
     generate_product_deleted_payload,
     generate_product_payload,
@@ -41,6 +39,7 @@ from ....webhook.payloads import (
     generate_product_variant_with_stock_payload,
     generate_sale_payload,
 )
+from ....webhook.taxed_payloads import generate_checkout_payload, generate_order_payload
 from ...manager import get_plugins_manager
 from ...webhook.tasks import (
     WebhookResponse,

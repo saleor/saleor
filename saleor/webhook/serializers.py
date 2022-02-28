@@ -1,10 +1,11 @@
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
 
 import graphene
+from prices import TaxedMoney
 
 from ..attribute import AttributeInputType
-from ..checkout.fetch import fetch_checkout_lines
+from ..checkout.fetch import CheckoutLineInfo
 from ..core.prices import quantize_price
 from ..product.models import Product
 
@@ -14,11 +15,14 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
+def serialize_checkout_lines(
+    checkout: "Checkout",
+    lines: Iterable[CheckoutLineInfo],
+    get_unit_price: Callable[[CheckoutLineInfo], TaxedMoney],
+) -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
-    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
     for line_info in lines:
         line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
         variant = line_info.variant
@@ -26,7 +30,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
         collections = line_info.collections
         product = variant.product
         base_price = variant.get_price(product, collections, channel, channel_listing)
-        unit_price = line_info.line.unit_price
+        unit_price = get_unit_price(line_info)
 
         data.append(
             {

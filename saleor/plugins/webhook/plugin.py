@@ -14,7 +14,6 @@ from ...payment import PaymentError, TransactionKind
 from ...product.models import Collection, Product, ProductType, ProductVariant
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
-    generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
@@ -22,18 +21,17 @@ from ...webhook.payloads import (
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
-    generate_meta,
-    generate_order_payload,
     generate_page_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
-    generate_requestor,
     generate_sale_payload,
     generate_translation_payload,
 )
+from ...webhook.payloads_utils import generate_meta, generate_requestor
+from ...webhook.taxed_payloads import generate_checkout_payload, generate_order_payload
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY
 from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_response

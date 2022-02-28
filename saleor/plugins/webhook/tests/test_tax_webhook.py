@@ -8,7 +8,7 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....core.taxes import TaxType
 from ....webhook.event_types import WebhookEventSyncType
-from ....webhook.payloads import generate_checkout_payload, generate_order_payload
+from ....webhook.taxed_payloads import generate_checkout_payload, generate_order_payload
 from ..utils import (
     DEFAULT_TAX_CODE,
     DEFAULT_TAX_DESCRIPTION,
