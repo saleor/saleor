@@ -688,7 +688,7 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
 )
 
 CHECKOUT_PRICES_TTL = timedelta(
-    seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "5 minutes"))
+    seconds=parse(os.environ.get("CHECKOUT_PRICES_TTL", "1 hour"))
 )
 
 ORDER_PRICES_TTL = timedelta(
