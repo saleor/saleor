@@ -12,6 +12,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied, PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
@@ -1715,8 +1716,19 @@ class ProductMediaDelete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         media_obj = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
+        if media_obj.to_remove:
+            raise ValidationError(
+                {
+                    "media_id": ValidationError(
+                        "Media not found.",
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
         media_id = media_obj.id
-        media_obj.delete()
+        media_obj.to_remove = True
+        media_obj.save(update_fields=["to_remove"])
+        delete_product_media_task.delay(media_id)
         media_obj.id = media_id
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media_obj.product_id

@@ -782,7 +782,9 @@ class DigitalContentUrl(models.Model):
 
 
 class ProductMedia(SortableModel):
-    product = models.ForeignKey(Product, related_name="media", on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product, related_name="media", on_delete=models.SET_NULL, null=True, blank=True
+    )
     image = VersatileImageField(
         upload_to="products", ppoi_field="ppoi", blank=True, null=True
     )
@@ -795,6 +797,7 @@ class ProductMedia(SortableModel):
     )
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
+    to_remove = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("sort_order", "pk")
