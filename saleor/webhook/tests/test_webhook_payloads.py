@@ -30,7 +30,6 @@ from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
-    ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     generate_collection_payload,
     generate_customer_payload,
@@ -51,7 +50,11 @@ from ..payloads_utils import (
     generate_requestor,
 )
 from ..serializers import serialize_checkout_lines
-from ..taxed_payloads import generate_checkout_payload, generate_order_payload
+from ..taxed_payloads import (
+    ORDER_FIELDS_WITHOUT_TAXES,
+    generate_checkout_payload,
+    generate_order_payload,
+)
 
 
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
@@ -97,7 +100,9 @@ def test_generate_order_payload(
     payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     assert order_id == payload["id"]
-    non_empty_fields = [f for f in ORDER_FIELDS if f != "collection_point_name"]
+    non_empty_fields = [
+        f for f in ORDER_FIELDS_WITHOUT_TAXES if f != "collection_point_name"
+    ]
     for field in non_empty_fields:
         assert payload.get(field) is not None
 

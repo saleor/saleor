@@ -1,12 +1,15 @@
 from decimal import Decimal
 from operator import itemgetter
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 
+from ...checkout import calculations
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.models import CheckoutLine
 from ...core.prices import quantize_price
+from ...plugins.manager import PluginsManager, get_plugins_manager
 from ..serializers import (
     serialize_checkout_lines,
     serialize_product_or_variant_attributes,
@@ -73,6 +76,23 @@ def test_serialize_product_attributes(
     ]
 
 
+@patch.object(PluginsManager, "get_taxes_for_checkout", return_value=None)
+@pytest.mark.parametrize(
+    "get_unit_price, tax_webhook_called",
+    [
+        (lambda m, c, ls, l: l.line.unit_price, False),
+        (
+            lambda m, c, ls, l: calculations.checkout_line_unit_price(
+                manager=m,
+                checkout_info=c,
+                lines=ls,
+                checkout_line_info=l,
+                discounts=[],
+            ).price_with_discounts,
+            True,
+        ),
+    ],
+)
 @pytest.mark.parametrize(
     "taxes_included, taxes_calculated",
     [
@@ -83,9 +103,18 @@ def test_serialize_product_attributes(
     ],
 )
 def test_serialize_checkout_lines(
-    checkout_with_items_for_cc, taxes_included, taxes_calculated, site_settings
+    mocked_fetch,
+    checkout_with_items_for_cc,
+    taxes_included,
+    taxes_calculated,
+    site_settings,
+    get_unit_price,
+    tax_webhook_called,
 ):
     # given
+    lines, _ = fetch_checkout_lines(checkout_with_items_for_cc)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout_with_items_for_cc, lines, [], manager)
     site_settings.include_taxes_in_prices = taxes_included
     site_settings.save()
     checkout = checkout_with_items_for_cc
@@ -113,7 +142,11 @@ def test_serialize_checkout_lines(
     )
 
     # when
-    checkout_lines_data = serialize_checkout_lines(checkout)
+    checkout_lines_data = serialize_checkout_lines(
+        checkout,
+        lines,
+        lambda line_info: get_unit_price(manager, checkout_info, lines, line_info),
+    )
 
     # then
     checkout_with_items_for_cc.refresh_from_db()

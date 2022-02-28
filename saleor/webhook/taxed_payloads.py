@@ -32,6 +32,8 @@ from .payloads_utils import (
     get_product_metadata_for_order_line,
     get_product_type_metadata_for_order_line,
     prepare_order_lines_allocations_payload,
+    quantize_lazy_prices,
+    quantize_prices,
 )
 from .serializers import serialize_checkout_lines
 
@@ -89,6 +91,7 @@ ORDER_LINE_PRICE_FIELDS = (
 )
 
 
+@quantize_lazy_prices
 def _generate_order_line_prices_data(
     order: "Order",
     manager: PluginsManager,
@@ -206,6 +209,7 @@ ORDER_PRICE_FIELDS = (
 )
 
 
+@quantize_prices
 def _generate_order_prices_data(
     order: "Order",
     manager: PluginsManager,

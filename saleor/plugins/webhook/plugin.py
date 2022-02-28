@@ -614,7 +614,7 @@ class WebhookPlugin(BasePlugin):
     def get_taxes_for_checkout(
         self, checkout: "Checkout", previous_value
     ) -> Optional["TaxData"]:
-        payload = generate_checkout_payload(checkout, self.requestor)
+        payload = generate_checkout_payload(checkout, self.requestor, taxed=False)
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES, payload, parse_tax_data
         )
@@ -622,7 +622,7 @@ class WebhookPlugin(BasePlugin):
     def get_taxes_for_order(
         self, order: "Order", previous_value
     ) -> Optional["TaxData"]:
-        payload = generate_order_payload(order, self.requestor)
+        payload = generate_order_payload(order, self.requestor, taxed=False)
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.ORDER_CALCULATE_TAXES, payload, parse_tax_data
         )
@@ -635,7 +635,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
-            payload = generate_checkout_payload(checkout, self.requestor)
+            payload = generate_checkout_payload(checkout, self.requestor, taxed=False)
             for app in apps:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
