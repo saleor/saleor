@@ -454,8 +454,8 @@ class AttributeAssignmentMixin:
             )
             values.references = ref_instances
             return values
-        except GraphQLError as e:
-            raise ValidationError({ValidationError(str(e), code="graphql_error")})
+        except GraphQLError:
+            raise ValidationError("Invalid reference type.", code=error_class.INVALID)
 
     @classmethod
     def _validate_attributes_input(

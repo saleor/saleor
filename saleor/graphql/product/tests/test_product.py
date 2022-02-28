@@ -4855,6 +4855,57 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
     assert product_type_product_reference_attribute.values.count() == values_count + 3
 
 
+def test_create_product_with_page_reference_attribute_and_invalid_product_one(
+    staff_api_client,
+    product_type,
+    product,
+    category,
+    color_attribute,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    page,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+
+    reference = graphene.Node.to_global_id("Page", page.pk)
+    invalid_reference = graphene.Node.to_global_id("Product", product.pk)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [
+                {"id": reference_attr_id, "references": [reference]},
+                {"id": reference_attr_id, "references": [invalid_reference]},
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"][0]["message"] == "Invalid reference type."
+    assert data["errors"][0]["field"] == "attributes"
+    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
+
+
 def test_create_product_with_file_attribute_new_attribute_value(
     staff_api_client,
     product_type,
