@@ -4,6 +4,8 @@ from django_iban.fields import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth import get_user_model
 from ...account.validators import validate_possible_number
+from ...core.db.fields import SanitizedJSONField
+from ...core.utils.editorjs import clean_editor_js
 
 
 User = get_user_model()
@@ -30,18 +32,25 @@ class Vendor(models.Model):
     users = models.ManyToManyField(User)
     country = CountryField()
 
-    description = models.TextField(blank=True, default="")
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     phone_number = PossiblePhoneNumberField(blank=True, db_index=True)
 
-    national_id = models.CharField(max_length=256)
-    is_active = models.BooleanField(default=True)
+    national_id = models.CharField(max_length=256, null=True, blank=True)
+    residence_id = models.CharField(max_length=256, null=True, blank=True)
+
+    is_active = models.BooleanField()
     commercial_info = models.IntegerField(
         choices=CommercialInfoChoices.choices, default=CommercialInfoChoices.CR
     )
-    commercial_description = models.TextField(blank=True, default="")
+    registration_number = models.CharField(max_length=256)
+    vat_number = models.CharField(max_length=256, blank=True, null=True)
+
     target_gender = models.IntegerField(
         choices=TargetGenderChoices.choices, default=TargetGenderChoices.UNISEX
     )
+
+    logo = models.ImageField()
+    header_image = models.ImageField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -53,4 +62,12 @@ class BillingInfo(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="billing_info")
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Attachment(models.Model):
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField()
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

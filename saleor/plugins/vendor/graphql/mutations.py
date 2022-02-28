@@ -9,34 +9,41 @@ from .. import models
 from . import enums, types
 from .custom_permissions import BillingPermissions
 from .errors import BillingError, VendorError
+from ....graphql.core.types import Upload
 
 
 class VendorInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
-        description="Active status of the vendor."
+        description="Active status of the vendor.", default_value=True
     )
     description = graphene.String(description="Description of the vendor.")
-    phone = graphene.String(description="Phone number.")
+    phone_number = graphene.String(description="Phone number.")
     country = CountryCodeEnum(description="Country code.")
     users = graphene.List(
         graphene.ID,
         description="Users IDs to add to the vendor.",
         name="users",
     )
-    commercial_info = enums.CommericalInfoEnum()
-    commercial_description = graphene.String(
-        description="description of commercial info."
-    )
-    target_gender = enums.TargetGenderEnum()
+    commercial_info = enums.CommericalInfoEnum(required=True, description="The registration type of the company.")
+    target_gender = enums.TargetGenderEnum(required=False, description="The target gender of the vendor, defaults to UNISEX.")
+
+    national_id = graphene.String(required=False, description="National ID.")
+    residence_id = graphene.String(required=False, description="Residence ID.")
+
+    vat_number = graphene.String(required=False)
+    header_image = Upload(required=False, description="Header image.")
 
 
 class VendorCreateInput(VendorInput):
+    logo = Upload(required=True, description="Vendor logo")
+
     name = graphene.String(description="The name of the vendor.", required=True)
     slug = graphene.String(
         description="The slug of the vendor. It will be generated if not provided.",
         required=False,
     )
     national_id = graphene.String(description="National ID.", required=True)
+    registration_number = graphene.String(required=True, description="The registration number.")
 
 
 class VendorCreate(ModelMutation):
@@ -72,6 +79,10 @@ class VendorUpdateInput(VendorInput):
         required=False,
     )
     national_id = graphene.String(description="National ID.")
+    logo = Upload(required=False, description="Vendor logo")
+
+    national_id = graphene.String(required=False, description="National ID")
+    registration_number = graphene.String(required=False, description="The registration number.")
 
 
 class VendorUpdate(ModelMutation):

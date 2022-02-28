@@ -10,7 +10,7 @@ class Vendor(CountableDjangoObjectType):
         model = models.Vendor
         filter_fields = ["id", "name", "country"]
         interfaces = (graphene.relay.Node,)
-        exclude = ["users"]
+        exclude = ["users"] 
 
 
 class VendorConnection(relay.Connection):
