@@ -267,20 +267,22 @@ def fetch_checkout_prices_if_expired(
     ):
         return checkout_info, lines
 
+    # Discounts are calculated first, as they depend solely on the "base" price
+    recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
+
+    # Taxes are applied to the discounted prices
     _apply_tax_data_from_plugins(
         checkout, manager, checkout_info, lines, address, discounts
     )
 
     tax_data = manager.get_taxes_for_checkout(checkout)
-
     if tax_data:
         _apply_tax_data(checkout, lines, tax_data)
-
-    recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
+            "voucher_code",
             "total_net_amount",
             "total_gross_amount",
             "subtotal_net_amount",

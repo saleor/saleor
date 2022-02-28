@@ -1877,6 +1877,7 @@ class CheckoutAddPromoCode(BaseMutation):
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 
@@ -1940,11 +1941,15 @@ class CheckoutRemovePromoCode(BaseMutation):
             checkout, [], info.context.discounts, manager
         )
         if promo_code:
-            remove_promo_code_from_checkout(checkout_info, promo_code)
+            removed = remove_promo_code_from_checkout(checkout_info, promo_code)
         else:
-            cls.remove_promo_code_by_id(info, checkout, object_type, promo_code_pk)
+            removed = cls.remove_promo_code_by_id(
+                info, checkout, object_type, promo_code_pk
+            )
 
-        manager.checkout_updated(checkout)
+        if removed:
+            invalidate_checkout_prices(checkout, save=True)
+            manager.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
 
     @staticmethod
@@ -1993,5 +1998,7 @@ class CheckoutRemovePromoCode(BaseMutation):
                 )
             if checkout.voucher_code == node.code:
                 remove_voucher_from_checkout(checkout)
+                return True
         else:
             checkout.gift_cards.remove(promo_code_pk)
+            return True

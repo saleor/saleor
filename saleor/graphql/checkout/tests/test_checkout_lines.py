@@ -83,6 +83,7 @@ def test_checkout_lines_add(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert checkout.price_expiration is None
 
 
 def test_checkout_lines_add_with_reservations(
@@ -687,6 +688,7 @@ def test_checkout_lines_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert checkout.price_expiration is None
 
 
 def test_checkout_lines_update_with_new_reservations(
@@ -1185,6 +1187,7 @@ def test_checkout_line_delete(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert checkout.price_expiration is None
 
 
 MUTATION_CHECKOUT_LINES_DELETE = """
@@ -1244,6 +1247,7 @@ def test_checkout_lines_delete(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert checkout.price_expiration is None
 
 
 def test_checkout_lines_delete_invalid_checkout_token(

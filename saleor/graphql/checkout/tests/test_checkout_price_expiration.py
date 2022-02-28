@@ -2,7 +2,6 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import graphene
-import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -194,16 +193,32 @@ def test_checkout_billing_address_update_invalidate_prices(
 
 
 @freeze_time("2020-12-12 12:00:00")
-@pytest.mark.parametrize("save, minutes", [(True, 0), (False, 5)])
-def test_invalidate_checkout_prices(checkout, save, minutes):
+def test_invalidate_checkout_prices_with_save(checkout):
     # given
     checkout.price_expiration = timezone.now() + timedelta(minutes=5)
     checkout.save(update_fields=["price_expiration"])
 
     # when
-    updated_fields = invalidate_checkout_prices(checkout, save=save)
+    updated_fields = invalidate_checkout_prices(checkout, save=True)
 
     # then
     checkout.refresh_from_db()
-    assert checkout.price_expiration == timezone.now() + timedelta(minutes=minutes)
+    assert checkout.price_expiration is None
+    assert updated_fields == ["price_expiration", "last_change"]
+
+
+@freeze_time("2020-12-12 12:00:00")
+def test_invalidate_checkout_prices_without_save(checkout):
+    # given
+    original_expiration = checkout.price_expiration = timezone.now() + timedelta(
+        minutes=5
+    )
+    checkout.save(update_fields=["price_expiration"])
+
+    # when
+    updated_fields = invalidate_checkout_prices(checkout, save=False)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.price_expiration == original_expiration
     assert updated_fields == ["price_expiration", "last_change"]

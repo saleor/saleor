@@ -5,6 +5,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.utils import timezone
 from prices import Money
 
 from ....checkout import base_calculations, calculations
@@ -244,6 +245,11 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                     id
                     last4CodeChars
                 }
+                subtotalPrice {
+                    gross {
+                        amount
+                    }
+                }
                 totalPrice {
                     gross {
                         amount
@@ -280,6 +286,31 @@ def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, vouc
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_voucher_code_invalidates_price(
+    api_client, checkout_with_item, voucher
+):
+    # given
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+    )
+    expected_total = subtotal.amount - voucher.channel_listings.get().discount.amount
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -1001,6 +1032,16 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
                     id
                     last4CodeChars
                 }
+                totalPrice {
+                    gross {
+                        amount
+                    }
+                }
+                subtotalPrice {
+                    gross {
+                        amount
+                    }
+                }
             }
         }
     }
@@ -1030,6 +1071,33 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
     assert checkout_with_voucher.last_change != previous_checkout_last_change
+
+
+def test_checkout_remove_voucher_code_invalidates_price(
+    api_client, checkout_with_item, voucher
+):
+    # given
+    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.voucher_code = voucher.code
+    checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+    )
+    expected_total = subtotal.amount
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
 
 
 def test_checkout_remove_voucher_code_with_inactive_channel(

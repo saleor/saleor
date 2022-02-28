@@ -2712,6 +2712,7 @@ def test_checkout_shipping_address_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+    assert checkout.price_expiration is None
 
 
 @mock.patch(
@@ -3071,6 +3072,7 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.country == billing_address["country"]
     assert checkout.billing_address.city == billing_address["city"].upper()
     assert checkout.last_change != previous_last_change
+    assert checkout.price_expiration is None
 
 
 CHECKOUT_EMAIL_UPDATE_MUTATION = """
@@ -3551,6 +3553,7 @@ def test_checkout_shipping_method_update(
         assert data["checkout"]["token"] == str(checkout.token)
         assert checkout.shipping_method == shipping_method
         assert checkout.last_change != previous_last_change
+        assert checkout.price_expiration is None
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "shippingMethod"
@@ -3709,6 +3712,7 @@ def test_checkout_delivery_method_update(
     if is_valid_delivery_method:
         assert not errors
         assert getattr(checkout, attribute_name) == delivery_method
+        assert checkout.price_expiration is None
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "deliveryMethodId"

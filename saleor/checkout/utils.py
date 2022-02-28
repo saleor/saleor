@@ -54,7 +54,7 @@ PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
     """Mark checkout as ready for prices recalculation."""
-    checkout.price_expiration = timezone.now()
+    checkout.price_expiration = None
     updated_fields = ["price_expiration", "last_change"]
     if save:
         checkout.save(update_fields=updated_fields)
@@ -657,9 +657,10 @@ def add_voucher_to_checkout(
 def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
     """Remove gift card or voucher data from checkout."""
     if promo_code_is_voucher(promo_code):
-        remove_voucher_code_from_checkout(checkout_info, promo_code)
+        return remove_voucher_code_from_checkout(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
+        return remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
+    return False
 
 
 def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
@@ -668,6 +669,8 @@ def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_cod
     if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
+        return True
+    return False
 
 
 def remove_voucher_from_checkout(checkout: Checkout):
