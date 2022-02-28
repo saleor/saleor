@@ -5,7 +5,7 @@ from typing import List, Tuple
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
@@ -1146,6 +1146,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         ).get(id=instance.id)
 
         cls.delete_assigned_attribute_values(variant)
+        cls.delete_product_channel_listings_without_available_variants(variant)
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
@@ -1175,6 +1176,35 @@ class ProductVariantDelete(ModelDeleteMutation):
         attribute_models.AttributeValue.objects.filter(
             variantassignments__variant_id=instance.id,
             attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
+
+    @staticmethod
+    def delete_product_channel_listings_without_available_variants(instance):
+        """Delete invalid product channel listings.
+
+        Delete product channel listings for channels for which the deleted variant
+        was the last available variant.
+        """
+        channel_ids = set(
+            instance.channel_listings.values_list("channel_id", flat=True)
+        )
+        product_id = instance.product_id
+        variants = (
+            models.ProductVariant.objects.filter(product_id=product_id)
+            .exclude(id=instance.id)
+            .values("id")
+        )
+        available_channel_ids = set(
+            models.ProductVariantChannelListing.objects.filter(
+                Exists(
+                    variants.filter(id=OuterRef("variant_id")),
+                    channel_id__in=channel_ids,
+                )
+            ).values_list("channel_id", flat=True)
+        )
+        not_available_channel_ids = channel_ids - available_channel_ids
+        models.ProductChannelListing.objects.filter(
+            product_id=product_id, channel_id__in=not_available_channel_ids
         ).delete()
 
 
