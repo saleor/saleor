@@ -225,22 +225,6 @@ def checkout_line_tax_rate(
     return checkout_line_info.line.tax_rate
 
 
-def force_taxes_recalculation(
-    checkout_info: "CheckoutInfo",
-    manager: "PluginsManager",
-    lines: Iterable["CheckoutLineInfo"],
-    address: Optional["Address"] = None,
-    discounts: Optional[Iterable["DiscountInfo"]] = None,
-) -> None:
-    """Fetch checkout prices with taxes.
-
-    Prices will be updated without taking into consideration price_expiration.
-    """
-    fetch_checkout_prices_if_expired(
-        checkout_info, manager, lines, address, discounts, force_update=True
-    )
-
-
 def fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",

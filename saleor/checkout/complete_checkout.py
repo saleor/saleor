@@ -43,7 +43,7 @@ from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
-from .calculations import force_taxes_recalculation
+from .calculations import fetch_checkout_prices_if_expired
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
 from .utils import get_voucher_for_checkout_info
@@ -705,12 +705,7 @@ def complete_checkout(
     :raises ValidationError
     """
 
-    force_taxes_recalculation(
-        checkout_info=checkout_info,
-        manager=manager,
-        lines=lines,
-        discounts=discounts,
-    )
+    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
