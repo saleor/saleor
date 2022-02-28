@@ -1940,9 +1940,11 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout_info = fetch_checkout_info(
             checkout, [], info.context.discounts, manager
         )
+
+        removed = False
         if promo_code:
             removed = remove_promo_code_from_checkout(checkout_info, promo_code)
-        else:
+        elif promo_code_id:
             removed = cls.remove_promo_code_by_id(
                 info, checkout, object_type, promo_code_pk
             )
@@ -1950,6 +1952,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         if removed:
             invalidate_checkout_prices(checkout, save=True)
             manager.checkout_updated(checkout)
+
         return CheckoutRemovePromoCode(checkout=checkout)
 
     @staticmethod

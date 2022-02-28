@@ -295,7 +295,6 @@ def fetch_checkout_prices_if_expired(
             "discount_amount",
             "discount_name",
             "currency",
-            "last_change",
         ]
     )
 

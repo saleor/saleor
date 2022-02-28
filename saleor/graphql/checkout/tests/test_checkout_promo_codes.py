@@ -1165,6 +1165,8 @@ def test_checkout_remove_one_of_gift_cards(
 
 
 def test_checkout_remove_promo_code_invalid_promo_code(api_client, checkout_with_item):
+    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_item.last_change
     variables = {"token": checkout_with_item.token, "promoCode": "unexisting_code"}
 
