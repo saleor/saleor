@@ -473,11 +473,11 @@ def test_delete_products_invalid_object_typed_of_given_ids(
     assert data["count"] == 0
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_with_images(
     mocked_recalculate_orders_task,
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     staff_api_client,
     product_list,
     image_list,
@@ -502,10 +502,10 @@ def test_delete_products_with_images(
     content = get_graphql_content(response)
 
     assert content["data"]["productBulkDelete"]["count"] == 3
-    assert delete_versatile_image_mock.call_count == 2
+    assert delete_product_media_task_mock.call_count == 2
     assert {
-        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
-    } == {media1.image, media2.image}
+        call_args.args[0] for call_args in delete_product_media_task_mock.call_args_list
+    } == {media1.id, media2.id}
     mocked_recalculate_orders_task.assert_not_called()
 
 
