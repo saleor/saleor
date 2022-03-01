@@ -6,8 +6,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from saleor.checkout.utils import invalidate_checkout_prices
-
+from ....checkout.utils import invalidate_checkout_prices
 from ...tests.utils import get_graphql_content
 
 ADD_CHECKOUT_LINE = """
