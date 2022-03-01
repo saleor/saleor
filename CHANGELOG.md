@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add possibility for plugins to execute code before each mutation - #9193 by @NyanKiyoshi
 - Add support for hiding plugins - #9219 by @NyanKiyoshi
 - Remove `graphene-federation` dependency - #9184 by @rafalp
+- Override graphene.JSONString to have more meaningful error message #9171 by @L3str4nge
 
 
 # 3.1.0
