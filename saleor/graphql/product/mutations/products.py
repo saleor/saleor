@@ -43,6 +43,7 @@ from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
@@ -76,7 +77,7 @@ from ..utils import (
 
 
 class CategoryInput(graphene.InputObjectType):
-    description = graphene.JSONString(description="Category description (JSON).")
+    description = JSONString(description="Category description (JSON).")
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -194,9 +195,7 @@ class CollectionInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Name of the collection.")
     slug = graphene.String(description="Slug of the collection.")
-    description = graphene.JSONString(
-        description="Description of the collection (JSON)."
-    )
+    description = JSONString(description="Description of the collection (JSON).")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -528,7 +527,7 @@ class ProductInput(graphene.InputObjectType):
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
-    description = graphene.JSONString(description="Product description (JSON).")
+    description = JSONString(description="Product description (JSON).")
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")

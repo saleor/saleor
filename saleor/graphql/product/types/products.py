@@ -53,7 +53,7 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
-from ...core.fields import ConnectionField, FilterConnectionField
+from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.types import (
     Image,
     ModelObjectType,
@@ -728,7 +728,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     product_type = graphene.Field(lambda: ProductType, required=True)
     slug = graphene.String(required=True)
     category = graphene.Field(lambda: Category)
@@ -744,7 +744,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             "gateway to resolve this object in a federated query."
         ),
     )
-    description_json = graphene.JSONString(
+    description_json = JSONString(
         description="Description of the product (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -1374,7 +1374,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     slug = graphene.String(required=True)
     channel = graphene.String(
         description=(
@@ -1382,7 +1382,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
             "gateway to resolve this object in a federated query."
         ),
     )
-    description_json = graphene.JSONString(
+    description_json = JSONString(
         description="Description of the collection (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -1489,11 +1489,11 @@ class Category(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     slug = graphene.String(required=True)
     parent = graphene.Field(lambda: Category)
     level = graphene.Int(required=True)
-    description_json = graphene.JSONString(
+    description_json = JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -1608,7 +1608,7 @@ class ProductMedia(ModelObjectType):
     sort_order = graphene.Int()
     alt = graphene.String(required=True)
     type = ProductMediaType(required=True)
-    oembed_data = graphene.JSONString(required=True)
+    oembed_data = JSONString(required=True)
     url = graphene.String(
         required=True,
         description="The URL of the media.",

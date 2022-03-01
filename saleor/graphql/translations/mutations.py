@@ -15,6 +15,7 @@ from ...site.models import SiteSettings
 from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import TranslationError
 from ..discount.types import Sale, Voucher
@@ -122,7 +123,7 @@ class NameTranslationInput(graphene.InputObjectType):
 
 
 class AttributeValueTranslationInput(NameTranslationInput):
-    rich_text = graphene.JSONString()
+    rich_text = JSONString()
 
 
 class SeoTranslationInput(graphene.InputObjectType):
@@ -131,11 +132,11 @@ class SeoTranslationInput(graphene.InputObjectType):
 
 
 class TranslationInput(NameTranslationInput, SeoTranslationInput):
-    description = graphene.JSONString()
+    description = JSONString()
 
 
 class ShippingPriceTranslationInput(NameTranslationInput):
-    description = graphene.JSONString(
+    description = JSONString(
         description="Translated shipping method description (JSON)."
     )
 
@@ -425,7 +426,7 @@ class MenuItemTranslate(BaseTranslateMutation):
 
 class PageTranslationInput(SeoTranslationInput):
     title = graphene.String()
-    content = graphene.JSONString()
+    content = JSONString()
 
 
 class PageTranslate(BaseTranslateMutation):

@@ -10,6 +10,7 @@ from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types.common import CheckoutError
@@ -30,7 +31,7 @@ class CheckoutComplete(BaseMutation):
             " before checkout is complete."
         ),
     )
-    confirmation_data = graphene.JSONString(
+    confirmation_data = JSONString(
         required=False,
         description=(
             "Confirmation data used to process additional authorization steps."
@@ -59,7 +60,7 @@ class CheckoutComplete(BaseMutation):
                 "see the order details. URL in RFC 1808 format."
             ),
         )
-        payment_data = graphene.JSONString(
+        payment_data = JSONString(
             required=False,
             description=(
                 "Client-side generated data required to finalize the payment."
