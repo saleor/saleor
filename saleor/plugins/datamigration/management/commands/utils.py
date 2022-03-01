@@ -93,7 +93,6 @@ class BaseMigration:
             "total_paid_amount": order_data["totalCaptured"]["amount"],
             "total_gross_amount": order_data["total"]["gross"]["amount"],
             "channel_id": self.get_channel(channel_slug="channel-sar").id,
-            "id": int(graphene.Node.from_global_id(global_id=order_data.get("id"))[1]),
             "shipping_price_gross_amount": order_data["shippingPrice"]["gross"][
                 "amount"
             ],
