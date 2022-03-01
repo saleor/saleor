@@ -88,7 +88,9 @@ def extract_gateway_response(braintree_result) -> Dict:
     }
 
 
-def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
+def get_braintree_gateway(
+    sandbox_mode, merchant_id, public_key, private_key, merchant_account_id
+):
     if not all([merchant_id, private_key, public_key]):
         raise ImproperlyConfigured("Incorrectly configured Braintree gateway.")
     environment = braintree_sdk.Environment.Sandbox
@@ -181,6 +183,10 @@ def transaction_for_new_customer(
         span = scope.span
         span.set_tag(opentracing.tags.COMPONENT, "payment")
         span.set_tag("service.name", "braintree")
+        params = get_customer_data(payment_information)
+        merchant_account_id = config.connection_params["merchant_account_id"]
+        if merchant_account_id:
+            params["merchant_account_id"] = merchant_account_id
         return gateway.transaction.sale(
             {
                 "amount": str(payment_information.amount),
@@ -190,7 +196,7 @@ def transaction_for_new_customer(
                     "store_in_vault_on_success": payment_information.reuse_source,
                     "three_d_secure": {"required": config.require_3d_secure},
                 },
-                **get_customer_data(payment_information),
+                **params,
             }
         )
 
@@ -205,12 +211,16 @@ def transaction_for_existing_customer(
         span = scope.span
         span.set_tag(opentracing.tags.COMPONENT, "payment")
         span.set_tag("service.name", "braintree")
+        params = get_customer_data(payment_information)
+        merchant_account_id = config.connection_params["merchant_account_id"]
+        if merchant_account_id:
+            params["merchant_account_id"] = merchant_account_id
         return gateway.transaction.sale(
             {
                 "amount": str(payment_information.amount),
                 "customer_id": payment_information.customer_id,
                 "options": {"submit_for_settlement": config.auto_capture},
-                **get_customer_data(payment_information),
+                **params,
             }
         )
 
