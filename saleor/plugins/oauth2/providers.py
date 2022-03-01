@@ -110,10 +110,7 @@ class Provider:
                 code=OAuth2ErrorCode.OAUTH2_ERROR,
             )
 
-    def fetch_profile(self, **kwargs):
-        auth_response = kwargs["auth_response"]
-        access_token = auth_response.get("access_token")
-
+    def fetch_profile(self, access_token):
         if access_token is None:
             raise TypeError("access_token must not be None")
 
@@ -138,21 +135,21 @@ class Provider:
             code=OAuth2ErrorCode.USER_NOT_FOUND,
         )
 
-    def decode_id_token_from_response(self, auth_response):
-        id_token = auth_response["id_token"]
+    def decode_token(self, token):
+        try:
+            return jwt.decode(
+                token, algorithms=["ES256"], options={"verify_signature": False}
+            )
+        except jwt.exceptions.DecodeError:
+            raise ValidationError({"token": "Invalid token provided"})
 
-        return jwt.decode(
-            id_token, algorithms=["ES256"], options={"verify_signature": False}
-        )
+    def get_email(self, access_token, **kwargs):
+        profile = self.fetch_profile(access_token)
 
-    def get_email(self, auth_response):
-        payload = self.decode_id_token_from_response(auth_response)
-        email = payload.get("email")
+        email = profile.get("email")
 
         if email is None:
-            raise ValidationError(
-                "Missing email in auth response, did you add email scope?"
-            )
+            raise ValidationError("Provider missing email")
 
         return email
 
@@ -214,8 +211,25 @@ class Apple(Provider):
         pv = self.kwargs["private_key"]
         return jwt.encode(claims, pv, algorithm="ES256", headers=headers)
 
-    def fetch_profile(self, **kwargs):
-        email = self.get_email(auth_response=kwargs["auth_response"])
+    def get_email(self, access_token, **kwargs):
+        """access_token is the ID token of apple.
+
+        This introduces a vulneribility which should be solved
+        if the ID token is crafted # FIXME
+
+        """
+        payload = self.decode_token(access_token)
+        email = payload.get("email")
+
+        if email is None:
+            raise ValidationError(
+                "Missing email in auth response, did you add email scope?"
+            )
+
+        return email
+
+    def fetch_profile(self, access_token):
+        email = self.get_email(access_token)
 
         return User.objects.get(email=email)
 
