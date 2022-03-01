@@ -384,7 +384,7 @@ def test_add_gift_cards_to_order(
             "current_balance": "0",
             "old_current_balance": "10.000",
         },
-        "order_id": order.id,
+        "order_id": str(order.id),
     }
 
     order_created_event = GiftCardEvent.objects.get(
@@ -398,7 +398,7 @@ def test_add_gift_cards_to_order(
             "current_balance": "0",
             "old_current_balance": "20.000",
         },
-        "order_id": order.id,
+        "order_id": str(order.id),
     }
 
 
@@ -441,7 +441,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
             "current_balance": "0",
             "old_current_balance": "10.000",
         },
-        "order_id": order.id,
+        "order_id": str(order.id),
     }
 
     order_created_event = GiftCardEvent.objects.get(
@@ -455,7 +455,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
             "current_balance": "0",
             "old_current_balance": "20.000",
         },
-        "order_id": order.id,
+        "order_id": str(order.id),
     }
 
 

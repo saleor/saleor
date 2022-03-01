@@ -68,7 +68,6 @@ ADDRESS_FIELDS = (
 )
 
 ORDER_FIELDS = (
-    "token",
     "created",
     "status",
     "origin",
@@ -280,6 +279,8 @@ def generate_order_payload(
     )
 
     extra_dict_data = {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "token": str(order.id),
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
@@ -385,11 +386,31 @@ def generate_invoice_payload(
     return serializer.serialize(
         [invoice],
         fields=invoice_fields,
-        additional_fields={"order": (lambda i: i.order, ORDER_FIELDS)},
         extra_dict_data={
-            "meta": generate_meta(requestor_data=generate_requestor(requestor))
+            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+            "order": lambda i: json.loads(_generate_order_payload_for_invoice(i.order))[
+                0
+            ],
         },
     )
+
+
+@traced_payload_generator
+def _generate_order_payload_for_invoice(order: "Order"):
+    # This is a temporary method that allows attaching an order token
+    # that is no longer part of the order model.
+    # The method should be removed after removing the deprecated order token field.
+    # After that, we should move generating order data to the `additional_fields`
+    # in the `generate_invoice_payload` method.
+    serializer = PayloadSerializer()
+    payload = serializer.serialize(
+        [order],
+        fields=ORDER_FIELDS,
+        extra_dict_data={
+            "token": lambda o: o.id,
+        },
+    )
+    return payload
 
 
 @traced_payload_generator

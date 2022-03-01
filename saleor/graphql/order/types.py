@@ -355,7 +355,7 @@ class OrderEvent(ModelObjectType):
         order_pk = root.parameters.get("related_order_pk")
         if not order_pk:
             return None
-        return OrderByIdLoader(info.context).load(order_pk)
+        return OrderByIdLoader(info.context).load(UUID(order_pk))
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):

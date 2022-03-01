@@ -1,4 +1,3 @@
-import uuid
 from copy import deepcopy
 from datetime import date, timedelta
 from decimal import Decimal
@@ -29,7 +28,7 @@ from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
-from ....order.models import Order, OrderEvent, OrderLine
+from ....order.models import Order, OrderEvent, OrderLine, get_order_number
 from ....order.notifications import get_default_order_payload
 from ....order.search import (
     prepare_order_search_document_value,
@@ -100,37 +99,31 @@ def orders(customer_user, channel_USD, channel_PLN):
             Order(
                 user=customer_user,
                 status=OrderStatus.CANCELED,
-                token=uuid.uuid4(),
                 channel=channel_USD,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.UNFULFILLED,
-                token=uuid.uuid4(),
                 channel=channel_USD,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.PARTIALLY_FULFILLED,
-                token=uuid.uuid4(),
                 channel=channel_USD,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.FULFILLED,
-                token=uuid.uuid4(),
                 channel=channel_PLN,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.DRAFT,
-                token=uuid.uuid4(),
                 channel=channel_PLN,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.UNCONFIRMED,
-                token=uuid.uuid4(),
                 channel=channel_PLN,
             ),
         ]
@@ -474,7 +467,7 @@ def test_order_query(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["number"] == str(order.pk)
+    assert order_data["number"] == str(order.number)
     assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -698,7 +691,7 @@ def test_order_query_in_pln_channel(
     response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["number"] == str(order.pk)
+    assert order_data["number"] == str(order.number)
     assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -1423,7 +1416,7 @@ def test_related_order_events_query(
 
     new_order = deepcopy(order)
     new_order.id = None
-    new_order.token = None
+    new_order.number = get_order_number()
     new_order.save()
 
     related_order_id = graphene.Node.to_global_id("Order", new_order.id)
@@ -1465,7 +1458,7 @@ def test_related_order_events_query_for_app(
 
     new_order = deepcopy(order)
     new_order.id = None
-    new_order.token = None
+    new_order.number = get_order_number()
     new_order.save()
 
     related_order_id = graphene.Node.to_global_id("Order", new_order.id)
@@ -1654,7 +1647,7 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     )
     content = get_graphql_content(response)
     order_data = content["data"]["order"]
-    assert order_data["token"] == order.token
+    assert order_data["token"] == str(order.id)
 
 
 QUERY_ORDER_BY_ID = """
@@ -6172,7 +6165,7 @@ def test_order_by_token_query_by_anonymous_user(api_client, order):
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = api_client.post_graphql(query, {"token": order.token})
+    response = api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6228,7 +6221,7 @@ def test_order_by_token_query_by_order_owner(user_api_client, order):
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = user_api_client.post_graphql(query, {"token": order.token})
+    response = user_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6268,7 +6261,7 @@ def test_order_by_token_query_by_superuser(superuser_api_client, order):
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = superuser_api_client.post_graphql(query, {"token": order.token})
+    response = superuser_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6317,7 +6310,7 @@ def test_order_by_token_query_by_staff_with_permission(
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = staff_api_client.post_graphql(query, {"token": order.token})
+    response = staff_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6366,7 +6359,7 @@ def test_order_by_token_query_by_staff_no_permission(
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = staff_api_client.post_graphql(query, {"token": order.token})
+    response = staff_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6428,7 +6421,7 @@ def test_order_by_token_query_by_app(
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = app_api_client.post_graphql(query, {"token": order.token})
+    response = app_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6474,7 +6467,7 @@ def test_order_by_token_query_by_app_no_perm(
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     # when
-    response = app_api_client.post_graphql(query, {"token": order.token})
+    response = app_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6524,7 +6517,7 @@ def test_order_by_token_user_restriction(api_client, order):
         }
     }
     """
-    response = api_client.post_graphql(query, {"token": order.token})
+    response = api_client.post_graphql(query, {"token": order.id})
     assert_no_permission(response)
 
 
@@ -6538,7 +6531,7 @@ def test_order_by_token_events_restriction(api_client, order):
         }
     }
     """
-    response = api_client.post_graphql(query, {"token": order.token})
+    response = api_client.post_graphql(query, {"token": order.id})
     assert_no_permission(response)
 
 
@@ -6554,7 +6547,7 @@ def test_authorized_access_to_order_by_token(
         }
     }
     """
-    variables = {"token": order.token}
+    variables = {"token": order.id}
     customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
 
     response = user_api_client.post_graphql(query, variables)
@@ -6574,14 +6567,14 @@ def test_query_draft_order_by_token_with_requester_as_customer(
     draft_order.user = user_api_client.user
     draft_order.save(update_fields=["user"])
     query = ORDER_BY_TOKEN_QUERY
-    response = user_api_client.post_graphql(query, {"token": draft_order.token})
+    response = user_api_client.post_graphql(query, {"token": draft_order.id})
     content = get_graphql_content(response)
     assert not content["data"]["orderByToken"]
 
 
 def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_order):
     query = ORDER_BY_TOKEN_QUERY
-    response = api_client.post_graphql(query, {"token": draft_order.token})
+    response = api_client.post_graphql(query, {"token": draft_order.id})
     content = get_graphql_content(response)
     assert not content["data"]["orderByToken"]
 
@@ -6591,13 +6584,12 @@ def test_query_order_without_addresses(order, user_api_client, channel_USD):
     query = ORDER_BY_TOKEN_QUERY
 
     order = Order.objects.create(
-        token=str(uuid.uuid4()),
         channel=channel_USD,
         user=user_api_client.user,
     )
 
     # when
-    response = user_api_client.post_graphql(query, {"token": order.token})
+    response = user_api_client.post_graphql(query, {"token": order.id})
 
     # then
     content = get_graphql_content(response)
@@ -6613,15 +6605,13 @@ def test_order_query_address_without_order_user(
     query = ORDER_BY_TOKEN_QUERY
     shipping_address = address.get_copy()
     billing_address = address.get_copy()
-    token = str(uuid.uuid4())
-    Order.objects.create(
+    order = Order.objects.create(
         channel=channel_USD,
         shipping_address=shipping_address,
         billing_address=billing_address,
-        token=token,
     )
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(query, {"token": token})
+    response = staff_api_client.post_graphql(query, {"token": order.id})
     content = get_graphql_content(response)
     order = content["data"]["orderByToken"]
     assert order["shippingAddress"] is not None
@@ -7144,10 +7134,8 @@ def test_order_query_with_filter_customer_fields(
     customer_user.save()
     customer_user.refresh_from_db()
 
-    order = Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD)
-    Order.objects.bulk_create(
-        [order, Order(token=str(uuid.uuid4()), channel=channel_USD)]
-    )
+    order = Order(user=customer_user, channel=channel_USD)
+    Order.objects.bulk_create([order, Order(channel=channel_USD)])
 
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -7185,15 +7173,12 @@ def test_draft_order_query_with_filter_customer_fields(
     order = Order(
         status=OrderStatus.DRAFT,
         user=customer_user,
-        token=str(uuid.uuid4()),
         channel=channel_USD,
     )
     Order.objects.bulk_create(
         [
             order,
-            Order(
-                token=str(uuid.uuid4()), status=OrderStatus.DRAFT, channel=channel_USD
-            ),
+            Order(status=OrderStatus.DRAFT, channel=channel_USD),
         ]
     )
 
@@ -7456,7 +7441,6 @@ def test_query_orders_with_sort(
     with freeze_time("2017-01-14"):
         created_orders.append(
             Order.objects.create(
-                token=str(uuid.uuid4()),
                 billing_address=address,
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
@@ -7469,7 +7453,6 @@ def test_query_orders_with_sort(
         address2.save()
         created_orders.append(
             Order.objects.create(
-                token=str(uuid.uuid4()),
                 billing_address=address2,
                 status=OrderStatus.FULFILLED,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
@@ -7481,7 +7464,6 @@ def test_query_orders_with_sort(
     address3.save()
     created_orders.append(
         Order.objects.create(
-            token=str(uuid.uuid4()),
             billing_address=address3,
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
@@ -7490,7 +7472,6 @@ def test_query_orders_with_sort(
     )
     created_orders.append(
         Order.objects.create(
-            token=str(uuid.uuid4()),
             billing_address=None,
             status=OrderStatus.UNCONFIRMED,
             total=TaxedMoney(net=Money(60, "USD"), gross=Money(80, "USD")),
@@ -7504,7 +7485,9 @@ def test_query_orders_with_sort(
     orders = content["data"]["orders"]["edges"]
 
     for order, order_number in enumerate(result_order):
-        assert orders[order]["node"]["number"] == str(created_orders[order_number].pk)
+        assert orders[order]["node"]["number"] == str(
+            created_orders[order_number].number
+        )
 
 
 QUERY_DRAFT_ORDER_WITH_SORT = """
@@ -7543,7 +7526,6 @@ def test_query_draft_orders_with_sort(
     with freeze_time("2017-01-14"):
         created_orders.append(
             Order.objects.create(
-                token=str(uuid.uuid4()),
                 billing_address=address,
                 status=OrderStatus.DRAFT,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
@@ -7556,7 +7538,6 @@ def test_query_draft_orders_with_sort(
         address2.save()
         created_orders.append(
             Order.objects.create(
-                token=str(uuid.uuid4()),
                 billing_address=address2,
                 status=OrderStatus.DRAFT,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
@@ -7568,7 +7549,6 @@ def test_query_draft_orders_with_sort(
     address3.save()
     created_orders.append(
         Order.objects.create(
-            token=str(uuid.uuid4()),
             billing_address=address3,
             status=OrderStatus.DRAFT,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
@@ -7583,7 +7563,7 @@ def test_query_draft_orders_with_sort(
 
     for order, order_number in enumerate(result_order):
         assert draft_orders[order]["node"]["number"] == str(
-            created_orders[order_number].pk
+            created_orders[order_number].number
         )
 
 
@@ -7617,17 +7597,14 @@ def test_orders_query_with_filter_search(
         [
             Order(
                 user=customer_user,
-                token=str(uuid.uuid4()),
                 user_email="test@mirumee.com",
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email1@example.com",
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email2@example.com",
                 channel=channel_USD,
             ),
@@ -7702,12 +7679,10 @@ def test_orders_query_with_filter_search_by_global_payment_id(
         [
             Order(
                 user=customer_user,
-                token=str(uuid.uuid4()),
                 channel=channel_USD,
                 user_email="test@example.com",
             ),
             Order(
-                token=str(uuid.uuid4()),
                 channel=channel_USD,
                 user_email="user1@example.com",
             ),
@@ -7819,13 +7794,11 @@ def test_orders_query_with_filter_by_orders_id(
     orders = Order.objects.bulk_create(
         [
             Order(
-                token=str(uuid.uuid4()),
                 user_email="test@mirumee.com",
                 status=OrderStatus.UNFULFILLED,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email1@example.com",
                 status=OrderStatus.FULFILLED,
                 channel=channel_USD,
@@ -7963,19 +7936,16 @@ def test_draft_orders_query_with_filter_search(
         [
             Order(
                 user=customer_user,
-                token=str(uuid.uuid4()),
                 user_email="test@mirumee.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
@@ -8417,7 +8387,7 @@ def test_order_by_token_query_for_payment_details_without_permissions(
     api_client, payment_txn_captured
 ):
     response = api_client.post_graphql(
-        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT, {"token": payment_txn_captured.order.token}
+        QUERY_ORDER_BY_TOKEN_WITH_PAYMENT, {"token": payment_txn_captured.order.id}
     )
     assert_no_permission(response)
 
@@ -8428,7 +8398,7 @@ def test_order_by_token_query_for_payment_details_with_permissions(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
         QUERY_ORDER_BY_TOKEN_WITH_PAYMENT,
-        {"token": payment_txn_captured.order.token},
+        {"token": payment_txn_captured.order.id},
     )
 
     content = get_graphql_content(response)
@@ -8441,7 +8411,7 @@ def test_order_by_token_query_payment_details_available_fields_without_permissio
 ):
     response = api_client.post_graphql(
         QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
-        {"token": payment_txn_captured.order.token},
+        {"token": payment_txn_captured.order.id},
     )
 
     content = get_graphql_content(response)
@@ -8455,7 +8425,7 @@ def test_order_by_token_query_payment_details_available_fields_with_permissions(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
         QUERY_ORDER_WITH_PAYMENT_AVAILABLE_FIELDS,
-        {"token": payment_txn_captured.order.token},
+        {"token": payment_txn_captured.order.id},
     )
 
     content = get_graphql_content(response)

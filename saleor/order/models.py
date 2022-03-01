@@ -262,7 +262,7 @@ class Order(ModelWithMetadata):
     objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:
-        ordering = ("-pk",)
+        ordering = ("-number",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
@@ -643,7 +643,7 @@ class Fulfillment(ModelWithMetadata):
 
     @property
     def composed_id(self):
-        return "%s-%s" % (self.order.id, self.fulfillment_order)
+        return "%s-%s" % (self.order.number, self.fulfillment_order)
 
     def can_edit(self):
         return self.status != FulfillmentStatus.CANCELED
