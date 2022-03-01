@@ -5695,6 +5695,192 @@ def test_product_variant_stocks_delete_mutation_invalid_object_type_of_warehouse
     assert errors[0]["field"] == "warehouseIds"
 
 
+VARIANT_UPDATE_AND_STOCKS_REMOVE_MUTATION = """
+  fragment ProductVariant on ProductVariant {
+    stocks {
+      id
+    }
+  }
+
+  mutation VariantUpdate($removeStocks: [ID!]!, $id: ID!) {
+    productVariantUpdate(id: $id, input: {}) {
+      productVariant {
+        ...ProductVariant
+      }
+    }
+    productVariantStocksDelete(variantId: $id, warehouseIds: $removeStocks) {
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+"""
+
+
+def test_invalidate_stocks_dataloader_on_removing_stocks(
+    staff_api_client, variant_with_many_stocks, permission_manage_products
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", stock.warehouse.id)
+        for stock in variant_with_many_stocks.stocks.all()
+    ]
+    variables = {
+        "id": variant_id,
+        "removeStocks": warehouse_ids,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_UPDATE_AND_STOCKS_REMOVE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    variant_data = content["data"]["productVariantUpdate"]["productVariant"]
+    remove_stocks_data = content["data"]["productVariantStocksDelete"]["productVariant"]
+
+    # no stocks were removed in the first mutation
+    assert len(variant_data["stocks"]) == len(warehouse_ids)
+
+    # stocks are empty in the second mutation
+    assert remove_stocks_data["stocks"] == []
+
+
+VARIANT_UPDATE_AND_STOCKS_CREATE_MUTATION = """
+  fragment ProductVariant on ProductVariant {
+    id
+    name
+    stocks {
+      quantity
+      warehouse {
+        id
+        name
+      }
+    }
+  }
+
+  mutation VariantUpdate($id: ID!, $stocks: [StockInput!]!) {
+    productVariantUpdate(id: $id, input: {}) {
+      productVariant {
+        ...ProductVariant
+      }
+    }
+    productVariantStocksCreate(variantId: $id, stocks: $stocks) {
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+"""
+
+
+def test_invalidate_stocks_dataloader_on_create_stocks(
+    staff_api_client, variant_with_many_stocks, permission_manage_products
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", stock.warehouse.id)
+        for stock in variant_with_many_stocks.stocks.all()
+    ]
+    variant.stocks.all().delete()
+    variables = {
+        "id": variant_id,
+        "stocks": [
+            {"warehouse": warehouse_id, "quantity": 10}
+            for warehouse_id in warehouse_ids
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_UPDATE_AND_STOCKS_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    variant_data = content["data"]["productVariantUpdate"]["productVariant"]
+    create_stocks_data = content["data"]["productVariantStocksCreate"]["productVariant"]
+
+    # no stocks are present after the first mutation
+    assert variant_data["stocks"] == []
+
+    # stocks are returned in the second mutation, after dataloader invalidation
+    assert len(create_stocks_data["stocks"]) == len(warehouse_ids)
+
+
+VARIANT_UPDATE_AND_STOCKS_UPDATE_MUTATION = """
+  fragment ProductVariant on ProductVariant {
+    id
+    name
+    stocks {
+      quantity
+      warehouse {
+        id
+        name
+      }
+    }
+  }
+
+  mutation VariantUpdate($id: ID!, $stocks: [StockInput!]!) {
+    productVariantUpdate(id: $id, input: {}) {
+      productVariant {
+        ...ProductVariant
+      }
+    }
+    productVariantStocksUpdate(variantId: $id, stocks: $stocks) {
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+"""
+
+
+def test_invalidate_stocks_dataloader_on_update_stocks(
+    staff_api_client, variant_with_many_stocks, permission_manage_products
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stock = variant.stocks.first()
+    # keep only one stock record for test purposes
+    variant.stocks.exclude(id=stock.id).delete()
+    warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse.id)
+    old_quantity = stock.quantity
+    new_quantity = old_quantity + 500
+    variables = {
+        "id": variant_id,
+        "stocks": [{"warehouse": warehouse_id, "quantity": new_quantity}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_UPDATE_AND_STOCKS_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    variant_data = content["data"]["productVariantUpdate"]["productVariant"]
+    update_stocks_data = content["data"]["productVariantStocksUpdate"]["productVariant"]
+
+    # stocks is not updated in the first mutation
+    assert variant_data["stocks"][0]["quantity"] == old_quantity
+
+    # stock is updated in the second mutation
+    assert update_stocks_data["stocks"][0]["quantity"] == new_quantity
+
+
 def test_query_product_variant_for_federation(api_client, variant, channel_USD):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {
