@@ -1072,7 +1072,7 @@ type CheckoutCountableEdge {
 }
 
 type CheckoutCreate {
-  created: Boolean @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `True`.")
+  created: Boolean @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `true`.")
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
   checkout: Checkout
@@ -4245,9 +4245,9 @@ type Order implements Node & ObjectWithMetadata {
   deliveryMethod: DeliveryMethod
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
   languageCodeEnum: LanguageCodeEnum!
-  discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
-  discountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
-  translatedDiscountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field. ")
+  discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead.")
+  discountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead.")
+  translatedDiscountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead. ")
   discounts: [OrderDiscount!]
   errors: [OrderError!]!
 }
@@ -7016,7 +7016,7 @@ type User implements Node & ObjectWithMetadata {
   isStaff: Boolean!
   isActive: Boolean!
   addresses: [Address]
-  checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkout_tokens` field to fetch the user checkouts.")
+  checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
   checkoutTokens(channel: String): [UUID!]
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   note: String
