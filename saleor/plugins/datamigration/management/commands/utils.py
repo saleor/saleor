@@ -42,9 +42,6 @@ class BaseMigration:
         if not address_data:
             return Address()
 
-        address_id = int(
-            graphene.Node.from_global_id(global_id=address_data.get("id"))[1]
-        )
         address_data = {
             "phone": address_data.get("phone", ""),
             "city_area": address_data.get("cityArea", ""),
@@ -59,9 +56,7 @@ class BaseMigration:
             "street_address_2": address_data.get("streetAddress2", ""),
         }
         try:
-            address, _ = Address.objects.get_or_create(
-                id=address_id, defaults=address_data
-            )
+            address, _ = Address.objects.get_or_create(**address_data)
             user.addresses.add(address)
             return address
         except Address.MultipleObjectsReturned:
@@ -458,7 +453,6 @@ class DataMigration(BaseMigration):
             created_user, created = User.objects.get_or_create(
                 email=user.email,
                 defaults={
-                    "id": user.id,
                     "avatar": user.avatar,
                     "is_staff": user.is_staff,
                     "password": user.password,
