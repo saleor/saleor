@@ -9,4 +9,6 @@ class Migration(migrations.Migration):
         ("discount", "0027_auto_20210719_2155"),
     ]
 
+    # Removed in favor of 0029_alter_voucher_code to avoid issues when
+    # migrating between 3.0 and 3.1
     operations = []
