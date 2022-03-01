@@ -364,9 +364,13 @@ class User(ModelObjectType):
         def _resolve_orders(orders):
             requester = get_user_or_app_from_context(info.context)
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
-                orders = list(
-                    filter(lambda order: order.status != OrderStatus.DRAFT, orders)
-                )
+                # allow fetch requestor orders (except drafts)
+                if root == info.context.user:
+                    orders = list(
+                        filter(lambda order: order.status != OrderStatus.DRAFT, orders)
+                    )
+                else:
+                    raise PermissionDenied()
 
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection

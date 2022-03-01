@@ -6,6 +6,9 @@ All notable, unreleased changes to this project will be documented in this file.
 # Unreleased
 
 ### Breaking changes
+- Require manage orders for fetching `user.orders` - #9128 by @IKarbowiak
+  - only staff with `manage orders` and can fetch customer orders
+  - the customer can fetch his own orders, except drafts
 
 ### Other changes
 - Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
