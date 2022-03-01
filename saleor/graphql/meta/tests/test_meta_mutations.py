@@ -398,7 +398,7 @@ def test_add_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order.token, "Order"
+        api_client, None, order.id, "Order"
     )
 
     # then
@@ -428,7 +428,7 @@ def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, draft_order.token, "Order"
+        api_client, None, draft_order.id, "Order"
     )
 
     # then
@@ -1178,7 +1178,7 @@ def test_delete_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, order.token, "Order"
+        api_client, None, order.id, "Order"
     )
 
     # then
@@ -1212,7 +1212,7 @@ def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, draft_order.token, "Order"
+        api_client, None, draft_order.id, "Order"
     )
 
     # then
@@ -1985,7 +1985,7 @@ def test_add_private_metadata_for_order_by_token(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, order.token, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -2019,7 +2019,7 @@ def test_add_private_metadata_for_draft_order_by_token(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, draft_order.token, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then
@@ -2838,7 +2838,7 @@ def test_delete_private_metadata_for_order_by_token(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, order.token, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -2876,7 +2876,7 @@ def test_delete_private_metadata_for_draft_order_by_token(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, draft_order.token, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then

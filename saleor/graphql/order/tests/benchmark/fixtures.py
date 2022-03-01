@@ -1,5 +1,4 @@
 import random
-import uuid
 from decimal import Decimal
 
 import pytest
@@ -93,7 +92,6 @@ def orders_for_benchmarks(
 ):
     orders = [
         Order(
-            token=str(uuid.uuid4()),
             channel=channel_USD,
             billing_address=address.get_copy(),
             shipping_address=address.get_copy(),
@@ -117,7 +115,7 @@ def orders_for_benchmarks(
         payments.extend(new_payments)
         events.extend(new_events)
         lines.extend(new_lines)
-        fulfillments.append(Fulfillment(order=order, fulfillment_order=order.id))
+        fulfillments.append(Fulfillment(order=order, fulfillment_order=order.number))
 
     Payment.objects.bulk_create(payments)
     OrderEvent.objects.bulk_create(events)

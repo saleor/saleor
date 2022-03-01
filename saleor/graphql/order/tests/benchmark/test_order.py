@@ -113,7 +113,7 @@ def test_user_order_details(
         """
     )
     variables = {
-        "token": order_with_lines_and_events.token,
+        "token": order_with_lines_and_events.id,
     }
     get_graphql_content(user_api_client.post_graphql(query, variables))
 

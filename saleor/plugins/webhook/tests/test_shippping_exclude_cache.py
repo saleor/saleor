@@ -13,7 +13,7 @@ from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
-def test_excluded_shipping_methods_for_order_use_cache(
+def _use_cache(
     mocked_payload,
     mocked_webhook,
     mocked_cache_set,
@@ -110,7 +110,7 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_empty(
     # then
     assert mocked_webhook.called
 
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order_with_lines.token
+    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
     expected_excluded_shipping_method = [{"id": "1", "reason": webhook_reason}]
 
@@ -174,7 +174,7 @@ def test_excluded_shipping_methods_for_order_stores_in_cache_when_payload_is_dif
     # then
     assert mocked_webhook.called
 
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order_with_lines.token
+    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
     expected_excluded_shipping_method = [{"id": "1", "reason": webhook_reason}]
 

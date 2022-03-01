@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from uuid import UUID
 
 import graphene
 import prices
@@ -463,8 +464,10 @@ class GiftCard(ModelObjectType):
                     .then(get_channel_slug)
                 )
 
+            # TODO: handle for old and new `order_id`
+            # consider migration that will rewrite old ids to token
             order_id = bought_event.parameters["order_id"]
-            return OrderByIdLoader(info.context).load(order_id).then(with_order)
+            return OrderByIdLoader(info.context).load(UUID(order_id)).then(with_order)
 
         return (
             GiftCardEventsByGiftCardIdLoader(info.context)
