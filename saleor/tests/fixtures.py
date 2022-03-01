@@ -44,12 +44,14 @@ from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
+from ..core.taxes import zero_money
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
 from ..discount.models import (
+    NotApplicable,
     Sale,
     SaleChannelListing,
     SaleTranslation,
@@ -77,7 +79,10 @@ from ..order.models import (
     OrderLine,
 )
 from ..order.search import prepare_order_search_document_value
-from ..order.utils import recalculate_order
+from ..order.utils import (
+    get_voucher_discount_assigned_to_order,
+    get_voucher_discount_for_order,
+)
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, PaymentData
@@ -784,6 +789,7 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        price_expiration_for_unconfirmed=timezone.now() + timedelta(hours=24),
     )
     return order
 
@@ -3451,6 +3457,33 @@ def gift_card_event(gift_card, order, app, staff_user):
         parameters=parameters,
         date=timezone.now() + datetime.timedelta(days=10),
     )
+
+
+def recalculate_order(order):
+    lines = OrderLine.objects.filter(order_id=order.pk)
+    prices = [line.total_price for line in lines]
+    total = sum(prices, order.shipping_price)
+    undiscounted_total = TaxedMoney(total.net, total.gross)
+
+    try:
+        discount = get_voucher_discount_for_order(order)
+    except NotApplicable:
+        discount = zero_money(order.currency)
+
+    discount = min(discount, total.gross)
+    total -= discount
+
+    order.total = total
+    order.undiscounted_total = undiscounted_total
+
+    if discount:
+        assigned_order_discount = get_voucher_discount_assigned_to_order(order)
+        if assigned_order_discount:
+            assigned_order_discount.amount_value = discount.amount
+            assigned_order_discount.value = discount.amount
+            assigned_order_discount.save(update_fields=["value", "amount_value"])
+
+    order.save()
 
 
 @pytest.fixture
