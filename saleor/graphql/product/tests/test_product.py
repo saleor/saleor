@@ -5961,6 +5961,34 @@ def test_product_create_with_collections_webhook(
     get_graphql_content(response)
 
 
+def test_product_create_with_invalid_json_description(staff_api_client):
+    query = """
+        mutation ProductCreate {
+            productCreate(
+                input: {
+                    description: "I'm not a valid JSON"
+                    category: "Q2F0ZWdvcnk6MjQ="
+                    name: "Breaky McErrorface"
+                    productType: "UHJvZHVjdFR5cGU6NTE="
+                }
+            ) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content_from_response(response)
+
+    assert content["errors"]
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["extensions"]["exception"]["code"] == "GraphQLError"
+    assert "is not a valid JSONString" in content["errors"][0]["message"]
+
+
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
         productUpdate(id: $productId, input: $input) {
