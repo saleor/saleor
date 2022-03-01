@@ -35,7 +35,7 @@ from ..warehouse.availability import (
 )
 from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
-from . import AddressType, calculations
+from . import AddressType, calculations, models
 from .error_codes import CheckoutErrorCode
 from .fetch import (
     update_checkout_info_delivery_method,
@@ -53,6 +53,15 @@ if TYPE_CHECKING:
 
 
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
+
+
+def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
+    """Mark checkout as ready for prices recalculation."""
+    checkout.price_expiration = timezone.now()
+    updated_fields = ["price_expiration"]
+    if save:
+        checkout.save(update_fields=updated_fields)
+    return updated_fields
 
 
 def get_user_checkout(

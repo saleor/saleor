@@ -35,8 +35,8 @@ from ....order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
-    recalculate_order,
-    update_order_prices,
+    invalidate_order_prices,
+    recalculate_order_weight,
 )
 from ....payment import PaymentError, TransactionKind, gateway
 from ....plugins.manager import PluginsManager
@@ -230,6 +230,17 @@ class OrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+        return any(
+            cleaned_input.get(field) is not None
+            for field in [
+                "shipping_address",
+                "billing_address",
+                "shipping_method",
+            ]
+        )
+
+    @classmethod
     @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         cls._save_addresses(info, instance, cleaned_input)
@@ -237,19 +248,12 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.search_document = prepare_order_search_document_value(instance)
+
+        if cls.should_invalidate_prices(instance, cleaned_input, False):
+            invalidate_order_prices(instance)
+
         instance.save()
 
-        invalid_price_fields = ["shipping_address", "billing_address"]
-        invalidate_prices = any(
-            cleaned_input.get(field) is not None for field in invalid_price_fields
-        )
-
-        update_order_prices(
-            instance,
-            info.context.plugins,
-            info.context.site.settings.include_taxes_in_prices,
-            invalidate_prices,
-        )
         transaction.on_commit(lambda: info.context.plugins.order_updated(instance))
 
 
@@ -351,6 +355,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             order.shipping_method = None
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
+            invalidate_order_prices(order)
             order.save(
                 update_fields=[
                     "currency",
@@ -358,9 +363,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
                     "shipping_method_name",
+                    "price_expiration_for_unconfirmed",
                 ]
             )
-            recalculate_order(order)
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -394,26 +399,15 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
 
         order.shipping_method = method
-        shipping_price = info.context.plugins.calculate_order_shipping(order)
-        order.shipping_price = shipping_price
-        order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
-            order, shipping_price
-        )
         order.shipping_method_name = method.name
+        invalidate_order_prices(order)
         order.save(
             update_fields=[
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
-                "shipping_price_net_amount",
-                "shipping_price_gross_amount",
-                "shipping_tax_rate",
+                "price_expiration_for_unconfirmed",
             ]
-        )
-        update_order_prices(
-            order,
-            info.context.plugins,
-            info.context.site.settings.include_taxes_in_prices,
         )
         # Post-process the results
         order_shipping_updated(order, info.context.plugins)
@@ -542,7 +536,7 @@ class OrderMarkAsPaid(BaseMutation):
             order, user, app, info.context.plugins, transaction_reference
         )
 
-        update_order_search_document(order)
+        update_order_search_document(order, save=True)
 
         return OrderMarkAsPaid(order=order)
 
@@ -888,8 +882,16 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order_lines=lines_to_add,
         )
 
-        recalculate_order(order, invalidate_prices=True)
+        invalidate_order_prices(order)
+        recalculate_order_weight(order)
         update_order_search_document(order)
+        order.save(
+            update_fields=[
+                "price_expiration_for_unconfirmed",
+                "weight",
+                "search_document",
+            ]
+        )
 
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
@@ -960,8 +962,17 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             order_lines=[(line.quantity, line)],
         )
 
-        recalculate_order(order, invalidate_prices=True)
+        invalidate_order_prices(order)
+        recalculate_order_weight(order)
         update_order_search_document(order)
+        order.save(
+            update_fields=[
+                "price_expiration_for_unconfirmed",
+                "weight",
+                "search_document",
+            ]
+        )
+
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)
@@ -1032,7 +1043,11 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 "Cannot set new quantity because of insufficient stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
             )
-        recalculate_order(instance.order, invalidate_prices=True)
+        invalidate_order_prices(instance.order)
+        recalculate_order_weight(instance.order)
+        instance.order.save(
+            update_fields=["price_expiration_for_unconfirmed", "weight"]
+        )
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))

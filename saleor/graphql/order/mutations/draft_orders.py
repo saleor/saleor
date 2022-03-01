@@ -21,8 +21,8 @@ from ....order.search import (
 from ....order.utils import (
     add_variant_to_order,
     get_order_country,
-    recalculate_order,
-    update_order_prices,
+    invalidate_order_prices,
+    recalculate_order_weight,
 )
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
@@ -282,28 +282,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         instance.save(update_fields=["billing_address", "shipping_address"])
 
     @classmethod
-    def _refresh_lines_unit_price(cls, info, instance, cleaned_input, new_instance):
-        if new_instance:
-            # It is a new instance, all new lines have already updated prices.
-            return
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address and instance.is_shipping_required():
-            update_order_prices(
-                instance,
-                info.context.plugins,
-                info.context.site.settings.include_taxes_in_prices,
-            )
-        billing_address = cleaned_input.get("billing_address")
-        if billing_address and not instance.is_shipping_required():
-            update_order_prices(
-                instance,
-                info.context.plugins,
-                info.context.site.settings.include_taxes_in_prices,
-            )
-
-    @classmethod
-    def invalidate_prices(cls, instance, cleaned_input) -> bool:
-        return False
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+        # Force price recalculation for all new instances
+        return new_instance
 
     @classmethod
     @traced_atomic_transaction()
@@ -324,8 +305,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 cleaned_input.get("quantities"),
                 cleaned_input.get("variants"),
             )
-
-            cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),
@@ -343,8 +322,17 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
         # Post-process the results
-        recalculate_order(instance, cls.invalidate_prices(instance, cleaned_input))
+        if cls.should_invalidate_prices(instance, cleaned_input, new_instance):
+            invalidate_order_prices(instance)
+        recalculate_order_weight(instance)
         update_order_search_document(instance)
+        instance.save(
+            update_fields=[
+                "price_expiration_for_unconfirmed",
+                "weight",
+                "search_document",
+            ]
+        )
 
 
 class DraftOrderUpdate(DraftOrderCreate):
@@ -380,10 +368,14 @@ class DraftOrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
-    def invalidate_prices(cls, instance, cleaned_input) -> bool:
-        invalid_price_fields = ["shipping_address", "billing_address"]
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         return any(
-            cleaned_input.get(field) is not None for field in invalid_price_fields
+            cleaned_input.get(field) is not None
+            for field in [
+                "shipping_address",
+                "billing_address",
+                "shipping_method",
+            ]
         )
 
 

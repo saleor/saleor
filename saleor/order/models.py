@@ -250,6 +250,8 @@ class Order(ModelWithMetadata):
     price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)
     search_document = models.TextField(blank=True, default="")
 
+    price_expiration_for_unconfirmed = models.DateTimeField(default=timezone.now)
+
     objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:
