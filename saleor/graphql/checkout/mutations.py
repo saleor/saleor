@@ -58,6 +58,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
 from ..core.types.common import CheckoutError
@@ -1640,7 +1641,7 @@ class CheckoutComplete(BaseMutation):
             " before checkout is complete."
         ),
     )
-    confirmation_data = graphene.JSONString(
+    confirmation_data = JSONString(
         required=False,
         description=(
             "Confirmation data used to process additional authorization steps."
@@ -1669,7 +1670,7 @@ class CheckoutComplete(BaseMutation):
                 "see the order details. URL in RFC 1808 format."
             ),
         )
-        payment_data = graphene.JSONString(
+        payment_data = JSONString(
             required=False,
             description=(
                 "Client-side generated data required to finalize the payment."

@@ -2,6 +2,7 @@ import graphene
 
 from ...core.permissions import AppPermission
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.fields import JSONString
 from ..decorators import permission_required
 from .enums import WebhookSampleEventTypeEnum
 from .mutations import EventDeliveryRetry, WebhookCreate, WebhookDelete, WebhookUpdate
@@ -26,7 +27,7 @@ class WebhookQueries(graphene.ObjectType):
         ),
     )
     webhook_sample_payload = graphene.Field(
-        graphene.JSONString,
+        JSONString,
         event_type=graphene.Argument(
             WebhookSampleEventTypeEnum,
             required=True,
