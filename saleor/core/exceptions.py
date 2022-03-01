@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional, Union
+from enum import Enum
+from typing import TYPE_CHECKING, List, Optional, Sequence, Union
 
 from ..checkout.error_codes import CheckoutErrorCode
 
@@ -54,8 +55,14 @@ class ProductNotPublished(Exception):
 
 
 class PermissionDenied(Exception):
-    def __init__(self, message=None):
-        default_message = "You do not have permission to perform this action"
-        if message is None:
-            message = default_message
+    def __init__(self, message=None, *, permissions: Sequence[Enum] = None):
+        if not message:
+            if permissions:
+                permission_list = ", ".join(p.name for p in permissions)
+                message = (
+                    f"You need one of the following permissions: {permission_list}"
+                )
+            else:
+                message = "You do not have permission to perform this action"
         super().__init__(message)
+        self.permissions = permissions
