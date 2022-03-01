@@ -62,6 +62,7 @@ class BaseMigration:
         except Address.MultipleObjectsReturned:
             addresses = Address.objects.filter(**address_data)
             user.addresses.set(addresses)
+            return addresses.last()
 
     def get_or_create_user_order(self, user, order_data):
         billing_address_id = self.get_or_create_user_address(
