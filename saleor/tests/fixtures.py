@@ -18,6 +18,8 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
+from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
 from django.forms import ModelForm
 from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -3246,9 +3248,14 @@ def order_line_with_one_allocation(
     Allocation.objects.create(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
-    stock = stocks[0]
-    stock.quantity_allocated = 1
-    stock.save(update_fields=["quantity_allocated"])
+    stocks_to_update = []
+    for mismatched_stock in Stock.objects.annotate(
+        allocations_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
+    ).exclude(quantity_allocated=F("allocations_allocated")):
+        mismatched_stock.quantity_allocated = mismatched_stock.allocations_allocated
+        stocks_to_update.append(mismatched_stock)
+    if stocks_to_update:
+        Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     return order_line
 
@@ -3470,13 +3477,16 @@ def order_with_lines(
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
+    quantity = 3
     stock = Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=5
+        warehouse=warehouse,
+        product_variant=variant,
+        quantity=5,
+        quantity_allocated=quantity,
     )
     net = variant.get_price(product, [], channel_USD, channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    quantity = 3
     unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -3518,8 +3528,12 @@ def order_with_lines(
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
+    quantity = 2
     stock = Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=2
+        product_variant=variant,
+        warehouse=warehouse,
+        quantity=quantity,
+        quantity_allocated=quantity,
     )
     stock.refresh_from_db()
 
@@ -3527,7 +3541,6 @@ def order_with_lines(
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
-    quantity = 2
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
@@ -4018,6 +4031,9 @@ def fulfillment_awaiting_approval(fulfilled_order):
 
 @pytest.fixture
 def draft_order(order_with_lines, shipping_method):
+    Stock.objects.filter(allocations__order_line__order=order_with_lines).update(
+        quantity_allocated=0
+    )
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT

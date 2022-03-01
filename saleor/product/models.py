@@ -506,9 +506,7 @@ class ProductVariantQueryset(models.QuerySet):
     def annotate_quantities(self):
         return self.annotate(
             quantity=Coalesce(Sum("stocks__quantity"), 0),
-            quantity_allocated=Coalesce(
-                Sum("stocks__allocations__quantity_allocated"), 0
-            ),
+            quantity_allocated=Coalesce(Sum("stocks__quantity_allocated"), 0),
         )
 
     def available_in_channel(self, channel_slug):

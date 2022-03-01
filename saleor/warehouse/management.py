@@ -93,19 +93,10 @@ def allocate_stocks(
                 "quantity_reserved"
             ]
 
-    quantity_allocation_list = list(
-        Allocation.objects.filter(
-            stock_id__in=stocks_id,
-            quantity_allocated__gt=0,
-        )
-        .values("stock")
-        .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
-    )
-    quantity_allocation_for_stocks: Dict = defaultdict(int)
-    for allocation in quantity_allocation_list:
-        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-            "quantity_allocated_sum"
-        ]
+    quantity_allocation_for_stocks = {
+        stock.pk: stock.quantity_allocated
+        for stock in Stock.objects.filter(pk__in=stocks_id, quantity_allocated__gt=0)
+    }
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
@@ -405,21 +396,10 @@ def decrease_stock(
             str(stock.warehouse_id)
         ] = stock
 
-    quantity_allocation_list = list(
-        Allocation.objects.filter(
-            stock__in=stocks,
-            quantity_allocated__gt=0,
-        )
-        .values("stock")
-        .annotate(Sum("quantity_allocated"))
-    )
-
     if update_stocks:
-        quantity_allocation_for_stocks: Dict[int, int] = defaultdict(int)
-        for allocation in quantity_allocation_list:
-            quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-                "quantity_allocated__sum"
-            ]
+        quantity_allocation_for_stocks = {
+            stock.pk: stock.quantity_allocated for stock in stocks
+        }
         _decrease_stocks_quantity(
             order_lines_info,
             variant_and_warehouse_to_stock,
@@ -698,10 +678,17 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
 
     allocations_to_create = []
     stocks_to_create = []
+    stocks_to_update = []
     for preorder_allocation in preorder_allocations:
         stock = _get_stock_for_preorder_allocation(preorder_allocation, product_variant)
         if stock._state.adding:
+            stock.quantity_allocated += preorder_allocation.quantity
             stocks_to_create.append(stock)
+        else:
+            stock.quantity_allocated = (
+                F("quantity_allocated") + preorder_allocation.quantity
+            )
+            stocks_to_update.append(stock)
         allocations_to_create.append(
             Allocation(
                 order_line=preorder_allocation.order_line,
@@ -712,6 +699,9 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
 
     if stocks_to_create:
         Stock.objects.bulk_create(stocks_to_create)
+
+    if stocks_to_update:
+        Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     if allocations_to_create:
         Allocation.objects.bulk_create(allocations_to_create)

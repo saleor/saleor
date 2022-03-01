@@ -153,16 +153,7 @@ class Warehouse(ModelWithMetadata):
 
 class StockQuerySet(models.QuerySet):
     def annotate_available_quantity(self):
-        return self.annotate(
-            available_quantity=F("quantity")
-            - Coalesce(
-                Sum(
-                    "allocations__quantity_allocated",
-                    filter=Q(allocations__quantity_allocated__gt=0),
-                ),
-                0,
-            )
-        )
+        return self.annotate(available_quantity=F("quantity") - F("quantity_allocated"))
 
     def annotate_reserved_quantity(self):
         return self.annotate(

@@ -47,7 +47,7 @@ def _get_available_quantity(
 ) -> int:
     results = stocks.aggregate(
         total_quantity=Coalesce(Sum("quantity", distinct=True), 0),
-        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0),
+        quantity_allocated=Coalesce(Sum("quantity_allocated"), 0),
     )
     total_quantity = results["total_quantity"]
     quantity_allocated = results["quantity_allocated"]

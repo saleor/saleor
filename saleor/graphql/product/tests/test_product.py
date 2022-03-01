@@ -2906,6 +2906,8 @@ def test_products_query_with_filter_stock_availability_as_staff(
 
     for product in product_list:
         stock = product.variants.first().stocks.first()
+        stock.quantity_allocated = stock.quantity
+        stock.save(update_fields=["quantity_allocated"])
         Allocation.objects.create(
             order_line=order_line, stock=stock, quantity_allocated=stock.quantity
         )
@@ -2936,6 +2938,8 @@ def test_products_query_with_filter_stock_availability_as_user(
 
     for product in product_list:
         stock = product.variants.first().stocks.first()
+        stock.quantity_allocated = stock.quantity
+        stock.save(update_fields=["quantity_allocated"])
         Allocation.objects.create(
             order_line=order_line, stock=stock, quantity_allocated=stock.quantity
         )

@@ -23,7 +23,6 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
-from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..events import (
     OrderEventsEmails,
@@ -234,7 +233,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
     variant = product.variants.get()
     stock = Stock.objects.get(product_variant=variant)
 
-    stock_before = get_quantity_allocated_for_stock(stock)
+    stock_before = stock.quantity_allocated
 
     add_variant_to_order(
         order_with_lines,
@@ -247,7 +246,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
     )
 
     stock.refresh_from_db()
-    assert get_quantity_allocated_for_stock(stock) == stock_before
+    assert stock.quantity_allocated == stock_before
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
@@ -281,7 +280,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     stock = Stock.objects.get(product_variant=variant)
-    stock_before = get_quantity_allocated_for_stock(stock)
+    stock_before = stock.quantity_allocated
     quantity_before = existing_line.quantity
     quantity_unfulfilled_before = existing_line.quantity_unfulfilled
 
@@ -297,7 +296,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
 
     stock.refresh_from_db()
     existing_line.refresh_from_db()
-    assert get_quantity_allocated_for_stock(stock) == stock_before
+    assert stock.quantity_allocated == stock_before
     assert existing_line.quantity == quantity_before + 1
     assert existing_line.quantity_unfulfilled == quantity_unfulfilled_before + 1
 
@@ -308,8 +307,8 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     line_2 = fulfillment.lines.last()
     stock_1 = Stock.objects.get(product_variant=line_1.order_line.variant)
     stock_2 = Stock.objects.get(product_variant=line_2.order_line.variant)
-    stock_1_quantity_allocated_before = get_quantity_allocated_for_stock(stock_1)
-    stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
+    stock_1_quantity_allocated_before = stock_1.quantity_allocated
+    stock_2_quantity_allocated_before = stock_2.quantity_allocated
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
     order_line_1 = line_1.order_line
@@ -321,10 +320,10 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
-    assert get_quantity_allocated_for_stock(stock_1) == (
+    assert stock_1.quantity_allocated == (
         stock_1_quantity_allocated_before + line_1.quantity
     )
-    assert get_quantity_allocated_for_stock(stock_2) == (
+    assert stock_2.quantity_allocated == (
         stock_2_quantity_allocated_before + line_2.quantity
     )
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity

@@ -159,9 +159,7 @@ class Stock(ModelObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_quantity_allocated(root, *_args):
-        return root.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
+        return root.quantity_allocated
 
     @staticmethod
     @one_of_permissions_required(

@@ -4,10 +4,10 @@ from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import Exists, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Cast, Coalesce
+from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ...attribute import AttributeInputType
@@ -32,7 +32,7 @@ from ...product.models import (
     ProductVariantChannelListing,
 )
 from ...product.search import search_products
-from ...warehouse.models import Allocation, Stock, Warehouse
+from ...warehouse.models import Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
     EnumFilter,
@@ -307,16 +307,9 @@ def filter_products_by_collections(qs, collection_pks):
 
 
 def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
-    allocations = (
-        Allocation.objects.values("stock_id")
-        .filter(quantity_allocated__gt=0, stock_id=OuterRef("pk"))
-        .values_list(Sum("quantity_allocated"))
-    )
-    allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
-
     stocks = (
         Stock.objects.for_channel(channel_slug)
-        .filter(quantity__gt=Coalesce(allocated_subquery, 0))
+        .filter(quantity__gt=F("quantity_allocated"))
         .values("product_variant_id")
     )
     variants = ProductVariant.objects.filter(

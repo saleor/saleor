@@ -842,7 +842,8 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
 ):
     stock = allocation.stock
     stock.quantity = 50
-    stock.save(update_fields=["quantity"])
+    stock.quantity_allocated = 50
+    stock.save(update_fields=["quantity", "quantity_allocated"])
     allocation.quantity_allocated = 50
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk

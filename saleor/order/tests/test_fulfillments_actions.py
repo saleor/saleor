@@ -446,6 +446,9 @@ def test_create_fulfillments_without_allocations(
 
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
+    Stock.objects.filter(allocations__order_line__order=order).update(
+        quantity_allocated=0
+    )
     Allocation.objects.filter(order_line__order=order).delete()
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
