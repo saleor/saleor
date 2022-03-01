@@ -1,9 +1,12 @@
 from collections import defaultdict
+from typing import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models.fields import IntegerField
+from django.db.models.functions import Coalesce
 from graphene.types import InputObjectType
 
 from ....attribute import AttributeInputType
@@ -605,6 +608,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         )
 
         cls.delete_assigned_attribute_values(pks)
+        cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids, **data)
 
         transaction.on_commit(
@@ -649,6 +653,38 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             variantassignments__variant_id__in=instance_pks,
             attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
         ).delete()
+
+    @staticmethod
+    def delete_product_channel_listings_without_available_variants(
+        product_pks: Iterable[int], variant_pks: Iterable[int]
+    ):
+        """Delete invalid channel listings.
+
+        Delete product channel listings for product and channel for which
+        the last available variant has been deleted.
+        """
+        variants = models.ProductVariant.objects.filter(
+            product_id__in=product_pks
+        ).exclude(id__in=variant_pks)
+
+        variant_subquery = Subquery(
+            queryset=variants.filter(id=OuterRef("variant_id")).values("product_id"),
+            output_field=IntegerField(),
+        )
+        variant_channel_listings = models.ProductVariantChannelListing.objects.annotate(
+            product_id=Coalesce(variant_subquery, 0)
+        )
+
+        invalid_product_channel_listings = models.ProductChannelListing.objects.filter(
+            product_id__in=product_pks
+        ).exclude(
+            Exists(
+                variant_channel_listings.filter(
+                    channel_id=OuterRef("channel_id"), product_id=OuterRef("product_id")
+                )
+            )
+        )
+        invalid_product_channel_listings.delete()
 
 
 class ProductVariantStocksCreate(BaseMutation):

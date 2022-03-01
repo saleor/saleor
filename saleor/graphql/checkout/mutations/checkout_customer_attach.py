@@ -66,7 +66,9 @@ class CheckoutCustomerAttach(BaseMutation):
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)
             if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
-                raise PermissionDenied()
+                raise PermissionDenied(
+                    permissions=[AccountPermissions.IMPERSONATE_USER]
+                )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
         else:
             customer = info.context.user

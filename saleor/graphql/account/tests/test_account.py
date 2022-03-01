@@ -181,6 +181,7 @@ def test_query_customer_user(
     gift_card_expiry_date,
     address,
     permission_manage_users,
+    permission_manage_orders,
     media_root,
     settings,
 ):
@@ -199,7 +200,9 @@ def test_query_customer_user(
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
-    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_users, permission_manage_orders
+    )
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["user"]
@@ -268,6 +271,48 @@ def test_query_customer_user_with_orders(
     customer_user,
     order_list,
     permission_manage_users,
+    permission_manage_orders,
+):
+    # given
+    query = FULL_USER_QUERY
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_users, permission_manage_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    user = content["data"]["user"]
+    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
+        graphene.Node.to_global_id("Order", order.pk) for order in order_list
+    }
+
+
+def test_query_customer_user_with_orders_no_manage_orders_perm(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
 ):
     # given
     query = FULL_USER_QUERY
@@ -295,12 +340,7 @@ def test_query_customer_user_with_orders(
     )
 
     # then
-    content = get_graphql_content(response)
-    user = content["data"]["user"]
-    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
-        graphene.Node.to_global_id("Order", order.pk)
-        for order in [order_unfulfilled, order_unconfirmed]
-    }
+    assert_no_permission(response)
 
 
 def test_query_customer_user_app(
@@ -309,6 +349,7 @@ def test_query_customer_user_app(
     address,
     permission_manage_users,
     permission_manage_staff,
+    permission_manage_orders,
     media_root,
     app,
 ):
@@ -327,7 +368,9 @@ def test_query_customer_user_app(
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
-    app.permissions.add(permission_manage_staff, permission_manage_users)
+    app.permissions.add(
+        permission_manage_staff, permission_manage_users, permission_manage_orders
+    )
     response = app_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
@@ -362,6 +405,41 @@ def test_query_customer_user_app_no_permission(
     app.permissions.add(permission_manage_staff)
     response = app_api_client.post_graphql(query, variables)
 
+    assert_no_permission(response)
+
+
+def test_query_customer_user_with_orders_by_app_no_manage_orders_perm(
+    app_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
+):
+    # given
+    query = FULL_USER_QUERY
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
     assert_no_permission(response)
 
 
@@ -993,6 +1071,7 @@ def test_user_with_cancelled_fulfillments(
     staff_api_client,
     customer_user,
     permission_manage_users,
+    permission_manage_orders,
     fulfilled_order_with_cancelled_fulfillment,
 ):
     query = """
@@ -1013,7 +1092,9 @@ def test_user_with_cancelled_fulfillments(
     """
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": user_id}
-    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_users, permission_manage_orders
+    )
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     order_id = graphene.Node.to_global_id(

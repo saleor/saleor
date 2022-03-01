@@ -500,7 +500,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         else:
             permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=permissions)
 
         instance = models.Attribute()
 

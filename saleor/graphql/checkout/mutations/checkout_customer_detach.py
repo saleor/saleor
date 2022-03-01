@@ -53,7 +53,9 @@ class CheckoutCustomerDetach(BaseMutation):
         if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
             # Raise error if the current user doesn't own the checkout of the given ID.
             if checkout.user and checkout.user != info.context.user:
-                raise PermissionDenied()
+                raise PermissionDenied(
+                    permissions=[AccountPermissions.IMPERSONATE_USER]
+                )
 
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
