@@ -1646,7 +1646,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "posuto"
-version = "2022.2.0"
+version = "2022.3.0"
 description = "Japanese Postal Code Data"
 category = "main"
 optional = false
@@ -2761,7 +2761,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "3246a70194bc0c5bca582f0b1357156aa03bdaccdbe5b7bb00530aa8d4730d18"
+content-hash = "a4c9e5d96c6c7156f1b2d6c026ff6d1ba9b991befc48c2bbb2e249fb45586ed2"
 
 [metadata.files]
 adyen = [
@@ -3826,7 +3826,7 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 posuto = [
-    {file = "posuto-2022.2.0.tar.gz", hash = "sha256:5684e770adac445e2d2d1afb10f53e5089e50b9f15d76eea2d5cb8810095e69a"},
+    {file = "posuto-2022.3.0.tar.gz", hash = "sha256:8e0fcb89d5d6f5ca0648dd2ba02082aceb011266194fa98602197ec3104b71fb"},
 ]
 pre-commit = [
     {file = "pre_commit-2.17.0-py2.py3-none-any.whl", hash = "sha256:725fa7459782d7bec5ead072810e47351de01709be838c2ce1726b9591dad616"},
