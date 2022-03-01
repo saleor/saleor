@@ -39,6 +39,7 @@ from ...core.permissions import AccountPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
+from ...plugins.webhook.utils import APP_ID_PREFIX
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import interface as shipping_interface
@@ -54,8 +55,10 @@ from ..core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
 )
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID
 from ..core.types.common import CheckoutError
@@ -862,7 +865,9 @@ class CheckoutCustomerAttach(BaseMutation):
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)
             if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
-                raise PermissionDenied()
+                raise PermissionDenied(
+                    permissions=[AccountPermissions.IMPERSONATE_USER]
+                )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
         else:
             customer = info.context.user
@@ -915,7 +920,9 @@ class CheckoutCustomerDetach(BaseMutation):
         if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
             # Raise error if the current user doesn't own the checkout of the given ID.
             if checkout.user and checkout.user != info.context.user:
-                raise PermissionDenied()
+                raise PermissionDenied(
+                    permissions=[AccountPermissions.IMPERSONATE_USER]
+                )
 
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
@@ -1227,7 +1234,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("ShippingMethod", "app")
+        possible_types = ("ShippingMethod", APP_ID_PREFIX)
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1400,7 +1407,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     class Meta:
         description = (
             f"{ADDED_IN_31} Updates the delivery method "
-            "(shipping method or pick up point) of the checkout."
+            f"(shipping method or pick up point) of the checkout. {PREVIEW_FEATURE}"
         )
         error_type_class = CheckoutError
 
@@ -1553,7 +1560,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         if id_ is None:
             return None
 
-        possible_types = ("Warehouse", "ShippingMethod", "app")
+        possible_types = ("Warehouse", "ShippingMethod", APP_ID_PREFIX)
         type_, id_ = from_global_id_or_error(id_)
         str_type = str(type_)
 
@@ -1634,7 +1641,7 @@ class CheckoutComplete(BaseMutation):
             " before checkout is complete."
         ),
     )
-    confirmation_data = graphene.JSONString(
+    confirmation_data = JSONString(
         required=False,
         description=(
             "Confirmation data used to process additional authorization steps."
@@ -1663,7 +1670,7 @@ class CheckoutComplete(BaseMutation):
                 "see the order details. URL in RFC 1808 format."
             ),
         )
-        payment_data = graphene.JSONString(
+        payment_data = JSONString(
             required=False,
             description=(
                 "Client-side generated data required to finalize the payment."

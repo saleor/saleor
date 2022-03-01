@@ -8,7 +8,7 @@ from .attribute.schema import AttributeMutations, AttributeQueries
 from .channel.schema import ChannelMutations, ChannelQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.enums import unit_enums
-from .core.federation import build_federated_schema
+from .core.federation.schema import build_federated_schema
 from .core.schema import CoreMutations, CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
 from .discount.schema import DiscountMutations, DiscountQueries

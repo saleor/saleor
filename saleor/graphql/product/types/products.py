@@ -6,7 +6,6 @@ from typing import List, Optional
 import graphene
 from django_countries.fields import Country
 from graphene import relay
-from graphene_federation import key
 
 from ....attribute import models as attribute_models
 from ....core.permissions import (
@@ -27,7 +26,6 @@ from ....product.utils.availability import (
 )
 from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.reservations import is_reservation_enabled
-from ....webhook.subscription_payload import generate_payload_from_subscription
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
@@ -51,10 +49,11 @@ from ...core.descriptions import (
     ADDED_IN_31,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
 )
 from ...core.enums import ReportingPeriod
-from ...core.federation import resolve_federation_references
-from ...core.fields import ConnectionField, FilterConnectionField
+from ...core.federation import federated_entity, resolve_federation_references
+from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.types import (
     Image,
     ModelObjectType,
@@ -218,7 +217,7 @@ class PreorderData(graphene.ObjectType):
         return root.global_sold_units
 
 
-@key(fields="id channel")
+@federated_entity("id channel")
 class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
@@ -317,8 +316,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=f"{ADDED_IN_31} Preorder data for product variant.",
+        description=(
+            f"{ADDED_IN_31} Preorder data for product variant. {PREVIEW_FEATURE}"
+        ),
     )
+    created = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -719,17 +722,18 @@ class ProductVariantCountableConnection(CountableConnection):
         node = ProductVariant
 
 
-@key(fields="id channel")
+@federated_entity("id channel")
 class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     product_type = graphene.Field(lambda: ProductType, required=True)
     slug = graphene.String(required=True)
     category = graphene.Field(lambda: Category)
-    updated_at = graphene.DateTime()
+    created = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
     charge_taxes = graphene.Boolean(required=True)
     weight = graphene.Field(Weight)
     default_variant = graphene.Field(ProductVariant)
@@ -740,7 +744,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             "gateway to resolve this object in a federated query."
         ),
     )
-    description_json = graphene.JSONString(
+    description_json = JSONString(
         description="Description of the product (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -1195,7 +1199,7 @@ class ProductCountableConnection(CountableConnection):
         node = Product
 
 
-@key(fields="id")
+@federated_entity("id")
 class ProductType(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
@@ -1364,13 +1368,13 @@ class ProductTypeCountableConnection(CountableConnection):
         node = ProductType
 
 
-@key(fields="id channel")
+@federated_entity("id channel")
 class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     slug = graphene.String(required=True)
     channel = graphene.String(
         description=(
@@ -1378,7 +1382,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
             "gateway to resolve this object in a federated query."
         ),
     )
-    description_json = graphene.JSONString(
+    description_json = JSONString(
         description="Description of the collection (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -1479,17 +1483,17 @@ class CollectionCountableConnection(CountableConnection):
         node = Collection
 
 
-@key(fields="id")
+@federated_entity("id")
 class Category(ModelObjectType):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
     name = graphene.String(required=True)
-    description = graphene.JSONString()
+    description = JSONString()
     slug = graphene.String(required=True)
     parent = graphene.Field(lambda: Category)
     level = graphene.Int(required=True)
-    description_json = graphene.JSONString(
+    description_json = JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
@@ -1576,7 +1580,7 @@ class Category(ModelObjectType):
         qs = models.Product.objects.all()
         if not has_required_permissions:
             qs = (
-                qs.published(channel)
+                qs.visible_to_user(requestor, channel)
                 .annotate_visible_in_listings(channel)
                 .exclude(
                     visible_in_listings=False,
@@ -1598,13 +1602,13 @@ class CategoryCountableConnection(CountableConnection):
         node = Category
 
 
-@key(fields="id")
+@federated_entity("id")
 class ProductMedia(ModelObjectType):
     id = graphene.GlobalID(required=True)
     sort_order = graphene.Int()
     alt = graphene.String(required=True)
     type = ProductMediaType(required=True)
-    oembed_data = graphene.JSONString(required=True)
+    oembed_data = JSONString(required=True)
     url = graphene.String(
         required=True,
         description="The URL of the media.",

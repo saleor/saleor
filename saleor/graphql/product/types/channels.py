@@ -16,7 +16,7 @@ from ....product.utils.costs import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_31
+from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ...core.types import ModelObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
@@ -256,7 +256,7 @@ class ProductVariantChannelListing(ModelObjectType):
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
-        description=f"{ADDED_IN_31} Preorder variant data.",
+        description=f"{ADDED_IN_31} Preorder variant data. {PREVIEW_FEATURE}",
     )
 
     class Meta:

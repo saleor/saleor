@@ -1,9 +1,8 @@
 import django_filters
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
-from ..core.filters import EnumFilter
+from ..core.filters import EnumFilter, GlobalIDMultipleChoiceFilter
 from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_query_param
 from ..warehouse.enums import WarehouseClickAndCollectOptionEnum

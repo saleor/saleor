@@ -9,7 +9,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import F, Max, Sum
+from django.db.models import F, Max
 from django.db.models.expressions import Exists, OuterRef
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
@@ -58,11 +58,10 @@ class OrderQueryset(models.QuerySet):
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         payments = Payment.objects.filter(is_active=True).values("id")
-        qs = self.annotate(amount_paid=Sum("payments__captured_amount"))
-        return qs.filter(
+        return self.filter(
             Exists(payments.filter(order_id=OuterRef("id"))),
             status__in=statuses,
-            total_gross_amount__lte=F("amount_paid"),
+            total_gross_amount__lte=F("total_paid_amount"),
         )
 
     def ready_to_capture(self):
@@ -85,6 +84,7 @@ class OrderQueryset(models.QuerySet):
 
 class Order(ModelWithMetadata):
     created = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
     )
@@ -288,7 +288,7 @@ class Order(ModelWithMetadata):
         self.total_paid_amount = (
             sum(self.payments.values_list("captured_amount", flat=True)) or 0
         )
-        self.save(update_fields=["total_paid_amount"])
+        self.save(update_fields=["total_paid_amount", "updated_at"])
 
     def _index_billing_phone(self):
         return self.billing_address.phone

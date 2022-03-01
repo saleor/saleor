@@ -83,7 +83,7 @@ class AdyenGatewayPlugin(BasePlugin):
         },
         "merchant-account": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Yout merchant account name.",
+            "help_text": "Your merchant account name.",
             "label": "Merchant Account",
         },
         "supported-currencies": {

@@ -4,7 +4,6 @@ import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
 from graphene import relay
-from graphene_federation import key
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -12,7 +11,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
-from ..account.utils import requestor_has_access
+from ..account.utils import check_requestor_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
@@ -20,7 +19,7 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
-from ..core.federation import resolve_federation_references
+from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, ModelObjectType, Permission
@@ -49,7 +48,7 @@ class AddressInput(graphene.InputObjectType):
     phone = graphene.String(description="Phone number.")
 
 
-@key(fields="id")
+@federated_entity("id")
 class Address(ModelObjectType):
     id = graphene.GlobalID(required=True)
     first_name = graphene.String(required=True)
@@ -171,11 +170,8 @@ class CustomerEvent(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.CustomerEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
-            return (
-                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
-            )
-        raise PermissionDenied()
+        check_requestor_access(requestor, root.user, AppPermission.MANAGE_APPS)
+        return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
     def resolve_message(root: models.CustomerEvent, _info):
@@ -215,8 +211,8 @@ class UserPermission(Permission):
         return groups
 
 
-@key(fields="id")
-@key(fields="email")
+@federated_entity("id")
+@federated_entity("email")
 class User(ModelObjectType):
     id = graphene.GlobalID(required=True)
     email = graphene.String(required=True)
@@ -279,6 +275,7 @@ class User(ModelObjectType):
 
     last_login = graphene.DateTime()
     date_joined = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(required=True)
 
     class Meta:
         description = "Represents user data."
@@ -364,9 +361,13 @@ class User(ModelObjectType):
         def _resolve_orders(orders):
             requester = get_user_or_app_from_context(info.context)
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
-                orders = list(
-                    filter(lambda order: order.status != OrderStatus.DRAFT, orders)
-                )
+                # allow fetch requestor orders (except drafts)
+                if root == info.context.user:
+                    orders = list(
+                        filter(lambda order: order.status != OrderStatus.DRAFT, orders)
+                    )
+                else:
+                    raise PermissionDenied()
 
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection
@@ -496,7 +497,7 @@ class StaffNotificationRecipient(graphene.ObjectType):
         return root.get_email()
 
 
-@key(fields="id")
+@federated_entity("id")
 class Group(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)

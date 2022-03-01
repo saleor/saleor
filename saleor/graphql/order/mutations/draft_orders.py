@@ -279,7 +279,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 order=instance, user=info.context.user, app=info.context.app
             )
 
-        instance.save(update_fields=["billing_address", "shipping_address"])
+        instance.save(
+            update_fields=["billing_address", "shipping_address", "updated_at"]
+        )
 
     @classmethod
     def _refresh_lines_unit_price(cls, info, instance, cleaned_input, new_instance):
@@ -434,6 +436,17 @@ class DraftOrderComplete(BaseMutation):
                 order.user = None
 
     @classmethod
+    def validate_order(cls, order):
+        if not order.is_draft():
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "The order is not draft.", code=OrderErrorCode.INVALID.value
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, id):
         manager = info.context.plugins
         order = cls.get_node_or_error(
@@ -442,8 +455,10 @@ class DraftOrderComplete(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("lines__variant"),
         )
+        cls.validate_order(order)
+
         country = get_order_country(order)
-        validate_draft_order(order, country)
+        validate_draft_order(order, country, info.context.plugins)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 

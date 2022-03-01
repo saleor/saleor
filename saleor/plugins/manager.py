@@ -19,6 +19,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
+from graphene import Mutation
+from graphql import GraphQLError, ResolveInfo
+from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
@@ -30,7 +33,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
-from .base_plugin import ExternalAccessTokens
+from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -56,7 +59,6 @@ if TYPE_CHECKING:
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
-
 
 NotifyEventTypeChoice = str
 
@@ -737,6 +739,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=fulfillment.order.channel.slug,
         )
 
+    def tracking_number_updated(self, fulfillment: "Fulfillment"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "tracking_number_updated",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
+        )
+
     def checkout_created(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1172,6 +1183,52 @@ class PluginsManager(PaymentInterface):
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_verify", default_value, data, request
+        )
+
+    def excluded_shipping_methods_for_order(
+        self,
+        order: "Order",
+        available_shipping_methods: List["ShippingMethodData"],
+    ) -> List[ExcludedShippingMethod]:
+        return self.__run_method_on_plugins(
+            "excluded_shipping_methods_for_order",
+            [],
+            order,
+            available_shipping_methods,
+        )
+
+    def excluded_shipping_methods_for_checkout(
+        self,
+        checkout: "Checkout",
+        available_shipping_methods: List["ShippingMethodData"],
+    ) -> List[ExcludedShippingMethod]:
+        return self.__run_method_on_plugins(
+            "excluded_shipping_methods_for_checkout",
+            [],
+            checkout,
+            available_shipping_methods,
+        )
+
+    def perform_mutation(
+        self, mutation_cls: Mutation, root, info: ResolveInfo, data: dict
+    ) -> Optional[Union[ExecutionResult, GraphQLError]]:
+        """Invoke before each mutation is executed.
+
+        This allows to trigger specific logic before the mutation is executed
+        but only once the permissions are checked.
+
+        Returns one of:
+            - null if the execution shall continue
+            - graphql.GraphQLError
+            - graphql.execution.ExecutionResult
+        """
+        return self.__run_method_on_plugins(
+            "perform_mutation",
+            default_value=None,
+            mutation_cls=mutation_cls,
+            root=root,
+            info=info,
+            data=data,
         )
 
 

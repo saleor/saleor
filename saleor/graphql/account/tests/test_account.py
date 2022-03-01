@@ -181,6 +181,7 @@ def test_query_customer_user(
     gift_card_expiry_date,
     address,
     permission_manage_users,
+    permission_manage_orders,
     media_root,
     settings,
 ):
@@ -199,7 +200,9 @@ def test_query_customer_user(
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
-    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_users, permission_manage_orders
+    )
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["user"]
@@ -268,6 +271,48 @@ def test_query_customer_user_with_orders(
     customer_user,
     order_list,
     permission_manage_users,
+    permission_manage_orders,
+):
+    # given
+    query = FULL_USER_QUERY
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_users, permission_manage_orders],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    user = content["data"]["user"]
+    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
+        graphene.Node.to_global_id("Order", order.pk) for order in order_list
+    }
+
+
+def test_query_customer_user_with_orders_no_manage_orders_perm(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
 ):
     # given
     query = FULL_USER_QUERY
@@ -295,12 +340,7 @@ def test_query_customer_user_with_orders(
     )
 
     # then
-    content = get_graphql_content(response)
-    user = content["data"]["user"]
-    assert {order["node"]["id"] for order in user["orders"]["edges"]} == {
-        graphene.Node.to_global_id("Order", order.pk)
-        for order in [order_unfulfilled, order_unconfirmed]
-    }
+    assert_no_permission(response)
 
 
 def test_query_customer_user_app(
@@ -309,6 +349,7 @@ def test_query_customer_user_app(
     address,
     permission_manage_users,
     permission_manage_staff,
+    permission_manage_orders,
     media_root,
     app,
 ):
@@ -327,7 +368,9 @@ def test_query_customer_user_app(
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
-    app.permissions.add(permission_manage_staff, permission_manage_users)
+    app.permissions.add(
+        permission_manage_staff, permission_manage_users, permission_manage_orders
+    )
     response = app_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
@@ -362,6 +405,41 @@ def test_query_customer_user_app_no_permission(
     app.permissions.add(permission_manage_staff)
     response = app_api_client.post_graphql(query, variables)
 
+    assert_no_permission(response)
+
+
+def test_query_customer_user_with_orders_by_app_no_manage_orders_perm(
+    app_api_client,
+    customer_user,
+    order_list,
+    permission_manage_users,
+):
+    # given
+    query = FULL_USER_QUERY
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.user = customer_user
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled], ["user", "status"]
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
     assert_no_permission(response)
 
 
@@ -993,6 +1071,7 @@ def test_user_with_cancelled_fulfillments(
     staff_api_client,
     customer_user,
     permission_manage_users,
+    permission_manage_orders,
     fulfilled_order_with_cancelled_fulfillment,
 ):
     query = """
@@ -1013,7 +1092,9 @@ def test_user_with_cancelled_fulfillments(
     """
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": user_id}
-    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_users, permission_manage_orders
+    )
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     order_id = graphene.Node.to_global_id(
@@ -3436,10 +3517,7 @@ def test_password_change_invalid_new_password(user_api_client, settings):
     assert errors[1]["message"] == "This password is entirely numeric."
 
 
-def test_create_address_mutation(
-    staff_api_client, customer_user, permission_manage_users
-):
-    query = """
+ADDRESS_CREATE_MUTATION = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: CountryCode!) {
         addressCreate(userId: $user, input: {city: $city, country: $country}) {
             errors {
@@ -3458,7 +3536,13 @@ def test_create_address_mutation(
             }
         }
     }
-    """
+"""
+
+
+def test_create_address_mutation(
+    staff_api_client, customer_user, permission_manage_users
+):
+    query = ADDRESS_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"user": user_id, "city": "Dummy", "country": "PL"}
     response = staff_api_client.post_graphql(
@@ -3476,6 +3560,37 @@ def test_create_address_mutation(
     customer_user.refresh_from_db()
     for field in ["city", "country"]:
         assert variables[field].lower() in customer_user.search_document
+
+
+@override_settings(MAX_USER_ADDRESSES=2)
+def test_create_address_mutation_the_oldest_address_is_deleted(
+    staff_api_client, customer_user, address, permission_manage_users
+):
+    same_address = Address.objects.create(**address.as_data())
+    customer_user.addresses.set([address, same_address])
+
+    user_addresses_count = customer_user.addresses.count()
+
+    query = ADDRESS_CREATE_MUTATION
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"user": user_id, "city": "Dummy", "country": "PL"}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["addressCreate"]["errors"] == []
+    data = content["data"]["addressCreate"]
+    assert data["address"]["city"] == "Dummy"
+    assert data["address"]["country"]["code"] == "PL"
+    address_obj = Address.objects.get(city="Dummy")
+    assert address_obj.user_addresses.first() == customer_user
+    assert data["user"]["id"] == user_id
+
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == user_addresses_count
+
+    with pytest.raises(address._meta.model.DoesNotExist):
+        address.refresh_from_db()
 
 
 ADDRESS_UPDATE_MUTATION = """
@@ -4218,7 +4333,7 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
 
 def test_customer_create_address(user_api_client, graphql_address_data):
     user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     mutation_name = "accountAddressCreate"
@@ -4231,7 +4346,7 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.addresses.count() == user_addresses_count + 1
     assert (
         generate_address_search_document_value(user.addresses.last())
         in user.search_document
@@ -4249,7 +4364,7 @@ def test_account_address_create_return_user(user_api_client, graphql_address_dat
 
 def test_customer_create_default_address(user_api_client, graphql_address_data):
     user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
     mutation_name = "accountAddressCreate"
@@ -4262,7 +4377,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses + 1
+    assert user.addresses.count() == user_addresses_count + 1
     assert user.default_shipping_address.id == int(
         graphene.Node.from_global_id(data["address"]["id"])[1]
     )
@@ -4275,10 +4390,39 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses + 2
+    assert user.addresses.count() == user_addresses_count + 2
     assert user.default_billing_address.id == int(
         graphene.Node.from_global_id(data["address"]["id"])[1]
     )
+
+
+@override_settings(MAX_USER_ADDRESSES=2)
+def test_customer_create_address_the_oldest_address_is_deleted(
+    user_api_client, graphql_address_data, address
+):
+    """Ensure that when mew address it added to user with max amount of addressess,
+    the oldest address will be removed."""
+    user = user_api_client.user
+    same_address = Address.objects.create(**address.as_data())
+    user.addresses.set([address, same_address])
+
+    user_addresses_count = user.addresses.count()
+
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
+    mutation_name = "accountAddressCreate"
+
+    variables = {"addressInput": graphql_address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"][mutation_name]
+
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
+
+    user.refresh_from_db()
+    assert user.addresses.count() == user_addresses_count
+
+    with pytest.raises(address._meta.model.DoesNotExist):
+        address.refresh_from_db()
 
 
 def test_anonymous_user_create_address(api_client, graphql_address_data):
@@ -4292,7 +4436,7 @@ def test_address_not_created_after_validation_fails(
     user_api_client, graphql_address_data
 ):
     user = user_api_client.user
-    nr_of_addresses = user.addresses.count()
+    user_addresses_count = user.addresses.count()
 
     query = ACCOUNT_ADDRESS_CREATE_MUTATION
 
@@ -4310,7 +4454,7 @@ def test_address_not_created_after_validation_fails(
     assert data["errors"][0]["field"] == "postalCode"
     assert data["errors"][0]["addressType"] == address_type
     user.refresh_from_db()
-    assert user.addresses.count() == nr_of_addresses
+    assert user.addresses.count() == user_addresses_count
 
 
 ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION = """
@@ -4571,9 +4715,23 @@ def test_query_customers_with_filter_placed_orders(
         ({"dateJoined": {"lte": "2012-01-14"}}, 1),
         ({"dateJoined": {"lte": "2012-01-14", "gte": "2012-01-13"}}, 1),
         ({"dateJoined": {"gte": "2012-01-14"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:01:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2011-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:00:00+00:00",
+                    "gte": "2012-01-14T10:00:00+00:00",
+                }
+            },
+            1,
+        ),
+        ({"updatedAt": {"gte": "2012-01-14T10:00:00+00:00"}}, 2),
     ],
 )
-def test_query_customers_with_filter_date_joined(
+def test_query_customers_with_filter_date_joined_and_updated_at(
     customer_filter,
     count,
     query_customer_with_filter,
@@ -4589,7 +4747,6 @@ def test_query_customers_with_filter_date_joined(
     )
     content = get_graphql_content(response)
     users = content["data"]["customers"]["edges"]
-
     assert len(users) == count
 
 

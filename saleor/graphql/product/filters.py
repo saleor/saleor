@@ -9,7 +9,6 @@ from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from django.utils import timezone
-from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...attribute import AttributeInputType
 from ...attribute.models import (
@@ -37,12 +36,13 @@ from ...warehouse.models import Allocation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
     EnumFilter,
+    GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
-from ..core.types.common import IntRangeInput, PriceRangeInput
+from ..core.types.common import DateTimeRangeInput, IntRangeInput, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_id, filter_range_field
 from ..warehouse import types as warehouse_types
@@ -560,6 +560,10 @@ def filter_quantity(qs, quantity_value, warehouse_ids=None):
     return qs.filter(pk__in=variants)
 
 
+def filter_updated_at_range(qs, _, value):
+    return filter_range_field(qs, "updated_at", value)
+
+
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
     quantity = graphene.Field(IntRangeInput, required=False)
@@ -582,6 +586,9 @@ class ProductFilter(MetadataFilterBase):
     )
     stock_availability = EnumFilter(
         input_class=StockAvailability, method="filter_stock_availability"
+    )
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput, method=filter_updated_at_range
     )
     product_types = GlobalIDMultipleChoiceFilter(method=filter_product_types)
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
@@ -634,6 +641,9 @@ class ProductVariantFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="product_variant_filter_search")
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput, method=filter_updated_at_range
+    )
 
     class Meta:
         model = ProductVariant

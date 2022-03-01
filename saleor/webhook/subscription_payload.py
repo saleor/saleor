@@ -21,7 +21,7 @@ def validate_subscription_query(query: str) -> bool:
     graphql_backend = get_default_backend()
     try:
         graphql_backend.document_from_string(schema, query)
-    except (ValueError, GraphQLSyntaxError) as e:
+    except (ValueError, GraphQLSyntaxError):
         return False
     return True
 
@@ -43,7 +43,7 @@ def initialize_context() -> HttpRequest:
 def generate_payload_from_subscription(
     event_type: str,
     subscribable_object,
-    subscription_query: str,
+    subscription_query: Optional[str],
     context: HttpRequest,
     app: Optional[App] = None,
 ) -> Optional[Dict[str, Any]]:
@@ -66,7 +66,7 @@ def generate_payload_from_subscription(
     from ..graphql.api import schema
 
     graphql_backend = get_default_backend()
-    ast = parse(subscription_query)
+    ast = parse(subscription_query)  # type: ignore
     document = graphql_backend.document_from_string(
         schema,
         ast,
@@ -75,9 +75,9 @@ def generate_payload_from_subscription(
     graphql_middleware = graphene_settings.MIDDLEWARE
     graphql_middleware = list(instantiate_middleware(graphql_middleware))
 
-    app_id = app.id if app else None
+    app_id = app.pk if app else None
 
-    context.app = app
+    context.app = app  # type: ignore
 
     results = document.execute(
         allow_subscriptions=True,
@@ -92,7 +92,7 @@ def generate_payload_from_subscription(
             extra={"query": subscription_query, "app": app_id},
         )
         return None
-    payload = []
+    payload = []  # type: ignore
     results.subscribe(payload.append)
 
     if not payload:

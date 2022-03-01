@@ -10,7 +10,7 @@ from ...site.error_codes import GiftCardSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import (
@@ -77,7 +77,7 @@ class ShopSettingsInput(graphene.InputObjectType):
         description=(
             f"{ADDED_IN_31} Default number of maximum line quantity "
             "in single checkout. Minimum possible value is 1, default "
-            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}. {PREVIEW_FEATURE}"
         )
     )
 
