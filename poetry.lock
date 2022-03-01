@@ -514,17 +514,20 @@ python-crontab = ">=2.3.4"
 
 [[package]]
 name = "django-countries"
-version = "7.2.1"
+version = "7.3.1"
 description = "Provides a country field for Django models."
 category = "main"
 optional = false
 python-versions = "*"
 
+[package.dependencies]
+typing-extensions = "*"
+
 [package.extras]
 dev = ["tox", "black", "django", "pytest", "pytest-django", "djangorestframework", "graphene-django"]
 maintainer = ["transifex-client", "zest.releaser", "django"]
 pyuca = ["pyuca"]
-test = ["pytest", "pytest-django", "pytest-cov", "graphene-django"]
+test = ["pytest", "pytest-django", "pytest-cov", "djangorestframework", "graphene-django"]
 
 [[package]]
 name = "django-debug-toolbar"
@@ -2761,7 +2764,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "58521f3bc1876dc3dd072b24ca647e0e9fa48dd8019613a2b13bbb2a09f273ac"
+content-hash = "8850521f6059b858cda9d71eb6dbd1bb922872e4466d2ae87a523ac1c7a97e09"
 
 [metadata.files]
 adyen = [
@@ -3122,8 +3125,8 @@ django-celery-beat = [
     {file = "django_celery_beat-2.2.1-py2.py3-none-any.whl", hash = "sha256:ab43049634fd18dc037927d7c2c7d5f67f95283a20ebbda55f42f8606412e66c"},
 ]
 django-countries = [
-    {file = "django-countries-7.2.1.tar.gz", hash = "sha256:26878b54d36bedff30b4535ceefcb8af6784741a8b30b1b8a662fb14a936a4ab"},
-    {file = "django_countries-7.2.1-py3-none-any.whl", hash = "sha256:adc965f1d348124274b7d918fc1aad5e29609758af999e1822baa9f2cc06d1b8"},
+    {file = "django-countries-7.3.1.tar.gz", hash = "sha256:b6b439cc5c7e766ec2335615160fdcebb9f2774ccc17aaa5e173306832d77594"},
+    {file = "django_countries-7.3.1-py3-none-any.whl", hash = "sha256:5a4ee958f77810bcc38ae96605e47d76a707e81f53cf2938743ef45faafd2fce"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.4.tar.gz", hash = "sha256:644bbd5c428d3283aa9115722471769cac1bec189edf3a0c855fd8ff870375a9"},
