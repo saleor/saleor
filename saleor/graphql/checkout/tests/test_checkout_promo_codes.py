@@ -7,7 +7,7 @@ import graphene
 import pytest
 from prices import Money
 
-from ....checkout import calculations
+from ....checkout import base_calculations, calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
@@ -15,7 +15,6 @@ from ....checkout.utils import (
     add_voucher_to_checkout,
     set_external_shipping_id,
 )
-from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
 from ....warehouse.models import Stock
@@ -24,25 +23,23 @@ from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
 from .test_checkout_lines import MUTATION_CHECKOUT_LINE_DELETE
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
 def test_checkout_lines_delete_with_not_applicable_voucher(
-    user_api_client, checkout_with_item, voucher, channel_USD, taxes_included
+    user_api_client, checkout_with_item, voucher, channel_USD
 ):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
-    subtotal = calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_item.shipping_address,
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
     )
     voucher.channel_listings.filter(channel=channel_USD).update(
-        min_spent_amount=subtotal.gross.amount
+        min_spent_amount=subtotal.amount
     )
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher, taxes_included)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
     line = checkout_with_item.lines.first()
@@ -59,7 +56,6 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     assert checkout_with_item.voucher_code is None
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
 def test_checkout_shipping_address_update_with_not_applicable_voucher(
     user_api_client,
     checkout_with_item,
@@ -67,7 +63,6 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     graphql_address_data,
     address_other_country,
     shipping_method,
-    taxes_included,
 ):
     assert checkout_with_item.shipping_address is None
     assert checkout_with_item.voucher_code is None
@@ -83,7 +78,7 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher, taxes_included)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
     new_address = graphql_address_data
@@ -342,10 +337,8 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     voucher_channel_listing.save()
 
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
-            Money(95, "USD"), Money(100, "USD")
-        ),
+        "saleor.checkout.base_calculations.base_checkout_subtotal",
+        lambda *args: Money(100, "USD"),
     )
 
     variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
@@ -370,13 +363,6 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     voucher_channel_listing = voucher.channel_listings.first()
     voucher_channel_listing.min_spent_amount = 100
     voucher_channel_listing.save()
-
-    monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
-            Money(95, "USD"), Money(100, "USD")
-        ),
-    )
 
     variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)

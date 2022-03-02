@@ -19,8 +19,8 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
-from ..checkout import calculations
-from ..core.taxes import zero_money
+from ..checkout import base_calculations
+from ..core.taxes import include_taxes_in_prices, zero_money
 from . import DiscountInfo
 from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
@@ -199,13 +199,11 @@ def validate_voucher_for_checkout(
     from ..checkout.utils import calculate_checkout_quantity
 
     quantity = calculate_checkout_quantity(lines)
-    address = checkout_info.shipping_address or checkout_info.billing_address
-    subtotal = calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-        discounts=discounts,
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+        discounts,
     )
 
     customer_email = cast(str, checkout_info.get_customer_email())
@@ -225,8 +223,9 @@ def validate_voucher_in_order(order: "Order"):
     customer_email = order.get_customer_email()
     if not order.voucher:
         return
+    value = subtotal.gross if include_taxes_in_prices() else subtotal.net
     validate_voucher(
-        order.voucher, subtotal, quantity, customer_email, order.channel, order.user
+        order.voucher, value, quantity, customer_email, order.channel, order.user
     )
 
 

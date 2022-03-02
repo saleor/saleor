@@ -254,10 +254,10 @@ class AvataxPlugin(BasePlugin):
         )
 
     def _calculate_checkout_shipping(
-        self, currency: str, lines: List[Dict], shipping_price: TaxedMoney
+        self, currency: str, lines: List[Dict], shipping_price: Money
     ) -> TaxedMoney:
         shipping_tax = Decimal(0.0)
-        shipping_net = shipping_price.net.amount
+        shipping_net = shipping_price
         for line in lines:
             if line["itemCode"] == "Shipping":
                 shipping_net = Decimal(line["lineAmount"])
@@ -268,9 +268,7 @@ class AvataxPlugin(BasePlugin):
             lambda: Site.objects.get_current().settings.include_taxes_in_prices
         )
         if currency == "JPY" and tax_included():
-            shipping_gross = Money(
-                amount=shipping_price.gross.amount, currency=currency
-            )
+            shipping_gross = Money(amount=shipping_price.amount, currency=currency)
             shipping_net = Money(
                 amount=shipping_gross.amount - shipping_tax, currency=currency
             )

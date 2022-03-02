@@ -30,12 +30,7 @@ from ..utils import (
 )
 
 
-def test_valid_voucher_min_spent_amount_with_display_gross_prices(
-    channel_USD, site_settings
-):
-    site_settings.display_gross_prices = True
-    site_settings.save()
-
+def test_valid_voucher_min_spent_amount(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -47,17 +42,12 @@ def test_valid_voucher_min_spent_amount_with_display_gross_prices(
         discount=Money(10, "USD"),
         min_spent=Money(7, "USD"),
     )
-    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+    value = Money(7, "USD")
 
     voucher.validate_min_spent(value, channel_USD)
 
 
-def test_valid_voucher_min_spent_amount_without_display_gross_prices(
-    channel_USD, site_settings
-):
-    site_settings.display_gross_prices = False
-    site_settings.save()
-
+def test_valid_voucher_min_spent_amount_not_reached(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -69,7 +59,7 @@ def test_valid_voucher_min_spent_amount_without_display_gross_prices(
         discount=Money(10, "USD"),
         min_spent=Money(7, "USD"),
     )
-    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+    value = Money(5, "USD")
 
     with pytest.raises(NotApplicable):
         voucher.validate_min_spent(value, channel_USD)
@@ -369,23 +359,15 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
 
 
 @pytest.mark.parametrize(
-    "prices, discount_value, discount_type, apply_once_per_order, "
-    "expected_value, taxes_included",
+    "prices, discount_value, discount_type, apply_once_per_order, expected_value",
     [
-        ([10], 10, DiscountValueType.FIXED, True, 10, True),
-        ([10], 10, DiscountValueType.FIXED, True, 10, False),
-        ([5], 10, DiscountValueType.FIXED, True, 5, True),
-        ([5], 10, DiscountValueType.FIXED, True, 5, False),
-        ([5, 5], 10, DiscountValueType.FIXED, True, 5, True),
-        ([5, 5], 10, DiscountValueType.FIXED, True, 5, False),
-        ([2, 3], 10, DiscountValueType.FIXED, True, 2, True),
-        ([2, 3], 10, DiscountValueType.FIXED, True, 2, False),
-        ([10, 10], 5, DiscountValueType.FIXED, False, 10, True),
-        ([10, 10], 5, DiscountValueType.FIXED, False, 10, False),
-        ([5, 2], 5, DiscountValueType.FIXED, False, 7, True),
-        ([5, 2], 5, DiscountValueType.FIXED, False, 7, False),
-        ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15, True),
-        ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15, False),
+        ([10], 10, DiscountValueType.FIXED, True, 10),
+        ([5], 10, DiscountValueType.FIXED, True, 5),
+        ([5, 5], 10, DiscountValueType.FIXED, True, 5),
+        ([2, 3], 10, DiscountValueType.FIXED, True, 2),
+        ([10, 10], 5, DiscountValueType.FIXED, False, 10),
+        ([5, 2], 5, DiscountValueType.FIXED, False, 7),
+        ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15),
     ],
 )
 def test_specific_products_voucher_checkout_discount(
@@ -395,14 +377,13 @@ def test_specific_products_voucher_checkout_discount(
     discount_type,
     expected_value,
     apply_once_per_order,
-    taxes_included,
     checkout_with_item,
     channel_USD,
 ):
     discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda manager, checkout_info, lines, voucher, taxes_included, channel: (
+        lambda manager, checkout_info, lines, voucher, channel: (
             Money(price, "USD") for price in prices
         ),
     )
@@ -428,7 +409,6 @@ def test_specific_products_voucher_checkout_discount(
         checkout_info,
         lines,
         checkout.shipping_address,
-        taxes_included,
         discounts,
     )
     assert discount == Money(expected_value, "USD")
@@ -582,9 +562,8 @@ def test_validate_voucher(
         min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
-    price = TaxedMoney(gross=total_price, net=total_price)
     validate_voucher(
-        voucher, price, total_quantity, "test@example.com", channel_USD, None
+        voucher, total_price, total_quantity, "test@example.com", channel_USD, None
     )
 
 
@@ -677,11 +656,10 @@ def test_validate_voucher_not_applicable(
         min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
-    price = TaxedMoney(net=total_price, gross=total_price)
 
     with pytest.raises(NotApplicable):
         validate_voucher(
-            voucher, price, total_quantity, "test@example.com", channel_USD, None
+            voucher, total_price, total_quantity, "test@example.com", channel_USD, None
         )
 
 

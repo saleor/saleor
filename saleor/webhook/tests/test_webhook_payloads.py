@@ -568,12 +568,12 @@ def test_generate_invoice_payload(fulfilled_order):
     fulfilled_order.save(update_fields=["origin"])
     invoice = fulfilled_order.invoices.first()
     payload = json.loads(generate_invoice_payload(invoice))[0]
-
-    shipping_price = fulfilled_order.shipping_price
-    shipping_tax_rate = fulfilled_order.shipping_tax_rate
-    total = fulfilled_order.total
-    undiscounted_total = fulfilled_order.undiscounted_total
-
+    undiscounted_total_net = fulfilled_order.undiscounted_total_net_amount.quantize(
+        Decimal("0.01")
+    )
+    undiscounted_total_gross = fulfilled_order.undiscounted_total_gross_amount.quantize(
+        Decimal("0.01")
+    )
     timestamp = timezone.make_aware(
         datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
     ).isoformat()
@@ -598,14 +598,14 @@ def test_generate_invoice_payload(fulfilled_order):
             "user_email": "test@example.com",
             "shipping_method_name": "DHL",
             "collection_point_name": None,
-            "shipping_price_net_amount": str(shipping_price.net.amount),
-            "shipping_price_gross_amount": str(shipping_price.gross.amount),
-            "shipping_tax_rate": str(shipping_tax_rate),
-            "total_net_amount": str(total.net.amount),
-            "total_gross_amount": str(total.gross.amount),
+            "shipping_price_net_amount": "10.00",
+            "shipping_price_gross_amount": "12.30",
+            "shipping_tax_rate": "0.0000",
+            "total_net_amount": "80.00",
+            "total_gross_amount": "98.40",
             "weight": "0.0:g",
-            "undiscounted_total_net_amount": str(undiscounted_total.net.amount),
-            "undiscounted_total_gross_amount": str(undiscounted_total.gross.amount),
+            "undiscounted_total_net_amount": str(undiscounted_total_net),
+            "undiscounted_total_gross_amount": str(undiscounted_total_gross),
         },
         "number": "01/12/2020/TEST",
         "created": ANY,
