@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal
 
 import pytest
+from freezegun import freeze_time
 
 from ....product import ProductTypeKind
 from ....product.models import (
@@ -578,3 +579,59 @@ def test_published_products_without_sku_as_staff(
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == 3
+
+
+@pytest.mark.parametrize(
+    "products_filter, count",
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:59:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T11:05:00+00:00"}}, 1),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_product_query_with_filter_updated_at(
+    products_filter,
+    count,
+    product_type,
+    category,
+    staff_api_client,
+    permission_manage_products,
+):
+    with freeze_time("2012-01-14 11:00:00"):
+        Product.objects.create(
+            name="Product1",
+            slug="prod1",
+            category=category,
+            product_type=product_type,
+        )
+
+    with freeze_time("2012-01-14 12:00:00"):
+        Product.objects.create(
+            name="Product2",
+            slug="prod2",
+            category=category,
+            product_type=product_type,
+        )
+
+    variables = {"filter": products_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING, variables
+    )
+    content = get_graphql_content(response)
+    variants = content["data"]["products"]["edges"]
+
+    assert len(variants) == count

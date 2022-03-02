@@ -279,7 +279,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 order=instance, user=info.context.user, app=info.context.app
             )
 
-        instance.save(update_fields=["billing_address", "shipping_address"])
+        instance.save(
+            update_fields=["billing_address", "shipping_address", "updated_at"]
+        )
 
     @classmethod
     def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:

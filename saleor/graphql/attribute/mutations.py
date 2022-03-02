@@ -19,6 +19,7 @@ from ...core.utils import generate_unique_slug
 from ...product import models as product_models
 from ...product.search import update_products_search_document
 from ..core.enums import MeasurementUnitsEnum
+from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AttributeError
@@ -190,7 +191,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
 class AttributeValueInput(graphene.InputObjectType):
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
-    rich_text = graphene.JSONString(description=AttributeValueDescriptions.RICH_TEXT)
+    rich_text = JSONString(description=AttributeValueDescriptions.RICH_TEXT)
     file_url = graphene.String(
         required=False,
         description="URL of the file attribute. Every time, a new value is created.",
@@ -500,7 +501,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         else:
             permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=permissions)
 
         instance = models.Attribute()
 

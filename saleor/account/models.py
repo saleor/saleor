@@ -159,6 +159,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
     default_shipping_address = models.ForeignKey(
         Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
     )

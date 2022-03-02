@@ -14,6 +14,7 @@ from ....core.notification.validation import (
 from ....graphql.core.types.common import ExternalNotificationError
 from ....graphql.notifications.error_codes import ExternalNotificationErrorCodes
 from ...core.descriptions import ADDED_IN_31
+from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 
 
@@ -26,7 +27,7 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
             "included in the notification payload."
         ),
     )
-    extra_payload = graphene.JSONString(
+    extra_payload = JSONString(
         description=(
             "Additional payload that will be merged with "
             "the one based on the bussines object ID."

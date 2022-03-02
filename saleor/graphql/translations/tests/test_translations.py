@@ -951,6 +951,29 @@ def test_product_create_translation_validates_name_length(
     ]
 
 
+def test_product_create_translation_by_invalid_translatable_content_id(
+    staff_api_client, product, permission_manage_translations
+):
+    translatable_content_id = (
+        "UHJvZHVjdFRyYW5zbGF0YWJsZUNvbnRlbnQ6NDkxMyd8fERCTVN"
+        "fUElQRS5SRUNFSVZFX01FU1NBR0UoQ0hSKDk4KXx8Q0hSKDk4KXx8Q"
+        "0hSKDk4KSwxNSl8fA=="
+    )
+
+    # String decodes to
+    # ProductTranslatableContent:4913'||
+    # DBMS_PIPE.RECEIVE_MESSAGE(CHR(98)||CHR(98)||CHR(98),15)||
+    response = staff_api_client.post_graphql(
+        PRODUCT_TRANSLATE_MUTATION,
+        {"productId": translatable_content_id, "input": {"name": "Produkt PL"}},
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["productTranslate"]
+    errors = data["errors"][0]
+    assert errors["code"] == "INVALID"
+    assert errors["field"] == "id"
+
+
 @freeze_time("1914-06-28 10:50")
 @patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
