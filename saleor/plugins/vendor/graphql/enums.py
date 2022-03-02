@@ -15,5 +15,5 @@ class BillingErrorCode(Enum):
     BILLING_ERROR = "Billing_error"
 
 
-TargetGenderEnum = graphene.Enum.from_enum(models.Vendor.TargetGenderChoices)
-CommericalInfoEnum = graphene.Enum.from_enum(models.Vendor.CommercialInfoChoices)
+TargetGenderEnum = graphene.Enum.from_enum(models.Vendor.TargetGender)
+RegistrationTypeEnum = graphene.Enum.from_enum(models.Vendor.RegistrationType)

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from ...account.validators import validate_possible_number
 from ...core.db.fields import SanitizedJSONField
 from ...core.utils.editorjs import clean_editor_js
-
+from ...product.models import ProductVariant
 
 User = get_user_model()
 
@@ -18,11 +18,11 @@ class PossiblePhoneNumberField(PhoneNumberField):
 
 
 class Vendor(models.Model):
-    class CommercialInfoChoices(models.IntegerChoices):
-        CR = 1
+    class RegistrationType(models.IntegerChoices):
+        COMPANY = 1
         MAROOF = 2
 
-    class TargetGenderChoices(models.IntegerChoices):
+    class TargetGender(models.IntegerChoices):
         MEN = 1
         WOMEN = 2
         UNISEX = 3
@@ -30,6 +30,8 @@ class Vendor(models.Model):
     name = models.CharField(max_length=256, unique=True, db_index=True)
     slug = models.SlugField(max_length=256, unique=True, db_index=True)
     users = models.ManyToManyField(User)
+    variants = models.ManyToManyField(ProductVariant)
+
     country = CountryField()
 
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
@@ -39,14 +41,14 @@ class Vendor(models.Model):
     residence_id = models.CharField(max_length=256, null=True, blank=True)
 
     is_active = models.BooleanField()
-    commercial_info = models.IntegerField(
-        choices=CommercialInfoChoices.choices, default=CommercialInfoChoices.CR
+    registration_type = models.IntegerField(
+        choices=RegistrationType.choices, default=RegistrationType.COMPANY
     )
     registration_number = models.CharField(max_length=256)
     vat_number = models.CharField(max_length=256, blank=True, null=True)
 
     target_gender = models.IntegerField(
-        choices=TargetGenderChoices.choices, default=TargetGenderChoices.UNISEX
+        choices=TargetGender.choices, default=TargetGender.UNISEX
     )
 
     logo = models.ImageField()

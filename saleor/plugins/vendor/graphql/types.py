@@ -1,16 +1,30 @@
 import graphene
 from graphene import relay
 from ....graphql.core.connection import CountableDjangoObjectType
-
 from .. import models
 
 
 class Vendor(CountableDjangoObjectType):
+    users = graphene.List(
+        graphene.ID,
+        description="List of user IDs."
+    )
+
+    variants = graphene.List(
+        graphene.ID,
+        description="List of variant IDs."
+    )
+
     class Meta:
         model = models.Vendor
         filter_fields = ["id", "name", "country"]
         interfaces = (graphene.relay.Node,)
-        exclude = ["users"] 
+
+    def resolve_users(root, info):
+        return root.users.values_list('id')
+
+    def resolve_variants(root, info):
+        return root.variants.values_list('id')
 
 
 class VendorConnection(relay.Connection):

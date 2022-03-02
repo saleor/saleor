@@ -1,14 +1,14 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.account.enums import CountryCodeEnum
+from ....graphql.account.enums import CountryCodeEnum
 
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from .. import models
 from . import enums, types
 from .custom_permissions import BillingPermissions
-from .errors import BillingError, VendorError
+from .errors import VendorError
 from ....graphql.core.types import Upload
 
 
@@ -24,7 +24,7 @@ class VendorInput(graphene.InputObjectType):
         description="Users IDs to add to the vendor.",
         name="users",
     )
-    commercial_info = enums.CommericalInfoEnum(required=True, description="The registration type of the company.")
+    registration_type = enums.RegistrationTypeEnum(required=True, description="The registration type of the company.")
     target_gender = enums.TargetGenderEnum(required=False, description="The target gender of the vendor, defaults to UNISEX.")
 
     national_id = graphene.String(required=False, description="National ID.")
@@ -131,7 +131,7 @@ class BillingInfoCreate(ModelMutation):
     class Meta:
         description = "Create a new billing information for a vendor."
         model = models.BillingInfo
-        error_type_class = BillingError
+        error_type_class = VendorError
         # permissions = (BillingPermissions.MANAGE_BILLING,)
 
     @classmethod
@@ -175,7 +175,7 @@ class BillingInfoUpdate(ModelMutation):
     class Meta:
         description = "Update billing information."
         model = models.BillingInfo
-        error_type_class = BillingError
+        error_type_class = VendorError
         permissions = (BillingPermissions.MANAGE_BILLING,)
 
 
@@ -186,5 +186,5 @@ class BillingInfoDelete(ModelDeleteMutation):
     class Meta:
         description = "Delete billing information for a vendor."
         model = models.BillingInfo
-        error_type_class = BillingError
+        error_type_class = VendorError
         # permissions = (BillingPermissions.MANAGE_BILLING,)
