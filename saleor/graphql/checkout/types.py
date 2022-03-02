@@ -355,15 +355,12 @@ class Checkout(ModelObjectType):
     def resolve_total_price(root: models.Checkout, info):
         def calculate_total_price(data):
             address, lines, checkout_info, discounts = data
-            taxed_total = (
-                calculations.checkout_total(
-                    manager=info.context.plugins,
-                    checkout_info=checkout_info,
-                    lines=lines,
-                    address=address,
-                    discounts=discounts,
-                )
-                - root.get_total_gift_cards_balance()
+            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                manager=info.context.plugins,
+                checkout_info=checkout_info,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 

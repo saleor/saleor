@@ -13,7 +13,7 @@ from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import TaxError, zero_taxed_money
+from ..core.taxes import TaxError
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
@@ -350,18 +350,13 @@ def _prepare_order_data(
         checkout_info.shipping_address or checkout_info.billing_address
     )  # FIXME: check which address we need here
 
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,
     )
-    cards_total = checkout.get_total_gift_cards_balance()
-    taxed_total.gross -= cards_total
-    taxed_total.net -= cards_total
-
-    taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
     undiscounted_total = taxed_total + checkout.discount
 
     shipping_total = calculations.checkout_shipping_price(
