@@ -211,14 +211,14 @@ class Apple(Provider):
         pv = self.kwargs["private_key"]
         return jwt.encode(claims, pv, algorithm="ES256", headers=headers)
 
-    def get_email(self, access_token, **kwargs):
+    def get_email(self, id_token, **kwargs):
         """access_token is the ID token of apple.
 
         This introduces a vulneribility which should be solved
         if the ID token is crafted # FIXME
 
         """
-        payload = self.decode_token(access_token)
+        payload = self.decode_token(id_token)
         email = payload.get("email")
 
         if email is None:
