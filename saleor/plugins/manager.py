@@ -267,9 +267,8 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_delivery_price(
-            checkout_info, lines
-        )
+        price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
+        default_value = TaxedMoney(price, price)
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_shipping",

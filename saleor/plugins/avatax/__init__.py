@@ -261,20 +261,15 @@ def get_checkout_lines_data(
         item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        prices_data = base_calculations.base_checkout_line_total(
+        prices_data = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
             discounts,
         )
 
-        if tax_included:
-            undiscounted_amount = prices_data.undiscounted_price.gross.amount
-            price_amount = prices_data.price_with_sale.gross.amount
-            price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
-        else:
-            undiscounted_amount = prices_data.undiscounted_price.net.amount
-            price_amount = prices_data.price_with_sale.net.amount
-            price_with_discounts_amount = prices_data.price_with_discounts.net.amount
+        undiscounted_amount = prices_data.undiscounted_price.amount
+        price_amount = prices_data.price_with_sale.amount
+        price_with_discounts_amount = prices_data.price_with_discounts.amount
 
         append_line_to_data_kwargs = {
             "data": data,
