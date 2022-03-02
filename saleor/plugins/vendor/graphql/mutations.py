@@ -1,55 +1,68 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.account.enums import CountryCodeEnum
-
+from ....graphql.account.enums import CountryCodeEnum
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
+from ....graphql.core.types import Upload
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
-from ..models import Billing, Vendor
+from .. import models
 from . import enums, types
-from .custom_permissions import BillingPermissions, VendorPermissions
-from .errors import BillingError, VendorError
+from .custom_permissions import BillingPermissions
+from .errors import VendorError
 
 
 class VendorInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
-        description="Is Active to enable or disable the vendor"
+        description="Active status of the vendor.", default_value=True
     )
-    description = graphene.String(description="description of the vendor")
-    phone = graphene.String(description="Phone number")
-    country = CountryCodeEnum(description="Country")
+    description = graphene.String(description="Description of the vendor.")
+    phone_number = graphene.String(description="Phone number.")
+    country = CountryCodeEnum(description="Country code.")
     users = graphene.List(
         graphene.ID,
-        description="Users IDs to add to the vendor",
+        description="Users IDs to add to the vendor.",
         name="users",
     )
-    commercial_info = enums.CommercialInfo()
-    commercial_description = graphene.String(
-        description="description of commercial info"
+    registration_type = enums.RegistrationTypeEnum(
+        required=True, description="The registration type of the company."
     )
-    sells_gender = enums.SellsGender()
+    target_gender = enums.TargetGenderEnum(
+        required=False,
+        description="The target gender of the vendor, defaults to UNISEX.",
+    )
+
+    national_id = graphene.String(required=False, description="National ID.")
+    residence_id = graphene.String(required=False, description="Residence ID.")
+
+    vat_number = graphene.String(required=False)
+    header_image = Upload(required=False, description="Header image.")
 
 
 class VendorCreateInput(VendorInput):
-    name = graphene.String(description="name of the vendor", required=True)
+    logo = Upload(required=True, description="Vendor logo")
+
+    name = graphene.String(description="The name of the vendor.", required=True)
     slug = graphene.String(
-        description="Slug of the vendor. Will be generated if not provided",
+        description="The slug of the vendor. It will be generated if not provided.",
         required=False,
     )
-    national_id = graphene.String(description="national ID", required=True)
+    national_id = graphene.String(description="National ID.", required=True)
+    registration_number = graphene.String(
+        required=True, description="The registration number."
+    )
 
 
 class VendorCreate(ModelMutation):
     class Arguments:
         input = VendorCreateInput(
-            required=True, description="Fields required to create vendor"
+            required=True, description="Fields required to create a vendor."
         )
 
     class Meta:
-        description = "create new vendor"
-        model = Vendor
+        description = "Create a new vendor."
+        model = models.Vendor
         error_type_class = VendorError
-        permissions = (VendorPermissions.MANAGE_VENDOR,)
+        # permissions = (VendorPermissions.MANAGE_VENDOR,)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -65,62 +78,63 @@ class VendorCreate(ModelMutation):
 
 
 class VendorUpdateInput(VendorInput):
-    name = graphene.String(description="name of the vendor")
+    name = graphene.String(description="The name of the vendor.")
     slug = graphene.String(
-        description="Slug of the vendor. Will be generated if not provided",
+        description="The slug of the vendor. It will be generated if not provided.",
         required=False,
     )
-    national_id = graphene.String(description="national ID")
+    national_id = graphene.String(description="National ID.")
+    logo = Upload(required=False, description="Vendor logo")
+
+    national_id = graphene.String(required=False, description="National ID")
+    registration_number = graphene.String(
+        required=False, description="The registration number."
+    )
 
 
 class VendorUpdate(ModelMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a vendor to update")
+        id = graphene.ID(required=True, description="Vendor ID.")
         input = VendorUpdateInput(
-            description="Fields required to update a vendor", required=True
+            description="Fields required to update the vendor.", required=True
         )
 
     class Meta:
-        description = "Update a vendor"
-        model = Vendor
+        description = "Update a vendor."
+        model = models.Vendor
         error_type_class = VendorError
-        permissions = (VendorPermissions.MANAGE_VENDOR,)
+        # permissions = (VendorPermissions.MANAGE_VENDOR,)
 
 
 class VendorDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of vendor to delete")
+        id = graphene.ID(required=True, description="Vendor ID.")
 
     class Meta:
-        description = "delete the vendor"
-        model = Vendor
+        description = "Delete the vendor."
+        model = models.Vendor
         error_type_class = VendorError
-        permissions = (VendorPermissions.MANAGE_VENDOR,)
+        # permissions = (VendorPermissions.MANAGE_VENDOR,)
 
 
-class BillingCreateInput(graphene.InputObjectType):
-    iban = graphene.String(
-        description="you should enter the real IBAN number", required=True
-    )
-    bank_name = graphene.String(
-        description="bank name related to the IBAN number", required=True
-    )
+class BillingInfoCreateInput(graphene.InputObjectType):
+    iban = graphene.String(description="IBAN number of the vendor.", required=True)
+    bank_name = graphene.String(description="The bank name.", required=True)
 
 
-class BillingCreate(ModelMutation):
+class BillingInfoCreate(ModelMutation):
     class Arguments:
-        vendor_id = graphene.ID(
-            required=True, description="ID of the vendor related to Billing"
-        )
-        input = BillingCreateInput(
-            required=True, description="Fields required to create billing"
+        vendor_id = graphene.ID(required=True, description="Vendor ID.")
+        input = BillingInfoCreateInput(
+            required=True,
+            description="Fields required to add billing information to the vendor.",
         )
 
     class Meta:
-        description = "Create New Billing"
-        model = Billing
-        error_type_class = BillingError
-        permissions = (BillingPermissions.MANAGE_BILLING,)
+        description = "Create a new billing information for a vendor."
+        model = models.BillingInfo
+        error_type_class = VendorError
+        # permissions = (BillingPermissions.MANAGE_BILLING,)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -141,41 +155,38 @@ class BillingCreate(ModelMutation):
             info, data["vendor_id"], only_type=types.Vendor, field="vendorId"
         )
         cleaned_input = cls.clean_input(info, vendor, data)
-        billing = Billing(**cleaned_input)
-
+        billing = models.BillingInfo(**cleaned_input)
         billing.vendor = vendor
-        # print(billing.vendor)
-        # print(billing)
-        # return cls()
         billing.save()
-        return BillingCreate(billing=billing)
+
+        return cls(billing=billing)
 
 
-class BillingUpdateInput(graphene.InputObjectType):
-    iban = graphene.String(description="you should enter the real IBAN number")
-    bank_name = graphene.String(description="bank name related to the IBAN number")
+class BillingInfoUpdateInput(graphene.InputObjectType):
+    iban = graphene.String(description="IBAN number of the vendor.")
+    bank_name = graphene.String(description="The bank name.")
 
 
-class BillingUpdate(ModelMutation):
+class BillingInfoUpdate(ModelMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a Billing to update")
-        input = BillingUpdateInput(
-            description="Fields required to update a Billing", required=True
+        id = graphene.ID(required=True, description="Billing information ID.")
+        input = BillingInfoUpdateInput(
+            description="Fields required to update billing information.", required=True
         )
 
     class Meta:
-        description = "Update a Billing"
-        model = Billing
-        error_type_class = BillingError
+        description = "Update billing information."
+        model = models.BillingInfo
+        error_type_class = VendorError
         permissions = (BillingPermissions.MANAGE_BILLING,)
 
 
-class BillingDelete(ModelDeleteMutation):
+class BillingInfoDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of Billing to delete")
+        id = graphene.ID(required=True, description="Billing information ID.")
 
     class Meta:
-        description = "delete the Billing"
-        model = Billing
-        error_type_class = BillingError
-        permissions = (BillingPermissions.MANAGE_BILLING,)
+        description = "Delete billing information for a vendor."
+        model = models.BillingInfo
+        error_type_class = VendorError
+        # permissions = (BillingPermissions.MANAGE_BILLING,)

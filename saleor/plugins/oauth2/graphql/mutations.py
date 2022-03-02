@@ -102,6 +102,7 @@ class SocialLoginByAccessToken(BaseMutation):
     def perform_mutation(cls, root, info, **kwargs):
         input = kwargs["input"]
         provider = PluginOAuthProvider.from_plugin(input.provider, info.context.app)
+
         created, user = cls.get_user(
             info,
             provider=provider,
@@ -149,7 +150,6 @@ class SocialLoginConfirm(SocialLoginByAccessToken):
         auth_response = provider.fetch_tokens(
             input.code, input.state, input.redirect_url
         )
-        print(auth_response)
 
         kwargs["auth_response"] = auth_response
         return super().perform_mutation(root, info, **kwargs)

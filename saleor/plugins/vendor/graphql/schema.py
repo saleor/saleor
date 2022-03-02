@@ -10,11 +10,11 @@ from saleor.graphql.core.utils import from_global_id_or_error
 
 from .. import models
 from . import types
-from .filters import GroupFilterInput
+from .filters import VendorFilterInput
 from .mutations import (
-    BillingCreate,
-    BillingDelete,
-    BillingUpdate,
+    BillingInfoCreate,
+    BillingInfoDelete,
+    BillingInfoUpdate,
     VendorCreate,
     VendorDelete,
     VendorUpdate,
@@ -22,25 +22,22 @@ from .mutations import (
 
 
 class Query(graphene.ObjectType):
-
     vendor = graphene.Field(
         types.Vendor,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the vendor", required=True
-        ),
+        id=graphene.Argument(graphene.ID, description="Vendor ID.", required=True),
         description="Look up a vendor by ID",
     )
     vendors = FilterConnectionField(
         types.VendorConnection,
-        filter=GroupFilterInput(description="Filtering options for group."),
+        filter=VendorFilterInput(description="Filtering options for vendors."),
     )
 
-    billing = graphene.Field(
+    billing_info = graphene.Field(
         types.Billing,
         id=graphene.Argument(graphene.ID, description="ID of Billing", required=True),
-        description="Look up a billing by ID",
+        description="Look up billing information by ID",
     )
-    billings = FilterConnectionField(types.BillingConnection)
+    billing_infos = FilterConnectionField(types.BillingConnection)
 
     def resolve_vendors(root, info, **kwargs):
         qs = models.Vendor.objects.all()
@@ -51,22 +48,22 @@ class Query(graphene.ObjectType):
         _, id = from_global_id_or_error(id, types.Vendor)
         return models.Vendor.objects.get(id=id)
 
-    def resolve_billings(root, info, **kwargs):
-        qs = models.Billing.objects.all()
+    def resolve_billing_infos(root, info, **kwargs):
+        qs = models.BillingInfo.objects.all()
         return create_connection_slice(qs, info, kwargs, types.BillingConnection)
 
-    def resolve_billing(root, info, id, **data):
+    def resolve_billing_info(root, info, id, **data):
         _, id = from_global_id_or_error(id, types.Billing)
-        return models.Billing.objects.get(id=id)
+        return models.BillingInfo.objects.get(id=id)
 
 
 class Mutation(graphene.ObjectType):
     vendor_create = VendorCreate.Field()
     vendor_update = VendorUpdate.Field()
     vendor_delete = VendorDelete.Field()
-    billing_create = BillingCreate.Field()
-    billing_update = BillingUpdate.Field()
-    billing_delete = BillingDelete.Field()
+    billing_create = BillingInfoCreate.Field()
+    billing_update = BillingInfoUpdate.Field()
+    billing_delete = BillingInfoDelete.Field()
 
 
 schema = build_schema(

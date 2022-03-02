@@ -1,17 +1,25 @@
 import graphene
 from graphene import relay
 
-from saleor.graphql.core.connection import CountableDjangoObjectType
-
+from ....graphql.core.connection import CountableDjangoObjectType
 from .. import models
 
 
 class Vendor(CountableDjangoObjectType):
+    users = graphene.List(graphene.ID, description="List of user IDs.")
+
+    variants = graphene.List(graphene.ID, description="List of variant IDs.")
+
     class Meta:
         model = models.Vendor
         filter_fields = ["id", "name", "country"]
         interfaces = (graphene.relay.Node,)
-        exclude = ["users"]
+
+    def resolve_users(root, info):
+        return root.users.values_list("id")
+
+    def resolve_variants(root, info):
+        return root.variants.values_list("id")
 
 
 class VendorConnection(relay.Connection):
@@ -21,7 +29,7 @@ class VendorConnection(relay.Connection):
 
 class Billing(CountableDjangoObjectType):
     class Meta:
-        model = models.Billing
+        model = models.BillingInfo
         filter_fields = ["id", "iban", "bank_name"]
         interfaces = (graphene.relay.Node,)
 
