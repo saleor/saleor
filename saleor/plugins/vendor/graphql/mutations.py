@@ -2,14 +2,13 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....graphql.account.enums import CountryCodeEnum
-
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
+from ....graphql.core.types import Upload
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from .. import models
 from . import enums, types
 from .custom_permissions import BillingPermissions
 from .errors import VendorError
-from ....graphql.core.types import Upload
 
 
 class VendorInput(graphene.InputObjectType):
@@ -24,8 +23,13 @@ class VendorInput(graphene.InputObjectType):
         description="Users IDs to add to the vendor.",
         name="users",
     )
-    registration_type = enums.RegistrationTypeEnum(required=True, description="The registration type of the company.")
-    target_gender = enums.TargetGenderEnum(required=False, description="The target gender of the vendor, defaults to UNISEX.")
+    registration_type = enums.RegistrationTypeEnum(
+        required=True, description="The registration type of the company."
+    )
+    target_gender = enums.TargetGenderEnum(
+        required=False,
+        description="The target gender of the vendor, defaults to UNISEX.",
+    )
 
     national_id = graphene.String(required=False, description="National ID.")
     residence_id = graphene.String(required=False, description="Residence ID.")
@@ -43,7 +47,9 @@ class VendorCreateInput(VendorInput):
         required=False,
     )
     national_id = graphene.String(description="National ID.", required=True)
-    registration_number = graphene.String(required=True, description="The registration number.")
+    registration_number = graphene.String(
+        required=True, description="The registration number."
+    )
 
 
 class VendorCreate(ModelMutation):
@@ -57,7 +63,6 @@ class VendorCreate(ModelMutation):
         model = models.Vendor
         error_type_class = VendorError
         # permissions = (VendorPermissions.MANAGE_VENDOR,)
-
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -82,7 +87,9 @@ class VendorUpdateInput(VendorInput):
     logo = Upload(required=False, description="Vendor logo")
 
     national_id = graphene.String(required=False, description="National ID")
-    registration_number = graphene.String(required=False, description="The registration number.")
+    registration_number = graphene.String(
+        required=False, description="The registration number."
+    )
 
 
 class VendorUpdate(ModelMutation):
@@ -111,21 +118,16 @@ class VendorDelete(ModelDeleteMutation):
 
 
 class BillingInfoCreateInput(graphene.InputObjectType):
-    iban = graphene.String(
-        description="IBAN number of the vendor.", required=True
-    )
-    bank_name = graphene.String(
-        description="The bank name.", required=True
-    )
+    iban = graphene.String(description="IBAN number of the vendor.", required=True)
+    bank_name = graphene.String(description="The bank name.", required=True)
 
 
 class BillingInfoCreate(ModelMutation):
     class Arguments:
-        vendor_id = graphene.ID(
-            required=True, description="Vendor ID."
-        )
+        vendor_id = graphene.ID(required=True, description="Vendor ID.")
         input = BillingInfoCreateInput(
-            required=True, description="Fields required to add billing information to the vendor."
+            required=True,
+            description="Fields required to add billing information to the vendor.",
         )
 
     class Meta:

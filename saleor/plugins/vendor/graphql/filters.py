@@ -1,8 +1,8 @@
 import django_filters
 
-from ....graphql.core.types.filter_input import FilterInputObjectType
-from ....graphql.core.filters import EnumFilter
 from ....graphql.account.enums import CountryCodeEnum
+from ....graphql.core.filters import EnumFilter
+from ....graphql.core.types.filter_input import FilterInputObjectType
 from .. import models
 
 

@@ -1,6 +1,7 @@
 from enum import Enum
 
 import graphene
+
 from .. import models
 
 

@@ -24,9 +24,7 @@ from .mutations import (
 class Query(graphene.ObjectType):
     vendor = graphene.Field(
         types.Vendor,
-        id=graphene.Argument(
-            graphene.ID, description="Vendor ID.", required=True
-        ),
+        id=graphene.Argument(graphene.ID, description="Vendor ID.", required=True),
         description="Look up a vendor by ID",
     )
     vendors = FilterConnectionField(

@@ -1,8 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django_countries.fields import CountryField
 from django_iban.fields import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
-from django.contrib.auth import get_user_model
+
 from ...account.validators import validate_possible_number
 from ...core.db.fields import SanitizedJSONField
 from ...core.utils.editorjs import clean_editor_js
@@ -61,14 +62,18 @@ class Vendor(models.Model):
 class BillingInfo(models.Model):
     iban = IBANField()
     bank_name = models.CharField(max_length=256)
-    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="billing_info")
+    vendor = models.ForeignKey(
+        Vendor, on_delete=models.CASCADE, related_name="billing_info"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class Attachment(models.Model):
-    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="attachments")
+    vendor = models.ForeignKey(
+        Vendor, on_delete=models.CASCADE, related_name="attachments"
+    )
     file = models.FileField()
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
