@@ -128,7 +128,7 @@ def handle_webhook(request: HttpRequest, config: "dict"):
         if fulfillment:
             status = data.get("status", "")
             fulfillment.tracking_number = data.get("trackingNumber", "")
-            fulfillment.store_value_in_private_metadata(
+            fulfillment.store_value_in_metadata(
                 items={
                     "otoStatus": status,
                     "printAWBURL": data.get("printAWBURL", ""),
