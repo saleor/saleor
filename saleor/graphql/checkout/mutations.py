@@ -1366,8 +1366,14 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
+        invalidate_checkout_prices(checkout, save=False)
         checkout.save(
-            update_fields=["private_metadata", "shipping_method", "last_change"]
+            update_fields=[
+                "private_metadata",
+                "shipping_method",
+                "price_expiration",
+                "last_change",
+            ]
         )
 
         manager.checkout_updated(checkout)
@@ -1389,8 +1395,14 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
         checkout.shipping_method = None
+        invalidate_checkout_prices(checkout, save=False)
         checkout.save(
-            update_fields=["private_metadata", "shipping_method", "last_change"]
+            update_fields=[
+                "private_metadata",
+                "shipping_method",
+                "price_expiration",
+                "last_change",
+            ]
         )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -1527,7 +1539,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
     @staticmethod
     def _update_delivery_method(
         manager,
-        checkout: Checkout,
+        checkout: models.Checkout,
         *,
         shipping_method: Optional[ShippingMethod],
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
@@ -1541,11 +1553,13 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
+        invalidate_checkout_prices(checkout, save=False)
         checkout.save(
             update_fields=[
                 "private_metadata",
                 "shipping_method",
                 "collection_point",
+                "price_expiration",
                 "last_change",
             ]
         )

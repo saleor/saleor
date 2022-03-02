@@ -191,6 +191,81 @@ def test_checkout_billing_address_update_invalidate_prices(
     mocked_function.assert_called_once_with(checkout_with_items, save=False)
 
 
+UPDATE_CHECKOUT_SHIPPING_METHOD = """
+mutation updateCheckoutShippingOptions($token: UUID, $shippingMethodId: ID!) {
+  checkoutShippingMethodUpdate(token: $token, shippingMethodId: $shippingMethodId) {
+    errors {
+      field
+      message
+    }
+  }
+}
+"""
+
+
+def test_checkout_shipping_method_update_invalidate_prices(
+    api_client,
+    checkout_with_shipping_address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_shipping_address
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
+    query = UPDATE_CHECKOUT_SHIPPING_METHOD
+    variables = {
+        "token": checkout.token,
+        "shippingMethodId": graphene.Node.to_global_id(
+            "ShippingMethod", shipping_method.pk
+        ),
+    }
+
+    # when
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+
+    # then
+    checkout.refresh_from_db()
+    assert not response["data"]["checkoutShippingMethodUpdate"]["errors"]
+    assert checkout.price_expiration is None
+
+
+UPDATE_CHECKOUT_DELIVERY_METHOD = """
+mutation updateCheckoutDeliveryOptions($token: UUID, $deliveryMethodId: ID) {
+  checkoutDeliveryMethodUpdate(token: $token, deliveryMethodId: $deliveryMethodId) {
+    errors {
+      field
+      message
+    }
+  }
+}
+"""
+
+
+def test_checkout_delivery_method_update_invalidate_prices(
+    api_client,
+    checkout_with_shipping_address_for_cc,
+    warehouses_for_cc,
+):
+    checkout = checkout_with_shipping_address_for_cc
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
+    query = UPDATE_CHECKOUT_DELIVERY_METHOD
+    variables = {
+        "token": checkout.token,
+        "deliveryMethodId": graphene.Node.to_global_id(
+            "Warehouse", warehouses_for_cc[1].pk
+        ),
+    }
+
+    # when
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+
+    # then
+    checkout.refresh_from_db()
+    assert not response["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+    assert checkout.price_expiration is None
+
+
 @freeze_time("2020-12-12 12:00:00")
 def test_invalidate_checkout_prices_with_save(checkout):
     # given
