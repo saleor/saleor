@@ -1,6 +1,4 @@
 import graphene
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
 
 from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
@@ -108,9 +106,7 @@ class Stock(CountableDjangoObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_quantity_allocated(root, *_args):
-        return root.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
+        return root.quantity_allocated
 
     @staticmethod
     def resolve_product_variant(root, *_args):
