@@ -7,7 +7,6 @@ from prices import Money
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
-from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_document
 from ....order.utils import (
@@ -185,8 +184,6 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         order_discount.value_type = value_type
         order_discount.save()
 
-        fetch_order_prices_if_expired(order, info.context.plugins, force_update=True)
-
         if (
             order_discount_before_update.value_type != value_type
             or order_discount_before_update.value != value
@@ -200,6 +197,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                 order_discount=order_discount,
                 old_order_discount=order_discount_before_update,
             )
+            invalidate_order_prices(order, save=True)
         return OrderDiscountUpdate(order=order)
 
 
@@ -234,8 +232,11 @@ class OrderDiscountDelete(OrderDiscountCommon):
             order_discount=order_discount,
         )
 
-        invalidate_order_prices(order, save=True)
+        invalidate_order_prices(order)
         update_order_search_document(order)
+        order.save(
+            update_fields=["price_expiration_for_unconfirmed", "search_document"]
+        )
 
         return OrderDiscountDelete(order=order)
 

@@ -39,7 +39,6 @@ from . import (
     events,
     utils,
 )
-from .calculations import fetch_order_prices_if_expired
 from .error_codes import OrderErrorCode
 from .events import (
     draft_order_created_from_replace_event,
@@ -273,7 +272,6 @@ def order_awaits_fulfillment_approval(
 
 
 def order_shipping_updated(order: "Order", manager: "PluginsManager"):
-    fetch_order_prices_if_expired(order, manager)
     manager.order_updated(order)
 
 

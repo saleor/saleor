@@ -590,7 +590,7 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
     staff_api_client,
     permission_manage_orders,
 ):
-    update_order_search_document(draft_order)
+    update_order_search_document(draft_order, save=True)
     page_size = 2
     variables = {
         "first": page_size,

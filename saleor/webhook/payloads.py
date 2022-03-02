@@ -317,6 +317,7 @@ def generate_order_payload(
         if order.collection_point
         else None,
     }
+
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
             requestor_data=generate_requestor(requestor)

@@ -96,11 +96,14 @@ def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
-def invalidate_order_prices(order: Order, *, save: bool) -> None:
+def invalidate_order_prices(order: Order, *, save: bool = False) -> None:
     """Mark order as ready for prices recalculation.
 
     Does nothing if order is not editable
     (it's status is neither draft, nor unconfirmed).
+
+    By default, no save to database is executed.
+    Either manually call `order.save()` after, or pass `save=True`.
     """
     if order.status not in ORDER_EDITABLE_STATUS:
         return
@@ -111,14 +114,19 @@ def invalidate_order_prices(order: Order, *, save: bool) -> None:
         order.save(update_fields=["price_expiration_for_unconfirmed"])
 
 
-def recalculate_order_weight(order):
-    """Recalculate order weights."""
+def recalculate_order_weight(order: Order, *, save: bool = False):
+    """Recalculate order weights.
+
+    By default, no save to database is executed.
+    Either manually call `order.save()` after, or pass `save=True`.
+    """
     weight = zero_weight()
     for line in order.lines.all():
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
     order.weight = weight
-    order.save(update_fields=["weight"])
+    if save:
+        order.save(update_fields=["weight"])
 
 
 def _calculate_quantity_including_returns(order):

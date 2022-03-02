@@ -5874,6 +5874,11 @@ ORDER_UPDATE_SHIPPING_QUERY = """
             }
             order {
                 id
+                total {
+                    gross {
+                        amount
+                    }
+                }
             }
         }
     }
@@ -7827,7 +7832,7 @@ def test_order_query_with_filter_search_by_product_sku_order_line(
     """
     order = order_line.order
     order.refresh_from_db()
-    update_order_search_document(order)
+    update_order_search_document(order, save=True)
 
     variables = {"filter": {"search": order_line.product_sku}}
     response = staff_api_client.post_graphql(
@@ -7959,7 +7964,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
         ]
     )
     order.refresh_from_db()
-    update_order_search_document(order)
+    update_order_search_document(order, save=True)
 
     variables = {"filter": {"search": lines[0].product_sku}}
     response = staff_api_client.post_graphql(
@@ -8051,7 +8056,7 @@ def test_draft_orders_query_with_filter_search_by_id(
     staff_api_client,
     permission_manage_orders,
 ):
-    update_order_search_document(draft_order)
+    update_order_search_document(draft_order, save=True)
     variables = {"filter": {"search": draft_order.pk}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
@@ -8065,7 +8070,7 @@ def test_draft_orders_query_with_filter_search_by_id_with_hash(
     staff_api_client,
     permission_manage_orders,
 ):
-    update_order_search_document(draft_order)
+    update_order_search_document(draft_order, save=True)
     variables = {"filter": {"search": f"#{draft_order.pk}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)

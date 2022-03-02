@@ -323,9 +323,16 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         # Post-process the results
         if cls.should_invalidate_prices(instance, cleaned_input, new_instance):
-            invalidate_order_prices(instance, save=True)
+            invalidate_order_prices(instance)
         recalculate_order_weight(instance)
         update_order_search_document(instance)
+        instance.save(
+            update_fields=[
+                "price_expiration_for_unconfirmed",
+                "weight",
+                "search_document",
+            ]
+        )
 
 
 class DraftOrderUpdate(DraftOrderCreate):

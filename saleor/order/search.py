@@ -12,9 +12,15 @@ if TYPE_CHECKING:
     from .models import Order
 
 
-def update_order_search_document(order: "Order"):
+def update_order_search_document(order: "Order", *, save: bool = False):
+    """Prepare order search document.
+
+    By default, no save to database is executed.
+    Either manually call `order.save()` after, or pass `save=True`.
+    """
     order.search_document = prepare_order_search_document_value(order)
-    order.save(update_fields=["search_document"])
+    if save:
+        order.save(update_fields=["search_document"])
 
 
 def prepare_order_search_document_value(order: "Order", *, already_prefetched=False):

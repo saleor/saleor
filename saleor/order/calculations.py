@@ -6,7 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from ..core.prices import quantize_price
+from ..core.prices import quantize_price_fields
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import OrderDiscountType
 from ..plugins.manager import PluginsManager
@@ -24,39 +24,42 @@ def _recalculate_order_prices(
     """
     currency = order.currency
 
-    try:
-        subtotal = zero_taxed_money(currency)
-        for line in lines:
-            variant = line.variant
-            if not variant:
-                subtotal += line.total_price
-                continue
+    subtotal = zero_taxed_money(currency)
+    for line in lines:
+        variant = line.variant
+        if variant:
             product = variant.product
 
-            line_unit = manager.calculate_order_line_unit(order, line, variant, product)
-            line.undiscounted_unit_price = line_unit.undiscounted_price
-            line.unit_price = line_unit.price_with_discounts
+            try:
+                line_unit = manager.calculate_order_line_unit(
+                    order, line, variant, product
+                )
+                line.undiscounted_unit_price = line_unit.undiscounted_price
+                line.unit_price = line_unit.price_with_discounts
 
-            line_total = manager.calculate_order_line_total(
-                order, line, variant, product
-            )
-            line.undiscounted_total_price = line_total.undiscounted_price
-            line.total_price = line_total.price_with_discounts
+                line_total = manager.calculate_order_line_total(
+                    order, line, variant, product
+                )
+                line.undiscounted_total_price = line_total.undiscounted_price
+                line.total_price = line_total.price_with_discounts
 
-            line.tax_rate = manager.get_order_line_tax_rate(
-                order, product, variant, None, line_unit.undiscounted_price
-            )
+                line.tax_rate = manager.get_order_line_tax_rate(
+                    order, product, variant, None, line_unit.undiscounted_price
+                )
+            except TaxError:
+                pass
 
-            subtotal += line_total.price_with_discounts
+        subtotal += line.total_price
 
+    try:
         order.shipping_price = manager.calculate_order_shipping(order)
         order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
             order, order.shipping_price
         )
-        order.total = order.shipping_price + subtotal
-
     except TaxError:
         pass
+
+    order.total = order.shipping_price + subtotal
 
 
 def _apply_tax_data(
@@ -64,17 +67,14 @@ def _apply_tax_data(
 ) -> None:
     """Apply all prices from tax data to order and order lines."""
 
-    def _quantize_price(net: Decimal, gross: Decimal) -> TaxedMoney:
+    def create_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
         currency = order.currency
-        return quantize_price(
-            TaxedMoney(net=Money(net, currency), gross=Money(gross, currency)),
-            currency,
-        )
+        return TaxedMoney(net=Money(net, currency), gross=Money(gross, currency))
 
-    order.total = _quantize_price(
+    order.total = create_taxed_money(
         net=tax_data.total_net_amount, gross=tax_data.total_gross_amount
     )
-    order.shipping_price = _quantize_price(
+    order.shipping_price = create_taxed_money(
         net=tax_data.shipping_price_net_amount,
         gross=tax_data.shipping_price_gross_amount,
     )
@@ -84,10 +84,10 @@ def _apply_tax_data(
     zipped_order_and_tax_lines = ((line, tax_lines[line.id]) for line in lines)
 
     for (order_line, tax_line) in zipped_order_and_tax_lines:
-        order_line.unit_price = _quantize_price(
+        order_line.unit_price = create_taxed_money(
             net=tax_line.unit_net_amount, gross=tax_line.unit_gross_amount
         )
-        order_line.total_price = _quantize_price(
+        order_line.total_price = create_taxed_money(
             net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
         )
         order_line.tax_rate = tax_line.tax_rate
@@ -109,6 +109,33 @@ def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> No
             order,
             order_discount,
         )
+
+
+def _quantize_prices(order, lines) -> None:
+    currency = order.currency
+
+    order_prices = [
+        "total_net_amount",
+        "total_gross_amount",
+        "undiscounted_total_net_amount",
+        "undiscounted_total_gross_amount",
+        "shipping_price_net_amount",
+        "shipping_price_gross_amount",
+    ]
+    order_line_prices = [
+        "unit_price_net_amount",
+        "unit_price_gross_amount",
+        "undiscounted_unit_price_net_amount",
+        "undiscounted_unit_price_gross_amount",
+        "total_price_net_amount",
+        "total_price_gross_amount",
+        "undiscounted_total_price_net_amount",
+        "undiscounted_total_price_gross_amount",
+    ]
+
+    quantize_price_fields(order, order_prices, currency)
+    for line in lines:
+        quantize_price_fields(line, order_line_prices, currency)
 
 
 def fetch_order_prices_if_expired(
@@ -146,6 +173,8 @@ def fetch_order_prices_if_expired(
             _apply_tax_data(order, lines, tax_data)
 
         _recalculate_order_discounts(order, lines)
+
+        _quantize_prices(order, lines)
 
         order.save(
             update_fields=[
