@@ -12,7 +12,6 @@ from promise import Promise
 from ...account.models import Address
 from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
-from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
     AppPermission,
@@ -47,7 +46,7 @@ from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
-from ..account.utils import requestor_has_access
+from ..account.utils import check_requestor_access, requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
@@ -236,16 +235,13 @@ class OrderEvent(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.OrderEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(
+        check_requestor_access(
             requestor,
             root.user,
             AppPermission.MANAGE_APPS,
             OrderPermissions.MANAGE_ORDERS,
-        ):
-            return (
-                AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
-            )
-        raise PermissionDenied()
+        )
+        return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):
@@ -761,16 +757,22 @@ class Order(ModelObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
+        ),
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
+        ),
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
+        ),
     )
 
     discounts = graphene.List(
@@ -1063,14 +1065,13 @@ class Order(ModelObjectType):
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(
+            check_requestor_access(
                 requester,
                 user,
                 AccountPermissions.MANAGE_USERS,
                 OrderPermissions.MANAGE_ORDERS,
-            ):
-                return user
-            raise PermissionDenied()
+            )
+            return user
 
         if not root.user_id:
             return None
@@ -1167,9 +1168,8 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
-            return root.invoices.all()
-        raise PermissionDenied()
+        check_requestor_access(requester, root.user, OrderPermissions.MANAGE_ORDERS)
+        return root.invoices.all()
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):

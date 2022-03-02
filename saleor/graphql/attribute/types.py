@@ -16,7 +16,7 @@ from ..core.connection import (
 )
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
-from ..core.fields import ConnectionField, FilterConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.types import File, ModelObjectType
 from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
@@ -46,7 +46,7 @@ class AttributeValue(ModelObjectType):
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
-    rich_text = graphene.JSONString(
+    rich_text = JSONString(
         description=AttributeValueDescriptions.RICH_TEXT, required=False
     )
     boolean = graphene.Boolean(
@@ -70,10 +70,10 @@ class AttributeValue(ModelObjectType):
             if attribute.type == AttributeType.PAGE_TYPE:
                 if requester.has_perm(PagePermissions.MANAGE_PAGES):
                     return attribute.input_type
-                raise PermissionDenied()
+                raise PermissionDenied(permissions=[PagePermissions.MANAGE_PAGES])
             elif requester.has_perm(ProductPermissions.MANAGE_PRODUCTS):
                 return attribute.input_type
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=[ProductPermissions.MANAGE_PRODUCTS])
 
         return (
             AttributesByAttributeId(info.context)
@@ -347,9 +347,7 @@ class AttributeValueInput(graphene.InputObjectType):
         description="List of entity IDs that will be used as references.",
         required=False,
     )
-    rich_text = graphene.JSONString(
-        required=False, description="Text content in JSON format."
-    )
+    rich_text = JSONString(required=False, description="Text content in JSON format.")
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )

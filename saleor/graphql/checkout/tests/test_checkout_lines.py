@@ -17,7 +17,7 @@ from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import Reservation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
-from ..mutations import (
+from ..mutations.utils import (
     group_quantity_by_variants,
     update_checkout_shipping_method_if_invalid,
 )
@@ -47,7 +47,8 @@ MUTATION_CHECKOUT_LINES_ADD = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_lines_add(
@@ -648,7 +649,8 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_lines_update(
@@ -948,7 +950,8 @@ def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_line_delete_by_zero_quantity(
@@ -982,7 +985,8 @@ def test_checkout_line_delete_by_zero_quantity(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purchase(
@@ -1016,7 +1020,8 @@ def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purc
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
@@ -1151,7 +1156,8 @@ MUTATION_CHECKOUT_LINE_DELETE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_line_delete."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_line_delete(
@@ -1212,7 +1218,8 @@ MUTATION_CHECKOUT_LINES_DELETE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_lines_delete."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_lines_delete(
@@ -1280,11 +1287,9 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
 
     variables = {"token": checkout.token, "linesIds": lines_list}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
-    content = get_graphql_content(response)
-    errors = content["data"]["checkoutLinesDelete"]["errors"][0]
-    assert errors["code"] == CheckoutErrorCode.INVALID.name
-    assert errors["lines"] == lines_list[1:]
-    assert errors["field"] == "lineId"
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"][0]
+    assert errors["extensions"]["exception"]["code"] == "GraphQLError"
     assert checkout.last_change == previous_last_change
 
 

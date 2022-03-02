@@ -32,6 +32,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         {"name": "Secret API key", "value": None},
         {"name": "Use sandbox", "value": True},
         {"name": "Merchant ID", "value": None},
+        {"name": "Merchant Account ID", "value": None},
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
         {"name": "Require 3D secure", "value": False},
@@ -42,28 +43,33 @@ class BraintreeGatewayPlugin(BasePlugin):
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Provide Braintree public API key.",
-            "label": "Public API key",
+            "label": "Public Key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Braintree secret API key.",
-            "label": "Secret API key",
+            "help_text": "Provide Braintree private API key.",
+            "label": "Private Key",
         },
         "Merchant ID": {
-            "type": ConfigurationTypeField.SECRET,
+            "type": ConfigurationTypeField.STRING,
             "help_text": "Provide Braintree merchant ID.",
             "label": "Merchant ID",
+        },
+        "Merchant Account ID": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Optional. If empty, the default account will be used.",
+            "label": "Merchant Account ID",
         },
         "Use sandbox": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Determines if Saleor should use Braintree sandbox API.",
-            "label": "Use sandbox",
+            "label": "Sandbox mode",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Determines if Saleor should store cards on payments"
             " in Braintree customer.",
-            "label": "Store customers card",
+            "label": "Store customer cards",
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
@@ -72,8 +78,8 @@ class BraintreeGatewayPlugin(BasePlugin):
         },
         "Require 3D secure": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should enforce 3D secure during payment.",
-            "label": "Require 3D secure",
+            "help_text": "Determines if Saleor should enforce 3D Secure during payment.",
+            "label": "Require 3D Secure",
         },
         "Supported currencies": {
             "type": ConfigurationTypeField.STRING,
@@ -93,6 +99,7 @@ class BraintreeGatewayPlugin(BasePlugin):
             connection_params={
                 "sandbox_mode": configuration["Use sandbox"],
                 "merchant_id": configuration["Merchant ID"],
+                "merchant_account_id": configuration["Merchant Account ID"],
                 "public_key": configuration["Public API key"],
                 "private_key": configuration["Secret API key"],
             },

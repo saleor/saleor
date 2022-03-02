@@ -18,7 +18,7 @@ from ..channel.types import (
 )
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.fields import ConnectionField
+from ..core.fields import ConnectionField, JSONString
 from ..core.types import CountryDisplay, ModelObjectType, Money, MoneyRange, Weight
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -76,7 +76,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
     id = graphene.ID(required=True, description="Shipping method ID.")
     name = graphene.String(required=True, description="Shipping method name.")
-    description = graphene.JSONString(description="Shipping method description.")
+    description = JSONString(description="Shipping method description.")
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
@@ -305,7 +305,7 @@ class ShippingMethod(graphene.ObjectType):
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     name = graphene.String(required=True, description="Shipping method name.")
-    description = graphene.JSONString(description="Shipping method description (JSON).")
+    description = JSONString(description="Shipping method description (JSON).")
     maximum_delivery_days = graphene.Int(
         description="Maximum delivery days for this shipping method."
     )

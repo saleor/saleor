@@ -8,8 +8,8 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout
 from ....plugins.manager import get_plugins_manager
-from ...checkout.mutations import update_checkout_shipping_method_if_invalid
 from ...tests.utils import get_graphql_content
+from ..mutations.utils import update_checkout_shipping_method_if_invalid
 from .test_checkout import (
     MUTATION_CHECKOUT_CREATE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,

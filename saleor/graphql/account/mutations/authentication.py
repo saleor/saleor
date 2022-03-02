@@ -21,6 +21,7 @@ from ....core.jwt import (
     jwt_decode,
 )
 from ....core.permissions import get_permissions_from_names
+from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types.common import AccountError
 from ..types import User
@@ -313,7 +314,7 @@ class DeactivateAllUserTokens(BaseMutation):
 class ExternalAuthenticationUrl(BaseMutation):
     """Prepare external authentication url for user by a custom plugin."""
 
-    authentication_data = graphene.JSONString(
+    authentication_data = JSONString(
         description="The data returned by authentication plugin."
     )
 
@@ -321,7 +322,7 @@ class ExternalAuthenticationUrl(BaseMutation):
         plugin_id = graphene.String(
             description="The ID of the authentication plugin.", required=True
         )
-        input = graphene.JSONString(
+        input = JSONString(
             required=True,
             description=(
                 "The data required by plugin to create external authentication url."
@@ -362,7 +363,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         plugin_id = graphene.String(
             description="The ID of the authentication plugin.", required=True
         )
-        input = graphene.JSONString(
+        input = JSONString(
             required=True,
             description="The data required by plugin to create authentication data.",
         )
@@ -412,7 +413,7 @@ class ExternalRefresh(BaseMutation):
         plugin_id = graphene.String(
             description="The ID of the authentication plugin.", required=True
         )
-        input = graphene.JSONString(
+        input = JSONString(
             required=True,
             description="The data required by plugin to proceed the refresh process.",
         )
@@ -446,15 +447,13 @@ class ExternalRefresh(BaseMutation):
 class ExternalLogout(BaseMutation):
     """Logout user by a custom plugin."""
 
-    logout_data = graphene.JSONString(
-        description="The data returned by authentication plugin."
-    )
+    logout_data = JSONString(description="The data returned by authentication plugin.")
 
     class Arguments:
         plugin_id = graphene.String(
             description="The ID of the authentication plugin.", required=True
         )
-        input = graphene.JSONString(
+        input = JSONString(
             required=True,
             description="The data required by plugin to proceed the logout process.",
         )
@@ -480,13 +479,13 @@ class ExternalVerify(BaseMutation):
         default_value=False,
         description="Determine if authentication data is valid or not.",
     )
-    verify_data = graphene.JSONString(description="External data.")
+    verify_data = JSONString(description="External data.")
 
     class Arguments:
         plugin_id = graphene.String(
             description="The ID of the authentication plugin.", required=True
         )
-        input = graphene.JSONString(
+        input = JSONString(
             required=True,
             description="The data required by plugin to proceed the verification.",
         )

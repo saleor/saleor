@@ -603,7 +603,6 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     "attribute_id",
     [
         "",
-        graphene.Node.to_global_id("Attribute", "not a number"),
         graphene.Node.to_global_id("Attribute", -1),
     ],
 )
@@ -622,11 +621,36 @@ def test_sort_product_by_attribute_using_invalid_attribute_id(
         "channel": channel_USD.slug,
     }
 
-    response = get_graphql_content(api_client.post_graphql(query, variables))
+    response = get_graphql_content(
+        api_client.post_graphql(
+            query,
+            variables,
+        ),
+        ignore_errors=True,
+    )
     products = response["data"]["products"]["edges"]
 
     assert len(products) == product_models.Product.objects.count()
     assert products[0]["node"]["name"] == product_models.Product.objects.first().name
+
+
+def test_sort_product_by_attribute_using_string_as_attribute_id(
+    api_client, product_list_published, channel_USD
+):
+    """Ensure passing an invalid attribute ID as sorting field return error."""
+
+    query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", "not a number"),
+        "direction": "DESC",
+        "channel": channel_USD.slug,
+    }
+
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"][0]
+
+    assert errors["extensions"]["exception"]["code"] == "GraphQLError"
 
 
 @pytest.mark.parametrize("direction", ["ASC", "DESC"])

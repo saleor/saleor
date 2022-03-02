@@ -14,7 +14,7 @@ from ..core.connection import (
 )
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import FilterConnectionField
+from ..core.fields import FilterConnectionField, JSONString
 from ..core.types import ModelObjectType
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -92,13 +92,13 @@ class Page(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String(required=True)
-    content = graphene.JSONString(description="Content of the page (JSON).")
+    content = JSONString(description="Content of the page (JSON).")
     publication_date = graphene.Date()
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)
     page_type = graphene.Field(PageType, required=True)
     created = graphene.DateTime(required=True)
-    content_json = graphene.JSONString(
+    content_json = JSONString(
         description="Content of the page (JSON).",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
         required=True,
