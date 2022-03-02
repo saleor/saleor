@@ -4105,6 +4105,7 @@ type Mutation {
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
   checkoutDeliveryMethodUpdate(deliveryMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
+  orderFromCheckoutCreate(id: ID!): OrderFromCheckoutCreate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -4528,6 +4529,28 @@ input OrderFilterInput {
   ids: [ID]
   giftCardUsed: Boolean
   giftCardBought: Boolean
+}
+
+type OrderFromCheckoutCreate {
+  order: Order
+  checkoutErrors: [OrderFromCheckoutCreateError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [OrderFromCheckoutCreateError!]!
+}
+
+type OrderFromCheckoutCreateError {
+  field: String
+  message: String
+  code: OrderFromCheckoutCreateErrorCode!
+  variants: [ID!]
+  lines: [ID!]
+}
+
+enum OrderFromCheckoutCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INSUFFICIENT_STOCK
+  VOUCHER_NOT_APPLICABLE
+  TAX_ERROR
 }
 
 type OrderFulfill {

@@ -29,3 +29,11 @@ class CheckoutErrorCode(Enum):
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     EMAIL_NOT_SET = "email_not_set"
     NO_LINES = "no_lines"
+
+
+class OrderFromCheckoutCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    INSUFFICIENT_STOCK = "insufficient_stock"
+    VOUCHER_NOT_APPLICABLE = "voucher_not_applicable"
+    TAX_ERROR = "tax_error"
