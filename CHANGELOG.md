@@ -81,6 +81,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError in `CheckoutAddPromoCode`, `CheckoutPaymentCreate` when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Remove `graphene-django` dependency - #9170 by @rafalp
+- Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
+- Fix failing `on_failure` export tasks method - #9160 by @IKarbowiak
 
 
 # 3.0.0
