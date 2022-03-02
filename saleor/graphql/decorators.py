@@ -35,9 +35,8 @@ def account_passes_test(test_func):
         @wraps(f)
         @context(f)
         def wrapper(context, *args, **kwargs):
-            if test_func(context):
-                return f(*args, **kwargs)
-            raise PermissionDenied()
+            test_func(context)
+            return f(*args, **kwargs)
 
         return wrapper
 
@@ -52,9 +51,8 @@ def account_passes_test_for_attribute(test_func):
         @context(f)
         def wrapper(context, *args, **kwargs):
             root = args[0]
-            if test_func(context, root):
-                return f(*args, **kwargs)
-            raise PermissionDenied()
+            test_func(context, root)
+            return f(*args, **kwargs)
 
         return wrapper
 
@@ -69,7 +67,8 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
             perms = perm
 
         requestor = get_user_or_app_from_context(context)
-        return core_permission_required(perms, requestor)
+        if not core_permission_required(perms, requestor):
+            raise PermissionDenied(permissions=perms)
 
     return account_passes_test(check_perms)
 
@@ -77,19 +76,26 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
 def one_of_permissions_required(perms: Iterable[Enum]):
     def check_perms(context):
         requestor = get_user_or_app_from_context(context)
-        return has_one_of_permissions(requestor, perms)
+        if not has_one_of_permissions(requestor, perms):
+            raise PermissionDenied(permissions=perms)
 
     return account_passes_test(check_perms)
 
 
-staff_member_required = account_passes_test(
-    lambda context: context.user.is_active and context.user.is_staff
-)
+def _check_staff_member(context):
+    if not context.user.is_active or not context.user.is_staff:
+        raise PermissionDenied()
 
 
-staff_member_or_app_required = account_passes_test(
-    lambda context: context.app or (context.user.is_active and context.user.is_staff)
-)
+staff_member_required = account_passes_test(_check_staff_member)
+
+
+def _check_staff_member_or_app(context):
+    if not context.app and (not context.user.is_active or not context.user.is_staff):
+        raise PermissionDenied()
+
+
+staff_member_or_app_required = account_passes_test(_check_staff_member_or_app)
 
 
 def check_attribute_required_permissions():
@@ -102,19 +108,19 @@ def check_attribute_required_permissions():
     def check_perms(context, attribute):
         requestor = get_user_or_app_from_context(context)
         if attribute.type == AttributeType.PAGE_TYPE:
-            return has_one_of_permissions(
-                requestor,
-                (
-                    PagePermissions.MANAGE_PAGES,
-                    PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
-                ),
+            permissions = (
+                PagePermissions.MANAGE_PAGES,
+                PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
             )
-        return has_one_of_permissions(
-            requestor,
-            (
+        else:
+            permissions = (
                 ProductPermissions.MANAGE_PRODUCTS,
                 ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-            ),
-        )
+            )
+        if not has_one_of_permissions(
+            requestor,
+            permissions,
+        ):
+            raise PermissionDenied(permissions=permissions)
 
     return account_passes_test_for_attribute(check_perms)

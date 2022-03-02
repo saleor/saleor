@@ -49,7 +49,7 @@ from ....tests.utils import dummy_editorjs
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...tests.utils import assert_no_permission, get_graphql_content
-from ..mutations import (
+from ..mutations.utils import (
     clean_delivery_method,
     update_checkout_shipping_method_if_invalid,
 )
@@ -2704,7 +2704,8 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 def test_checkout_shipping_address_update(
@@ -2747,7 +2748,8 @@ def test_checkout_shipping_address_update(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
@@ -2800,7 +2802,8 @@ def test_checkout_shipping_address_update_changes_checkout_country(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
@@ -2841,7 +2844,8 @@ def test_checkout_shipping_address_update_insufficient_stocks(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
@@ -2888,7 +2892,8 @@ def test_checkout_shipping_address_update_with_reserved_stocks(
 
 
 @mock.patch(
-    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
 @override_settings(DEFAULT_COUNTRY="DE")
@@ -3539,7 +3544,10 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
 
 # TODO: Deprecated
 @pytest.mark.parametrize("is_valid_shipping_method", (True, False))
-@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "clean_delivery_method"
+)
 def test_checkout_shipping_method_update(
     mock_clean_shipping,
     staff_api_client,
@@ -3699,7 +3707,10 @@ def test_checkout_shipping_method_update_external_shipping_method_with_tax_plugi
     ],
     indirect=("delivery_method",),
 )
-@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
 def test_checkout_delivery_method_update(
     mock_clean_delivery,
     api_client,
@@ -3753,7 +3764,10 @@ def test_checkout_delivery_method_update(
 
 @pytest.mark.parametrize("is_valid_delivery_method", (True, False))
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
 def test_checkout_delivery_method_update_external_shipping(
     mock_clean_delivery,
     mock_send_request,
@@ -3805,7 +3819,10 @@ def test_checkout_delivery_method_update_external_shipping(
         assert PRIVATE_META_APP_SHIPPING_ID not in checkout.private_metadata
 
 
-@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "clean_delivery_method"
+)
 def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_error(
     mock_clean_delivery,
     api_client,
@@ -3837,7 +3854,10 @@ def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_er
     assert checkout.collection_point is None
 
 
-@patch("saleor.graphql.checkout.mutations.clean_delivery_method")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "clean_delivery_method"
+)
 def test_checkout_delivery_method_with_empty_fields_results_None(
     mock_clean_delivery,
     api_client,

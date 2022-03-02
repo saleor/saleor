@@ -1,7 +1,9 @@
 from functools import wraps
+from json import JSONDecodeError
 
 import graphene
 from graphene.relay import Connection, is_node
+from graphql import GraphQLError
 
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 
@@ -75,3 +77,12 @@ class FilterConnectionField(ConnectionField):
             return wrapped_resolver(obj, info, **kwargs)
 
         return new_resolver
+
+
+class JSONString(graphene.JSONString):
+    @staticmethod
+    def parse_literal(node):
+        try:
+            graphene.JSONString.parse_literal(node)
+        except JSONDecodeError:
+            raise GraphQLError(f"{str(node.value)[:20]}... is not a valid JSONString")

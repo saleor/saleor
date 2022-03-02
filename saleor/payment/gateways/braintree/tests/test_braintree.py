@@ -84,6 +84,7 @@ def gateway_config():
             "merchant_id": "123",
             "public_key": "456",
             "private_key": "789",
+            "merchant_account_id": "",
         },
         supported_currencies="USD",
     )
@@ -255,6 +256,7 @@ def sandbox_braintree_gateway_config(gateway_config):
         "public_key": "fake_public_key",  # CHANGE WHEN RECORDING
         "private_key": "fake_private_key",  # CHANGE WHEN RECORDING
         "sandbox_mode": True,
+        "merchant_account_id": "",
     }
     gateway_config.auto_capture = True
     return gateway_config

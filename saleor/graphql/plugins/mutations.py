@@ -62,7 +62,7 @@ class PluginUpdate(BaseMutation):
 
         manager = info.context.plugins
         plugin = manager.get_plugin(plugin_id, channel_slug)
-        if not plugin:
+        if not plugin or plugin.HIDDEN is True:
             raise ValidationError(
                 {
                     "id": ValidationError(

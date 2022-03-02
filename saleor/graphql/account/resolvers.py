@@ -72,7 +72,13 @@ def resolve_user(info, id=None, email=None):
             requester, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
         ):
             return models.User.objects.customers().filter(**filter_kwargs).first()
-    return PermissionDenied()
+    return PermissionDenied(
+        permissions=[
+            AccountPermissions.MANAGE_STAFF,
+            AccountPermissions.MANAGE_USERS,
+            OrderPermissions.MANAGE_ORDERS,
+        ]
+    )
 
 
 @traced_resolver

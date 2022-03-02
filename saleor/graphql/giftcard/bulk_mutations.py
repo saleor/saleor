@@ -10,7 +10,7 @@ from ...core.utils.validators import is_date_in_future
 from ...giftcard import events, models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import is_gift_card_expired
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.types.common import GiftCardError, PriceInput
 from ..core.validators import validate_price_precision
@@ -52,7 +52,7 @@ class GiftCardBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Create gift cards."
+        description = f"{ADDED_IN_31} Create gift cards. {PREVIEW_FEATURE}"
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
@@ -155,7 +155,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Delete gift cards."
+        description = f"{ADDED_IN_31} Delete gift cards. {PREVIEW_FEATURE}"
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -169,7 +169,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Activate gift cards."
+        description = f"{ADDED_IN_31} Activate gift cards. {PREVIEW_FEATURE}"
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -203,7 +203,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Deactivate gift cards."
+        description = f"{ADDED_IN_31} Deactivate gift cards. {PREVIEW_FEATURE}"
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

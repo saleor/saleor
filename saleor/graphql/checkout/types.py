@@ -3,7 +3,6 @@ from promise import Promise
 
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_collection_points_for_checkout
-from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
@@ -11,12 +10,12 @@ from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
-from ..account.utils import requestor_has_access
+from ..account.utils import check_requestor_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types import ModelObjectType, Money, TaxedMoney
@@ -170,7 +169,7 @@ class DeliveryMethod(graphene.Union):
         description = (
             f"{ADDED_IN_31} Represents a delivery method chosen for the checkout. "
             '`Warehouse` type is used when checkout is marked as "click and collect" '
-            "and `ShippingMethod` otherwise."
+            f"and `ShippingMethod` otherwise. {PREVIEW_FEATURE}"
         )
         types = (Warehouse, ShippingMethod)
 
@@ -211,7 +210,10 @@ class Checkout(ModelObjectType):
     available_collection_points = graphene.List(
         graphene.NonNull(Warehouse),
         required=True,
-        description=f"{ADDED_IN_31} Collection points that can be used for this order.",
+        description=(
+            f"{ADDED_IN_31} Collection points that can be used for this order. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -251,7 +253,10 @@ class Checkout(ModelObjectType):
 
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=f"{ADDED_IN_31} The delivery method selected for this checkout.",
+        description=(
+            f"{ADDED_IN_31} The delivery method selected for this checkout. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
 
     subtotal_price = graphene.Field(
@@ -294,9 +299,8 @@ class Checkout(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.Checkout, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
-            return root.user
-        raise PermissionDenied()
+        check_requestor_access(requestor, root.user, AccountPermissions.MANAGE_USERS)
+        return root.user
 
     @staticmethod
     def resolve_email(root: models.Checkout, _info):

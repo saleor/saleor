@@ -144,7 +144,8 @@ class MediaByProductIdLoader(DataLoader):
 
     def batch_load(self, keys):
         media = ProductMedia.objects.using(self.database_connection_name).filter(
-            product_id__in=keys
+            product_id__in=keys,
+            to_remove=False,
         )
         media_map = defaultdict(list)
         for media_obj in media.iterator():
@@ -157,7 +158,9 @@ class ImagesByProductIdLoader(DataLoader):
 
     def batch_load(self, keys):
         images = ProductMedia.objects.using(self.database_connection_name).filter(
-            product_id__in=keys, type=ProductMediaTypes.IMAGE
+            product_id__in=keys,
+            type=ProductMediaTypes.IMAGE,
+            to_remove=False,
         )
         images_map = defaultdict(list)
         for image in images.iterator():
@@ -395,9 +398,11 @@ class ProductMediaByIdLoader(DataLoader):
     context_key = "product_media_by_id"
 
     def batch_load(self, keys):
-        product_media = ProductMedia.objects.using(
-            self.database_connection_name
-        ).in_bulk(keys)
+        product_media = (
+            ProductMedia.objects.using(self.database_connection_name)
+            .filter(to_remove=False)
+            .in_bulk(keys)
+        )
         return [product_media.get(product_media_id) for product_media_id in keys]
 
 
@@ -407,7 +412,7 @@ class ProductImageByIdLoader(DataLoader):
     def batch_load(self, keys):
         images = (
             ProductMedia.objects.using(self.database_connection_name)
-            .filter(type=ProductMediaTypes.IMAGE)
+            .filter(type=ProductMediaTypes.IMAGE, to_remove=False)
             .in_bulk(keys)
         )
         return [images.get(product_image_id) for product_image_id in keys]
@@ -418,7 +423,9 @@ class ProductImageByProductIdLoader(DataLoader):
 
     def batch_load(self, keys):
         medias = ProductMedia.objects.using(self.database_connection_name).filter(
-            type=ProductMediaTypes.IMAGE, product_id__in=keys
+            type=ProductMediaTypes.IMAGE,
+            product_id__in=keys,
+            to_remove=False,
         )
         product_id_medias_map = defaultdict(list)
         for media in medias.iterator():

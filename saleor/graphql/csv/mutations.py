@@ -9,7 +9,7 @@ from ...csv.events import export_started_event
 from ...csv.tasks import export_gift_cards_task, export_products_task
 from ..attribute.types import Attribute
 from ..channel.types import Channel
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.enums import ExportErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import ExportError
@@ -188,7 +188,7 @@ class ExportGiftCards(BaseExportMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Export gift cards to csv file."
+        description = f"{ADDED_IN_31} Export gift cards to csv file. {PREVIEW_FEATURE}"
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = ExportError
 
