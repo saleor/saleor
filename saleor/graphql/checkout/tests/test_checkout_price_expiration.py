@@ -8,8 +8,8 @@ from freezegun import freeze_time
 from ....checkout.utils import invalidate_checkout_prices
 from ...tests.utils import get_graphql_content
 
-ADD_CHECKOUT_LINE = """
-mutation addCheckoutLine($checkoutId: ID!, $line: CheckoutLineInput!) {
+ADD_CHECKOUT_LINES = """
+mutation addCheckoutLines($checkoutId: ID!, $line: CheckoutLineInput!) {
   checkoutLinesAdd(checkoutId: $checkoutId, lines: [$line]) {
     errors {
       field
@@ -20,7 +20,9 @@ mutation addCheckoutLine($checkoutId: ID!, $line: CheckoutLineInput!) {
 """
 
 
-@patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout_prices"
+)
 def test_checkout_lines_add_invalidate_prices(
     mocked_function,
     api_client,
@@ -28,7 +30,7 @@ def test_checkout_lines_add_invalidate_prices(
     stock,
 ):
     # given
-    query = ADD_CHECKOUT_LINE
+    query = ADD_CHECKOUT_LINES
     variables = {
         "checkoutId": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
         "line": {
@@ -47,8 +49,8 @@ def test_checkout_lines_add_invalidate_prices(
     mocked_function.assert_called_once_with(checkout_with_items, save=True)
 
 
-UPDATE_CHECKOUT_LINE = """
-mutation updateCheckoutLine($token: UUID, $line: CheckoutLineInput!) {
+UPDATE_CHECKOUT_LINES = """
+mutation updateCheckoutLines($token: UUID!, $line: CheckoutLineInput!) {
   checkoutLinesUpdate(token: $token, lines: [$line]) {
     errors {
       field
@@ -59,7 +61,9 @@ mutation updateCheckoutLine($token: UUID, $line: CheckoutLineInput!) {
 """
 
 
-@patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout_prices"
+)
 def test_checkout_lines_update_invalidate_prices(
     mocked_function,
     api_client,
@@ -67,7 +71,7 @@ def test_checkout_lines_update_invalidate_prices(
     stock,
 ):
     # given
-    query = UPDATE_CHECKOUT_LINE
+    query = UPDATE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
         "line": {
@@ -86,8 +90,45 @@ def test_checkout_lines_update_invalidate_prices(
     mocked_function.assert_called_once_with(checkout_with_items, save=True)
 
 
+DELETE_CHECKOUT_LINES = """
+mutation deleteCheckoutLines($token: UUID!, $lineId: ID){
+  checkoutLinesDelete(token: $token, linesIds: [$lineId]) {
+    errors {
+      field
+      message
+    }
+  }
+}
+"""
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout_prices"
+)
+def test_checkout_lines_delete_invalidate_prices(
+    mocked_function,
+    api_client,
+    checkout_with_items,
+):
+    # given
+    query = DELETE_CHECKOUT_LINES
+    variables = {
+        "token": checkout_with_items.token,
+        "lineId": graphene.Node.to_global_id(
+            "CheckoutLine", checkout_with_items.lines.first().pk
+        ),
+    }
+
+    # when
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+
+    # then
+    assert not response["data"]["checkoutLinesDelete"]["errors"]
+    mocked_function.assert_called_once_with(checkout_with_items, save=True)
+
+
 DELETE_CHECKOUT_LINE = """
-mutation deleteCheckoutLine($token: UUID, $lineId: ID){
+mutation deleteCheckoutLine($token: UUID!, $lineId: ID){
   checkoutLineDelete(token: $token, lineId: $lineId) {
     errors {
       field
@@ -98,8 +139,10 @@ mutation deleteCheckoutLine($token: UUID, $lineId: ID){
 """
 
 
-@patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
-def test_checkout_lines_delete_invalidate_prices(
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout_prices"
+)
+def test_checkout_line_delete_invalidate_prices(
     mocked_function,
     api_client,
     checkout_with_items,
@@ -133,7 +176,10 @@ mutation UpdateCheckoutShippingAddress($token: UUID, $address: AddressInput!) {
 """
 
 
-@patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update"
+    ".invalidate_checkout_prices"
+)
 def test_checkout_shipping_address_update_invalidate_prices(
     mocked_function,
     api_client,
@@ -168,7 +214,10 @@ mutation UpdateCheckoutBillingAddress($token: UUID, $address: AddressInput!) {
 """
 
 
-@patch("saleor.graphql.checkout.mutations.invalidate_checkout_prices")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_billing_address_update"
+    ".invalidate_checkout_prices"
+)
 def test_checkout_billing_address_update_invalidate_prices(
     mocked_function,
     api_client,

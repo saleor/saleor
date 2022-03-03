@@ -1,4 +1,5 @@
 import copy
+from unittest import mock
 
 import graphene
 import pytest
@@ -276,3 +277,91 @@ def test_plugin_configuration_update_as_customer_user(user_api_client, settings)
     response = user_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
 
     assert_no_permission(response)
+
+
+def test_cannot_update_configuration_hidden_plugin(
+    settings, staff_api_client_can_manage_plugins
+):
+    """Ensure one cannot edit the configuration of hidden plugins"""
+    client = staff_api_client_can_manage_plugins
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    plugin_id = PluginSample.PLUGIN_ID
+    original_config = get_plugins_manager().get_plugin(plugin_id).configuration
+
+    variables = {
+        "id": plugin_id,
+        "active": False,
+        "channel": None,
+        "configuration": [{"name": "Username", "value": "MyNewUsername"}],
+    }
+
+    # Attempt to update hidden plugin, should error with object not found
+    with mock.patch.object(PluginSample, "HIDDEN", new=True):
+        response = client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"]["pluginUpdate"]["pluginsErrors"] == [
+        {"code": "NOT_FOUND", "field": "id"}
+    ]
+
+    # Hidden plugin should be untouched
+    plugin = get_plugins_manager().get_plugin(plugin_id)
+    assert plugin.active is True
+    assert plugin.configuration == original_config
+
+    # Ensure the plugin was modifiable if not hidden
+    response = client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"]["pluginUpdate"]["pluginsErrors"] == []
+    plugin = get_plugins_manager().get_plugin(plugin_id)
+    assert plugin.active is False
+    assert plugin.configuration != original_config
+
+
+def test_cannot_update_configuration_hidden_multi_channel_plugin(
+    settings,
+    staff_api_client_can_manage_plugins,
+    channel_USD,
+):
+    """Ensure one cannot edit the configuration of hidden multi channel plugins"""
+    client = staff_api_client_can_manage_plugins
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
+
+    plugin_id = ChannelPluginSample.PLUGIN_ID
+    original_config = (
+        get_plugins_manager()
+        .get_plugin(plugin_id, channel_slug=channel_USD.slug)
+        .configuration
+    )
+
+    variables = {
+        "id": plugin_id,
+        "active": False,
+        "channel": graphene.Node.to_global_id("Channel", channel_USD.id),
+        "configuration": [{"name": "input-per-channel", "value": "NewValue"}],
+    }
+
+    # Attempt to update hidden plugin, should error with object not found
+    with mock.patch.object(PluginSample, "HIDDEN", new=True):
+        response = client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"]["pluginUpdate"]["pluginsErrors"] == [
+        {"code": "NOT_FOUND", "field": "id"}
+    ]
+
+    # Hidden plugin should be untouched
+    plugin = get_plugins_manager().get_plugin(plugin_id, channel_slug=channel_USD.slug)
+    assert plugin.active is True
+    assert plugin.configuration == original_config
+
+    # Ensure the plugin was modifiable if not hidden
+    response = client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    assert content["data"]["pluginUpdate"]["pluginsErrors"] == []
+    plugin = get_plugins_manager().get_plugin(plugin_id, channel_slug=channel_USD.slug)
+    assert plugin.active is False
+    assert plugin.configuration != original_config

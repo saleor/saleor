@@ -244,10 +244,13 @@ class StripeGatewayPlugin(BasePlugin):
         intent_id = None
         kind = TransactionKind.ACTION_TO_CONFIRM
         action_required = True
+        payment_method_info = None
         if intent:
             kind, action_required = self._get_transaction_details_for_stripe_status(
                 intent.status
             )
+            if kind in (TransactionKind.AUTH, TransactionKind.CAPTURE):
+                payment_method_info = get_payment_method_details(intent)
             client_secret = intent.client_secret
             last_response = intent.last_response
             raw_response = last_response.data if last_response else None
@@ -265,6 +268,7 @@ class StripeGatewayPlugin(BasePlugin):
             action_required_data={"client_secret": client_secret, "id": intent_id},
             customer_id=customer.id if customer else None,
             psp_reference=intent.id if intent else None,
+            payment_method_info=payment_method_info,
         )
 
     @require_active_plugin

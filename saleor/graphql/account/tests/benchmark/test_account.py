@@ -105,7 +105,9 @@ def test_query_staff_user(
     user_id = graphene.Node.to_global_id("User", staff_user.pk)
     variables = {"id": user_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff]
+        query,
+        variables,
+        permissions=[permission_manage_staff, permission_manage_orders],
     )
     content = get_graphql_content(response)
     data = content["data"]["user"]
@@ -352,10 +354,13 @@ CUSTOMERS_QUERY = """
 def test_customers_query(
     staff_api_client,
     permission_manage_users,
+    permission_manage_orders,
     users_for_customers_benchmarks,
     count_queries,
 ):
-    staff_api_client.user.user_permissions.set([permission_manage_users])
+    staff_api_client.user.user_permissions.set(
+        [permission_manage_users, permission_manage_orders]
+    )
     content = get_graphql_content(staff_api_client.post_graphql(CUSTOMERS_QUERY))
     assert content["data"]["customers"] is not None
 

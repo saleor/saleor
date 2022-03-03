@@ -364,6 +364,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_price_gross_amount",
                     "shipping_method_name",
                     "price_expiration_for_unconfirmed",
+                    "updated_at",
                 ]
             )
             return OrderUpdateShipping(order=order)
@@ -407,6 +408,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "shipping_method",
                 "shipping_method_name",
                 "price_expiration_for_unconfirmed",
+                "updated_at",
             ]
         )
         # Post-process the results
@@ -745,7 +747,7 @@ class OrderConfirm(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
-        order.save(update_fields=["status"])
+        order.save(update_fields=["status", "updated_at"])
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = info.context.plugins
@@ -952,6 +954,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
                     "shipping_method_name",
+                    "updated_at",
                 ]
             )
         # Create the removal event

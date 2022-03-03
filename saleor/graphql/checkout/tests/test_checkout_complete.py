@@ -285,7 +285,7 @@ def test_checkout_complete(
 
 
 @pytest.mark.integration
-@patch("saleor.graphql.checkout.mutations.complete_checkout")
+@patch("saleor.graphql.checkout.mutations.checkout_complete.complete_checkout")
 def test_checkout_complete_by_app(
     mocked_complete_checkout,
     app_api_client,
@@ -349,7 +349,7 @@ def test_checkout_complete_by_app(
 
 
 @pytest.mark.integration
-@patch("saleor.graphql.checkout.mutations.complete_checkout")
+@patch("saleor.graphql.checkout.mutations.checkout_complete.complete_checkout")
 def test_checkout_complete_by_app_with_missing_permission(
     mocked_complete_checkout,
     app_api_client,

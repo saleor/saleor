@@ -67,7 +67,7 @@ def clean_razorpay_response(response: Dict):
     """Convert the Razorpay response to our internal representation for easier processing.
 
     As the Razorpay response payload contains the final amount
-    in Indian rupees, we convert the amount to paisa (by dividing by 100).
+    in paisa, we convert the amount to Indian Rupees (by dividing by 100).
     """
     response["amount"] = Decimal(response["amount"]) / 100
 

@@ -402,7 +402,8 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         blank=True,
     )
-    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
         measurement=Weight,
@@ -581,6 +582,8 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     quantity_limit_per_customer = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
     )
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     weight = MeasurementField(
         measurement=Weight,
@@ -779,7 +782,9 @@ class DigitalContentUrl(models.Model):
 
 
 class ProductMedia(SortableModel):
-    product = models.ForeignKey(Product, related_name="media", on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        Product, related_name="media", on_delete=models.SET_NULL, null=True, blank=True
+    )
     image = VersatileImageField(
         upload_to="products", ppoi_field="ppoi", blank=True, null=True
     )
@@ -792,6 +797,7 @@ class ProductMedia(SortableModel):
     )
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
+    to_remove = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("sort_order", "pk")

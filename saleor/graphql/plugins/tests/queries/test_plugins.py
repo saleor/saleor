@@ -1,4 +1,5 @@
 import copy
+from unittest import mock
 
 import graphene
 import pytest
@@ -373,3 +374,47 @@ def test_query_plugins_with_sort(
 
     for order, plugin_name in enumerate(result_order):
         assert plugins[order]["node"]["name"] == plugin_name
+
+
+def test_cannot_retrieve_hidden_plugins(
+    settings, staff_api_client_can_manage_plugins, channel_PLN
+):
+    """Ensure one cannot see hidden plugins when listing"""
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.ActivePlugin",
+    ]
+
+    query = """{
+        plugins(first: 100) {
+            edges { node { id } }
+        }
+    }"""
+
+    # Should return all plugins when none hidden
+    response = staff_api_client_can_manage_plugins.post_graphql(query)
+    content = get_graphql_content(response)
+    plugin_ids = {
+        plugin_data["node"]["id"] for plugin_data in content["data"]["plugins"]["edges"]
+    }
+    assert plugin_ids == {
+        "mirumee.x.plugin.active",
+        "channel.plugin.sample",
+        "plugin.sample",
+    }
+
+    # Hide global plugin
+    with mock.patch.object(PluginSample, "HIDDEN", new=True):
+        # Hide per-channel plugin
+        with mock.patch.object(ChannelPluginSample, "HIDDEN", new=True):
+            response = staff_api_client_can_manage_plugins.post_graphql(query)
+
+    # The two hidden plugins should not have been returned
+    content = get_graphql_content(response)
+    plugin_ids = {
+        plugin_data["node"]["id"] for plugin_data in content["data"]["plugins"]["edges"]
+    }
+    assert plugin_ids == {
+        "mirumee.x.plugin.active",
+    }
