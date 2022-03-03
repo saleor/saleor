@@ -130,7 +130,7 @@ def test_checkout_lines_delete_invalidate_prices(
 
 DELETE_CHECKOUT_LINE = """
 mutation deleteCheckoutLine($token: UUID!, $lineId: ID){
-  checkoutLineDelete(token: $token, lines: $lineId) {
+  checkoutLineDelete(token: $token, lineId: $lineId) {
     errors {
       field
       message
@@ -149,7 +149,7 @@ def test_checkout_line_delete_invalidate_prices(
     checkout_with_items,
 ):
     # given
-    query = DELETE_CHECKOUT_LINES
+    query = DELETE_CHECKOUT_LINE
     variables = {
         "token": checkout_with_items.token,
         "lineId": graphene.Node.to_global_id(
