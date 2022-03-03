@@ -27,7 +27,8 @@ from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
-from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ....webhook.models import Webhook, WebhookEvent
 from ....webhook.payloads import (
     generate_collection_payload,
     generate_customer_payload,
@@ -615,6 +616,39 @@ def test_checkout_updated(
     mocked_webhook_trigger.assert_called_once_with(
         expected_data, WebhookEventAsyncType.CHECKOUT_UPDATED, [any_webhook]
     )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhook_sync")
+def test_get_shipping_methods_for_checkout_untaxed(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    mocked_fetch,
+    any_webhook,
+    settings,
+    checkout,
+    app,
+    permission_manage_shipping,
+):
+    app.permissions.add(permission_manage_shipping)
+    app.save()
+    webhook = Webhook.objects.create(
+        name="webhook",
+        app=app,
+    )
+    WebhookEvent.objects.create(
+        webhook=webhook,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.list_shipping_methods_for_checkout(checkout)
+
+    mocked_fetch.assert_not_called()
 
 
 @freeze_time("1914-06-28 10:50")

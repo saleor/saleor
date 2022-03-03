@@ -1112,7 +1112,8 @@ def test_generate_checkout_payload(
     }
 
 
-def test_generate_excluded_shipping_methods_for_order(order):
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+def test_generate_excluded_shipping_methods_for_order(mocked_fetch, order):
     shipping_method = ShippingMethodData(
         id="123",
         price=Money(Decimal("10.59"), "USD"),
@@ -1139,9 +1140,11 @@ def test_generate_excluded_shipping_methods_for_order(order):
             "minimum_delivery_days": 2,
         }
     ]
+    mocked_fetch.assert_not_called()
 
 
-def test_generate_excluded_shipping_methods_for_checkout(checkout):
+@patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
+def test_generate_excluded_shipping_methods_for_checkout(mocked_fetch, checkout):
     shipping_method = ShippingMethodData(
         id="123",
         price=Money(Decimal("10.59"), "USD"),
@@ -1170,6 +1173,7 @@ def test_generate_excluded_shipping_methods_for_checkout(checkout):
             "minimum_delivery_days": 2,
         }
     ]
+    mocked_fetch.assert_not_called()
 
 
 def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):

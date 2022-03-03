@@ -18,9 +18,11 @@ from ..utils import (
 
 
 @freeze_time()
+@mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_checkout(
     mock_request,
+    mock_fetch,
     permission_handle_taxes,
     webhook_plugin,
     tax_checkout_webhook,
@@ -44,6 +46,7 @@ def test_get_taxes_for_checkout(
     assert delivery.payload == payload
     assert delivery.webhook == tax_checkout_webhook
     mock_request.assert_called_once_with(tax_checkout_webhook.app.name, delivery)
+    mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -65,9 +68,11 @@ def test_get_taxes_for_checkout_no_permission(
 
 
 @freeze_time()
+@mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_order(
     mock_request,
+    mock_fetch,
     permission_handle_taxes,
     webhook_plugin,
     tax_order_webhook,
@@ -91,6 +96,7 @@ def test_get_taxes_for_order(
     assert delivery.payload == payload
     assert delivery.webhook == tax_order_webhook
     mock_request.assert_called_once_with(tax_order_webhook.app.name, delivery)
+    mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response)
 
 
