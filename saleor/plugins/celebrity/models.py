@@ -1,7 +1,8 @@
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
-from ...account.validators import validate_possible_number
 from django_countries.fields import CountryField
+from phonenumber_field.modelfields import PhoneNumberField
+
+from ...account.validators import validate_possible_number
 
 
 class PossiblePhoneNumberField(PhoneNumberField):

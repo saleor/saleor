@@ -1,5 +1,4 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from ....graphql.account.enums import CountryCodeEnum
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation

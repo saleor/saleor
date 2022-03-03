@@ -1,9 +1,10 @@
 import graphene
 from graphene import relay
-from ....graphql.core.connection import CountableDjangoObjectType
-from .. import models
-from ....graphql.core.types.common import Image
+
 from ....graphql.account.enums import CountryCodeEnum
+from ....graphql.core.connection import CountableDjangoObjectType
+from ....graphql.core.types.common import Image
+from .. import models
 
 
 class Celebrity(CountableDjangoObjectType):

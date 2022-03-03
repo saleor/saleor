@@ -1,19 +1,17 @@
 import graphene
 from graphene_federation import build_schema
+
 from saleor.graphql.core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
 from saleor.graphql.core.fields import FilterConnectionField
 from saleor.graphql.core.utils import from_global_id_or_error
+
 from .. import models
 from . import types
-from .mutations import (
-    CelebrityCreate,
-    CelebrityUpdate,
-    CelebrityDelete,
-)
 from .filters import GroupFilterInput
+from .mutations import CelebrityCreate, CelebrityDelete, CelebrityUpdate
 
 
 class Query(graphene.ObjectType):
