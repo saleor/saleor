@@ -634,7 +634,6 @@ class WebhookPlugin(BasePlugin):
         apps = App.objects.for_event_type(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
-        print(apps)
         if apps:
             payload = generate_checkout_payload(checkout, self.requestor, taxed=False)
             for app in apps:
