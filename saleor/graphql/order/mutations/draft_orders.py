@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -34,7 +36,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
-from ..types import Order
+from ..types import Order, OrderLine
 from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
     validate_draft_order,
@@ -247,10 +249,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     @staticmethod
     def _save_lines(info, instance, quantities, variants):
         if variants and quantities:
-            lines = []
+            lines: List[Tuple[int, OrderLine]] = []
             for variant, quantity in zip(variants, quantities):
-                lines.append((quantity, variant))
-                add_variant_to_order(
+                line = add_variant_to_order(
                     instance,
                     variant,
                     quantity,
@@ -259,6 +260,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     info.context.plugins,
                     info.context.site.settings,
                 )
+                lines.append((quantity, line))
 
             # New event
             events.order_added_products_event(
