@@ -238,3 +238,4 @@ django-iban==0.3.1
 -e saleor/payment/gateways/tabby/
 -e saleor/plugins/customer_group/
 -e saleor/payment/gateways/checkout_payment/
+-e saleor/plugins/celebrity/
