@@ -227,7 +227,9 @@ def fetch_checkout_lines(
                 "variant__attributes__values",
             ]
         )
-    lines = checkout.lines.select_related().prefetch_related(*prefetched_fields)
+    lines = checkout.lines.select_related(
+        "variant", "variant__product"
+    ).prefetch_related(*prefetched_fields)
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
