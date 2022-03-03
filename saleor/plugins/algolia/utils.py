@@ -11,11 +11,12 @@ from django.utils.functional import SimpleLazyObject
 from gql import gql
 
 from saleor.account.models import User
+from saleor.attribute.models import Attribute, AttributeTranslation
 from saleor.core.permissions import ProductPermissions
 from saleor.discount.utils import fetch_discounts
 from saleor.graphql.product.schema import ProductQueries
 from saleor.plugins.manager import get_plugins_manager
-from saleor.product.models import Product
+from saleor.product.models import Category, CategoryTranslation, Product
 
 
 class UserAdminContext(HttpRequest):
@@ -97,9 +98,7 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
 )
 
 
-def get_hierarchical_categories(product: Product, language_code: str):
-    hierarchical = {}
-    hierarchical_list = []
+def get_categories_list_from_product(product: Product, language_code):
     if product.category:
         categories = product.category.get_ancestors(include_self=True)
         if language_code == "en":
@@ -110,18 +109,24 @@ def get_hierarchical_categories(product: Product, language_code: str):
                 for category in categories
                 if category.translations.filter(language_code=language_code).first()
             ]
-        for index, category in enumerate(categories):
-            hierarchical_list.append(str(category))
-            hierarchical.update(
-                {
-                    "lvl{0}".format(str(index)): " > ".join(
-                        hierarchical_list[: index + 1]
-                    )
-                    if index != 0
-                    else hierarchical_list[index]
-                }
-            )
-        return hierarchical
+        return categories
+
+
+def get_hierarchical_categories(objects, language_code: str):
+    hierarchical = {}
+    hierarchical_list = []
+    if hasattr(objects, "category"):
+        objects = get_categories_list_from_product(objects, language_code)
+    for index, category in enumerate(objects):
+        hierarchical_list.append(str(category))
+        hierarchical.update(
+            {
+                "lvl{0}".format(str(index)): " > ".join(hierarchical_list[: index + 1])
+                if index != 0
+                else hierarchical_list[index]
+            }
+        )
+    return hierarchical
 
 
 def map_product_description(description: dict):
@@ -267,7 +272,7 @@ def get_product_data(product_pk: int, language_code="EN"):
                     product=product, language_code=language_code.lower()
                 ),
                 "categories": get_hierarchical_categories(
-                    product=product, language_code=language_code.lower()
+                    objects=product, language_code=language_code.lower()
                 ),
             }
         )
@@ -286,11 +291,22 @@ class SingletonMeta(type):
         return cls._instances[cls]
 
 
-def get_attributes_for_faceting(attributes, categories) -> List:
-    try:
-        attributes_for_faceting = [
-            f"attributes.{list(attribute.keys())[0]}" for attribute in attributes
-        ] + [f"categories.{category}" for category in categories]
-    except IndexError:
-        attributes_for_faceting = [f"categories.{category}" for category in categories]
+def get_attributes_for_faceting(locale: str) -> List:
+    faceting = {
+        "categories_en": Category.objects.all(),
+        "attributes_en": Attribute.objects.values("name"),
+        "categories_ar": CategoryTranslation.objects.filter(
+            language_code=locale
+        ).values("name"),
+        "attributes_ar": AttributeTranslation.objects.filter(
+            language_code=locale
+        ).values("name"),
+    }
+
+    categories = get_hierarchical_categories(faceting[f"categories_{locale}"], locale)
+    attributes_for_faceting = [
+        f"searchable(attributes.{attribute['name']})"
+        for attribute in faceting[f"attributes_{locale}"]
+    ] + [f"categories.{category}" for category in categories]
+
     return attributes_for_faceting + ["gender"]

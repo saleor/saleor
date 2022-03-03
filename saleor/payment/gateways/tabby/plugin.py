@@ -27,6 +27,8 @@ GATEWAY_NAME = str(_("Split in 4 interest-free payments"))
 class TabbyGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     PLUGIN_ID = "payments.tabby"
+    CONFIGURATION_PER_CHANNEL = False
+
     DEFAULT_CONFIGURATION = [
         {"name": "public_api_key", "value": None},
         {"name": "secret_api_key", "value": None},
