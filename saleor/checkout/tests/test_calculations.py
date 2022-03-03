@@ -3,6 +3,7 @@ from typing import Literal, Union
 from unittest.mock import Mock, patch
 
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
@@ -150,6 +151,8 @@ def test_fetch_checkout_prices_if_expired_plugins(
     tax_data,
 ):
     # given
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
     manager.get_taxes_for_checkout = Mock(return_value=None)
 
     unit_prices, totals, tax_rates = zip(
@@ -201,6 +204,8 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
     tax_data,
 ):
     # given
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
     manager.get_taxes_for_checkout = Mock(return_value=tax_data)
 
     # when

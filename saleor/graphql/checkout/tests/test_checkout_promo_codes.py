@@ -430,7 +430,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     subtotal = calculations.checkout_subtotal(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
-    checkout_with_item.price_expiration = None
+    checkout_with_item.price_expiration = timezone.now()
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -470,7 +470,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
-    checkout_with_item.price_expiration = None
+    checkout_with_item.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -512,7 +512,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         address=checkout.shipping_address,
     )
 
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -551,7 +551,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -590,7 +590,7 @@ def test_checkout_add_category_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,

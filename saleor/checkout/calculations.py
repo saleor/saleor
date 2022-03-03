@@ -244,11 +244,7 @@ def fetch_checkout_prices_if_expired(
     from .utils import recalculate_checkout_discount
 
     checkout = checkout_info.checkout
-    if (
-        not force_update
-        and checkout.price_expiration
-        and checkout.price_expiration > timezone.now()
-    ):
+    if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines
 
     # Discounts are calculated first, as they depend solely on the "base" price

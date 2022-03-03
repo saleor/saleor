@@ -845,8 +845,7 @@ def test_recalculate_checkout_discount_with_sale(
     recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
 
-    # TODO: should recalculate_checkout_discount update checkout.total?
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout.save()
     assert (
         calculations.checkout_total(
@@ -913,14 +912,13 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
         + Money("10.00", "USD")
     )
     channel_listing.save()
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     recalculate_checkout_discount(manager, checkout_info, lines, None)
 
-    # TODO: should recalculate_checkout_discount update checkout.total?
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout.save()
 
     assert checkout.discount == channel_listing.price
@@ -961,13 +959,12 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
         - Money("1.00", "USD")
     )
     channel_listing.save()
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     recalculate_checkout_discount(manager, checkout_info, lines, None)
-    # TODO: should recalculate_checkout_discount update checkout.total?
-    checkout.price_expiration = None
+    checkout.price_expiration = timezone.now()
     checkout.save()
 
     assert checkout.discount == channel_listing.price

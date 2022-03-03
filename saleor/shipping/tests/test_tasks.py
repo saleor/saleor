@@ -93,9 +93,9 @@ def test_drop_invalid_shipping_method_relations(
     assert checkout_another_shipping_method.shipping_method is None
 
     assert checkout_PLN.price_expiration == valid_time
-    assert checkout_USD.price_expiration is None
+    assert checkout_USD.price_expiration == timezone.now()
     assert checkout_weight_shipping_method.price_expiration == valid_time
-    assert checkout_another_shipping_method.price_expiration is None
+    assert checkout_another_shipping_method.price_expiration == timezone.now()
 
     order_confirmed.refresh_from_db()
     order_draft.refresh_from_db()

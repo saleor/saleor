@@ -17,7 +17,11 @@ def drop_invalid_shipping_methods_relations_for_given_channels(
     # when method is no longer available in given channels
     Checkout.objects.filter(
         shipping_method_id__in=shipping_method_ids, channel_id__in=channel_ids
-    ).update(shipping_method=None, price_expiration=None, last_change=timezone.now())
+    ).update(
+        shipping_method=None,
+        price_expiration=timezone.now(),
+        last_change=timezone.now(),
+    )
     Order.objects.filter(
         status__in=ORDER_EDITABLE_STATUS,
         shipping_method_id__in=shipping_method_ids,

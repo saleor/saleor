@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest import mock
 from unittest.mock import patch
 
 import graphene
@@ -252,7 +253,13 @@ mutation updateCheckoutShippingOptions($token: UUID, $shippingMethodId: ID!) {
 """
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_shipping_method_update_invalidate_prices(
+    mocked_invalidate_checkout_prices,
     api_client,
     checkout_with_shipping_address,
     shipping_method,
@@ -275,7 +282,7 @@ def test_checkout_shipping_method_update_invalidate_prices(
     # then
     checkout.refresh_from_db()
     assert not response["data"]["checkoutShippingMethodUpdate"]["errors"]
-    assert checkout.price_expiration is None
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 UPDATE_CHECKOUT_DELIVERY_METHOD = """
@@ -290,7 +297,13 @@ mutation updateCheckoutDeliveryOptions($token: UUID, $deliveryMethodId: ID) {
 """
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_delivery_method_update_invalidate_prices(
+    mocked_invalidate_checkout_prices,
     api_client,
     checkout_with_shipping_address_for_cc,
     warehouses_for_cc,
@@ -312,7 +325,7 @@ def test_checkout_delivery_method_update_invalidate_prices(
     # then
     checkout.refresh_from_db()
     assert not response["data"]["checkoutDeliveryMethodUpdate"]["errors"]
-    assert checkout.price_expiration is None
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 @freeze_time("2020-12-12 12:00:00")
@@ -326,7 +339,7 @@ def test_invalidate_checkout_prices_with_save(checkout):
 
     # then
     checkout.refresh_from_db()
-    assert checkout.price_expiration is None
+    assert checkout.price_expiration == timezone.now()
     assert updated_fields == ["price_expiration", "last_change"]
 
 

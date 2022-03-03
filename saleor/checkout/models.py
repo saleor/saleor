@@ -138,7 +138,7 @@ class Checkout(ModelWithMetadata):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    price_expiration = models.DateTimeField(null=True, default=None, blank=True)
+    price_expiration = models.DateTimeField(default=timezone.now)
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

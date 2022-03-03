@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone
 
 from .....checkout.utils import set_external_shipping_id
 from ....tests.utils import get_graphql_content
@@ -255,7 +256,7 @@ def test_user_checkout_details_with_tax_app(
           }
         }
     """
-    customer_checkout.price_expiration = None
+    customer_checkout.price_expiration = timezone.now()
     customer_checkout.save()
 
     # when

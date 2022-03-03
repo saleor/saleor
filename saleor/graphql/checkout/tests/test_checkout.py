@@ -34,6 +34,7 @@ from ....checkout.utils import (
     PRIVATE_META_APP_SHIPPING_ID,
     add_variant_to_checkout,
     calculate_checkout_quantity,
+    invalidate_checkout_prices,
 )
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
@@ -2708,7 +2709,13 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_shipping_address_update(
+    mocked_invalidate_checkout_prices,
     mocked_update_shipping_method,
     user_api_client,
     checkout_with_item,
@@ -2745,7 +2752,7 @@ def test_checkout_shipping_address_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
-    assert checkout.price_expiration is None
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 @mock.patch(
@@ -3064,8 +3071,16 @@ def test_checkout_shipping_address_update_exclude_shipping_method(
     assert checkout.shipping_method is None
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_billing_address_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_billing_address_update(
-    user_api_client, checkout_with_item, graphql_address_data
+    mocked_invalidate_checkout_prices,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
@@ -3109,7 +3124,7 @@ def test_checkout_billing_address_update(
     assert checkout.billing_address.country == billing_address["country"]
     assert checkout.billing_address.city == billing_address["city"].upper()
     assert checkout.last_change != previous_last_change
-    assert checkout.price_expiration is None
+    assert mocked_invalidate_checkout_prices.call_count == 1
 
 
 CHECKOUT_EMAIL_UPDATE_MUTATION = """
@@ -3550,7 +3565,13 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
     "clean_delivery_method"
 )
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_shipping_method_update(
+    mocked_invalidate_checkout_prices,
     mock_clean_shipping,
     staff_api_client,
     shipping_method,
@@ -3593,7 +3614,7 @@ def test_checkout_shipping_method_update(
         assert data["checkout"]["token"] == str(checkout.token)
         assert checkout.shipping_method == shipping_method
         assert checkout.last_change != previous_last_change
-        assert checkout.price_expiration is None
+        assert mocked_invalidate_checkout_prices.call_count == 1
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "shippingMethod"
@@ -3714,7 +3735,13 @@ def test_checkout_shipping_method_update_external_shipping_method_with_tax_plugi
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "invalidate_checkout_prices",
+    wraps=invalidate_checkout_prices,
+)
 def test_checkout_delivery_method_update(
+    mock_invalidate_checkout_prices,
     mock_clean_delivery,
     api_client,
     delivery_method,
@@ -3755,7 +3782,7 @@ def test_checkout_delivery_method_update(
     if is_valid_delivery_method:
         assert not errors
         assert getattr(checkout, attribute_name) == delivery_method
-        assert checkout.price_expiration is None
+        assert mock_invalidate_checkout_prices.call_count == 1
     else:
         assert len(errors) == 1
         assert errors[0]["field"] == "deliveryMethodId"
