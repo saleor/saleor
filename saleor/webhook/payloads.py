@@ -649,7 +649,7 @@ def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
     available_shipping_methods: List[ShippingMethodData],
 ):
-    order_data = json.loads(generate_order_payload(order))[0]
+    order_data = json.loads(generate_order_payload(order, taxed=False))[0]
     payload = {
         "order": order_data,
         "shipping_methods": [
@@ -665,7 +665,7 @@ def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
     available_shipping_methods: List[ShippingMethodData],
 ):
-    checkout_data = json.loads(generate_checkout_payload(checkout))[0]
+    checkout_data = json.loads(generate_checkout_payload(checkout, taxed=False))[0]
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
