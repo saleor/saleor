@@ -20,7 +20,7 @@ def update_order_search_document(order: "Order", *, save: bool = False):
     """
     order.search_document = prepare_order_search_document_value(order)
     if save:
-        order.save(update_fields=["search_document"])
+        order.save(update_fields=["search_document", "updated_at"])
 
 
 def prepare_order_search_document_value(order: "Order", *, already_prefetched=False):

@@ -723,7 +723,12 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
     product_variant.preorder_end_date = None
     product_variant.is_preorder = False
     product_variant.save(
-        update_fields=["preorder_global_threshold", "preorder_end_date", "is_preorder"]
+        update_fields=[
+            "preorder_global_threshold",
+            "preorder_end_date",
+            "is_preorder",
+            "updated_at",
+        ]
     )
 
     ProductVariantChannelListing.objects.filter(variant_id=product_variant.pk).update(

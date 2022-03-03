@@ -5961,6 +5961,34 @@ def test_product_create_with_collections_webhook(
     get_graphql_content(response)
 
 
+def test_product_create_with_invalid_json_description(staff_api_client):
+    query = """
+        mutation ProductCreate {
+            productCreate(
+                input: {
+                    description: "I'm not a valid JSON"
+                    category: "Q2F0ZWdvcnk6MjQ="
+                    name: "Breaky McErrorface"
+                    productType: "UHJvZHVjdFR5cGU6NTE="
+                }
+            ) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content_from_response(response)
+
+    assert content["errors"]
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["extensions"]["exception"]["code"] == "GraphQLError"
+    assert "is not a valid JSONString" in content["errors"][0]["message"]
+
+
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
         productUpdate(id: $productId, input: $input) {
@@ -7532,11 +7560,11 @@ def test_delete_product(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_with_image(
     mocked_recalculate_orders_task,
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     staff_api_client,
     product_with_image,
     variant_with_image,
@@ -7553,6 +7581,7 @@ def test_delete_product_with_image(
 
     product_img_paths = [media.image for media in product.media.all()]
     variant_img_paths = [media.image for media in variant.media.all()]
+    product_media_ids = [media.id for media in product.media.all()]
     images = product_img_paths + variant_img_paths
 
     variables = {"id": node_id}
@@ -7570,10 +7599,10 @@ def test_delete_product_with_image(
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
 
-    assert delete_versatile_image_mock.call_count == len(images)
+    assert delete_product_media_task_mock.call_count == len(images)
     assert {
-        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
-    } == set(images)
+        call_args.args[0] for call_args in delete_product_media_task_mock.call_args_list
+    } == set(product_media_ids)
     mocked_recalculate_orders_task.assert_not_called()
 
 
@@ -9058,9 +9087,9 @@ def test_product_type_delete_mutation(
         product_type.refresh_from_db()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 def test_product_type_delete_mutation_deletes_also_images(
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     staff_api_client,
     product_type,
     product_with_image,
@@ -9078,7 +9107,7 @@ def test_product_type_delete_mutation_deletes_also_images(
     assert data["productType"]["name"] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
-    delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+    delete_product_media_task_mock.assert_called_once_with(media_obj.id)
     with pytest.raises(product_with_image._meta.model.DoesNotExist):
         product_with_image.refresh_from_db()
 
@@ -9472,9 +9501,9 @@ def test_product_image_update_mutation(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 def test_product_media_delete(
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     product_updated_mock,
     staff_api_client,
     product_with_image,
@@ -9500,11 +9529,11 @@ def test_product_media_delete(
     content = get_graphql_content(response)
     data = content["data"]["productMediaDelete"]
     assert media_obj.image.url in data["media"]["url"]
-    with pytest.raises(media_obj._meta.model.DoesNotExist):
-        media_obj.refresh_from_db()
+    media_obj.refresh_from_db()
+    assert media_obj.to_remove
     assert node_id == data["media"]["id"]
     product_updated_mock.assert_called_once_with(product)
-    delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+    delete_product_media_task_mock.assert_called_once_with(media_obj.id)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

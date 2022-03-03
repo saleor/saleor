@@ -10,7 +10,7 @@ from ...core.permissions import AccountPermissions, AppPermission, GiftcardPermi
 from ...core.tracing import traced_resolver
 from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
-from ..account.utils import requestor_has_access
+from ..account.utils import check_requestor_access, requestor_has_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
@@ -331,10 +331,8 @@ class GiftCard(ModelObjectType):
     def resolve_created_by(root: models.GiftCard, info):
         def _resolve_created_by(user):
             requestor = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requestor, user, AccountPermissions.MANAGE_USERS):
-                return user
-
-            return PermissionDenied()
+            check_requestor_access(requestor, user, AccountPermissions.MANAGE_USERS)
+            return user
 
         if root.created_by_id is None:
             return _resolve_created_by(None)

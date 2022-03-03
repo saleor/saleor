@@ -1,7 +1,6 @@
 from typing import List
 
 import graphene
-from graphene_federation import key
 
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
@@ -14,8 +13,8 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.federation import resolve_federation_references
-from ..core.fields import FilterConnectionField
+from ..core.federation import federated_entity, resolve_federation_references
+from ..core.fields import FilterConnectionField, JSONString
 from ..core.types import ModelObjectType
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -29,7 +28,7 @@ from .dataloaders import (
 )
 
 
-@key(fields="id")
+@federated_entity("id")
 class PageType(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
@@ -93,13 +92,13 @@ class Page(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String(required=True)
-    content = graphene.JSONString(description="Content of the page (JSON).")
+    content = JSONString(description="Content of the page (JSON).")
     publication_date = graphene.Date()
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)
     page_type = graphene.Field(PageType, required=True)
     created = graphene.DateTime(required=True)
-    content_json = graphene.JSONString(
+    content_json = JSONString(
         description="Content of the page (JSON).",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
         required=True,
