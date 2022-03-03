@@ -37,7 +37,7 @@ def test_get_taxes_for_checkout(
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == generate_checkout_payload(checkout)
+    assert payload.payload == generate_checkout_payload(checkout, taxed=False)
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
@@ -84,7 +84,7 @@ def test_get_taxes_for_order(
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == generate_order_payload(order)
+    assert payload.payload == generate_order_payload(order, taxed=False)
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES

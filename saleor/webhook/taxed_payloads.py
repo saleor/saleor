@@ -13,7 +13,7 @@ from ..checkout.fetch import (
     fetch_checkout_lines,
 )
 from ..checkout.models import Checkout
-from ..core.prices import quantize_price_fields
+from ..core.prices import quantize_price, quantize_price_fields
 from ..core.taxes import include_taxes_in_prices
 from ..order import calculations as order_calculations
 from ..order.models import Order, OrderLine
@@ -32,8 +32,6 @@ from .payloads_utils import (
     get_product_metadata_for_order_line,
     get_product_type_metadata_for_order_line,
     prepare_order_lines_allocations_payload,
-    quantize_lazy_prices,
-    quantize_prices,
 )
 from .serializers import serialize_checkout_lines
 
@@ -65,6 +63,7 @@ ORDER_LINE_FIELDS_WITHOUT_TAXES = (
     "unit_discount_amount",
     "unit_discount_type",
     "unit_discount_reason",
+    "tax_rate",
     "unit_price_net_amount",
     "unit_price_gross_amount",
     "total_price_net_amount",
@@ -91,31 +90,46 @@ ORDER_LINE_PRICE_FIELDS = (
 )
 
 
-@quantize_lazy_prices
+# @quantize_lazy_prices(ORDER_LINE_PRICE_FIELDS)
 def _generate_order_line_prices_data(
     order: "Order",
     manager: PluginsManager,
     lines: Iterable[OrderLine],
 ) -> Dict[str, Callable[[OrderLine], Decimal]]:
     def get_unit_price(line: OrderLine) -> TaxedMoney:
-        return order_calculations.order_line_unit(
-            order, line, manager, lines
-        ).price_with_discounts
+        return quantize_price(
+            order_calculations.order_line_unit(
+                order, line, manager, lines
+            ).price_with_discounts,
+            order.currency,
+        )
 
     def get_undiscounted_unit_price(line: OrderLine) -> TaxedMoney:
-        return order_calculations.order_line_unit(
-            order, line, manager, lines
-        ).undiscounted_price
+        return quantize_price(
+            order_calculations.order_line_unit(
+                order, line, manager, lines
+            ).undiscounted_price,
+            order.currency,
+        )
 
     def get_total_price(line: OrderLine) -> TaxedMoney:
-        return order_calculations.order_line_total(
-            order, line, manager, lines
-        ).price_with_discounts
+        return quantize_price(
+            order_calculations.order_line_total(
+                order, line, manager, lines
+            ).price_with_discounts,
+            order.currency,
+        )
 
     def get_undiscounted_total_price(line: OrderLine) -> TaxedMoney:
-        return order_calculations.order_line_total(
-            order, line, manager, lines
-        ).undiscounted_price
+        return quantize_price(
+            order_calculations.order_line_total(
+                order, line, manager, lines
+            ).undiscounted_price,
+            order.currency,
+        )
+
+    def get_tax_rate(line: OrderLine) -> Decimal:
+        return order_calculations.order_line_tax_rate(order, line, manager, lines)
 
     return {
         "unit_price_net_amount": (lambda l: get_unit_price(l).net.amount),
@@ -134,6 +148,7 @@ def _generate_order_line_prices_data(
         "undiscounted_total_price_gross_amount": (
             lambda l: get_undiscounted_total_price(l).gross.amount
         ),
+        "tax_rate": lambda l: get_tax_rate(l),
     }
 
 
@@ -209,12 +224,13 @@ ORDER_PRICE_FIELDS = (
 )
 
 
-@quantize_prices
 def _generate_order_prices_data(
     order: "Order",
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
 ) -> Dict[str, Decimal]:
+    def qp(price: TaxedMoney) -> TaxedMoney:
+        return quantize_price(price, order.currency)
 
     shipping = order_calculations.order_shipping(order, manager, lines)
     shipping_tax_rate = order_calculations.order_shipping_tax_rate(
@@ -226,13 +242,13 @@ def _generate_order_prices_data(
     )
 
     return {
-        "shipping_price_net_amount": shipping.net.amount,
-        "shipping_price_gross_amount": shipping.gross.amount,
+        "shipping_price_net_amount": qp(shipping.net.amount),
+        "shipping_price_gross_amount": qp(shipping.gross.amount),
         "shipping_tax_rate": shipping_tax_rate,
-        "total_net_amount": total.net.amount,
-        "total_gross_amount": total.gross.amount,
-        "undiscounted_total_net_amount": undiscounted_total.net.amount,
-        "undiscounted_total_gross_amount": undiscounted_total.gross.amount,
+        "total_net_amount": qp(total.net.amount),
+        "total_gross_amount": qp(total.gross.amount),
+        "undiscounted_total_net_amount": qp(undiscounted_total.net.amount),
+        "undiscounted_total_gross_amount": qp(undiscounted_total.gross.amount),
     }
 
 
@@ -536,7 +552,7 @@ def generate_checkout_payload(
             lines=lines,
             checkout_line_info=line_info,
             discounts=[],
-        ).price_with_discounts
+        ).price_with_sale
 
     return _generate_checkout_payload(
         checkout,

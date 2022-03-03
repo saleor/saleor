@@ -9,7 +9,7 @@ from ...checkout import calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.models import CheckoutLine
 from ...core.prices import quantize_price
-from ...plugins.manager import PluginsManager, get_plugins_manager
+from ...plugins.manager import get_plugins_manager
 from ..serializers import (
     serialize_checkout_lines,
     serialize_product_or_variant_attributes,
@@ -76,7 +76,7 @@ def test_serialize_product_attributes(
     ]
 
 
-@patch.object(PluginsManager, "get_taxes_for_checkout", return_value=None)
+@patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @pytest.mark.parametrize(
     "get_unit_price, tax_webhook_called",
     [
@@ -88,7 +88,7 @@ def test_serialize_product_attributes(
                 lines=ls,
                 checkout_line_info=l,
                 discounts=[],
-            ).price_with_discounts,
+            ).price_with_sale,
             True,
         ),
     ],
@@ -112,6 +112,9 @@ def test_serialize_checkout_lines(
     tax_webhook_called,
 ):
     # given
+    mocked_fetch.side_effect = (
+        lambda checkout_info, manager, lines, address, discounts: (checkout_info, lines)
+    )
     lines, _ = fetch_checkout_lines(checkout_with_items_for_cc)
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout_with_items_for_cc, lines, [], manager)
@@ -119,21 +122,16 @@ def test_serialize_checkout_lines(
     site_settings.save()
     checkout = checkout_with_items_for_cc
     channel = checkout.channel
-    checkout_lines = list(
-        checkout.lines.prefetch_related(
-            "variant__product__collections",
-            "variant__channel_listings__channel",
-            "variant__product__product_type",
-        )
-    )
-    for line in checkout_lines:
-        line.currency = (channel.currency_code,)
+    for line_info in lines:
+        line = line_info.line
         line.unit_price_net_amount = Decimal("10.00")
-        if taxes_calculated:
+        if not taxes_calculated:
+            line.unit_price_gross_amount = Decimal("10.00")
+        else:
             line.unit_price_gross_amount = Decimal("12.30")
 
     CheckoutLine.objects.bulk_update(
-        checkout_lines,
+        [line_info.line for line_info in lines],
         fields=[
             "currency",
             "unit_price_net_amount",
@@ -167,9 +165,7 @@ def test_serialize_checkout_lines(
         base_price = variant.get_price(
             product, collections, channel, variant_channel_listing
         )
-        price = line.unit_price
         currency = checkout.currency
-        assert price.net != price.gross
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
             "sku": variant.sku,
@@ -193,3 +189,4 @@ def test_serialize_checkout_lines(
         }
         data_len += 1
     assert len(checkout_lines_data) == data_len
+    assert bool(mocked_fetch.call_count) is tax_webhook_called

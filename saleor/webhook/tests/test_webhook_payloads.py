@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -49,7 +49,6 @@ from ..payloads_utils import (
     generate_meta,
     generate_requestor,
 )
-from ..serializers import serialize_checkout_lines
 from ..taxed_payloads import (
     ORDER_FIELDS_WITHOUT_TAXES,
     generate_checkout_payload,
@@ -57,9 +56,14 @@ from ..taxed_payloads import (
 )
 
 
-@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
+@pytest.mark.parametrize("taxed", [True, False])
+@mock.patch("saleor.webhook.taxed_payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
-    mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
+    mocked_fulfillment_lines,
+    order_with_lines,
+    fulfilled_order,
+    payment_txn_captured,
+    taxed,
 ):
     mocked_fulfillment_lines.return_value = "{}"
 
@@ -97,7 +101,7 @@ def test_generate_order_payload(
     fulfillment = fulfilled_order.fulfillments.first()
 
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
-    payload = json.loads(generate_order_payload(order_with_lines))[0]
+    payload = json.loads(generate_order_payload(order_with_lines, taxed=taxed))[0]
 
     assert order_id == payload["id"]
     non_empty_fields = [
@@ -153,26 +157,32 @@ def test_generate_order_payload(
     mocked_fulfillment_lines.assert_called_with(fulfillment)
 
 
-def test_generate_order_payload_prices(order_with_lines):
+@pytest.mark.parametrize("taxed", [True, False])
+def test_generate_order_payload_prices(order_with_lines, taxed):
     # given
     order = order_with_lines
 
+    def qp(price):
+        return quantize_price(price, order.currency)
+
     # when
-    payload = json.loads(generate_order_payload(order_with_lines))[0]
+    payload = json.loads(generate_order_payload(order_with_lines, taxed=taxed))[0]
 
     # then
-    assert payload["shipping_price_net_amount"] == str(order.shipping_price.net.amount)
+    assert payload["shipping_price_net_amount"] == str(
+        qp(order.shipping_price.net.amount)
+    )
     assert payload["shipping_price_gross_amount"] == str(
-        order.shipping_price.gross.amount
+        qp(order.shipping_price.gross.amount)
     )
     assert payload["shipping_tax_rate"] == str(order.shipping_tax_rate)
-    assert payload["total_net_amount"] == str(order.total.net.amount)
-    assert payload["total_gross_amount"] == str(order.total.gross.amount)
+    assert payload["total_net_amount"] == str(qp(order.total.net.amount))
+    assert payload["total_gross_amount"] == str(qp(order.total.gross.amount))
     assert payload["undiscounted_total_net_amount"] == str(
-        order.undiscounted_total.net.amount
+        qp(order.undiscounted_total.net.amount)
     )
     assert payload["undiscounted_total_gross_amount"] == str(
-        order.undiscounted_total.gross.amount
+        qp(order.undiscounted_total.gross.amount)
     )
 
 
@@ -249,7 +259,15 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     assert payload["weight"] is None
 
 
-def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
+@patch("saleor.order.calculations.fetch_order_prices_if_expired")
+@pytest.mark.parametrize("taxed", [True, False])
+def test_order_lines_have_all_required_fields(
+    mocked_fetch, order, order_line_with_one_allocation, taxed
+):
+    mocked_fetch.side_effect = lambda order, manager, lines, force_update=False: (
+        order,
+        lines,
+    )
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
     line.voucher_code = "Voucher001"
@@ -260,7 +278,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line.sale_id = graphene.Node.to_global_id("Sale", 1)
     line.save()
 
-    payload = json.loads(generate_order_payload(order))[0]
+    payload = json.loads(generate_order_payload(order, taxed=taxed))[0]
     lines_payload = payload.get("lines")
 
     assert len(lines_payload) == 1
@@ -289,6 +307,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     )
     product = line.variant.product
     product_type = product.product_type
+    assert bool(mocked_fetch.call_count) is taxed
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",
@@ -955,8 +974,12 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
+@patch("saleor.webhook.taxed_payloads.serialize_checkout_lines")
+@patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_checkout_payload(
+    mocked_fetch,
+    mocked_serialize,
     checkout,
     customer_user,
     address,
@@ -967,6 +990,15 @@ def test_generate_checkout_payload(
     warehouse,
 ):
     # given
+    mocked_fetch.side_effect = (
+        lambda checkout_info, manager, lines, address, discounts, force_update=False: (
+            checkout_info,
+            lines,
+        )
+    )
+    checkout_lines_data = {"data": "checkout_lines_data"}
+    mocked_serialize.return_value = checkout_lines_data
+
     def parse_django_datetime(date):
         return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
 
@@ -1007,7 +1039,7 @@ def test_generate_checkout_payload(
     )
 
     # when
-    payload = json.loads(generate_checkout_payload(checkout))[0]
+    payload = json.loads(generate_checkout_payload(checkout, taxed=True))[0]
 
     # then
     assert payload == {
@@ -1067,7 +1099,7 @@ def test_generate_checkout_payload(
             "type": shipping_method.type,
         },
         "included_taxes_in_price": taxes_included,
-        "lines": serialize_checkout_lines(checkout),
+        "lines": checkout_lines_data,
         "subtotal_net_amount": str(subtotal.net.amount),
         "subtotal_gross_amount": str(subtotal.gross.amount),
         "total_net_amount": str(total.net.amount),

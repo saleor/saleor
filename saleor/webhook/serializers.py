@@ -31,7 +31,6 @@ def serialize_checkout_lines(
         product = variant.product
         base_price = variant.get_price(product, collections, channel, channel_listing)
         unit_price = get_unit_price(line_info)
-
         data.append(
             {
                 "id": line_id,

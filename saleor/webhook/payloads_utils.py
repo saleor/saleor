@@ -166,24 +166,3 @@ def get_product_type_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
     if not variant:
         return None
     return variant.product.product_type.metadata
-
-
-def quantize_prices(f):
-    def wrapper(obj, *args, **kwargs):
-        result = f(obj, *args, **kwargs)
-        return {
-            key: quantize_price(value, obj.currency) for key, value in result.items()
-        }
-
-    return wrapper
-
-
-def quantize_lazy_prices(f):
-    def wrapper(obj, *args, **kwargs):
-        result = f(obj, *args, **kwargs)
-        return {
-            key: lambda l: quantize_price(lazy_value(l), obj.currency)
-            for key, lazy_value in result.items()
-        }
-
-    return wrapper
