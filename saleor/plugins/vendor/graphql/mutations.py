@@ -21,7 +21,6 @@ class VendorInput(graphene.InputObjectType):
     users = graphene.List(
         graphene.ID,
         description="Users IDs to add to the vendor.",
-        name="users",
     )
     registration_type = enums.RegistrationTypeEnum(
         required=True, description="The registration type of the company."
@@ -35,12 +34,12 @@ class VendorInput(graphene.InputObjectType):
     residence_id = graphene.String(required=False, description="Residence ID.")
 
     vat_number = graphene.String(required=False)
+
+    logo = Upload(description="Vendor logo")
     header_image = Upload(required=False, description="Header image.")
 
 
 class VendorCreateInput(VendorInput):
-    logo = Upload(required=True, description="Vendor logo")
-
     name = graphene.String(description="The name of the vendor.", required=True)
     slug = graphene.String(
         description="The slug of the vendor. It will be generated if not provided.",
@@ -84,7 +83,6 @@ class VendorUpdateInput(VendorInput):
         required=False,
     )
     national_id = graphene.String(description="National ID.")
-    logo = Upload(required=False, description="Vendor logo")
 
     national_id = graphene.String(required=False, description="National ID")
     registration_number = graphene.String(

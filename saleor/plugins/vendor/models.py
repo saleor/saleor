@@ -52,7 +52,7 @@ class Vendor(models.Model):
         choices=TargetGender.choices, default=TargetGender.UNISEX
     )
 
-    logo = models.ImageField()
+    logo = models.ImageField(blank=True, null=True)
     header_image = models.ImageField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
