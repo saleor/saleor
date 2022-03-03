@@ -63,9 +63,6 @@ class OrderLinesByOrderIdLoader(DataLoader):
     def batch_load(self, keys):
         lines = (
             OrderLine.objects.using(self.database_connection_name)
-            # Products are prefetched, as they are needed in all
-            # financial calculations related to order lines
-            .select_related("variant__product")
             .filter(order_id__in=keys)
             .order_by("pk")
         )
