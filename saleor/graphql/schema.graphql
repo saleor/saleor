@@ -4226,7 +4226,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
   shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
-  token: String!
+  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
   giftCards: [GiftCard]
   displayGrossPrices: Boolean!
