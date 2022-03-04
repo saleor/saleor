@@ -1,24 +1,19 @@
 import json
 from decimal import Decimal
-from typing import Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Callable, Dict, Iterable, Optional
 
 import graphene
 from prices import TaxedMoney
 
 from ..checkout import calculations as checkout_calculations
-from ..checkout.fetch import (
-    CheckoutInfo,
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.taxes import include_taxes_in_prices
 from ..order import calculations as order_calculations
 from ..order.models import Order, OrderLine
 from ..plugins.base_plugin import RequestorOrLazyObject
-from ..plugins.manager import PluginsManager, get_plugins_manager
+from ..plugins.manager import PluginsManager
 from ..warehouse.models import Warehouse
 from . import traced_payload_generator
 from .payload_serializers import PayloadSerializer
@@ -35,7 +30,7 @@ from .payloads_utils import (
 )
 from .serializers import serialize_checkout_lines
 
-ORDER_LINE_FIELDS_WITH_TAXES = (
+ORDER_LINE_FIELDS = (
     "product_name",
     "variant_name",
     "translated_product_name",
@@ -52,46 +47,7 @@ ORDER_LINE_FIELDS_WITH_TAXES = (
 )
 
 
-ORDER_LINE_FIELDS_WITHOUT_TAXES = (
-    "product_name",
-    "variant_name",
-    "translated_product_name",
-    "translated_variant_name",
-    "product_sku",
-    "quantity",
-    "currency",
-    "unit_discount_amount",
-    "unit_discount_type",
-    "unit_discount_reason",
-    "tax_rate",
-    "unit_price_net_amount",
-    "unit_price_gross_amount",
-    "total_price_net_amount",
-    "total_price_gross_amount",
-    "undiscounted_unit_price_net_amount",
-    "undiscounted_unit_price_gross_amount",
-    "undiscounted_total_price_net_amount",
-    "undiscounted_total_price_gross_amount",
-    "sale_id",
-    "voucher_code",
-)
-
-
-ORDER_LINE_PRICE_FIELDS = (
-    "unit_discount_amount",
-    "unit_price_net_amount",
-    "unit_price_gross_amount",
-    "total_price_net_amount",
-    "total_price_gross_amount",
-    "undiscounted_unit_price_net_amount",
-    "undiscounted_unit_price_gross_amount",
-    "undiscounted_total_price_net_amount",
-    "undiscounted_total_price_gross_amount",
-)
-
-
-# @quantize_lazy_prices(ORDER_LINE_PRICE_FIELDS)
-def _generate_order_line_prices_data(
+def _generate_order_line_prices_data_with_taxes(
     order: "Order",
     manager: PluginsManager,
     lines: Iterable[OrderLine],
@@ -152,34 +108,52 @@ def _generate_order_line_prices_data(
     }
 
 
+def _generate_order_line_prices_data_without_taxes() -> Dict[
+    str, Callable[[OrderLine], Decimal]
+]:
+    return {
+        "unit_price_net_amount": (lambda l: l.unit_price_net_amount),
+        "total_price_net_amount": (lambda l: l.total_price_net_amount),
+        "undiscounted_unit_price_net_amount": (
+            lambda l: l.undiscounted_unit_price_net_amount
+        ),
+        "undiscounted_total_price_net_amount": (
+            lambda l: l.undiscounted_total_price_net_amount
+        ),
+    }
+
+
 @traced_payload_generator
 def _generate_order_lines_payload(
     lines: Iterable[OrderLine],
-    fields: Tuple[str, ...],
-    extra_data: Optional[Dict[str, Callable[[OrderLine], Decimal]]] = None,
+    prices_data: Dict[str, Callable[[OrderLine], Decimal]],
 ):
     for line in lines:
-        quantize_price_fields(line, ORDER_LINE_PRICE_FIELDS, line.currency)
+        quantize_price_fields(line, ["unit_discount_amount"], line.currency)
 
     serializer = PayloadSerializer()
+
+    extra_dict_data = {
+        "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
+        "product_variant_id": (lambda l: l.product_variant_id),
+        "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
+        "charge_taxes": (lambda l: charge_taxes(l)),
+        "product_metadata": (lambda l: get_product_metadata_for_order_line(l)),
+        "product_type_metadata": (
+            lambda l: get_product_type_metadata_for_order_line(l)
+        ),
+    }
+
+    extra_dict_data.update(prices_data)
+
     return serializer.serialize(
         lines,
-        fields=fields,
-        extra_dict_data={
-            "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
-            "product_variant_id": (lambda l: l.product_variant_id),
-            "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
-            "charge_taxes": (lambda l: charge_taxes(l)),
-            "product_metadata": (lambda l: get_product_metadata_for_order_line(l)),
-            "product_type_metadata": (
-                lambda l: get_product_type_metadata_for_order_line(l)
-            ),
-            **(extra_data or {}),
-        },
+        fields=ORDER_LINE_FIELDS,
+        extra_dict_data=extra_dict_data,
     )
 
 
-ORDER_FIELDS_WITH_TAXES = (
+ORDER_FIELDS = (
     "token",
     "created",
     "status",
@@ -193,43 +167,12 @@ ORDER_FIELDS_WITH_TAXES = (
 )
 
 
-ORDER_FIELDS_WITHOUT_TAXES = (
-    "token",
-    "created",
-    "status",
-    "origin",
-    "user_email",
-    "shipping_method_name",
-    "collection_point_name",
-    "weight",
-    "shipping_price_net_amount",
-    "shipping_price_gross_amount",
-    "shipping_tax_rate",
-    "total_net_amount",
-    "total_gross_amount",
-    "undiscounted_total_net_amount",
-    "undiscounted_total_gross_amount",
-    "private_metadata",
-    "metadata",
-)
-
-
-ORDER_PRICE_FIELDS = (
-    "shipping_price_net_amount",
-    "shipping_price_gross_amount",
-    "total_net_amount",
-    "total_gross_amount",
-    "undiscounted_total_net_amount",
-    "undiscounted_total_gross_amount",
-)
-
-
-def _generate_order_prices_data(
+def _generate_order_prices_data_with_taxes(
     order: "Order",
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
 ) -> Dict[str, Decimal]:
-    def qp(price: TaxedMoney) -> TaxedMoney:
+    def qp(price: Decimal) -> Decimal:
         return quantize_price(price, order.currency)
 
     shipping = order_calculations.order_shipping(order, manager, lines)
@@ -252,15 +195,28 @@ def _generate_order_prices_data(
     }
 
 
+def _generate_order_prices_data_without_taxes(
+    order: "Order",
+) -> Dict[str, Decimal]:
+    def qp(price: Decimal) -> Decimal:
+        return quantize_price(price, order.currency)
+
+    return {
+        "shipping_price_net_amount": qp(order.shipping_price.net.amount),
+        "total_net_amount": qp(order.total.net.amount),
+        "undiscounted_total_net_amount": qp(order.undiscounted_total.net.amount),
+    }
+
+
 @traced_payload_generator
 def _generate_order_payload(
     order: "Order",
     requestor: Optional["RequestorOrLazyObject"] = None,
     with_meta: bool = True,
     *,
-    fields: Tuple[str, ...],
-    serialized_lines: str,
-    extra_data: Optional[Dict[str, Decimal]] = None,
+    lines: Iterable[OrderLine],
+    order_prices_data: Dict[str, Decimal],
+    order_lines_prices_data: Dict[str, Callable[[OrderLine], Decimal]]
 ):
     serializer = PayloadSerializer()
     fulfillment_fields = (
@@ -315,8 +271,6 @@ def _generate_order_payload(
     payments = order.payments.all()
     discounts = order.discounts.all()
 
-    quantize_price_fields(order, ORDER_PRICE_FIELDS, order.currency)
-
     for fulfillment in fulfillments:
         quantize_price_fields(fulfillment, fulfillment_price_fields, order.currency)
 
@@ -336,7 +290,9 @@ def _generate_order_payload(
 
     extra_dict_data = {
         "original": graphene.Node.to_global_id("Order", order.original_id),
-        "lines": json.loads(serialized_lines),
+        "lines": json.loads(
+            _generate_order_lines_payload(lines, order_lines_prices_data)
+        ),
         "included_taxes_in_prices": include_taxes_in_prices(),
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": json.loads(
@@ -346,8 +302,7 @@ def _generate_order_payload(
         else None,
     }
 
-    if extra_data:
-        extra_dict_data.update(extra_data)
+    extra_dict_data.update(order_prices_data)
 
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
@@ -356,7 +311,7 @@ def _generate_order_payload(
 
     order_data = serializer.serialize(
         [order],
-        fields=fields,
+        fields=ORDER_FIELDS,
         additional_fields={
             "channel": (lambda o: o.channel, channel_fields),
             "shipping_method": (lambda o: o.shipping_method, shipping_method_fields),
@@ -370,42 +325,7 @@ def _generate_order_payload(
     return order_data
 
 
-def generate_order_payload(
-    order: "Order",
-    requestor: Optional["RequestorOrLazyObject"] = None,
-    with_meta: bool = True,
-    taxed: bool = True,
-):
-    manager = get_plugins_manager()
-    lines = OrderLine.objects.prefetch_related("variant__product__product_type")
-
-    if taxed:
-        return _generate_order_payload(
-            order,
-            requestor,
-            with_meta,
-            fields=ORDER_FIELDS_WITH_TAXES,
-            serialized_lines=_generate_order_lines_payload(
-                lines=lines,
-                fields=ORDER_LINE_FIELDS_WITH_TAXES,
-                extra_data=_generate_order_line_prices_data(order, manager, lines),
-            ),
-            extra_data=_generate_order_prices_data(order, manager, lines),
-        )
-
-    return _generate_order_payload(
-        order,
-        requestor,
-        with_meta,
-        fields=ORDER_FIELDS_WITHOUT_TAXES,
-        serialized_lines=_generate_order_lines_payload(
-            lines=lines,
-            fields=ORDER_LINE_FIELDS_WITHOUT_TAXES,
-        ),
-    )
-
-
-CHECKOUT_FIELDS_WITHOUT_TAXES = (
+CHECKOUT_FIELDS = (
     "created",
     "last_change",
     "status",
@@ -423,22 +343,8 @@ CHECKOUT_FIELDS_WITHOUT_TAXES = (
     "channel",
 )
 
-CHECKOUT_FIELDS_WITH_TAXES = (
-    "created",
-    "last_change",
-    "status",
-    "email",
-    "quantity",
-    "currency",
-    "discount_amount",
-    "discount_name",
-    "private_metadata",
-    "metadata",
-    "channel",
-)
 
-
-def _generate_checkout_prices_data(
+def _generate_checkout_prices_data_with_taxes(
     manager: PluginsManager,
     checkout_info: CheckoutInfo,
     lines: Iterable[CheckoutLineInfo],
@@ -456,11 +362,26 @@ def _generate_checkout_prices_data(
         address=None,
     )
 
+    def qp(amount: Decimal) -> Decimal:
+        return quantize_price(amount, checkout_info.checkout.currency)
+
     return {
-        "subtotal_net_amount": subtotal.net.amount,
-        "subtotal_gross_amount": subtotal.gross.amount,
-        "total_net_amount": total.net.amount,
-        "total_gross_amount": total.gross.amount,
+        "subtotal_net_amount": qp(subtotal.net.amount),
+        "subtotal_gross_amount": qp(subtotal.gross.amount),
+        "total_net_amount": qp(total.net.amount),
+        "total_gross_amount": qp(total.gross.amount),
+    }
+
+
+def _generate_checkout_prices_data_without_taxes(
+    checkout: Checkout,
+) -> Dict[str, Decimal]:
+    def qp(amount: Decimal) -> Decimal:
+        return quantize_price(amount, checkout.currency)
+
+    return {
+        "subtotal_net_amount": qp(checkout.subtotal.net.amount),
+        "total_net_amount": qp(checkout.total.net.amount),
     }
 
 
@@ -469,20 +390,12 @@ def _generate_checkout_payload(
     checkout: "Checkout",
     requestor: Optional["RequestorOrLazyObject"] = None,
     *,
-    fields: Tuple[str, ...],
-    lines_dict_data: List[dict],
-    extra_data: Optional[Dict[str, Decimal]] = None,
+    lines: Iterable[CheckoutLineInfo],
+    checkout_prices_data: Dict[str, Decimal],
+    get_line_prices_data: Callable[[CheckoutLineInfo], Dict[str, Decimal]],
 ):
     serializer = PayloadSerializer()
 
-    checkout_price_fields = (
-        "subtotal_net_amount",
-        "subtotal_gross_amount",
-        "total_net_amount",
-        "total_gross_amount",
-        "discount_amount",
-    )
-    quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
@@ -494,9 +407,23 @@ def _generate_checkout_payload(
             checkout.shipping_address.country.code
         ).first()
 
+    extra_dict_data = {
+        # Casting to list to make it json-serializable
+        "included_taxes_in_price": include_taxes_in_prices(),
+        "lines": serialize_checkout_lines(checkout, lines, get_line_prices_data),
+        "collection_point": json.loads(
+            generate_collection_point_payload(checkout.collection_point)
+        )[0]
+        if checkout.collection_point
+        else None,
+        "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+    }
+
+    extra_dict_data.update(checkout_prices_data)
+
     checkout_data = serializer.serialize(
         [checkout],
-        fields=fields,
+        fields=CHECKOUT_FIELDS,
         obj_id_name="token",
         additional_fields={
             "channel": (lambda o: o.channel, channel_fields),
@@ -509,55 +436,40 @@ def _generate_checkout_payload(
                 ADDRESS_FIELDS,
             ),
         },
-        extra_dict_data={
-            # Casting to list to make it json-serializable
-            "included_taxes_in_price": include_taxes_in_prices(),
-            "lines": lines_dict_data,
-            "collection_point": json.loads(
-                generate_collection_point_payload(checkout.collection_point)
-            )[0]
-            if checkout.collection_point
-            else None,
-            "meta": generate_meta(requestor_data=generate_requestor(requestor)),
-            **(extra_data or {}),
-        },
+        extra_dict_data=extra_dict_data,
     )
     return checkout_data
 
 
-def generate_checkout_payload(
+def _get_line_prices_data_with_taxes(
+    checkout_info: CheckoutInfo,
+    manager: PluginsManager,
+    lines: Iterable[CheckoutLineInfo],
+    line_info: CheckoutLineInfo,
+) -> Dict[str, Decimal]:
+
+    unit_price = checkout_calculations.checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+        discounts=[],
+    ).price_with_sale
+
+    quantized_unit_price = quantize_price(unit_price, checkout_info.checkout.currency)
+
+    return {
+        "price_net_amount": quantized_unit_price.net.amount,
+        "price_gross_amount": quantized_unit_price.gross.amount,
+    }
+
+
+def _get_line_prices_data_without_taxes(
     checkout: "Checkout",
-    requestor: Optional["RequestorOrLazyObject"] = None,
-    taxed: bool = True,
-):
-    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-
-    if not taxed:
-        return _generate_checkout_payload(
-            checkout,
-            requestor,
-            fields=CHECKOUT_FIELDS_WITHOUT_TAXES,
-            lines_dict_data=serialize_checkout_lines(
-                checkout, lines, lambda line_info: line_info.line.unit_price
-            ),
+    line_info: CheckoutLineInfo,
+) -> Dict[str, Decimal]:
+    return {
+        "price_net_amount": quantize_price(
+            line_info.line.unit_price_net_amount, checkout.currency
         )
-
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-
-    def get_unit_price(line_info: CheckoutLineInfo) -> TaxedMoney:
-        return checkout_calculations.checkout_line_unit_price(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            checkout_line_info=line_info,
-            discounts=[],
-        ).price_with_sale
-
-    return _generate_checkout_payload(
-        checkout,
-        requestor,
-        fields=CHECKOUT_FIELDS_WITH_TAXES,
-        lines_dict_data=serialize_checkout_lines(checkout, lines, get_unit_price),
-        extra_data=_generate_checkout_prices_data(manager, checkout_info, lines),
-    )
+    }

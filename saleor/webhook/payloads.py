@@ -9,6 +9,7 @@ from django.db.models import QuerySet, Sum
 
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
@@ -19,7 +20,7 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order import FulfillmentStatus, OrderStatus
-from ..order.models import Fulfillment, Order
+from ..order.models import Fulfillment, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
@@ -40,10 +41,17 @@ from .payloads_utils import (
 )
 from .serializers import serialize_product_or_variant_attributes
 from .taxed_payloads import (
-    ORDER_FIELDS_WITH_TAXES,
-    _generate_order_prices_data,
-    generate_checkout_payload,
-    generate_order_payload,
+    ORDER_FIELDS,
+    _generate_checkout_payload,
+    _generate_checkout_prices_data_with_taxes,
+    _generate_checkout_prices_data_without_taxes,
+    _generate_order_line_prices_data_with_taxes,
+    _generate_order_line_prices_data_without_taxes,
+    _generate_order_payload,
+    _generate_order_prices_data_with_taxes,
+    _generate_order_prices_data_without_taxes,
+    _get_line_prices_data_with_taxes,
+    _get_line_prices_data_without_taxes,
 )
 
 if TYPE_CHECKING:
@@ -137,8 +145,10 @@ def generate_invoice_payload(
         order_data = json.loads(
             serializer.serialize(
                 [invoice.order],
-                fields=ORDER_FIELDS_WITH_TAXES,
-                extra_dict_data=_generate_order_prices_data(invoice.order, manager),
+                fields=ORDER_FIELDS,
+                extra_dict_data=_generate_order_prices_data_with_taxes(
+                    invoice.order, manager
+                ),
             )
         )[0]
 
@@ -649,7 +659,7 @@ def generate_excluded_shipping_methods_for_order_payload(
     order: "Order",
     available_shipping_methods: List[ShippingMethodData],
 ):
-    order_data = json.loads(generate_order_payload(order, taxed=False))[0]
+    order_data = json.loads(generate_order_payload_without_taxes(order))[0]
     payload = {
         "order": order_data,
         "shipping_methods": [
@@ -665,7 +675,7 @@ def generate_excluded_shipping_methods_for_checkout_payload(
     checkout: "Checkout",
     available_shipping_methods: List[ShippingMethodData],
 ):
-    checkout_data = json.loads(generate_checkout_payload(checkout, taxed=False))[0]
+    checkout_data = json.loads(generate_checkout_payload_without_taxes(checkout))[0]
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
@@ -674,3 +684,78 @@ def generate_excluded_shipping_methods_for_checkout_payload(
         ],
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+def generate_order_payload(
+    order: "Order",
+    requestor: Optional["RequestorOrLazyObject"] = None,
+    with_meta: bool = True,
+):
+    manager = get_plugins_manager()
+    lines = OrderLine.objects.prefetch_related("variant__product__product_type")
+
+    return _generate_order_payload(
+        order,
+        requestor,
+        with_meta,
+        lines=lines,
+        order_prices_data=_generate_order_prices_data_with_taxes(order, manager, lines),
+        order_lines_prices_data=_generate_order_line_prices_data_with_taxes(
+            order, manager, lines
+        ),
+    )
+
+
+def generate_order_payload_without_taxes(
+    order: "Order",
+    requestor: Optional["RequestorOrLazyObject"] = None,
+    with_meta: bool = True,
+):
+    lines = OrderLine.objects.prefetch_related("variant__product__product_type")
+
+    return _generate_order_payload(
+        order,
+        requestor,
+        with_meta,
+        lines=lines,
+        order_prices_data=_generate_order_prices_data_without_taxes(order),
+        order_lines_prices_data=_generate_order_line_prices_data_without_taxes(),
+    )
+
+
+def generate_checkout_payload(
+    checkout: "Checkout",
+    requestor: Optional["RequestorOrLazyObject"] = None,
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    return _generate_checkout_payload(
+        checkout,
+        requestor,
+        lines=lines,
+        checkout_prices_data=_generate_checkout_prices_data_with_taxes(
+            manager, checkout_info, lines
+        ),
+        get_line_prices_data=lambda line_info: _get_line_prices_data_with_taxes(
+            checkout_info, manager, lines, line_info
+        ),
+    )
+
+
+def generate_checkout_payload_without_taxes(
+    checkout: "Checkout",
+    requestor: Optional["RequestorOrLazyObject"] = None,
+):
+    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+
+    return _generate_checkout_payload(
+        checkout,
+        requestor,
+        lines=lines,
+        checkout_prices_data=_generate_checkout_prices_data_without_taxes(checkout),
+        get_line_prices_data=lambda line_info: _get_line_prices_data_without_taxes(
+            checkout, line_info
+        ),
+    )

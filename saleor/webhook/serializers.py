@@ -1,8 +1,8 @@
 from datetime import date, datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
 
 import graphene
-from prices import TaxedMoney
 
 from ..attribute import AttributeInputType
 from ..checkout.fetch import CheckoutLineInfo
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 def serialize_checkout_lines(
     checkout: "Checkout",
     lines: Iterable[CheckoutLineInfo],
-    get_unit_price: Callable[[CheckoutLineInfo], TaxedMoney],
+    get_line_prices_data: Callable[[CheckoutLineInfo], Dict[str, Decimal]],
 ) -> List[dict]:
     data = []
     channel = checkout.channel
@@ -30,7 +30,6 @@ def serialize_checkout_lines(
         collections = line_info.collections
         product = variant.product
         base_price = variant.get_price(product, collections, channel, channel_listing)
-        unit_price = get_unit_price(line_info)
         data.append(
             {
                 "id": line_id,
@@ -38,13 +37,8 @@ def serialize_checkout_lines(
                 "variant_id": variant.get_global_id(),
                 "quantity": line_info.line.quantity,
                 "charge_taxes": product.charge_taxes,
-                "base_price": str(quantize_price(base_price.amount, currency)),
-                "price_net_amount": str(
-                    quantize_price(unit_price.net.amount, currency)
-                ),
-                "price_gross_amount": str(
-                    quantize_price(unit_price.gross.amount, currency)
-                ),
+                "base_price": quantize_price(base_price.amount, currency),
+                **get_line_prices_data(line_info),
                 "currency": currency,
                 "full_name": variant.display_product(),
                 "product_name": product.name,

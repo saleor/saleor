@@ -5,7 +5,6 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 
-from ...checkout import calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.models import CheckoutLine
 from ...core.prices import quantize_price
@@ -13,6 +12,10 @@ from ...plugins.manager import get_plugins_manager
 from ..serializers import (
     serialize_checkout_lines,
     serialize_product_or_variant_attributes,
+)
+from ..taxed_payloads import (
+    _get_line_prices_data_with_taxes,
+    _get_line_prices_data_without_taxes,
 )
 
 
@@ -80,17 +83,8 @@ def test_serialize_product_attributes(
 @pytest.mark.parametrize(
     "get_unit_price, tax_webhook_called",
     [
-        (lambda m, c, ls, l: l.line.unit_price, False),
-        (
-            lambda m, c, ls, l: calculations.checkout_line_unit_price(
-                manager=m,
-                checkout_info=c,
-                lines=ls,
-                checkout_line_info=l,
-                discounts=[],
-            ).price_with_sale,
-            True,
-        ),
+        (lambda c, m, ls, l: _get_line_prices_data_without_taxes(c.checkout, l), False),
+        (lambda c, m, ls, l: _get_line_prices_data_with_taxes(c, m, ls, l), True),
     ],
 )
 @pytest.mark.parametrize(
@@ -143,13 +137,14 @@ def test_serialize_checkout_lines(
     checkout_lines_data = serialize_checkout_lines(
         checkout,
         lines,
-        lambda line_info: get_unit_price(manager, checkout_info, lines, line_info),
+        lambda line_info: get_unit_price(checkout_info, manager, lines, line_info),
     )
 
     # then
     checkout_with_items_for_cc.refresh_from_db()
     data_len = 0
-    for data, line in zip(checkout_lines_data, checkout_with_items_for_cc.lines.all()):
+    for data, line_info in zip(checkout_lines_data, lines):
+        line = line_info.line
         variant = line.variant
         product = variant.product
         collections = list(product.collections.all())
@@ -166,18 +161,14 @@ def test_serialize_checkout_lines(
             product, collections, channel, variant_channel_listing
         )
         currency = checkout.currency
+        print(data)
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
             "sku": variant.sku,
             "quantity": line.quantity,
             "charge_taxes": product.charge_taxes,
-            "base_price": str(quantize_price(base_price.amount, currency)),
-            "price_net_amount": str(
-                quantize_price(line.unit_price_net_amount, currency)
-            ),
-            "price_gross_amount": str(
-                quantize_price(line.unit_price_gross_amount, currency)
-            ),
+            "base_price": quantize_price(base_price.amount, currency),
+            **get_unit_price(checkout_info, manager, lines, line_info),
             "currency": channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,

@@ -31,12 +31,14 @@ from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
+    generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
@@ -49,21 +51,15 @@ from ..payloads_utils import (
     generate_meta,
     generate_requestor,
 )
-from ..taxed_payloads import (
-    ORDER_FIELDS_WITHOUT_TAXES,
-    generate_checkout_payload,
-    generate_order_payload,
-)
+from ..taxed_payloads import ORDER_FIELDS
 
 
-@pytest.mark.parametrize("taxed", [True, False])
 @mock.patch("saleor.webhook.taxed_payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
     mocked_fulfillment_lines,
     order_with_lines,
     fulfilled_order,
     payment_txn_captured,
-    taxed,
 ):
     mocked_fulfillment_lines.return_value = "{}"
 
@@ -101,12 +97,10 @@ def test_generate_order_payload(
     fulfillment = fulfilled_order.fulfillments.first()
 
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
-    payload = json.loads(generate_order_payload(order_with_lines, taxed=taxed))[0]
+    payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     assert order_id == payload["id"]
-    non_empty_fields = [
-        f for f in ORDER_FIELDS_WITHOUT_TAXES if f != "collection_point_name"
-    ]
+    non_empty_fields = [f for f in ORDER_FIELDS if f != "collection_point_name"]
     for field in non_empty_fields:
         assert payload.get(field) is not None
 
@@ -157,8 +151,7 @@ def test_generate_order_payload(
     mocked_fulfillment_lines.assert_called_with(fulfillment)
 
 
-@pytest.mark.parametrize("taxed", [True, False])
-def test_generate_order_payload_prices(order_with_lines, taxed):
+def test_generate_order_payload_prices(order_with_lines):
     # given
     order = order_with_lines
 
@@ -166,7 +159,7 @@ def test_generate_order_payload_prices(order_with_lines, taxed):
         return quantize_price(price, order.currency)
 
     # when
-    payload = json.loads(generate_order_payload(order_with_lines, taxed=taxed))[0]
+    payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     # then
     assert payload["shipping_price_net_amount"] == str(
@@ -259,15 +252,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     assert payload["weight"] is None
 
 
-@patch("saleor.order.calculations.fetch_order_prices_if_expired")
-@pytest.mark.parametrize("taxed", [True, False])
-def test_order_lines_have_all_required_fields(
-    mocked_fetch, order, order_line_with_one_allocation, taxed
-):
-    mocked_fetch.side_effect = lambda order, manager, lines, force_update=False: (
-        order,
-        lines,
-    )
+def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
     line.voucher_code = "Voucher001"
@@ -278,7 +263,7 @@ def test_order_lines_have_all_required_fields(
     line.sale_id = graphene.Node.to_global_id("Sale", 1)
     line.save()
 
-    payload = json.loads(generate_order_payload(order, taxed=taxed))[0]
+    payload = json.loads(generate_order_payload(order))[0]
     lines_payload = payload.get("lines")
 
     assert len(lines_payload) == 1
@@ -307,7 +292,6 @@ def test_order_lines_have_all_required_fields(
     )
     product = line.variant.product
     product_type = product.product_type
-    assert bool(mocked_fetch.call_count) is taxed
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",
@@ -1017,6 +1001,7 @@ def test_generate_checkout_payload(
         Money("200.00", checkout.currency), Money("246.00", checkout.currency)
     )
 
+    checkout.discount_amount = Decimal("0.00")
     checkout.user = user
     checkout.billing_address = billing_address
     checkout.shipping_address = shipping_address
@@ -1026,6 +1011,7 @@ def test_generate_checkout_payload(
     checkout.total = total
     checkout.save(
         update_fields=[
+            "discount_amount",
             "user",
             "billing_address",
             "shipping_address",
@@ -1039,7 +1025,7 @@ def test_generate_checkout_payload(
     )
 
     # when
-    payload = json.loads(generate_checkout_payload(checkout, taxed=True))[0]
+    payload = json.loads(generate_checkout_payload(checkout))[0]
 
     # then
     assert payload == {
