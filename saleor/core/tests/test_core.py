@@ -21,7 +21,6 @@ from ...product import ProductTypeKind
 from ...product.models import ProductMedia, ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
-from ..templatetags.placeholder import placeholder
 from ..utils import (
     build_absolute_uri,
     create_thumbnails,
@@ -272,12 +271,6 @@ def test_delete_sort_order_with_null_value(menu_item):
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
-
-
-def test_placeholder(settings):
-    size = 60
-    result = placeholder(size)
-    assert result == "/static/" + settings.PLACEHOLDER_IMAGES[size]
 
 
 @pytest.mark.parametrize(
