@@ -100,6 +100,4 @@ def get_error_code_from_error(error) -> str:
         return "invalid"
     if isinstance(code, Enum):
         code = code.value
-    if code not in saleor_error_codes:
-        return "invalid"
     return code

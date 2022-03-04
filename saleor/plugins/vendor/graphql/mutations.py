@@ -1,5 +1,10 @@
+import re
+
 import graphene
+import phonenumbers
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from phonenumber_field.phonenumber import PhoneNumber
 
 from ....graphql.account.enums import CountryCodeEnum
 from ....graphql.core.mutations import ModelDeleteMutation, ModelMutation
@@ -10,28 +15,45 @@ from . import enums, types
 from .custom_permissions import BillingPermissions
 from .errors import VendorError
 
+numbers_only = re.compile("[0-9]*")
+
+
+def is_numbers_only(s):
+    return numbers_only.match(s)
+
 
 class VendorInput(graphene.InputObjectType):
+    brand_name = graphene.String(description="The name of the brand.", required=True)
+    first_name = graphene.String(description="First Name.", required=True)
+    last_name = graphene.String(description="Last Name.", required=True)
+
+    slug = graphene.String(
+        description="The slug of the vendor. It will be generated if not provided.",
+        required=False,
+    )
+
     is_active = graphene.Boolean(
         description="Active status of the vendor.", default_value=True
     )
-    description = graphene.String(description="Description of the vendor.")
-    phone_number = graphene.String(description="Phone number.")
-    country = CountryCodeEnum(description="Country code.")
+
+    description = graphene.JSONString(
+        description="Description of the vendor.", required=False
+    )
+
+    country = CountryCodeEnum(description="Country code.", required=True)
     users = graphene.List(
         graphene.ID,
         description="Users IDs to add to the vendor.",
     )
-    registration_type = enums.RegistrationTypeEnum(
-        required=True, description="The registration type of the company."
-    )
+
     target_gender = enums.TargetGenderEnum(
-        required=False,
         description="The target gender of the vendor, defaults to UNISEX.",
+        default=models.Vendor.TargetGender.UNISEX,
+        required=False,
     )
 
-    national_id = graphene.String(required=False, description="National ID.")
-    residence_id = graphene.String(required=False, description="Residence ID.")
+    national_id = graphene.String(description="National ID.", required=False)
+    residence_id = graphene.String(description="Residence ID.", required=False)
 
     vat_number = graphene.String(required=False)
 
@@ -40,12 +62,17 @@ class VendorInput(graphene.InputObjectType):
 
 
 class VendorCreateInput(VendorInput):
-    name = graphene.String(description="The name of the vendor.", required=True)
-    slug = graphene.String(
-        description="The slug of the vendor. It will be generated if not provided.",
-        required=False,
+    brand_name = graphene.String(description="The name of the brand.", required=True)
+    first_name = graphene.String(description="First Name.", required=True)
+    last_name = graphene.String(description="Last Name.", required=True)
+
+    phone_number = graphene.String(description="Contact phone number.", required=True)
+    email = graphene.String(description="Contact email.", required=True)
+
+    registration_type = enums.RegistrationTypeEnum(
+        description="The registration type of the company.", required=True
     )
-    national_id = graphene.String(description="National ID.", required=True)
+
     registration_number = graphene.String(
         required=True, description="The registration number."
     )
@@ -66,28 +93,128 @@ class VendorCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        try:
-            cleaned_input = validate_slug_and_generate_if_needed(
-                instance, "name", cleaned_input
+        errors = {}
+
+        brand_name = data["brand_name"]
+        if len(brand_name) == 0:
+            errors["brand_name"] = ValidationError(
+                "Invalid brand name.",
+                code=enums.VendorErrorCode.INVALID_BRAND_NAME,
             )
+
+        else:
+            try:
+                models.Vendor.objects.get(brand_name=brand_name)
+                errors["brand_name"] = ValidationError(
+                    message="A vendor with the same name already exists.",
+                    code=enums.VendorErrorCode.EXISTING_VENDOR,
+                )
+            except models.Vendor.DoesNotExist:
+                pass
+
+        if len(data["first_name"]) == 0:
+            errors["first_name"] = ValidationError(
+                "Invalid first name.",
+                code=enums.VendorErrorCode.INVALID_FIRST_NAME,
+            )
+
+        if len(data["last_name"]) == 0:
+            errors["last_name"] = (
+                ValidationError(
+                    message="Invalid last name.",
+                    code=enums.VendorErrorCode.INVALID_LAST_NAME,
+                ),
+            )
+
+        if email := data.get("email"):
+            try:
+                validate_email(email)
+            except ValidationError:
+                errors["email"] = ValidationError(
+                    "Provided email is invalid.",
+                    code=enums.VendorErrorCode.INVALID_EMAIL,
+                )
+
+        try:
+            phone_number = data["phone_number"]
+            PhoneNumber.from_string(phone_number).is_valid()
+        except phonenumbers.phonenumberutil.NumberParseException as e:
+            errors["phone_number"] = ValidationError(
+                str(e), code=enums.VendorErrorCode.INVALID_PHONE_NUMBER
+            )
+
+        residence_id = data.get("residence_id")
+        national_id = data.get("national_id")
+
+        if residence_id and national_id:
+            raise ValidationError(
+                message="You must only provide one of residence ID and national ID",
+                code=enums.VendorErrorCode.ONLY_ONE_ALLOWED,
+            )
+
+        if residence_id and not is_numbers_only(residence_id):
+            errors["residence_id"] = ValidationError(
+                message=f"Residence ID must contain only numbers, found: {residence_id}.",  # noqa: E501
+                code=enums.VendorErrorCode.INVALID_RESIDENCE_ID,
+            )
+
+        if national_id and not is_numbers_only(national_id):
+            errors["national_id"] = ValidationError(
+                message=f"National ID must contain only numbers, found: {national_id}.",  # noqa: E501
+                code=enums.VendorErrorCode.INVALID_NATIONAL_ID,
+            )
+
+        registration_type = data["registration_type"]
+        if registration_type == models.Vendor.RegistrationType.COMPANY:
+            vat_number = data.get("vat_number")
+
+            if not vat_number:
+                errors["vat_number"] = ValidationError(
+                    message="You must provide a VAT for companies.",
+                    code=enums.VendorErrorCode.MISSING_VAT,
+                )
+
+            elif not is_numbers_only(vat_number):
+                errors["vat_number"] = ValidationError(
+                    message=f"VAT number must contain only numbers, found: {vat_number}.",  # noqa: E501
+                    code=enums.VendorErrorCode.INVALID_VAT,
+                )
+
+        registration_number = data["registration_number"]
+        if len(registration_number) == 0:
+            errors["registration_number"] = ValidationError(
+                "Invalid registration number.",
+                code=enums.VendorErrorCode.INVALID_REGISTRATION_NUMBER,
+            )
+
+        try:
+            validate_slug_and_generate_if_needed(instance, "brand_name", cleaned_input)
         except ValidationError as error:
-            error.code = enums.VendorErrorCode.VENDOR_SLUG.value
-            raise ValidationError({"slug": error})
+            error.code = enums.VendorErrorCode.INVALID_SLUG
+            errors["slug"] = error
+
+        if errors:
+            raise ValidationError(errors)
+
         return cleaned_input
 
 
 class VendorUpdateInput(VendorInput):
-    name = graphene.String(description="The name of the vendor.")
     slug = graphene.String(
         description="The slug of the vendor. It will be generated if not provided.",
         required=False,
     )
-    national_id = graphene.String(description="National ID.")
 
-    national_id = graphene.String(required=False, description="National ID")
-    registration_number = graphene.String(
-        required=False, description="The registration number."
+    phone_number = graphene.String(description="Contact phone number.", required=False)
+    email = graphene.String(description="Contact email.", required=False)
+
+    registration_type = enums.RegistrationTypeEnum(
+        description="The registration type of the company.", required=False
     )
+    registration_number = graphene.String(
+        description="The registration number.", required=False
+    )
+    country = CountryCodeEnum(description="Country code.", required=False)
 
 
 class VendorUpdate(ModelMutation):
@@ -149,9 +276,7 @@ class BillingInfoCreate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        vendor = cls.get_node_or_error(
-            info, data["vendor_id"], only_type=types.Vendor, field="vendorId"
-        )
+        vendor = cls.get_node_or_error(info, data["vendor_id"], only_type=types.Vendor)
         cleaned_input = cls.clean_input(info, vendor, data)
         billing = models.BillingInfo(**cleaned_input)
         billing.vendor = vendor
@@ -188,3 +313,20 @@ class BillingInfoDelete(ModelDeleteMutation):
         model = models.BillingInfo
         error_type_class = VendorError
         # permissions = (BillingPermissions.MANAGE_BILLING,)
+
+
+class VendorAddAttachment(ModelMutation):
+    class Arguments:
+        vendor_id = graphene.ID(required=True, description="Vendor ID.")
+        file = Upload(required=True, description="File to be attached")
+
+    class Meta:
+        description = "Add an attachment file to the vendor"
+        model = models.Attachment
+        error_type_class = VendorError
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        print(data)
+
+        return data

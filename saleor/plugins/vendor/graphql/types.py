@@ -3,6 +3,7 @@ from graphene import relay
 
 from ....graphql.account.enums import CountryCodeEnum
 from ....graphql.core.connection import CountableDjangoObjectType
+from ....graphql.core.types import Upload
 from ....graphql.core.types.common import Image
 from .. import models
 
@@ -21,6 +22,7 @@ class Vendor(CountableDjangoObjectType):
         model = models.Vendor
         filter_fields = ["id", "name", "country"]
         interfaces = (graphene.relay.Node,)
+        exclude = ["address"]
 
     def resolve_users(root, info):
         return root.users.values_list("id")
@@ -64,3 +66,12 @@ class Billing(CountableDjangoObjectType):
 class BillingConnection(relay.Connection):
     class Meta:
         node = Billing
+
+
+class Attachment(CountableDjangoObjectType):
+    vendor = graphene.Field(Vendor, required=True, description="Vendor.")
+    file = Upload(required=True, description="File to be attached.")
+
+    class Meta:
+        model = models.Attachment
+        interfaces = (graphene.relay.Node,)
