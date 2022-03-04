@@ -196,6 +196,8 @@ def test_user_checkout_details_with_external_shipping_method(
     assert mock_send_request.call_count == 1
 
 
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 @patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_user_checkout_details_with_tax_app(
     mock_send_request,
@@ -203,6 +205,7 @@ def test_user_checkout_details_with_tax_app(
     customer_checkout,
     tax_app,
     settings,
+    count_queries
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
