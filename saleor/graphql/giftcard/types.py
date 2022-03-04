@@ -136,6 +136,7 @@ class GiftCardEvent(ModelObjectType):
 
     @staticmethod
     def resolve_order_id(root: models.GiftCardEvent, info):
+        # TODO: will be handle in SALEOR-6142
         order_id = root.parameters.get("order_id")
         return graphene.Node.to_global_id("Order", order_id) if order_id else None
 
@@ -464,7 +465,7 @@ class GiftCard(ModelObjectType):
                     .then(get_channel_slug)
                 )
 
-            # TODO: handle for old and new `order_id`
+            # TODO: will be handle in SALEOR-6142; handle for old and new `order_id`
             # consider migration that will rewrite old ids to token
             order_id = bought_event.parameters["order_id"]
             return OrderByIdLoader(info.context).load(UUID(order_id)).then(with_order)
