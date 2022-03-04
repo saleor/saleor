@@ -1618,14 +1618,17 @@ def test_payment_information_order_events_query_for_app(
     assert data["paymentGateway"] == payment_dummy.gateway
 
 
-def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
-    query = """
+QUERY_ORDER_BY_ID = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
             number
         }
     }
-    """
+"""
+
+
+def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
+    query = QUERY_ORDER_BY_ID
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
     response = user_api_client.post_graphql(query, variables)
@@ -1650,16 +1653,30 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     assert order_data["token"] == str(order.id)
 
 
-QUERY_ORDER_BY_ID = """
-    query OrderQuery($id: ID!) {
-        order(id: $id) {
-            number
-        }
-    }
-"""
+def test_staff_query_order_by_old_id(staff_api_client, order, permission_manage_orders):
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    assert content["data"]["order"]["number"] == str(order.number)
 
 
-def test_staff_query_page_type_by_invalid_id(
+def test_staff_query_order_by_old_id_for_order_with_use_old_id_set_to_false(
+    staff_api_client, order, permission_manage_orders
+):
+    assert not order.use_old_id
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    assert content["data"]["order"] is None
+
+
+def test_staff_query_order_by_invalid_id(
     staff_api_client, order, permission_manage_orders
 ):
     id = "bh/"
@@ -1673,10 +1690,10 @@ def test_staff_query_page_type_by_invalid_id(
     assert content["data"]["order"] is None
 
 
-def test_staff_query_page_type_with_invalid_object_type(
+def test_staff_query_order_with_invalid_object_type(
     staff_api_client, order, permission_manage_orders
 ):
-    variables = {"id": graphene.Node.to_global_id("Page", order.pk)}
+    variables = {"id": graphene.Node.to_global_id("Checkout", order.pk)}
     response = staff_api_client.post_graphql(
         QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
     )
@@ -7836,6 +7853,92 @@ def test_orders_query_with_filter_by_orders_id(
     # then
     assert content["data"]["orders"]["totalCount"] == 2
     assert all(ids in response_ids for ids in orders_ids)
+
+
+def test_orders_query_with_filter_by_old_orders_id(
+    orders_query_with_filter,
+    staff_api_client,
+    order,
+    permission_manage_orders,
+    channel_USD,
+):
+
+    # given
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user_email="test@mirumee.com",
+                status=OrderStatus.UNFULFILLED,
+                channel=channel_USD,
+                use_old_id=True,
+            ),
+            Order(
+                user_email="user_email1@example.com",
+                status=OrderStatus.FULFILLED,
+                channel=channel_USD,
+                use_old_id=False,
+            ),
+        ]
+    )
+    orders_ids = [graphene.Node.to_global_id("Order", order.number) for order in orders]
+    variables = {"filter": {"ids": orders_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    edges = content["data"]["orders"]["edges"]
+    response_ids = [edge["node"]["id"] for edge in edges]
+
+    # then
+    assert content["data"]["orders"]["totalCount"] == 1
+    assert response_ids == [graphene.Node.to_global_id("Order", orders[0].pk)]
+
+
+def test_orders_query_with_filter_by_old_and_new_orders_id(
+    orders_query_with_filter,
+    staff_api_client,
+    order,
+    permission_manage_orders,
+    channel_USD,
+):
+
+    # given
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user_email="test@mirumee.com",
+                status=OrderStatus.UNFULFILLED,
+                channel=channel_USD,
+                use_old_id=True,
+            ),
+            Order(
+                user_email="user_email1@example.com",
+                status=OrderStatus.FULFILLED,
+                channel=channel_USD,
+            ),
+        ]
+    )
+    orders_ids = [
+        graphene.Node.to_global_id("Order", orders[0].number),
+        graphene.Node.to_global_id("Order", orders[1].pk),
+    ]
+    variables = {"filter": {"ids": orders_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content(response)
+    edges = content["data"]["orders"]["edges"]
+    response_ids = [edge["node"]["id"] for edge in edges]
+
+    # then
+    assert content["data"]["orders"]["totalCount"] == 2
+    assert set(response_ids) == {
+        graphene.Node.to_global_id("Order", order.pk) for order in orders
+    }
 
 
 def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
