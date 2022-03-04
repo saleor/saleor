@@ -214,6 +214,7 @@ def fetch_checkout_lines(
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
+    selected_fields = ["variant__product__product_type"]
     prefetched_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
@@ -227,9 +228,9 @@ def fetch_checkout_lines(
                 "variant__attributes__values",
             ]
         )
-    lines = checkout.lines.select_related(
-        "variant", "variant__product"
-    ).prefetch_related(*prefetched_fields)
+    lines = checkout.lines.select_related(*selected_fields).prefetch_related(
+        *prefetched_fields
+    )
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}

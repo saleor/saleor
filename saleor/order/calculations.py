@@ -161,10 +161,9 @@ def fetch_order_prices_if_expired(
         return order, lines
 
     if lines is None:
-        lines = list(order.lines.select_related("variant__product"))
+        lines = list(order.lines.select_related("variant__product__product_type"))
     else:
-        prefetch_related_objects(lines, "variant")
-        prefetch_related_objects(lines, "variant__product")
+        prefetch_related_objects(lines, "variant__product__product_type")
 
     order.price_expiration_for_unconfirmed = timezone.now() + settings.ORDER_PRICES_TTL
 
