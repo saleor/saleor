@@ -1,19 +1,23 @@
-from typing import TYPE_CHECKING, List
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from ...channel.models import Channel
+from ...checkout import models as checkout_models
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
-from ...core.permissions import OrderPermissions
+from ...core.permissions import OrderPermissions, PaymentPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
+from ...order import models as order_models
+from ...order.events import payment_event
 from ...payment import PaymentError, StorePaymentMethod, gateway
-from ...payment.error_codes import PaymentErrorCode
+from ...payment import models as payment_models
+from ...payment.error_codes import PaymentCreateErrorCode, PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
@@ -27,11 +31,9 @@ from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
-from .types import Payment, PaymentInitialized
+from .enums import PaymentActionEnum, TransactionStatusEnum
+from .types import Payment, PaymentInitialized, PaymentPOC
 from .utils import metadata_contains_empty_key
-
-if TYPE_CHECKING:
-    from ...checkout import models as checkout_models
 
 
 def description(enum):
@@ -549,3 +551,167 @@ class PaymentCheckBalance(BaseMutation):
                     )
                 }
             )
+
+
+class PaymentPOCCommonInput(graphene.InputObjectType):
+    status = graphene.String(
+        description="Status of the payment.",
+    )
+    type = graphene.String(
+        description="Payment type used for this payment.",
+    )
+    reference = graphene.String(description="Reference of the payment.")
+    available_actions = graphene.List(
+        graphene.NonNull(PaymentActionEnum),
+        description="List of all possible actions for the payment",
+    )
+    amount_authorized = MoneyInput(description="Amount authorized by this payment.")
+    amount_captured = MoneyInput(description="Amount captured by this payment.")
+    amount_refunded = MoneyInput(description="Amount refunded by this payment.")
+    amount_voided = MoneyInput(description="Amount refunded by this payment.")
+
+    public_metadata = graphene.List(
+        graphene.NonNull(MetadataInput),
+        description=f"{ADDED_IN_31} User public metadata.",
+        required=False,
+    )
+    private_metadata = graphene.List(
+        graphene.NonNull(MetadataInput),
+        description=f"{ADDED_IN_31} User public metadata.",
+        required=False,
+    )
+
+
+class PaymentPOCUpdateInput(PaymentPOCCommonInput):
+    ...
+
+
+class PaymentPOCCreateInput(PaymentPOCCommonInput):
+    status = graphene.String(description="Status of the payment.", required=True)
+    type = graphene.String(
+        description="Payment type used for this payment.", required=True
+    )
+
+
+class TransactionInput(graphene.InputObjectType):
+    status = graphene.Field(
+        TransactionStatusEnum,
+        required=True,
+        description="Current status of the payment transaction.",
+    )
+    reference = graphene.String(description="Reference of the transaction.")
+    name = graphene.String(description="Name of the transaction.")
+
+
+class PaymentCreate(BaseMutation):
+    payment = graphene.Field(PaymentPOC, required=True)
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the checkout or order.",
+            required=True,
+        )
+        payment = PaymentPOCCreateInput(
+            required=True,
+            description="Input data required to create a new payment object.",
+        )
+        transaction = TransactionInput(
+            description="Data that defines a payment transaction."
+        )
+
+    class Meta:
+        description = "Create payment for checkout or order."
+        error_type_class = common_types.PaymentCreateError
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance_id = data.get("id")
+        instance = cls.get_node_or_error(info, instance_id)
+
+        if not isinstance(instance, (checkout_models.Checkout, order_models.Order)):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        f"Couldn't resolve to Checkout or Order: {instance_id}",
+                        code=PaymentCreateErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+
+        # FIXME all amounts recieved in input should have a validation of currency and
+        #  compared to order's currency
+
+        # FIXME we need to have a validation here.
+        payment_data = {**data["payment"]}
+        payment_data["currency"] = instance.currency
+        if isinstance(instance, checkout_models.Checkout):
+            payment_data["checkout_id"] = instance.pk
+        else:
+            payment_data["order_id"] = instance.pk
+            if transaction_data := data.get("transaction"):
+                payment_event(
+                    order=instance,
+                    user=info.context.user,
+                    app=info.context.app,
+                    reference=transaction_data.get("reference", ""),
+                    status=transaction_data.get("status", ""),
+                    name=transaction_data.get("name", ""),
+                )
+        payment = payment_models.PaymentPOC.objects.create(**payment_data)
+        return PaymentCreate(payment=payment)
+
+
+class PaymentUpdate(BaseMutation):
+    payment = graphene.Field(PaymentPOC, required=True)
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the payment.",
+            required=True,
+        )
+        payment = PaymentPOCUpdateInput(
+            required=True,
+            description="Input data required to create a new payment object.",
+        )
+        transaction = TransactionInput(
+            description="Data that defines a payment transaction."
+        )
+
+    class Meta:
+        description = "Create payment for checkout or order."
+        error_type_class = common_types.PaymentCreateError
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+        model = payment_models.PaymentPOC
+        object_type = PaymentPOC
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        instance = super().construct_instance(instance, cleaned_data)
+        if amount_authorized := cleaned_data.get("amount_authorized"):
+            instance.authorized_value = amount_authorized.get("amount")
+        if amount_captured := cleaned_data.get("amount_captured"):
+            instance.captured_value = amount_captured.get("amount")
+        if amount_refunded := cleaned_data.get("amount_refunded"):
+            instance.refunded_value = amount_refunded.get("amount")
+        if amount_voided := cleaned_data.get("amount_voided"):
+            instance.voided_value = amount_voided.get("amount")
+        return instance
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance_id = data.get("id")
+        instance = cls.get_node_or_error(info, instance_id, only_type=PaymentPOC)
+        instance = cls.construct_instance(instance, data.get("payment"))
+        instance.save()
+        transaction_data = data.get("transaction")
+        if instance.order_id and transaction_data:
+            payment_event(
+                order=instance,
+                user=info.context.user,
+                app=info.context.app,
+                reference=transaction_data.get("reference", ""),
+                status=transaction_data.get("status", ""),
+                name=transaction_data.get("name", ""),
+            )
+        return PaymentUpdate(payment=instance)

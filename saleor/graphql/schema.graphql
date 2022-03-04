@@ -3991,6 +3991,8 @@ type Mutation {
   paymentVoid(paymentId: ID!): PaymentVoid
   paymentInitialize(channel: String, gateway: String!, paymentData: JSONString): PaymentInitialize
   paymentCheckBalance(input: PaymentCheckBalanceInput!): PaymentCheckBalance
+  paymentCreate(id: ID!, payment: PaymentPOCCreateInput!, transaction: TransactionInput): PaymentCreate
+  paymentUpdate(id: ID!, payment: PaymentPOCUpdateInput!, transaction: TransactionInput): PaymentUpdate
   pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -4223,6 +4225,7 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatus: PaymentChargeStatusEnum!
   paymentStatusDisplay: String!
   payments: [Payment]
+  pocPayments: [PaymentPOC!]!
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -4428,6 +4431,8 @@ type OrderEvent implements Node {
   shippingCostsIncluded: Boolean
   relatedOrder: Order
   discount: OrderEventDiscountObject
+  status: TransactionStatus
+  reference: String
 }
 
 type OrderEventCountableConnection {
@@ -5086,6 +5091,12 @@ type Payment implements Node & ObjectWithMetadata {
   creditCard: CreditCard
 }
 
+enum PaymentActionEnum {
+  CAPTURE
+  REFUND
+  VOID
+}
+
 type PaymentCapture {
   payment: Payment
   paymentErrors: [PaymentError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -5125,6 +5136,22 @@ type PaymentCountableConnection {
 type PaymentCountableEdge {
   node: Payment!
   cursor: String!
+}
+
+type PaymentCreate {
+  payment: PaymentPOC!
+  errors: [PaymentCreateError!]!
+}
+
+type PaymentCreateError {
+  field: String
+  message: String
+  code: PaymentCreateErrorCode!
+}
+
+enum PaymentCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
 }
 
 type PaymentError {
@@ -5186,6 +5213,46 @@ input PaymentInput {
   metadata: [MetadataInput!]
 }
 
+type PaymentPOC implements Node & ObjectWithMetadata {
+  id: ID!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  status: String!
+  type: String!
+  reference: String!
+  availableActions: [PaymentActionEnum!]!
+  amountAuthorized: Money!
+  amountCaptured: Money!
+  amountRefunded: Money!
+  amountVoided: Money!
+}
+
+input PaymentPOCCreateInput {
+  status: String!
+  type: String!
+  reference: String
+  availableActions: [PaymentActionEnum!]
+  amountAuthorized: MoneyInput
+  amountCaptured: MoneyInput
+  amountRefunded: MoneyInput
+  amountVoided: MoneyInput
+  publicMetadata: [MetadataInput!]
+  privateMetadata: [MetadataInput!]
+}
+
+input PaymentPOCUpdateInput {
+  status: String
+  type: String
+  reference: String
+  availableActions: [PaymentActionEnum!]
+  amountAuthorized: MoneyInput
+  amountCaptured: MoneyInput
+  amountRefunded: MoneyInput
+  amountVoided: MoneyInput
+  publicMetadata: [MetadataInput!]
+  privateMetadata: [MetadataInput!]
+}
+
 type PaymentRefund {
   payment: Payment
   paymentErrors: [PaymentError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -5197,6 +5264,11 @@ type PaymentSource {
   paymentMethodId: String
   creditCardInfo: CreditCard
   metadata: [MetadataItem]!
+}
+
+type PaymentUpdate {
+  payment: PaymentPOC!
+  errors: [PaymentCreateError!]!
 }
 
 type PaymentVoid {
@@ -6963,6 +7035,12 @@ type Transaction implements Node {
   amount: Money
 }
 
+input TransactionInput {
+  status: TransactionStatus!
+  reference: String
+  name: String
+}
+
 enum TransactionKind {
   EXTERNAL
   AUTH
@@ -6974,6 +7052,12 @@ enum TransactionKind {
   VOID
   CONFIRM
   CANCEL
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
 }
 
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent

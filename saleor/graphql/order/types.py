@@ -67,7 +67,8 @@ from ..discount.types import Voucher
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
-from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..payment.enums import TransactionStatusEnum
+from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum, PaymentPOC
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -209,6 +210,10 @@ class OrderEvent(ModelObjectType):
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
     )
+    status = graphene.Field(
+        TransactionStatusEnum, description="The status of payment's transaction."
+    )
+    reference = graphene.String(description="The reference of payment's transaction.")
 
     class Meta:
         description = "History log of the order."
@@ -363,6 +368,14 @@ class OrderEvent(ModelObjectType):
         if not discount_obj:
             return None
         return get_order_discount_event(discount_obj)
+
+    @staticmethod
+    def resolve_status(root: models.OrderEvent, _info):
+        return root.parameters.get("status")
+
+    @staticmethod
+    def resolve_reference(root: models.OrderEvent, _info):
+        return root.parameters.get("reference")
 
 
 class OrderEventCountableConnection(CountableConnection):
@@ -676,6 +689,11 @@ class Order(ModelObjectType):
         description="User-friendly payment status.", required=True
     )
     payments = graphene.List(Payment, description="List of payments for the order.")
+    poc_payments = graphene.List(
+        graphene.NonNull(PaymentPOC),
+        description="List of payments for the order",
+        required=True,
+    )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
     )
@@ -908,6 +926,14 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_actions(root: models.Order, info):
+        # FIXME this will probably require resolver on payment object as each action can
+        # specify actions that can be done.
+        if payments := root.poc_payments.all():
+            actions = set()
+            for payment in payments:
+                actions.update(payment.available_actions)
+            return [action.upper() for action in actions]
+
         def _resolve_actions(payments):
             actions = []
             payment = get_last_payment(payments)
@@ -947,6 +973,12 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_total_authorized(root: models.Order, info):
+        if payments := root.poc_payments.all():
+            authorized_money = prices.Money(Decimal(0), root.currency)
+            for payment in payments:
+                authorized_money += payment.amount_authorized
+            return authorized_money
+
         def _resolve_total_get_total_authorized(payments):
             return get_total_authorized(payments, root.currency)
 
@@ -958,10 +990,21 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):
+        if payments := root.poc_payments.all():
+            captured_money = prices.Money(Decimal(0), root.currency)
+            for payment in payments:
+                captured_money += payment.amount_captured
+            return captured_money
+
         return root.total_paid
 
     @staticmethod
     def resolve_total_balance(root: models.Order, _info):
+        if payments := root.poc_payments.all():
+            captured_money = prices.Money(Decimal(0), root.currency)
+            for payment in payments:
+                captured_money += payment.amount_captured
+            return captured_money - root.total.gross
         return root.total_balance
 
     @staticmethod
@@ -992,6 +1035,11 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_is_paid(root: models.Order, _info):
+        if payments := root.poc_payments.all():
+            captured_money = prices.Money(Decimal(0), root.currency)
+            for payment in payments:
+                captured_money += payment.amount_captured
+            return captured_money >= root.total.gross
         return root.is_fully_paid()
 
     @staticmethod
@@ -1001,6 +1049,28 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
+        status = ChargeStatus.NOT_CHARGED
+        if payments := root.poc_payments.all():
+            captured_money = prices.Money(Decimal(0), root.currency)
+            refunded_money = prices.Money(Decimal(0), root.currency)
+            for payment in payments:
+                captured_money += payment.amount_captured
+                refunded_money += payment.amount_refunded
+
+            # FIXME this should be OVERPAID status probably (or not as we want to
+            #  deprecate this resolver
+
+            # FIXME this should be done in prettier way
+            if captured_money >= root.total.gross:
+                status = ChargeStatus.FULLY_CHARGED
+            if captured_money and captured_money <= root.total.gross:
+                status = ChargeStatus.PARTIALLY_CHARGED
+            if refunded_money >= root.total.gross:
+                status = ChargeStatus.FULLY_REFUNDED
+            if refunded_money and refunded_money < root.total.gross:
+                status = ChargeStatus.PARTIALLY_REFUNDED
+            return status
+
         def _resolve_payment_status(payments):
             if last_payment := get_last_payment(payments):
                 return last_payment.charge_status
@@ -1014,6 +1084,29 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
+        # FIXME  the status is single and we want to support multiple payments here
+        status = ChargeStatus.NOT_CHARGED
+        if payments := root.poc_payments.all():
+            captured_money = prices.Money(Decimal(0), root.currency)
+            refunded_money = prices.Money(Decimal(0), root.currency)
+            for payment in payments:
+                captured_money += payment.amount_captured
+                refunded_money += payment.amount_refunded
+
+            # FIXME this should be OVERPAID status probably (or not as we want to
+            #  deprecate this resolver
+
+            # FIXME this should be done in prettier way
+            if captured_money >= root.total.gross:
+                status = ChargeStatus.FULLY_CHARGED
+            if captured_money and captured_money <= root.total.gross:
+                status = ChargeStatus.PARTIALLY_CHARGED
+            if refunded_money >= root.total.gross:
+                status = ChargeStatus.FULLY_REFUNDED
+            if refunded_money and refunded_money < root.total.gross:
+                status = ChargeStatus.PARTIALLY_REFUNDED
+            return dict(ChargeStatus.CHOICES).get(status)
+
         def _resolve_payment_status(payments):
             if last_payment := get_last_payment(payments):
                 return last_payment.get_charge_status_display()
@@ -1028,6 +1121,10 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_payments(root: models.Order, _info):
         return root.payments.all()
+
+    @staticmethod
+    def resolve_poc_payments(root: models.Order, _info):
+        return root.poc_payments.all()
 
     @staticmethod
     def resolve_status_display(root: models.Order, _info):

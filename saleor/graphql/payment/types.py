@@ -15,7 +15,12 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
-from .enums import OrderAction, PaymentChargeStatusEnum, TransactionKindEnum
+from .enums import (
+    OrderAction,
+    PaymentActionEnum,
+    PaymentChargeStatusEnum,
+    TransactionKindEnum,
+)
 
 
 class Transaction(ModelObjectType):
@@ -210,3 +215,31 @@ class PaymentInitialized(graphene.ObjectType):
     gateway = graphene.String(description="ID of a payment gateway.", required=True)
     name = graphene.String(description="Payment gateway name.", required=True)
     data = JSONString(description="Initialized data by gateway.", required=False)
+
+
+class PaymentPOC(ModelObjectType):
+    status = graphene.String(required=True)
+    type = graphene.String(required=True)
+    reference = graphene.String(required=True)
+    available_actions = graphene.List(
+        graphene.NonNull(PaymentActionEnum),
+        description="List of all possible actions for the payment",
+        required=True,
+    )
+    amount_authorized = graphene.Field(
+        Money, required=True, description="Amount authorized by this payment."
+    )
+    amount_captured = graphene.Field(
+        Money, required=True, description="Amount captured by this payment."
+    )
+    amount_refunded = graphene.Field(
+        Money, required=True, description="Amount refunded by this payment."
+    )
+    amount_voided = graphene.Field(
+        Money, required=True, description="Amount voided by this payment."
+    )
+
+    class Meta:
+        description = "Represents a payment of a given type."
+        interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.PaymentPOC

@@ -109,6 +109,8 @@ class OrderEvents:
     PAYMENT_REFUNDED = "payment_refunded"
     PAYMENT_VOIDED = "payment_voided"
     PAYMENT_FAILED = "payment_failed"
+    PAYMENT_EVENT = "payment_event"
+
     EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
     INVOICE_REQUESTED = "invoice_requested"
