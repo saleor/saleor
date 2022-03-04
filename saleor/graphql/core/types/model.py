@@ -1,4 +1,6 @@
-from django.db.models import Model
+from uuid import UUID
+
+from django.db.models import Model, Q
 from graphene.types.objecttype import ObjectType, ObjectTypeOptions
 
 
@@ -45,9 +47,23 @@ class ModelObjectType(ObjectType):
     def get_node(cls, _, id):
         model = cls._meta.model
         try:
+            if cls._meta.name == "Order":
+                return cls._get_order(id, model)
             return model.objects.get(pk=id)
         except model.DoesNotExist:
             return None
+
+    @classmethod
+    def _get_order(cls, id, model):
+        # This is temporary method that allows fetching orders with use of
+        # new (uuid type) and old (int type) id
+        lookup = Q(pk=id)
+        if id is not None:
+            try:
+                UUID(str(id))
+            except ValueError:
+                lookup = Q(number=id) & Q(use_old_id=True)
+        return model.objects.get(lookup)
 
     @classmethod
     def get_model(cls):
