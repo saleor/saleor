@@ -8,11 +8,13 @@ from django.utils.functional import SimpleLazyObject
 from ..app.models import App, AppToken
 from ..core.auth import get_token_from_request
 from .api import API_PATH
+from .permissions_map import PERMISSIONS_MAP
 
 
 def get_context_value(request):
     set_app_on_context(request)
     set_auth_on_context(request)
+    set_permissions_map_on_context(request)
     return request
 
 
@@ -46,3 +48,8 @@ def set_auth_on_context(request):
         return get_user(request) or AnonymousUser()
 
     request.user = SimpleLazyObject(lambda: user())
+
+
+def set_permissions_map_on_context(request):
+    if not hasattr(request, "_permissions_map"):
+        setattr(request, "_permissions_map", PERMISSIONS_MAP)
