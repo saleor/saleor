@@ -4,11 +4,8 @@ from typing import cast
 import graphene
 from django.db.models import QuerySet
 
-from ...attribute import AttributeEntityType, AttributeInputType, AttributeType, models
-from ...core.exceptions import PermissionDenied
-from ...core.permissions import PagePermissions, ProductPermissions
+from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...core.tracing import traced_resolver
-from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -65,20 +62,10 @@ class AttributeValue(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info, *_args):
-        def _resolve_input_type(attribute):
-            requester = get_user_or_app_from_context(info.context)
-            if attribute.type == AttributeType.PAGE_TYPE:
-                if requester.has_perm(PagePermissions.MANAGE_PAGES):
-                    return attribute.input_type
-                raise PermissionDenied(permissions=[PagePermissions.MANAGE_PAGES])
-            elif requester.has_perm(ProductPermissions.MANAGE_PRODUCTS):
-                return attribute.input_type
-            raise PermissionDenied(permissions=[ProductPermissions.MANAGE_PRODUCTS])
-
         return (
             AttributesByAttributeId(info.context)
             .load(root.attribute_id)
-            .then(_resolve_input_type)
+            .then(lambda attribute: attribute.input_type)
         )
 
     @staticmethod

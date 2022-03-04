@@ -38,7 +38,7 @@ SHIPPING_ADDRESS_FIELD = "default_shipping_address"
 INVALID_TOKEN = "Invalid or expired token."
 
 
-def can_edit_address(context, address):
+def check_can_edit_address(context, address):
     """Determine whether the user or app can edit the given address.
 
     This method assumes that an address can be edited by:
@@ -51,6 +51,12 @@ def can_edit_address(context, address):
         return True
     if not context.app and not context.user.is_anonymous:
         return requester.addresses.filter(pk=address.pk).exists()
+    raise PermissionDenied(
+        message=(
+            "You can only edit your own addresses or you need the permission: "
+            "AccountPermissions.MANAGE_USERS"
+        )
+    )
 
 
 class SetPassword(CreateToken):
@@ -309,8 +315,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
     def clean_input(cls, info, instance, data):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context, instance):
-            raise PermissionDenied()
+        check_can_edit_address(info.context, instance)
         return super().clean_input(info, instance, data)
 
     @classmethod
@@ -354,8 +359,7 @@ class BaseAddressDelete(ModelDeleteMutation):
     def clean_instance(cls, info, instance):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context, instance):
-            raise PermissionDenied()
+        check_can_edit_address(info.context, instance)
         return super().clean_instance(info, instance)
 
     @classmethod

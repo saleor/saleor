@@ -84,7 +84,11 @@ def one_of_permissions_required(perms: Iterable[Enum]):
 
 def _check_staff_member(context):
     if not context.user.is_active or not context.user.is_staff:
-        raise PermissionDenied()
+        raise PermissionDenied(
+            message=(
+                "You need to be authenticated as a staff member to perform this action"
+            )
+        )
 
 
 staff_member_required = account_passes_test(_check_staff_member)
@@ -92,7 +96,12 @@ staff_member_required = account_passes_test(_check_staff_member)
 
 def _check_staff_member_or_app(context):
     if not context.app and (not context.user.is_active or not context.user.is_staff):
-        raise PermissionDenied()
+        raise PermissionDenied(
+            message=(
+                "You need to be authenticated as a staff member or an app to perform "
+                "this action"
+            )
+        )
 
 
 staff_member_or_app_required = account_passes_test(_check_staff_member_or_app)
