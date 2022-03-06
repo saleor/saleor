@@ -6,7 +6,7 @@ jobs:
   deploy-saleor-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Create Backend Deployment Link
         uses: bobheadxi/deployments@v0.6.2
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Federation repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
         with:
           repository: wecre8-ecommerce/gql-federation-gateway
 
