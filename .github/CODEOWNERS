@@ -3,4 +3,7 @@
 # @global-owner1 and @global-owner2 will be requested for
 # review when someone opens a pull request.
 /saleor/plugins/ @wecre8-ecommerce/qa @wecre8-ecommerce/backend
-* @HazemKhaled
+/.github/workflows/pr-deploy.yml @wecre8-ecommerce/qa @wecre8-ecommerce/backend
+/*.txt @wecre8-ecommerce/qa @wecre8-ecommerce/backend
+/saleor/wecre8_settings.py @wecre8-ecommerce/qa @wecre8-ecommerce/backend
+#* @HazemKhaled
