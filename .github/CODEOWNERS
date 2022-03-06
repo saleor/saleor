@@ -2,7 +2,7 @@
 # the repo. Unless a later match takes precedence,
 # @global-owner1 and @global-owner2 will be requested for
 # review when someone opens a pull request.
+* @HazemKhaled
 /saleor/plugins/ @wecre8-ecommerce/qa @wecre8-ecommerce/backend
 /.github/workflows/pr-deploy.yml @wecre8-ecommerce/qa @wecre8-ecommerce/backend
 /*.txt @wecre8-ecommerce/qa @wecre8-ecommerce/backend
-* @HazemKhaled
