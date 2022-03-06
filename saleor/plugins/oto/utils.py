@@ -128,7 +128,7 @@ def handle_webhook(request: HttpRequest, config: "dict"):
         if fulfillment:
             status = data.get("status", "")
             fulfillment.tracking_number = data.get("trackingNumber", "")
-            fulfillment.store_value_in_private_metadata(
+            fulfillment.store_value_in_metadata(
                 items={
                     "otoStatus": status,
                     "printAWBURL": data.get("printAWBURL", ""),
@@ -139,7 +139,7 @@ def handle_webhook(request: HttpRequest, config: "dict"):
                     "deliverySlotDate": data.get("deliverySlotDate", ""),
                 }
             )
-            fulfillment.save(update_fields=["tracking_number", "private_metadata"])
+            fulfillment.save(update_fields=["tracking_number", "metadata"])
             logger.info("Fulfillment #%s updated", fulfillment.composed_id)
 
             # Cancel order if OTO user cancel the OTO order
