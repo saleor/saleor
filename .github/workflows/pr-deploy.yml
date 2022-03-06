@@ -1,10 +1,11 @@
 name: Deploy PR
 
-on: pull_request
+on:
+  pull_request:
+    types: [edited, synchronize, ready_for_review]
 
 jobs:
   deploy-saleor-pr:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +63,6 @@ jobs:
 
   deploy-federation-pr:
     needs: deploy-saleor-pr
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Check out Federation repo

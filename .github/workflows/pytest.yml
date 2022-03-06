@@ -2,7 +2,8 @@ name: Pytest
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [edited, synchronize, ready_for_review]
+
   push:
     branches:
       - main
@@ -16,7 +17,6 @@ env:
 
 jobs:
   build:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     container: python:3.8
 
