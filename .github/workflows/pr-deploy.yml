@@ -14,7 +14,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: Preview Backend
+          env: Preview Backend ${{ github.event.pull_request.number }}
           ref: ${{ github.head_ref }}
 
       - name: Deploy Saleor
@@ -74,7 +74,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: Preview Gateway
+          env: Preview Gateway ${{ github.event.pull_request.number }}
           ref: ${{ github.head_ref }}
 
       - name: Deploy Federation
