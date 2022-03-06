@@ -2,7 +2,7 @@ name: Cleanup PR
 
 on:
   pull_request:
-    types: [closed]
+    types: [closed, converted_to_draft]
 
 jobs:
   cleanup-pr:
