@@ -74,7 +74,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: Preview Backend
+          env: Preview Gateway
           ref: ${{ github.head_ref }}
 
       - name: Deploy Federation
