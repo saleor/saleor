@@ -249,8 +249,11 @@ def get_product_data(product_pk: int, language_code="EN"):
                 channels.append(channel)
 
     skus = []
-    for sku in product.variants.values_list("sku", flat=True):
-        skus.append(sku)
+    vendors = []
+    for variant in product.variants.all():
+        skus.append(variant.sku)
+        for vendor in variant.vendor_set.all():
+            vendors.append(vendor.name)
 
     if not product_data.errors and channels:
         slug = product_dict.pop("slug")
@@ -260,6 +263,7 @@ def get_product_data(product_pk: int, language_code="EN"):
             {
                 "skus": skus,
                 "objectID": slug,
+                "vendors": vendors,
                 "channels": channels,
                 "name": product_name,
                 "attributes": attributes,
