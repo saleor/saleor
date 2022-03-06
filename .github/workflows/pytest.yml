@@ -16,6 +16,7 @@ env:
 
 jobs:
   build:
+    if: ! github.event.pull_request.draft
     runs-on: ubuntu-latest
     container: python:3.8
 
