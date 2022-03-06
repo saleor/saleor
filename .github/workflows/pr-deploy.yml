@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   deploy-saleor-pr:
-    if: ! github.event.pull_request.draft
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +62,7 @@ jobs:
 
   deploy-federation-pr:
     needs: deploy-saleor-pr
-    if: ! github.event.pull_request.draft
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Check out Federation repo
