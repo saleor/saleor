@@ -107,8 +107,7 @@ class AlgoliaPlugin(BasePlugin):
                 index.set_settings(
                     {
                         "attributesForFaceting": get_attributes_for_faceting(
-                            attributes=product_data["attributes"],
-                            categories=product_data["categories"],
+                            locale=locale
                         )
                     }
                 )
@@ -129,8 +128,7 @@ class AlgoliaPlugin(BasePlugin):
                 index.set_settings(
                     {
                         "attributesForFaceting": get_attributes_for_faceting(
-                            attributes=product_data["attributes"],
-                            categories=product_data["categories"],
+                            locale=locale
                         )
                     }
                 )
@@ -198,8 +196,7 @@ class AlgoliaPlugin(BasePlugin):
                 index.set_settings(
                     {
                         "attributesForFaceting": get_attributes_for_faceting(
-                            attributes=product_data["attributes"],
-                            categories=product_data["categories"],
+                            locale=locale
                         )
                     }
                 )
@@ -222,8 +219,7 @@ class AlgoliaPlugin(BasePlugin):
                 index.set_settings(
                     {
                         "attributesForFaceting": get_attributes_for_faceting(
-                            attributes=product_data["attributes"],
-                            categories=product_data["categories"],
+                            locale=locale
                         )
                     }
                 )
