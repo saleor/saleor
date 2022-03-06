@@ -74,6 +74,9 @@ class Vendor(models.Model):
         Address, on_delete=models.SET_NULL, blank=True, null=True
     )
 
+    def __str__(self):
+        return self.brand_name
+
 
 class BillingInfo(models.Model):
     iban = IBANField()
