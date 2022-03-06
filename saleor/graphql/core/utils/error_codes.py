@@ -96,7 +96,11 @@ def get_error_code_from_error(error) -> str:
         return "required"
     if code in ["unique", "unique_for_date"]:
         return "unique"
-    if code is None or code in DJANGO_VALIDATORS_ERROR_CODES or code in DJANGO_FORM_FIELDS_ERROR_CODES:  # noqa: E501
+    if (
+        code is None
+        or code in DJANGO_VALIDATORS_ERROR_CODES
+        or code in DJANGO_FORM_FIELDS_ERROR_CODES
+    ):  # noqa: E501
         return "invalid"
     if isinstance(code, Enum):
         code = code.value
