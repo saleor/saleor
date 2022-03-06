@@ -24,5 +24,5 @@ class VendorErrorCode(Enum):
     ONLY_ONE_ALLOWED = "only_one_allowed"
 
 
-TargetGenderEnum = graphene.Enum.from_enum(models.Vendor.TargetGender)
-RegistrationTypeEnum = graphene.Enum.from_enum(models.Vendor.RegistrationType)
+TargetGender = graphene.Enum.from_enum(models.Vendor.TargetGender)
+RegistrationType = graphene.Enum.from_enum(models.Vendor.RegistrationType)

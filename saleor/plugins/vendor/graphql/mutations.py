@@ -12,10 +12,11 @@ from ....graphql.core.types import Upload
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from .. import models
 from . import enums, types
-from .custom_permissions import BillingPermissions
+
+# from .custom_permissions import BillingPermissions
 from .errors import VendorError
 
-numbers_only = re.compile("[0-9]*")
+numbers_only = re.compile("[0-9]+")
 
 
 def is_numbers_only(s):
@@ -46,9 +47,9 @@ class VendorInput(graphene.InputObjectType):
         description="Users IDs to add to the vendor.",
     )
 
-    target_gender = enums.TargetGenderEnum(
+    target_gender = enums.TargetGender(
         description="The target gender of the vendor, defaults to UNISEX.",
-        default=models.Vendor.TargetGender.UNISEX,
+        default=models.Vendor.TargetGender.UNISEX,  # TODO
         required=False,
     )
 
@@ -69,7 +70,7 @@ class VendorCreateInput(VendorInput):
     phone_number = graphene.String(description="Contact phone number.", required=True)
     email = graphene.String(description="Contact email.", required=True)
 
-    registration_type = enums.RegistrationTypeEnum(
+    registration_type = enums.RegistrationType(
         description="The registration type of the company.", required=True
     )
 
@@ -152,20 +153,32 @@ class VendorCreate(ModelMutation):
                 code=enums.VendorErrorCode.ONLY_ONE_ALLOWED,
             )
 
-        if residence_id and not is_numbers_only(residence_id):
+        if not residence_id:
+            errors["residence_id"] = ValidationError(
+                message="You must provide a residence ID or a national ID.",
+                code=enums.VendorErrorCode.INVALID_RESIDENCE_ID,
+            )
+
+        if not is_numbers_only(residence_id):
             errors["residence_id"] = ValidationError(
                 message=f"Residence ID must contain only numbers, found: {residence_id}.",  # noqa: E501
                 code=enums.VendorErrorCode.INVALID_RESIDENCE_ID,
             )
 
-        if national_id and not is_numbers_only(national_id):
+        if not national_id:
+            errors["national_id"] = ValidationError(
+                message="You must provide a national ID or a national ID.",
+                code=enums.VendorErrorCode.INVALID_NATIONAL_ID,
+            )
+
+        if not is_numbers_only(national_id):
             errors["national_id"] = ValidationError(
                 message=f"National ID must contain only numbers, found: {national_id}.",  # noqa: E501
                 code=enums.VendorErrorCode.INVALID_NATIONAL_ID,
             )
 
         registration_type = data["registration_type"]
-        if registration_type == models.Vendor.RegistrationType.COMPANY:
+        if registration_type == enums.RegistrationType.COMPANY:
             vat_number = data.get("vat_number")
 
             if not vat_number:
@@ -208,7 +221,7 @@ class VendorUpdateInput(VendorInput):
     phone_number = graphene.String(description="Contact phone number.", required=False)
     email = graphene.String(description="Contact email.", required=False)
 
-    registration_type = enums.RegistrationTypeEnum(
+    registration_type = enums.RegistrationType(
         description="The registration type of the company.", required=False
     )
     registration_number = graphene.String(
@@ -278,9 +291,7 @@ class BillingInfoCreate(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         vendor = cls.get_node_or_error(info, data["vendor_id"], only_type=types.Vendor)
         cleaned_input = cls.clean_input(info, vendor, data)
-        billing = models.BillingInfo(**cleaned_input)
-        billing.vendor = vendor
-        billing.save()
+        billing = models.BillingInfo.objects.create(**cleaned_input, vendor=vendor)
 
         return cls(billing=billing)
 
@@ -301,7 +312,7 @@ class BillingInfoUpdate(ModelMutation):
         description = "Update billing information."
         model = models.BillingInfo
         error_type_class = VendorError
-        permissions = (BillingPermissions.MANAGE_BILLING,)
+        # permissions = (BillingPermissions.MANAGE_BILLING,)
 
 
 class BillingInfoDelete(ModelDeleteMutation):
@@ -326,7 +337,58 @@ class VendorAddAttachment(ModelMutation):
         error_type_class = VendorError
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        print(data)
+    def perform_mutation(cls, _root, info, vendor_id, file):
+        vendor = cls.get_node_or_error(info, "vendor_id", only_type="Vendor")
+        attachment = models.Attachment.objects.create(
+            vendor=vendor, file=file
+        )  # can be optimized
 
-        return data
+        return cls(attachment=attachment)
+
+
+class VendorRemoveAttachment(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID()
+
+    class Meta:
+        description = "Remove an attachment from a vendor"
+        model = models.Attachment
+        error_type_class = VendorError
+
+
+class VendorUpdateLogo(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Vendor ID.")
+        logo = Upload(required=True, description="Logo image.")
+
+    class Meta:
+        description = "Update vendor logo image"
+        model = models.Vendor
+        error_type_class = VendorError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, logo):
+        vendor = cls.get_node_or_error(info, id, only_type="Vendor")
+        vendor.logo = logo
+        vendor.save()
+
+        return cls(vendor=vendor)
+
+
+class VendorUpdateHeader(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Vendor ID.")
+        header = Upload(required=True, description="Header image.")
+
+    class Meta:
+        description = "Update vendor header image"
+        model = models.Vendor
+        error_type_class = VendorError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, header):
+        vendor = cls.get_node_or_error(info, id, only_type="Vendor")
+        vendor.header = header
+        vendor.save()
+
+        return cls(vendor=vendor)

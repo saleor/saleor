@@ -6,6 +6,7 @@ from ....graphql.core.connection import CountableDjangoObjectType
 from ....graphql.core.types import Upload
 from ....graphql.core.types.common import Image
 from .. import models
+from . import enums
 
 
 class Vendor(CountableDjangoObjectType):
@@ -15,8 +16,12 @@ class Vendor(CountableDjangoObjectType):
     header_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
-    description = graphene.JSONString(description="Editorjs formatted description")
+    description = graphene.JSONString(description="Editorjs formatted description.")
     country = CountryCodeEnum(description="Country.")
+    target_gender = enums.TargetGender(description="Target gender of the vendor.")
+    registration_type = enums.RegistrationType(
+        description="Company registration type of the vendor."
+    )
 
     class Meta:
         model = models.Vendor
