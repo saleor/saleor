@@ -103,10 +103,10 @@ class OTOPlugin(BasePlugin):
                 "oto_fulfillment_ids", []
             )
             fulfillment_ids.extend([self.get_oto_order_id(fulfillment=fulfillment)])
-            fulfillment.order.store_value_in_private_metadata(
+            fulfillment.order.store_value_in_metadata(
                 items=dict(oto_fulfillment_ids=fulfillment_ids)
             )
-            fulfillment.order.save(update_fields=["private_metadata"])
+            fulfillment.order.save(update_fields=["metadata"])
             logger.info(
                 msg=f"OTO order {response.get('otoId')} created",
                 extra={"order_id": fulfillment.order.id},
@@ -164,16 +164,14 @@ class OTOPlugin(BasePlugin):
                         order_data=order_data
                     )
                     if response.get("success") is True:
-                        returned_fulfillment.store_value_in_private_metadata(
+                        returned_fulfillment.store_value_in_metadata(
                             items=dict(oto_return_link=response.get("returnLink"))
                         )
-                        returned_fulfillment.save(update_fields=["private_metadata"])
-                        returned_fulfillment.order.store_value_in_private_metadata(
+                        returned_fulfillment.save(update_fields=["metadata"])
+                        returned_fulfillment.order.store_value_in_metadata(
                             items=dict(oto_return_link=response.get("returnLink"))
                         )
-                        returned_fulfillment.order.save(
-                            update_fields=["private_metadata"]
-                        )
+                        returned_fulfillment.order.save(update_fields=["metadata"])
                     else:
                         msg = (
                             response.get("errorMsg").capitalize()
