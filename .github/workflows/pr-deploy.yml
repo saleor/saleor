@@ -1,12 +1,24 @@
 name: Deploy PR
 
-on: pull_request
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
 
 jobs:
   deploy-saleor-pr:
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Create Backend Deployment Link
+        uses: bobheadxi/deployments@v0.6.2
+        id: deployment_backend
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: Preview Backend ${{ github.event.pull_request.number }}
+          ref: ${{ github.head_ref }}
 
       - name: Deploy Saleor
         uses: akhileshns/heroku-deploy@v3.12.12
@@ -39,23 +51,35 @@ jobs:
         env:
           HD_DJANGO_SETTINGS_MODULE: "saleor.wecre8_settings"
 
-      - name: Comment Build Fail
-        if: ${{ failure() }}
-        uses: mshick/add-pr-comment@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update Backend Deployment Link Status
+        if: always()
+        uses: bobheadxi/deployments@v0.6.2
         with:
-          message: |
-            🐞🐞🐞🐞🐞🐞🐞🐞 BUILD FAIL 🐞🐞🐞🐞🐞🐞🐞🐞
+          step: finish
+          env_url: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          logs: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
+          deployment_id: ${{ steps.deployment_backend.outputs.deployment_id }}
 
   deploy-federation-pr:
     needs: deploy-saleor-pr
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out Federation repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
         with:
           repository: wecre8-ecommerce/gql-federation-gateway
+
+      - name: Create Gateway Deployment Link
+        uses: bobheadxi/deployments@v0.6.2
+        id: deployment_gateway
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: Preview Gateway ${{ github.event.pull_request.number }}
+          ref: ${{ github.head_ref }}
 
       - name: Deploy Federation
         uses: akhileshns/heroku-deploy@v3.12.12
@@ -69,17 +93,15 @@ jobs:
         env:
           HD_NODE_ENV: development
           HD_API_URL: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
-          HD_PLUGINS: social-login provinces otp vendor celebrity
+          HD_PLUGINS: social-login,provinces,otp,vendor,celebrity
 
-  pr-comments:
-    needs: deploy-federation-pr
-    runs-on: ubuntu-latest
-    steps:
-      - name: Comment Deploy Links
-        uses: mshick/add-pr-comment@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update Gateway Deployment Link Status
+        if: always()
+        uses: bobheadxi/deployments@v0.6.2
         with:
-          message: |
-            Federation: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com/
-            Backend   : https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
+          step: finish
+          env_url: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com//graphql/
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          logs: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com//graphql/
+          deployment_id: ${{ steps.deployment_gateway.outputs.deployment_id }}
