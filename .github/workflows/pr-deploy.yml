@@ -100,8 +100,8 @@ jobs:
         uses: bobheadxi/deployments@v0.6.2
         with:
           step: finish
-          env_url: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com//graphql/
+          env_url: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
-          logs: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com//graphql/
+          logs: https://w8-pr-${{ github.event.pull_request.number }}.herokuapp.com/graphql/
           deployment_id: ${{ steps.deployment_gateway.outputs.deployment_id }}
