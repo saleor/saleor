@@ -15,9 +15,13 @@ from .mutations import (
     BillingInfoDelete,
     BillingInfoUpdate,
     VendorAddAttachment,
+    VendorAddProduct,
+    VendorAddUser,
     VendorCreate,
     VendorDelete,
     VendorRemoveAttachment,
+    VendorRemoveProduct,
+    VendorRemoveUser,
     VendorUpdate,
     VendorUpdateHeader,
     VendorUpdateLogo,
@@ -64,8 +68,16 @@ class Mutation(graphene.ObjectType):
     vendor_create = VendorCreate.Field()
     vendor_update = VendorUpdate.Field()
     vendor_delete = VendorDelete.Field()
+
+    vendor_add_product = VendorAddProduct.Field()
+    vendor_remove_product = VendorRemoveProduct.Field()
+
+    vendor_add_user = VendorAddUser.Field()
+    vendor_remove_user = VendorRemoveUser.Field()
+
     vendor_add_attachment = VendorAddAttachment.Field()
     vendor_remove_attachment = VendorRemoveAttachment.Field()
+
     vendor_update_logo = VendorUpdateLogo.Field()
     vendor_update_header = VendorUpdateHeader.Field()
 

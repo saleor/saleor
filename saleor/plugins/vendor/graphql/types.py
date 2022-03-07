@@ -11,7 +11,7 @@ from . import enums
 
 class Vendor(CountableDjangoObjectType):
     users = graphene.List(graphene.ID, description="List of user IDs.")
-    variants = graphene.List(graphene.ID, description="List of variant IDs.")
+    products = graphene.List(graphene.ID, description="List of products IDs.")
     logo = graphene.Field(Image, size=graphene.Int(description="Size of the image."))
     header_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -30,10 +30,16 @@ class Vendor(CountableDjangoObjectType):
         exclude = ["address"]
 
     def resolve_users(root, info):
-        return root.users.values_list("id")
+        return [
+            graphene.Node.to_global_id("Product", id)
+            for id in root.users.values_list("id")
+        ]
 
-    def resolve_variants(root, info):
-        return root.variants.values_list("id")
+    def resolve_products(root, info):
+        return [
+            graphene.Node.to_global_id("Product", id)
+            for id in root.products.values_list("id")
+        ]
 
     def resolve_logo(root, info, size=None):
         if root.logo:

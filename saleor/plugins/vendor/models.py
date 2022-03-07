@@ -8,7 +8,7 @@ from ...account.models import Address
 from ...account.validators import validate_possible_number
 from ...core.db.fields import SanitizedJSONField
 from ...core.utils.editorjs import clean_editor_js
-from ...product.models import ProductVariant
+from ...product.models import Product
 
 User = get_user_model()
 
@@ -38,7 +38,7 @@ class Vendor(models.Model):
     slug = models.SlugField(max_length=256, unique=True, db_index=True)
 
     users = models.ManyToManyField(User)
-    variants = models.ManyToManyField(ProductVariant)
+    products = models.ManyToManyField(Product)
 
     country = CountryField()
 

@@ -392,3 +392,75 @@ class VendorUpdateHeader(ModelMutation):
         vendor.save()
 
         return cls(vendor=vendor)
+
+
+class VendorAddProduct(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Vendor ID.")
+        product_id = graphene.ID(required=True, description="Product ID.")
+
+    class Meta:
+        description = "Add a product to vendor catalogue"
+        model = models.Vendor
+        error_type_class = VendorError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, product_id):
+        vendor = cls.get_node_or_error(info, id, only_type="Vendor")
+        product = cls.get_node_or_error(info, product_id, only_type="Product")
+        vendor.products.add(product)
+        return cls(vendor=vendor)
+
+
+class VendorRemoveProduct(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Vendor ID.")
+        product_id = graphene.ID(required=True, description="Product ID.")
+
+    class Meta:
+        description = "Add a product to vendor catalogue"
+        model = models.Vendor
+        error_type_class = VendorError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, product_id):
+        vendor = cls.get_node_or_error(info, id, only_type="Vendor")
+        product = cls.get_node_or_error(info, product_id, only_type="Product")
+        vendor.products.remove(product)
+        return cls(vendor=vendor)
+
+
+class VendorAddUser(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Vendor ID.")
+        user_id = graphene.ID(required=True, description="User ID.")
+
+    class Meta:
+        description = "Add a user to a vendor."
+        model = models.Vendor
+        error_type_class = VendorError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, user_id):
+        vendor = cls.get_node_or_error(info, id, only_type="Vendor")
+        user = cls.get_node_or_error(info, user_id, only_type="User")
+        vendor.users.add(user)
+        return cls(vendor=vendor)
+
+
+class VendorRemoveUser(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Vendor ID.")
+        user_id = graphene.ID(required=True, description="User ID.")
+
+    class Meta:
+        description = "Remove a user from a vendor."
+        model = models.Vendor
+        error_type_class = VendorError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, user_id):
+        vendor = cls.get_node_or_error(info, id, only_type="Vendor")
+        user = cls.get_node_or_error(info, user_id, only_type="User")
+        vendor.users.remove(user)
+        return cls(vendor=vendor)
