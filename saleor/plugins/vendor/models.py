@@ -4,10 +4,11 @@ from django_countries.fields import CountryField
 from django_iban.fields import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
 
+from ...account.models import Address
 from ...account.validators import validate_possible_number
 from ...core.db.fields import SanitizedJSONField
 from ...core.utils.editorjs import clean_editor_js
-from ...product.models import ProductVariant
+from ...product.models import Product
 
 User = get_user_model()
 
@@ -28,15 +29,21 @@ class Vendor(models.Model):
         WOMEN = 2
         UNISEX = 3
 
-    name = models.CharField(max_length=256, unique=True, db_index=True)
+    first_name = models.CharField(max_length=256)
+    last_name = models.CharField(max_length=256)
+
+    brand_name = models.CharField(max_length=256, unique=True, db_index=True)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+
     slug = models.SlugField(max_length=256, unique=True, db_index=True)
+
     users = models.ManyToManyField(User)
-    variants = models.ManyToManyField(ProductVariant)
+    products = models.ManyToManyField(Product)
 
     country = CountryField()
 
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    phone_number = PossiblePhoneNumberField(blank=True, db_index=True)
+    phone_number = PossiblePhoneNumberField(db_index=True, unique=True)
+    email = models.EmailField(db_index=True, unique=True)
 
     national_id = models.CharField(max_length=256, null=True, blank=True)
     residence_id = models.CharField(max_length=256, null=True, blank=True)
@@ -58,8 +65,17 @@ class Vendor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    facebook_url = models.URLField(blank=True, null=True)
+    instagram_url = models.URLField(blank=True, null=True)
+    youtube_url = models.URLField(blank=True, null=True)
+    twitter_url = models.URLField(blank=True, null=True)
+
+    address = models.OneToOneField(
+        Address, on_delete=models.SET_NULL, blank=True, null=True
+    )
+
     def __str__(self):
-        return self.name or self.slug
+        return self.brand_name
 
 
 class BillingInfo(models.Model):
