@@ -232,7 +232,6 @@ def send_fulfillment_confirmation(
         constants.ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
-    print(template)
     if not template:
         # Empty template means that we don't want to trigger a given event.
         return
