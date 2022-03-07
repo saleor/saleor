@@ -53,38 +53,6 @@ DJANGO_FORM_FIELDS_ERROR_CODES = [
 ]
 
 
-SALEOR_ERROR_CODE_ENUMS = [
-    AccountErrorCode,
-    AppErrorCode,
-    AttributeErrorCode,
-    ChannelErrorCode,
-    CheckoutErrorCode,
-    ExportErrorCode,
-    DiscountErrorCode,
-    GiftCardSettingsErrorCode,
-    ExternalNotificationErrorCodes,
-    PluginErrorCode,
-    GiftCardErrorCode,
-    InvoiceErrorCode,
-    MenuErrorCode,
-    MetadataErrorCode,
-    OrderErrorCode,
-    PageErrorCode,
-    PaymentErrorCode,
-    OrderSettingsErrorCode,
-    PermissionGroupErrorCode,
-    ProductErrorCode,
-    ShippingErrorCode,
-    ShopErrorCode,
-    TranslationErrorCode,
-    UploadErrorCode,
-]
-
-saleor_error_codes = []
-for enum in SALEOR_ERROR_CODE_ENUMS:
-    saleor_error_codes.extend([code.value for code in enum])
-
-
 def get_error_code_from_error(error) -> str:
     """Return valid error code from ValidationError.
 
