@@ -9,6 +9,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Drop wishlist models - #9313 by @maarcingebala
+
 # 3.1.2
 
 ### Breaking changes
