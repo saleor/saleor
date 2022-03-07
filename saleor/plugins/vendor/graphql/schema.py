@@ -1,13 +1,12 @@
 import graphene
 from graphene_federation import build_schema
 
-from saleor.graphql.core.connection import (
+from ....graphql.core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from saleor.graphql.core.fields import FilterConnectionField
-from saleor.graphql.core.utils import from_global_id_or_error
-
+from ....graphql.core.fields import FilterConnectionField
+from ....graphql.core.utils import from_global_id_or_error
 from .. import models
 from . import types
 from .filters import VendorFilterInput
@@ -15,9 +14,17 @@ from .mutations import (
     BillingInfoCreate,
     BillingInfoDelete,
     BillingInfoUpdate,
+    VendorAddAttachment,
+    VendorAddProduct,
+    VendorAddUser,
     VendorCreate,
     VendorDelete,
+    VendorRemoveAttachment,
+    VendorRemoveProduct,
+    VendorRemoveUser,
     VendorUpdate,
+    VendorUpdateHeader,
+    VendorUpdateLogo,
 )
 
 
@@ -61,6 +68,19 @@ class Mutation(graphene.ObjectType):
     vendor_create = VendorCreate.Field()
     vendor_update = VendorUpdate.Field()
     vendor_delete = VendorDelete.Field()
+
+    vendor_add_product = VendorAddProduct.Field()
+    vendor_remove_product = VendorRemoveProduct.Field()
+
+    vendor_add_user = VendorAddUser.Field()
+    vendor_remove_user = VendorRemoveUser.Field()
+
+    vendor_add_attachment = VendorAddAttachment.Field()
+    vendor_remove_attachment = VendorRemoveAttachment.Field()
+
+    vendor_update_logo = VendorUpdateLogo.Field()
+    vendor_update_header = VendorUpdateHeader.Field()
+
     billing_create = BillingInfoCreate.Field()
     billing_update = BillingInfoUpdate.Field()
     billing_delete = BillingInfoDelete.Field()
