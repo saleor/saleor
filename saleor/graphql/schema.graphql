@@ -3862,6 +3862,7 @@ enum MetadataErrorCode {
   INVALID
   NOT_FOUND
   REQUIRED
+  NOT_UPDATED
 }
 
 input MetadataFilter {
