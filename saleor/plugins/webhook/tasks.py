@@ -280,7 +280,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 attempt.id,
             )
             try:
-                countdown = self.retry_backoff * (2 ** self.request.retries)
+                countdown = self.retry_backoff * (2**self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except MaxRetriesExceededError:
                 task_logger.warning(
@@ -432,7 +432,7 @@ def send_webhook_request(
         except send_exception as e:
             task_logger.info("[Webhook] Failed request to %r: %r.", target_url, e)
             try:
-                countdown = self.retry_backoff * (2 ** self.request.retries)
+                countdown = self.retry_backoff * (2**self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except MaxRetriesExceededError:
                 task_logger.warning(

@@ -54,7 +54,7 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
         )
 
 
-def validate_decimal_max_value(value: "Decimal", max_value=10 ** 9):
+def validate_decimal_max_value(value: "Decimal", max_value=10**9):
     """Validate if price amount is not higher than the limit for precision field.
 
     Decimal fields in database have value limits.
