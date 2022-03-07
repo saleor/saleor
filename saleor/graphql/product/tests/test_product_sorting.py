@@ -285,7 +285,9 @@ def test_query_products_sorted_by_collection(
     variables = {
         "id": collection_id,
         "channel": channel_USD.slug,
-        "after": to_global_cursor(collection_prod_2.sort_order),
+        "after": to_global_cursor(
+            (collection_prod_2.sort_order, collection_prod_2.product.pk)
+        ),
     }
 
     content = get_graphql_content(
