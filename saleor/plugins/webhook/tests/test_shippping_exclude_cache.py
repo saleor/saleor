@@ -13,7 +13,7 @@ from ..const import CACHE_EXCLUDED_SHIPPING_KEY, CACHE_EXCLUDED_SHIPPING_TIME
 @mock.patch(
     "saleor.plugins.webhook.plugin.generate_excluded_shipping_methods_for_order_payload"
 )
-def _use_cache(
+def test_excluded_shipping_methods_for_order_use_cache(
     mocked_payload,
     mocked_webhook,
     mocked_cache_set,

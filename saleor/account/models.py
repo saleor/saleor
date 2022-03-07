@@ -298,11 +298,7 @@ class CustomerEvent(models.Model):
             (type_name.upper(), type_name) for type_name, _ in CustomerEvents.CHOICES
         ],
     )
-    order = models.ForeignKey(
-        "order.Order",
-        on_delete=models.SET_NULL,
-        null=True,
-    )
+    order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         User, related_name="events", on_delete=models.CASCADE, null=True
