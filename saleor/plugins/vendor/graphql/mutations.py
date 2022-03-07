@@ -61,6 +61,11 @@ class VendorInput(graphene.InputObjectType):
     logo = Upload(description="Vendor logo")
     header_image = Upload(required=False, description="Header image.")
 
+    facebook_url = graphene.String(description="Facebook page URL.", required=False)
+    instagram_url = graphene.String(description="Instagram page URL.", required=False)
+    youtube_url = graphene.String(description="YouTube channel URL.", required=False)
+    twitter_url = graphene.String(description="Twitter profile URL.", required=False)
+
 
 class VendorCreateInput(VendorInput):
     brand_name = graphene.String(description="The name of the brand.", required=True)
