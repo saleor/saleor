@@ -17,7 +17,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import calculations
 from ...core.taxes import TaxType
-from ...graphql.core.utils.error_codes import PluginErrorCode
+from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..manager import get_plugins_manager
