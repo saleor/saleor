@@ -11,7 +11,13 @@ from saleor.graphql.core.utils import from_global_id_or_error
 from .. import models
 from . import types
 from .filters import GroupFilterInput
-from .mutations import CelebrityCreate, CelebrityDelete, CelebrityUpdate
+from .mutations import (
+    CelebrityCreate,
+    CelebrityDelete,
+    CelebrityUpdate,
+    CelebrityUpdateHeader,
+    CelebrityUpdateLogo,
+)
 
 
 class Query(graphene.ObjectType):
@@ -39,6 +45,8 @@ class Mutation(graphene.ObjectType):
     celebrity_create = CelebrityCreate.Field()
     celebrity_update = CelebrityUpdate.Field()
     celebrity_delete = CelebrityDelete.Field()
+    celebrity_update_logo = CelebrityUpdateLogo.Field()
+    celebrity_update_header = CelebrityUpdateHeader.Field()
 
 
 schema = build_schema(

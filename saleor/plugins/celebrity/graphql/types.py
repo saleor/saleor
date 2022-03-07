@@ -8,6 +8,7 @@ from .. import models
 
 
 class Celebrity(CountableDjangoObjectType):
+    variants = graphene.List(graphene.ID, description="List of variant IDs.")
     logo = graphene.Field(Image, size=graphene.Int(description="Size of the image."))
     header_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -18,6 +19,9 @@ class Celebrity(CountableDjangoObjectType):
         model = models.Celebrity
         filter_field = ["id", "first_name", "phone_number", "email"]
         interfaces = (graphene.relay.Node,)
+
+    def resolve_variants(root, info):
+        return root.variants.values_list("id")
 
     def resolve_logo(root, info, size=None):
         if root.logo:
