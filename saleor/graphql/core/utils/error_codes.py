@@ -1,29 +1,5 @@
 from enum import Enum
 
-from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
-from ....app.error_codes import AppErrorCode
-from ....attribute.error_codes import AttributeErrorCode
-from ....channel.error_codes import ChannelErrorCode
-from ....checkout.error_codes import CheckoutErrorCode
-from ....core.error_codes import (
-    MetadataErrorCode,
-    ShopErrorCode,
-    TranslationErrorCode,
-    UploadErrorCode,
-)
-from ....csv.error_codes import ExportErrorCode
-from ....discount.error_codes import DiscountErrorCode
-from ....giftcard.error_codes import GiftCardErrorCode
-from ....invoice.error_codes import InvoiceErrorCode
-from ....menu.error_codes import MenuErrorCode
-from ....order.error_codes import OrderErrorCode
-from ....page.error_codes import PageErrorCode
-from ....payment.error_codes import PaymentErrorCode
-from ....plugins.error_codes import PluginErrorCode
-from ....product.error_codes import ProductErrorCode
-from ....shipping.error_codes import ShippingErrorCode
-from ....site.error_codes import GiftCardSettingsErrorCode, OrderSettingsErrorCode
-from ...notifications.error_codes import ExternalNotificationErrorCodes
 
 DJANGO_VALIDATORS_ERROR_CODES = [
     "invalid",
