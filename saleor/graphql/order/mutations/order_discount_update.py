@@ -15,7 +15,7 @@ from ...core.types import OrderError
 from ...discount.types import OrderDiscount
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
-from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
+from .order_discount_common import OrderDiscountCommon, DiscountCommonInput
 
 
 class OrderDiscountUpdate(OrderDiscountCommon):
@@ -25,7 +25,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         discount_id = graphene.ID(
             description="ID of a discount to update.", required=True
         )
-        input = OrderDiscountCommonInput(
+        input = DiscountCommonInput(
             required=True,
             description="Fields required to update a discount for the order.",
         )

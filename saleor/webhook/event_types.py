@@ -800,6 +800,9 @@ class WebhookEventSyncType:
     CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
+    CHECKOUT_EXTERNAL_DISCOUNTS = "checkout_external_discounts"
+    CHECKOUT_FILTER_DISCOUNTS = "checkout_filter_discounts"
+
     PAYMENT_GATEWAY_INITIALIZE_SESSION = "payment_gateway_initialize_session"
     TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
     TRANSACTION_PROCESS_SESSION = "transaction_process_session"
@@ -877,6 +880,14 @@ class WebhookEventSyncType:
         ORDER_FILTER_SHIPPING_METHODS: {
             "name": "Filter shipping methods for order",
             "permission": OrderPermissions.MANAGE_ORDERS,
+        },
+        CHECKOUT_EXTERNAL_DISCOUNTS: {
+            "name": "Checkout external discounts",
+            "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+        },
+        CHECKOUT_FILTER_DISCOUNTS: {
+            "name": "Checkout filter discounts",
+            "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
         },
         PAYMENT_GATEWAY_INITIALIZE_SESSION: {
             "name": "Initialize payment gateway session",

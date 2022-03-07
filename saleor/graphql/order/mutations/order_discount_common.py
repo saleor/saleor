@@ -12,7 +12,7 @@ from ...core.types import BaseInputObjectType
 from ...discount.enums import DiscountValueTypeEnum
 
 
-class OrderDiscountCommonInput(BaseInputObjectType):
+class DiscountCommonInput(BaseInputObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,

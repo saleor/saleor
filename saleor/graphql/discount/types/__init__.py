@@ -1,4 +1,11 @@
-from .discounts import OrderDiscount
+from .discounts import (
+    CheckoutDiscount,
+    CheckoutLineDiscount,
+    CheckoutShippingDiscount,
+    OrderDiscount,
+    OrderLineDiscount,
+    OrderShippingDiscount
+)
 from .promotions import Promotion, PromotionRule
 from .sales import Sale, SaleChannelListing, SaleCountableConnection
 from .vouchers import (
@@ -9,14 +16,19 @@ from .vouchers import (
 )
 
 __all__ = [
+    "CheckoutDiscount",
+    "CheckoutLineDiscount",
+    "CheckoutShippingDiscount",
     "OrderDiscount",
+    "OrderLineDiscount",
+    "OrderShippingDiscount",
+    "Promotion",
+    "PromotionRule",
     "Sale",
     "SaleChannelListing",
     "SaleCountableConnection",
     "Voucher",
-    "VoucherCode",
     "VoucherChannelListing",
+    "VoucherCode",
     "VoucherCountableConnection",
-    "Promotion",
-    "PromotionRule",
 ]

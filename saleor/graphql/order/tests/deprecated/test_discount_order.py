@@ -77,7 +77,7 @@ def test_delete_order_discount_from_order_with_old_id(
 
 
 ORDER_DISCOUNT_UPDATE = """
-mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!){
+mutation OrderDiscountUpdate($discountId: ID!, $input: DiscountCommonInput!){
   orderDiscountUpdate(discountId:$discountId, input: $input){
     order{
       id

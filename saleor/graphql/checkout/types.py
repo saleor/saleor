@@ -46,13 +46,12 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_313,
     ADDED_IN_315,
-    ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import BaseField, PermissionsField
+from ..core.fields import BaseField
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
@@ -254,6 +253,11 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         description="List of problems with the checkout line."
         + ADDED_IN_315
         + PREVIEW_FEATURE,
+    )
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.CheckoutLineDiscount"),
+        description="List of all discounts assigned to the checkout line.",
+        required=False,
     )
 
     class Meta:
@@ -521,13 +525,26 @@ class Checkout(ModelObjectType[models.Checkout]):
             "Checkout.languageCode is defined; otherwise it's null"
         )
     )
-    voucher = PermissionsField(
-        "saleor.graphql.discount.types.vouchers.Voucher",
-        description="The voucher assigned to the checkout." + ADDED_IN_318,
-        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.CheckoutDiscount"),
+        description="List of all discounts assigned to the checkout.",
+        required=False,
+    )
+    discounts_recalculate_after = graphene.DateTime(required=True)
+    shipping_discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.CheckoutShippingDiscount"),
+        description="List of all shipping discounts assigned to the checkout.",
+        required=False,
+    )
+
+    vouchers = graphene.List(graphene.NonNull(graphene.String))
+
+    voucher = BaseField(
+        graphene.NonNull("saleor.graphql.discount.types.vouchers.Voucher"),
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `veuchers` instead."),
     )
     voucher_code = graphene.String(
-        description="The code of voucher assigned to the checkout."
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `veuchers` instead."),
     )
     available_shipping_methods = BaseField(
         NonNullList(ShippingMethod),
@@ -1255,7 +1272,9 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_voucher(root: models.Checkout, info):
+    @one_of_permissions_required([DiscountPermissions.MANAGE_DISCOUNTS])
+    def resolve_vouchers(root: models.Checkout, info):
+        # TDDO: rewrite it to use a list of vouchers
         if not root.voucher_code:
             return None
 

@@ -66,7 +66,7 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import (
     OrderDiscountCommon,
-    OrderDiscountCommonInput,
+    DiscountCommonInput,
 )
 from ..types import Order as OrderType
 from .utils import get_instance
@@ -528,7 +528,7 @@ class OrderBulkCreateInput(BaseInputObjectType):
     voucher_code = graphene.String(
         description="Code of a voucher associated with the order." + ADDED_IN_318
     )
-    discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
+    discounts = NonNullList(DiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(
         OrderBulkCreateFulfillmentInput, description="Fulfillments of the order."
     )

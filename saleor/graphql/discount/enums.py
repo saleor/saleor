@@ -3,6 +3,7 @@ import graphene
 from ...discount import (
     DiscountType,
     DiscountValueType,
+    OrderDiscountType,
     PromotionEvents,
     RewardValueType,
     VoucherType,
@@ -12,7 +13,8 @@ from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
 
-OrderDiscountTypeEnum = to_enum(DiscountType, type_name="OrderDiscountType")
+DiscountTypeEnum = to_enum(DiscountType, type_name="DiscountType")
+OrderDiscountTypeEnum = to_enum(OrderDiscountType, type_name="OrderDiscountType")
 OrderDiscountTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
 RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
@@ -31,6 +33,7 @@ PromotionRuleUpdateErrorCode = graphene.Enum.from_enum(
 PromotionRuleDeleteErrorCode = graphene.Enum.from_enum(
     error_codes.PromotionRuleDeleteErrorCode
 )
+
 
 
 class SaleType(BaseEnum):

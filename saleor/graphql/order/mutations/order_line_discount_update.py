@@ -11,7 +11,7 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ..types import Order, OrderLine
-from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
+from .order_discount_common import OrderDiscountCommon, DiscountCommonInput
 
 
 class OrderLineDiscountUpdate(OrderDiscountCommon):
@@ -26,7 +26,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         order_line_id = graphene.ID(
             description="ID of a order line to update price", required=True
         )
-        input = OrderDiscountCommonInput(
+        input = DiscountCommonInput(
             required=True,
             description="Fields required to update price for the order line.",
         )

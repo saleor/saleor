@@ -23,14 +23,25 @@ from .mutations import (
     CheckoutCustomerAttach,
     CheckoutCustomerDetach,
     CheckoutDeliveryMethodUpdate,
+    CheckoutDiscountAdd,
+    CheckoutDiscountDelete,
+    CheckoutDiscountUpdate,
     CheckoutEmailUpdate,
     CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
+    CheckoutLineDiscountAdd,
+    CheckoutLineDiscountDelete,
+    CheckoutLineDiscountUpdate,
     CheckoutLinesAdd,
     CheckoutLinesDelete,
     CheckoutLinesUpdate,
+    CheckoutPromoCodeAdd,
+    CheckoutPromoCodeRemove,
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
+    CheckoutShippingDiscountAdd,
+    CheckoutShippingDiscountDelete,
+    CheckoutShippingDiscountUpdate,
     CheckoutShippingMethodUpdate,
     OrderCreateFromCheckout,
 )
@@ -135,3 +146,18 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()
 
     order_create_from_checkout = OrderCreateFromCheckout.Field()
+
+    checkout_discount_add = CheckoutDiscountAdd.Field()
+    checkout_discount_update = CheckoutDiscountUpdate.Field()
+    checkout_discount_delete = CheckoutDiscountDelete.Field()
+
+    checkout_line_discount_add = CheckoutLineDiscountAdd.Field()
+    checkout_line_discount_update = CheckoutLineDiscountUpdate.Field()
+    checkout_line_discount_delete = CheckoutLineDiscountDelete.Field()
+
+    checkout_shipping_discount_add = CheckoutShippingDiscountAdd.Field()
+    checkout_shipping_discount_update = CheckoutShippingDiscountUpdate.Field()
+    checkout_shipping_discount_delete = CheckoutShippingDiscountDelete.Field()
+
+    checkout_promo_code_add = CheckoutPromoCodeAdd.Field()
+    checkout_promo_code_remove = CheckoutPromoCodeRemove.Field()

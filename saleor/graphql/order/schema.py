@@ -44,6 +44,8 @@ from .mutations.order_fulfill import OrderFulfill
 from .mutations.order_grant_refund_create import OrderGrantRefundCreate
 from .mutations.order_grant_refund_update import OrderGrantRefundUpdate
 from .mutations.order_line_delete import OrderLineDelete
+from .mutations.order_line_discount_add import OrderLineDiscountAdd
+from .mutations.order_line_discount_delete import OrderLineDiscountDelete
 from .mutations.order_line_discount_remove import OrderLineDiscountRemove
 from .mutations.order_line_discount_update import OrderLineDiscountUpdate
 from .mutations.order_line_update import OrderLineUpdate
@@ -52,6 +54,9 @@ from .mutations.order_mark_as_paid import OrderMarkAsPaid
 from .mutations.order_note_add import OrderAddNote, OrderNoteAdd
 from .mutations.order_note_update import OrderNoteUpdate
 from .mutations.order_refund import OrderRefund
+from .mutations.order_shipping_discount_add import OrderShippingDiscountAdd
+from .mutations.order_shipping_discount_delete import OrderShippingDiscountDelete
+from .mutations.order_shipping_discount_update import OrderShippingDiscountUpdate
 from .mutations.order_update import OrderUpdate
 from .mutations.order_update_shipping import OrderUpdateShipping
 from .mutations.order_void import OrderVoid
@@ -254,11 +259,17 @@ class OrderMutations(graphene.ObjectType):
     order_discount_update = OrderDiscountUpdate.Field()
     order_discount_delete = OrderDiscountDelete.Field()
 
+    order_line_discount_add = OrderLineDiscountAdd.Field()
+    order_line_discount_delete = OrderLineDiscountDelete.Field()
     order_line_discount_update = OrderLineDiscountUpdate.Field()
     order_line_discount_remove = OrderLineDiscountRemove.Field()
 
     order_note_add = OrderNoteAdd.Field()
     order_note_update = OrderNoteUpdate.Field()
+
+    order_shipping_discount_add = OrderShippingDiscountAdd.Field()
+    order_shipping_discount_update = OrderShippingDiscountUpdate.Field()
+    order_shipping_discount_delete = OrderShippingDiscountDelete.Field()
 
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()

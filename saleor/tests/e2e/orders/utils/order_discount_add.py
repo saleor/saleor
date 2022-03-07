@@ -1,7 +1,7 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
 ORDER_DISCOUNT_ADD_MUTATION = """
-mutation OrderDiscountAdd($input: OrderDiscountCommonInput!, $id: ID!) {
+mutation OrderDiscountAdd($input: DiscountCommonInput!, $id: ID!) {
   orderDiscountAdd(input:$input, orderId: $id) {
     errors{
         message

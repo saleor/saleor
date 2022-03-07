@@ -13,7 +13,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
-from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
+from .order_discount_common import OrderDiscountCommon, DiscountCommonInput
 
 
 class OrderDiscountAdd(OrderDiscountCommon):
@@ -21,7 +21,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
     class Arguments:
         order_id = graphene.ID(description="ID of an order to discount.", required=True)
-        input = OrderDiscountCommonInput(
+        input = DiscountCommonInput(
             required=True,
             description="Fields required to create a discount for the order.",
         )

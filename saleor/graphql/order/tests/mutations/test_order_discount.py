@@ -15,7 +15,7 @@ from ....discount.enums import DiscountValueTypeEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_DISCOUNT_ADD = """
-mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
+mutation OrderDiscountAdd($orderId: ID!, $input: DiscountCommonInput!){
   orderDiscountAdd(orderId:$orderId, input:$input){
     order{
       lines{
@@ -281,7 +281,7 @@ def test_add_fixed_order_discount_to_order_by_app(
 
 
 ORDER_DISCOUNT_UPDATE = """
-mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!){
+mutation OrderDiscountUpdate($discountId: ID!, $input: DiscountCommonInput!){
   orderDiscountUpdate(discountId:$discountId, input: $input){
     order{
       id
@@ -757,7 +757,7 @@ def test_delete_order_discount_from_order_by_app(
 
 
 ORDER_LINE_DISCOUNT_UPDATE = """
-mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId: ID!){
+mutation OrderLineDiscountUpdate($input: DiscountCommonInput!, $orderLineId: ID!){
   orderLineDiscountUpdate(orderLineId: $orderLineId, input: $input){
     orderLine{
       unitPrice{

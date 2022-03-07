@@ -559,7 +559,7 @@ def test_fulfillment_return_products_order_lines_by_old_line_id(
 
 
 ORDER_LINE_DISCOUNT_UPDATE = """
-mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId: ID!){
+mutation OrderLineDiscountUpdate($input: DiscountCommonInput!, $orderLineId: ID!){
   orderLineDiscountUpdate(orderLineId: $orderLineId, input: $input){
     orderLine{
       unitPrice{

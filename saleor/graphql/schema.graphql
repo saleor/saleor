@@ -2373,6 +2373,8 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """Filter shipping methods for order."""
   ORDER_FILTER_SHIPPING_METHODS
+  CHECKOUT_EXTERNAL_DISCOUNTS
+  CHECKOUT_FILTER_DISCOUNTS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -2464,6 +2466,8 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
 
   """Filter shipping methods for order."""
   ORDER_FILTER_SHIPPING_METHODS
+  CHECKOUT_EXTERNAL_DISCOUNTS
+  CHECKOUT_FILTER_DISCOUNTS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
   TRANSACTION_PROCESS_SESSION
@@ -10618,17 +10622,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   translatedDiscountName: String
 
-  """
-  The voucher assigned to the checkout.
-  
-  Added in Saleor 3.18.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  voucher: Voucher
+  """List of all discounts assigned to the checkout."""
+  discounts: [CheckoutDiscount!]
+  discountsRecalculateAfter: DateTime!
 
-  """The code of voucher assigned to the checkout."""
-  voucherCode: String
+  """List of all shipping discounts assigned to the checkout."""
+  shippingDiscounts: [CheckoutShippingDiscount!]
+  vouchers: [String!]
+  voucher: Voucher! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `veuchers` instead.")
+  voucherCode: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `veuchers` instead.")
 
   """
   Shipping methods that can be used with this checkout.
@@ -10816,6 +10818,188 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   problems: [CheckoutProblem!]
+}
+
+"""Contains all details related to the applied discount to the checkout."""
+type CheckoutDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+  type: DiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Returns amount of discount."""
+  amount: Money!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
+}
+
+interface BaseObjectDiscount {
+  id: ID!
+  type: DiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Returns amount of discount."""
+  amount: Money!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+}
+
+"""An enumeration."""
+enum DiscountType {
+  SALE
+  VOUCHER
+  MANUAL
+  PROMOTION
+}
+
+"""
+Nonnegative Decimal scalar implementation.
+
+Should be used in places where value must be nonnegative (0 or greater).
+"""
+scalar PositiveDecimal
+
+"""
+Contains all details related to the applied discount to the checkout shipping.
+"""
+type CheckoutShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+  type: DiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Returns amount of discount."""
+  amount: Money!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
 }
 
 """
@@ -11163,6 +11347,9 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   problems: [CheckoutLineProblem!]
+
+  """List of all discounts assigned to the checkout line."""
+  discounts: [CheckoutLineDiscount!]
 }
 
 """
@@ -11202,6 +11389,76 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
   """The line that has variant that is not available."""
   line: CheckoutLine!
+}
+
+"""
+Contains all details related to the applied discount to the checkout line.
+"""
+type CheckoutLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+  type: DiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Returns amount of discount."""
+  amount: Money!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
 }
 
 """
@@ -11683,6 +11940,9 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """List of all discounts assigned to the order."""
   discounts: [OrderDiscount!]!
 
+  """List of all shipping discounts assigned to the order."""
+  shippingDiscounts: [OrderShippingDiscount!]
+
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
 
@@ -12015,6 +12275,9 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Value of the discount. Can store fixed value or percent value"""
   unitDiscountValue: PositiveDecimal!
 
+  """List of all discounts assigned to the order line."""
+  discounts: [OrderLineDiscount!]
+
   """Price of the order line."""
   totalPrice: TaxedMoney!
 
@@ -12095,11 +12358,74 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 }
 
 """
-Nonnegative Decimal scalar implementation.
-
-Should be used in places where value must be nonnegative (0 or greater).
+Contains all details related to the applied discount to the order line.
 """
-scalar PositiveDecimal
+type OrderLineDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+  type: DiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Returns amount of discount."""
+  amount: Money!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
+}
 
 """Represents allocation."""
 type Allocation implements Node @doc(category: "Products") {
@@ -12680,12 +13006,12 @@ type OrderEventDiscountObject @doc(category: "Orders") {
 }
 
 """Contains all details related to the applied discount to the order."""
-type OrderDiscount implements Node @doc(category: "Discounts") {
+type OrderDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata @doc(category: "Discounts") {
   """The ID of discount applied."""
   id: ID!
 
   """The type of applied discount: Sale, Voucher or Manual."""
-  type: OrderDiscountType!
+  type: DiscountType!
 
   """The name of applied discount."""
   name: String
@@ -12699,6 +13025,9 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
   """Value of the discount. Can store fixed value or percent value"""
   value: PositiveDecimal!
 
+  """Returns amount of discount."""
+  amount: Money!
+
   """
   Explanation for the applied discount.
   
@@ -12706,16 +13035,119 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
   """
   reason: String
 
-  """Returns amount of discount."""
-  amount: Money!
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
 }
 
-"""An enumeration."""
-enum OrderDiscountType @doc(category: "Discounts") {
-  SALE
-  VOUCHER
-  MANUAL
-  PROMOTION
+"""
+Contains all details related to the applied discount to the order shipping.
+"""
+type OrderShippingDiscount implements Node & BaseObjectDiscount & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+  type: DiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Returns amount of discount."""
+  amount: Money!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Determines if a discount active."""
+  active: Boolean!
+
+  """Code of applied discount."""
+  code: String
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  """
+  metafields(keys: [String!]): Metadata
 }
 
 type OrderError @doc(category: "Orders") {
@@ -17213,7 +17645,7 @@ type Mutation {
   """
   orderDiscountAdd(
     """Fields required to create a discount for the order."""
-    input: OrderDiscountCommonInput!
+    input: DiscountCommonInput!
 
     """ID of an order to discount."""
     orderId: ID!
@@ -17229,7 +17661,7 @@ type Mutation {
     discountId: ID!
 
     """Fields required to update a discount for the order."""
-    input: OrderDiscountCommonInput!
+    input: DiscountCommonInput!
   ): OrderDiscountUpdate @doc(category: "Orders")
 
   """
@@ -17243,13 +17675,36 @@ type Mutation {
   ): OrderDiscountDelete @doc(category: "Orders")
 
   """
+  Add discounts for the order line. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderLineDiscountAdd(
+    """Fields required to update price for the order line."""
+    input: DiscountCommonInput!
+
+    """ID of a order line to update price"""
+    orderLineId: ID!
+  ): OrderLineDiscountAdd
+
+  """
+  Remove discount applied to the order line. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderLineDiscountDelete(
+    """ID of a order line to remove its discount"""
+    orderLineId: ID!
+  ): OrderLineDiscountDelete @doc(category: "Orders")
+
+  """
   Update discount for the order line. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderLineDiscountUpdate(
     """Fields required to update price for the order line."""
-    input: OrderDiscountCommonInput!
+    input: DiscountCommonInput!
 
     """ID of a order line to update price"""
     orderLineId: ID!
@@ -17298,6 +17753,42 @@ type Mutation {
     """Fields required to create a note for the order."""
     input: OrderNoteInput!
   ): OrderNoteUpdate @doc(category: "Orders")
+
+  """
+  Add discounts for the shipping. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderShippingDiscountAdd(
+    """Fields required to update price for the shipping."""
+    input: DiscountCommonInput!
+
+    """ID of a order to discount shipping."""
+    orderId: ID!
+  ): OrderShippingDiscountAdd
+
+  """
+  Updates discounts for the shipping. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderShippingDiscountUpdate(
+    """ID of a discount to update."""
+    discountId: ID!
+
+    """Fields required to update price for the shipping."""
+    input: DiscountCommonInput!
+  ): OrderShippingDiscountUpdate
+
+  """
+  Remove discounts for the shipping. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderShippingDiscountDelete(
+    """ID of a discount to remove."""
+    discountId: ID!
+  ): OrderShippingDiscountDelete
 
   """
   Mark order as manually paid. 
@@ -18981,6 +19472,135 @@ type Mutation {
     """
     removeCheckout: Boolean = true
   ): OrderCreateFromCheckout @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES])
+
+  """
+  Adds discount to the checkout. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutDiscountAdd(
+    """The ID of the checkout."""
+    checkoutId: ID!
+
+    """Fields required to create a discount for the checkout."""
+    input: DiscountCommonInput!
+  ): CheckoutDiscountAdd
+
+  """
+  Update discount to the checkout. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutDiscountUpdate(
+    """ID of a discount to update."""
+    discountId: ID!
+
+    """Fields required to update a discount for the checkout."""
+    input: DiscountCommonInput!
+  ): CheckoutDiscountUpdate
+
+  """
+  Delete discount from the checkout. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutDiscountDelete(
+    """ID of a discount to remove."""
+    discountId: ID!
+  ): CheckoutDiscountDelete
+
+  """
+  Adds discount to the checkout line. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutLineDiscountAdd(
+    """ID of a checkout line to add discount."""
+    checkoutLineId: ID!
+
+    """Fields required to create a discount for the checkout line."""
+    input: DiscountCommonInput!
+  ): CheckoutLineDiscountAdd
+
+  """
+  Update discount to the checkout line. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutLineDiscountUpdate(
+    """ID of a discount to update."""
+    discountId: ID!
+
+    """Fields required to update a discount for the checkout line."""
+    input: DiscountCommonInput!
+  ): CheckoutLineDiscountUpdate
+
+  """
+  Delete discount from the checkout line. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutLineDiscountDelete(
+    """ID of a discount to remove."""
+    discountId: ID!
+  ): CheckoutLineDiscountDelete
+
+  """
+  Adds discount to the checkout shipping. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutShippingDiscountAdd(
+    """The ID of the checkout."""
+    checkoutId: ID!
+
+    """Fields required to create a discount for the checkout."""
+    input: DiscountCommonInput!
+  ): CheckoutShippingDiscountAdd
+
+  """
+  Update discount to the checkout shipping. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutShippingDiscountUpdate(
+    """ID of a discount to update."""
+    discountId: ID!
+
+    """Fields required to update a discount for the checkout shipping."""
+    input: DiscountCommonInput!
+  ): CheckoutShippingDiscountUpdate
+
+  """
+  Delete shipping discount from the checkout. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutShippingDiscountDelete(
+    """ID of a discount to remove."""
+    discountId: ID!
+  ): CheckoutShippingDiscountDelete
+
+  """Adds a gift card or a voucher to a checkout."""
+  checkoutPromoCodeAdd(
+    """The ID of the checkout"""
+    checkoutId: ID!
+
+    """Gift card codes or voucher codes."""
+    promoCodes: [String]
+  ): CheckoutPromoCodeAdd
+
+  """Remove a gift card or a voucher from a checkout."""
+  checkoutPromoCodeRemove(
+    """The ID of the checkout."""
+    checkoutId: ID!
+
+    """Gift card or voucher ID's."""
+    promoCodeIds: [ID]
+
+    """Gift card codes or voucher codes."""
+    promoCodes: [String]
+  ): CheckoutPromoCodeRemove
 
   """
   Creates new channel. 
@@ -25874,7 +26494,7 @@ type OrderDiscountAdd @doc(category: "Orders") {
   errors: [OrderError!]!
 }
 
-input OrderDiscountCommonInput @doc(category: "Orders") {
+input DiscountCommonInput @doc(category: "Orders") {
   """Type of the discount: fixed or percent"""
   valueType: DiscountValueTypeEnum!
 
@@ -25904,6 +26524,35 @@ Requires one of the following permissions: MANAGE_ORDERS.
 """
 type OrderDiscountDelete @doc(category: "Orders") {
   """Order which has removed discount."""
+  order: Order
+  orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [OrderError!]!
+}
+
+"""
+Add discounts for the order line. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderLineDiscountAdd {
+  """Order line which has added discount."""
+  orderLine: OrderLine
+
+  """Order which is related to line which has added discount."""
+  order: Order
+  errors: [OrderError!]!
+}
+
+"""
+Remove discount applied to the order line. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderLineDiscountDelete @doc(category: "Orders") {
+  """Order line which has removed discount."""
+  orderLine: OrderLine
+
+  """Order which is related to line which has removed discount."""
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
@@ -26017,6 +26666,39 @@ enum OrderNoteUpdateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   REQUIRED
+}
+
+"""
+Add discounts for the shipping. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderShippingDiscountAdd {
+  """Order which has discounted shipping."""
+  order: Order
+  errors: [OrderError!]!
+}
+
+"""
+Updates discounts for the shipping. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderShippingDiscountUpdate {
+  """Order which has discounted shipping."""
+  order: Order
+  errors: [OrderError!]!
+}
+
+"""
+Remove discounts for the shipping. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderShippingDiscountDelete {
+  """Order which has removed discount for shipping."""
+  order: Order
+  errors: [OrderError!]!
 }
 
 """
@@ -26244,7 +26926,7 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   voucherCode: String
 
   """List of discounts."""
-  discounts: [OrderDiscountCommonInput!]
+  discounts: [DiscountCommonInput!]
 
   """Fulfillments of the order."""
   fulfillments: [OrderBulkCreateFulfillmentInput!]
@@ -29061,6 +29743,128 @@ enum OrderCreateFromCheckoutErrorCode @doc(category: "Orders") {
   NO_LINES
   EMAIL_NOT_SET
   UNAVAILABLE_VARIANT_IN_CHANNEL
+}
+
+"""
+Adds discount to the checkout. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutDiscountAdd {
+  """Checkout which has been discounted."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Update discount to the checkout. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutDiscountUpdate {
+  """Checkout which has been discounted."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Delete discount from the checkout. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutDiscountDelete {
+  """Checkout which has removed discount."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Adds discount to the checkout line. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutLineDiscountAdd {
+  """Checkout line which has been discounted."""
+  checkoutLine: CheckoutLine
+
+  """Checkout which has been discounted."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Update discount to the checkout line. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutLineDiscountUpdate {
+  """Checkout line which has been discounted."""
+  checkoutLine: CheckoutLine
+
+  """Checkout which has been discounted."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Delete discount from the checkout line. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutLineDiscountDelete {
+  """Checkout line which has removed discount."""
+  checkoutLine: CheckoutLine
+
+  """Checkout which has removed discount."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Adds discount to the checkout shipping. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutShippingDiscountAdd {
+  """Checkout which has discounted shipping."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Update discount to the checkout shipping. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutShippingDiscountUpdate {
+  """Checkout which has updated shipping discount."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""
+Delete shipping discount from the checkout. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutShippingDiscountDelete {
+  """Checkout which has removed shipping discount."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""Adds a gift card or a voucher to a checkout."""
+type CheckoutPromoCodeAdd {
+  """The checkout with the added gift card or voucher."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
+}
+
+"""Remove a gift card or a voucher from a checkout."""
+type CheckoutPromoCodeRemove {
+  """The checkout with the removed gift card or voucher."""
+  checkout: Checkout
+  errors: [CheckoutError!]!
 }
 
 """

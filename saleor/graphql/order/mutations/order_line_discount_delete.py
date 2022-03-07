@@ -13,7 +13,7 @@ from .order_discount_common import OrderDiscountCommon
 
 
 
-class OrderLineDiscountRemove(OrderDiscountCommon):
+class OrderLineDiscountDelete(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has removed discount."
     )
@@ -27,7 +27,6 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         )
 
     class Meta:
-        # TODO: This mutation will be deprecated. We should use OrderLineDiscountDelete
         description = "Remove discount applied to the order line."
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
@@ -57,4 +56,4 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
             )
 
             invalidate_order_prices(order, save=True)
-        return OrderLineDiscountRemove(order_line=order_line, order=order)
+        return OrderLineDiscountDelete(order_line=order_line, order=order)

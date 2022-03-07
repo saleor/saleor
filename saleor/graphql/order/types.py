@@ -779,6 +779,13 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         description="Value of the discount. Can store fixed value or percent value",
         required=True,
     )
+
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.OrderLineDiscount"),
+        description="List of all discounts assigned to the order line.",
+        required=False,
+    )
+
     total_price = graphene.Field(
         TaxedMoney, description="Price of the order line.", required=True
     )
@@ -1380,6 +1387,12 @@ class Order(ModelObjectType[models.Order]):
         description="List of all discounts assigned to the order.",
         required=True,
     )
+    shipping_discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.OrderShippingDiscount"),
+        description="List of all shipping discounts assigned to the order.",
+        required=False,
+    )
+
     errors = NonNullList(
         OrderError,
         description="List of errors that occurred during order validation.",
