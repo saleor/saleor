@@ -3422,7 +3422,6 @@ def gift_card_event(gift_card, order, app, staff_user):
     parameters = {
         "message": "test message",
         "email": "testemail@email.com",
-        "order_id": order.pk,
         "tags": ["test tag"],
         "old_tags": ["test old tag"],
         "balance": {
@@ -3439,6 +3438,7 @@ def gift_card_event(gift_card, order, app, staff_user):
         user=staff_user,
         app=app,
         gift_card=gift_card,
+        order=order,
         type=GiftCardEvents.UPDATED,
         parameters=parameters,
         date=timezone.now() + datetime.timedelta(days=10),

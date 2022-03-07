@@ -5296,7 +5296,7 @@ def test_order_cancel_with_bought_gift_cards(
     gift_card,
 ):
     order = order_with_lines
-    gift_cards_bought_event([gift_card], order.id, staff_api_client.user, None)
+    gift_cards_bought_event([gift_card], order, staff_api_client.user, None)
     assert gift_card.is_active is True
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -6869,7 +6869,7 @@ def test_order_query_with_filter_gift_card_used_true(
     # given
     gift_card_order = orders[0]
     gift_cards_used_in_order_event(
-        [(gift_card, 20.0)], gift_card_order.id, staff_api_client.user, None
+        [(gift_card, 20.0)], gift_card_order, staff_api_client.user, None
     )
     variables = {"filter": {"giftCardUsed": True}}
 
@@ -6898,7 +6898,7 @@ def test_order_query_with_filter_gift_card_used_false(
     gift_card_order = orders[0]
     gift_card_order_id = graphene.Node.to_global_id("Order", gift_card_order.id)
     gift_cards_used_in_order_event(
-        [(gift_card, 20.0)], gift_card_order.id, staff_api_client.user, None
+        [(gift_card, 20.0)], gift_card_order, staff_api_client.user, None
     )
     variables = {"filter": {"giftCardUsed": False}}
 
@@ -6924,9 +6924,7 @@ def test_order_query_with_filter_gift_card_bough_true(
 ):
     # given
     gift_card_order = orders[-1]
-    gift_cards_bought_event(
-        [gift_card], gift_card_order.id, staff_api_client.user, None
-    )
+    gift_cards_bought_event([gift_card], gift_card_order, staff_api_client.user, None)
     variables = {"filter": {"giftCardBought": True}}
 
     # when
@@ -6953,9 +6951,7 @@ def test_order_query_with_filter_gift_card_bought_false(
     # given
     gift_card_order = orders[-1]
     gift_card_order_id = graphene.Node.to_global_id("Order", gift_card_order.id)
-    gift_cards_bought_event(
-        [gift_card], gift_card_order.id, staff_api_client.user, None
-    )
+    gift_cards_bought_event([gift_card], gift_card_order, staff_api_client.user, None)
     variables = {"filter": {"giftCardBought": False}}
 
     # when

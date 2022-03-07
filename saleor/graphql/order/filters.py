@@ -121,13 +121,10 @@ def filter_gift_card_bought(qs, _, value):
 
 
 def filter_by_gift_card(qs, value, gift_card_type):
-    # TODO: will be changed in separate PR
-    order_ids = list(
-        GiftCardEvent.objects.filter(type=gift_card_type).values_list(
-            "parameters__order_id", flat=True
-        )
+    gift_card_events = GiftCardEvent.objects.filter(type=gift_card_type).values(
+        "order_id"
     )
-    lookup = Q(id__in=order_ids)
+    lookup = Exists(gift_card_events.filter(order_id=OuterRef("id")))
     return qs.filter(lookup) if value is True else qs.exclude(lookup)
 
 

@@ -7,7 +7,7 @@ from . import GiftCardEvents
 from .models import GiftCard, GiftCardEvent
 
 if TYPE_CHECKING:
-    from uuid import UUID
+    from ..order.models import Order
 
 UserType = Optional[User]
 AppType = Optional[App]
@@ -232,7 +232,7 @@ def gift_card_note_added_event(
 
 def gift_cards_used_in_order_event(
     balance_data: Iterable[Tuple[GiftCard, float]],
-    order_id: "UUID",
+    order: "Order",
     user: UserType,
     app: AppType,
 ):
@@ -243,9 +243,9 @@ def gift_cards_used_in_order_event(
             gift_card=gift_card,
             user=user,
             app=app,
+            order=order,
             type=GiftCardEvents.USED_IN_ORDER,
             parameters={
-                "order_id": order_id,
                 "balance": {
                     "currency": gift_card.currency,
                     "current_balance": gift_card.current_balance.amount,
@@ -259,7 +259,7 @@ def gift_cards_used_in_order_event(
 
 
 def gift_cards_bought_event(
-    gift_cards: Iterable[GiftCard], order_id: "UUID", user: UserType, app: AppType
+    gift_cards: Iterable[GiftCard], order: "Order", user: UserType, app: AppType
 ):
     if not user_is_valid(user):
         user = None
@@ -268,8 +268,9 @@ def gift_cards_bought_event(
             gift_card=gift_card,
             user=user,
             app=app,
+            order=order,
             type=GiftCardEvents.BOUGHT,
-            parameters={"order_id": order_id, "expiry_date": gift_card.expiry_date},
+            parameters={"expiry_date": gift_card.expiry_date},
         )
         for gift_card in gift_cards
     ]
