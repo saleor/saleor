@@ -10,10 +10,12 @@ from saleor.graphql.core.utils import from_global_id_or_error
 
 from .. import models
 from . import types
-from .filters import GroupFilterInput
+from .filters import CelebrityFilterInput
 from .mutations import (
+    CelebrityAddProduct,
     CelebrityCreate,
     CelebrityDelete,
+    CelebrityRemoveProduct,
     CelebrityUpdate,
     CelebrityUpdateHeader,
     CelebrityUpdateLogo,
@@ -28,7 +30,7 @@ class Query(graphene.ObjectType):
     )
     celebrities = FilterConnectionField(
         types.CelebrityConnection,
-        filter=GroupFilterInput(description="Filtering options for group."),
+        filter=CelebrityFilterInput(description="Filtering options for group."),
     )
 
     def resolve_celebrity(root, info, id, **kwargs):
@@ -45,6 +47,10 @@ class Mutation(graphene.ObjectType):
     celebrity_create = CelebrityCreate.Field()
     celebrity_update = CelebrityUpdate.Field()
     celebrity_delete = CelebrityDelete.Field()
+
+    celebrity_add_product = CelebrityAddProduct.Field()
+    celebrity_remove_product = CelebrityRemoveProduct.Field()
+
     celebrity_update_logo = CelebrityUpdateLogo.Field()
     celebrity_update_header = CelebrityUpdateHeader.Field()
 

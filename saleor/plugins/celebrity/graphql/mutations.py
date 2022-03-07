@@ -166,3 +166,39 @@ class CelebrityUpdateHeader(ModelMutation):
         celebrity.save()
 
         return cls(celebrity=celebrity)
+
+
+class CelebrityAddProduct(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Celebrity ID.")
+        product_id = graphene.ID(required=True, description="Product ID.")
+
+    class Meta:
+        description = "Add a product to Celebrity "
+        model = models.Celebrity
+        error_type_class = CelebrityError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, product_id):
+        celebrity = cls.get_node_or_error(info, id, only_type="Celebrity")
+        product = cls.get_node_or_error(info, product_id, only_type="Product")
+        celebrity.products.add(product)
+        return cls(celebrity=celebrity)
+
+
+class CelebrityRemoveProduct(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="Celebrity ID.")
+        product_id = graphene.ID(required=True, description="Product ID.")
+
+    class Meta:
+        description = "Add a product to Celebrity "
+        model = models.Celebrity
+        error_type_class = CelebrityError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, product_id):
+        celebrity = cls.get_node_or_error(info, id, only_type="Celebrity")
+        product = cls.get_node_or_error(info, product_id, only_type="Product")
+        celebrity.products.remove(product)
+        return cls(celebrity=celebrity)

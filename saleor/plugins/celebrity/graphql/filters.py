@@ -7,20 +7,20 @@ from saleor.graphql.utils.filters import filter_by_query_param
 from .. import models
 
 
-def filter_group_search(qs, _, value):
-    group_fields = ["first_name", "phone_number", "email"]
-    qs = filter_by_query_param(qs, value, group_fields)
+def filter_celebrity_search(qs, _, value):
+    celebrity_fields = ["first_name", "phone_number", "email"]
+    qs = filter_by_query_param(qs, value, celebrity_fields)
     return qs
 
 
-class GroupFilter(MetadataFilterBase):
-    search = django_filters.CharFilter(method=filter_group_search)
+class CelebrityFilter(MetadataFilterBase):
+    search = django_filters.CharFilter(method=filter_celebrity_search)
 
     class Meta:
         model = models.Celebrity
         fields = ["search"]
 
 
-class GroupFilterInput(FilterInputObjectType):
+class CelebrityFilterInput(FilterInputObjectType):
     class Meta:
-        filterset_class = GroupFilter
+        filterset_class = CelebrityFilter

@@ -3,7 +3,7 @@ from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from ...account.validators import validate_possible_number
-from ...product.models import ProductVariant
+from ...product.models import Product
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
@@ -26,6 +26,6 @@ class Celebrity(models.Model):
     is_active = models.BooleanField()
     logo = models.ImageField(blank=True, null=True)
     header_image = models.ImageField(blank=True, null=True)
-    variants = models.ManyToManyField(ProductVariant)
+    products = models.ManyToManyField(Product)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
