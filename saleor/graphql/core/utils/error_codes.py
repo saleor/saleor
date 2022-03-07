@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 DJANGO_VALIDATORS_ERROR_CODES = [
     "invalid",
     "invalid_extension",

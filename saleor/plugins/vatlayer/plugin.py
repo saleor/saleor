@@ -8,28 +8,21 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django_countries import countries
 from django_countries.fields import Country
-from django_prices_vatlayer.utils import (
-    fetch_rate_types,
-    fetch_rates,
-    get_tax_rate_types,
-)
+from django_prices_vatlayer.utils import (fetch_rate_types, fetch_rates,
+                                          get_tax_rate_types)
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations, calculations
 from ...checkout.interface import CheckoutTaxedPricesData
 from ...core.taxes import TaxType
-from ...plugins.error_codes import PluginErrorCode
 from ...order.interface import OrderTaxedPricesData
+from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..manager import get_plugins_manager
-from . import (
-    DEFAULT_TAX_RATE_NAME,
-    VatlayerConfiguration,
-    apply_tax_to_price,
-    get_taxed_shipping_price,
-    get_taxes_for_country,
-)
+from . import (DEFAULT_TAX_RATE_NAME, VatlayerConfiguration,
+               apply_tax_to_price, get_taxed_shipping_price,
+               get_taxes_for_country)
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -39,12 +32,8 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...order.models import Order, OrderLine
-    from ...product.models import (
-        Collection,
-        Product,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
+    from ...product.models import (Collection, Product, ProductVariant,
+                                   ProductVariantChannelListing)
     from ..models import PluginConfiguration
 
 
