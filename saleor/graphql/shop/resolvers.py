@@ -36,6 +36,7 @@ def resolve_countries(**kwargs):
     attached_to_shipping_zones = countries_filter.get("attached_to_shipping_zones")
     language_code = kwargs.get("language_code")
     taxes = {vat.country_code: vat for vat in VAT.objects.all()}
+    codes_list = get_countries_codes_list(attached_to_shipping_zones)
     # DEPRECATED: translation.override will be dropped in Saleor 4.0
     with translation.override(language_code):
         return [
@@ -43,7 +44,7 @@ def resolve_countries(**kwargs):
                 code=country[0], country=country[1], vat=taxes.get(country[0])
             )
             for country in countries
-            if country[0] in get_countries_codes_list(attached_to_shipping_zones)
+            if country[0] in codes_list
         ]
 
 
