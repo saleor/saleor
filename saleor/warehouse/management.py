@@ -1,7 +1,7 @@
 from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
-from django.db.models import F, Sum
+from django.db.models import F
 from django.db.models.expressions import Exists, OuterRef
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
@@ -48,19 +48,10 @@ def allocate_stocks(
     )
     stocks_id = (stock.pop("id") for stock in stocks)
 
-    quantity_allocation_list = list(
-        Allocation.objects.filter(
-            stock_id__in=stocks_id,
-            quantity_allocated__gt=0,
-        )
-        .values("stock")
-        .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
-    )
-    quantity_allocation_for_stocks: Dict = defaultdict(int)
-    for allocation in quantity_allocation_list:
-        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-            "quantity_allocated_sum"
-        ]
+    quantity_allocation_for_stocks = {
+        stock.pk: stock.quantity_allocated
+        for stock in Stock.objects.filter(pk__in=stocks_id, quantity_allocated__gt=0)
+    }
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
@@ -321,21 +312,10 @@ def decrease_stock(
             str(stock.warehouse_id)
         ] = stock
 
-    quantity_allocation_list = list(
-        Allocation.objects.filter(
-            stock__in=stocks,
-            quantity_allocated__gt=0,
-        )
-        .values("stock")
-        .annotate(Sum("quantity_allocated"))
-    )
-
     if update_stocks:
-        quantity_allocation_for_stocks: Dict[int, int] = defaultdict(int)
-        for allocation in quantity_allocation_list:
-            quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-                "quantity_allocated__sum"
-            ]
+        quantity_allocation_for_stocks = {
+            stock.pk: stock.quantity_allocated for stock in stocks
+        }
         _decrease_stocks_quantity(
             order_lines_info,
             variant_and_warehouse_to_stock,

@@ -931,6 +931,74 @@ def color_attribute(db):
 
 
 @pytest.fixture
+def attribute_without_values():
+    attribute = Attribute.objects.create(
+        slug="dropdown",
+        name="Dropdown",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+        visible_in_storefront=True,
+        entity_type=None,
+    )
+
+    return attribute
+
+
+@pytest.fixture
+def product_type_with_product_attributes(attribute_without_values):
+    product_type = ProductType.objects.create(
+        name="product_type_with_product_attributes",
+        slug="product-type-with-product-attributes",
+        has_variants=False,
+        is_shipping_required=False,
+        weight=0,
+    )
+    product_type.product_attributes.add(attribute_without_values)
+    return product_type
+
+
+@pytest.fixture
+def product_type_with_variant_attributes(attribute_without_values):
+    product_type = ProductType.objects.create(
+        name="product_type_with_variant_attributes",
+        slug="product-type-with-variant-attributes",
+        has_variants=False,
+        is_shipping_required=False,
+        weight=0,
+    )
+    product_type.variant_attributes.add(attribute_without_values)
+    return product_type
+
+
+@pytest.fixture
+def product_with_product_attributes(
+    product_type_with_product_attributes, non_default_category
+):
+    product = Product.objects.create(
+        name="product_with_product_attributes",
+        slug="product-with-product-attributes",
+        product_type=product_type_with_product_attributes,
+        category=non_default_category,
+    )
+    return product
+
+
+@pytest.fixture
+def product_with_variant_attributes(
+    product_type_with_variant_attributes, non_default_category
+):
+    product = Product.objects.create(
+        name="product_with_variant_attributes",
+        slug="product-with-variant-attributes",
+        product_type=product_type_with_variant_attributes,
+        category=non_default_category,
+    )
+    return product
+
+
+@pytest.fixture
 def date_attribute(db):
     attribute = Attribute.objects.create(
         slug="release-date",
@@ -2719,7 +2787,7 @@ def order_line_with_one_allocation(
         order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
     stock = stocks[0]
-    stock.quantity_allocated = 1
+    stock.quantity_allocated = 3
     stock.save(update_fields=["quantity_allocated"])
 
     return order_line
@@ -2778,13 +2846,13 @@ def order_with_lines(
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
+    quantity = 3
     stock = Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=5
+        warehouse=warehouse, product_variant=variant, quantity=5, quantity_allocated=3
     )
     net = variant.get_price(product, [], channel_USD, channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    quantity = 3
     unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -2824,15 +2892,18 @@ def order_with_lines(
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
+    quantity = 2
     stock = Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=2
+        product_variant=variant,
+        warehouse=warehouse,
+        quantity=quantity,
+        quantity_allocated=quantity,
     )
 
     net = variant.get_price(product, [], channel_USD, channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
-    quantity = 2
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
@@ -3190,6 +3261,9 @@ def fulfillment(fulfilled_order):
 
 @pytest.fixture
 def draft_order(order_with_lines, shipping_method):
+    Stock.objects.filter(allocations__order_line__order=order_with_lines).update(
+        quantity_allocated=0
+    )
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
