@@ -40,7 +40,6 @@ from ..enums import (
     WarehouseErrorCode,
     WebhookErrorCode,
     WeightUnitsEnum,
-    WishlistErrorCode,
 )
 from ..scalars import PositiveDecimal
 from .money import VAT
@@ -357,10 +356,6 @@ class WarehouseError(Error):
 
 class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.", required=True)
-
-
-class WishlistError(ProductWithoutVariantError):
-    code = WishlistErrorCode(description="The error code.", required=True)
 
 
 class TranslationError(Error):
