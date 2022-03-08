@@ -205,7 +205,7 @@ def test_user_checkout_details_with_tax_app(
     customer_checkout,
     tax_app,
     settings,
-    count_queries
+    count_queries,
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]

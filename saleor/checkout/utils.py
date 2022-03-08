@@ -654,7 +654,9 @@ def add_voucher_to_checkout(
     checkout_info.voucher = voucher
 
 
-def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
+def remove_promo_code_from_checkout(
+    checkout_info: "CheckoutInfo", promo_code: str
+) -> bool:
     """Remove gift card or voucher data from checkout.
 
     Return information whether promo code was removed.
@@ -666,7 +668,9 @@ def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: s
     return False
 
 
-def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
+def remove_voucher_code_from_checkout(
+    checkout_info: "CheckoutInfo", voucher_code: str
+) -> bool:
     """Remove voucher data from checkout by code.
 
     Return information whether promo code was removed.

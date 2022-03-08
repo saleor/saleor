@@ -133,10 +133,9 @@ def trigger_all_webhooks_sync(
     """
     webhooks = _get_webhooks_for_event(event_type)
     event_payload = None
+    if webhooks:
+        event_payload = EventPayload.objects.create(payload=generate_payload())
     for webhook in webhooks:
-        event_payload = event_payload or EventPayload.objects.create(
-            payload=generate_payload()
-        )
         delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
             event_type=event_type,

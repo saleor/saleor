@@ -129,7 +129,13 @@ class CheckoutRemovePromoCode(BaseMutation):
     @classmethod
     def remove_promo_code_by_id(
         cls, info, checkout: models.Checkout, object_type: str, promo_code_pk: int
-    ):
+    ) -> bool:
+        """Detach promo code from the checkout based on the id.
+
+        Return a boolean value that indicates whether this function changed
+        the checkout object which then controls whether hooks such as
+        `checkout_updated` are triggered.
+        """
         if object_type == str(Voucher) and checkout.voucher_code is not None:
             node = cls._get_node_by_pk(info, graphene_type=Voucher, pk=promo_code_pk)
             if node is None:
@@ -147,3 +153,5 @@ class CheckoutRemovePromoCode(BaseMutation):
         else:
             checkout.gift_cards.remove(promo_code_pk)
             return True
+
+        return False
