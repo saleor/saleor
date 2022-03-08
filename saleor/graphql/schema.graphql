@@ -5198,6 +5198,7 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_CHECKOUTS
+  HANDLE_CHECKOUTS
 }
 
 type PermissionGroupCreate {
