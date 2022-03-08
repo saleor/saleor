@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="attributevalue",
             name="value",
-            field=models.CharField(blank=True, default="", max_length=9),
+            field=models.CharField(blank=True, default="", max_length=100),
         ),
     ]
