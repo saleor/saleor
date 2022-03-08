@@ -9,6 +9,8 @@ class UserSortField(graphene.Enum):
     LAST_NAME = ["last_name", "first_name", "pk"]
     EMAIL = ["email"]
     ORDER_COUNT = ["order_count", "email"]
+    CREATED_AT = ["date_joined", "pk"]
+    LAST_MODIFIED_AT = ["updated_at", "pk"]
 
     @property
     def description(self):

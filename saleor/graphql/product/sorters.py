@@ -131,6 +131,8 @@ class ProductOrderField(graphene.Enum):
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
+    PUBLISHED_AT = ["publication_date", "name", "slug"]
+    LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
     COLLECTION = ["sort_order"]
     RATING = ["rating", "name", "slug"]
 
@@ -149,9 +151,16 @@ class ProductOrderField(graphene.Enum):
             ProductOrderField.MINIMAL_PRICE.name: (
                 "a minimal price of a product's variant."
             ),
-            ProductOrderField.DATE.name: "update date.",
+            ProductOrderField.DATE.name: f"update date. {DEPRECATED_IN_3X_INPUT}",
             ProductOrderField.PUBLISHED.name: "publication status.",
-            ProductOrderField.PUBLICATION_DATE.name: "publication date.",
+            ProductOrderField.PUBLICATION_DATE.name: (
+                f"publication date. {DEPRECATED_IN_3X_INPUT}"
+            ),
+            ProductOrderField.LAST_MODIFIED.name: (
+                f"update date. {DEPRECATED_IN_3X_INPUT}"
+            ),
+            ProductOrderField.PUBLISHED_AT.name: "publication date.",
+            ProductOrderField.LAST_MODIFIED_AT.name: "update date.",
             ProductOrderField.RATING.name: "rating.",
         }
         if self.name in descriptions:
@@ -190,6 +199,10 @@ class ProductOrderField(graphene.Enum):
 
     @staticmethod
     def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        return ProductOrderField.qs_with_published_at(queryset, channel_slug)
+
+    @staticmethod
+    def qs_with_published_at(queryset: QuerySet, channel_slug: str) -> QuerySet:
         subquery = Subquery(
             ProductChannelListing.objects.filter(
                 product_id=OuterRef("pk"), channel__slug=str(channel_slug)
@@ -226,6 +239,25 @@ class ProductOrder(ChannelSortInputObjectType):
 
     class Meta:
         sort_enum = ProductOrderField
+
+
+class ProductVariantSortField(graphene.Enum):
+    LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
+
+    @property
+    def description(self):
+        # pylint: disable=no-member
+        if self.name in ProductVariantSortField.__enum__._member_names_:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort products variants by {sort_name}."
+
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+
+class ProductVariantSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = ProductVariantSortField
+        type_name = "productVariants"
 
 
 class ProductTypeSortField(graphene.Enum):
