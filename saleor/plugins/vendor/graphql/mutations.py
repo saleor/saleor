@@ -12,7 +12,6 @@ from ....graphql.core.types import Upload
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from .. import models
 from . import enums, types
-
 # from .custom_permissions import BillingPermissions
 from .errors import VendorError
 
@@ -154,29 +153,23 @@ class VendorCreate(ModelMutation):
 
         if residence_id and national_id:
             raise ValidationError(
-                message="You must only provide one of residence ID and national ID",
+                message="You must only provide one of residence ID and national ID.",
                 code=enums.VendorErrorCode.ONLY_ONE_ALLOWED,
             )
 
-        if not residence_id:
-            errors["residence_id"] = ValidationError(
-                message="You must provide a residence ID or a national ID.",
-                code=enums.VendorErrorCode.INVALID_RESIDENCE_ID,
+        if not residence_id and not national_id:
+            raise ValidationError(
+                message="You must provider either residence ID or national ID.",
+                code=enums.VendorErrorCode.ONLY_ONE_ALLOWED,
             )
 
-        if not is_numbers_only(residence_id):
+        if residence_id and not is_numbers_only(residence_id):
             errors["residence_id"] = ValidationError(
                 message=f"Residence ID must contain only numbers, found: {residence_id}.",  # noqa: E501
                 code=enums.VendorErrorCode.INVALID_RESIDENCE_ID,
             )
 
-        if not national_id:
-            errors["national_id"] = ValidationError(
-                message="You must provide a national ID or a national ID.",
-                code=enums.VendorErrorCode.INVALID_NATIONAL_ID,
-            )
-
-        if not is_numbers_only(national_id):
+        if national_id and not is_numbers_only(national_id):
             errors["national_id"] = ValidationError(
                 message=f"National ID must contain only numbers, found: {national_id}.",  # noqa: E501
                 code=enums.VendorErrorCode.INVALID_NATIONAL_ID,
