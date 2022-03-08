@@ -2189,6 +2189,7 @@ enum ExportFileSortField {
   STATUS
   CREATED_AT
   UPDATED_AT
+  LAST_MODIFIED_AT
 }
 
 input ExportFileSortingInput {
@@ -4706,6 +4707,8 @@ input OrderSettingsUpdateInput {
 enum OrderSortField {
   NUMBER
   CREATION_DATE
+  CREATED_AT
+  LAST_MODIFIED_AT
   CUSTOMER
   PAYMENT
   FULFILLMENT_STATUS
@@ -5693,6 +5696,8 @@ enum ProductOrderField {
   TYPE
   PUBLISHED
   PUBLICATION_DATE
+  PUBLISHED_AT
+  LAST_MODIFIED_AT
   COLLECTION
   RATING
 }
@@ -6007,6 +6012,15 @@ type ProductVariantSetDefault {
   errors: [ProductError!]!
 }
 
+enum ProductVariantSortField {
+  LAST_MODIFIED_AT
+}
+
+input ProductVariantSortingInput {
+  direction: OrderDirection!
+  field: ProductVariantSortField!
+}
+
 type ProductVariantStocksCreate {
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -6083,7 +6097,7 @@ type Query {
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID, sku: String, channel: String): ProductVariant
-  productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+  productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, sortBy: ProductVariantSortingInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, channel: String!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
   payments(filter: PaymentFilterInput, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
@@ -6282,6 +6296,8 @@ enum SaleSortField {
   END_DATE
   VALUE
   TYPE
+  CREATED_AT
+  LAST_MODIFIED_AT
 }
 
 input SaleSortingInput {
@@ -7088,6 +7104,8 @@ enum UserSortField {
   LAST_NAME
   EMAIL
   ORDER_COUNT
+  CREATED_AT
+  LAST_MODIFIED_AT
 }
 
 input UserSortingInput {

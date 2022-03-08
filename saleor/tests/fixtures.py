@@ -128,7 +128,6 @@ from ..warehouse.models import (
 )
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
-from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
 
 
@@ -1094,6 +1093,74 @@ def color_attribute(db):
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
     return attribute
+
+
+@pytest.fixture
+def attribute_without_values():
+    attribute = Attribute.objects.create(
+        slug="dropdown",
+        name="Dropdown",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+        visible_in_storefront=True,
+        entity_type=None,
+    )
+
+    return attribute
+
+
+@pytest.fixture
+def product_type_with_product_attributes(attribute_without_values):
+    product_type = ProductType.objects.create(
+        name="product_type_with_product_attributes",
+        slug="product-type-with-product-attributes",
+        has_variants=False,
+        is_shipping_required=False,
+        weight=0,
+    )
+    product_type.product_attributes.add(attribute_without_values)
+    return product_type
+
+
+@pytest.fixture
+def product_type_with_variant_attributes(attribute_without_values):
+    product_type = ProductType.objects.create(
+        name="product_type_with_variant_attributes",
+        slug="product-type-with-variant-attributes",
+        has_variants=False,
+        is_shipping_required=False,
+        weight=0,
+    )
+    product_type.variant_attributes.add(attribute_without_values)
+    return product_type
+
+
+@pytest.fixture
+def product_with_product_attributes(
+    product_type_with_product_attributes, non_default_category
+):
+    product = Product.objects.create(
+        name="product_with_product_attributes",
+        slug="product-with-product-attributes",
+        product_type=product_type_with_product_attributes,
+        category=non_default_category,
+    )
+    return product
+
+
+@pytest.fixture
+def product_with_variant_attributes(
+    product_type_with_variant_attributes, non_default_category
+):
+    product = Product.objects.create(
+        name="product_with_variant_attributes",
+        slug="product-with-variant-attributes",
+        product_type=product_type_with_variant_attributes,
+        category=non_default_category,
+    )
+    return product
 
 
 @pytest.fixture
@@ -5158,32 +5225,6 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
-
-
-@pytest.fixture
-def customer_wishlist(customer_user):
-    return Wishlist.objects.create(user=customer_user)
-
-
-@pytest.fixture
-def customer_wishlist_item(customer_wishlist, product_with_single_variant):
-    product = product_with_single_variant
-    assert product.variants.count() == 1
-    variant = product.variants.first()
-    item = customer_wishlist.add_variant(variant)
-    return item
-
-
-@pytest.fixture
-def customer_wishlist_item_with_two_variants(
-    customer_wishlist, product_with_two_variants
-):
-    product = product_with_two_variants
-    assert product.variants.count() == 2
-    [variant_1, variant_2] = product.variants.all()
-    item = customer_wishlist.add_variant(variant_1)
-    item.variants.add(variant_2)
-    return item
 
 
 @pytest.fixture

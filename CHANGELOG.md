@@ -9,6 +9,18 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Add `CREATED_AT` and `LAST_MODIFIED_AT` sorting to some GraphQL fields - #9245 by @rafalp
+  - Added `LAST_MODIFIED_AT` sort option to `ExportFileSortingInput`
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `OrderSortingInput` type
+  - Added `LAST_MODIFIED_AT` and `PUBLISHED_AT` sort options to `ProductOrder` type
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `SaleSortingInput` type
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `UserSortingInput` type
+  - Added `ProductVariantSortingInput` type with `LAST_MODIFIED_AT` sort option
+  - Deprecated `UPDATED_AT` sort option on `ExportFileSortingInput`
+  - Deprecated `LAST_MODIFIED` and `PUBLICATION_DATE` sort options on `ProductOrder` type
+  - Deprecated `CREATION_DATE` sort option on `OrderSortingInput` type
+- Drop wishlist models - #9313 by @maarcingebala
+
 # 3.1.2
 
 ### Breaking changes
