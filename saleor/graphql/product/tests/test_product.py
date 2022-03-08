@@ -7769,11 +7769,9 @@ def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_with_file_attribute(
     mocked_recalculate_orders_task,
-    delete_from_storage_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -7799,7 +7797,6 @@ def test_delete_product_with_file_attribute(
     mocked_recalculate_orders_task.assert_not_called()
     with pytest.raises(existing_value._meta.model.DoesNotExist):
         existing_value.refresh_from_db()
-    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
 
 
 def test_delete_product_removes_checkout_lines(
@@ -9359,9 +9356,7 @@ def test_product_type_delete_mutation_deletes_also_images(
         product_with_image.refresh_from_db()
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_product_type_delete_with_file_attributes(
-    delete_from_storage_task_mock,
     staff_api_client,
     product_with_variant_with_file_attribute,
     file_attribute,
@@ -9390,10 +9385,6 @@ def test_product_type_delete_with_file_attributes(
     for value in values:
         with pytest.raises(value._meta.model.DoesNotExist):
             value.refresh_from_db()
-    assert delete_from_storage_task_mock.call_count == len(values)
-    assert set(
-        data.args[0] for data in delete_from_storage_task_mock.call_args_list
-    ) == {v.file_url for v in values}
     with pytest.raises(
         product_with_variant_with_file_attribute._meta.model.DoesNotExist
     ):
