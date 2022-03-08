@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0132_rewrite_order_gift_cards_reltion"),
+        ("order", "0132_rewrite_order_gift_cards_relation"),
     ]
 
     operations = [
