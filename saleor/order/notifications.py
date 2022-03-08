@@ -193,8 +193,6 @@ def get_discounts_payload(order):
 
 
 ORDER_MODEL_FIELDS = [
-    "id",
-    "token",
     "display_gross_prices",
     "currency",
     "total_gross_amount",
@@ -243,7 +241,9 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
-            "number": order.id,
+            "id": order.id,
+            "token": order.id,  # DEPRECATED: will be removed in Saleor 4.0.
+            "number": order.number,
             "channel_slug": order.channel.slug,
             "created": str(order.created),
             "shipping_price_net_amount": order.shipping_price_net_amount,
@@ -296,7 +296,7 @@ def get_default_fulfillment_payload(order, fulfillment):
 
 
 def prepare_order_details_url(order: Order, redirect_url: str) -> str:
-    params = urlencode({"token": order.token})
+    params = urlencode({"token": order.id})
     return prepare_url(params, redirect_url)
 
 

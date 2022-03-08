@@ -87,7 +87,7 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_instance_by_token(cls, object_id, qs):
         if not qs:
-            if order := order_models.Order.objects.filter(token=object_id).first():
+            if order := order_models.Order.objects.filter(id=object_id).first():
                 return order
             if checkout := checkout_models.Checkout.objects.filter(
                 token=object_id
@@ -179,7 +179,7 @@ class BaseMetadataMutation(BaseMutation):
         try:
             return from_global_id_or_error(object_id)
         except GraphQLError:
-            if order := order_models.Order.objects.filter(token=object_id).first():
+            if order := order_models.Order.objects.filter(id=object_id).first():
                 return "Order", order.pk
             if checkout := checkout_models.Checkout.objects.filter(
                 token=object_id

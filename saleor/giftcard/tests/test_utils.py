@@ -244,7 +244,7 @@ def test_gift_cards_create(
     assert bought_event_for_shippable_card.app is None
     assert bought_event_for_shippable_card.type == GiftCardEvents.BOUGHT
     assert bought_event_for_shippable_card.parameters == {
-        "order_id": order.id,
+        "order_id": str(order.id),
         "expiry_date": None,
     }
 
@@ -262,7 +262,10 @@ def test_gift_cards_create(
     )
     assert non_shippable_event.user == staff_user
     assert non_shippable_event.app is None
-    assert non_shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
+    assert non_shippable_event.parameters == {
+        "order_id": str(order.id),
+        "expiry_date": None,
+    }
 
     flush_post_commit_hooks()
 
@@ -337,7 +340,7 @@ def test_gift_cards_create_expiry_date_set(
     assert event.user == staff_user
     assert event.app is None
     assert event.parameters == {
-        "order_id": order.id,
+        "order_id": str(order.id),
         "expiry_date": gift_card.expiry_date.isoformat(),
     }
 

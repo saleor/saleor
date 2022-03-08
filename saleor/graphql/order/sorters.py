@@ -6,7 +6,7 @@ from ..core.types import SortInputObjectType
 
 
 class OrderSortField(graphene.Enum):
-    NUMBER = ["pk"]
+    NUMBER = ["number"]
     CREATION_DATE = ["created", "status", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "status", "pk"]

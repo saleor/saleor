@@ -628,6 +628,7 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
             $token: UUID, $lines: [CheckoutLineInput!]!) {
         checkoutLinesUpdate(token: $token, lines: $lines) {
             checkout {
+                id
                 token
                 quantity
                 lines {

@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from copy import deepcopy
 
 import graphene
@@ -702,14 +703,14 @@ def test_query_gift_card_events_filter_by_orders(
 ):
     # given
     previous_balance = 10.0
-    order_pk_1 = 1
+    order_pk_1 = uuid.uuid4()
     events.gift_cards_bought_event(
         [gift_card, gift_card_expiry_date], order_pk_1, None, app
     )
     balance_data = [(gift_card, previous_balance)]
-    order_pk_2 = 2
+    order_pk_2 = uuid.uuid4()
     events.gift_cards_used_in_order_event(balance_data, order_pk_2, None, app)
-    order_pk_3 = 3
+    order_pk_3 = uuid.uuid4()
     events.gift_cards_used_in_order_event(balance_data, order_pk_3, None, app)
 
     assert gift_card.events.count() == 3
