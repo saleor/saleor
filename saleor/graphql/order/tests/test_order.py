@@ -1826,6 +1826,23 @@ def test_draft_order_create(
     assert created_draft_event.user == staff_user
     assert created_draft_event.parameters == {}
 
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 2
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == order_lines[0].pk
+    assert event_parameters["lines"][0]["quantity"] == 2
+
+    assert event_parameters["lines"][1]["item"] == str(order_lines[1])
+    assert event_parameters["lines"][1]["line_pk"] == order_lines[1].pk
+    assert event_parameters["lines"][1]["quantity"] == 1
+
 
 def test_draft_order_create_with_inactive_channel(
     staff_api_client,
