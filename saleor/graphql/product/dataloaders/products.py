@@ -439,7 +439,7 @@ class MediaByProductVariantIdLoader(DataLoader):
     def batch_load(self, keys):
         variant_media = (
             VariantMedia.objects.using(self.database_connection_name)
-            .filter(variant_id__in=keys)
+            .filter(variant_id__in=keys, media__to_remove=False)
             .values_list("variant_id", "media_id")
         )
 
@@ -467,7 +467,11 @@ class ImagesByProductVariantIdLoader(DataLoader):
     def batch_load(self, keys):
         variant_media = (
             VariantMedia.objects.using(self.database_connection_name)
-            .filter(variant_id__in=keys, media__type=ProductMediaTypes.IMAGE)
+            .filter(
+                variant_id__in=keys,
+                media__type=ProductMediaTypes.IMAGE,
+                media__to_remove=False,
+            )
             .values_list("variant_id", "media_id")
         )
 
