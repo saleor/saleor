@@ -31,14 +31,14 @@ class Vendor(CountableDjangoObjectType):
 
     def resolve_users(root, info):
         return [
-            graphene.Node.to_global_id("Product", id)
-            for id in root.users.values_list("id")
+            graphene.Node.to_global_id("User", id)
+            for id in root.users.values_list("id", flat=True)
         ]
 
     def resolve_products(root, info):
         return [
             graphene.Node.to_global_id("Product", id)
-            for id in root.products.values_list("id")
+            for id in root.products.values_list("id", flat=True)
         ]
 
     def resolve_logo(root, info, size=None):
