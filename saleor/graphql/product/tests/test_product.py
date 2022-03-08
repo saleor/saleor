@@ -590,6 +590,75 @@ def test_product_only_with_variants_without_sku_query_by_anonymous(
     assert product_data["variants"] == [{"id": variant_id}]
 
 
+QUERY_PRODUCT_BY_ID_WITH_MEDIA = """
+    query ($id: ID, $channel: String){
+        product(id: $id, channel: $channel) {
+            media {
+                id
+            }
+            variants {
+                id
+                name
+                media {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_product_query_with_media_to_remove(
+    user_api_client, permission_manage_products, product_with_images
+):
+    # given
+    query = QUERY_PRODUCT_BY_ID_WITH_MEDIA
+    variables = {"id": graphene.Node.to_global_id("Product", product_with_images.pk)}
+    ProductMedia.objects.filter(product=product_with_images.pk).update(to_remove=True)
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    # then
+    assert product_data is not None
+    assert len(product_data["media"]) == 0
+
+
+def test_product_variant_query_with_media_to_remove(
+    user_api_client, permission_manage_products, variant_with_image
+):
+    # given
+    query = QUERY_PRODUCT_BY_ID_WITH_MEDIA
+    product = variant_with_image.product
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    variants_count = ProductVariant.objects.all().count()
+    ProductMedia.objects.filter(product=product.pk).update(to_remove=True)
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    # then
+    assert product_data is not None
+    assert len(product_data["media"]) == 0
+    assert len(product_data["variants"]) == variants_count
+    for variant in product_data["variants"]:
+        assert variant["media"] == []
+
+
 QUERY_COLLECTION_FROM_PRODUCT = """
     query ($id: ID, $channel:String){
         product(
