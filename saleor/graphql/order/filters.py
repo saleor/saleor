@@ -1,6 +1,5 @@
 import django_filters
-from django.db.models import Exists, IntegerField, OuterRef, Q
-from django.db.models.functions import Cast
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ...giftcard import GiftCardEvents
@@ -120,10 +119,13 @@ def filter_gift_card_bought(qs, _, value):
 
 
 def filter_by_gift_card(qs, value, gift_card_type):
-    gift_card_events = GiftCardEvent.objects.filter(type=gift_card_type).values(
-        order_id=Cast("parameters__order_id", IntegerField())
+    # TODO: will be changed in separate PR
+    order_ids = list(
+        GiftCardEvent.objects.filter(type=gift_card_type).values_list(
+            "parameters__order_id", flat=True
+        )
     )
-    lookup = Exists(gift_card_events.filter(order_id=OuterRef("id")))
+    lookup = Q(id__in=order_ids)
     return qs.filter(lookup) if value is True else qs.exclude(lookup)
 
 

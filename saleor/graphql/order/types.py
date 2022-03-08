@@ -355,7 +355,7 @@ class OrderEvent(ModelObjectType):
         order_pk = root.parameters.get("related_order_pk")
         if not order_pk:
             return None
-        return OrderByIdLoader(info.context).load(order_pk)
+        return OrderByIdLoader(info.context).load(UUID(order_pk))
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -793,6 +793,10 @@ class Order(ModelObjectType):
         model = models.Order
 
     @staticmethod
+    def resolve_token(root: models.Order, info):
+        return root.id
+
+    @staticmethod
     def resolve_discounts(root: models.Order, info):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
@@ -996,7 +1000,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_number(root: models.Order, _info):
-        return str(root.pk)
+        return str(root.number)
 
     @staticmethod
     @traced_resolver
