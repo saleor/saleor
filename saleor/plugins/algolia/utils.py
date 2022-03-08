@@ -67,7 +67,7 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
             }
           }
           discountedPrice {
-              amount
+            amount
           }
           channel {
             slug
@@ -75,6 +75,16 @@ query GET_PRODUCTS($id: ID!, $languageCode: LanguageCodeEnum!) {
           isPublished
           publicationDate
           isAvailableForPurchase
+        }
+        variants {
+          attributes {
+            attribute {
+              name
+            }
+            values {
+              name
+            }
+          }
         }
         attributes {
           attribute {
@@ -137,6 +147,8 @@ def map_product_description(description: dict):
 
 def map_product_attributes(product_dict: dict, language_code: str):
     attributes = product_dict.get("attributes", [])
+    for variant in product_dict.get("variants", []):
+        attributes.extend(variant.get("attributes", []))
 
     attrs = []
     attrs_ar = []
@@ -221,6 +233,7 @@ def get_product_data(product_pk: int, language_code="EN"):
     attributes = map_product_attributes(
         product_dict=product_dict, language_code=language_code
     )
+    product_dict.pop("variants", None)
 
     channels = []
     channel_listings = product_dict.pop("channelListings", [])
