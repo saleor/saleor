@@ -26,6 +26,7 @@ def test_refund_payment(
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
+    payment_data.amount = payment_dummy.captured_amount
     psp_reference = "18121200001"
     payment_data.psp_reference = psp_reference
     response = Mock(
@@ -63,6 +64,7 @@ def test_refund_payment_payment_not_created(
     # given
     plugin = np_atobarai_plugin()
     payment_data = np_payment_data
+    payment_data.amount = payment_dummy.captured_amount
     response = Mock(
         spec=requests.Response,
         status_code=200,
