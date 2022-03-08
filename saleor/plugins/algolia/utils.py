@@ -249,11 +249,12 @@ def get_product_data(product_pk: int, language_code="EN"):
                 channels.append(channel)
 
     skus = []
-    vendors = []
     for variant in product.variants.all():
         skus.append(variant.sku)
-        for vendor in variant.vendor_set.all():
-            vendors.append(vendor.name)
+
+    vendors = []
+    for vendor in product.vendor_set.all():
+        vendors.append(vendor.brand_name)
 
     if not product_data.errors and channels:
         slug = product_dict.pop("slug")
