@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("payment", "0028_drop_searchable_key"),
-        ("order", "0119_orderline_is_gift_card"),
+        ("channel", "0003_alter_channel_default_country"),
     ]
 
     operations = [
