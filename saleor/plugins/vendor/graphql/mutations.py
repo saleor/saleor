@@ -12,6 +12,7 @@ from ....graphql.core.types import Upload
 from ....graphql.core.utils import validate_slug_and_generate_if_needed
 from .. import models
 from . import enums, types
+
 # from .custom_permissions import BillingPermissions
 from .errors import VendorError
 
