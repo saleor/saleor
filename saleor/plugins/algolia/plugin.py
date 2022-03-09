@@ -105,11 +105,12 @@ class AlgoliaPlugin(BasePlugin):
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
                 index.set_settings(
-                    {
+                    settings={
                         "attributesForFaceting": get_attributes_for_faceting(
                             locale=locale
                         )
-                    }
+                    },
+                    request_options={"forwardToReplicas": True},
                 )
                 logger.info("Product %s indexed to Algolia", product.slug)
 
@@ -126,11 +127,12 @@ class AlgoliaPlugin(BasePlugin):
                     obj=product_data, request_options={"createIfNotExists": True}
                 )
                 index.set_settings(
-                    {
+                    settings={
                         "attributesForFaceting": get_attributes_for_faceting(
                             locale=locale
                         )
-                    }
+                    },
+                    request_options={"forwardToReplicas": True},
                 )
                 logger.info("Product %s updated in Algolia", product.slug)
 
@@ -194,11 +196,12 @@ class AlgoliaPlugin(BasePlugin):
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
                 index.set_settings(
-                    {
+                    settings={
                         "attributesForFaceting": get_attributes_for_faceting(
                             locale=locale
                         )
-                    }
+                    },
+                    request_options={"forwardToReplicas": True},
                 )
                 logger.info("Product variant %s indexed to Algolia", product_variant)
 
@@ -217,11 +220,12 @@ class AlgoliaPlugin(BasePlugin):
                     obj=product_data, request_options={"createIfNotExists": True}
                 )
                 index.set_settings(
-                    {
+                    settings={
                         "attributesForFaceting": get_attributes_for_faceting(
                             locale=locale
                         )
-                    }
+                    },
+                    request_options={"forwardToReplicas": True},
                 )
                 logger.info("Product variant %s updated in Algolia", product_variant)
 
