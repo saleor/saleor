@@ -1,10 +1,13 @@
 import binascii
+import mimetypes
 import os
 import secrets
+from enum import Enum
 from typing import TYPE_CHECKING, Type, Union
 from uuid import UUID
 
 import graphene
+import requests
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene import ObjectType
@@ -43,6 +46,47 @@ def str_to_enum(name):
     return name.replace(" ", "_").replace("-", "_").upper()
 
 
+def is_image_mimetype(mimetype: str):
+    """Check if mimetype is image."""
+    return mimetype.startswith("image/")
+
+
+def is_image_url(url: str):
+    """Check if file URL seems to be an image."""
+    if url.endswith(".webp"):
+        # webp is not recognized by mimetypes as image
+        # https://bugs.python.org/issue38902
+        return True
+    filetype = mimetypes.guess_type(url)[0]
+    return filetype is not None and is_image_mimetype(filetype)
+
+
+def validate_image_url(url: str, field_name: str, error_class: Enum):
+    """Check if remote file has content type of image.
+
+    Instead of the whole file, only the headers are fetched.
+    """
+    head = requests.head(url)
+    header = head.headers
+    content_type = header.get("content-type")
+    if not is_image_mimetype(content_type):
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Invalid file type.", code=error_class.INVALID
+                )
+            }
+        )
+
+
+def get_filename_from_url(url: str):
+    """Prepare unique filename for file from URL to avoid overwritting."""
+    file_name = os.path.basename(url)
+    name, format = os.path.splitext(file_name)
+    hash = secrets.token_hex(nbytes=4)
+    return f"{name}_{hash}{format}"
+
+
 def validate_image_file(file, field_name, error_class):
     """Validate if the file is an image."""
     if not file:
@@ -53,7 +97,7 @@ def validate_image_file(file, field_name, error_class):
                 )
             }
         )
-    if not file.content_type.startswith("image/"):
+    if not is_image_mimetype(file.content_type):
         raise ValidationError(
             {
                 field_name: ValidationError(
