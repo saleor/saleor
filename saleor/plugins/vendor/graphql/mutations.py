@@ -408,6 +408,7 @@ class VendorAddProduct(ModelMutation):
         vendor = cls.get_node_or_error(info, id, only_type="Vendor")
         product = cls.get_node_or_error(info, product_id, only_type="Product")
         vendor.products.add(product)
+        info.context.plugins.product_updated(product)
         return cls(vendor=vendor)
 
 
@@ -426,6 +427,7 @@ class VendorRemoveProduct(ModelMutation):
         vendor = cls.get_node_or_error(info, id, only_type="Vendor")
         product = cls.get_node_or_error(info, product_id, only_type="Product")
         vendor.products.remove(product)
+        info.context.plugins.product_updated(product)
         return cls(vendor=vendor)
 
 
