@@ -3007,16 +3007,19 @@ def test_update_product_variant_change_attribute_values_ordering(
         attribute=product_type_product_reference_attribute,
         name=product_list[0].name,
         slug=f"{variant.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         name=product_list[1].name,
         slug=f"{variant.pk}_{product_list[1].pk}",
+        reference_product=product_list[1],
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         name=product_list[2].name,
         slug=f"{variant.pk}_{product_list[2].pk}",
+        reference_product=product_list[2],
     )
 
     associate_attribute_values_to_instance(

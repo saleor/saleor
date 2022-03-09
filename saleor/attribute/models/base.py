@@ -14,8 +14,8 @@ from ...core.permissions import (
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
 from ...core.utils.translations import Translation, TranslationProxy
-from ...page.models import PageType
-from ...product.models import ProductType
+from ...page.models import Page, PageType
+from ...product.models import Product, ProductType
 from .. import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
@@ -218,6 +218,18 @@ class AttributeValue(SortableModel):
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     boolean = models.BooleanField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
+
+    reference_product = models.ForeignKey(
+        Product,
+        related_name="references",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    reference_page = models.ForeignKey(
+        Page, related_name="references", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     translated = TranslationProxy()
 

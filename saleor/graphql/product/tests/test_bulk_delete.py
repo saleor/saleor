@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
@@ -1017,6 +1018,129 @@ def test_delete_product_variants_with_images(
     )
     mocked_recalculate_orders_task.assert_not_called()
     delete_versatile_image_mock.assert_not_called()
+
+
+def test_product_delete_removes_reference_to_product(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = DELETE_PRODUCTS_MUTATION
+
+    product = product_list[0]
+    product_ref = product_list[1]
+
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_ref.name,
+        slug=f"{product.pk}_{product_ref.pk}",
+        reference_product=product_ref,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_product_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Product", product_ref.pk)
+
+    variables = {"ids": [reference_id]}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product_ref._meta.model.DoesNotExist):
+        product_ref.refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_product_variant(
+    staff_api_client,
+    variant,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    product_list,
+):
+    query = DELETE_PRODUCTS_MUTATION
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([product_type_product_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_list[0].name,
+        slug=f"{variant.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
+    )
+
+    associate_attribute_values_to_instance(
+        variant,
+        product_type_product_reference_attribute,
+        attr_value,
+    )
+    reference_id = graphene.Node.to_global_id("Product", product_list[0].pk)
+
+    variables = {"ids": [reference_id]}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product_list[0]._meta.model.DoesNotExist):
+        product_list[0].refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_page(
+    staff_api_client,
+    permission_manage_products,
+    page,
+    page_type_product_reference_attribute,
+    product,
+):
+    query = DELETE_PRODUCTS_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(page_type_product_reference_attribute)
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        name=page.title,
+        slug=f"{page.pk}_{product.pk}",
+        reference_product=product,
+    )
+    associate_attribute_values_to_instance(
+        page, page_type_product_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"ids": [reference_id]}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+
+    assert not data["errors"]
 
 
 @patch("saleor.attribute.signals.delete_from_storage_task.delay")

@@ -169,6 +169,7 @@ def test_prepare_products_relations_data(
     )
     ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
+        reference_page=page,
         slug=f"{product_with_image.pk}_{page.pk}",
         name=page.title,
         date_time=None,
@@ -527,6 +528,7 @@ def test_prepare_variants_relations_data(
     # add page reference attribute
     page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
+        reference_page=page,
         slug=f"{variant.pk}_{page.pk}",
         name=page.title,
     )
@@ -536,6 +538,7 @@ def test_prepare_variants_relations_data(
     # add prodcut reference attribute
     product_ref_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
+        reference_product=product,
         slug=f"{variant.pk}_{product.pk}",
         name=product.name,
     )
@@ -806,6 +809,8 @@ def test_add_attribute_info_to_data(product):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -838,6 +843,8 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {expected_header: {"value1"}}}
 
@@ -865,6 +872,8 @@ def test_add_attribute_info_to_data_no_slug(product):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -893,6 +902,8 @@ def test_add_attribute_info_when_no_value(product):
         unit=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -923,6 +934,8 @@ def test_add_file_attribute_info_to_data(product):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -952,6 +965,8 @@ def test_add_rich_text_attribute_info_to_data(product):
         rich_text=dummy_editorjs("Dummy"),
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -981,6 +996,8 @@ def test_add_boolean_attribute_info_to_data(product):
         rich_text=None,
         boolean=False,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1011,6 +1028,8 @@ def test_add_reference_attribute_info_to_data(product, page):
         rich_text="None",
         boolean=None,
         date_time=None,
+        reference_page=page.id,
+        reference_product=None,
     )
     input_data = {pk: {}}
 
@@ -1044,6 +1063,8 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=page.id,
+        reference_product=None,
     )
     input_data = {pk: {expected_header: values}}
 
@@ -1073,6 +1094,8 @@ def test_add_date_time_attribute_info_to_data(product, date_time_attribute):
         rich_text=None,
         boolean=None,
         date_time=date_time,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1102,6 +1125,8 @@ def test_add_date_attribute_info_to_data(product, date_attribute):
         rich_text=None,
         boolean=None,
         date_time=date,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1132,6 +1157,8 @@ def test_add_numeric_attribute_info_to_data(product, numeric_attribute):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1162,6 +1189,8 @@ def test_add_numeric_attribute_info_to_data_no_unit(product, numeric_attribute):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_product=Product,
+        reference_page=None,
     )
     input_data = {pk: {}}
 
@@ -1192,6 +1221,8 @@ def test_add_swatch_attribute_file_info_to_data(product, swatch_attribute):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1222,6 +1253,8 @@ def test_add_attribute_info_to_data_no_file_url_for_file_attribute(product):
         unit=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1252,6 +1285,8 @@ def test_add_attribute_info_to_data_no_rich_text_for_rich_text_attribute(product
         unit=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1281,6 +1316,8 @@ def test_add_attribute_info_to_data_no_boolean_for_boolean_attribute(product):
         unit=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
@@ -1310,6 +1347,8 @@ def test_add_attribute_info_to_data_no_value_for_reference_attribute(product):
         unit=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=None,
     )
     input_data = {pk: {}}
 
@@ -1340,6 +1379,8 @@ def test_add_swatch_attribute_value_info_to_data(product, numeric_attribute):
         rich_text=None,
         boolean=None,
         date_time=None,
+        reference_page=None,
+        reference_product=product.id,
     )
     input_data = {pk: {}}
 
