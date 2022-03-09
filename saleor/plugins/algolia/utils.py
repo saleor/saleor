@@ -332,4 +332,8 @@ def get_attributes_for_faceting(locale: str) -> List:
         for attribute in faceting[f"attributes_{locale}"]
     ] + [f"searchable(categories.{category})" for category in categories]
 
-    return attributes_for_faceting + ["gender"]
+    return attributes_for_faceting + [
+        "searchable(gender)",
+        "searchable(vendors)",
+        "searchable(celebrities)",
+    ]
