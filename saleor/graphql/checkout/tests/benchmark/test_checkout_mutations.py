@@ -13,6 +13,7 @@ from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariant, ProductVariantChannelListing
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
+from ...mutations.utils import CustomPrice
 
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
@@ -701,6 +702,7 @@ def test_update_checkout_lines_with_reservations(
         checkout,
         variants,
         [2] * 10,
+        [CustomPrice(to_update=False, value=None)] * 10,
         channel_USD.slug,
         replace_reservations=True,
         reservation_length=5,

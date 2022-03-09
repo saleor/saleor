@@ -14889,6 +14889,11 @@ input CheckoutLineInput {
 
   """ID of the product variant."""
   variantId: ID!
+
+  """
+  Custom price of the item. Can be set only by apps with handle checkouts permission. When the line with the same variant will be provided multiple times, the last price will be used.
+  """
+  price: PositiveDecimal
 }
 
 """
