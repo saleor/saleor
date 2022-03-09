@@ -30,31 +30,29 @@ from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
+    ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
+    _generate_collection_point_payload,
     generate_checkout_payload,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
+    generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_meta,
     generate_order_payload,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_requestor,
     generate_sale_payload,
     generate_translation_payload,
 )
-from ..payloads_utils import (
-    generate_collection_point_payload,
-    generate_fulfillment_lines_payload,
-    generate_meta,
-    generate_requestor,
-)
-from ..taxed_payloads import ORDER_FIELDS
 
 
-@mock.patch("saleor.webhook.taxed_payloads.generate_fulfillment_lines_payload")
+@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
     mocked_fulfillment_lines,
     order_with_lines,
@@ -958,7 +956,7 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
-@patch("saleor.webhook.taxed_payloads.serialize_checkout_lines")
+@patch("saleor.webhook.payloads.serialize_checkout_lines")
 @patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_checkout_payload(
@@ -1091,7 +1089,7 @@ def test_generate_checkout_payload(
         "total_net_amount": str(total.net.amount),
         "total_gross_amount": str(total.gross.amount),
         "collection_point": json.loads(
-            generate_collection_point_payload(collection_point)
+            _generate_collection_point_payload(collection_point)
         )[0],
         "meta": ANY,
         "warehouse_address": ANY,

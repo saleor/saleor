@@ -9,13 +9,13 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.models import CheckoutLine
 from ...core.prices import quantize_price
 from ...plugins.manager import get_plugins_manager
+from ..payloads import (
+    _get_line_prices_data_with_taxes,
+    _get_line_prices_data_without_taxes,
+)
 from ..serializers import (
     serialize_checkout_lines,
     serialize_product_or_variant_attributes,
-)
-from ..taxed_payloads import (
-    _get_line_prices_data_with_taxes,
-    _get_line_prices_data_without_taxes,
 )
 
 

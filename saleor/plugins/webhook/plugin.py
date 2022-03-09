@@ -23,6 +23,7 @@ from ...webhook.payloads import (
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_meta,
     generate_order_payload,
     generate_order_payload_without_taxes,
     generate_page_payload,
@@ -31,10 +32,10 @@ from ...webhook.payloads import (
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
+    generate_requestor,
     generate_sale_payload,
     generate_translation_payload,
 )
-from ...webhook.payloads_utils import generate_meta, generate_requestor
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY
 from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_response
