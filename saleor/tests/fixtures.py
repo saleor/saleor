@@ -1740,6 +1740,11 @@ def permission_manage_checkouts():
 
 
 @pytest.fixture
+def permission_handle_checkouts():
+    return Permission.objects.get(codename="handle_checkouts")
+
+
+@pytest.fixture
 def permission_manage_plugins():
     return Permission.objects.get(codename="manage_plugins")
 

@@ -21,8 +21,9 @@ from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (
     check_lines_quantity,
+    check_permissions_for_custom_prices,
     get_checkout_by_token,
-    group_quantity_by_variants,
+    group_quantity_and_custom_prices_by_variants,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -84,6 +85,7 @@ class CheckoutLinesAdd(BaseMutation):
         checkout,
         variants,
         quantities,
+        custom_prices,
         checkout_info,
         lines,
         manager,
@@ -126,6 +128,7 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout,
                 variants,
                 quantities,
+                custom_prices,
                 channel_slug,
                 replace=replace,
                 replace_reservations=True,
@@ -168,7 +171,10 @@ class CheckoutLinesAdd(BaseMutation):
 
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        input_quantities = group_quantity_by_variants(lines)
+        input_quantities, custom_prices = group_quantity_and_custom_prices_by_variants(
+            lines
+        )
+        check_permissions_for_custom_prices(info.context.app, custom_prices)
 
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
@@ -181,6 +187,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout,
             variants,
             input_quantities,
+            custom_prices,
             checkout_info,
             lines,
             manager,

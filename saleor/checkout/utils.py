@@ -153,6 +153,7 @@ def add_variants_to_checkout(
     checkout,
     variants,
     quantities,
+    custom_prices,
     channel_slug,
     replace=False,
     replace_reservations=False,
@@ -171,7 +172,7 @@ def add_variants_to_checkout(
     to_create = []
     to_update = []
     to_delete = []
-    for variant, quantity in zip(variants, quantities):
+    for variant, quantity, custom_price in zip(variants, quantities, custom_prices):
         if variant.pk in variant_ids_in_lines:
             line = variant_ids_in_lines[variant.pk]
             if quantity > 0:
@@ -179,17 +180,24 @@ def add_variants_to_checkout(
                     line.quantity = quantity
                 else:
                     line.quantity += quantity
+                if custom_price.to_update:
+                    line.price_override = custom_price.value
                 to_update.append(line)
             else:
                 to_delete.append(line)
         elif quantity > 0:
             to_create.append(
-                CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
+                CheckoutLine(
+                    checkout=checkout,
+                    variant=variant,
+                    quantity=quantity,
+                    price_override=custom_price.value,
+                )
             )
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
     if to_update:
-        CheckoutLine.objects.bulk_update(to_update, ["quantity"])
+        CheckoutLine.objects.bulk_update(to_update, ["quantity", "price_override"])
     if to_create:
         CheckoutLine.objects.bulk_create(to_create)
 
