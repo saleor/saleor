@@ -1,7 +1,6 @@
 import graphene
 from graphene_federation import build_schema
 
-from . import types
 from .mutations import (
     WishlistAddProductMutation,
     WishlistAddProductVariantMutation,

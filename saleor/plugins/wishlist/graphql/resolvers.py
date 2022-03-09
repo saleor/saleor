@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from saleor.core.tracing import traced_resolver
+
 from ..models import Wishlist
 
 if TYPE_CHECKING:

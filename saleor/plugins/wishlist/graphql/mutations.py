@@ -1,11 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from saleor.graphql.core.mutations import BaseMutation
+from saleor.graphql.product.types import Product, ProductVariant
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.utils import get_products_ids_without_variants
-from saleor.graphql.core.mutations import BaseMutation
+
 from .errors import WishlistError
-from saleor.graphql.product.types import Product, ProductVariant
 from .resolvers import resolve_wishlist_from_info
 from .types import Wishlist
 

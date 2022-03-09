@@ -1,6 +1,5 @@
 import graphene
 
-from .. import models
 from saleor.graphql.channel import ChannelContext, ChannelQsContext
 from saleor.graphql.core.connection import (
     CountableDjangoObjectType,
@@ -8,6 +7,8 @@ from saleor.graphql.core.connection import (
 )
 from saleor.graphql.core.fields import ConnectionField
 from saleor.graphql.product.types import Product, ProductVariantCountableConnection
+
+from .. import models
 
 
 class Wishlist(CountableDjangoObjectType):
