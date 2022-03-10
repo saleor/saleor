@@ -1639,7 +1639,7 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
-            token
+            id
         }
     }
     """
@@ -1650,7 +1650,7 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     )
     content = get_graphql_content(response)
     order_data = content["data"]["order"]
-    assert order_data["token"] == str(order.id)
+    assert order_data["id"] == graphene.Node.to_global_id("Order", order.id)
 
 
 def test_staff_query_order_by_old_id(staff_api_client, order, permission_manage_orders):

@@ -696,7 +696,10 @@ class Order(ModelObjectType):
         TaxedMoney, description="Total price of shipping.", required=True
     )
     shipping_tax_rate = graphene.Float(required=True)
-    token = graphene.String(required=True)
+    token = graphene.String(
+        required=True,
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
+    )
     voucher = graphene.Field(Voucher)
     gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
     display_gross_prices = graphene.Boolean(required=True)

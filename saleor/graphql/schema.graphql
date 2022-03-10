@@ -5883,7 +5883,7 @@ type Order implements Node & ObjectWithMetadata {
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
-  token: String!
+  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
   """List of user gift cards."""
