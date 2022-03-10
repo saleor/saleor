@@ -240,3 +240,4 @@ saleor/payment/gateways/cod/
 saleor/payment/gateways/tabby/
 saleor/plugins/customer_group/
 saleor/payment/gateways/checkout_payment/
+saleor/plugins/wishlist/

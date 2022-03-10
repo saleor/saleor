@@ -2,9 +2,9 @@ import uuid
 
 from django.db import models
 
-from ..account.models import User
-from ..core.tracing import traced_atomic_transaction
-from ..product.models import Product, ProductVariant
+from saleor.account.models import User
+from saleor.core.tracing import traced_atomic_transaction
+from saleor.product.models import Product, ProductVariant
 
 
 class Wishlist(models.Model):
@@ -13,6 +13,9 @@ class Wishlist(models.Model):
         User, related_name="wishlist", on_delete=models.CASCADE, blank=True, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name()}'s wishlist"
 
     def set_user(self, user):
         self.user = user
