@@ -1,9 +1,6 @@
 import graphene
 from graphene_federation import build_schema
 
-from saleor.graphql.account.types import User as UserType
-from saleor.graphql.core.utils import from_global_id_or_error
-
 from .. import models
 from . import types
 from .mutations import (
@@ -18,13 +15,16 @@ class Query(graphene.ObjectType):
 
     wishlist = graphene.Field(
         types.Wishlist,
-        user_id=graphene.Argument(graphene.ID, description="User ID.", required=True),
-        description="Look up a vendor by ID",
+        description="Look up a wishlist by token",
     )
 
-    def resolve_wishlist(self, info, user_id, **data):
-        _, id = from_global_id_or_error(user_id, UserType)
-        return models.Wishlist.objects.get(user_id=id)
+    def resolve_wishlist(self, info, **data):
+        user = info.context.user
+        return (
+            models.Wishlist.objects.get(user_id=user.id)
+            if user.is_authenticated
+            else None
+        )
 
 
 class Mutation(graphene.ObjectType):
