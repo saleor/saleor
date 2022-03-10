@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, MagicMock
 from urllib.parse import urlencode
@@ -595,6 +596,28 @@ def test_checkout_created(
     mocked_webhook_trigger.assert_called_once_with(
         expected_data, WebhookEventAsyncType.CHECKOUT_CREATED, [any_webhook]
     )
+
+
+def test_checkout_payload_includes_sales(checkout_with_item, sale, discount_info):
+    data = json.loads(generate_checkout_payload(checkout_with_item))
+    variant = checkout_with_item.lines.first().variant
+    channel_listing = variant.channel_listings.first()
+    variant_price_with_sale = variant.get_price(
+        product=variant.product,
+        collections=[],
+        channel=checkout_with_item.channel,
+        channel_listing=channel_listing,
+        discounts=[discount_info],
+    )
+    variant_price_without_sale = variant.get_price(
+        product=variant.product,
+        collections=[],
+        channel=checkout_with_item.channel,
+        channel_listing=channel_listing,
+        discounts=[],
+    )
+    assert variant_price_without_sale > variant_price_with_sale
+    assert Decimal(data[0]["lines"][0]["base_price"]) == variant_price_with_sale.amount
 
 
 @freeze_time("1914-06-28 10:50")
