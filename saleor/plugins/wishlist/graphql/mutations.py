@@ -1,11 +1,8 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from saleor.graphql.core.mutations import BaseMutation
-from saleor.graphql.product.types import Product, ProductVariant
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.utils import get_products_ids_without_variants
 
+from .. import models
 from .errors import WishlistError
 from .resolvers import resolve_wishlist_from_info
 from .types import Wishlist
@@ -22,102 +19,69 @@ class _BaseWishlistMutation(BaseMutation):
         return context.user.is_authenticated
 
 
-class _BaseWishlistProductMutation(_BaseWishlistMutation):
-    class Meta:
-        abstract = True
-
+class WishlistAddProductMutation(_BaseWishlistMutation):
     class Arguments:
-        product_id = graphene.ID(description="The ID of the product.", required=True)
+        product_id = graphene.ID(required=True, description="Product ID.")
 
-
-class WishlistAddProductMutation(_BaseWishlistProductMutation):
     class Meta:
+        description = "Add a product to Wishlist catalogue"
+        model = models.Wishlist
         error_type_class = WishlistError
-        error_type_field = "wishlist_errors"
-        description = "Add product to the current user's wishlist."
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        product_id = data.get("product_id", None)
+    def perform_mutation(cls, _root, info, product_id):
         wishlist = resolve_wishlist_from_info(info)
-        product = cls.get_node_or_error(
-            info, product_id, only_type=Product, field="product_id"
-        )
-        cls.clean_products([product])
-        wishlist.add_product(product)
-        return WishlistAddProductMutation(wishlist=wishlist)
-
-    @classmethod
-    def clean_products(cls, products):
-        products_ids_without_variants = get_products_ids_without_variants(products)
-        if products_ids_without_variants:
-            raise ValidationError(
-                {
-                    "products": ValidationError(
-                        "Cannot manage products without variants.",
-                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
-                        params={"products": products_ids_without_variants},
-                    )
-                }
-            )
+        product = cls.get_node_or_error(info, product_id, only_type="Product")
+        wishlist.products.add(product)
+        return cls(wishlist=wishlist)
 
 
-class WishlistRemoveProductMutation(_BaseWishlistProductMutation):
-    class Meta:
-        description = "Remove product from the current user's wishlist."
-        error_type_class = WishlistError
-        error_type_field = "wishlist_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        product_id = data.get("product_id", None)
-        wishlist = resolve_wishlist_from_info(info)
-        product = cls.get_node_or_error(
-            info, product_id, only_type=Product, field="product_id"
-        )
-        wishlist.remove_product(product)
-        return WishlistRemoveProductMutation(wishlist=wishlist)
-
-
-class _BaseWishlistVariantMutation(_BaseWishlistMutation):
-    class Meta:
-        abstract = True
-
+class WishlistRemoveProductMutation(_BaseWishlistMutation):
     class Arguments:
-        variant_id = graphene.ID(
-            description="The ID of the product variant.", required=True
-        )
+        product_id = graphene.ID(required=True, description="Product ID.")
 
-
-class WishlistAddProductVariantMutation(_BaseWishlistVariantMutation):
     class Meta:
+        description = "Add a product to Wishlist catalogue"
+        model = models.Wishlist
         error_type_class = WishlistError
-        error_type_field = "wishlist_errors"
-        description = "Add product variant to the current user's wishlist."
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        variant_id = data.get("variant_id", None)
+    def perform_mutation(cls, _root, info, product_id):
         wishlist = resolve_wishlist_from_info(info)
-        variant = cls.get_node_or_error(
-            info, variant_id, only_type=ProductVariant, field="variant_id"
-        )
-        wishlist.add_variant(variant)
-        return WishlistAddProductVariantMutation(wishlist=wishlist)
+        product = cls.get_node_or_error(info, product_id, only_type="Product")
+        wishlist.products.remove(product)
+        return cls(wishlist=wishlist)
 
 
-class WishlistRemoveProductVariantMutation(_BaseWishlistVariantMutation):
+class WishlistAddProductVariantMutation(_BaseWishlistMutation):
+    class Arguments:
+        variant_id = graphene.ID(required=True, description="Product Variant ID.")
+
     class Meta:
+        description = "Add a variant to Wishlist catalogue"
+        model = models.Wishlist
         error_type_class = WishlistError
-        error_type_field = "wishlist_errors"
-        description = "Remove product variant from the current user's wishlist."
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        variant_id = data.get("variant_id", None)
+    def perform_mutation(cls, _root, info, variant_id):
         wishlist = resolve_wishlist_from_info(info)
-        variant = cls.get_node_or_error(
-            info, variant_id, only_type=ProductVariant, field="variant_id"
-        )
-        wishlist.remove_variant(variant)
-        return WishlistRemoveProductVariantMutation(wishlist=wishlist)
+        variant = cls.get_node_or_error(info, variant_id, only_type="ProductVariant")
+        wishlist.variants.add(variant)
+        return cls(wishlist=wishlist)
+
+
+class WishlistRemoveProductVariantMutation(_BaseWishlistMutation):
+    class Arguments:
+        variant_id = graphene.ID(required=True, description="Product Variant ID.")
+
+    class Meta:
+        description = "Add a variant to Wishlist catalogue"
+        model = models.Wishlist
+        error_type_class = WishlistError
+
+    @classmethod
+    def perform_mutation(cls, _root, info, variant_id):
+        wishlist = resolve_wishlist_from_info(info)
+        variant = cls.get_node_or_error(info, variant_id, only_type="ProductVariant")
+        wishlist.variants.remove(variant)
+        return cls(wishlist=wishlist)
