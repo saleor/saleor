@@ -219,7 +219,6 @@ def fetch_checkout_lines(
         "variant__product__collections",
         "variant__product__channel_listings__channel",
         "variant__channel_listings__channel",
-        "variant__product__product_type",
     ]
     if prefetch_variant_attributes:
         prefetch_related_fields.extend(
