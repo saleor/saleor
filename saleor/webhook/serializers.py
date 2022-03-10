@@ -1,11 +1,12 @@
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import graphene
 
 from ..attribute import AttributeEntityType, AttributeInputType
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
+from ..discount import DiscountInfo
 from ..product.models import Product
 
 if TYPE_CHECKING:
@@ -14,7 +15,9 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
+def serialize_checkout_lines(
+    checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
+) -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
@@ -24,7 +27,9 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
         channel_listing = line_info.channel_listing
         collections = line_info.collections
         product = variant.product
-        base_price = variant.get_price(product, collections, channel, channel_listing)
+        base_price = variant.get_price(
+            product, collections, channel, channel_listing, discounts or []
+        )
         data.append(
             {
                 "sku": variant.sku,

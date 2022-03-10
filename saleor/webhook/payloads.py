@@ -21,6 +21,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -408,7 +409,6 @@ def generate_checkout_payload(
         "discount_name",
         "private_metadata",
         "metadata",
-        "channel",
     )
 
     checkout_price_fields = ("discount_amount",)
@@ -416,7 +416,9 @@ def generate_checkout_payload(
     user_fields = ("email", "first_name", "last_name")
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-    lines_dict_data = serialize_checkout_lines(checkout)
+
+    discounts = fetch_active_discounts()
+    lines_dict_data = serialize_checkout_lines(checkout, discounts)
 
     # todo use the most appropriate warehouse
     warehouse = None
