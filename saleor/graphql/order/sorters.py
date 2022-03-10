@@ -2,21 +2,35 @@ import graphene
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.types import SortInputObjectType
 
 
 class OrderSortField(graphene.Enum):
     NUMBER = ["pk"]
     CREATION_DATE = ["created", "status", "pk"]
+    CREATED_AT = ["created", "status", "pk"]
+    LAST_MODIFIED_AT = ["updated_at", "status", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "status", "pk"]
     FULFILLMENT_STATUS = ["status", "user_email", "pk"]
 
     @property
     def description(self):
+        # pylint: disable=no-member
+        descriptions = {
+            OrderSortField.CREATION_DATE.name: (
+                f"creation date. {DEPRECATED_IN_3X_INPUT}"
+            ),
+        }
+
         if self.name in OrderSortField.__enum__._member_names_:
+            if self.name in descriptions:
+                return f"Sort orders by {descriptions[self.name]}"
+
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort orders by {sort_name}."
+
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
