@@ -1,50 +1,31 @@
 import graphene
 
-from saleor.graphql.channel import ChannelContext, ChannelQsContext
-from saleor.graphql.core.connection import (
-    CountableDjangoObjectType,
-    create_connection_slice,
-)
-from saleor.graphql.core.fields import ConnectionField
-from saleor.graphql.product.types import Product, ProductVariantCountableConnection
+from saleor.graphql.core.connection import CountableDjangoObjectType
 
 from .. import models
 
 
 class Wishlist(CountableDjangoObjectType):
+    products = graphene.List(graphene.ID, description="List of products IDs.")
+    variants = graphene.List(graphene.ID, description="List of variants IDs.")
+
     class Meta:
-        filter_fields = ["id"]
         model = models.Wishlist
-        interfaces = [graphene.relay.Node]
-        description = "Current user's wishlist."
-        only_fields = ["id", "created_at", "items"]
+        filter_fields = [
+            "id",
+            "token",
+        ]
+        interfaces = (graphene.relay.Node,)
+        exclude = ["user", "token"]
 
+    def resolve_variants(root, info):
+        return [
+            graphene.Node.to_global_id("ProductVariant", id)
+            for id in root.variants.values_list("id", flat=True)
+        ]
 
-class WishlistItem(CountableDjangoObjectType):
-    variants = ConnectionField(
-        ProductVariantCountableConnection,
-        description="List of variants for the wishlist.",
-    )
-    product = graphene.Field(Product, description="Product for the wishlist item.")
-
-    class Meta:
-        filter_fields = ["id"]
-        model = models.WishlistItem
-        description = "Wishlist item."
-        interfaces = [graphene.relay.Node]
-        only_fields = ["id", "wishlist", "product", "variants"]
-
-    @staticmethod
-    def resolve_variants(root, info, **kwargs):
-        qs = ChannelQsContext(qs=root.variants.all(), channel_slug=None)
-        return create_connection_slice(
-            qs, info, kwargs, ProductVariantCountableConnection
-        )
-
-    @staticmethod
-    def resolve_product(root, info, **kwargs):
-        return (
-            ChannelContext(node=root.product, channel_slug=None)
-            if root.product
-            else None
-        )
+    def resolve_products(root, info):
+        return [
+            graphene.Node.to_global_id("Product", id)
+            for id in root.products.values_list("id", flat=True)
+        ]
