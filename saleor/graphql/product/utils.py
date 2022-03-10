@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 from django.db.utils import IntegrityError
 
 from ...core.tracing import traced_atomic_transaction
@@ -120,25 +120,24 @@ def clean_variant_sku(sku: Optional[str]) -> Optional[str]:
 
 
 def update_ordered_media(ordered_media):
-    for order, media in enumerate(ordered_media):
-        media.sort_order = order
-        try:
-            media.save(update_fields=["sort_order"])
-        except DatabaseError as e:
-            msg = (
-                "Cannot update media for instance: %s. "
-                "Possible updating not existing object. "
-                "Details: %s.",
-                media,
-                str(e),
-            )
-            logger.warning(msg)
+    errors = defaultdict(list)
+    with transaction.atomic():
+        for order, media in enumerate(ordered_media):
+            media.sort_order = order
+            try:
+                media.save(update_fields=["sort_order"])
+            except DatabaseError as e:
+                msg = (
+                    "Cannot update media for instance: %s. "
+                    "Updating not existing object. "
+                    "Details: %s.",
+                    media,
+                    str(e),
+                )
+                logger.warning(msg)
+                errors["media"].append(
+                    ValidationError(msg, code=ProductErrorCode.NOT_FOUND.value)
+                )
 
-            raise ValidationError(
-                {
-                    "order": ValidationError(
-                        msg,
-                        code=ProductErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
+    if errors:
+        raise ValidationError(errors)

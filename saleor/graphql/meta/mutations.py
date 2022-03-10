@@ -41,7 +41,7 @@ def _save_instance(instance, metadata_field: str):
     except DatabaseError as e:
         msg = (
             "Cannot update metadata for instance: %s. "
-            "Possible updating not existing object. "
+            "Updating not existing object. "
             "Details: %s.",
             instance,
             str(e),
@@ -51,7 +51,7 @@ def _save_instance(instance, metadata_field: str):
             {
                 "metadata": ValidationError(
                     msg,
-                    code=MetadataErrorCode.NOT_UPDATED.value,
+                    code=MetadataErrorCode.NOT_FOUND.value,
                 )
             }
         )

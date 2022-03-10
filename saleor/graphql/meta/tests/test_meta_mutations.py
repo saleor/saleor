@@ -781,7 +781,7 @@ def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkou
     assert not Checkout.objects.filter(pk=checkout.pk).first()
     assert (
         response["data"]["updateMetadata"]["errors"][0]["code"]
-        == MetadataErrorCode.NOT_UPDATED.name
+        == MetadataErrorCode.NOT_FOUND.name
     )
 
 
