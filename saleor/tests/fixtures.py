@@ -128,7 +128,6 @@ from ..warehouse.models import (
 )
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
-from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
 
 
@@ -5158,32 +5157,6 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
-
-
-@pytest.fixture
-def customer_wishlist(customer_user):
-    return Wishlist.objects.create(user=customer_user)
-
-
-@pytest.fixture
-def customer_wishlist_item(customer_wishlist, product_with_single_variant):
-    product = product_with_single_variant
-    assert product.variants.count() == 1
-    variant = product.variants.first()
-    item = customer_wishlist.add_variant(variant)
-    return item
-
-
-@pytest.fixture
-def customer_wishlist_item_with_two_variants(
-    customer_wishlist, product_with_two_variants
-):
-    product = product_with_two_variants
-    assert product.variants.count() == 2
-    [variant_1, variant_2] = product.variants.all()
-    item = customer_wishlist.add_variant(variant_1)
-    item.variants.add(variant_2)
-    return item
 
 
 @pytest.fixture

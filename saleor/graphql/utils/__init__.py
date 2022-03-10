@@ -6,10 +6,10 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id
 
 from ..core.enums import PermissionEnum
 from ..core.types import Permission
+from ..core.utils import from_global_id_or_error
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -33,7 +33,7 @@ def resolve_global_ids_to_primary_keys(
             continue
 
         try:
-            node_type, _id = from_global_id(graphql_id)
+            node_type, _id = from_global_id_or_error(graphql_id)
         except Exception:
             invalid_ids.append(graphql_id)
             continue
@@ -79,7 +79,6 @@ def get_nodes(
     nodes_type, pks = resolve_global_ids_to_primary_keys(
         ids, graphene_type, raise_error=True
     )
-
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
     # types.

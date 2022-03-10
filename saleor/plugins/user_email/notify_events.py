@@ -34,6 +34,9 @@ def send_account_password_reset_event(
         constants.ACCOUNT_PASSWORD_RESET_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ACCOUNT_PASSWORD_RESET_SUBJECT_FIELD,
@@ -56,6 +59,9 @@ def send_account_confirmation(payload: dict, config: dict, plugin: "UserEmailPlu
         constants.ACCOUNT_CONFIRMATION_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ACCOUNT_CONFIRMATION_SUBJECT_FIELD,
@@ -76,6 +82,9 @@ def send_account_change_email_request(
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_SUBJECT_FIELD,
@@ -96,6 +105,9 @@ def send_account_change_email_confirm(
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_SUBJECT_FIELD,
@@ -114,6 +126,9 @@ def send_account_delete(payload: dict, config: dict, plugin: "UserEmailPlugin"):
         constants.ACCOUNT_DELETE_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ACCOUNT_DELETE_SUBJECT_FIELD,
@@ -132,6 +147,9 @@ def send_gift_card(payload: dict, config: dict, plugin: "UserEmailPlugin"):
         constants.SEND_GIFT_CARD_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
 
     subject = get_email_subject(
         plugin.configuration,
@@ -151,6 +169,9 @@ def send_account_set_customer_password(
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_SUBJECT_FIELD,
@@ -169,6 +190,9 @@ def send_invoice(payload: dict, config: dict, plugin: "UserEmailPlugin"):
         constants.INVOICE_READY_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.INVOICE_READY_SUBJECT_FIELD,
@@ -185,6 +209,9 @@ def send_order_confirmation(payload: dict, config: dict, plugin: "UserEmailPlugi
         constants.ORDER_CONFIRMATION_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_CONFIRMATION_SUBJECT_FIELD,
@@ -205,6 +232,9 @@ def send_fulfillment_confirmation(
         constants.ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD,
@@ -223,6 +253,9 @@ def send_fulfillment_update(payload: dict, config: dict, plugin: "UserEmailPlugi
         constants.ORDER_FULFILLMENT_UPDATE_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_FULFILLMENT_UPDATE_SUBJECT_FIELD,
@@ -241,6 +274,9 @@ def send_payment_confirmation(payload: dict, config: dict, plugin: "UserEmailPlu
         constants.ORDER_PAYMENT_CONFIRMATION_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_PAYMENT_CONFIRMATION_SUBJECT_FIELD,
@@ -259,6 +295,9 @@ def send_order_canceled(payload: dict, config: dict, plugin: "UserEmailPlugin"):
         constants.ORDER_CANCELED_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_CANCELED_SUBJECT_FIELD,
@@ -277,6 +316,9 @@ def send_order_refund(payload: dict, config: dict, plugin: "UserEmailPlugin"):
         constants.ORDER_REFUND_CONFIRMATION_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_REFUND_CONFIRMATION_SUBJECT_FIELD,
@@ -295,6 +337,9 @@ def send_order_confirmed(payload: dict, config: dict, plugin: "UserEmailPlugin")
         constants.ORDER_CONFIRMED_DEFAULT_TEMPLATE,
         constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
+    if not template:
+        # Empty template means that we don't want to trigger a given event.
+        return
     subject = get_email_subject(
         plugin.configuration,
         constants.ORDER_CONFIRMED_SUBJECT_FIELD,

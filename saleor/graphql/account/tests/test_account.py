@@ -4884,12 +4884,16 @@ QUERY_CUSTOMERS_WITH_SORT = """
         ({"field": "EMAIL", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
         ({"field": "ORDER_COUNT", "direction": "ASC"}, ["John", "Leslie", "Joe"]),
         ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
+        ({"field": "CREATED_AT", "direction": "ASC"}, ["John", "Joe", "Leslie"]),
+        ({"field": "CREATED_AT", "direction": "DESC"}, ["Leslie", "Joe", "John"]),
+        ({"field": "LAST_MODIFIED_AT", "direction": "ASC"}, ["Leslie", "John", "Joe"]),
+        ({"field": "LAST_MODIFIED_AT", "direction": "DESC"}, ["Joe", "John", "Leslie"]),
     ],
 )
 def test_query_customers_with_sort(
     customer_sort, result_order, staff_api_client, permission_manage_users, channel_USD
 ):
-    User.objects.bulk_create(
+    users = User.objects.bulk_create(
         [
             User(
                 first_name="John",
@@ -4914,9 +4918,15 @@ def test_query_customers_with_sort(
             ),
         ]
     )
+
+    users[2].save()
+    users[0].save()
+    users[1].save()
+
     Order.objects.create(
         user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
     )
+
     variables = {"sort_by": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_SORT, variables)

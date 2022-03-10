@@ -608,6 +608,10 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
         ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0]),
         ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1]),
         ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1]),
+        ({"field": "CREATED_AT", "direction": "ASC"}, [1, 0]),
+        ({"field": "CREATED_AT", "direction": "DESC"}, [2, 0]),
+        ({"field": "LAST_MODIFIED_AT", "direction": "ASC"}, [2, 0]),
+        ({"field": "LAST_MODIFIED_AT", "direction": "DESC"}, [1, 0]),
     ],
 )
 def test_query_orders_pagination_with_sort(
@@ -654,6 +658,11 @@ def test_query_orders_pagination_with_sort(
             channel=channel_USD,
         )
     )
+
+    created_orders[2].save()
+    created_orders[0].save()
+    created_orders[1].save()
+
     page_size = 2
     variables = {"first": page_size, "after": None, "sortBy": order_sort}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
