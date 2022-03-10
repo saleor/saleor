@@ -848,7 +848,6 @@ ORDER_LINE_FIELDS = (
     "unit_discount_amount",
     "unit_discount_type",
     "unit_discount_reason",
-    "tax_rate",
     "sale_id",
     "voucher_code",
 )
@@ -915,17 +914,20 @@ def _generate_order_line_prices_data_with_taxes(
     }
 
 
-def _generate_order_line_prices_data_without_taxes() -> Dict[
-    str, Callable[[OrderLine], Decimal]
-]:
+def _generate_order_line_prices_data_without_taxes(
+    order: Order,
+) -> Dict[str, Callable[[OrderLine], Decimal]]:
+    def qp(price: Decimal) -> Decimal:
+        return quantize_price(price, order.currency)
+
     return {
-        "unit_price_net_amount": (lambda l: l.unit_price_net_amount),
-        "total_price_net_amount": (lambda l: l.total_price_net_amount),
+        "unit_price_net_amount": (lambda l: qp(l.unit_price_net_amount)),
+        "total_price_net_amount": (lambda l: qp(l.total_price_net_amount)),
         "undiscounted_unit_price_net_amount": (
-            lambda l: l.undiscounted_unit_price_net_amount
+            lambda l: qp(l.undiscounted_unit_price_net_amount)
         ),
         "undiscounted_total_price_net_amount": (
-            lambda l: l.undiscounted_total_price_net_amount
+            lambda l: qp(l.undiscounted_total_price_net_amount)
         ),
     }
 
@@ -1165,7 +1167,7 @@ def generate_order_payload_without_taxes(
         with_meta,
         lines=lines,
         order_prices_data=_generate_order_prices_data_without_taxes(order),
-        order_lines_prices_data=_generate_order_line_prices_data_without_taxes(),
+        order_lines_prices_data=_generate_order_line_prices_data_without_taxes(order),
     )
 
 
@@ -1176,10 +1178,6 @@ CHECKOUT_FIELDS = (
     "email",
     "quantity",
     "currency",
-    "subtotal_net_amount",
-    "subtotal_gross_amount",
-    "total_net_amount",
-    "total_gross_amount",
     "discount_amount",
     "discount_name",
     "private_metadata",
@@ -1291,20 +1289,24 @@ def _get_line_prices_data_with_taxes(
     lines: Iterable[CheckoutLineInfo],
     line_info: CheckoutLineInfo,
 ) -> Dict[str, Decimal]:
-
-    unit_price = checkout_calculations.checkout_line_unit_price(
+    currency = checkout_info.checkout.currency
+    unit_price_data = checkout_calculations.checkout_line_unit_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
         discounts=[],
-    ).price_with_sale
-
-    quantized_unit_price = quantize_price(unit_price, checkout_info.checkout.currency)
+    )
+    unit_price = quantize_price(unit_price_data.price_with_sale, currency)
+    unit_price_with_discounts = quantize_price(
+        unit_price_data.price_with_discounts, currency
+    )
 
     return {
-        "price_net_amount": quantized_unit_price.net.amount,
-        "price_gross_amount": quantized_unit_price.gross.amount,
+        "price_net_amount": unit_price.net.amount,
+        "price_gross_amount": unit_price.gross.amount,
+        "price_with_discounts_net_amount": unit_price_with_discounts.net.amount,
+        "price_with_discounts_gross_amount": unit_price_with_discounts.gross.amount,
     }
 
 
@@ -1314,8 +1316,13 @@ def _get_line_prices_data_without_taxes(
 ) -> Dict[str, Decimal]:
     return {
         "price_net_amount": quantize_price(
-            line_info.line.unit_price_net_amount, checkout.currency
-        )
+            line_info.line.unit_price_net_amount,
+            checkout.currency,
+        ),
+        "price_with_discounts_net_amount": quantize_price(
+            line_info.line.unit_price_with_discounts_net_amount,
+            checkout.currency,
+        ),
     }
 
 

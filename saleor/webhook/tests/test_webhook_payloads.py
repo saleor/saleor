@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
@@ -12,7 +12,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from freezegun import freeze_time
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ... import __version__
 from ...core.prices import quantize_price
@@ -34,6 +34,7 @@ from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
     _generate_collection_point_payload,
     generate_checkout_payload,
+    generate_checkout_payload_without_taxes,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
@@ -43,6 +44,7 @@ from ..payloads import (
     generate_list_gateways_payload,
     generate_meta,
     generate_order_payload,
+    generate_order_payload_without_taxes,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
@@ -52,9 +54,13 @@ from ..payloads import (
 )
 
 
+@pytest.mark.parametrize(
+    "test_function", [generate_order_payload, generate_order_payload_without_taxes]
+)
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
     mocked_fulfillment_lines,
+    test_function,
     order_with_lines,
     fulfilled_order,
     payment_txn_captured,
@@ -95,7 +101,7 @@ def test_generate_order_payload(
     fulfillment = fulfilled_order.fulfillments.first()
 
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
-    payload = json.loads(generate_order_payload(order_with_lines))[0]
+    payload = json.loads(test_function(order_with_lines))[0]
 
     assert order_id == payload["id"]
     non_empty_fields = [f for f in ORDER_FIELDS if f != "collection_point_name"]
@@ -105,7 +111,6 @@ def test_generate_order_payload(
     assert payload["collection_point_name"] is None
     assert payload.get("token") == order_with_lines.token
     assert payload.get("shipping_method")
-    assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
     assert payload.get("shipping_address")
     assert payload.get("billing_address")
@@ -149,32 +154,119 @@ def test_generate_order_payload(
     mocked_fulfillment_lines.assert_called_with(fulfillment)
 
 
-def test_generate_order_payload_prices(order_with_lines):
+@pytest.fixture
+def mocked_fetch_order():
+    def mocked_fetch_side_effect(order, manager, lines, force_update=False):
+        return order, lines
+
+    with patch(
+        "saleor.order.calculations.fetch_order_prices_if_expired",
+        new=Mock(side_effect=mocked_fetch_side_effect),
+    ) as mocked_fetch:
+        yield mocked_fetch
+
+
+def test_generate_order_payload_prices(mocked_fetch_order, order_with_lines):
     # given
     order = order_with_lines
 
     def qp(price):
-        return quantize_price(price, order.currency)
+        return str(quantize_price(price, order.currency))
 
     # when
     payload = json.loads(generate_order_payload(order_with_lines))[0]
 
     # then
-    assert payload["shipping_price_net_amount"] == str(
-        qp(order.shipping_price.net.amount)
+    assert payload["shipping_price_net_amount"] == qp(order.shipping_price.net.amount)
+
+    assert payload["shipping_price_gross_amount"] == qp(
+        order.shipping_price.gross.amount
     )
-    assert payload["shipping_price_gross_amount"] == str(
-        qp(order.shipping_price.gross.amount)
-    )
+
     assert payload["shipping_tax_rate"] == str(order.shipping_tax_rate)
-    assert payload["total_net_amount"] == str(qp(order.total.net.amount))
-    assert payload["total_gross_amount"] == str(qp(order.total.gross.amount))
-    assert payload["undiscounted_total_net_amount"] == str(
-        qp(order.undiscounted_total.net.amount)
+    assert payload["total_net_amount"] == qp(order.total.net.amount)
+    assert payload["total_gross_amount"] == qp(order.total.gross.amount)
+    assert payload["undiscounted_total_net_amount"] == qp(
+        order.undiscounted_total.net.amount
     )
-    assert payload["undiscounted_total_gross_amount"] == str(
-        qp(order.undiscounted_total.gross.amount)
+
+    assert payload["undiscounted_total_gross_amount"] == qp(
+        order.undiscounted_total.gross.amount
     )
+
+    for payload_line, order_line in zip(payload["lines"], order.lines.all()):
+        assert payload_line["unit_price_net_amount"] == qp(
+            order_line.unit_price.net.amount
+        )
+        assert payload_line["unit_price_gross_amount"] == qp(
+            order_line.unit_price.gross.amount
+        )
+        assert payload_line["total_price_net_amount"] == qp(
+            order_line.total_price.net.amount
+        )
+        assert payload_line["total_price_gross_amount"] == qp(
+            order_line.total_price.gross.amount
+        )
+        assert payload_line["undiscounted_unit_price_net_amount"] == qp(
+            order_line.undiscounted_unit_price.net.amount
+        )
+        assert payload_line["undiscounted_unit_price_gross_amount"] == qp(
+            order_line.undiscounted_unit_price.gross.amount
+        )
+        assert payload_line["undiscounted_total_price_net_amount"] == qp(
+            order_line.undiscounted_total_price.net.amount
+        )
+        assert payload_line["undiscounted_total_price_gross_amount"] == qp(
+            order_line.undiscounted_total_price.gross.amount
+        )
+
+        assert payload_line["tax_rate"] == str(order_line.tax_rate)
+
+    mocked_fetch_order.assert_called()
+
+
+def test_generate_order_payload_without_taxes_prices(
+    mocked_fetch_order, order_with_lines
+):
+    # given
+    order = order_with_lines
+
+    def qp(price):
+        return str(quantize_price(price, order.currency))
+
+    # when
+    payload = json.loads(generate_order_payload_without_taxes(order))[0]
+
+    # then
+    assert payload["shipping_price_net_amount"] == qp(order.shipping_price.net.amount)
+    assert "shipping_price_gross_amount" not in payload
+    assert "shipping_tax_rate" not in payload
+    assert payload["total_net_amount"] == qp(order.total.net.amount)
+    assert "total_gross_amount" not in payload
+    assert payload["undiscounted_total_net_amount"] == qp(
+        order.undiscounted_total.net.amount
+    )
+    assert "undiscounted_total_gross_amount" not in payload
+    for payload_line, order_line in zip(payload["lines"], order.lines.all()):
+        assert payload_line["unit_price_net_amount"] == qp(
+            order_line.unit_price.net.amount
+        )
+        assert "unit_price_gross_amount" not in payload_line
+        assert payload_line["total_price_net_amount"] == qp(
+            order_line.total_price.net.amount
+        )
+        assert "total_price_gross_amount" not in payload_line
+        assert payload_line["undiscounted_unit_price_net_amount"] == qp(
+            order_line.undiscounted_unit_price.net.amount
+        )
+        assert "undiscounted_unit_price_gross_amount" not in payload_line
+        assert payload_line["undiscounted_total_price_net_amount"] == qp(
+            order_line.undiscounted_total_price.net.amount
+        )
+        assert "undiscounted_total_price_gross_amount" not in payload_line
+        assert "tax_rate" not in payload_line
+
+    mocked_fetch_order.assert_not_called()
 
 
 def test_generate_fulfillment_lines_payload(order_with_lines):
@@ -250,7 +342,12 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     assert payload["weight"] is None
 
 
-def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
+@pytest.mark.parametrize(
+    "test_function", [generate_order_payload, generate_order_payload_without_taxes]
+)
+def test_order_lines_have_all_required_fields(
+    test_function, order, order_line_with_one_allocation
+):
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
     line.voucher_code = "Voucher001"
@@ -261,76 +358,43 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line.sale_id = graphene.Node.to_global_id("Sale", 1)
     line.save()
 
-    payload = json.loads(generate_order_payload(order))[0]
+    payload = json.loads(test_function(order))[0]
     lines_payload = payload.get("lines")
 
     assert len(lines_payload) == 1
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
-    line_payload = lines_payload[0]
-    unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.01"))
-    unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.01"))
     unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.01"))
+    line_payload = lines_payload[0]
     allocation = line.allocations.first()
-    undiscounted_unit_price_net_amount = (
-        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.01"))
-    )
-    undiscounted_unit_price_gross_amount = (
-        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.01"))
-    )
-    undiscounted_total_price_net_amount = (
-        line.undiscounted_total_price.net.amount.quantize(Decimal("0.01"))
-    )
-    undiscounted_total_price_gross_amount = (
-        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.01"))
-    )
-
-    total_line = line.total_price
     global_warehouse_id = graphene.Node.to_global_id(
         "Warehouse", allocation.stock.warehouse_id
     )
     product = line.variant.product
     product_type = product.product_type
-    assert line_payload == {
-        "id": line_id,
-        "type": "OrderLine",
-        "product_name": line.product_name,
-        "variant_name": line.variant_name,
-        "translated_product_name": line.translated_product_name,
-        "translated_variant_name": line.translated_variant_name,
-        "product_sku": line.product_sku,
-        "product_variant_id": line.product_variant_id,
-        "quantity": line.quantity,
-        "currency": line.currency,
-        "unit_discount_amount": str(unit_discount_amount),
-        "unit_discount_type": line.unit_discount_type,
-        "unit_discount_reason": line.unit_discount_reason,
-        "unit_price_net_amount": str(unit_net_amount),
-        "unit_price_gross_amount": str(unit_gross_amount),
-        "total_price_net_amount": str(total_line.net.amount.quantize(Decimal("0.01"))),
-        "total_price_gross_amount": str(
-            total_line.gross.amount.quantize(Decimal("0.01"))
-        ),
-        "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
-        "charge_taxes": line.variant.product.charge_taxes,
-        "allocations": [
-            {
-                "warehouse_id": global_warehouse_id,
-                "quantity_allocated": allocation.quantity_allocated,
-            }
-        ],
-        "undiscounted_unit_price_net_amount": str(undiscounted_unit_price_net_amount),
-        "undiscounted_unit_price_gross_amount": str(
-            undiscounted_unit_price_gross_amount
-        ),
-        "undiscounted_total_price_net_amount": str(undiscounted_total_price_net_amount),
-        "undiscounted_total_price_gross_amount": str(
-            undiscounted_total_price_gross_amount
-        ),
-        "product_metadata": product.metadata,
-        "product_type_metadata": product_type.metadata,
-        "voucher_code": line.voucher_code,
-        "sale_id": line.sale_id,
-    }
+    assert line_payload["id"] == line_id
+    assert line_payload["type"] == "OrderLine"
+    assert line_payload["product_name"] == line.product_name
+    assert line_payload["variant_name"] == line.variant_name
+    assert line_payload["translated_product_name"] == line.translated_product_name
+    assert line_payload["translated_variant_name"] == line.translated_variant_name
+    assert line_payload["product_sku"] == line.product_sku
+    assert line_payload["product_variant_id"] == line.product_variant_id
+    assert line_payload["quantity"] == line.quantity
+    assert line_payload["currency"] == line.currency
+    assert line_payload["unit_discount_amount"] == str(unit_discount_amount)
+    assert line_payload["unit_discount_type"] == line.unit_discount_type
+    assert line_payload["unit_discount_reason"] == line.unit_discount_reason
+    assert line_payload["charge_taxes"] == line.variant.product.charge_taxes
+    assert line_payload["allocations"] == [
+        {
+            "warehouse_id": global_warehouse_id,
+            "quantity_allocated": allocation.quantity_allocated,
+        }
+    ]
+    assert line_payload["product_metadata"] == product.metadata
+    assert line_payload["product_type_metadata"] == product_type.metadata
+    assert line_payload["voucher_code"] == line.voucher_code
+    assert line_payload["sale_id"] == line.sale_id
 
 
 def test_order_line_without_sku_still_has_id(order, order_line_with_one_allocation):
@@ -957,11 +1021,14 @@ def test_generate_sale_payload_calculates_set_differences(sale):
 
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines")
-@patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "test_function",
+    [generate_checkout_payload, generate_checkout_payload_without_taxes],
+)
 def test_generate_checkout_payload(
-    mocked_fetch,
     mocked_serialize,
+    test_function,
     checkout,
     customer_user,
     address,
@@ -971,33 +1038,16 @@ def test_generate_checkout_payload(
     taxes_included,
     warehouse,
 ):
-    # given
-    mocked_fetch.side_effect = (
-        lambda checkout_info, manager, lines, address, discounts, force_update=False: (
-            checkout_info,
-            lines,
-        )
-    )
-    checkout_lines_data = {"data": "checkout_lines_data"}
-    mocked_serialize.return_value = checkout_lines_data
-
     def parse_django_datetime(date):
         return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
 
     site_settings.include_taxes_in_prices = taxes_included
     site_settings.save(update_fields=["include_taxes_in_prices"])
 
-    checkout = checkout
     billing_address = address
     shipping_address = address_other_country
     collection_point = warehouse
     user = customer_user
-    subtotal = TaxedMoney(
-        Money("100.00", checkout.currency), Money("123.00", checkout.currency)
-    )
-    total = TaxedMoney(
-        Money("200.00", checkout.currency), Money("246.00", checkout.currency)
-    )
 
     checkout.discount_amount = Decimal("0.00")
     checkout.user = user
@@ -1005,8 +1055,6 @@ def test_generate_checkout_payload(
     checkout.shipping_address = shipping_address
     checkout.shipping_method = shipping_method
     checkout.collection_point = collection_point
-    checkout.subtotal = subtotal
-    checkout.total = total
     checkout.save(
         update_fields=[
             "discount_amount",
@@ -1015,85 +1063,196 @@ def test_generate_checkout_payload(
             "shipping_address",
             "shipping_method",
             "collection_point",
+        ]
+    )
+
+    serialized_checkout_lines = {"data": "checkout_lines_data"}
+    mocked_serialize.return_value = serialized_checkout_lines
+
+    # when
+    payload = json.loads(test_function(checkout))[0]
+
+    # then
+    assert payload["type"] == "Checkout"
+    assert payload["token"] == graphene.Node.to_global_id("Checkout", checkout.pk)
+    assert payload["created"] == parse_django_datetime(checkout.created)
+    assert payload["last_change"] == parse_django_datetime(checkout.last_change)
+    assert payload["email"] == checkout.email
+    assert payload["currency"] == checkout.currency
+    assert payload["discount_amount"] == str(
+        quantize_price(checkout.discount_amount, checkout.currency)
+    )
+    assert payload["discount_name"] == checkout.discount_name
+    assert payload["private_metadata"] == checkout.private_metadata
+    assert payload["metadata"] == checkout.metadata
+    assert payload["channel"] == checkout.channel_id
+    assert payload["user"] == {
+        "type": "User",
+        "id": graphene.Node.to_global_id("User", user.pk),
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    }
+    assert payload["billing_address"] == {
+        "type": "Address",
+        "id": graphene.Node.to_global_id("Address", billing_address.pk),
+        "first_name": billing_address.first_name,
+        "last_name": billing_address.last_name,
+        "company_name": billing_address.company_name,
+        "street_address_1": billing_address.street_address_1,
+        "street_address_2": billing_address.street_address_2,
+        "city": billing_address.city,
+        "city_area": billing_address.city_area,
+        "postal_code": billing_address.postal_code,
+        "country": billing_address.country.code,
+        "country_area": billing_address.country_area,
+        "phone": str(billing_address.phone),
+    }
+    assert payload["shipping_address"] == {
+        "type": "Address",
+        "id": graphene.Node.to_global_id("Address", shipping_address.pk),
+        "first_name": shipping_address.first_name,
+        "last_name": shipping_address.last_name,
+        "company_name": shipping_address.company_name,
+        "street_address_1": shipping_address.street_address_1,
+        "street_address_2": shipping_address.street_address_2,
+        "city": shipping_address.city,
+        "city_area": shipping_address.city_area,
+        "postal_code": shipping_address.postal_code,
+        "country": shipping_address.country.code,
+        "country_area": shipping_address.country_area,
+        "phone": str(shipping_address.phone),
+    }
+    assert payload["shipping_method"] == {
+        "id": graphene.Node.to_global_id("ShippingMethod", shipping_method.pk),
+        "name": shipping_method.name,
+        "type": shipping_method.type,
+    }
+    assert payload["included_taxes_in_price"] == taxes_included
+    assert (
+        payload["collection_point"]
+        == json.loads(_generate_collection_point_payload(collection_point))[0]
+    )
+    assert payload["meta"]
+    assert payload["warehouse_address"]
+    assert payload["lines"] == serialized_checkout_lines
+
+
+@pytest.fixture
+def checkout_with_prices(checkout_with_items):
+    lines = checkout_with_items.lines.all()
+    for i, line in enumerate(lines):
+        line.unit_price_net_amount = Decimal("10.00") + Decimal(i)
+        line.unit_price_gross_amount = Decimal("10.00") + Decimal(i) * Decimal("1.1")
+        line.unit_price_with_discounts_net_amount = (
+            Decimal("10.00") + Decimal(i) - Decimal("0.30")
+        )
+        line.unit_price_with_discounts_gross_amount = (
+            Decimal("10.00") + Decimal(i) * Decimal("1.1") - Decimal("0.30")
+        )
+
+    checkout_with_items.subtotal_net_amount = Decimal("100.00")
+    checkout_with_items.subtotal_gross_amount = Decimal("123.00")
+    checkout_with_items.total_net_amount = Decimal("150.00")
+    checkout_with_items.total_gross_amount = Decimal("178.00")
+
+    checkout_with_items.lines.bulk_update(
+        lines,
+        [
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "unit_price_with_discounts_net_amount",
+            "unit_price_with_discounts_gross_amount",
+        ],
+    )
+    checkout_with_items.save(
+        update_fields=[
             "subtotal_net_amount",
             "subtotal_gross_amount",
             "total_net_amount",
             "total_gross_amount",
         ]
     )
+    return checkout_with_items
+
+
+@pytest.fixture
+def mocked_fetch_checkout():
+    def mocked_fetch_side_effect(
+        checkout_info, manager, lines, address, discounts, force_update=False
+    ):
+        return checkout_info, lines
+
+    with patch(
+        "saleor.checkout.calculations.fetch_checkout_prices_if_expired",
+        new=Mock(side_effect=mocked_fetch_side_effect),
+    ) as mocked_fetch:
+        yield mocked_fetch
+
+
+def test_generate_checkout_payload_prices(
+    mocked_fetch_checkout,
+    checkout_with_prices,
+):
+    # given
+    checkout = checkout_with_prices
+
+    def qp(price):
+        return str(quantize_price(price, checkout.currency))
 
     # when
     payload = json.loads(generate_checkout_payload(checkout))[0]
 
     # then
-    assert payload == {
-        "type": "Checkout",
-        "token": graphene.Node.to_global_id("Checkout", checkout.pk),
-        "created": parse_django_datetime(checkout.created),
-        "last_change": parse_django_datetime(checkout.last_change),
-        "email": checkout.email,
-        "currency": checkout.currency,
-        "discount_amount": str(
-            quantize_price(checkout.discount_amount, checkout.currency)
-        ),
-        "discount_name": checkout.discount_name,
-        "private_metadata": checkout.private_metadata,
-        "metadata": checkout.metadata,
-        "channel": checkout.channel_id,
-        "user": {
-            "type": "User",
-            "id": graphene.Node.to_global_id("User", user.pk),
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-        },
-        "billing_address": {
-            "type": "Address",
-            "id": graphene.Node.to_global_id("Address", billing_address.pk),
-            "first_name": billing_address.first_name,
-            "last_name": billing_address.last_name,
-            "company_name": billing_address.company_name,
-            "street_address_1": billing_address.street_address_1,
-            "street_address_2": billing_address.street_address_2,
-            "city": billing_address.city,
-            "city_area": billing_address.city_area,
-            "postal_code": billing_address.postal_code,
-            "country": billing_address.country.code,
-            "country_area": billing_address.country_area,
-            "phone": str(billing_address.phone),
-        },
-        "shipping_address": {
-            "type": "Address",
-            "id": graphene.Node.to_global_id("Address", shipping_address.pk),
-            "first_name": shipping_address.first_name,
-            "last_name": shipping_address.last_name,
-            "company_name": shipping_address.company_name,
-            "street_address_1": shipping_address.street_address_1,
-            "street_address_2": shipping_address.street_address_2,
-            "city": shipping_address.city,
-            "city_area": shipping_address.city_area,
-            "postal_code": shipping_address.postal_code,
-            "country": shipping_address.country.code,
-            "country_area": shipping_address.country_area,
-            "phone": str(shipping_address.phone),
-        },
-        "shipping_method": {
-            "id": graphene.Node.to_global_id("ShippingMethod", shipping_method.pk),
-            "name": shipping_method.name,
-            "type": shipping_method.type,
-        },
-        "included_taxes_in_price": taxes_included,
-        "lines": checkout_lines_data,
-        "subtotal_net_amount": str(subtotal.net.amount),
-        "subtotal_gross_amount": str(subtotal.gross.amount),
-        "total_net_amount": str(total.net.amount),
-        "total_gross_amount": str(total.gross.amount),
-        "collection_point": json.loads(
-            _generate_collection_point_payload(collection_point)
-        )[0],
-        "meta": ANY,
-        "warehouse_address": ANY,
-    }
+    assert payload["subtotal_net_amount"] == qp(checkout.subtotal.net.amount)
+    assert payload["subtotal_gross_amount"] == qp(checkout.subtotal.gross.amount)
+    assert payload["total_net_amount"] == qp(checkout.total.net.amount)
+    assert payload["total_gross_amount"] == qp(checkout.total.gross.amount)
+    for payload_line, checkout_line in zip(payload["lines"], checkout.lines.all()):
+        assert payload_line["price_net_amount"] == qp(
+            checkout_line.unit_price.net.amount
+        )
+        assert payload_line["price_gross_amount"] == qp(
+            checkout_line.unit_price.gross.amount
+        )
+        assert payload_line["price_with_discounts_net_amount"] == qp(
+            checkout_line.unit_price_with_discounts.net.amount
+        )
+        assert payload_line["price_with_discounts_gross_amount"] == qp(
+            checkout_line.unit_price_with_discounts.gross.amount
+        )
+
+    mocked_fetch_checkout.assert_called()
+
+
+def test_generate_checkout_payload_without_taxes_prices(
+    mocked_fetch_checkout, checkout_with_prices
+):
+    # given
+    checkout = checkout_with_prices
+
+    def qp(price):
+        return str(quantize_price(price, checkout.currency))
+
+    # when
+    payload = json.loads(generate_checkout_payload_without_taxes(checkout))[0]
+
+    # then
+    assert payload["subtotal_net_amount"] == qp(checkout.subtotal.net.amount)
+    assert "subtotal_gross_amount" not in payload
+    assert payload["total_net_amount"] == qp(checkout.total.net.amount)
+    assert "total_gross_amount" not in payload
+    for payload_line, checkout_line in zip(payload["lines"], checkout.lines.all()):
+        assert payload_line["price_net_amount"] == qp(
+            checkout_line.unit_price.net.amount
+        )
+        assert "price_gross_amount" not in payload
+        assert payload_line["price_with_discounts_net_amount"] == qp(
+            checkout_line.unit_price_with_discounts.net.amount
+        )
+        assert "price_with_discounts_gross_amount" not in payload
+
+    mocked_fetch_checkout.assert_not_called()
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
