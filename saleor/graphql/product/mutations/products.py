@@ -854,7 +854,10 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
+        if product_type.has_variants:
+            attributes_qs = product_type.variant_attributes
+        else:
+            attributes_qs = product_type.product_attributes
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -936,7 +939,8 @@ class ProductVariantCreate(ModelMutation):
                 product_type.variant_attributes.all().values_list("pk", flat=True)
             )
         }
-        attributes_ids = {attr["id"] for attr in data.get("attributes") or []}
+        attributes = cleaned_input.get("attributes")
+        attributes_ids = {attr["id"] for attr in attributes or []}
         invalid_attributes = attributes_ids - variant_attributes_ids
         if len(invalid_attributes) > 0:
             raise ValidationError(
@@ -951,7 +955,6 @@ class ProductVariantCreate(ModelMutation):
             # We need to transform them into the format they're stored in the
             # `Product` model, which is HStore field that maps attribute's PK to
             # the value's PK.
-            attributes = cleaned_input.get("attributes")
             try:
                 if attributes:
                     cleaned_attributes = cls.clean_attributes(attributes, product_type)
@@ -972,10 +975,9 @@ class ProductVariantCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
         else:
-            raise ValidationError(
-                "Product type is not configurable.",
-                ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
-            )
+            if attributes:
+                cleaned_attributes = cls.clean_attributes(attributes, product_type)
+                cleaned_input["attributes"] = cleaned_attributes
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))

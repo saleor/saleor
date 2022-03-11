@@ -6156,4 +6156,4 @@ def test_variant_create_product_with_variant_attributes_variant_flag_false(
 
     errors = content["data"]["productVariantCreate"]["errors"]
     assert errors
-    assert errors[0]["code"] == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
