@@ -9,6 +9,7 @@ from ...account import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
+    InternalPermissions,
     OrderPermissions,
     has_one_of_permissions,
 )
@@ -207,10 +208,7 @@ def resolve_address(info, id):
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
     raise PermissionDenied(
-        message=(
-            "You need to be the owner of the object or be authenticated as an app with "
-            "MANAGE_USERS permission to perform this action"
-        )
+        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.OWNER]
     )
 
 

@@ -5,7 +5,7 @@ import graphene
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AppPermission
+from ...core.permissions import AppPermission, InternalPermissions
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
@@ -95,7 +95,9 @@ class AppExtension(AppManifestExtension, ModelObjectType):
                 app_id = root.app_id
 
         if not app_id:
-            raise PermissionDenied()
+            raise PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, InternalPermissions.OWNER]
+            )
         return AppByIdLoader(info.context).load(app_id)
 
     @staticmethod

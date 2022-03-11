@@ -14,7 +14,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, InternalPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
@@ -52,10 +52,7 @@ def check_can_edit_address(context, address):
     if not context.app and not context.user.is_anonymous:
         return requester.addresses.filter(pk=address.pk).exists()
     raise PermissionDenied(
-        message=(
-            "You can only edit your own addresses or you need the permission: "
-            "AccountPermissions.MANAGE_USERS"
-        )
+        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.OWNER]
     )
 
 

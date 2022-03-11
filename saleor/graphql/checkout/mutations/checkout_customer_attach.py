@@ -61,7 +61,12 @@ class CheckoutCustomerAttach(BaseMutation):
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
         if checkout.user_id:
-            raise PermissionDenied()
+            raise PermissionDenied(
+                message=(
+                    "You cannot reassign a checkout that is already attached to a "
+                    "user."
+                )
+            )
 
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)

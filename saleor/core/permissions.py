@@ -78,6 +78,13 @@ class SitePermissions(BasePermissionEnum):
     MANAGE_TRANSLATIONS = "site.manage_translations"
 
 
+# Internal permissions cannot be assigned in API.
+class InternalPermissions(BasePermissionEnum):
+    # OWNER - this permission represents the requirement of owning data in order to
+    # access it. Cannot be assigned in API.
+    OWNER = "core.owner"
+
+
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,

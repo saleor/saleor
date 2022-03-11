@@ -6,7 +6,12 @@ import prices
 
 from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, AppPermission, GiftcardPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    AppPermission,
+    GiftcardPermissions,
+    InternalPermissions,
+)
 from ...core.tracing import traced_resolver
 from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
@@ -105,7 +110,13 @@ class GiftCardEvent(ModelObjectType):
                 or requester.has_perm(AccountPermissions.MANAGE_STAFF)
             ):
                 return event_user
-            return PermissionDenied()
+            return PermissionDenied(
+                permissions=[
+                    AccountPermissions.MANAGE_STAFF,
+                    AccountPermissions.MANAGE_USERS,
+                    InternalPermissions.OWNER,
+                ]
+            )
 
         if root.user_id is None:
             return _resolve_user(None)
@@ -118,7 +129,9 @@ class GiftCardEvent(ModelObjectType):
             requester = get_user_or_app_from_context(info.context)
             if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
                 return app
-            return PermissionDenied()
+            return PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, InternalPermissions.OWNER]
+            )
 
         if root.app_id is None:
             return _resolve_app(None)
@@ -318,7 +331,12 @@ class GiftCard(ModelObjectType):
             ) or (user and requestor == user):
                 return root.code
 
-            return PermissionDenied()
+            return PermissionDenied(
+                permissions=[
+                    InternalPermissions.OWNER,
+                    GiftcardPermissions.MANAGE_GIFT_CARD,
+                ]
+            )
 
         if root.used_by_id is None:
             return _resolve_code(None)
@@ -399,7 +417,9 @@ class GiftCard(ModelObjectType):
             requester = get_user_or_app_from_context(info.context)
             if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
                 return app
-            return PermissionDenied()
+            return PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, InternalPermissions.OWNER]
+            )
 
         if root.app_id is None:
             return _resolve_app(None)

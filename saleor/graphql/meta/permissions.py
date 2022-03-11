@@ -117,7 +117,7 @@ def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum
 def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
     if info.context.app is not None or info.context.user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
-    raise PermissionDenied()
+    raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
 
 
 def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
