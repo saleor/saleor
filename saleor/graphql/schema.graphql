@@ -4105,7 +4105,7 @@ type Mutation {
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
   checkoutDeliveryMethodUpdate(deliveryMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
-  orderFromCheckoutCreate(id: ID!): OrderFromCheckoutCreate
+  orderFromCheckoutCreate(clearCheckout: Boolean = true, id: ID!): OrderFromCheckoutCreate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -4548,9 +4548,18 @@ type OrderFromCheckoutCreateError {
 enum OrderFromCheckoutCreateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
+  CHANNEL_INACTIVE
   INSUFFICIENT_STOCK
   VOUCHER_NOT_APPLICABLE
+  GIFT_CARD_NOT_APPLICABLE
   TAX_ERROR
+  SHIPPING_METHOD_NOT_SET
+  BILLING_ADDRESS_NOT_SET
+  SHIPPING_ADDRESS_NOT_SET
+  INVALID_SHIPPING_METHOD
+  NO_LINES
+  EMAIL_NOT_SET
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 type OrderFulfill {
