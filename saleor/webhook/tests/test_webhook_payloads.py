@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import ANY, Mock, patch, sentinel
 
 import graphene
 import pytest
@@ -33,6 +33,7 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     _generate_collection_point_payload,
+    _get_base_price,
     generate_checkout_payload,
     generate_checkout_payload_without_taxes,
     generate_collection_payload,
@@ -225,46 +226,36 @@ def test_generate_order_payload_prices(mocked_fetch_order, order_with_lines):
     mocked_fetch_order.assert_called()
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_order_payload_without_taxes_prices(
-    mocked_fetch_order, order_with_lines
+    mocked_fetch_order, order_with_lines, taxes_included, site_settings
 ):
     # given
     order = order_with_lines
+    site_settings.include_taxes_in_prices = taxes_included
+    site_settings.save(update_fields=["include_taxes_in_prices"])
 
     def qp(price):
-        return str(quantize_price(price, order.currency))
+        return str(
+            quantize_price(_get_base_price(price, taxes_included), order.currency)
+        )
 
     # when
     payload = json.loads(generate_order_payload_without_taxes(order))[0]
 
     # then
-    assert payload["shipping_price_net_amount"] == qp(order.shipping_price.net.amount)
-    assert "shipping_price_gross_amount" not in payload
-    assert "shipping_tax_rate" not in payload
-    assert payload["total_net_amount"] == qp(order.total.net.amount)
-    assert "total_gross_amount" not in payload
-    assert payload["undiscounted_total_net_amount"] == qp(
-        order.undiscounted_total.net.amount
-    )
-    assert "undiscounted_total_gross_amount" not in payload
+    assert payload["shipping_price_base_amount"] == qp(order.shipping_price)
+    assert payload["total_base_amount"] == qp(order.total)
+    assert payload["undiscounted_total_base_amount"] == qp(order.undiscounted_total)
     for payload_line, order_line in zip(payload["lines"], order.lines.all()):
-        assert payload_line["unit_price_net_amount"] == qp(
-            order_line.unit_price.net.amount
+        assert payload_line["unit_price_base_amount"] == qp(order_line.unit_price)
+        assert payload_line["total_price_base_amount"] == qp(order_line.total_price)
+        assert payload_line["undiscounted_unit_price_base_amount"] == qp(
+            order_line.undiscounted_unit_price
         )
-        assert "unit_price_gross_amount" not in payload_line
-        assert payload_line["total_price_net_amount"] == qp(
-            order_line.total_price.net.amount
+        assert payload_line["undiscounted_total_price_base_amount"] == qp(
+            order_line.undiscounted_total_price
         )
-        assert "total_price_gross_amount" not in payload_line
-        assert payload_line["undiscounted_unit_price_net_amount"] == qp(
-            order_line.undiscounted_unit_price.net.amount
-        )
-        assert "undiscounted_unit_price_gross_amount" not in payload_line
-        assert payload_line["undiscounted_total_price_net_amount"] == qp(
-            order_line.undiscounted_total_price.net.amount
-        )
-        assert "undiscounted_total_price_gross_amount" not in payload_line
-        assert "tax_rate" not in payload_line
 
     mocked_fetch_order.assert_not_called()
 
@@ -1225,32 +1216,30 @@ def test_generate_checkout_payload_prices(
     mocked_fetch_checkout.assert_called()
 
 
+@pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_checkout_payload_without_taxes_prices(
-    mocked_fetch_checkout, checkout_with_prices
+    mocked_fetch_checkout, checkout_with_prices, taxes_included, site_settings
 ):
     # given
     checkout = checkout_with_prices
+    site_settings.include_taxes_in_prices = taxes_included
+    site_settings.save(update_fields=["include_taxes_in_prices"])
 
     def qp(price):
-        return str(quantize_price(price, checkout.currency))
+        return str(
+            quantize_price(_get_base_price(price, taxes_included), checkout.currency)
+        )
 
     # when
     payload = json.loads(generate_checkout_payload_without_taxes(checkout))[0]
 
     # then
-    assert payload["subtotal_net_amount"] == qp(checkout.subtotal.net.amount)
-    assert "subtotal_gross_amount" not in payload
-    assert payload["total_net_amount"] == qp(checkout.total.net.amount)
-    assert "total_gross_amount" not in payload
+    assert payload["subtotal_base_amount"] == qp(checkout.subtotal)
+    assert payload["total_base_amount"] == qp(checkout.total)
     for payload_line, checkout_line in zip(payload["lines"], checkout.lines.all()):
-        assert payload_line["price_net_amount"] == qp(
-            checkout_line.unit_price.net.amount
+        assert payload_line["base_price_with_discounts"] == qp(
+            checkout_line.unit_price_with_discounts
         )
-        assert "price_gross_amount" not in payload
-        assert payload_line["price_with_discounts_net_amount"] == qp(
-            checkout_line.unit_price_with_discounts.net.amount
-        )
-        assert "price_with_discounts_gross_amount" not in payload
 
     mocked_fetch_checkout.assert_not_called()
 
@@ -1356,3 +1345,16 @@ def test_generate_meta(app, rf):
         "issued_at": timestamp,
         "version": __version__,
     }
+
+
+NET_AMOUNT = sentinel.NET_AMOUNT
+GROSS_AMOUNT = sentinel.GROSS_AMOUNT
+
+
+@pytest.mark.parametrize(
+    "taxes_included, amount", [(True, GROSS_AMOUNT), (False, NET_AMOUNT)]
+)
+def test_get_base_price(taxes_included, amount):
+    # given
+    price = Mock(net=Mock(amount=NET_AMOUNT), gross=Mock(amount=GROSS_AMOUNT))
+    assert amount == _get_base_price(price, taxes_included)

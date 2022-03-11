@@ -119,6 +119,12 @@ def _charge_taxes(order_line: OrderLine) -> Optional[bool]:
     return None if not variant else variant.product.charge_taxes
 
 
+def _get_base_price(price: TaxedMoney, included_taxes_in_price: bool) -> Decimal:
+    if included_taxes_in_price:
+        return price.gross.amount
+    return price.net.amount
+
+
 def get_product_metadata_for_order_line(line: OrderLine) -> Optional[dict]:
     variant = line.variant
     if not variant:
@@ -916,18 +922,21 @@ def _generate_order_line_prices_data_with_taxes(
 
 def _generate_order_line_prices_data_without_taxes(
     order: Order,
+    included_taxes_in_price: bool,
 ) -> Dict[str, Callable[[OrderLine], Decimal]]:
-    def qp(price: Decimal) -> Decimal:
-        return quantize_price(price, order.currency)
+    def quantize_base_price(price: TaxedMoney) -> Decimal:
+        return quantize_price(
+            _get_base_price(price, included_taxes_in_price), order.currency
+        )
 
     return {
-        "unit_price_net_amount": (lambda l: qp(l.unit_price_net_amount)),
-        "total_price_net_amount": (lambda l: qp(l.total_price_net_amount)),
-        "undiscounted_unit_price_net_amount": (
-            lambda l: qp(l.undiscounted_unit_price_net_amount)
+        "unit_price_base_amount": (lambda l: quantize_base_price(l.unit_price)),
+        "total_price_base_amount": (lambda l: quantize_base_price(l.total_price)),
+        "undiscounted_unit_price_base_amount": (
+            lambda l: quantize_base_price(l.undiscounted_unit_price)
         ),
-        "undiscounted_total_price_net_amount": (
-            lambda l: qp(l.undiscounted_total_price_net_amount)
+        "undiscounted_total_price_base_amount": (
+            lambda l: quantize_base_price(l.undiscounted_total_price)
         ),
     }
 
@@ -1006,14 +1015,17 @@ def _generate_order_prices_data_with_taxes(
 
 def _generate_order_prices_data_without_taxes(
     order: "Order",
+    included_taxes_in_price: bool,
 ) -> Dict[str, Decimal]:
-    def qp(price: Decimal) -> Decimal:
-        return quantize_price(price, order.currency)
+    def quantize_base_price(price: TaxedMoney) -> Decimal:
+        return quantize_price(
+            _get_base_price(price, included_taxes_in_price), order.currency
+        )
 
     return {
-        "shipping_price_net_amount": qp(order.shipping_price.net.amount),
-        "total_net_amount": qp(order.total.net.amount),
-        "undiscounted_total_net_amount": qp(order.undiscounted_total.net.amount),
+        "shipping_price_base_amount": quantize_base_price(order.shipping_price),
+        "total_base_amount": quantize_base_price(order.total),
+        "undiscounted_total_base_amount": quantize_base_price(order.undiscounted_total),
     }
 
 
@@ -1025,7 +1037,8 @@ def _generate_order_payload(
     *,
     lines: Iterable[OrderLine],
     order_prices_data: Dict[str, Decimal],
-    order_lines_prices_data: Dict[str, Callable[[OrderLine], Decimal]]
+    order_lines_prices_data: Dict[str, Callable[[OrderLine], Decimal]],
+    included_taxes_in_price: bool,
 ):
     serializer = PayloadSerializer()
     fulfillment_fields = (
@@ -1102,7 +1115,7 @@ def _generate_order_payload(
         "lines": json.loads(
             _generate_order_lines_payload(lines, order_lines_prices_data)
         ),
-        "included_taxes_in_prices": include_taxes_in_prices(),
+        "included_taxes_in_prices": included_taxes_in_price,
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": json.loads(
             _generate_collection_point_payload(order.collection_point)
@@ -1151,6 +1164,7 @@ def generate_order_payload(
         order_lines_prices_data=_generate_order_line_prices_data_with_taxes(
             order, manager, lines
         ),
+        included_taxes_in_price=include_taxes_in_prices(),
     )
 
 
@@ -1160,14 +1174,20 @@ def generate_order_payload_without_taxes(
     with_meta: bool = True,
 ):
     lines = OrderLine.objects.prefetch_related("variant__product__product_type")
+    included_taxes_in_price = include_taxes_in_prices()
 
     return _generate_order_payload(
         order,
         requestor,
         with_meta,
         lines=lines,
-        order_prices_data=_generate_order_prices_data_without_taxes(order),
-        order_lines_prices_data=_generate_order_line_prices_data_without_taxes(order),
+        order_prices_data=_generate_order_prices_data_without_taxes(
+            order, included_taxes_in_price
+        ),
+        order_lines_prices_data=_generate_order_line_prices_data_without_taxes(
+            order, included_taxes_in_price
+        ),
+        included_taxes_in_price=included_taxes_in_price,
     )
 
 
@@ -1217,13 +1237,16 @@ def _generate_checkout_prices_data_with_taxes(
 
 def _generate_checkout_prices_data_without_taxes(
     checkout: Checkout,
+    included_taxes_in_price: bool,
 ) -> Dict[str, Decimal]:
-    def qp(amount: Decimal) -> Decimal:
-        return quantize_price(amount, checkout.currency)
+    def quantize_base_price(price: TaxedMoney) -> Decimal:
+        return quantize_price(
+            _get_base_price(price, included_taxes_in_price), checkout.currency
+        )
 
     return {
-        "subtotal_net_amount": qp(checkout.subtotal.net.amount),
-        "total_net_amount": qp(checkout.total.net.amount),
+        "subtotal_base_amount": quantize_base_price(checkout.subtotal),
+        "total_base_amount": quantize_base_price(checkout.total),
     }
 
 
@@ -1235,6 +1258,7 @@ def _generate_checkout_payload(
     lines: Iterable[CheckoutLineInfo],
     checkout_prices_data: Dict[str, Decimal],
     get_line_prices_data: Callable[[CheckoutLineInfo], Dict[str, Decimal]],
+    included_taxes_in_price: bool,
 ):
     serializer = PayloadSerializer()
 
@@ -1251,7 +1275,7 @@ def _generate_checkout_payload(
 
     extra_dict_data = {
         # Casting to list to make it json-serializable
-        "included_taxes_in_price": include_taxes_in_prices(),
+        "included_taxes_in_price": included_taxes_in_price,
         "lines": serialize_checkout_lines(checkout, lines, get_line_prices_data),
         "collection_point": json.loads(
             _generate_collection_point_payload(checkout.collection_point)
@@ -1313,16 +1337,17 @@ def _get_line_prices_data_with_taxes(
 def _get_line_prices_data_without_taxes(
     checkout: "Checkout",
     line_info: CheckoutLineInfo,
+    included_taxes_in_price: bool,
 ) -> Dict[str, Decimal]:
+    def quantize_base_price(price: TaxedMoney) -> Decimal:
+        return quantize_price(
+            _get_base_price(price, included_taxes_in_price), checkout.currency
+        )
+
     return {
-        "price_net_amount": quantize_price(
-            line_info.line.unit_price_net_amount,
-            checkout.currency,
-        ),
-        "price_with_discounts_net_amount": quantize_price(
-            line_info.line.unit_price_with_discounts_net_amount,
-            checkout.currency,
-        ),
+        "base_price_with_discounts": quantize_base_price(
+            line_info.line.unit_price_with_discounts
+        )
     }
 
 
@@ -1344,6 +1369,7 @@ def generate_checkout_payload(
         get_line_prices_data=lambda line_info: _get_line_prices_data_with_taxes(
             checkout_info, manager, lines, line_info
         ),
+        included_taxes_in_price=include_taxes_in_prices(),
     )
 
 
@@ -1352,13 +1378,17 @@ def generate_checkout_payload_without_taxes(
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    included_taxes_in_price = include_taxes_in_prices()
 
     return _generate_checkout_payload(
         checkout,
         requestor,
         lines=lines,
-        checkout_prices_data=_generate_checkout_prices_data_without_taxes(checkout),
-        get_line_prices_data=lambda line_info: _get_line_prices_data_without_taxes(
-            checkout, line_info
+        checkout_prices_data=_generate_checkout_prices_data_without_taxes(
+            checkout, included_taxes_in_price
         ),
+        get_line_prices_data=lambda line_info: _get_line_prices_data_without_taxes(
+            checkout, line_info, included_taxes_in_price
+        ),
+        included_taxes_in_price=included_taxes_in_price,
     )
