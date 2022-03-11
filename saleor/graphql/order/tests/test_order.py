@@ -7740,28 +7740,28 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     assert content["data"]["orders"]["totalCount"] == 1
 
 
-def test_orders_query_with_filter_search_by_id(
+def test_orders_query_with_filter_search_by_number(
     orders_query_with_filter,
     order_with_search_document_value,
     staff_api_client,
     permission_manage_orders,
 ):
     order = order_with_search_document_value
-    variables = {"filter": {"search": order.pk}}
+    variables = {"filter": {"search": order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == 1
 
 
-def test_orders_query_with_filter_search_by_id_with_hash(
+def test_orders_query_with_filter_search_by_number_with_hash(
     orders_query_with_filter,
     order_with_search_document_value,
     staff_api_client,
     permission_manage_orders,
 ):
     order = order_with_search_document_value
-    variables = {"filter": {"search": f"#{order.pk}"}}
+    variables = {"filter": {"search": f"#{order.number}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
@@ -8098,28 +8098,28 @@ def test_draft_orders_query_with_filter_search(
     assert content["data"]["draftOrders"]["totalCount"] == count
 
 
-def test_draft_orders_query_with_filter_search_by_id(
+def test_draft_orders_query_with_filter_search_by_number(
     draft_orders_query_with_filter,
     draft_order,
     staff_api_client,
     permission_manage_orders,
 ):
     update_order_search_document(draft_order)
-    variables = {"filter": {"search": draft_order.pk}}
+    variables = {"filter": {"search": draft_order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
 
 
-def test_draft_orders_query_with_filter_search_by_id_with_hash(
+def test_draft_orders_query_with_filter_search_by_number_with_hash(
     draft_orders_query_with_filter,
     draft_order,
     staff_api_client,
     permission_manage_orders,
 ):
     update_order_search_document(draft_order)
-    variables = {"filter": {"search": f"#{draft_order.pk}"}}
+    variables = {"filter": {"search": f"#{draft_order.number}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)

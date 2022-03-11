@@ -549,19 +549,19 @@ def test_draft_orders_query_pagination_with_filter_search(
         assert orders[i]["node"]["total"]["gross"]["amount"] == orders_order[i]
 
 
-def test_orders_query_pagination_with_filter_search_by_id(
+def test_orders_query_pagination_with_filter_search_by_number(
     order_with_search_document_value, staff_api_client, permission_manage_orders
 ):
     order = order_with_search_document_value
     page_size = 2
-    variables = {"first": page_size, "after": None, "filter": {"search": order.pk}}
+    variables = {"first": page_size, "after": None, "filter": {"search": order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == 1
 
 
-def test_draft_orders_query_pagination_with_filter_search_by_id(
+def test_draft_orders_query_pagination_with_filter_search_by_number(
     draft_order,
     staff_api_client,
     permission_manage_orders,
@@ -571,7 +571,7 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
     variables = {
         "first": page_size,
         "after": None,
-        "filter": {"search": draft_order.pk},
+        "filter": {"search": draft_order.number},
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
