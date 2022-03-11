@@ -605,10 +605,6 @@ def test_create_variant(
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
 
-    product.refresh_from_db()
-    assert product.search_document
-    assert sku in product.search_document
-
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -714,10 +710,6 @@ def test_create_variant_no_required_attributes(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
-
-    product.refresh_from_db()
-    assert product.search_document
-    assert sku in product.search_document
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
@@ -1970,10 +1962,6 @@ def test_product_variant_update_with_new_attributes(
     assert len(attributes) == 1
     assert attributes[0]["attribute"]["id"] == size_attribute_id
 
-    product.refresh_from_db()
-    assert product.search_document
-    assert attr_value.lower() in product.search_document
-
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -2044,10 +2032,6 @@ def test_update_product_variant(
         product.variants.last()
     )
     product_variant_created_webhook_mock.assert_not_called()
-
-    product.refresh_from_db()
-    assert product.search_document
-    assert attr_value.lower() in product.search_document
 
 
 def test_update_product_variant_with_negative_weight(
@@ -2165,9 +2149,6 @@ def test_update_product_variant_change_sku(
     assert data["sku"] == sku
     variant.refresh_from_db()
     assert variant.sku == sku
-    product.refresh_from_db()
-    assert product.search_document
-    assert sku.lower() in product.search_document
 
 
 def test_update_product_variant_without_sku_keep_it_empty(
@@ -3338,9 +3319,6 @@ def test_delete_variant(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
-    product.refresh_from_db()
-    assert product.search_document
-    assert variant_sku not in product.search_document
 
 
 def test_delete_variant_remove_checkout_lines(
@@ -3653,8 +3631,6 @@ def test_delete_variant_delete_product_channel_listing_without_available_channel
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
     product.refresh_from_db()
-    assert product.search_document
-    assert variant_sku not in product.search_document
     assert product.channel_listings.count() == 0
 
 
@@ -3695,8 +3671,6 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
     product.refresh_from_db()
-    assert product.search_document
-    assert variant_sku not in product.search_document
     assert product.channel_listings.count() == product_channel_listing_count
 
 
@@ -4163,9 +4137,6 @@ def test_product_variant_bulk_create_by_attribute_id(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    assert product.search_document
-    assert sku in product.search_document
-    assert attribute_value.name.lower() in product.search_document
 
 
 def test_product_variant_bulk_create_with_swatch_attribute(
@@ -4214,9 +4185,6 @@ def test_product_variant_bulk_create_with_swatch_attribute(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
-    assert product.search_document
-    assert variants[0]["sku"] in product.search_document
-    assert variants[1]["sku"] in product.search_document
 
 
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
@@ -4264,9 +4232,6 @@ def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
-    assert product.search_document
-    assert sku in product.search_document
-    assert attribute_value.name.lower() in product.search_document
 
 
 def test_product_variant_bulk_create_empty_attribute(
@@ -4287,8 +4252,6 @@ def test_product_variant_bulk_create_empty_attribute(
     assert data["count"] == 1
     product.refresh_from_db()
     assert product_variant_count + 1 == ProductVariant.objects.count()
-    assert product.search_document
-    assert variants[0]["sku"].lower() in product.search_document
 
 
 def test_product_variant_bulk_create_with_new_attribute_value(

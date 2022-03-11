@@ -106,7 +106,7 @@ from ..product.models import (
     ProductVariantTranslation,
     VariantMedia,
 )
-from ..product.search import prepare_product_search_document_value
+from ..product.search import prepare_product_search_vector_value
 from ..product.tests.utils import create_image
 from ..shipping.models import (
     ShippingMethod,
@@ -2134,8 +2134,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
-    product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.search_vector = prepare_product_search_vector_value(product)
+    product.save(update_fields=["search_vector"])
 
     return product
 
@@ -2350,8 +2350,8 @@ def product_with_default_variant(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
 
-    product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.search_vector = prepare_product_search_vector_value(product)
+    product.save(update_fields=["search_vector"])
 
     return product
 
@@ -2758,9 +2758,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
-        product.search_document = prepare_product_search_document_value(product)
+        product.search_vector = prepare_product_search_vector_value(product)
 
-    Product.objects.bulk_update(products, ["search_document"])
+    Product.objects.bulk_update(products, ["search_vector"])
 
     return products
 

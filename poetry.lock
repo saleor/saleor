@@ -2532,6 +2532,22 @@ docs = ["pygments-github-lexers (>=0.0.5)", "sphinx (>=2.0.0)", "sphinxcontrib-a
 testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pytest (>=4.0.0)", "pytest-cov (>=2.5.1)", "pytest-mock (>=1.10.0)", "pytest-randomly (>=1.0.0)", "psutil (>=5.6.1)", "pathlib2 (>=2.3.3)"]
 
 [[package]]
+name = "types-certifi"
+version = "2021.10.8.1"
+description = "Typing stubs for certifi"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "types-freezegun"
+version = "1.1.9"
+description = "Typing stubs for freezegun"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "types-pkg-resources"
 version = "0.1.3"
 description = "Typing stubs for pkg_resources"
@@ -2565,6 +2581,14 @@ python-versions = "*"
 
 [package.dependencies]
 types-urllib3 = "<1.27"
+
+[[package]]
+name = "types-six"
+version = "1.16.15"
+description = "Typing stubs for six"
+category = "dev"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "types-urllib3"
@@ -2774,7 +2798,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "b364295d4d8e1097a4ba53b0364c8baf2815ac2137a121594222c02dcf9f833f"
+content-hash = "274762230a58713e4737812e179a7a6f6fae561f8ccb5a1ca643a8cc1a2cb5de"
 
 [metadata.files]
 adyen = [
@@ -4276,6 +4300,14 @@ tox = [
     {file = "tox-3.25.0-py2.py3-none-any.whl", hash = "sha256:0805727eb4d6b049de304977dfc9ce315a1938e6619c3ab9f38682bb04662a5a"},
     {file = "tox-3.25.0.tar.gz", hash = "sha256:37888f3092aa4e9f835fc8cc6dadbaaa0782651c41ef359e3a5743fcb0308160"},
 ]
+types-certifi = [
+    {file = "types-certifi-2021.10.8.1.tar.gz", hash = "sha256:546cd3ca4466855959fbc8868fd7139a50eb55a2d1fae497e13b60af439597a3"},
+    {file = "types_certifi-2021.10.8.1-py3-none-any.whl", hash = "sha256:2290008f32e6ac7c69e779d04fa1bc4c6bb4c7200aa3b3b072ad5475a8968aa5"},
+]
+types-freezegun = [
+    {file = "types-freezegun-1.1.9.tar.gz", hash = "sha256:6f05108d468baecadf999873bd37e57b25ceb35d35d3f83e7a742f25d6fe8b0e"},
+    {file = "types_freezegun-1.1.9-py3-none-any.whl", hash = "sha256:fe1dd73372d96358dcb93e3aeb66d39f6ac63749e0724f13554cc145e2120efe"},
+]
 types-pkg-resources = [
     {file = "types-pkg_resources-0.1.3.tar.gz", hash = "sha256:834a9b8d3dbea343562fd99d5d3359a726f6bf9d3733bccd2b4f3096fbab9dae"},
     {file = "types_pkg_resources-0.1.3-py2.py3-none-any.whl", hash = "sha256:0cb9972cee992249f93fff1a491bf2dc3ce674e5a1926e27d4f0866f7d9b6d9c"},
@@ -4291,6 +4323,10 @@ types-pytz = [
 types-requests = [
     {file = "types-requests-2.27.20.tar.gz", hash = "sha256:63344573cde6c4efd44d867c0158d9fb7e6beb95721cbe9882f3f857ee8a5398"},
     {file = "types_requests-2.27.20-py3-none-any.whl", hash = "sha256:68b8de86552116424ec23b77afc925e111afb6496d3821b183b7d151b3b834d4"},
+]
+types-six = [
+    {file = "types-six-1.16.15.tar.gz", hash = "sha256:d244f0537dab0d0570a5bc6f8a60c4da7f0546d960a8677520e6bff214a64fb8"},
+    {file = "types_six-1.16.15-py3-none-any.whl", hash = "sha256:18f6856a7df44fc7a292c2d73093908333e5f7cb858667b8cbefc8ed1e91942e"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.13.tar.gz", hash = "sha256:40f8fb5e8cd7d57e8aefdee3fdd5e930aa1a1bb4179cdadd55226cea588af790"},
