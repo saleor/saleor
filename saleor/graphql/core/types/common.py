@@ -397,7 +397,7 @@ class File(graphene.ObjectType):
     @staticmethod
     def resolve_url(root, info):
         if settings.AWS_MEDIA_BUCKET_NAME:
-            s3_url = "http://{bucket_name}.s3.amazonaws.com{path}"
+            s3_url = "https://{bucket_name}.s3.amazonaws.com{path}"
 
             return s3_url.format(
                 bucket_name=settings.AWS_MEDIA_BUCKET_NAME, path=root.url

@@ -291,9 +291,9 @@ class AttributeAssignmentMixin:
         )
         if value is None:
             value = attribute_models.AttributeValue(
-                attribute=attribute,
-                file_url=file_url,
                 name=name,
+                attribute=attribute,
+                file_url=f"/file_upload{file_url}",
                 content_type=attr_value.content_type,
             )
             value.slug = generate_unique_slug(value, name)  # type: ignore
