@@ -92,8 +92,8 @@ jobs:
           buildpack: heroku/nodejs
         env:
           HD_NODE_ENV: development
-          HD_API_URL: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com/
-          HD_PLUGINS: social-login,provinces,otp,vendor,celebrity,wishlist
+          HD_API_URL: https://w8-saleor-pr-${{ github.event.pull_request.number }}.herokuapp.com
+          HD_PLUGINS: social-login,provinces,vendor,celebrity,wishlist
 
       - name: Update Gateway Deployment Link Status
         if: always()
