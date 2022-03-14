@@ -39,7 +39,7 @@ repos:
         exclude: tests/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.931
+    rev: v0.940
     hooks:
       - id: mypy
         language: system
