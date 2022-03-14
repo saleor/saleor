@@ -5880,7 +5880,7 @@ def test_update_product_with_file_attribute_value(
     attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     product_type.product_attributes.add(file_attribute)
 
-    new_value = "new_file.json"
+    new_value = "/new_file.json"
 
     variables = {
         "productId": product_id,
