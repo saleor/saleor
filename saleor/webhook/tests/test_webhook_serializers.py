@@ -4,10 +4,12 @@ from unittest.mock import ANY, Mock, patch, sentinel
 import graphene
 import pytest
 
-from ...checkout.fetch import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
+from ...plugins.manager import get_plugins_manager
 from ..serializers import (
-    serialize_checkout_lines,
+    serialize_checkout_lines_with_taxes,
+    serialize_checkout_lines_without_taxes,
     serialize_product_or_variant_attributes,
 )
 
@@ -80,22 +82,32 @@ ATTRIBUTES = sentinel.ATTRIBUTES
     new=Mock(return_value=ATTRIBUTES),
 )
 @pytest.mark.parametrize("taxes_included", [True, False])
+# TODO: split this test by test function
+@pytest.mark.parametrize(
+    "serialize_checkout_lines",
+    [serialize_checkout_lines_with_taxes, serialize_checkout_lines_without_taxes],
+)
 def test_serialize_checkout_lines(
-    # mocked_fetch,
+    serialize_checkout_lines,
     checkout_with_items_for_cc,
     taxes_included,
     site_settings,
 ):
     # given
-    lines, _ = fetch_checkout_lines(checkout_with_items_for_cc)
+    checkout = checkout_with_items_for_cc
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     site_settings.include_taxes_in_prices = taxes_included
     site_settings.save()
-    checkout = checkout_with_items_for_cc
 
     # when
-    checkout_lines_data = serialize_checkout_lines(
-        checkout, lines, Mock(return_value={})
-    )
+    if serialize_checkout_lines == serialize_checkout_lines_with_taxes:
+        checkout_lines_data = serialize_checkout_lines(checkout_info, manager, lines)
+    else:
+        checkout_lines_data = serialize_checkout_lines(
+            checkout, lines, Mock(return_value={})
+        )
 
     # then
     checkout_with_items_for_cc.refresh_from_db()

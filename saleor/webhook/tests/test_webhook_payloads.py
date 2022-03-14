@@ -33,7 +33,6 @@ from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     _generate_collection_point_payload,
-    _get_base_price,
     generate_checkout_payload,
     generate_checkout_payload_without_taxes,
     generate_collection_payload,
@@ -52,6 +51,7 @@ from ..payloads import (
     generate_requestor,
     generate_sale_payload,
     generate_translation_payload,
+    get_base_price,
 )
 
 
@@ -237,7 +237,7 @@ def test_generate_order_payload_without_taxes_prices(
 
     def qp(price):
         return str(
-            quantize_price(_get_base_price(price, taxes_included), order.currency)
+            quantize_price(get_base_price(price, taxes_included), order.currency)
         )
 
     # when
@@ -1011,14 +1011,17 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
-@patch("saleor.webhook.payloads.serialize_checkout_lines")
+@patch("saleor.webhook.payloads.serialize_checkout_lines_without_taxes")
+@patch("saleor.webhook.payloads.serialize_checkout_lines_with_taxes")
 @pytest.mark.parametrize("taxes_included", [True, False])
+# TODO: split this test by test function
 @pytest.mark.parametrize(
     "test_function",
     [generate_checkout_payload, generate_checkout_payload_without_taxes],
 )
 def test_generate_checkout_payload(
-    mocked_serialize,
+    mocked_serialize_with_taxes,
+    mocked_serialize_without_taxes,
     test_function,
     checkout,
     customer_user,
@@ -1058,7 +1061,8 @@ def test_generate_checkout_payload(
     )
 
     serialized_checkout_lines = {"data": "checkout_lines_data"}
-    mocked_serialize.return_value = serialized_checkout_lines
+    mocked_serialize_with_taxes.return_value = serialized_checkout_lines
+    mocked_serialize_without_taxes.return_value = serialized_checkout_lines
 
     # when
     payload = json.loads(test_function(checkout))[0]
@@ -1227,7 +1231,7 @@ def test_generate_checkout_payload_without_taxes_prices(
 
     def qp(price):
         return str(
-            quantize_price(_get_base_price(price, taxes_included), checkout.currency)
+            quantize_price(get_base_price(price, taxes_included), checkout.currency)
         )
 
     # when
@@ -1357,4 +1361,4 @@ GROSS_AMOUNT = sentinel.GROSS_AMOUNT
 def test_get_base_price(taxes_included, amount):
     # given
     price = Mock(net=Mock(amount=NET_AMOUNT), gross=Mock(amount=GROSS_AMOUNT))
-    assert amount == _get_base_price(price, taxes_included)
+    assert amount == get_base_price(price, taxes_included)

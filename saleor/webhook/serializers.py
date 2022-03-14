@@ -1,25 +1,91 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import graphene
+from prices import TaxedMoney
 
 from ..attribute import AttributeInputType
-from ..checkout.fetch import CheckoutLineInfo
+from ..checkout import calculations
 from ..core.prices import quantize_price
+from ..plugins.manager import PluginsManager
 from ..product.models import Product
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(
-    checkout: "Checkout",
-    lines: Iterable[CheckoutLineInfo],
-    get_line_prices_data: Callable[[CheckoutLineInfo], Dict[str, Decimal]],
+def get_base_price(price: TaxedMoney, included_taxes_in_price: bool) -> Decimal:
+    if included_taxes_in_price:
+        return price.gross.amount
+    return price.net.amount
+
+
+def serialize_checkout_lines_with_taxes(
+    checkout_info: "CheckoutInfo",
+    manager: PluginsManager,
+    lines: Iterable["CheckoutLineInfo"],
 ) -> List[dict]:
+    data = []
+    channel = checkout_info.checkout.channel
+    currency = channel.currency_code
+    for line_info in lines:
+        line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
+        variant = line_info.variant
+        channel_listing = line_info.channel_listing
+        collections = line_info.collections
+        product = variant.product
+        base_price = variant.get_price(product, collections, channel, channel_listing)
+        unit_price_data = calculations.checkout_line_unit_price(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
+            discounts=[],
+        )
+        unit_price = quantize_price(unit_price_data.price_with_sale, currency)
+        unit_price_with_discounts = quantize_price(
+            unit_price_data.price_with_discounts, currency
+        )
+        data.append(
+            {
+                "id": line_id,
+                "sku": variant.sku,
+                "variant_id": variant.get_global_id(),
+                "quantity": line_info.line.quantity,
+                "charge_taxes": product.charge_taxes,
+                "base_price": quantize_price(base_price.amount, currency),
+                "price_net_amount": unit_price.net.amount,
+                "price_gross_amount": unit_price.gross.amount,
+                "price_with_discounts_net_amount": unit_price_with_discounts.net.amount,
+                "price_with_discounts_gross_amount": (
+                    unit_price_with_discounts.gross.amount
+                ),
+                "currency": currency,
+                "full_name": variant.display_product(),
+                "product_name": product.name,
+                "variant_name": variant.name,
+                "attributes": serialize_product_or_variant_attributes(variant),
+                "product_metadata": line_info.product.metadata,
+                "product_type_metadata": line_info.product_type.metadata,
+            }
+        )
+    return data
+
+
+def serialize_checkout_lines_without_taxes(
+    checkout: "Checkout",
+    lines: Iterable["CheckoutLineInfo"],
+    included_taxes_in_price: bool,
+) -> List[dict]:
+    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
+        return quantize_price(
+            get_base_price(price, included_taxes_in_price), checkout.currency
+        )
+
     data = []
     channel = checkout.channel
     currency = channel.currency_code
@@ -38,7 +104,9 @@ def serialize_checkout_lines(
                 "quantity": line_info.line.quantity,
                 "charge_taxes": product.charge_taxes,
                 "base_price": quantize_price(base_price.amount, currency),
-                **get_line_prices_data(line_info),
+                "base_price_with_discounts": untaxed_price_amount(
+                    line_info.line.unit_price_with_discounts
+                ),
                 "currency": currency,
                 "full_name": variant.display_product(),
                 "product_name": product.name,
