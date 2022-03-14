@@ -595,7 +595,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
 
     file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
     page_type.page_attributes.add(page_file_attribute)
-    new_value = "file_upload/new_test_value.txt"
+    new_value = "new_test_value.txt"
     new_value_content_type = "text/plain"
 
     values_count = page_file_attribute.values.count()
@@ -1446,7 +1446,7 @@ def test_update_page_with_file_attribute_value(
 
     page_type = page.page_type
     page_type.page_attributes.add(page_file_attribute)
-    new_value = "file_upload/test.txt"
+    new_value = "test.txt"
     page_file_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_file_attribute.pk
     )
