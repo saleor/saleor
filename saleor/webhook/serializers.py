@@ -24,21 +24,45 @@ def get_base_price(price: TaxedMoney, included_taxes_in_price: bool) -> Decimal:
     return price.net.amount
 
 
+def _get_checkout_line_payload_data(
+    checkout: "Checkout", line_info: "CheckoutLineInfo"
+) -> Dict[str, Any]:
+    channel = checkout.channel
+    currency = channel.currency_code
+    line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
+    variant = line_info.variant
+    channel_listing = line_info.channel_listing
+    collections = line_info.collections
+    product = variant.product
+    base_price = variant.get_price(product, collections, channel, channel_listing)
+
+    return {
+        "id": line_id,
+        "sku": variant.sku,
+        "variant_id": variant.get_global_id(),
+        "quantity": line_info.line.quantity,
+        "charge_taxes": product.charge_taxes,
+        "base_price": quantize_price(base_price.amount, currency),
+        "currency": currency,
+        "full_name": variant.display_product(),
+        "product_name": product.name,
+        "variant_name": variant.name,
+        "attributes": serialize_product_or_variant_attributes(variant),
+        "product_metadata": line_info.product.metadata,
+        "product_type_metadata": line_info.product_type.metadata,
+    }
+
+
 def serialize_checkout_lines_with_taxes(
     checkout_info: "CheckoutInfo",
     manager: PluginsManager,
     lines: Iterable["CheckoutLineInfo"],
 ) -> List[dict]:
     data = []
-    channel = checkout_info.checkout.channel
-    currency = channel.currency_code
+    checkout = checkout_info.checkout
+    currency = checkout.currency
+
     for line_info in lines:
-        line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
-        variant = line_info.variant
-        channel_listing = line_info.channel_listing
-        collections = line_info.collections
-        product = variant.product
-        base_price = variant.get_price(product, collections, channel, channel_listing)
         unit_price_data = calculations.checkout_line_unit_price(
             manager=manager,
             checkout_info=checkout_info,
@@ -52,25 +76,13 @@ def serialize_checkout_lines_with_taxes(
         )
         data.append(
             {
-                "id": line_id,
-                "sku": variant.sku,
-                "variant_id": variant.get_global_id(),
-                "quantity": line_info.line.quantity,
-                "charge_taxes": product.charge_taxes,
-                "base_price": quantize_price(base_price.amount, currency),
+                **_get_checkout_line_payload_data(checkout, line_info),
                 "price_net_amount": unit_price.net.amount,
                 "price_gross_amount": unit_price.gross.amount,
                 "price_with_discounts_net_amount": unit_price_with_discounts.net.amount,
                 "price_with_discounts_gross_amount": (
                     unit_price_with_discounts.gross.amount
                 ),
-                "currency": currency,
-                "full_name": variant.display_product(),
-                "product_name": product.name,
-                "variant_name": variant.name,
-                "attributes": serialize_product_or_variant_attributes(variant),
-                "product_metadata": line_info.product.metadata,
-                "product_type_metadata": line_info.product_type.metadata,
             }
         )
     return data
@@ -86,37 +98,15 @@ def serialize_checkout_lines_without_taxes(
             get_base_price(price, included_taxes_in_price), checkout.currency
         )
 
-    data = []
-    channel = checkout.channel
-    currency = channel.currency_code
-    for line_info in lines:
-        line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
-        variant = line_info.variant
-        channel_listing = line_info.channel_listing
-        collections = line_info.collections
-        product = variant.product
-        base_price = variant.get_price(product, collections, channel, channel_listing)
-        data.append(
-            {
-                "id": line_id,
-                "sku": variant.sku,
-                "variant_id": variant.get_global_id(),
-                "quantity": line_info.line.quantity,
-                "charge_taxes": product.charge_taxes,
-                "base_price": quantize_price(base_price.amount, currency),
-                "base_price_with_discounts": untaxed_price_amount(
-                    line_info.line.unit_price_with_discounts
-                ),
-                "currency": currency,
-                "full_name": variant.display_product(),
-                "product_name": product.name,
-                "variant_name": variant.name,
-                "attributes": serialize_product_or_variant_attributes(variant),
-                "product_metadata": line_info.product.metadata,
-                "product_type_metadata": line_info.product_type.metadata,
-            }
-        )
-    return data
+    return [
+        {
+            **_get_checkout_line_payload_data(checkout, line_info),
+            "base_price_with_discounts": untaxed_price_amount(
+                line_info.line.unit_price_with_discounts
+            ),
+        }
+        for line_info in lines
+    ]
 
 
 def serialize_product_or_variant_attributes(

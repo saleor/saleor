@@ -150,6 +150,15 @@ ORDER_LINE_FIELDS = (
     "voucher_code",
 )
 
+ORDER_LINES_EXTRA_DICT_DATA = {
+    "id": lambda l: graphene.Node.to_global_id("OrderLine", l.pk),
+    "product_variant_id": lambda l: l.product_variant_id,
+    "allocations": lambda l: prepare_order_lines_allocations_payload(l),
+    "charge_taxes": lambda l: _charge_taxes(l),
+    "product_metadata": lambda l: get_product_metadata_for_order_line(l),
+    "product_type_metadata": lambda l: get_product_type_metadata_for_order_line(l),
+}
+
 
 @traced_payload_generator
 def _generate_order_lines_payload_with_taxes(
@@ -199,8 +208,7 @@ def _generate_order_lines_payload_with_taxes(
         lines,
         fields=ORDER_LINE_FIELDS,
         extra_dict_data={
-            "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
-            "product_variant_id": (lambda l: l.product_variant_id),
+            **ORDER_LINES_EXTRA_DICT_DATA,
             "unit_price_net_amount": (lambda l: get_unit_price(l).net.amount),
             "unit_price_gross_amount": (lambda l: get_unit_price(l).gross.amount),
             "total_price_net_amount": (lambda l: get_total_price(l).net.amount),
@@ -218,12 +226,6 @@ def _generate_order_lines_payload_with_taxes(
                 lambda l: get_undiscounted_total_price(l).gross.amount
             ),
             "tax_rate": lambda l: get_tax_rate(l),
-            "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
-            "charge_taxes": (lambda l: _charge_taxes(l)),
-            "product_metadata": (lambda l: get_product_metadata_for_order_line(l)),
-            "product_type_metadata": (
-                lambda l: get_product_type_metadata_for_order_line(l)
-            ),
         },
     )
 
@@ -247,8 +249,7 @@ def _generate_order_lines_payload_without_taxes(
         lines,
         fields=ORDER_LINE_FIELDS,
         extra_dict_data={
-            "id": (lambda l: graphene.Node.to_global_id("OrderLine", l.pk)),
-            "product_variant_id": (lambda l: l.product_variant_id),
+            **ORDER_LINES_EXTRA_DICT_DATA,
             "unit_price_base_amount": (lambda l: untaxed_price_amount(l.unit_price)),
             "total_price_base_amount": (lambda l: untaxed_price_amount(l.total_price)),
             "undiscounted_unit_price_base_amount": (
@@ -256,12 +257,6 @@ def _generate_order_lines_payload_without_taxes(
             ),
             "undiscounted_total_price_base_amount": (
                 lambda l: untaxed_price_amount(l.undiscounted_total_price)
-            ),
-            "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
-            "charge_taxes": (lambda l: _charge_taxes(l)),
-            "product_metadata": (lambda l: get_product_metadata_for_order_line(l)),
-            "product_type_metadata": (
-                lambda l: get_product_type_metadata_for_order_line(l)
             ),
         },
     )
@@ -1295,33 +1290,6 @@ def _generate_checkout_prices_data_without_taxes(
     return {
         "subtotal_base_amount": untaxed_price_amount(checkout.subtotal),
         "total_base_amount": untaxed_price_amount(checkout.total),
-    }
-
-
-def _get_line_prices_data_with_taxes(
-    checkout_info: CheckoutInfo,
-    manager: PluginsManager,
-    lines: Iterable[CheckoutLineInfo],
-    line_info: CheckoutLineInfo,
-) -> Dict[str, Decimal]:
-    currency = checkout_info.checkout.currency
-    unit_price_data = checkout_calculations.checkout_line_unit_price(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        checkout_line_info=line_info,
-        discounts=[],
-    )
-    unit_price = quantize_price(unit_price_data.price_with_sale, currency)
-    unit_price_with_discounts = quantize_price(
-        unit_price_data.price_with_discounts, currency
-    )
-
-    return {
-        "price_net_amount": unit_price.net.amount,
-        "price_gross_amount": unit_price.gross.amount,
-        "price_with_discounts_net_amount": unit_price_with_discounts.net.amount,
-        "price_with_discounts_gross_amount": unit_price_with_discounts.gross.amount,
     }
 
 
