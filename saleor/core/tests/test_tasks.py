@@ -35,6 +35,7 @@ def test_delete_product_media_task_product_media_not_to_remove(
 ):
     # given
     media = product_with_image.media.first()
+
     # when
     delete_product_media_task(media.pk)
 
