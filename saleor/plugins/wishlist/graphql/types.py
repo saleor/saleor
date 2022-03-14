@@ -16,14 +16,18 @@ class ProductWishlistType(CountableDjangoObjectType):
         interfaces = (graphene.relay.Node,)
         model = Product
         only_fields = [
+            "category",
+            "charge_taxes",
+            "description",
             "id",
             "name",
             "slug",
-            "description",
-            "description_plaintext",
+            "product_type",
+            "seo_description",
+            "seo_title",
             "updated_at",
-            "charge_taxes",
             "weight",
+            "default_variant",
             "rating",
         ]
 
