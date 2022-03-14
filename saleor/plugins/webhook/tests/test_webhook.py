@@ -622,9 +622,8 @@ def test_checkout_updated(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhook_sync")
-def test_get_shipping_methods_for_checkout_untaxed(
-    mocked_webhook_trigger,
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhook_sync", new=MagicMock())
+def test_get_shipping_methods_for_checkout_uses_untaxed_payload_serializer(
     mocked_get_webhooks_for_event,
     mocked_fetch,
     any_webhook,
@@ -634,7 +633,6 @@ def test_get_shipping_methods_for_checkout_untaxed(
     permission_manage_shipping,
 ):
     app.permissions.add(permission_manage_shipping)
-    app.save()
     webhook = Webhook.objects.create(
         name="webhook",
         app=app,
