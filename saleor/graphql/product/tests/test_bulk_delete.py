@@ -614,11 +614,9 @@ def test_delete_products_removes_checkout_lines(
     assert old_quantity == calculate_checkout_quantity(lines) + 3
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_with_file_attributes(
     mocked_recalculate_orders_task,
-    delete_from_storage_task_mock,
     staff_api_client,
     product_list,
     file_attribute,
@@ -652,11 +650,6 @@ def test_delete_products_with_file_attributes(
     for value in values:
         with pytest.raises(value._meta.model.DoesNotExist):
             value.refresh_from_db()
-
-    assert delete_from_storage_task_mock.call_count == len(values)
-    assert set(
-        data.args[0] for data in delete_from_storage_task_mock.call_args_list
-    ) == {v.file_url for v in values}
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -795,9 +788,7 @@ def test_delete_product_types_invalid_object_typed_of_given_ids(
     assert data["count"] == 0
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_delete_product_types_with_file_attributes(
-    delete_from_storage_task_mock,
     staff_api_client,
     product_type_list,
     product_list,
@@ -833,10 +824,6 @@ def test_delete_product_types_with_file_attributes(
     for value in values:
         with pytest.raises(value._meta.model.DoesNotExist):
             value.refresh_from_db()
-    assert delete_from_storage_task_mock.call_count == len(values)
-    assert set(
-        data.args[0] for data in delete_from_storage_task_mock.call_args_list
-    ) == {v.file_url for v in values}
 
 
 PRODUCT_VARIANT_BULK_DELETE_MUTATION = """
@@ -1143,13 +1130,11 @@ def test_product_delete_removes_reference_to_page(
     assert not data["errors"]
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_with_file_attribute(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
-    delete_from_storage_task_mock,
     staff_api_client,
     product_variant_list,
     permission_manage_products,
@@ -1192,11 +1177,6 @@ def test_delete_product_variants_with_file_attribute(
     for value in values:
         with pytest.raises(value._meta.model.DoesNotExist):
             value.refresh_from_db()
-
-    assert delete_from_storage_task_mock.call_count == len(values)
-    assert set(
-        data.args[0] for data in delete_from_storage_task_mock.call_args_list
-    ) == {v.file_url for v in values}
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

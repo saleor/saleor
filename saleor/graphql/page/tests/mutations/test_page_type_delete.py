@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import graphene
 import pytest
 
@@ -119,9 +117,7 @@ def test_page_type_delete_by_app_no_perm(
     assert_no_permission(response)
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_page_type_delete_with_file_attributes(
-    delete_from_storage_task_mock,
     staff_api_client,
     page_type,
     page,
@@ -155,5 +151,3 @@ def test_page_type_delete_with_file_attributes(
         page_type.refresh_from_db()
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
-
-    delete_from_storage_task_mock.assert_called_once_with(value.file_url)
