@@ -27,8 +27,7 @@ from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
-from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ....webhook.models import Webhook, WebhookEvent
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
     generate_collection_payload,
@@ -629,19 +628,9 @@ def test_get_shipping_methods_for_checkout_uses_untaxed_payload_serializer(
     any_webhook,
     settings,
     checkout,
-    app,
+    shipping_app,
     permission_manage_shipping,
 ):
-    app.permissions.add(permission_manage_shipping)
-    webhook = Webhook.objects.create(
-        name="webhook",
-        app=app,
-    )
-    WebhookEvent.objects.create(
-        webhook=webhook,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
