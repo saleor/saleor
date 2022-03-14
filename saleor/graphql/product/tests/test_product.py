@@ -4456,7 +4456,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
     # Add second attribute
     product_type.product_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
-    non_existing_value = "new_test.jpg"
+    non_existing_value = "file_upload/new_test.jpg"
 
     # test creating root product
     variables = {
@@ -5884,7 +5884,7 @@ def test_update_product_with_file_attribute_value(
     attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
     product_type.product_attributes.add(file_attribute)
 
-    new_value = "new_file.json"
+    new_value = "file_upload/new_file.json"
 
     variables = {
         "productId": product_id,
