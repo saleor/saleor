@@ -151,7 +151,6 @@ QUERY_FETCH_ALL_PRODUCTS = """
     }
 """
 
-
 QUERY_PRODUCT = """
     query ($id: ID, $slug: String, $channel:String){
         product(
@@ -1848,7 +1847,6 @@ def test_products_query_with_filter_attributes(
     permission_manage_products,
     channel_USD,
 ):
-
     product_type = ProductType.objects.create(
         name="Custom Type",
         slug="custom-type",
@@ -2541,7 +2539,6 @@ def test_products_query_with_filter_stock_availability_as_staff(
     permission_manage_products,
     channel_USD,
 ):
-
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
@@ -2571,7 +2568,6 @@ def test_products_query_with_filter_stock_availability_as_user(
     permission_manage_products,
     channel_USD,
 ):
-
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
@@ -3932,7 +3928,6 @@ SEARCH_PRODUCTS_QUERY = """
 
 
 def test_search_product_by_description(user_api_client, product_list, channel_USD):
-
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
     response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
@@ -4195,7 +4190,8 @@ def test_create_product_with_file_attribute(
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
                     "file": {
-                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "url": f"http://testserver/media/file_upload/"
+                        f"{existing_value.file_url}",
                         "contentType": None,
                     },
                     "reference": None,
@@ -4494,7 +4490,8 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "date": None,
                     "dateTime": None,
                     "file": {
-                        "url": "http://testserver/media/" + non_existing_value,
+                        "url": f"http://testserver/media/file_upload/"
+                        f"{non_existing_value}",
                         "contentType": None,
                     },
                 }
@@ -5041,7 +5038,6 @@ PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
         }
     }
 """
-
 
 REORDER_PRODUCT_VARIANTS_MUTATION = """
     mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput]!) {
@@ -5913,7 +5909,7 @@ def test_update_product_with_file_attribute_value(
                 "slug": slugify(new_value),
                 "reference": None,
                 "file": {
-                    "url": "http://testserver/media/" + new_value,
+                    "url": f"http://testserver/media/file_upload/{new_value}",
                     "contentType": None,
                 },
                 "boolean": None,
@@ -9926,7 +9922,6 @@ def test_product_variant_without_price_as_staff_without_permission(
     stock,
     channel_USD,
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
@@ -9953,7 +9948,6 @@ def test_product_variant_without_price_as_staff_without_permission(
 def test_product_variant_without_price_as_staff_with_permission(
     staff_api_client, variant, stock, channel_USD, permission_manage_products
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
@@ -11011,7 +11005,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     warehouses,
     info,
 ):
-
     Stock.objects.bulk_create(
         [
             Stock(product_variant=variant, warehouse=warehouse)
@@ -11049,7 +11042,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     warehouses,
     info,
 ):
-
     Stock.objects.bulk_create(
         [
             Stock(product_variant=variant, warehouse=warehouse)
@@ -11087,7 +11079,6 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     warehouses,
     info,
 ):
-
     Stock.objects.bulk_create(
         [
             Stock(product_variant=variant, warehouse=warehouse, quantity=5)
