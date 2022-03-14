@@ -3,6 +3,7 @@ import graphene
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....core import analytics
 from ....core.permissions import CheckoutPermissions
+from ...core.descriptions import PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderFromCheckoutCreateError
 from ...order.types import Order
@@ -26,7 +27,7 @@ class OrderFromCheckoutCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Create new order from existing checkout."
+        description = f"{PREVIEW_FEATURE} Create new order from existing checkout."
         object_type = Order
 
         # FIXME this should be a separate permission probably
