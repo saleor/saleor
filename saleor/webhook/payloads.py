@@ -1116,15 +1116,17 @@ def _generate_order_prices_data_without_taxes(
     order: "Order",
     included_taxes_in_price: bool,
 ) -> Dict[str, Decimal]:
-    def quantize_base_price(price: TaxedMoney) -> Decimal:
+    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
             _get_base_price(price, included_taxes_in_price), order.currency
         )
 
     return {
-        "shipping_price_base_amount": quantize_base_price(order.shipping_price),
-        "total_base_amount": quantize_base_price(order.total),
-        "undiscounted_total_base_amount": quantize_base_price(order.undiscounted_total),
+        "shipping_price_base_amount": untaxed_price_amount(order.shipping_price),
+        "total_base_amount": untaxed_price_amount(order.total),
+        "undiscounted_total_base_amount": untaxed_price_amount(
+            order.undiscounted_total
+        ),
     }
 
 
@@ -1193,19 +1195,19 @@ def _generate_order_line_prices_data_without_taxes(
     order: Order,
     included_taxes_in_price: bool,
 ) -> Dict[str, Callable[[OrderLine], Decimal]]:
-    def quantize_base_price(price: TaxedMoney) -> Decimal:
+    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
             _get_base_price(price, included_taxes_in_price), order.currency
         )
 
     return {
-        "unit_price_base_amount": (lambda l: quantize_base_price(l.unit_price)),
-        "total_price_base_amount": (lambda l: quantize_base_price(l.total_price)),
+        "unit_price_base_amount": (lambda l: untaxed_price_amount(l.unit_price)),
+        "total_price_base_amount": (lambda l: untaxed_price_amount(l.total_price)),
         "undiscounted_unit_price_base_amount": (
-            lambda l: quantize_base_price(l.undiscounted_unit_price)
+            lambda l: untaxed_price_amount(l.undiscounted_unit_price)
         ),
         "undiscounted_total_price_base_amount": (
-            lambda l: quantize_base_price(l.undiscounted_total_price)
+            lambda l: untaxed_price_amount(l.undiscounted_total_price)
         ),
     }
 
@@ -1287,14 +1289,14 @@ def _generate_checkout_prices_data_without_taxes(
     checkout: Checkout,
     included_taxes_in_price: bool,
 ) -> Dict[str, Decimal]:
-    def quantize_base_price(price: TaxedMoney) -> Decimal:
+    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
             _get_base_price(price, included_taxes_in_price), checkout.currency
         )
 
     return {
-        "subtotal_base_amount": quantize_base_price(checkout.subtotal),
-        "total_base_amount": quantize_base_price(checkout.total),
+        "subtotal_base_amount": untaxed_price_amount(checkout.subtotal),
+        "total_base_amount": untaxed_price_amount(checkout.total),
     }
 
 
@@ -1330,13 +1332,13 @@ def _get_line_prices_data_without_taxes(
     line_info: CheckoutLineInfo,
     included_taxes_in_price: bool,
 ) -> Dict[str, Decimal]:
-    def quantize_base_price(price: TaxedMoney) -> Decimal:
+    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
             _get_base_price(price, included_taxes_in_price), checkout.currency
         )
 
     return {
-        "base_price_with_discounts": quantize_base_price(
+        "base_price_with_discounts": untaxed_price_amount(
             line_info.line.unit_price_with_discounts
         )
     }
