@@ -15,7 +15,6 @@ from ....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
 from ....checkout import AddressType
-from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -428,9 +427,6 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
-
         user_id = data.get("id")
         instance = cls.get_node_or_error(info, user_id, only_type=User)
         cls.clean_instance(info, instance)

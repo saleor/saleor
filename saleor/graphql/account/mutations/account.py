@@ -10,6 +10,7 @@ from ....account.error_codes import AccountErrorCode
 from ....account.utils import remove_the_oldest_user_address_if_address_limit_is_reached
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
+from ....core.permissions import InternalPermissions
 from ....core.tokens import account_delete_token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -176,12 +177,9 @@ class AccountUpdate(BaseCustomerCreate):
         exclude = ["password"]
         model = models.User
         object_type = User
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -210,12 +208,9 @@ class AccountRequestDeletion(BaseMutation):
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -252,10 +247,7 @@ class AccountDelete(ModelDeleteMutation):
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -310,10 +302,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     @traced_atomic_transaction()
@@ -375,10 +364,7 @@ class AccountSetDefaultAddress(BaseMutation):
         description = "Sets a default address for the authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -431,10 +417,7 @@ class RequestEmailChange(BaseMutation):
         description = "Request email change of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -506,10 +489,7 @@ class ConfirmEmailChange(BaseMutation):
         description = "Confirm the email change of the logged-in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def get_token_payload(cls, token):

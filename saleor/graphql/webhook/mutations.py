@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import AppPermission
+from ...core.permissions import AppPermission, InternalPermissions
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
@@ -63,7 +63,10 @@ class WebhookCreate(ModelMutation):
         description = "Creates a new webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            InternalPermissions.IS_AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
 
@@ -98,12 +101,6 @@ class WebhookCreate(ModelMutation):
         app = info.context.app
         instance.app = app
         return instance
-
-    @classmethod
-    def check_permissions(cls, context):
-        has_perm = super().check_permissions(context)
-        has_perm = bool(context.app) or has_perm
-        return has_perm
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -211,15 +208,12 @@ class WebhookDelete(ModelDeleteMutation):
         description = "Deletes a webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            InternalPermissions.IS_AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        has_perm = super().check_permissions(context)
-        has_perm = bool(context.app) or has_perm
-        return has_perm
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

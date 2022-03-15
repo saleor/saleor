@@ -20,7 +20,7 @@ from ....core.jwt import (
     get_user_from_payload,
     jwt_decode,
 )
-from ....core.permissions import get_permissions_from_names
+from ....core.permissions import InternalPermissions, get_permissions_from_names
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types.common import AccountError
@@ -298,10 +298,7 @@ class DeactivateAllUserTokens(BaseMutation):
         description = "Deactivate all JWT tokens of the currently authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):

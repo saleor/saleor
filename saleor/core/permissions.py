@@ -78,13 +78,6 @@ class SitePermissions(BasePermissionEnum):
     MANAGE_TRANSLATIONS = "site.manage_translations"
 
 
-# Internal permissions cannot be assigned in API.
-class InternalPermissions(BasePermissionEnum):
-    # OWNER - this permission represents the requirement of owning data in order to
-    # access it. Cannot be assigned in API.
-    OWNER = "core.owner"
-
-
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
@@ -103,6 +96,43 @@ PERMISSIONS_ENUMS = [
     SitePermissions,
     CheckoutPermissions,
 ]
+
+
+def is_app(context):
+    return bool(context.app)
+
+
+def is_user(context):
+    return context.user.is_authenticated
+
+
+def is_staff_user(context):
+    return is_user(context) and context.user.is_staff
+
+
+class InternalPermissions(BasePermissionEnum):
+    # Grants access to any authenticated app.
+    IS_AUTHENTICATED_APP = "internal_permissions.is_authenticated_app"
+
+    # Grants access to any authenticated staff user.
+    IS_AUTHENTICATED_STAFF_USER = "internal_permissions.is_authenticated_staff_user"
+
+    # Grants access to any authenticated user.
+    IS_AUTHENTICATED_USER = "internal_permissions.is_authenticated_user"
+
+    # Grants access to the owner of the related object. This rule doesn't come with any
+    # permission function, as the ownership needs to be defined individually in each
+    # case.
+    OWNER = "internal_permissions.owner"
+
+
+def resolve_internal_permission_fn(perm):
+    fn_map = {
+        InternalPermissions.IS_AUTHENTICATED_APP: is_app,
+        InternalPermissions.IS_AUTHENTICATED_USER: is_user,
+        InternalPermissions.IS_AUTHENTICATED_STAFF_USER: is_staff_user,
+    }
+    return fn_map.get(perm)
 
 
 def split_permission_codename(permissions):

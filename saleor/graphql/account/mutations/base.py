@@ -50,7 +50,9 @@ def check_can_edit_address(context, address):
     if requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
     if not context.app and not context.user.is_anonymous:
-        return requester.addresses.filter(pk=address.pk).exists()
+        is_owner = requester.addresses.filter(pk=address.pk).exists()
+        if is_owner:
+            return True
     raise PermissionDenied(
         permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.OWNER]
     )
@@ -261,10 +263,7 @@ class PasswordChange(BaseMutation):
         description = "Change the password of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

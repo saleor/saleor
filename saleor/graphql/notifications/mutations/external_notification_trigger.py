@@ -95,4 +95,4 @@ class ExternalNotificationTrigger(BaseMutation):
     def _requestor_has_permission(cls, context, permission_type):
         if cls.check_permissions(context, (permission_type,)):
             return True
-        raise PermissionDenied()
+        raise PermissionDenied(permissions=[permission_type])

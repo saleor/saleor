@@ -17,9 +17,17 @@ from graphql.error import GraphQLError
 
 from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    InternalPermissions,
+    resolve_internal_permission_fn,
+)
 from ..decorators import staff_member_or_app_required
-from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils import (
+    get_nodes,
+    get_user_or_app_from_context,
+    resolve_global_ids_to_primary_keys,
+)
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import File, Upload
 from .types.common import UploadError
@@ -130,9 +138,18 @@ class BaseMutation(graphene.Mutation):
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
+
+        if permissions:
+            permission_msg = ", ".join([p.name for p in permissions])
+            description = (
+                f"{description} Requires one of the following "
+                f"permissions: {permission_msg}."
+            )
+
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
         )
+
         if error_type_field:
             deprecated_msg = f"{DEPRECATED_IN_3X_FIELD} Use `errors` field instead."
             cls._meta.fields.update(
@@ -316,24 +333,52 @@ class BaseMutation(graphene.Mutation):
 
         The `context` parameter is the Context instance associated with the request.
         """
-        permissions = permissions or cls._meta.permissions
-        if not permissions:
+        all_permissions = permissions or cls._meta.permissions
+        if not all_permissions:
             return True
-        if context.user.has_perms(permissions):
-            return True
+
+        permission_fns = [
+            p for p in all_permissions if isinstance(p, InternalPermissions)
+        ]
+        permission_scopes = [
+            p for p in all_permissions if not isinstance(p, InternalPermissions)
+        ]
+
+        granted_by_permission_scopes = False
+        granted_by_permission_fns = False
+
         app = getattr(context, "app", None)
-        if app:
-            # for now MANAGE_STAFF permission for app is not supported
-            if AccountPermissions.MANAGE_STAFF in permissions:
-                return False
-            return app.has_perms(permissions)
-        return False
+        if (
+            app
+            and permission_scopes
+            and AccountPermissions.MANAGE_STAFF in permission_scopes
+        ):
+            # `MANAGE_STAFF` permission for apps is not supported. If apps could use it
+            # they could create a staff user with full access which would be a
+            # permission leak issue.
+            return False
+
+        requestor = get_user_or_app_from_context(context)
+        if permission_scopes:
+            granted_by_permission_scopes = requestor.has_perms(permission_scopes)
+
+        if permission_fns:
+            internal_perm_checks = []
+            for p in permission_fns:
+                perm_fn = resolve_internal_permission_fn(p)
+                if perm_fn:
+                    res = perm_fn(context)
+                    internal_perm_checks.append(bool(res))
+            granted_by_permission_fns = any(internal_perm_checks)
+
+        return granted_by_permission_scopes or granted_by_permission_fns
 
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
+
         if not cls.check_permissions(info.context):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=cls._meta.permissions)
 
         result = info.context.plugins.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
@@ -561,9 +606,6 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
-
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
@@ -677,7 +719,7 @@ class BaseBulkMutation(BaseMutation):
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
         if not cls.check_permissions(info.context):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=cls._meta.permissions)
 
         result = info.context.plugins.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data

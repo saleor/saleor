@@ -1125,9 +1125,7 @@ def test_unassign_attributes_not_in_product_type(
     assert len(content["productType"]["variantAttributes"]) == 0
 
 
-def test_retrieve_product_attributes_input_type(
-    staff_api_client, product, permission_manage_products, channel_USD
-):
+def test_retrieve_product_attributes_input_type(staff_api_client, product, channel_USD):
     query = """
         query ($channel: String){
           products(first: 10, channel: $channel) {
@@ -1146,9 +1144,7 @@ def test_retrieve_product_attributes_input_type(
 
     variables = {"channel": channel_USD.slug}
     found_products = get_graphql_content(
-        staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
-        )
+        staff_api_client.post_graphql(query, variables)
     )["data"]["products"]["edges"]
     assert len(found_products) == 1
 

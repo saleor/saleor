@@ -2,7 +2,7 @@ import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, InternalPermissions
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -36,10 +36,10 @@ class CheckoutCustomerAttach(BaseMutation):
         description = "Sets the customer as the owner of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated or context.app
+        permissions = (
+            InternalPermissions.IS_AUTHENTICATED_APP,
+            InternalPermissions.IS_AUTHENTICATED_USER,
+        )
 
     @classmethod
     def perform_mutation(
