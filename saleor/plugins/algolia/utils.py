@@ -269,9 +269,9 @@ def get_product_data(product_pk: int, language_code="EN"):
     for vendor in product.vendor_set.all():
         vendors.append(vendor.brand_name)
 
-    celebrities = []
-    for celebrity in product.celebrity_set.all():
-        celebrities.append(str(celebrity))
+    # celebrities = []
+    # for celebrity in product.celebrity_set.all():
+    #     celebrities.append(str(celebrity))
 
     if not product_data.errors and channels:
         slug = product_dict.pop("slug")
@@ -285,7 +285,7 @@ def get_product_data(product_pk: int, language_code="EN"):
                 "channels": channels,
                 "name": product_name,
                 "attributes": attributes,
-                "celebrities": celebrities,
+                # "celebrities": celebrities,
                 "description": description,
                 "gender": product.get_value_from_metadata("gender"),
                 "images": map_product_media_or_thumbnail(media=media),
