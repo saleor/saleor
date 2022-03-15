@@ -24,3 +24,8 @@ class PaymentErrorCode(Enum):
 class PaymentCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+
+
+class PaymentUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"

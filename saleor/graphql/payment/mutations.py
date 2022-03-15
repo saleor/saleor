@@ -32,7 +32,7 @@ from ..core.types import common as common_types
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
 from .enums import PaymentActionEnum, TransactionStatusEnum
-from .types import Payment, PaymentInitialized, PaymentPOC
+from .types import Payment, PaymentInitialized
 from .utils import metadata_contains_empty_key
 
 
@@ -553,7 +553,7 @@ class PaymentCheckBalance(BaseMutation):
             )
 
 
-class PaymentPOCCommonInput(graphene.InputObjectType):
+class PaymentUpdateInput(graphene.InputObjectType):
     status = graphene.String(
         description="Status of the payment.",
     )
@@ -582,11 +582,7 @@ class PaymentPOCCommonInput(graphene.InputObjectType):
     )
 
 
-class PaymentPOCUpdateInput(PaymentPOCCommonInput):
-    ...
-
-
-class PaymentPOCCreateInput(PaymentPOCCommonInput):
+class PaymentCreateInput(PaymentUpdateInput):
     status = graphene.String(description="Status of the payment.", required=True)
     type = graphene.String(
         description="Payment type used for this payment.", required=True
@@ -604,14 +600,14 @@ class TransactionInput(graphene.InputObjectType):
 
 
 class PaymentCreate(BaseMutation):
-    payment = graphene.Field(PaymentPOC, required=True)
+    payment = graphene.Field(Payment, required=True)
 
     class Arguments:
         id = graphene.ID(
             description="The ID of the checkout or order.",
             required=True,
         )
-        payment = PaymentPOCCreateInput(
+        payment = PaymentCreateInput(
             required=True,
             description="Input data required to create a new payment object.",
         )
@@ -623,11 +619,28 @@ class PaymentCreate(BaseMutation):
         description = "Create payment for checkout or order."
         error_type_class = common_types.PaymentCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+        object_type = Payment
+
+    @classmethod
+    def construct_instance(
+        cls, instance: payment_models.Payment, cleaned_data: dict
+    ) -> payment_models.Payment:
+        instance = super().construct_instance(instance, cleaned_data)
+        if amount_authorized := cleaned_data.get("amount_authorized"):
+            instance.authorized_value = amount_authorized.get("amount")
+        if amount_captured := cleaned_data.get("amount_captured"):
+            instance.captured_value = amount_captured.get("amount")
+        if amount_refunded := cleaned_data.get("amount_refunded"):
+            instance.refunded_value = amount_refunded.get("amount")
+        if amount_voided := cleaned_data.get("amount_voided"):
+            instance.voided_value = amount_voided.get("amount")
+        return instance
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         instance = cls.get_node_or_error(info, instance_id)
+        instance = cls.construct_instance(instance, data.get("payment"))
 
         if not isinstance(instance, (checkout_models.Checkout, order_models.Order)):
             raise ValidationError(
@@ -658,19 +671,19 @@ class PaymentCreate(BaseMutation):
                     status=transaction_data.get("status", ""),
                     name=transaction_data.get("name", ""),
                 )
-        payment = payment_models.PaymentPOC.objects.create(**payment_data)
+        payment = payment_models.Payment.objects.create(**payment_data)
         return PaymentCreate(payment=payment)
 
 
-class PaymentUpdate(BaseMutation):
-    payment = graphene.Field(PaymentPOC, required=True)
+class PaymentUpdate(PaymentCreate):
+    payment = graphene.Field(Payment, required=True)
 
     class Arguments:
         id = graphene.ID(
             description="The ID of the payment.",
             required=True,
         )
-        payment = PaymentPOCUpdateInput(
+        payment = PaymentUpdateInput(
             required=True,
             description="Input data required to create a new payment object.",
         )
@@ -680,28 +693,14 @@ class PaymentUpdate(BaseMutation):
 
     class Meta:
         description = "Create payment for checkout or order."
-        error_type_class = common_types.PaymentCreateError
+        error_type_class = common_types.PaymentUpdateErrorCode
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
-        model = payment_models.PaymentPOC
-        object_type = PaymentPOC
-
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        instance = super().construct_instance(instance, cleaned_data)
-        if amount_authorized := cleaned_data.get("amount_authorized"):
-            instance.authorized_value = amount_authorized.get("amount")
-        if amount_captured := cleaned_data.get("amount_captured"):
-            instance.captured_value = amount_captured.get("amount")
-        if amount_refunded := cleaned_data.get("amount_refunded"):
-            instance.refunded_value = amount_refunded.get("amount")
-        if amount_voided := cleaned_data.get("amount_voided"):
-            instance.voided_value = amount_voided.get("amount")
-        return instance
+        object_type = Payment
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
-        instance = cls.get_node_or_error(info, instance_id, only_type=PaymentPOC)
+        instance = cls.get_node_or_error(info, instance_id, only_type=Payment)
         instance = cls.construct_instance(instance, data.get("payment"))
         instance.save()
         transaction_data = data.get("transaction")

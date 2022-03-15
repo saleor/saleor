@@ -133,7 +133,7 @@ PaymentCreateErrorCode = graphene.Enum.from_enum(
     payment_error_codes.PaymentCreateErrorCode
 )
 PaymentUpdateErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentCreateErrorCode
+    payment_error_codes.PaymentUpdateErrorCode
 )
 
 PermissionGroupErrorCode = graphene.Enum.from_enum(

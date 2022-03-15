@@ -1105,7 +1105,6 @@ def _create_order_from_checkout(
 
     # payments
     checkout_info.checkout.payments.update(order=order, checkout_id=None)
-    checkout_info.checkout.poc_payments.update(order=order)
 
     # order search
     order.search_document = prepare_order_search_document_value(order)

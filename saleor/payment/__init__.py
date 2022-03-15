@@ -144,14 +144,26 @@ class StorePaymentMethod:
 
 
 class PaymentAction:
+    """Represents possible actions on payment.
+
+    The following actions are possible:
+    CAPTURE - Represents the capture action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+    MARK_AS_PAID - This field will be removed in Saleor 4.0. Represents a mark-as-paid
+    action.
+    """
+
     CAPTURE = "capture"
     REFUND = "refund"
     VOID = "void"
+    MARK_AS_PAID = "MARK_AS_PAID"
 
     CHOICES = [
         (CAPTURE, "Capture payment"),
         (REFUND, "Refund payment"),
         (VOID, "Void payment"),
+        (MARK_AS_PAID, "Mark as paid"),
     ]
 
 

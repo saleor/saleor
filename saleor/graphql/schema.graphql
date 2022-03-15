@@ -3991,8 +3991,8 @@ type Mutation {
   paymentVoid(paymentId: ID!): PaymentVoid
   paymentInitialize(channel: String, gateway: String!, paymentData: JSONString): PaymentInitialize
   paymentCheckBalance(input: PaymentCheckBalanceInput!): PaymentCheckBalance
-  paymentCreate(id: ID!, payment: PaymentPOCCreateInput!, transaction: TransactionInput): PaymentCreate
-  paymentUpdate(id: ID!, payment: PaymentPOCUpdateInput!, transaction: TransactionInput): PaymentUpdate
+  paymentCreate(id: ID!, payment: PaymentCreateInput!, transaction: TransactionInput): PaymentCreate
+  paymentUpdate(id: ID!, payment: PaymentUpdateInput!, transaction: TransactionInput): PaymentUpdate
   pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -4225,7 +4225,6 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatus: PaymentChargeStatusEnum!
   paymentStatusDisplay: String!
   payments: [Payment]
-  pocPayments: [PaymentPOC!]!
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -5072,29 +5071,36 @@ type Payment implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  gateway: String!
-  isActive: Boolean!
-  created: DateTime!
-  modified: DateTime!
-  token: String!
   checkout: Checkout
   order: Order
-  paymentMethodType: String!
-  customerIpAddress: String
-  chargeStatus: PaymentChargeStatusEnum!
-  actions: [OrderAction]!
+  actions: [PaymentActionEnum!]!
   total: Money
+  authorizedAmount: Money!
+  refundedAmount: Money!
+  voidedAmount: Money!
   capturedAmount: Money
-  transactions: [Transaction]
-  availableCaptureAmount: Money
-  availableRefundAmount: Money
-  creditCard: CreditCard
+  gateway: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  isActive: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  created: DateTime!
+  modified: DateTime!
+  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  paymentMethodType: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  customerIpAddress: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  chargeStatus: PaymentChargeStatusEnum! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  transactions: [Transaction] @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  availableCaptureAmount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  availableRefundAmount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  creditCard: CreditCard @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  status: String!
+  type: String!
+  reference: String!
 }
 
 enum PaymentActionEnum {
   CAPTURE
   REFUND
   VOID
+  MARK_AS_PAID
 }
 
 type PaymentCapture {
@@ -5139,7 +5145,7 @@ type PaymentCountableEdge {
 }
 
 type PaymentCreate {
-  payment: PaymentPOC!
+  payment: Payment!
   errors: [PaymentCreateError!]!
 }
 
@@ -5152,6 +5158,19 @@ type PaymentCreateError {
 enum PaymentCreateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
+}
+
+input PaymentCreateInput {
+  status: String!
+  type: String!
+  reference: String
+  availableActions: [PaymentActionEnum!]
+  amountAuthorized: MoneyInput
+  amountCaptured: MoneyInput
+  amountRefunded: MoneyInput
+  amountVoided: MoneyInput
+  publicMetadata: [MetadataInput!]
+  privateMetadata: [MetadataInput!]
 }
 
 type PaymentError {
@@ -5213,46 +5232,6 @@ input PaymentInput {
   metadata: [MetadataInput!]
 }
 
-type PaymentPOC implements Node & ObjectWithMetadata {
-  id: ID!
-  privateMetadata: [MetadataItem]!
-  metadata: [MetadataItem]!
-  status: String!
-  type: String!
-  reference: String!
-  availableActions: [PaymentActionEnum!]!
-  amountAuthorized: Money!
-  amountCaptured: Money!
-  amountRefunded: Money!
-  amountVoided: Money!
-}
-
-input PaymentPOCCreateInput {
-  status: String!
-  type: String!
-  reference: String
-  availableActions: [PaymentActionEnum!]
-  amountAuthorized: MoneyInput
-  amountCaptured: MoneyInput
-  amountRefunded: MoneyInput
-  amountVoided: MoneyInput
-  publicMetadata: [MetadataInput!]
-  privateMetadata: [MetadataInput!]
-}
-
-input PaymentPOCUpdateInput {
-  status: String
-  type: String
-  reference: String
-  availableActions: [PaymentActionEnum!]
-  amountAuthorized: MoneyInput
-  amountCaptured: MoneyInput
-  amountRefunded: MoneyInput
-  amountVoided: MoneyInput
-  publicMetadata: [MetadataInput!]
-  privateMetadata: [MetadataInput!]
-}
-
 type PaymentRefund {
   payment: Payment
   paymentErrors: [PaymentError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -5267,8 +5246,26 @@ type PaymentSource {
 }
 
 type PaymentUpdate {
-  payment: PaymentPOC!
-  errors: [PaymentCreateError!]!
+  payment: Payment!
+  errors: [PaymentUpdateErrorCode!]!
+}
+
+enum PaymentUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+input PaymentUpdateInput {
+  status: String
+  type: String
+  reference: String
+  availableActions: [PaymentActionEnum!]
+  amountAuthorized: MoneyInput
+  amountCaptured: MoneyInput
+  amountRefunded: MoneyInput
+  amountVoided: MoneyInput
+  publicMetadata: [MetadataInput!]
+  privateMetadata: [MetadataInput!]
 }
 
 type PaymentVoid {
