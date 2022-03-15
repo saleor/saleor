@@ -12,21 +12,3 @@ class AlgoliaApiClient(metaclass=SingletonMeta):
             locale: self.client.init_index(name=f"products_{locale}")
             for locale in locales
         }
-        for locale, index in self.indices.items():
-            index.set_settings(
-                settings={
-                    "searchableAttributes": [
-                        "skus",
-                        "name",
-                        "description",
-                    ],
-                    "replicas": [
-                        f"{index.name}.price_asc",
-                        f"{index.name}.price_desc",
-                        f"{index.name}.popularity_desc",
-                        f"{index.name}.publication_date_desc",
-                    ],
-                    "customRanking": [f"asc({index.name}.default-channel.price)"],
-                },
-                request_options={"forwardToReplicas": True},
-            )

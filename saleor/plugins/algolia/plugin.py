@@ -11,7 +11,7 @@ from ...product.models import Product, ProductTranslation, ProductVariant
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..models import PluginConfiguration
 from .client import AlgoliaApiClient
-from .utils import UserAdminContext, get_attributes_for_faceting, get_product_data
+from .utils import UserAdminContext, get_product_data
 
 logger = logging.getLogger(__name__)
 
@@ -104,14 +104,6 @@ class AlgoliaPlugin(BasePlugin):
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
-                index.set_settings(
-                    settings={
-                        "attributesForFaceting": get_attributes_for_faceting(
-                            locale=locale
-                        )
-                    },
-                    request_options={"forwardToReplicas": True},
-                )
                 logger.info("Product %s indexed to Algolia", product.slug)
 
     @require_active_plugin
@@ -125,14 +117,6 @@ class AlgoliaPlugin(BasePlugin):
             if product_data:
                 index.partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
-                )
-                index.set_settings(
-                    settings={
-                        "attributesForFaceting": get_attributes_for_faceting(
-                            locale=locale
-                        )
-                    },
-                    request_options={"forwardToReplicas": True},
                 )
                 logger.info("Product %s updated in Algolia", product.slug)
 
@@ -195,14 +179,6 @@ class AlgoliaPlugin(BasePlugin):
                     obj=product_data,
                     request_options={"autoGenerateObjectIDIfNotExist": False},
                 )
-                index.set_settings(
-                    settings={
-                        "attributesForFaceting": get_attributes_for_faceting(
-                            locale=locale
-                        )
-                    },
-                    request_options={"forwardToReplicas": True},
-                )
                 logger.info("Product variant %s indexed to Algolia", product_variant)
 
     @require_active_plugin
@@ -218,14 +194,6 @@ class AlgoliaPlugin(BasePlugin):
             if product_data:
                 index.partial_update_object(
                     obj=product_data, request_options={"createIfNotExists": True}
-                )
-                index.set_settings(
-                    settings={
-                        "attributesForFaceting": get_attributes_for_faceting(
-                            locale=locale
-                        )
-                    },
-                    request_options={"forwardToReplicas": True},
                 )
                 logger.info("Product variant %s updated in Algolia", product_variant)
 
