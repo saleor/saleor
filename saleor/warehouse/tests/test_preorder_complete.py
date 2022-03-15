@@ -1,3 +1,5 @@
+from django.db.models.aggregates import Sum
+
 from ...product.models import ProductVariantChannelListing
 from ..management import deactivate_preorder_for_variant
 from ..models import Allocation, PreorderAllocation, Stock
@@ -42,6 +44,13 @@ def test_deactivate_preorder_for_variant(
 
     variant.refresh_from_db()
 
+    stock = variant.stocks.first()
+    assert (
+        stock.quantity_allocated
+        == stock.allocations.aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+    )
     assert variant.is_preorder is False
     assert variant.preorder_global_threshold is None
     assert variant.preorder_end_date is None
@@ -100,7 +109,9 @@ def test_deactivate_preorder_for_variant_existing_stock(
     order.shipping_method = shipping_method_channel_PLN
     order.save(update_fields=["shipping_method"])
 
-    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=0
+    )
 
     channel_listings_id = ProductVariantChannelListing.objects.filter(
         variant_id=variant.pk
@@ -118,6 +129,7 @@ def test_deactivate_preorder_for_variant_existing_stock(
     assert variant.stocks.count() > 0
 
     deactivate_preorder_for_variant(variant)
+    stock.refresh_from_db()
 
     assert (
         PreorderAllocation.objects.filter(
@@ -128,4 +140,10 @@ def test_deactivate_preorder_for_variant_existing_stock(
     assert (
         Allocation.objects.filter(stock__product_variant_id=variant.pk).count()
         == allocations_before + preorder_allocations_before
+    )
+    assert (
+        stock.quantity_allocated
+        == stock.allocations.aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
     )
