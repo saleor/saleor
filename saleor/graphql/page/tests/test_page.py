@@ -565,7 +565,7 @@ def test_create_page_with_file_attribute(
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
                 "file": {
-                    "url": f"http://testserver/media/file_upload/{attr_value.file_url}",
+                    "url": f"http://testserver/file_upload{attr_value.file_url}",
                     "contentType": None,
                 },
                 "reference": None,
@@ -641,7 +641,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
                 "reference": None,
                 "name": new_value,
                 "file": {
-                    "url": f"http://testserver/media/file_upload/{new_value}",
+                    "url": f"http://testserver/file_upload{new_value}",
                     "contentType": new_value_content_type,
                 },
                 "date": None,
@@ -1477,7 +1477,7 @@ def test_update_page_with_file_attribute_value(
                 "name": new_value,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/file_upload/{new_value}",
+                    "url": f"http://testserver/file_upload{new_value}",
                     "contentType": None,
                 },
             }
@@ -1530,7 +1530,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
                 "name": existing_value.name,
                 "reference": None,
                 "file": {
-                    "url": f"http://testserver/media/{existing_value.file_url}",
+                    "url": f"http://testserver{existing_value.file_url}",
                     "contentType": existing_value.content_type,
                 },
             }

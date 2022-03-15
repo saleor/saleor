@@ -1252,14 +1252,14 @@ def file_attribute(db):
         attribute=attribute,
         name="test_file.txt",
         slug="test_filetxt",
-        file_url="file_upload/test_file.txt",
+        file_url="/test_file.txt",
         content_type="text/plain",
     )
     AttributeValue.objects.create(
         attribute=attribute,
         name="test_file.jpeg",
         slug="test_filejpeg",
-        file_url="file_upload/test_file.jpeg",
+        file_url="/test_file.jpeg",
         content_type="image/jpeg",
     )
     return attribute
@@ -1402,14 +1402,14 @@ def page_file_attribute(db):
         attribute=attribute,
         name="test_file.txt",
         slug="test_filetxt",
-        file_url="file_upload/test_file.txt",
+        file_url="/test_file.txt",
         content_type="text/plain",
     )
     AttributeValue.objects.create(
         attribute=attribute,
         name="test_file.jpeg",
         slug="test_filejpeg",
-        file_url="file_upload/test_file.jpeg",
+        file_url="/test_file.jpeg",
         content_type="image/jpeg",
     )
     return attribute
