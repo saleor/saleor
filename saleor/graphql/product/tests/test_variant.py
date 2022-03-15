@@ -2796,10 +2796,7 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
     value_data = variant_data["attributes"][0]["values"][0]
     assert value_data["slug"] == existing_value.slug
     assert value_data["name"] == existing_value.name
-    assert (
-        value_data["file"]["url"]
-        == f"http://testserver/media/{existing_value.file_url}"
-    )
+    assert value_data["file"]["url"] == f"http://testserver{existing_value.file_url}"
     assert value_data["file"]["contentType"] == existing_value.content_type
 
 
