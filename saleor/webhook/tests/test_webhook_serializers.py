@@ -99,7 +99,7 @@ def test_serialize_checkout_lines_with_taxes(
 
     # when
     checkout_lines_data = serialize_checkout_lines_with_taxes(
-        checkout_info, manager, lines
+        checkout_info, manager, lines, []
     )
 
     # then

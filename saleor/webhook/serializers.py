@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     # pylint: disable=unused-import
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..discount import DiscountInfo
     from ..product.models import ProductVariant
 
 
@@ -57,6 +58,7 @@ def serialize_checkout_lines_with_taxes(
     checkout_info: "CheckoutInfo",
     manager: PluginsManager,
     lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable["DiscountInfo"],
 ) -> List[dict]:
     data = []
     checkout = checkout_info.checkout
@@ -68,7 +70,7 @@ def serialize_checkout_lines_with_taxes(
             checkout_info=checkout_info,
             lines=lines,
             checkout_line_info=line_info,
-            discounts=[],
+            discounts=discounts,
         )
         unit_price = quantize_price(unit_price_data.price_with_sale, currency)
         unit_price_with_discounts = quantize_price(

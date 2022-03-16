@@ -31,6 +31,8 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..discount import DiscountInfo
+from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order import calculations as order_calculations
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -1253,18 +1255,21 @@ def _generate_checkout_prices_data_with_taxes(
     manager: PluginsManager,
     checkout_info: CheckoutInfo,
     lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable[DiscountInfo],
 ) -> Dict[str, Decimal]:
     subtotal = checkout_calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=None,
+        discounts=discounts,
     )
     total = checkout_calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=None,
+        discounts=discounts,
     )
 
     def qp(amount: Decimal) -> Decimal:
@@ -1299,16 +1304,17 @@ def generate_checkout_payload(
 ):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
     return _generate_checkout_payload(
         checkout,
         requestor,
         checkout_prices_data=_generate_checkout_prices_data_with_taxes(
-            manager, checkout_info, lines
+            manager, checkout_info, lines, discounts
         ),
         lines_dict_data=serialize_checkout_lines_with_taxes(
-            checkout_info, manager, lines
+            checkout_info, manager, lines, discounts
         ),
         included_taxes_in_price=include_taxes_in_prices(),
     )
