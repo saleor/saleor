@@ -6086,14 +6086,8 @@ def test_product_variant_deactivate_preorder_as_app(
 
 
 VARIANT_CREATE_MUTATION = """
-    mutation variantCreate($productId: ID!, $attrId: ID!) {
-        productVariantCreate (
-            input: {
-                sku: "my-sku",
-                product: $productId,
-                attributes: [{id: $attrId, values:["1"]}]
-            }
-        )
+    mutation variantCreate($input: ProductVariantCreateInput!) {
+        productVariantCreate (input: $input)
         {
             productVariant {
                 id
@@ -6118,10 +6112,14 @@ def test_variant_create_product_without_variant_attributes(
     attr_id = graphene.Node.to_global_id(
         "Attribute", product.product_type.product_attributes.first().pk
     )
-
+    input = {
+        "sku": "my-sku",
+        "product": prod_id,
+        "attributes": [{"id": attr_id, "values": ["1"]}],
+    }
     response = staff_api_client.post_graphql(
         VARIANT_CREATE_MUTATION,
-        variables={"productId": prod_id, "attrId": attr_id},
+        variables={"input": input},
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
@@ -6147,9 +6145,14 @@ def test_variant_create_product_with_variant_attributes_variant_flag_false(
         "Attribute", product.product_type.variant_attributes.first().pk
     )
 
+    input = {
+        "sku": "my-sku",
+        "product": prod_id,
+        "attributes": [{"id": attr_id, "values": ["1"]}],
+    }
     response = staff_api_client.post_graphql(
         VARIANT_CREATE_MUTATION,
-        variables={"productId": prod_id, "attrId": attr_id},
+        variables={"input": input},
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
