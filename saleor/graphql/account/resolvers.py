@@ -208,7 +208,7 @@ def resolve_address(info, id):
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
     raise PermissionDenied(
-        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.OWNER]
+        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.IS_OWNER]
     )
 
 

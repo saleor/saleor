@@ -54,7 +54,7 @@ def check_can_edit_address(context, address):
         if is_owner:
             return True
     raise PermissionDenied(
-        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.OWNER]
+        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.IS_OWNER]
     )
 
 

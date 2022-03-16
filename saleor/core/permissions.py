@@ -123,7 +123,7 @@ class InternalPermissions(BasePermissionEnum):
     # Grants access to the owner of the related object. This rule doesn't come with any
     # permission function, as the ownership needs to be defined individually in each
     # case.
-    OWNER = "internal_permissions.owner"
+    IS_OWNER = "internal_permissions.owner"
 
 
 def resolve_internal_permission_fn(perm):

@@ -340,18 +340,18 @@ class BaseMutation(graphene.Mutation):
         permission_fns = [
             p for p in all_permissions if isinstance(p, InternalPermissions)
         ]
-        permission_scopes = [
+        admin_permissions = [
             p for p in all_permissions if not isinstance(p, InternalPermissions)
         ]
 
-        granted_by_permission_scopes = False
+        granted_by_admin_permissions = False
         granted_by_permission_fns = False
 
         app = getattr(context, "app", None)
         if (
             app
-            and permission_scopes
-            and AccountPermissions.MANAGE_STAFF in permission_scopes
+            and admin_permissions
+            and AccountPermissions.MANAGE_STAFF in admin_permissions
         ):
             # `MANAGE_STAFF` permission for apps is not supported. If apps could use it
             # they could create a staff user with full access which would be a
@@ -359,8 +359,8 @@ class BaseMutation(graphene.Mutation):
             return False
 
         requestor = get_user_or_app_from_context(context)
-        if permission_scopes:
-            granted_by_permission_scopes = requestor.has_perms(permission_scopes)
+        if admin_permissions:
+            granted_by_admin_permissions = requestor.has_perms(admin_permissions)
 
         if permission_fns:
             internal_perm_checks = []
@@ -371,7 +371,7 @@ class BaseMutation(graphene.Mutation):
                     internal_perm_checks.append(bool(res))
             granted_by_permission_fns = any(internal_perm_checks)
 
-        return granted_by_permission_scopes or granted_by_permission_fns
+        return granted_by_admin_permissions or granted_by_permission_fns
 
     @classmethod
     def mutate(cls, root, info, **data):

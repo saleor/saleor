@@ -174,7 +174,7 @@ class CustomerEvent(ModelObjectType):
             permissions=[
                 AccountPermissions.MANAGE_STAFF,
                 AccountPermissions.MANAGE_USERS,
-                InternalPermissions.OWNER,
+                InternalPermissions.IS_OWNER,
             ]
         )
 
@@ -380,7 +380,7 @@ class User(ModelObjectType):
                 else:
                     raise PermissionDenied(
                         permissions=[
-                            InternalPermissions.OWNER,
+                            InternalPermissions.IS_OWNER,
                             OrderPermissions.MANAGE_ORDERS,
                         ]
                     )
@@ -408,7 +408,7 @@ class User(ModelObjectType):
 
         if root == info.context.user:
             return resolve_payment_sources(info, root, channel_slug=channel)
-        raise PermissionDenied(permissions=[InternalPermissions.OWNER])
+        raise PermissionDenied(permissions=[InternalPermissions.IS_OWNER])
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
@@ -507,7 +507,7 @@ class StaffNotificationRecipient(graphene.ObjectType):
         if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
             return root.user
         raise PermissionDenied(
-            permissions=[AccountPermissions.MANAGE_STAFF, InternalPermissions.OWNER]
+            permissions=[AccountPermissions.MANAGE_STAFF, InternalPermissions.IS_OWNER]
         )
 
     @staticmethod

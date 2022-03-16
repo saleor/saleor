@@ -336,10 +336,10 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
-        model = models.Address
-        object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
+        model = models.Address
+        object_type = Address
 
 
 class AccountAddressDelete(BaseAddressDelete):
