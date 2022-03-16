@@ -378,6 +378,7 @@ def _generate_order_payload(
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines_payload),
         "included_taxes_in_prices": included_taxes_in_prices,
+        **order_prices_data,
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": json.loads(
             _generate_collection_point_payload(order.collection_point)
@@ -385,8 +386,6 @@ def _generate_order_payload(
         if order.collection_point
         else None,
     }
-
-    extra_dict_data.update(order_prices_data)
 
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
