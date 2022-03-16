@@ -109,6 +109,7 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
+        auto_permission_message=True,
         description=None,
         permissions: Tuple = None,
         _meta=None,
@@ -134,12 +135,13 @@ class BaseMutation(graphene.Mutation):
                 "Permissions should be a tuple or a string in Meta"
             )
 
+        _meta.auto_permission_message = auto_permission_message
         _meta.permissions = permissions
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
 
-        if permissions:
+        if permissions and auto_permission_message:
             permission_msg = ", ".join([p.name for p in permissions])
             description = (
                 f"{description} Requires one of the following "

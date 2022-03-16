@@ -335,7 +335,11 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 
 class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
-        description = "Updates an address of the logged-in user."
+        auto_permission_message = False
+        description = (
+            "Updates an address of the logged-in user. Requires one of the following "
+            "permissions: MANAGE_USERS, IS_OWNER."
+        )
         error_type_class = AccountError
         error_type_field = "account_errors"
         model = models.Address
@@ -344,7 +348,11 @@ class AccountAddressUpdate(BaseAddressUpdate):
 
 class AccountAddressDelete(BaseAddressDelete):
     class Meta:
-        description = "Delete an address of the logged-in user."
+        auto_permission_message = False
+        description = (
+            "Delete an address of the logged-in user. Requires one of the following "
+            "permissions: MANAGE_USERS, IS_OWNER."
+        )
         model = models.Address
         object_type = Address
         error_type_class = AccountError
