@@ -526,6 +526,7 @@ def _generate_checkout_payload(
         "channel",
     )
 
+    quantize_price_fields(checkout, ["discount_amount"], checkout.currency)
     user_fields = ("email", "first_name", "last_name")
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
