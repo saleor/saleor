@@ -105,6 +105,7 @@ class Payment(ModelWithMetadata):
     psp_reference = models.CharField(
         max_length=512, null=True, blank=True, db_index=True
     )
+
     status = models.CharField(max_length=512, blank=True, default="")
     type = models.CharField(max_length=512, blank=True, default="")
     reference = models.CharField(max_length=512, blank=True, default="")
@@ -119,7 +120,6 @@ class Payment(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     amount_authorized = MoneyField(
         amount_field="authorized_value", currency_field="currency"
     )

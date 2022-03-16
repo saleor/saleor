@@ -5078,7 +5078,7 @@ type Payment implements Node & ObjectWithMetadata {
   authorizedAmount: Money!
   refundedAmount: Money!
   voidedAmount: Money!
-  capturedAmount: Money
+  capturedAmount: Money!
   gateway: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
   isActive: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
   created: DateTime!

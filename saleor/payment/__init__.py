@@ -157,7 +157,7 @@ class PaymentAction:
     CAPTURE = "capture"
     REFUND = "refund"
     VOID = "void"
-    MARK_AS_PAID = "MARK_AS_PAID"
+    MARK_AS_PAID = "mark_as_paid"
 
     CHOICES = [
         (CAPTURE, "Capture payment"),

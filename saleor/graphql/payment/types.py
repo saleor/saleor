@@ -101,7 +101,7 @@ class Payment(ModelObjectType):
         Money, required=True, description="Total amount voided for this payment."
     )
     captured_amount = graphene.Field(
-        Money, description="Total amount captured for this payment."
+        Money, description="Total amount captured for this payment.", required=True
     )
 
     gateway = graphene.String(
@@ -185,10 +185,6 @@ class Payment(ModelObjectType):
         return root.get_total()
 
     @staticmethod
-    def resolve_captured_amount(root: models.Payment, _info):
-        return root.get_captured_amount()
-
-    @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
@@ -233,6 +229,22 @@ class Payment(ModelObjectType):
         if not root.checkout_id:
             return None
         return CheckoutByTokenLoader(info.context).load(root.checkout_id)
+
+    @staticmethod
+    def resolve_captured_amount(root: models.Payment, _info):
+        return root.amount_captured
+
+    @staticmethod
+    def resolve_authorized_amount(root: models.Payment, info):
+        return root.amount_authorized
+
+    @staticmethod
+    def resolve_voided_amount(root: models.Payment, info):
+        return root.amount_voided
+
+    @staticmethod
+    def resolve_refunded_amount(root: models.Payment, info):
+        return root.amount_voided
 
 
 class PaymentCountableConnection(CountableConnection):

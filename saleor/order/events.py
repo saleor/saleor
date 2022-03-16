@@ -440,8 +440,7 @@ def payment_event(
 
     if not user_is_valid(user):
         user = None
-    # FIXME do we want to use message for this? Should we have a name field in
-    #  orderevent? OR we should use message instead of name?
+
     parameters = {"message": name, "reference": reference, "status": status}
     return OrderEvent.objects.create(
         order=order,

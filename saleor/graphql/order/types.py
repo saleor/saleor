@@ -19,6 +19,7 @@ from ...core.permissions import (
     ProductPermissions,
     has_one_of_permissions,
 )
+from ...core.prices import quantize_price
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
@@ -669,7 +670,8 @@ class Order(ModelObjectType):
     actions = graphene.List(
         OrderAction,
         description=(
-            "List of actions that can be performed in the current state of an order."
+            f"{DEPRECATED_IN_3X_FIELD} Use actions on order.payments. List of actions "
+            f"that can be performed in the current state of an order."
         ),
         required=True,
     )
@@ -945,21 +947,16 @@ class Order(ModelObjectType):
             payment = get_last_payment(payments)
             # FIXME this condition will be changed in separate PR after converting
             #  current payment model into LegacyPayment object
-            if not payment or payment.gateway:
-                actions = []
-                if root.can_capture(payment):
-                    actions.append(OrderAction.CAPTURE)
-                if root.can_mark_as_paid(payments):
-                    actions.append(OrderAction.MARK_AS_PAID)
-                if root.can_refund(payment):
-                    actions.append(OrderAction.REFUND)
-                if root.can_void(payment):
-                    actions.append(OrderAction.VOID)
-                return actions
-            actions = set()
-            for payment in payments:
-                actions.update(payment.available_actions)
-            return [action.upper() for action in actions]
+            actions = []
+            if root.can_capture(payment):
+                actions.append(OrderAction.CAPTURE)
+            if root.can_mark_as_paid(payments):
+                actions.append(OrderAction.MARK_AS_PAID)
+            if root.can_refund(payment):
+                actions.append(OrderAction.REFUND)
+            if root.can_void(payment):
+                actions.append(OrderAction.VOID)
+            return actions
 
         return (
             PaymentsByOrderIdLoader(info.context).load(root.id).then(_resolve_actions)
@@ -988,15 +985,15 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_total_authorized(root: models.Order, info):
         def _resolve_total_get_total_authorized(payments):
-            payment = get_last_payment(payments)
+            last_payment = get_last_payment(payments)
             # FIXME this condition will be changed in separate PR after converting
             #  current payment model into LegacyPayment object
-            if payment and payment.gateway:
+            if last_payment and last_payment.gateway:
                 return get_total_authorized(payments, root.currency)
             authorized_money = prices.Money(Decimal(0), root.currency)
             for payment in payments:
                 authorized_money += payment.amount_authorized
-            return authorized_money
+            return quantize_price(authorized_money, root.currency)
 
         return (
             PaymentsByOrderIdLoader(info.context)
@@ -1015,7 +1012,7 @@ class Order(ModelObjectType):
             captured_money = prices.Money(Decimal(0), root.currency)
             for payment in payments:
                 captured_money += payment.amount_captured
-            return captured_money
+            return quantize_price(captured_money, root.currency)
 
         return (
             PaymentsByOrderIdLoader(info.context)
@@ -1034,7 +1031,8 @@ class Order(ModelObjectType):
             captured_money = prices.Money(Decimal(0), root.currency)
             for payment in payments:
                 captured_money += payment.amount_captured
-            return captured_money - root.total.gross
+            print(quantize_price(captured_money - root.total.gross, root.currency))
+            return quantize_price(captured_money - root.total.gross, root.currency)
 
         return (
             PaymentsByOrderIdLoader(info.context)

@@ -35,7 +35,7 @@ from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
 )
-from ....payment import ChargeStatus, PaymentError
+from ....payment import ChargeStatus, PaymentAction, PaymentError
 from ....payment.models import Payment
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
@@ -293,6 +293,19 @@ query OrdersQuery {
                 paymentStatusDisplay
                 userEmail
                 isPaid
+                actions
+                totalAuthorized{
+                    amount
+                    currency
+                }
+                totalCaptured{
+                    amount
+                    currency
+                }
+                totalBalance{
+                    amount
+                    currency
+                }
                 shippingPrice {
                     gross {
                         amount
@@ -329,6 +342,32 @@ query OrdersQuery {
                 }
                 payments{
                     id
+                    actions
+                    total{
+                        currency
+                        amount
+                    }
+                    reference
+                    type
+                    status
+                    modified
+                    created
+                    authorizedAmount{
+                        amount
+                        currency
+                    }
+                    voidedAmount{
+                        currency
+                        amount
+                    }
+                    capturedAmount{
+                        currency
+                        amount
+                    }
+                    refundedAmount{
+                        currency
+                        amount
+                    }
                 }
                 subtotal {
                     net {
@@ -530,6 +569,88 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
+
+
+def test_order_query_with_payments_details(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+    shipping_zone,
+):
+    # given
+    order = fulfilled_order
+    net = Money(amount=Decimal("100"), currency="USD")
+    gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
+    shipping_price = TaxedMoney(net=net, gross=gross)
+    order.shipping_price = shipping_price
+    shipping_tax_rate = Decimal("0.23")
+    order.shipping_tax_rate = shipping_tax_rate
+    private_value = "abc123"
+    public_value = "123abc"
+    order.shipping_method.store_value_in_metadata({"test": public_value})
+    order.shipping_method.store_value_in_private_metadata({"test": private_value})
+    order.shipping_method.save()
+    order.save()
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                order_id=order.id,
+                status="Authorized",
+                type="Credit card",
+                reference="123",
+                currency="USD",
+                authorized_value=Decimal("15"),
+                available_actions=[PaymentAction.CAPTURE, PaymentAction.VOID],
+            ),
+            Payment(
+                order_id=order.id,
+                status="Authorized second credit card",
+                type="Credit card",
+                reference="321",
+                currency="USD",
+                authorized_value=Decimal("10"),
+                available_actions=[PaymentAction.CAPTURE, PaymentAction.VOID],
+            ),
+            Payment(
+                order_id=order.id,
+                status="Captured",
+                type="Credit card",
+                reference="321",
+                currency="USD",
+                captured_value=Decimal("15"),
+                available_actions=[PaymentAction.REFUND],
+            ),
+        ]
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    payment_charge_status = PaymentChargeStatusEnum.PARTIALLY_CHARGED
+    assert order_data["paymentStatus"] == payment_charge_status.name
+    assert (
+        order_data["paymentStatusDisplay"]
+        == dict(ChargeStatus.CHOICES)[payment_charge_status.value]
+    )
+    assert order_data["isPaid"] == order.is_fully_paid()
+
+    assert len(order_data["payments"]) == order.payments.count()
+    assert Decimal(order_data["totalAuthorized"]["amount"]) == Decimal("25")
+    assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal("15")
+
+    assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
+
+    # only the last payment's action is visible here. availableAction are specify per
+    # payment
+    assert order_data["actions"] == ["CAPTURE"]
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
