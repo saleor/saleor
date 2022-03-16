@@ -1139,13 +1139,12 @@ def product_type_with_variant_attributes(attribute_without_values):
 def product_with_product_attributes(
     product_type_with_product_attributes, non_default_category
 ):
-    product = Product.objects.create(
+    return Product.objects.create(
         name="product_with_product_attributes",
         slug="product-with-product-attributes",
         product_type=product_type_with_product_attributes,
         category=non_default_category,
     )
-    return product
 
 
 @pytest.fixture
