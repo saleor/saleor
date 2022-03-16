@@ -62,7 +62,6 @@ def serialize_checkout_lines_with_taxes(
 ) -> List[dict]:
     data = []
     checkout = checkout_info.checkout
-    currency = checkout.currency
 
     for line_info in lines:
         unit_price_data = calculations.checkout_line_unit_price(
@@ -72,10 +71,9 @@ def serialize_checkout_lines_with_taxes(
             checkout_line_info=line_info,
             discounts=discounts,
         )
-        unit_price = quantize_price(unit_price_data.price_with_sale, currency)
-        unit_price_with_discounts = quantize_price(
-            unit_price_data.price_with_discounts, currency
-        )
+        unit_price = unit_price_data.price_with_sale
+        unit_price_with_discounts = unit_price_data.price_with_discounts
+
         data.append(
             {
                 **_get_checkout_line_payload_data(checkout, line_info),

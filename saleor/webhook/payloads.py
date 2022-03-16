@@ -168,36 +168,25 @@ def _generate_order_lines_payload_with_taxes(
     manager: PluginsManager,
     lines: Iterable[OrderLine],
 ):
-    def qp(price: TaxedMoney) -> TaxedMoney:
-        return quantize_price(price, order.currency)
-
     def get_unit_price(line: OrderLine) -> TaxedMoney:
-        return qp(
-            order_calculations.order_line_unit(
-                order, line, manager, lines
-            ).price_with_discounts
-        )
+        return order_calculations.order_line_unit(
+            order, line, manager, lines
+        ).price_with_discounts
 
     def get_undiscounted_unit_price(line: OrderLine) -> TaxedMoney:
-        return qp(
-            order_calculations.order_line_unit(
-                order, line, manager, lines
-            ).undiscounted_price
-        )
+        return order_calculations.order_line_unit(
+            order, line, manager, lines
+        ).undiscounted_price
 
     def get_total_price(line: OrderLine) -> TaxedMoney:
-        return qp(
-            order_calculations.order_line_total(
-                order, line, manager, lines
-            ).price_with_discounts
-        )
+        return order_calculations.order_line_total(
+            order, line, manager, lines
+        ).price_with_discounts
 
     def get_undiscounted_total_price(line: OrderLine) -> TaxedMoney:
-        return qp(
-            order_calculations.order_line_total(
-                order, line, manager, lines
-            ).undiscounted_price
-        )
+        return order_calculations.order_line_total(
+            order, line, manager, lines
+        ).undiscounted_price
 
     def get_tax_rate(line: OrderLine) -> Decimal:
         return order_calculations.order_line_tax_rate(order, line, manager, lines)
@@ -1168,9 +1157,6 @@ def _generate_order_prices_data_with_taxes(
     manager: PluginsManager,
     lines: Optional[Iterable[OrderLine]] = None,
 ) -> Dict[str, Decimal]:
-    def qp(price: Decimal) -> Decimal:
-        return quantize_price(price, order.currency)
-
     shipping = order_calculations.order_shipping(order, manager, lines)
     shipping_tax_rate = order_calculations.order_shipping_tax_rate(
         order, manager, lines
@@ -1181,13 +1167,13 @@ def _generate_order_prices_data_with_taxes(
     )
 
     return {
-        "shipping_price_net_amount": qp(shipping.net.amount),
-        "shipping_price_gross_amount": qp(shipping.gross.amount),
+        "shipping_price_net_amount": shipping.net.amount,
+        "shipping_price_gross_amount": shipping.gross.amount,
         "shipping_tax_rate": shipping_tax_rate,
-        "total_net_amount": qp(total.net.amount),
-        "total_gross_amount": qp(total.gross.amount),
-        "undiscounted_total_net_amount": qp(undiscounted_total.net.amount),
-        "undiscounted_total_gross_amount": qp(undiscounted_total.gross.amount),
+        "total_net_amount": total.net.amount,
+        "total_gross_amount": total.gross.amount,
+        "undiscounted_total_net_amount": undiscounted_total.net.amount,
+        "undiscounted_total_gross_amount": undiscounted_total.gross.amount,
     }
 
 
@@ -1272,14 +1258,11 @@ def _generate_checkout_prices_data_with_taxes(
         discounts=discounts,
     )
 
-    def qp(amount: Decimal) -> Decimal:
-        return quantize_price(amount, checkout_info.checkout.currency)
-
     return {
-        "subtotal_net_amount": qp(subtotal.net.amount),
-        "subtotal_gross_amount": qp(subtotal.gross.amount),
-        "total_net_amount": qp(total.net.amount),
-        "total_gross_amount": qp(total.gross.amount),
+        "subtotal_net_amount": subtotal.net.amount,
+        "subtotal_gross_amount": subtotal.gross.amount,
+        "total_net_amount": total.net.amount,
+        "total_gross_amount": total.gross.amount,
     }
 
 

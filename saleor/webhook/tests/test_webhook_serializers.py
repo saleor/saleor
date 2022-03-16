@@ -82,20 +82,15 @@ ATTRIBUTES = sentinel.ATTRIBUTES
     "saleor.webhook.serializers.serialize_product_or_variant_attributes",
     new=Mock(return_value=ATTRIBUTES),
 )
-@pytest.mark.parametrize("taxes_included", [True, False])
 def test_serialize_checkout_lines_with_taxes(
     checkout_with_prices,
     mocked_fetch_checkout,
-    taxes_included,
-    site_settings,
 ):
     # given
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save()
 
     # when
     checkout_lines_data = serialize_checkout_lines_with_taxes(
@@ -129,16 +124,10 @@ def test_serialize_checkout_lines_with_taxes(
             "quantity": line.quantity,
             "charge_taxes": product.charge_taxes,
             "base_price": quantize_price(base_price.amount, currency),
-            "price_net_amount": quantize_price(line.unit_price_net_amount, currency),
-            "price_gross_amount": quantize_price(
-                line.unit_price_gross_amount, currency
-            ),
-            "price_with_discounts_net_amount": quantize_price(
-                line.unit_price_with_discounts_net_amount, currency
-            ),
-            "price_with_discounts_gross_amount": quantize_price(
-                line.unit_price_with_discounts_gross_amount, currency
-            ),
+            "price_net_amount": ANY,
+            "price_gross_amount": ANY,
+            "price_with_discounts_net_amount": ANY,
+            "price_with_discounts_gross_amount": ANY,
             "currency": checkout.channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,
@@ -148,6 +137,18 @@ def test_serialize_checkout_lines_with_taxes(
             "product_metadata": product.metadata,
             "product_type_metadata": product.product_type.metadata,
         }
+        assert str(data["price_net_amount"]) == str(
+            quantize_price(line.unit_price_net_amount, currency)
+        )
+        assert str(data["price_gross_amount"]) == str(
+            quantize_price(line.unit_price_gross_amount, currency)
+        )
+        assert str(data["price_with_discounts_net_amount"]) == str(
+            quantize_price(line.unit_price_with_discounts_net_amount, currency)
+        )
+        assert str(data["price_with_discounts_gross_amount"]) == str(
+            quantize_price(line.unit_price_with_discounts_gross_amount, currency)
+        )
         data_len += 1
 
     assert len(checkout_lines_data) == data_len

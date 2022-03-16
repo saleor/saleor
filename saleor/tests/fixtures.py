@@ -65,7 +65,6 @@ from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
-from ..order.calculations import _quantize_prices
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -3483,8 +3482,6 @@ def recalculate_order(order):
             assigned_order_discount.amount_value = discount.amount
             assigned_order_discount.value = discount.amount
             assigned_order_discount.save(update_fields=["value", "amount_value"])
-
-    _quantize_prices(order, lines)
 
     order.save()
 

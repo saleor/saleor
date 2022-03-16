@@ -7,7 +7,7 @@ from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from ..core.prices import quantize_price_fields
+from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxError, zero_taxed_money
 from ..discount import OrderDiscountType
 from ..plugins.manager import PluginsManager
@@ -112,33 +112,6 @@ def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> No
         )
 
 
-def _quantize_prices(order, lines) -> None:
-    currency = order.currency
-
-    order_prices = [
-        "total_net_amount",
-        "total_gross_amount",
-        "undiscounted_total_net_amount",
-        "undiscounted_total_gross_amount",
-        "shipping_price_net_amount",
-        "shipping_price_gross_amount",
-    ]
-    order_line_prices = [
-        "unit_price_net_amount",
-        "unit_price_gross_amount",
-        "undiscounted_unit_price_net_amount",
-        "undiscounted_unit_price_gross_amount",
-        "total_price_net_amount",
-        "total_price_gross_amount",
-        "undiscounted_total_price_net_amount",
-        "undiscounted_total_price_gross_amount",
-    ]
-
-    quantize_price_fields(order, order_prices, currency)
-    for line in lines:
-        quantize_price_fields(line, order_line_prices, currency)
-
-
 def fetch_order_prices_if_expired(
     order: Order,
     manager: PluginsManager,
@@ -178,8 +151,6 @@ def fetch_order_prices_if_expired(
             _apply_tax_data(order, lines, tax_data)
 
         _recalculate_order_discounts(order, lines)
-
-        _quantize_prices(order, lines)
 
         order.save(
             update_fields=[
@@ -236,11 +207,12 @@ def order_line_unit(
     If the prices are expired, calls all order price calculation methods
     and saves them in the model directly.
     """
+    currency = order.currency
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
     return OrderTaxedPricesData(
-        undiscounted_price=order_line.undiscounted_unit_price,
-        price_with_discounts=order_line.unit_price,
+        undiscounted_price=quantize_price(order_line.undiscounted_unit_price, currency),
+        price_with_discounts=quantize_price(order_line.unit_price, currency),
     )
 
 
@@ -257,11 +229,14 @@ def order_line_total(
     If the prices are expired, calls all order price calculation methods
     and saves them in the model directly.
     """
+    currency = order.currency
     _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
     order_line = _find_order_line(lines, order_line)
     return OrderTaxedPricesData(
-        undiscounted_price=order_line.undiscounted_total_price,
-        price_with_discounts=order_line.total_price,
+        undiscounted_price=quantize_price(
+            order_line.undiscounted_total_price, currency
+        ),
+        price_with_discounts=quantize_price(order_line.total_price, currency),
     )
 
 
@@ -295,8 +270,9 @@ def order_shipping(
     If the prices are expired, calls all order price calculation methods
     and saves them in the model directly.
     """
+    currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
-    return order.shipping_price
+    return quantize_price(order.shipping_price, currency)
 
 
 def order_shipping_tax_rate(
@@ -327,8 +303,9 @@ def order_total(
     If the prices are expired, calls all order price calculation methods
     and saves them in the model directly.
     """
+    currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
-    return order.total
+    return quantize_price(order.total, currency)
 
 
 def order_undiscounted_total(
@@ -343,5 +320,6 @@ def order_undiscounted_total(
     If the prices are expired, calls all order price calculation methods
     and saves them in the model directly.
     """
+    currency = order.currency
     order, _ = fetch_order_prices_if_expired(order, manager, lines, force_update)
-    return order.undiscounted_total
+    return quantize_price(order.undiscounted_total, currency)

@@ -15,25 +15,25 @@ def checkout_with_prices(
 ):
     lines = checkout_with_items.lines.all()
     for i, line in enumerate(lines, start=1):
-        line.unit_price_net_amount = Decimal("10.00") + Decimal(i)
-        line.unit_price_gross_amount = Decimal("10.00") + Decimal(i) * Decimal("1.1")
+        line.unit_price_net_amount = Decimal("10.000") + Decimal(i)
+        line.unit_price_gross_amount = Decimal("10.000") + Decimal(i) * Decimal("1.100")
         line.unit_price_with_discounts_net_amount = (
-            Decimal("10.00") + Decimal(i) - Decimal("0.30")
+            Decimal("10.000") + Decimal(i) - Decimal("0.300")
         )
         line.unit_price_with_discounts_gross_amount = (
-            Decimal("10.00") + Decimal(i) * Decimal("1.1") - Decimal("0.30")
+            Decimal("10.000") + Decimal(i) * Decimal("1.100") - Decimal("0.300")
         )
 
-    checkout_with_items.discount_amount = Decimal("0.00")
+    checkout_with_items.discount_amount = Decimal("0.000")
     checkout_with_items.user = customer_user
     checkout_with_items.billing_address = address
     checkout_with_items.shipping_address = address_other_country
     checkout_with_items.shipping_method = shipping_method
     checkout_with_items.collection_point = warehouse
-    checkout_with_items.subtotal_net_amount = Decimal("100.00")
-    checkout_with_items.subtotal_gross_amount = Decimal("123.00")
-    checkout_with_items.total_net_amount = Decimal("150.00")
-    checkout_with_items.total_gross_amount = Decimal("178.00")
+    checkout_with_items.subtotal_net_amount = Decimal("100.000")
+    checkout_with_items.subtotal_gross_amount = Decimal("123.000")
+    checkout_with_items.total_net_amount = Decimal("150.000")
+    checkout_with_items.total_gross_amount = Decimal("178.000")
 
     checkout_with_items.lines.bulk_update(
         lines,
