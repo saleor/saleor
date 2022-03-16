@@ -1097,7 +1097,7 @@ def color_attribute(db):
 
 @pytest.fixture
 def attribute_without_values():
-    attribute = Attribute.objects.create(
+    return Attribute.objects.create(
         slug="dropdown",
         name="Dropdown",
         type=AttributeType.PRODUCT_TYPE,
@@ -1107,8 +1107,6 @@ def attribute_without_values():
         visible_in_storefront=True,
         entity_type=None,
     )
-
-    return attribute
 
 
 @pytest.fixture
