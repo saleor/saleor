@@ -854,10 +854,7 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        if product_type.has_variants:
-            attributes_qs = product_type.variant_attributes
-        else:
-            attributes_qs = product_type.product_attributes
+        attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
         return attributes
 
@@ -976,8 +973,10 @@ class ProductVariantCreate(ModelMutation):
                 raise ValidationError({"attributes": exc})
         else:
             if attributes:
-                cleaned_attributes = cls.clean_attributes(attributes, product_type)
-                cleaned_input["attributes"] = cleaned_attributes
+                raise ValidationError(
+                    "Cannot assign attributes for product type without variants",
+                    ProductErrorCode.INVALID.value,
+                )
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
