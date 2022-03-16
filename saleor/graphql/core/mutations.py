@@ -19,7 +19,7 @@ from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
-    InternalPermissions,
+    PermissionFunctions,
     resolve_internal_permission_fn,
 )
 from ..decorators import staff_member_or_app_required
@@ -340,10 +340,10 @@ class BaseMutation(graphene.Mutation):
             return True
 
         permission_fns = [
-            p for p in all_permissions if isinstance(p, InternalPermissions)
+            p for p in all_permissions if isinstance(p, PermissionFunctions)
         ]
         admin_permissions = [
-            p for p in all_permissions if not isinstance(p, InternalPermissions)
+            p for p in all_permissions if not isinstance(p, PermissionFunctions)
         ]
 
         granted_by_admin_permissions = False

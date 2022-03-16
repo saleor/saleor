@@ -2,7 +2,7 @@ import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, InternalPermissions
+from ....core.permissions import AccountPermissions, PermissionFunctions
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -30,8 +30,8 @@ class CheckoutCustomerDetach(BaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
         permissions = (
-            InternalPermissions.IS_AUTHENTICATED_APP,
-            InternalPermissions.IS_AUTHENTICATED_USER,
+            PermissionFunctions.IS_AUTHENTICATED_APP,
+            PermissionFunctions.IS_AUTHENTICATED_USER,
         )
 
     @classmethod

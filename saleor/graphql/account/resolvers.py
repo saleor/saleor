@@ -9,8 +9,8 @@ from ...account import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
-    InternalPermissions,
     OrderPermissions,
+    PermissionFunctions,
     has_one_of_permissions,
 )
 from ...core.tracing import traced_resolver
@@ -208,7 +208,7 @@ def resolve_address(info, id):
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
     raise PermissionDenied(
-        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.IS_OWNER]
+        permissions=[AccountPermissions.MANAGE_USERS, PermissionFunctions.IS_OWNER]
     )
 
 

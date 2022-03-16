@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import AppPermission, InternalPermissions
+from ...core.permissions import AppPermission, PermissionFunctions
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
@@ -65,7 +65,7 @@ class WebhookCreate(ModelMutation):
         object_type = Webhook
         permissions = (
             AppPermission.MANAGE_APPS,
-            InternalPermissions.IS_AUTHENTICATED_APP,
+            PermissionFunctions.IS_AUTHENTICATED_APP,
         )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
@@ -210,7 +210,7 @@ class WebhookDelete(ModelDeleteMutation):
         object_type = Webhook
         permissions = (
             AppPermission.MANAGE_APPS,
-            InternalPermissions.IS_AUTHENTICATED_APP,
+            PermissionFunctions.IS_AUTHENTICATED_APP,
         )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"

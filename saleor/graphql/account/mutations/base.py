@@ -14,7 +14,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, InternalPermissions
+from ....core.permissions import AccountPermissions, PermissionFunctions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
@@ -54,7 +54,7 @@ def check_can_edit_address(context, address):
         if is_owner:
             return True
     raise PermissionDenied(
-        permissions=[AccountPermissions.MANAGE_USERS, InternalPermissions.IS_OWNER]
+        permissions=[AccountPermissions.MANAGE_USERS, PermissionFunctions.IS_OWNER]
     )
 
 
@@ -263,7 +263,7 @@ class PasswordChange(BaseMutation):
         description = "Change the password of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (InternalPermissions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
