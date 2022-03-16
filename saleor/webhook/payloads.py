@@ -236,11 +236,11 @@ def _generate_order_lines_payload_with_taxes(
 def _generate_order_lines_payload_without_taxes(
     order: Order,
     lines: Iterable[OrderLine],
-    included_taxes_in_price: bool,
+    use_gross_as_base_price: bool,
 ):
     def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
-            get_base_price(price, included_taxes_in_price), order.currency
+            get_base_price(price, use_gross_as_base_price), order.currency
         )
 
     for line in lines:
@@ -302,7 +302,7 @@ def _generate_order_payload(
     *,
     order_prices_data: Dict[str, Decimal],
     order_lines_payload: str,
-    included_taxes_in_price: bool,
+    included_taxes_in_prices: bool,
 ):
     serializer = PayloadSerializer()
     fulfillment_fields = (
@@ -377,7 +377,7 @@ def _generate_order_payload(
     extra_dict_data = {
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines_payload),
-        "included_taxes_in_prices": included_taxes_in_price,
+        "included_taxes_in_prices": included_taxes_in_prices,
         "fulfillments": json.loads(fulfillments_data),
         "collection_point": json.loads(
             _generate_collection_point_payload(order.collection_point)
@@ -510,7 +510,7 @@ def _generate_checkout_payload(
     *,
     checkout_prices_data: Dict[str, Decimal],
     lines_dict_data: List[Dict[str, Any]],
-    included_taxes_in_price: bool,
+    included_taxes_in_prices: bool,
 ):
     serializer = PayloadSerializer()
     checkout_fields = (
@@ -555,7 +555,7 @@ def _generate_checkout_payload(
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
-            "included_taxes_in_price": included_taxes_in_price,
+            "included_taxes_in_prices": included_taxes_in_prices,
             **checkout_prices_data,
             "lines": lines_dict_data,
             "collection_point": json.loads(
@@ -1193,11 +1193,11 @@ def _generate_order_prices_data_with_taxes(
 
 def _generate_order_prices_data_without_taxes(
     order: "Order",
-    included_taxes_in_price: bool,
+    use_gross_as_base_price: bool,
 ) -> Dict[str, Decimal]:
     def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
-            get_base_price(price, included_taxes_in_price), order.currency
+            get_base_price(price, use_gross_as_base_price), order.currency
         )
 
     return {
@@ -1225,7 +1225,7 @@ def generate_order_payload(
         order_lines_payload=_generate_order_lines_payload_with_taxes(
             order, manager, lines
         ),
-        included_taxes_in_price=include_taxes_in_prices(),
+        included_taxes_in_prices=include_taxes_in_prices(),
     )
 
 
@@ -1235,19 +1235,19 @@ def generate_order_payload_without_taxes(
     with_meta: bool = True,
 ):
     lines = OrderLine.objects.prefetch_related("variant__product__product_type")
-    included_taxes_in_price = include_taxes_in_prices()
+    included_taxes_in_prices = include_taxes_in_prices()
 
     return _generate_order_payload(
         order,
         requestor,
         with_meta,
         order_prices_data=_generate_order_prices_data_without_taxes(
-            order, included_taxes_in_price
+            order, included_taxes_in_prices
         ),
         order_lines_payload=_generate_order_lines_payload_without_taxes(
-            order, lines, included_taxes_in_price
+            order, lines, included_taxes_in_prices
         ),
-        included_taxes_in_price=included_taxes_in_price,
+        included_taxes_in_prices=included_taxes_in_prices,
     )
 
 
@@ -1285,11 +1285,11 @@ def _generate_checkout_prices_data_with_taxes(
 
 def _generate_checkout_prices_data_without_taxes(
     checkout: Checkout,
-    included_taxes_in_price: bool,
+    use_gross_as_base_price: bool,
 ) -> Dict[str, Decimal]:
     def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
-            get_base_price(price, included_taxes_in_price), checkout.currency
+            get_base_price(price, use_gross_as_base_price), checkout.currency
         )
 
     return {
@@ -1316,7 +1316,7 @@ def generate_checkout_payload(
         lines_dict_data=serialize_checkout_lines_with_taxes(
             checkout_info, manager, lines, discounts
         ),
-        included_taxes_in_price=include_taxes_in_prices(),
+        included_taxes_in_prices=include_taxes_in_prices(),
     )
 
 
@@ -1325,18 +1325,18 @@ def generate_checkout_payload_without_taxes(
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
     lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    included_taxes_in_price = include_taxes_in_prices()
+    included_taxes_in_prices = include_taxes_in_prices()
 
     return _generate_checkout_payload(
         checkout,
         requestor,
         checkout_prices_data=_generate_checkout_prices_data_without_taxes(
-            checkout, included_taxes_in_price
+            checkout, included_taxes_in_prices
         ),
         lines_dict_data=serialize_checkout_lines_without_taxes(
             checkout,
             lines,
-            included_taxes_in_price,
+            included_taxes_in_prices,
         ),
-        included_taxes_in_price=included_taxes_in_price,
+        included_taxes_in_prices=included_taxes_in_prices,
     )

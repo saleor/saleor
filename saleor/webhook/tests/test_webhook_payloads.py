@@ -1405,7 +1405,7 @@ def test_generate_checkout_payload_withot_taxes(
             "name": checkout.shipping_method.name,
             "type": checkout.shipping_method.type,
         },
-        "included_taxes_in_price": taxes_included,
+        "included_taxes_in_prices": taxes_included,
         "lines": serialized_checkout_lines,
         "subtotal_base_amount": str(
             quantize_price(get_base_price(checkout.subtotal, taxes_included), currency)
@@ -1502,7 +1502,7 @@ def test_generate_checkout_payload(
             "name": checkout.shipping_method.name,
             "type": checkout.shipping_method.type,
         },
-        "included_taxes_in_price": taxes_included,
+        "included_taxes_in_prices": taxes_included,
         "lines": serialized_checkout_lines,
         "subtotal_net_amount": str(
             quantize_price(checkout.subtotal_net_amount, currency)

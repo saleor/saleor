@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def get_base_price(price: TaxedMoney, included_taxes_in_price: bool) -> Decimal:
-    if included_taxes_in_price:
+def get_base_price(price: TaxedMoney, use_gross_as_base_price: bool) -> Decimal:
+    if use_gross_as_base_price:
         return price.gross.amount
     return price.net.amount
 
@@ -93,11 +93,11 @@ def serialize_checkout_lines_with_taxes(
 def serialize_checkout_lines_without_taxes(
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
-    included_taxes_in_price: bool,
+    use_gross_as_base_price: bool,
 ) -> List[dict]:
     def untaxed_price_amount(price: TaxedMoney) -> Decimal:
         return quantize_price(
-            get_base_price(price, included_taxes_in_price), checkout.currency
+            get_base_price(price, use_gross_as_base_price), checkout.currency
         )
 
     return [
