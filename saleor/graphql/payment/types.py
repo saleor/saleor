@@ -170,14 +170,16 @@ class Payment(ModelObjectType):
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_actions(root: models.Payment, _info):
-        actions = []
-        if root.can_capture():
-            actions.append(PaymentAction.CAPTURE)
-        if root.can_refund():
-            actions.append(PaymentAction.REFUND)
-        if root.can_void():
-            actions.append(PaymentAction.VOID)
-        return actions
+        if root.gateway:
+            actions = []
+            if root.can_capture():
+                actions.append(PaymentAction.CAPTURE)
+            if root.can_refund():
+                actions.append(PaymentAction.REFUND)
+            if root.can_void():
+                actions.append(PaymentAction.VOID)
+            return actions
+        return root.available_actions
 
     @staticmethod
     @traced_resolver
@@ -235,16 +237,16 @@ class Payment(ModelObjectType):
         return root.amount_captured
 
     @staticmethod
-    def resolve_authorized_amount(root: models.Payment, info):
+    def resolve_authorized_amount(root: models.Payment, _info):
         return root.amount_authorized
 
     @staticmethod
-    def resolve_voided_amount(root: models.Payment, info):
+    def resolve_voided_amount(root: models.Payment, _info):
         return root.amount_voided
 
     @staticmethod
-    def resolve_refunded_amount(root: models.Payment, info):
-        return root.amount_voided
+    def resolve_refunded_amount(root: models.Payment, _info):
+        return root.amount_refunded
 
 
 class PaymentCountableConnection(CountableConnection):
