@@ -2,10 +2,68 @@ from operator import itemgetter
 from unittest.mock import ANY
 
 import graphene
+import pytest
 
 from ...attribute.models import AttributeValue
 from ...attribute.utils import associate_attribute_values_to_instance
-from ..serializers import serialize_product_or_variant_attributes
+from ...core.prices import quantize_price
+from ..serializers import (
+    serialize_checkout_lines,
+    serialize_product_or_variant_attributes,
+)
+
+
+@pytest.mark.parametrize("taxes_calculated", [True, False])
+def test_serialize_checkout_lines(
+    checkout_with_items_for_cc, taxes_calculated, site_settings
+):
+    # given
+    checkout = checkout_with_items_for_cc
+    channel = checkout.channel
+    checkout_lines = list(
+        checkout.lines.prefetch_related(
+            "variant__product__collections",
+            "variant__channel_listings__channel",
+            "variant__product__product_type",
+        )
+    )
+
+    # when
+    checkout_lines_data = serialize_checkout_lines(checkout)
+
+    # then
+    checkout_with_items_for_cc.refresh_from_db()
+    data_len = 0
+    for data, line in zip(checkout_lines_data, checkout_lines):
+        variant = line.variant
+        product = variant.product
+        collections = list(product.collections.all())
+        variant_channel_listing = None
+
+        for channel_listing in line.variant.channel_listings.all():
+            if channel_listing.channel_id == checkout.channel_id:
+                variant_channel_listing = channel_listing
+
+        if not variant_channel_listing:
+            continue
+
+        base_price = variant.get_price(
+            product, collections, channel, variant_channel_listing
+        )
+        currency = checkout.currency
+        assert data == {
+            "sku": variant.sku,
+            "quantity": line.quantity,
+            "base_price": str(quantize_price(base_price.amount, currency)),
+            "currency": channel.currency_code,
+            "full_name": variant.display_product(),
+            "product_name": product.name,
+            "variant_name": variant.name,
+            "attributes": ANY,
+            "variant_id": ANY,
+        }
+        data_len += 1
+    assert len(checkout_lines_data) == data_len
 
 
 def test_serialize_product_attributes(
