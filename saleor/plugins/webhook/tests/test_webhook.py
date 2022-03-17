@@ -27,9 +27,10 @@ from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....plugins.webhook.tasks import _get_webhooks_for_event
-from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
+    generate_checkout_payload_without_taxes,
     generate_collection_payload,
     generate_customer_payload,
     generate_invoice_payload,
@@ -619,12 +620,11 @@ def test_checkout_updated(
 
 
 @freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
 @mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhook_sync", new=MagicMock())
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhook_sync")
 def test_get_shipping_methods_for_checkout_uses_untaxed_payload_serializer(
+    mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
-    mocked_fetch,
     any_webhook,
     settings,
     checkout,
@@ -635,8 +635,13 @@ def test_get_shipping_methods_for_checkout_uses_untaxed_payload_serializer(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     manager.list_shipping_methods_for_checkout(checkout)
+    expected_data = generate_checkout_payload_without_taxes(checkout)
 
-    mocked_fetch.assert_not_called()
+    mocked_webhook_trigger.assert_called_once_with(
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        data=expected_data,
+        app=shipping_app,
+    )
 
 
 @freeze_time("1914-06-28 10:50")
