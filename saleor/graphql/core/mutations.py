@@ -1,5 +1,6 @@
 import os
 import secrets
+from enum import Enum
 from itertools import chain
 from typing import Iterable, Tuple, Union
 
@@ -107,6 +108,18 @@ class BaseMutation(graphene.Mutation):
         abstract = True
 
     @classmethod
+    def _validate_permissions(cls, permissions):
+        if not permissions:
+            return
+        if not isinstance(permissions, tuple):
+            raise ImproperlyConfigured(
+                f"Permissions should be a tuple in Meta class: {permissions}"
+            )
+        for p in permissions:
+            if not isinstance(p, Enum):
+                raise ImproperlyConfigured(f"Permission should be an enum: {p}.")
+
+    @classmethod
     def __init_subclass_with_meta__(
         cls,
         auto_permission_message=True,
@@ -127,13 +140,7 @@ class BaseMutation(graphene.Mutation):
         if not error_type_class:
             raise ImproperlyConfigured("No error_type_class provided in Meta.")
 
-        if isinstance(permissions, str):
-            permissions = (permissions,)
-
-        if permissions and not isinstance(permissions, tuple):
-            raise ImproperlyConfigured(
-                "Permissions should be a tuple or a string in Meta"
-            )
+        cls._validate_permissions(permissions)
 
         _meta.auto_permission_message = auto_permission_message
         _meta.permissions = permissions
