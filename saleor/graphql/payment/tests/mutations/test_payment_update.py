@@ -3,6 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from .....order import OrderEvents
 from .....payment.error_codes import PaymentUpdateErrorCode
 from .....payment.models import Payment
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -12,7 +13,7 @@ MUTATION_PAYMENT_UPDATE = """
 mutation PaymentUpdate(
     $id: ID!,
     $transaction: TransactionInput,
-    $payment: PaymentUpdateInput!
+    $payment: PaymentUpdateInput
     ){
     paymentUpdate(id: $id, transaction: $transaction, payment: $payment){
         payment{
@@ -309,3 +310,38 @@ def test_payment_create_incorrect_currency(
     data = content["data"]["paymentUpdate"]
     assert data["errors"][0]["field"] == amount_field_name
     assert data["errors"][0]["code"] == PaymentUpdateErrorCode.INCORRECT_CURRENCY.name
+
+
+def test_payment_update_adds_payment_event_to_order(
+    payment, order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    transaction_status = "PENDING"
+    transaction_reference = "transaction reference"
+    transaction_name = "Processing transaction"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Payment", payment.pk),
+        "transaction": {
+            "status": transaction_status,
+            "reference": transaction_reference,
+            "name": transaction_name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+    # then
+    event = order_with_lines.events.first()
+    content = get_graphql_content(response)
+    data = content["data"]["paymentUpdate"]
+
+    assert not data["errors"]
+    assert event.type == OrderEvents.PAYMENT_EVENT
+    assert event.parameters == {
+        "message": transaction_name,
+        "reference": transaction_reference,
+        "status": transaction_status.lower(),
+    }

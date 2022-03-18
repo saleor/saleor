@@ -648,8 +648,8 @@ def test_order_query_with_payments_details(
 
     assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
 
-    # only the last payment's action is visible here. availableAction are specify per
-    # payment
+    # only the last payment's action is visible here. Actions are specify per
+    # payment.actions
     assert order_data["actions"] == ["CAPTURE"]
 
 

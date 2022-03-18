@@ -944,10 +944,8 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_actions(root: models.Order, info):
         def _resolve_actions(payments):
-            payment = get_last_payment(payments)
-            # FIXME this condition will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
             actions = []
+            payment = get_last_payment(payments)
             if root.can_capture(payment):
                 actions.append(OrderAction.CAPTURE)
             if root.can_mark_as_paid(payments):

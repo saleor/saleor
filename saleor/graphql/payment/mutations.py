@@ -764,7 +764,6 @@ class PaymentUpdate(PaymentCreate):
             required=True,
         )
         payment = PaymentUpdateInput(
-            required=True,
             description="Input data required to create a new payment object.",
         )
         transaction = TransactionInput(
@@ -799,16 +798,17 @@ class PaymentUpdate(PaymentCreate):
         instance_id = data.get("id")
         instance = cls.get_node_or_error(info, instance_id, only_type=Payment)
         payment_data = data.get("payment")
-        cls.validate_payment_input(instance, payment_data)
-        cls.cleanup_payment_money_data(payment_data)
-        cls.cleanup_metadata_data(payment_data)
-        instance = cls.construct_instance(instance, payment_data)
-        instance.save()
+        if payment_data:
+            cls.validate_payment_input(instance, payment_data)
+            cls.cleanup_payment_money_data(payment_data)
+            cls.cleanup_metadata_data(payment_data)
+            instance = cls.construct_instance(instance, payment_data)
+            instance.save()
 
         transaction_data = data.get("transaction")
         if instance.order_id and transaction_data:
             payment_event(
-                order=instance,
+                order=instance.order,
                 user=info.context.user,
                 app=info.context.app,
                 reference=transaction_data.get("reference", ""),
