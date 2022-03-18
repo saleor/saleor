@@ -6,6 +6,7 @@ import pytest
 
 from ...attribute.models import AttributeValue
 from ...attribute.utils import associate_attribute_values_to_instance
+from ...checkout.fetch import fetch_checkout_lines
 from ...core.prices import quantize_price
 from ..serializers import (
     serialize_checkout_lines,
@@ -20,13 +21,7 @@ def test_serialize_checkout_lines(
     # given
     checkout = checkout_with_items_for_cc
     channel = checkout.channel
-    checkout_lines = list(
-        checkout.lines.prefetch_related(
-            "variant__product__collections",
-            "variant__channel_listings__channel",
-            "variant__product__product_type",
-        )
-    )
+    checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
 
     # when
     checkout_lines_data = serialize_checkout_lines(checkout)
@@ -34,18 +29,11 @@ def test_serialize_checkout_lines(
     # then
     checkout_with_items_for_cc.refresh_from_db()
     data_len = 0
-    for data, line in zip(checkout_lines_data, checkout_lines):
-        variant = line.variant
+    for data, line_info in zip(checkout_lines_data, checkout_lines):
+        variant = line_info.line.variant
         product = variant.product
-        collections = list(product.collections.all())
-        variant_channel_listing = None
-
-        for channel_listing in line.variant.channel_listings.all():
-            if channel_listing.channel_id == checkout.channel_id:
-                variant_channel_listing = channel_listing
-
-        if not variant_channel_listing:
-            continue
+        collections = line_info.collections
+        variant_channel_listing = line_info.channel_listing
 
         base_price = variant.get_price(
             product, collections, channel, variant_channel_listing
@@ -53,7 +41,7 @@ def test_serialize_checkout_lines(
         currency = checkout.currency
         assert data == {
             "sku": variant.sku,
-            "quantity": line.quantity,
+            "quantity": line_info.line.quantity,
             "base_price": str(quantize_price(base_price.amount, currency)),
             "currency": channel.currency_code,
             "full_name": variant.display_product(),
