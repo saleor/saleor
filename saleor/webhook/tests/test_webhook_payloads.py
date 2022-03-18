@@ -1002,7 +1002,7 @@ def test_generate_sale_payload_with_current_only_has_empty_added_fields(sale):
     assert not payload["variants_added"]
 
 
-def test_genereate_sale_payload_calculates_set_differences(sale):
+def test_generate_sale_payload_calculates_set_differences(sale):
     previous_info = {
         "categories": {1, 2, 3},
         "collections": {45, 70, 90},

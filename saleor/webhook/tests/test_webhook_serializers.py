@@ -59,8 +59,8 @@ def test_serialize_checkout_lines(
             "full_name": variant.display_product(),
             "product_name": product.name,
             "variant_name": variant.name,
-            "attributes": ANY,
-            "variant_id": ANY,
+            "attributes": serialize_product_or_variant_attributes(variant),
+            "variant_id": variant.get_global_id(),
         }
         data_len += 1
     assert len(checkout_lines_data) == data_len
