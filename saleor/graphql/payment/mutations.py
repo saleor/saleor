@@ -27,7 +27,7 @@ from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import to_enum
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
@@ -620,7 +620,7 @@ class PaymentCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Create payment for checkout or order."
+        description = f"{PREVIEW_FEATURE} Create payment for checkout or order."
         error_type_class = common_types.PaymentCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
@@ -771,7 +771,7 @@ class PaymentUpdate(PaymentCreate):
         )
 
     class Meta:
-        description = "Create payment for checkout or order."
+        description = f"{PREVIEW_FEATURE} Create payment for checkout or order."
         error_type_class = common_types.PaymentUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = Payment
