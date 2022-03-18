@@ -5145,7 +5145,7 @@ type PaymentCountableEdge {
 }
 
 type PaymentCreate {
-  payment: Payment!
+  payment: Payment
   errors: [PaymentCreateError!]!
 }
 
@@ -5156,8 +5156,11 @@ type PaymentCreateError {
 }
 
 enum PaymentCreateErrorCode {
+  INVALID
   GRAPHQL_ERROR
   NOT_FOUND
+  INCORRECT_CURRENCY
+  METADATA_KEY_REQUIRED
 }
 
 input PaymentCreateInput {
@@ -5169,7 +5172,7 @@ input PaymentCreateInput {
   amountCaptured: MoneyInput
   amountRefunded: MoneyInput
   amountVoided: MoneyInput
-  publicMetadata: [MetadataInput!]
+  metadata: [MetadataInput!]
   privateMetadata: [MetadataInput!]
 }
 
@@ -5246,13 +5249,22 @@ type PaymentSource {
 }
 
 type PaymentUpdate {
-  payment: Payment!
-  errors: [PaymentUpdateErrorCode!]!
+  payment: Payment
+  errors: [PaymentUpdateError!]!
+}
+
+type PaymentUpdateError {
+  field: String
+  message: String
+  code: PaymentUpdateErrorCode!
 }
 
 enum PaymentUpdateErrorCode {
+  INVALID
   GRAPHQL_ERROR
   NOT_FOUND
+  INCORRECT_CURRENCY
+  METADATA_KEY_REQUIRED
 }
 
 input PaymentUpdateInput {
@@ -5264,7 +5276,7 @@ input PaymentUpdateInput {
   amountCaptured: MoneyInput
   amountRefunded: MoneyInput
   amountVoided: MoneyInput
-  publicMetadata: [MetadataInput!]
+  metadata: [MetadataInput!]
   privateMetadata: [MetadataInput!]
 }
 

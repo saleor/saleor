@@ -18,7 +18,11 @@ from ....invoice.error_codes import InvoiceErrorCode
 from ....menu.error_codes import MenuErrorCode
 from ....order.error_codes import OrderErrorCode
 from ....page.error_codes import PageErrorCode
-from ....payment.error_codes import PaymentErrorCode
+from ....payment.error_codes import (
+    PaymentCreateErrorCode,
+    PaymentErrorCode,
+    PaymentUpdateErrorCode,
+)
 from ....plugins.error_codes import PluginErrorCode
 from ....product.error_codes import ProductErrorCode
 from ....shipping.error_codes import ShippingErrorCode
@@ -78,6 +82,8 @@ SALEOR_ERROR_CODE_ENUMS = [
     ShopErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
+    PaymentUpdateErrorCode,
+    PaymentCreateErrorCode,
 ]
 
 saleor_error_codes = []

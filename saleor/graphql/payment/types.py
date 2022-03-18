@@ -2,7 +2,7 @@ import graphene
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import OrderPermissions
+from ...core.permissions import OrderPermissions, PaymentPermissions
 from ...core.tracing import traced_resolver
 from ...payment import PaymentAction, models
 from ..checkout.dataloaders import CheckoutByTokenLoader
@@ -10,7 +10,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.fields import JSONString
 from ..core.types import ModelObjectType, Money
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
@@ -168,7 +168,9 @@ class Payment(ModelObjectType):
         return root.customer_ip_address
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_actions(root: models.Payment, _info):
         if root.gateway:
             actions = []
@@ -187,19 +189,25 @@ class Payment(ModelObjectType):
         return root.get_total()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_available_refund_amount(root: models.Payment, _info):
         if not root.can_refund():
             return None
         return root.get_captured_amount()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_available_capture_amount(root: models.Payment, _info):
         if not root.can_capture():
             return None

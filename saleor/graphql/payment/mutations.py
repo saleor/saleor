@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -17,7 +17,11 @@ from ...order import models as order_models
 from ...order.events import payment_event
 from ...payment import PaymentError, StorePaymentMethod, gateway
 from ...payment import models as payment_models
-from ...payment.error_codes import PaymentCreateErrorCode, PaymentErrorCode
+from ...payment.error_codes import (
+    PaymentCreateErrorCode,
+    PaymentErrorCode,
+    PaymentUpdateErrorCode,
+)
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
@@ -570,14 +574,14 @@ class PaymentUpdateInput(graphene.InputObjectType):
     amount_refunded = MoneyInput(description="Amount refunded by this payment.")
     amount_voided = MoneyInput(description="Amount refunded by this payment.")
 
-    public_metadata = graphene.List(
+    metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description=f"{ADDED_IN_31} User public metadata.",
+        description="User public metadata.",
         required=False,
     )
     private_metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description=f"{ADDED_IN_31} User public metadata.",
+        description="User public metadata.",
         required=False,
     )
 
@@ -600,7 +604,7 @@ class TransactionInput(graphene.InputObjectType):
 
 
 class PaymentCreate(BaseMutation):
-    payment = graphene.Field(Payment, required=True)
+    payment = graphene.Field(Payment)
 
     class Arguments:
         id = graphene.ID(
@@ -619,29 +623,48 @@ class PaymentCreate(BaseMutation):
         description = "Create payment for checkout or order."
         error_type_class = common_types.PaymentCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
-        object_type = Payment
 
     @classmethod
-    def construct_instance(
-        cls, instance: payment_models.Payment, cleaned_data: dict
-    ) -> payment_models.Payment:
-        instance = super().construct_instance(instance, cleaned_data)
-        if amount_authorized := cleaned_data.get("amount_authorized"):
-            instance.authorized_value = amount_authorized.get("amount")
-        if amount_captured := cleaned_data.get("amount_captured"):
-            instance.captured_value = amount_captured.get("amount")
-        if amount_refunded := cleaned_data.get("amount_refunded"):
-            instance.refunded_value = amount_refunded.get("amount")
-        if amount_voided := cleaned_data.get("amount_voided"):
-            instance.voided_value = amount_voided.get("amount")
-        return instance
+    def validate_metadata_keys(cls, metadata_list: List[dict], field_name, error_code):
+        if metadata_contains_empty_key(metadata_list):
+            raise ValidationError(
+                {
+                    "payment": ValidationError(
+                        {
+                            field_name: ValidationError(
+                                "Metadata key cannot be empty.",
+                                code=error_code,
+                            )
+                        }
+                    )
+                }
+            )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        instance_id = data.get("id")
-        instance = cls.get_node_or_error(info, instance_id)
-        instance = cls.construct_instance(instance, data.get("payment"))
+    def cleanup_payment_money_data(cls, cleaned_data: dict):
+        if amount_authorized := cleaned_data.pop("amount_authorized", None):
+            cleaned_data["authorized_value"] = amount_authorized["amount"]
+        if amount_captured := cleaned_data.pop("amount_captured", None):
+            cleaned_data["captured_value"] = amount_captured["amount"]
+        if amount_refunded := cleaned_data.pop("amount_refunded", None):
+            cleaned_data["refunded_value"] = amount_refunded["amount"]
+        if amount_voided := cleaned_data.pop("amount_voided", None):
+            cleaned_data["voided_value"] = amount_voided["amount"]
 
+    @classmethod
+    def cleanup_metadata_data(cls, cleaned_data: dict):
+        if metadata := cleaned_data.pop("metadata", None):
+            cleaned_data["metadata"] = {data.key: data.value for data in metadata}
+        if private_metadata := cleaned_data.pop("private_metadata", None):
+            cleaned_data["private_metadata"] = {
+                data.key: data.value for data in private_metadata
+            }
+
+    @classmethod
+    def validate_instance(
+        cls, instance: Union[checkout_models.Checkout, order_models.Order], instance_id
+    ):
+        """Validate if provided instance is an order or checkout type."""
         if not isinstance(instance, (checkout_models.Checkout, order_models.Order)):
             raise ValidationError(
                 {
@@ -652,31 +675,88 @@ class PaymentCreate(BaseMutation):
                 }
             )
 
-        # FIXME all amounts recieved in input should have a validation of currency and
-        #  compared to order's currency
+    @classmethod
+    def validate_money_input(cls, payment_data: dict, currency: str, error_code: str):
+        if not payment_data:
+            return
+        money_input_fields = [
+            "amount_authorized",
+            "amount_captured",
+            "amount_refunded",
+            "amount_voided",
+        ]
+        errors = {}
+        for money_field_name in money_input_fields:
+            field = payment_data.get(money_field_name)
+            if not field:
+                continue
+            if field["currency"] != currency:
+                errors[money_field_name] = ValidationError(
+                    f"Currency needs to be the same as for order: {currency}",
+                    code=error_code,
+                )
+        if errors:
+            raise ValidationError(errors)
 
-        # FIXME we need to have a validation here.
+    @classmethod
+    def validate_input(
+        cls, instance: Union[checkout_models.Checkout, order_models.Order], input_data
+    ):
+        cls.validate_instance(instance, input_data.get("id"))
+        currency = instance.currency
+        payment_data = input_data["payment"]
+
+        cls.validate_money_input(
+            input_data["payment"],
+            currency,
+            PaymentCreateErrorCode.INCORRECT_CURRENCY.value,
+        )
+        cls.validate_metadata_keys(
+            payment_data.get("metadata", []),
+            field_name="metadata",
+            error_code=PaymentCreateErrorCode.METADATA_KEY_REQUIRED.value,
+        )
+        cls.validate_metadata_keys(
+            payment_data.get("private_metadata", []),
+            field_name="privateMetadata",
+            error_code=PaymentCreateErrorCode.METADATA_KEY_REQUIRED.value,
+        )
+
+    @classmethod
+    def create_payment(cls, payment_input: dict) -> payment_models.Payment:
+        cls.cleanup_payment_money_data(payment_input)
+        cls.cleanup_metadata_data(payment_input)
+        return payment_models.Payment.objects.create(
+            **payment_input,
+        )
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance_id = data.get("id")
+        order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
+
+        cls.validate_input(order_or_checkout_instance, data)
         payment_data = {**data["payment"]}
-        payment_data["currency"] = instance.currency
-        if isinstance(instance, checkout_models.Checkout):
-            payment_data["checkout_id"] = instance.pk
+        payment_data["currency"] = order_or_checkout_instance.currency
+        if isinstance(order_or_checkout_instance, checkout_models.Checkout):
+            payment_data["checkout_id"] = order_or_checkout_instance.pk
         else:
-            payment_data["order_id"] = instance.pk
+            payment_data["order_id"] = order_or_checkout_instance.pk
             if transaction_data := data.get("transaction"):
                 payment_event(
-                    order=instance,
+                    order=order_or_checkout_instance,
                     user=info.context.user,
                     app=info.context.app,
                     reference=transaction_data.get("reference", ""),
                     status=transaction_data.get("status", ""),
                     name=transaction_data.get("name", ""),
                 )
-        payment = payment_models.Payment.objects.create(**payment_data)
+        payment = cls.create_payment(payment_data)
         return PaymentCreate(payment=payment)
 
 
 class PaymentUpdate(PaymentCreate):
-    payment = graphene.Field(Payment, required=True)
+    payment = graphene.Field(Payment)
 
     class Arguments:
         id = graphene.ID(
@@ -693,16 +773,38 @@ class PaymentUpdate(PaymentCreate):
 
     class Meta:
         description = "Create payment for checkout or order."
-        error_type_class = common_types.PaymentUpdateErrorCode
+        error_type_class = common_types.PaymentUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = Payment
+
+    @classmethod
+    def validate_payment_input(cls, instance: payment_models.Payment, payment_data):
+        currency = instance.currency
+        cls.validate_money_input(
+            payment_data, currency, PaymentUpdateErrorCode.INCORRECT_CURRENCY.value
+        )
+        cls.validate_metadata_keys(
+            payment_data.get("metadata", []),
+            field_name="metadata",
+            error_code=PaymentUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+        )
+        cls.validate_metadata_keys(
+            payment_data.get("private_metadata", []),
+            field_name="privateMetadata",
+            error_code=PaymentUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         instance = cls.get_node_or_error(info, instance_id, only_type=Payment)
-        instance = cls.construct_instance(instance, data.get("payment"))
+        payment_data = data.get("payment")
+        cls.validate_payment_input(instance, payment_data)
+        cls.cleanup_payment_money_data(payment_data)
+        cls.cleanup_metadata_data(payment_data)
+        instance = cls.construct_instance(instance, payment_data)
         instance.save()
+
         transaction_data = data.get("transaction")
         if instance.order_id and transaction_data:
             payment_event(

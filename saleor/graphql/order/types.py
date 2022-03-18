@@ -1031,7 +1031,6 @@ class Order(ModelObjectType):
             captured_money = prices.Money(Decimal(0), root.currency)
             for payment in payments:
                 captured_money += payment.amount_captured
-            print(quantize_price(captured_money - root.total.gross, root.currency))
             return quantize_price(captured_money - root.total.gross, root.currency)
 
         return (

@@ -22,10 +22,16 @@ class PaymentErrorCode(Enum):
 
 
 class PaymentCreateErrorCode(Enum):
+    INVALID = "invalid"
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    INCORRECT_CURRENCY = "incorrect_currency"
+    METADATA_KEY_REQUIRED = "metadata_key_required"
 
 
 class PaymentUpdateErrorCode(Enum):
+    INVALID = "invalid"
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    INCORRECT_CURRENCY = "incorrect_currency"
+    METADATA_KEY_REQUIRED = "metadata_key_required"
