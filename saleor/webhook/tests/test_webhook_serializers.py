@@ -28,7 +28,6 @@ def test_serialize_checkout_lines(
 
     # then
     checkout_with_items_for_cc.refresh_from_db()
-    data_len = 0
     for data, line_info in zip(checkout_lines_data, checkout_lines):
         variant = line_info.line.variant
         product = variant.product
@@ -50,8 +49,7 @@ def test_serialize_checkout_lines(
             "attributes": serialize_product_or_variant_attributes(variant),
             "variant_id": variant.get_global_id(),
         }
-        data_len += 1
-    assert len(checkout_lines_data) == data_len
+    assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
 def test_serialize_product_attributes(
