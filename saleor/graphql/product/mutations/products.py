@@ -1,5 +1,4 @@
 import datetime
-import logging
 from collections import defaultdict
 from typing import List, Tuple
 
@@ -76,8 +75,6 @@ from ..utils import (
     get_used_variants_attribute_values,
     update_ordered_media,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class CategoryInput(graphene.InputObjectType):
