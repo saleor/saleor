@@ -9,10 +9,36 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove `graphene-django` dependency - #9170 by @rafalp
 - Don't run plugins when calculating checkout's total price for available shipping methods resolution - #9121 by @rafalp
   - Use either net or gross price depending on store configuration.
+- Update webhook payload for `list_shipping_methods_for_checkout`
+  - added fields:
+    - `subtotal_base_amount`
+    - `total_base_amount`
+    - `included_taxes_in_prices`
+    - `lines.base_price_with_discounts`
+    - `lines.product_metadata`
+    - `lines.product_type_metadata`
+- Update checkout payload serializer
+  - added fields:
+    - `subtotal_net_amount`
+    - `subtotal_gross_amount`
+    - `total_net_amount`
+    - `total_gross_amount`
+    - `included_taxes_in_prices`
+    - `lines.price_net_amount`
+    - `lines.price_gross_amount`
+    - `lines.price_with_discounts_net_amount`
+    - `lines.price_with_discounts_gross_amount`
+    - `lines.product_metadata`
+    - `lines.product_type_metadata`
+- Update order payload serializer
+  - added fields:
+    - `included_taxes_in_prices`
+    - `lines.charge_taxes`
+    - `lines.product_metadata`
+    - `lines.product_type_metadata`
 
 
 ## Other
-
 - Extend app by `AppExtension` - #7701 by @korycins
 - Make SKU an optional field on `ProductVariant` - #7633 by @rafalp
 - Deprecate interface field `PaymentData.reuse_source` - #7988 by @mateuszgrzyb
