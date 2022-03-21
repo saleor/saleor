@@ -47,7 +47,6 @@
 - [Documentation](#documentation)
 - [Demo](#demo)
 - [Contributing](#contributing)
-- [Translations](#translations)
 - [Your feedback](#your-feedback)
 - [License](#license)
 
