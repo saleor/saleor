@@ -27,15 +27,18 @@ def serialize_checkout_lines(
         channel_listing = line_info.channel_listing
         collections = line_info.collections
         product = variant.product
-        base_price = variant.get_price(
-            product, collections, channel, channel_listing, discounts or []
+        price_override = line_info.line.price_override
+        base_price_amount = (
+            variant.get_price(product, collections, channel, channel_listing).amount
+            if price_override is None
+            else price_override
         )
         data.append(
             {
                 "sku": variant.sku,
                 "variant_id": variant.get_global_id(),
                 "quantity": line_info.line.quantity,
-                "base_price": str(quantize_price(base_price.amount, currency)),
+                "base_price": str(quantize_price(base_price_amount, currency)),
                 "currency": currency,
                 "full_name": variant.display_product(),
                 "product_name": product.name,
