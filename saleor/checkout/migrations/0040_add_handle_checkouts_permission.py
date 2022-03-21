@@ -10,17 +10,26 @@ def assing_permissions(apps, schema_editor):
     emit_post_migrate_signal(2, False, "default")
     Permission = apps.get_model("auth", "Permission")
     App = apps.get_model("app", "App")
+    Group = apps.get_model("auth", "Group")
 
-    handle_checkout = Permission.objects.filter(
+    handle_checkouts = Permission.objects.filter(
         codename="handle_checkouts", content_type__app_label="checkout"
     ).first()
-    apps = App.objects.filter(
-        permissions__content_type__app_label="checkout",
-        permissions__codename="manage_checkouts",
-    )
+    manage_checkouts = Permission.objects.filter(
+        codename="manage_checkouts", content_type__app_label="checkout"
+    ).first()
 
+    apps = App.objects.filter(
+        permissions=manage_checkouts,
+    )
     for app in apps.iterator():
-        app.permissions.add(handle_checkout)
+        app.permissions.add(handle_checkouts)
+
+    groups = Group.objects.filter(
+        permissions=manage_checkouts,
+    )
+    for group in groups.iterator():
+        group.permissions.add(handle_checkouts)
 
 
 class Migration(migrations.Migration):
