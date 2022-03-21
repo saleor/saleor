@@ -334,6 +334,7 @@ def _apply_voucher_on_product(
                 channel=channel,
                 channel_listing=line_info.channel_listing,
                 discounts=discounts,
+                price_override=line_info.line.price_override,
             )
             if not cheapest_line or cheapest_line_price > line_price:
                 cheapest_line_price = line_price

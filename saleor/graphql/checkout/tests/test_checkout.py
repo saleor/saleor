@@ -18,7 +18,7 @@ from prices import Money
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
-from ....checkout import AddressType, calculations
+from ....checkout import AddressType, base_calculations, calculations
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
@@ -3599,8 +3599,7 @@ def test_fetch_checkout_invalid_token(user_api_client, channel_USD):
     assert data is None
 
 
-def test_checkout_prices(user_api_client, checkout_with_item):
-    query = """
+QUERY_CHECKOUT_PRICES = """
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
            token,
@@ -3626,7 +3625,11 @@ def test_checkout_prices(user_api_client, checkout_with_item):
            }
         }
     }
-    """
+"""
+
+
+def test_checkout_prices(user_api_client, checkout_with_item):
+    query = QUERY_CHECKOUT_PRICES
     variables = {"token": str(checkout_with_item.token)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -3650,6 +3653,40 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         address=checkout_with_item.shipping_address,
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+
+
+def test_checkout_prices_checkout_with_custom_prices(
+    user_api_client, checkout_with_item
+):
+    query = QUERY_CHECKOUT_PRICES
+
+    checkout_line = checkout_with_item.lines.first()
+    price_override = Decimal("20.00")
+    checkout_line.price_override = price_override
+    checkout_line.save(update_fields=["price_override"])
+
+    variables = {"token": str(checkout_with_item.token)}
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert data["token"] == str(checkout_with_item.token)
+    assert len(data["lines"]) == checkout_with_item.lines.count()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
+    )
+    assert (
+        data["totalPrice"]["gross"]["amount"]
+        == checkout_line.quantity * price_override + shipping_price.gross.amount
+    )
+    assert (
+        data["subtotalPrice"]["gross"]["amount"]
+        == checkout_line.quantity * price_override
+    )
 
 
 MUTATION_UPDATE_SHIPPING_METHOD = """

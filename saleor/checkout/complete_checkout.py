@@ -5,7 +5,7 @@ import graphene
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
@@ -198,9 +198,16 @@ def _create_line_for_order(
         unit_price_data.price_with_sale,
     )
 
+    price_override = checkout_line_info.line.price_override
+    channel_listing = checkout_line_info.channel_listing
+    price = (
+        channel_listing.price
+        if price_override is None
+        else Money(price_override, channel_listing.currency)
+    )
     sale_id = get_sale_id_applied_as_a_discount(
         product=checkout_line_info.product,
-        price=checkout_line_info.channel_listing.price,
+        price=price,
         discounts=discounts,
         collections=checkout_line_info.collections,
         channel=checkout_info.channel,
