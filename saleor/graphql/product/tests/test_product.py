@@ -5,10 +5,12 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, Mock, patch
 
+import before_after
 import graphene
 import pytest
 import pytz
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -9813,6 +9815,52 @@ def test_reorder_media(
     assert media_0.id == reordered_media_1.id
     assert media_1.id == reordered_media_0.id
     product_updated_mock.assert_called_once_with(product)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_reorder_not_existing_media(
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
+):
+    query = """
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
+            product {
+                id
+            }
+            errors{
+            field
+            code
+            message
+        }
+        }
+    }
+    """
+    product = product_with_images
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
+    media_1_id = graphene.Node.to_global_id("ProductMedia", media_1.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    def delete_media(*args, **kwargs):
+        with transaction.atomic():
+            media.delete()
+
+    with before_after.before(
+        "saleor.graphql.product.mutations.products.update_ordered_media", delete_media
+    ):
+        variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    response = get_graphql_content(response, ignore_errors=True)
+    assert (
+        response["data"]["productMediaReorder"]["errors"][0]["code"]
+        == ProductErrorCode.NOT_FOUND.name
+    )
 
 
 ASSIGN_VARIANT_QUERY = """
