@@ -242,7 +242,7 @@ def validate_checkout_email(checkout: models.Checkout):
 def check_permissions_for_custom_prices(app, custom_prices):
     """Raise PermissionDenied when custom price is changed by user or app without perm.
 
-    Checlout line custom price can be changed only by app with
+    Checkout line custom price can be changed only by app with
     handle checkout permission.
     """
     if any([custom_price.to_update for custom_price in custom_prices]) and (

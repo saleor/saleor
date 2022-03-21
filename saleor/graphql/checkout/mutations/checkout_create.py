@@ -12,7 +12,7 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.utils import clean_channel
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
 from ...core.types import CheckoutError, NonNullList
@@ -39,9 +39,10 @@ class CheckoutLineInput(graphene.InputObjectType):
     price = PositiveDecimal(
         required=False,
         description=(
-            "Custom price of the item. Can be set only by apps "
-            "with handle checkouts permission. When the line with the same variant "
-            "will be provided multiple times, the last price will be used."
+            f"{ADDED_IN_31} Custom price of the item. Can be set only by apps "
+            "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
+            "will be provided multiple times, the last price will be used. "
+            f"{PREVIEW_FEATURE}"
         ),
     )
 
