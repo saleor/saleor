@@ -578,6 +578,9 @@ def test_generate_list_gateways_payload(checkout):
     payload = generate_list_gateways_payload(currency, checkout)
     data = json.loads(payload)
     assert data["checkout"] == json.loads(generate_checkout_payload(checkout))[0]
+    assert data["checkout"]["channel"]["id"] == graphene.Node.to_global_id(
+        "Channel", checkout.channel.pk
+    )
     assert data["currency"] == currency
 
 

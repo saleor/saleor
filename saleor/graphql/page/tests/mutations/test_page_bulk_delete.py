@@ -1,5 +1,3 @@
-from unittest import mock
-
 import graphene
 import pytest
 
@@ -37,9 +35,7 @@ def test_delete_pages(staff_api_client, page_list, permission_manage_pages):
     assert not Page.objects.filter(id__in=[page.id for page in page_list]).exists()
 
 
-@mock.patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_page_bulk_delete_with_file_attribute(
-    delete_from_storage_task_mock,
     app_api_client,
     page_list,
     page_file_attribute,
@@ -73,7 +69,6 @@ def test_page_bulk_delete_with_file_attribute(
         page.refresh_from_db()
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
-    delete_from_storage_task_mock.assert_called_once_with(value.file_url)
 
     assert not Page.objects.filter(id__in=[page.id for page in page_list]).exists()
 
