@@ -73,6 +73,7 @@ from ..utils import (
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
+    update_ordered_media,
 )
 
 
@@ -1620,9 +1621,7 @@ class ProductMediaReorder(BaseMutation):
                 )
             ordered_media.append(media)
 
-        for order, media in enumerate(ordered_media):
-            media.sort_order = order
-            media.save(update_fields=["sort_order"])
+        update_ordered_media(ordered_media)
 
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)

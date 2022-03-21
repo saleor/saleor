@@ -1,10 +1,13 @@
 import base64
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
+from ....checkout.models import Checkout
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
@@ -52,6 +55,7 @@ def execute_update_public_metadata_for_item(
     item_type,
     key=PUBLIC_KEY,
     value=PUBLIC_VALUE,
+    ignore_errors=False,
 ):
     variables = {
         "id": item_id,
@@ -63,7 +67,7 @@ def execute_update_public_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=ignore_errors)
     return response
 
 
@@ -750,6 +754,34 @@ def test_update_public_metadata_for_item(api_client, checkout):
         checkout,
         checkout_id,
         value="NewMetaValue",
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
+    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["metadata"])
+
+    def delete_checkout_object(*args, **kwargs):
+        with transaction.atomic():
+            Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with before_after.before(
+        "saleor.graphql.meta.mutations._save_instance", delete_checkout_object
+    ):
+        response = execute_update_public_metadata_for_item(
+            api_client,
+            None,
+            checkout.token,
+            "Checkout",
+            value="NewMetaValue",
+            ignore_errors=True,
+        )
+
+    assert not Checkout.objects.filter(pk=checkout.pk).first()
+    assert (
+        response["data"]["updateMetadata"]["errors"][0]["code"]
+        == MetadataErrorCode.NOT_FOUND.name
     )
 
 
