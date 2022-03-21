@@ -5,6 +5,7 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
+from ...core.utils import graphql_id
 from ...core.weight import zero_weight
 from ...discount import OrderDiscountType
 from ...discount.models import (
@@ -1069,7 +1070,7 @@ def test_send_fulfillment_order_lines_mails_by_user(
         order=order, fulfillment=fulfillment, user=staff_user, app=None, manager=manager
     )
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
-    expected_payload["requester_user_id"] = staff_user.id
+    expected_payload["requester_user_id"] = graphql_id(staff_user)
     expected_payload["requester_app_id"] = None
     mocked_notify.assert_called_once_with(
         "order_fulfillment_confirmation",
@@ -1114,7 +1115,7 @@ def test_send_fulfillment_order_lines_mails_by_app(
     )
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
     expected_payload["requester_user_id"] = None
-    expected_payload["requester_app_id"] = app.id
+    expected_payload["requester_app_id"] = graphql_id(app)
     mocked_notify.assert_called_once_with(
         "order_fulfillment_confirmation",
         payload=expected_payload,

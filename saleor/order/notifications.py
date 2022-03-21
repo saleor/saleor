@@ -8,6 +8,7 @@ from ..account.models import StaffNotificationRecipient
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.prices import quantize_price, quantize_price_fields
+from ..core.utils import graphql_id
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
 from ..product import ProductMediaTypes
@@ -69,7 +70,7 @@ def get_product_payload(product: Product):
     all_media = product.media.all()
     images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
-        "id": product.id,
+        "id": graphql_id(product),
         "attributes": get_product_attributes(product),
         "weight": str(product.weight or ""),
         **get_default_images_payload(images),
@@ -80,7 +81,7 @@ def get_product_variant_payload(variant: ProductVariant):
     all_media = variant.media.all()
     images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
-        "id": variant.id,
+        "id": graphql_id(variant),
         "weight": str(variant.weight or ""),
         "is_preorder": variant.is_preorder_active(),
         "preorder_global_threshold": variant.preorder_global_threshold,
@@ -103,7 +104,7 @@ def get_order_line_payload(line: "OrderLine"):
     currency = line.currency
 
     return {
-        "id": line.id,
+        "id": graphql_id(line),
         "product": variant_dependent_fields.get("product"),  # type: ignore
         "product_name": line.product_name,
         "translated_product_name": line.translated_product_name or line.product_name,
@@ -241,9 +242,9 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
-            "id": order.id,
-            "token": order.id,  # DEPRECATED: will be removed in Saleor 4.0.
-            "number": order.number,
+            "id": graphql_id(order),
+            "token": graphql_id(order),
+            "number": graphql_id(order),
             "channel_slug": order.channel.slug,
             "created": str(order.created),
             "shipping_price_net_amount": order.shipping_price_net_amount,
@@ -266,7 +267,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
 
 def get_default_fulfillment_line_payload(line: "FulfillmentLine"):
     return {
-        "id": line.id,
+        "id": graphql_id(line),
         "order_line": get_order_line_payload(line.order_line),
         "quantity": line.quantity,
     }
@@ -427,5 +428,5 @@ def send_order_refunded_confirmation(
 def attach_requester_payload_data(
     payload: dict, user: Optional["User"], app: Optional["App"]
 ):
-    payload["requester_user_id"] = user.id if user else None
-    payload["requester_app_id"] = app.id if app else None
+    payload["requester_user_id"] = graphql_id(user) if user else None
+    payload["requester_app_id"] = graphql_id(app) if app else None

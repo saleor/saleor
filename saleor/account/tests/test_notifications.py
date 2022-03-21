@@ -5,6 +5,7 @@ import pytest
 from freezegun import freeze_time
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
+from ...core.utils import graphql_id
 from ...core.utils.url import prepare_url
 from ...plugins.manager import get_plugins_manager
 from .. import notifications
@@ -13,7 +14,7 @@ from ..notifications import get_default_user_payload
 
 def test_get_default_user_payload(customer_user):
     assert get_default_user_payload(customer_user) == {
-        "id": customer_user.id,
+        "id": graphql_id(customer_user),
         "email": customer_user.email,
         "first_name": customer_user.first_name,
         "last_name": customer_user.last_name,

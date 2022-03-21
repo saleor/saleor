@@ -6,13 +6,14 @@ from django.contrib.auth.tokens import default_token_generator
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.tokens import account_delete_token_generator
+from ..core.utils import graphql_id
 from ..core.utils.url import prepare_url
 from .models import User
 
 
 def get_default_user_payload(user: User):
     return {
-        "id": user.id,
+        "id": graphql_id(user),
         "email": user.email,
         "first_name": user.first_name,
         "last_name": user.last_name,

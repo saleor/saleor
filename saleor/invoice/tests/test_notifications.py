@@ -1,3 +1,4 @@
+from ...core.utils import graphql_id
 from ..models import Invoice
 from ..notifications import get_invoice_payload
 
@@ -7,6 +8,6 @@ def test_collect_invoice_data_for_email(order):
     url = "http://www.example.com"
     invoice = Invoice.objects.create(number=number, url=url, order=order)
     payload = get_invoice_payload(invoice)
-    assert payload["id"] == invoice.id
+    assert payload["id"] == graphql_id(invoice)
     assert payload["number"] == number
     assert payload["download_url"] == url

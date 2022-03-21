@@ -4,6 +4,7 @@ import graphene
 
 from ....core import JobStatus
 from ....core.notify_events import NotifyEventType
+from ....core.utils import graphql_id
 from ....graphql.tests.utils import get_graphql_content
 from ....invoice.models import Invoice
 from ....invoice.notifications import get_invoice_payload
@@ -38,7 +39,7 @@ def test_invoice_send_notification_by_user(
     )
     content = get_graphql_content(response)
     expected_payload = {
-        "requester_user_id": staff_api_client.user.id,
+        "requester_user_id": graphql_id(staff_api_client.user),
         "requester_app_id": None,
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
@@ -70,7 +71,7 @@ def test_invoice_send_notification_by_app(
     content = get_graphql_content(response)
     expected_payload = {
         "requester_user_id": None,
-        "requester_app_id": app_api_client.app.pk,
+        "requester_app_id": graphql_id(app_api_client.app),
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
         "domain": "mirumee.com",
