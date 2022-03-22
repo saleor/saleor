@@ -45,6 +45,8 @@ from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from decimal import Decimal
+
     from prices import TaxedMoney
 
     from ..account.models import Address
@@ -99,6 +101,7 @@ def add_variant_to_checkout(
     checkout_info: "CheckoutInfo",
     variant: product_models.ProductVariant,
     quantity: int = 1,
+    price_override: Optional["Decimal"] = None,
     replace: bool = False,
     check_quantity: bool = True,
 ):
@@ -136,7 +139,10 @@ def add_variant_to_checkout(
             line = None
     elif line is None:
         line = checkout.lines.create(
-            checkout=checkout, variant=variant, quantity=new_quantity
+            checkout=checkout,
+            variant=variant,
+            quantity=new_quantity,
+            price_override=price_override,
         )
     elif new_quantity > 0:
         line.quantity = new_quantity
