@@ -103,7 +103,7 @@ def is_app(context):
 
 
 def is_user(context):
-    return context.user.is_authenticated
+    return context.user.is_active and context.user.is_authenticated
 
 
 def is_staff_user(context):
