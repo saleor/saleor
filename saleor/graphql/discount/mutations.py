@@ -145,7 +145,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
 class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
-        description=("Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER.")
+        description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(description="Code to use the voucher.")
@@ -290,7 +290,7 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
         id = graphene.ID(required=True, description="ID of a voucher.")
         input = CatalogueInput(
             required=True,
-            description=("Fields required to modify catalogue IDs of voucher."),
+            description="Fields required to modify catalogue IDs of voucher.",
         )
 
     class Meta:

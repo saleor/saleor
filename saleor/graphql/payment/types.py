@@ -48,11 +48,11 @@ class CreditCard(graphene.ObjectType):
         description="Last 4 digits of the card number.", required=True
     )
     exp_month = graphene.Int(
-        description=("Two-digit number representing the card’s expiration month."),
+        description="Two-digit number representing the card’s expiration month.",
         required=False,
     )
     exp_year = graphene.Int(
-        description=("Four-digit number representing the card’s expiration year."),
+        description="Four-digit number representing the card’s expiration year.",
         required=False,
     )
 

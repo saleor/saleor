@@ -382,7 +382,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         id = graphene.ID(
             required=True,
             description=(
-                "ShippingMethodType ID or ShippingMethodTranslatableContent ID.",
+                "ShippingMethodType ID or ShippingMethodTranslatableContent ID."
             ),
         )
         language_code = graphene.Argument(
@@ -474,7 +474,7 @@ class ShopSettingsTranslate(BaseMutation):
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = ShopSettingsTranslationInput(
-            description=("Fields required to update shop settings translations."),
+            description="Fields required to update shop settings translations.",
             required=True,
         )
 
