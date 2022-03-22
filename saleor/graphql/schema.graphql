@@ -4533,7 +4533,6 @@ input OrderFilterInput {
 
 type OrderFromCheckoutCreate {
   order: Order
-  checkoutErrors: [OrderFromCheckoutCreateError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderFromCheckoutCreateError!]!
 }
 

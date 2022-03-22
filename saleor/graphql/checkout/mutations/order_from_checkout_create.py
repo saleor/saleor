@@ -33,7 +33,6 @@ class OrderFromCheckoutCreate(BaseMutation):
         # FIXME this should be a separate permission probably
         permissions = (CheckoutPermissions.MANAGE_CHECKOUTS,)
         error_type_class = OrderFromCheckoutCreateError
-        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
