@@ -1194,7 +1194,7 @@ def test_checkout_line_delete(
 
 
 MUTATION_CHECKOUT_LINES_DELETE = """
-    mutation checkoutLinesDelete($token: UUID!, $linesIds: [ID]!) {
+    mutation checkoutLinesDelete($token: UUID!, $linesIds: [ID!]!) {
         checkoutLinesDelete(token: $token, linesIds: $linesIds) {
             checkout {
                 token

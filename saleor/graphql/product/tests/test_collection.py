@@ -428,7 +428,7 @@ def test_filter_collection_products_by_multiple_attributes(
 CREATE_COLLECTION_MUTATION = """
         mutation createCollection(
                 $name: String!, $slug: String,
-                $description: JSONString, $products: [ID],
+                $description: JSONString, $products: [ID!],
                 $backgroundImage: Upload, $backgroundImageAlt: String) {
             collectionCreate(
                 input: {
@@ -1012,7 +1012,7 @@ def test_add_products_to_collection(
 ):
     query = """
         mutation collectionAddProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionAddProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -1044,7 +1044,7 @@ def test_add_products_to_collection_trigger_product_updated_webhook(
 ):
     query = """
         mutation collectionAddProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionAddProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -1072,7 +1072,7 @@ def test_add_products_to_collection_with_product_without_variants(
 ):
     query = """
         mutation collectionAddProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionAddProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -1108,7 +1108,7 @@ def test_remove_products_from_collection(
 ):
     query = """
         mutation collectionRemoveProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionRemoveProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -1141,7 +1141,7 @@ def test_remove_products_from_collection_trigger_product_updated_webhook(
 ):
     query = """
         mutation collectionRemoveProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionRemoveProducts(collectionId: $id, products: $products) {
                 collection {
                     products {

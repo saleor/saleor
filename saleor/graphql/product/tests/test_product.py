@@ -5516,7 +5516,7 @@ PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
 
 
 REORDER_PRODUCT_VARIANTS_MUTATION = """
-    mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput]!) {
+    mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput!]!) {
         productVariantReorder(productId: $product, moves: $moves) {
             errors {
                 code
@@ -8395,8 +8395,8 @@ PRODUCT_TYPE_CREATE_MUTATION = """
         $taxCode: String,
         $hasVariants: Boolean,
         $isShippingRequired: Boolean,
-        $productAttributes: [ID],
-        $variantAttributes: [ID],
+        $productAttributes: [ID!],
+        $variantAttributes: [ID!],
         $weight: WeightScalar) {
         productTypeCreate(
             input: {
@@ -8910,7 +8910,7 @@ mutation updateProductType(
     $name: String!,
     $hasVariants: Boolean!,
     $isShippingRequired: Boolean!,
-    $productAttributes: [ID],
+    $productAttributes: [ID!],
     ) {
         productTypeUpdate(
         id: $id,
@@ -9784,7 +9784,7 @@ def test_reorder_media(
     permission_manage_products,
 ):
     query = """
-    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
         productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
             product {
                 id
@@ -9824,7 +9824,7 @@ def test_reorder_not_existing_media(
     permission_manage_products,
 ):
     query = """
-    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
         productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
             product {
                 id
@@ -10016,7 +10016,7 @@ def test_product_type_update_changes_variant_name(
         $id: ID!,
         $hasVariants: Boolean!,
         $isShippingRequired: Boolean!,
-        $variantAttributes: [ID],
+        $variantAttributes: [ID!],
         ) {
             productTypeUpdate(
             id: $id,

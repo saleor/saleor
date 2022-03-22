@@ -268,7 +268,7 @@ def test_resolve_assigned_attribute_without_values(
 
 
 PRODUCT_ASSIGN_ATTR_QUERY = """
-    mutation assign($productTypeId: ID!, $operations: [ProductAttributeAssignInput]!) {
+    mutation assign($productTypeId: ID!, $operations: [ProductAttributeAssignInput!]!) {
       productAttributeAssign(productTypeId: $productTypeId, operations: $operations) {
         errors {
           field
@@ -1009,7 +1009,7 @@ def test_assign_attribute_to_product_type_multiple_errors_returned(
 
 PRODUCT_UNASSIGN_ATTR_QUERY = """
     mutation ProductUnassignAttribute(
-      $productTypeId: ID!, $attributeIds: [ID]!
+      $productTypeId: ID!, $attributeIds: [ID!]!
     ) {
       productAttributeUnassign(
           productTypeId: $productTypeId, attributeIds: $attributeIds
@@ -1160,7 +1160,7 @@ def test_retrieve_product_attributes_input_type(
 ATTRIBUTES_RESORT_QUERY = """
     mutation ProductTypeReorderAttributes(
       $productTypeId: ID!
-      $moves: [ReorderInput]!
+      $moves: [ReorderInput!]!
       $type: ProductAttributeType!
     ) {
       productTypeReorderAttributes(
@@ -1331,7 +1331,7 @@ PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
     mutation ProductReorderAttributeValues(
       $productId: ID!
       $attributeId: ID!
-      $moves: [ReorderInput]!
+      $moves: [ReorderInput!]!
     ) {
       productReorderAttributeValues(
         productId: $productId
@@ -1565,7 +1565,7 @@ PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
     mutation ProductVariantReorderAttributeValues(
       $variantId: ID!
       $attributeId: ID!
-      $moves: [ReorderInput]!
+      $moves: [ReorderInput!]!
     ) {
       productVariantReorderAttributeValues(
         variantId: $variantId

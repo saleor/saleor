@@ -4074,7 +4074,7 @@ def test_fetch_variant_without_sku_anonymous(api_client, product, variant, chann
 
 PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
     mutation ProductVariantBulkCreate(
-        $variants: [ProductVariantBulkCreateInput]!, $productId: ID!
+        $variants: [ProductVariantBulkCreateInput!]!, $productId: ID!
     ) {
         productVariantBulkCreate(variants: $variants, product: $productId) {
             errors {

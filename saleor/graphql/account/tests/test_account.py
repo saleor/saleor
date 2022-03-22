@@ -5200,7 +5200,7 @@ def test_query_staff_members_with_sort(
 
 
 USER_CHANGE_ACTIVE_STATUS_MUTATION = """
-    mutation userChangeActiveStatus($ids: [ID]!, $is_active: Boolean!) {
+    mutation userChangeActiveStatus($ids: [ID!]!, $is_active: Boolean!) {
         userBulkSetActive(ids: $ids, isActive: $is_active) {
             count
             errors {

@@ -74,7 +74,7 @@ def test_query_below_cost_limit_passes_validation(
 
 
 VARIANTS_QUERY = """
-    query variantsQueryCost($ids: [ID], $channel: String, $first: Int) {
+    query variantsQueryCost($ids: [ID!], $channel: String, $first: Int) {
         productVariants(ids: $ids, channel: $channel, first: $first) {
             edges {
                 node {

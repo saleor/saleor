@@ -5,7 +5,7 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_CREATE_MUTATION = """
     mutation AppCreate(
-        $name: String, $permissions: [PermissionEnum]){
+        $name: String, $permissions: [PermissionEnum!]){
         appCreate(input:
             {name: $name, permissions: $permissions})
         {

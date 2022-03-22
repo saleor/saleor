@@ -15,7 +15,7 @@ def menu_list():
 
 def test_delete_menus(staff_api_client, menu_list, permission_manage_menus):
     query = """
-    mutation menuBulkDelete($ids: [ID]!) {
+    mutation menuBulkDelete($ids: [ID!]!) {
         menuBulkDelete(ids: $ids) {
             count
         }
@@ -39,7 +39,7 @@ def test_delete_menus(staff_api_client, menu_list, permission_manage_menus):
 
 def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_menus):
     query = """
-    mutation menuItemBulkDelete($ids: [ID]!) {
+    mutation menuItemBulkDelete($ids: [ID!]!) {
         menuItemBulkDelete(ids: $ids) {
             count
         }
@@ -64,7 +64,7 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
 
 def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):
     query = """
-    mutation menuItemBulkDelete($ids: [ID]!) {
+    mutation menuItemBulkDelete($ids: [ID!]!) {
         menuItemBulkDelete(ids: $ids) {
             count
         }
