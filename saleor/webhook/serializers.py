@@ -43,7 +43,7 @@ def _get_checkout_line_payload_data(
         "variant_id": variant.get_global_id(),
         "quantity": line_info.line.quantity,
         "charge_taxes": product.charge_taxes,
-        "base_price": quantize_price(base_price.amount, currency),
+        "base_price": str(quantize_price(base_price.amount, currency)),
         "currency": currency,
         "full_name": variant.display_product(),
         "product_name": product.name,
@@ -77,10 +77,12 @@ def serialize_checkout_lines_with_taxes(
         data.append(
             {
                 **_get_checkout_line_payload_data(checkout, line_info),
-                "price_net_amount": unit_price.net.amount,
-                "price_gross_amount": unit_price.gross.amount,
-                "price_with_discounts_net_amount": unit_price_with_discounts.net.amount,
-                "price_with_discounts_gross_amount": (
+                "price_net_amount": str(unit_price.net.amount),
+                "price_gross_amount": str(unit_price.gross.amount),
+                "price_with_discounts_net_amount": str(
+                    unit_price_with_discounts.net.amount
+                ),
+                "price_with_discounts_gross_amount": str(
                     unit_price_with_discounts.gross.amount
                 ),
             }
@@ -101,8 +103,8 @@ def serialize_checkout_lines_without_taxes(
     return [
         {
             **_get_checkout_line_payload_data(checkout, line_info),
-            "base_price_with_discounts": untaxed_price_amount(
-                line_info.line.unit_price_with_discounts
+            "base_price_with_discounts": str(
+                untaxed_price_amount(line_info.line.unit_price_with_discounts)
             ),
         }
         for line_info in lines

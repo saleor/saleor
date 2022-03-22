@@ -123,11 +123,19 @@ def test_serialize_checkout_lines_with_taxes(
             "sku": variant.sku,
             "quantity": line.quantity,
             "charge_taxes": product.charge_taxes,
-            "base_price": quantize_price(base_price.amount, currency),
-            "price_net_amount": ANY,
-            "price_gross_amount": ANY,
-            "price_with_discounts_net_amount": ANY,
-            "price_with_discounts_gross_amount": ANY,
+            "base_price": str(quantize_price(base_price.amount, currency)),
+            "price_net_amount": str(
+                quantize_price(line.unit_price_net_amount, currency)
+            ),
+            "price_gross_amount": str(
+                quantize_price(line.unit_price_gross_amount, currency)
+            ),
+            "price_with_discounts_net_amount": str(
+                quantize_price(line.unit_price_with_discounts_net_amount, currency)
+            ),
+            "price_with_discounts_gross_amount": str(
+                quantize_price(line.unit_price_with_discounts_gross_amount, currency)
+            ),
             "currency": checkout.channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,
@@ -137,18 +145,6 @@ def test_serialize_checkout_lines_with_taxes(
             "product_metadata": product.metadata,
             "product_type_metadata": product.product_type.metadata,
         }
-        assert str(data["price_net_amount"]) == str(
-            quantize_price(line.unit_price_net_amount, currency)
-        )
-        assert str(data["price_gross_amount"]) == str(
-            quantize_price(line.unit_price_gross_amount, currency)
-        )
-        assert str(data["price_with_discounts_net_amount"]) == str(
-            quantize_price(line.unit_price_with_discounts_net_amount, currency)
-        )
-        assert str(data["price_with_discounts_gross_amount"]) == str(
-            quantize_price(line.unit_price_with_discounts_gross_amount, currency)
-        )
         data_len += 1
 
     assert len(checkout_lines_data) == data_len
@@ -205,9 +201,9 @@ def test_serialize_checkout_lines_without_taxes(
             "sku": variant.sku,
             "quantity": line.quantity,
             "charge_taxes": product.charge_taxes,
-            "base_price": quantize_price(base_price.amount, currency),
-            "base_price_with_discounts": quantize_price(
-                base_price_with_discounts, currency
+            "base_price": str(quantize_price(base_price.amount, currency)),
+            "base_price_with_discounts": str(
+                quantize_price(base_price_with_discounts, currency)
             ),
             "currency": checkout.channel.currency_code,
             "full_name": variant.display_product(),

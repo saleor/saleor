@@ -253,12 +253,12 @@ def test_generate_order_payload(
                 "status": fulfillment.status,
                 "tracking_number": fulfillment.tracking_number,
                 "created": parse_django_datetime(fulfillment.created),
-                "shipping_refund_amount": ANY,
-                "total_refund_amount": ANY,
+                "shipping_refund_amount": "0.00",
+                "total_refund_amount": "0.00",
                 "lines": json.loads(fulfillment_lines),
             }
         ],
-        "collection_point": ANY,
+        "collection_point": None,
         "shipping_tax_rate": str(order.shipping_tax_rate),
         "shipping_price_net_amount": str(
             quantize_price(order.shipping_price.net.amount, currency)
@@ -436,12 +436,12 @@ def test_generate_order_payload_without_taxes(
                 "status": fulfillment.status,
                 "tracking_number": fulfillment.tracking_number,
                 "created": parse_django_datetime(fulfillment.created),
-                "shipping_refund_amount": ANY,
-                "total_refund_amount": ANY,
+                "shipping_refund_amount": "0.00",
+                "total_refund_amount": "0.00",
                 "lines": json.loads(fulfillment_lines),
             }
         ],
-        "collection_point": ANY,
+        "collection_point": None,
         "shipping_price_base_amount": str(
             quantize_price(
                 get_base_price(order.shipping_price, taxes_included), currency
@@ -1325,14 +1325,16 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
+@freeze_time()
 @patch("saleor.webhook.payloads.serialize_checkout_lines_without_taxes")
 @pytest.mark.parametrize("taxes_included", [True, False])
-def test_generate_checkout_payload_withot_taxes(
+def test_generate_checkout_payload_without_taxes(
     mocked_serialize,
     mocked_fetch_checkout,
     checkout_with_prices,
     site_settings,
     taxes_included,
+    customer_user,
 ):
     checkout = checkout_with_prices
     currency = checkout.currency
@@ -1344,7 +1346,9 @@ def test_generate_checkout_payload_withot_taxes(
     mocked_serialize.return_value = serialized_checkout_lines
 
     # when
-    payload = json.loads(generate_checkout_payload_without_taxes(checkout))[0]
+    payload = json.loads(
+        generate_checkout_payload_without_taxes(checkout, customer_user)
+    )[0]
 
     # then
     assert payload == {
@@ -1416,12 +1420,13 @@ def test_generate_checkout_payload_withot_taxes(
         "collection_point": json.loads(
             _generate_collection_point_payload(checkout.collection_point)
         )[0],
-        "meta": ANY,
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
     mocked_fetch_checkout.assert_not_called()
 
 
+@freeze_time()
 @patch("saleor.webhook.payloads.serialize_checkout_lines_with_taxes")
 @pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_checkout_payload(
@@ -1430,6 +1435,7 @@ def test_generate_checkout_payload(
     checkout_with_prices,
     site_settings,
     taxes_included,
+    customer_user,
 ):
     checkout = checkout_with_prices
     currency = checkout.currency
@@ -1441,7 +1447,7 @@ def test_generate_checkout_payload(
     mocked_serialize.return_value = serialized_checkout_lines
 
     # when
-    payload = json.loads(generate_checkout_payload(checkout))[0]
+    payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]
 
     # then
     assert payload == {
@@ -1517,7 +1523,7 @@ def test_generate_checkout_payload(
         "collection_point": json.loads(
             _generate_collection_point_payload(checkout.collection_point)
         )[0],
-        "meta": ANY,
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
     mocked_fetch_checkout.assert_called()
