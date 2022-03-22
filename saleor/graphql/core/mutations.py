@@ -21,8 +21,7 @@ from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
-from .types import File, Upload
-from .types.common import UploadError
+from .types import File, NonNullList, Upload, UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -35,8 +34,8 @@ def get_model_name(model):
 
 def get_error_fields(error_type_class, error_type_field, deprecation_reason=None):
     error_field = graphene.Field(
-        graphene.List(
-            graphene.NonNull(error_type_class),
+        NonNullList(
+            error_type_class,
             description="List of errors that occurred executing the mutation.",
         ),
         default_value=[],

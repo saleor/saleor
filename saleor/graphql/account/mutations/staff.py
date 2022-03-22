@@ -25,7 +25,7 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
-from ...core.types.common import AccountError, StaffError
+from ...core.types.common import AccountError, NonNullList, StaffError
 from ...core.utils import add_hash_to_file_name, validate_image_file
 from ...decorators import staff_member_required
 from ...utils.validators import check_for_duplicates
@@ -47,8 +47,8 @@ from .base import (
 
 
 class StaffInput(UserInput):
-    add_groups = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_groups = NonNullList(
+        graphene.ID,
         description="List of permission group IDs to which user should be assigned.",
         required=False,
     )
@@ -64,8 +64,8 @@ class StaffCreateInput(StaffInput):
 
 
 class StaffUpdateInput(StaffInput):
-    remove_groups = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_groups = NonNullList(
+        graphene.ID,
         description=(
             "List of permission group IDs from which user should be unassigned."
         ),

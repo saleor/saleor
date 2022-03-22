@@ -16,8 +16,14 @@ from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
-from ..core.types import ModelObjectType
-from ..core.types.common import CountryDisplay, LanguageDisplay, Permission, TimePeriod
+from ..core.types import (
+    CountryDisplay,
+    LanguageDisplay,
+    ModelObjectType,
+    NonNullList,
+    Permission,
+    TimePeriod,
+)
 from ..core.utils import str_to_enum
 from ..decorators import (
     permission_required,
@@ -106,8 +112,8 @@ class LimitInfo(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
-    available_payment_gateways = graphene.List(
-        graphene.NonNull(PaymentGateway),
+    available_payment_gateways = NonNullList(
+        PaymentGateway,
         currency=graphene.Argument(
             graphene.String,
             description=(
@@ -124,12 +130,12 @@ class Shop(graphene.ObjectType):
         description="List of available payment gateways.",
         required=True,
     )
-    available_external_authentications = graphene.List(
-        graphene.NonNull(ExternalAuthentication),
+    available_external_authentications = NonNullList(
+        ExternalAuthentication,
         description="List of available external authentications.",
         required=True,
     )
-    available_shipping_methods = graphene.List(
+    available_shipping_methods = NonNullList(
         ShippingMethod,
         channel=graphene.Argument(
             graphene.String,
@@ -146,15 +152,15 @@ class Shop(graphene.ObjectType):
         required=False,
         description="Shipping methods that are available for the shop.",
     )
-    channel_currencies = graphene.List(
-        graphene.NonNull(graphene.String),
+    channel_currencies = NonNullList(
+        graphene.String,
         description=(
             f"{ADDED_IN_31} List of all currencies supported by shop's channels."
         ),
         required=True,
     )
-    countries = graphene.List(
-        graphene.NonNull(CountryDisplay),
+    countries = NonNullList(
+        CountryDisplay,
         language_code=graphene.Argument(
             LanguageCodeEnum,
             description=(
@@ -180,16 +186,16 @@ class Shop(graphene.ObjectType):
     )
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
-    languages = graphene.List(
+    languages = NonNullList(
         LanguageDisplay,
         description="List of the shops's supported languages.",
         required=True,
     )
     name = graphene.String(description="Shop's name.", required=True)
-    permissions = graphene.List(
+    permissions = NonNullList(
         Permission, description="List of available permissions.", required=True
     )
-    phone_prefixes = graphene.List(
+    phone_prefixes = NonNullList(
         graphene.String, description="List of possible phone prefixes.", required=True
     )
     header_text = graphene.String(description="Header text.")
@@ -251,7 +257,7 @@ class Shop(graphene.ObjectType):
         description="URL of a view where customers can set their password.",
         required=False,
     )
-    staff_notification_recipients = graphene.List(
+    staff_notification_recipients = NonNullList(
         StaffNotificationRecipient,
         description="List of staff notification recipients.",
         required=False,

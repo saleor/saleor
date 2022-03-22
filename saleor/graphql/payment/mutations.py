@@ -92,8 +92,8 @@ class PaymentInput(graphene.InputObjectType):
         required=False,
         default_value=StorePaymentMethod.NONE,
     )
-    metadata = graphene.List(
-        graphene.NonNull(MetadataInput),
+    metadata = common_types.NonNullList(
+        MetadataInput,
         description=f"{ADDED_IN_31} User public metadata.",
         required=False,
     )

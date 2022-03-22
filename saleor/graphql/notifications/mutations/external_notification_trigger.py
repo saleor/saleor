@@ -16,10 +16,11 @@ from ....graphql.notifications.error_codes import ExternalNotificationErrorCodes
 from ...core.descriptions import ADDED_IN_31
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
+from ...core.types import NonNullList
 
 
 class ExternalNotificationTriggerInput(graphene.InputObjectType):
-    ids = graphene.List(
+    ids = NonNullList(
         graphene.ID,
         required=True,
         description=(

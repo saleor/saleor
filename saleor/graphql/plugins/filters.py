@@ -3,6 +3,7 @@ from typing import List, Optional
 import graphene
 
 from ..channel.types import Channel
+from ..core.types import NonNullList
 from ..utils import get_nodes
 from .enums import PluginConfigurationType
 from .types import Plugin
@@ -59,9 +60,7 @@ def filter_plugin_search(plugins: List[Plugin], value: Optional[str]) -> List[Pl
 
 class PluginStatusInChannelsInput(graphene.InputObjectType):
     active = graphene.Argument(graphene.Boolean, required=True)
-    channels = graphene.Argument(
-        graphene.List(graphene.NonNull(graphene.ID)), required=True
-    )
+    channels = graphene.Argument(NonNullList(graphene.ID), required=True)
 
 
 class PluginFilterInput(graphene.InputObjectType):

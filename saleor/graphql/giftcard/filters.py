@@ -14,8 +14,7 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import FilterInputObjectType
-from ..core.types.common import PriceRangeInput
+from ..core.types import FilterInputObjectType, NonNullList, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
@@ -138,7 +137,7 @@ def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[
 
 class GiftCardEventFilterInput(graphene.InputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
-    orders = graphene.List(graphene.NonNull(graphene.ID))
+    orders = NonNullList(graphene.ID)
 
 
 def filter_gift_card_tag_search(qs, _, value):
