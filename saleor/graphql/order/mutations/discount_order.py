@@ -2,7 +2,6 @@ import copy
 
 import graphene
 from django.core.exceptions import ValidationError
-from prices import Money
 
 from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
@@ -64,17 +63,10 @@ class OrderDiscountCommon(BaseMutation):
         return ValidationError({"value": ValidationError(error_msg, code=code)})
 
     @classmethod
-    def validate_order_discount_input(cls, _info, max_total: Money, input: dict):
+    def validate_order_discount_input(cls, _info, input: dict):
         value_type = input["value_type"]
         value = input["value"]
-        if value_type == DiscountValueTypeEnum.FIXED:
-            if value > max_total.amount:
-                error_msg = (
-                    f"The value ({value}) cannot be higher than {max_total.amount} "
-                    f"{max_total.currency}"
-                )
-                raise cls._validation_error_for_input_value(error_msg)
-        elif value > 100:
+        if value_type == DiscountValueTypeEnum.PERCENTAGE and value > 100:
             error_msg = f"The percentage value ({value}) cannot be higher than 100."
             raise cls._validation_error_for_input_value(error_msg)
 
@@ -128,7 +120,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     def validate(cls, info, order, input):
         cls.validate_order(info, order)
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(info, input)
 
     @classmethod
     @traced_atomic_transaction()
@@ -178,7 +170,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         input["value"] = input.get("value") or order_discount.value
         input["value_type"] = input.get("value_type") or order_discount.value_type
 
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(info, input)
 
     @classmethod
     @traced_atomic_transaction()
@@ -287,9 +279,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         input["value"] = input.get("value") or order_line.unit_discount_value
         input["value_type"] = input.get("value_type") or order_line.unit_discount_type
 
-        cls.validate_order_discount_input(
-            info, order_line.undiscounted_unit_price.gross, input
-        )
+        cls.validate_order_discount_input(info, input)
 
     @classmethod
     @traced_atomic_transaction()

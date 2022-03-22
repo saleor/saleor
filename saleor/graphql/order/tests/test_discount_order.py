@@ -28,6 +28,16 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
         net{
           amount
         }
+        tax{
+          amount
+        }
+      }
+      discounts{
+        id
+        amount{
+          amount
+        }
+        value
       }
     }
     errors{
@@ -37,22 +47,49 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
     }
   }
 }
+
 """
 
 
-@pytest.mark.parametrize(
-    "value,value_type",
-    [
-        (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
-        (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
-    ],
-)
-def test_add_order_discount_incorrect_values(
-    value, value_type, draft_order, staff_api_client, permission_manage_orders
+# TODO: Add same test for multi discounts
+def test_add_order_discount_more_than_total_shouldnt_cause_negative_prices(
+    draft_order, staff_api_client, permission_manage_orders
+):
+    total_without_discount = draft_order.total.gross
+    discount_value = draft_order.total.gross + Money(
+        Decimal("10"), draft_order.currency
+    )
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": discount_value.amount,
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    content = get_graphql_content(response)
+    order = content["data"]["orderDiscountAdd"]["order"]
+
+    assert order["total"]["gross"]["amount"] == 0
+    assert order["total"]["net"]["amount"] == 0
+
+    assert len(order["discounts"]) == 1
+    assert order["discounts"][0]["amount"]["amount"] == float(
+        total_without_discount.amount
+    )
+    assert order["discounts"][0]["value"] == float(discount_value.amount)
+
+
+def test_add_order_discount_more_than_100_percentage(
+    draft_order, staff_api_client, permission_manage_orders
 ):
     variables = {
         "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
-        "input": {"valueType": value_type, "value": value},
+        "input": {
+            "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "value": Decimal("101"),
+        },
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
@@ -357,16 +394,7 @@ def test_update_order_discount_order_is_not_draft(
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
 
-@pytest.mark.parametrize(
-    "value,value_type",
-    [
-        (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
-        (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
-    ],
-)
 def test_update_order_discount_incorrect_values(
-    value,
-    value_type,
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_manage_orders,
@@ -376,8 +404,8 @@ def test_update_order_discount_incorrect_values(
     variables = {
         "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
         "input": {
-            "valueType": value_type,
-            "value": value,
+            "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
+            "value": Decimal("101"),
         },
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
