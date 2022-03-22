@@ -128,6 +128,21 @@ def item_contains_multiple_proper_public_metadata(
     )
 
 
+def test_meta_mutations_handle_validation_errors(staff_api_client):
+    invalid_id = "6QjoLs5LIqb3At7hVKKcUlqXceKkFK"
+    variables = {
+        "id": invalid_id,
+        "input": [{"key": "year", "value": "of-saleor"}],
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "Checkout", variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["updateMetadata"]["errors"]
+    assert errors
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
+
+
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_base_metadata_mutation_handles_errors_from_extra_action(
     mock_checkout_updated, api_client, checkout

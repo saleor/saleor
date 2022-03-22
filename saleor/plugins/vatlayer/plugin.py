@@ -18,8 +18,8 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ...checkout import base_calculations, calculations
 from ...checkout.interface import CheckoutTaxedPricesData
 from ...core.taxes import TaxType
-from ...graphql.core.utils.error_codes import PluginErrorCode
 from ...order.interface import OrderTaxedPricesData
+from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..manager import get_plugins_manager
