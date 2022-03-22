@@ -1,23 +1,9 @@
 from django import template
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.taxes import get_display_price
+from ..taxes import get_display_price
 
 register = template.Library()
-
-
-@register.inclusion_tag("price.html", takes_context=True)
-def price_amount(context, net_amount, gross_amount, currency, display_gross, html=True):
-    amount = net_amount
-    if display_gross:
-        amount = gross_amount
-    if not currency:
-        currency = context.get("currency")
-    return {
-        "price": Money(amount=amount, currency=currency),
-        "is_range": False,
-        "html": html,
-    }
 
 
 @register.inclusion_tag("price.html", takes_context=True)

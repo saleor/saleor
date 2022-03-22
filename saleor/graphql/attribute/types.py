@@ -4,7 +4,7 @@ from typing import cast
 import graphene
 from django.db.models import QuerySet
 
-from ...attribute import AttributeInputType, AttributeType, models
+from ...attribute import AttributeEntityType, AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
@@ -92,7 +92,12 @@ class AttributeValue(ModelObjectType):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
-            reference_pk = root.slug.split("_")[1]
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                reference_pk = root.reference_page_id
+            elif attribute.entity_type == AttributeEntityType.PRODUCT:
+                reference_pk = root.reference_product_id
+            else:
+                return
             reference_id = graphene.Node.to_global_id(
                 attribute.entity_type, reference_pk
             )

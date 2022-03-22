@@ -62,19 +62,18 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             info=info,
         )
         with traced_atomic_transaction():
-            with traced_atomic_transaction():
-                billing_address.save()
-                change_address_updated_fields = change_billing_address_in_checkout(
-                    checkout, billing_address
-                )
-                invalidate_prices_updated_fields = invalidate_checkout_prices(
-                    checkout, save=False
-                )
-                checkout.save(
-                    update_fields=change_address_updated_fields
-                    + invalidate_prices_updated_fields
-                )
+            billing_address.save()
+            change_address_updated_fields = change_billing_address_in_checkout(
+                checkout, billing_address
+            )
+            invalidate_prices_updated_fields = invalidate_checkout_prices(
+                checkout, save=False
+            )
+            checkout.save(
+                update_fields=change_address_updated_fields
+                + invalidate_prices_updated_fields
+            )
 
-                info.context.plugins.checkout_updated(checkout)
+            info.context.plugins.checkout_updated(checkout)
 
         return CheckoutBillingAddressUpdate(checkout=checkout)

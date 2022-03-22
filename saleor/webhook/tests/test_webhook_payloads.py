@@ -16,7 +16,6 @@ from prices import Money, TaxedMoney
 
 from ... import __version__
 from ...core.prices import quantize_price
-from ...core.taxes import include_taxes_in_prices
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
@@ -30,7 +29,6 @@ from ...product.models import ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
-    ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
     _generate_collection_point_payload,
     generate_checkout_payload,
@@ -53,31 +51,53 @@ from ..payloads import (
 from ..serializers import serialize_checkout_lines
 
 
-@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
-def test_generate_order_payload(
-    mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
-):
-    mocked_fulfillment_lines.return_value = "{}"
+def parse_django_datetime(date):
+    return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
 
-    payment_txn_captured.psp_reference = "123"
-    payment_txn_captured.save(update_fields=["psp_reference"])
+
+@freeze_time()
+@mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
+@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
+@pytest.mark.parametrize("taxes_included", [True, False])
+def test_generate_order_payload(
+    mocked_fulfillment_lines,
+    mocked_order_lines,
+    fulfilled_order,
+    payment_txn_captured,
+    customer_user,
+    site_settings,
+    taxes_included,
+):
+    fulfillment_lines = '"fulfillment_lines"'
+    mocked_fulfillment_lines.return_value = fulfillment_lines
+    order_lines = '"order_lines"'
+    mocked_order_lines.return_value = order_lines
+
+    site_settings.include_taxes_in_prices = taxes_included
+    site_settings.save(update_fields=["include_taxes_in_prices"])
+
+    order = fulfilled_order
+    payment = payment_txn_captured
+
+    payment.psp_reference = "123"
+    payment.save(update_fields=["psp_reference"])
 
     new_order = Order.objects.create(
-        channel=order_with_lines.channel,
-        billing_address=order_with_lines.billing_address,
+        channel=order.channel,
+        billing_address=order.billing_address,
     )
-    order_with_lines.origin = OrderOrigin.REISSUE
-    order_with_lines.original = new_order
-    order_with_lines.save(update_fields=["origin", "original"])
+    order.origin = OrderOrigin.REISSUE
+    order.original = new_order
+    order.save(update_fields=["origin", "original"])
 
-    order_with_lines.discounts.create(
+    discount_1 = order.discounts.create(
         type=OrderDiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("20"),
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
-    order_with_lines.discounts.create(
+    discount_2 = order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("10"),
@@ -85,63 +105,158 @@ def test_generate_order_payload(
         name="Voucher",
     )
 
-    line_without_sku = order_with_lines.lines.last()
+    line_without_sku = order.lines.last()
     line_without_sku.product_sku = None
     line_without_sku.save()
 
-    assert fulfilled_order.fulfillments.count() == 1
-    fulfillment = fulfilled_order.fulfillments.first()
+    assert order.fulfillments.count() == 1
 
-    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
-    payload = json.loads(generate_order_payload(order_with_lines))[0]
+    fulfillment = order.fulfillments.first()
 
-    assert order_id == payload["id"]
-    non_empty_fields = [f for f in ORDER_FIELDS if f != "collection_point_name"]
-    for field in non_empty_fields:
-        assert payload.get(field) is not None
+    payload = json.loads(generate_order_payload(order, customer_user))[0]
 
-    assert payload["collection_point_name"] is None
-    assert payload.get("token") == order_with_lines.token
-    assert payload.get("shipping_method")
-    assert payload.get("shipping_tax_rate")
-    assert payload.get("lines")
-    assert payload.get("shipping_address")
-    assert payload.get("billing_address")
-    assert payload.get("fulfillments")
-    assert payload.get("discounts")
-    assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
-    assert payload.get("payments")
-    assert payload.get("included_taxes_in_prices") == include_taxes_in_prices()
-    assert len(payload.get("payments")) == 1
-    payments_data = payload.get("payments")[0]
-    assert payments_data == {
-        "id": graphene.Node.to_global_id("Payment", payment_txn_captured.pk),
-        "gateway": payment_txn_captured.gateway,
-        "payment_method_type": payment_txn_captured.payment_method_type,
-        "partial": False,
-        "cc_brand": payment_txn_captured.cc_brand,
-        "is_active": payment_txn_captured.is_active,
-        "created": ANY,
-        "modified": ANY,
-        "charge_status": payment_txn_captured.charge_status,
-        "psp_reference": payment_txn_captured.psp_reference,
-        "total": str(payment_txn_captured.total.quantize(Decimal("0.01"))),
-        "type": "Payment",
-        "captured_amount": str(
-            payment_txn_captured.captured_amount.quantize(Decimal("0.01"))
+    currency = order.currency
+    assert payload == {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "type": "Order",
+        "token": order.token,
+        "created": parse_django_datetime(order.created),
+        "status": order.status,
+        "origin": order.origin,
+        "user_email": order.user_email,
+        "shipping_method_name": order.shipping_method_name,
+        "collection_point_name": None,
+        "weight": f"{order.weight.value}:{order.weight.unit}",
+        "metadata": order.metadata,
+        "private_metadata": order.private_metadata,
+        "channel": {
+            "id": graphene.Node.to_global_id("Channel", order.channel_id),
+            "type": "Channel",
+            "slug": order.channel.slug,
+            "currency_code": order.channel.currency_code,
+        },
+        "shipping_method": {
+            "id": graphene.Node.to_global_id(
+                "ShippingMethod", order.shipping_method_id
+            ),
+            "name": order.shipping_method.name,
+            "type": order.shipping_method.type,
+        },
+        "payments": [
+            {
+                "id": graphene.Node.to_global_id("Payment", payment.pk),
+                "type": "Payment",
+                "gateway": payment.gateway,
+                "payment_method_type": payment.payment_method_type,
+                "partial": False,
+                "cc_brand": payment.cc_brand,
+                "is_active": payment.is_active,
+                "created": parse_django_datetime(payment.created),
+                "modified": parse_django_datetime(payment.modified),
+                "charge_status": payment.charge_status,
+                "psp_reference": payment.psp_reference,
+                "total": str(quantize_price(payment.total, currency)),
+                "captured_amount": str(
+                    quantize_price(payment.captured_amount, currency)
+                ),
+                "currency": payment.currency,
+                "billing_email": payment.billing_email,
+                "billing_first_name": payment.billing_first_name,
+                "billing_last_name": payment.billing_last_name,
+                "billing_company_name": payment.billing_company_name,
+                "billing_address_1": payment.billing_address_1,
+                "billing_address_2": payment.billing_address_2,
+                "billing_city": payment.billing_city,
+                "billing_city_area": payment.billing_city_area,
+                "billing_postal_code": payment.billing_postal_code,
+                "billing_country_code": payment.billing_country_code,
+                "billing_country_area": payment.billing_country_area,
+            }
+        ],
+        "shipping_address": {
+            "id": graphene.Node.to_global_id("Address", order.shipping_address_id),
+            "type": "Address",
+            "first_name": order.shipping_address.first_name,
+            "last_name": order.shipping_address.last_name,
+            "company_name": order.shipping_address.company_name,
+            "street_address_1": order.shipping_address.street_address_1,
+            "street_address_2": order.shipping_address.street_address_2,
+            "city": order.shipping_address.city,
+            "city_area": order.shipping_address.city_area,
+            "postal_code": order.shipping_address.postal_code,
+            "country": order.shipping_address.country.code,
+            "country_area": order.shipping_address.country_area,
+            "phone": str(order.shipping_address.phone),
+        },
+        "billing_address": {
+            "id": graphene.Node.to_global_id("Address", order.billing_address_id),
+            "type": "Address",
+            "first_name": order.billing_address.first_name,
+            "last_name": order.billing_address.last_name,
+            "company_name": order.billing_address.company_name,
+            "street_address_1": order.billing_address.street_address_1,
+            "street_address_2": order.billing_address.street_address_2,
+            "city": order.billing_address.city,
+            "city_area": order.billing_address.city_area,
+            "postal_code": order.billing_address.postal_code,
+            "country": order.billing_address.country.code,
+            "country_area": order.billing_address.country_area,
+            "phone": str(order.billing_address.phone),
+        },
+        "discounts": [
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
+                "type": discount_1.type,
+                "value_type": discount_1.value_type,
+                "value": ANY,
+                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
+                "name": discount_1.name,
+                "translated_name": discount_1.translated_name,
+                "reason": discount_1.reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
+                "type": discount_2.type,
+                "value_type": discount_2.value_type,
+                "value": ANY,
+                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
+                "name": discount_2.name,
+                "translated_name": discount_2.translated_name,
+                "reason": discount_2.reason,
+            },
+        ],
+        "original": graphene.Node.to_global_id("Order", order.original_id),
+        "lines": json.loads(order_lines),
+        "fulfillments": [
+            {
+                "id": graphene.Node.to_global_id("Fulfillment", fulfillment.pk),
+                "type": "Fulfillment",
+                "status": fulfillment.status,
+                "tracking_number": fulfillment.tracking_number,
+                "created": parse_django_datetime(fulfillment.created),
+                "shipping_refund_amount": ANY,
+                "total_refund_amount": ANY,
+                "lines": json.loads(fulfillment_lines),
+            }
+        ],
+        "collection_point": None,
+        "included_taxes_in_prices": taxes_included,
+        "shipping_tax_rate": str(order.shipping_tax_rate),
+        "shipping_price_net_amount": str(
+            quantize_price(order.shipping_price.net.amount, currency)
         ),
-        "currency": payment_txn_captured.currency,
-        "billing_email": payment_txn_captured.billing_email,
-        "billing_first_name": payment_txn_captured.billing_first_name,
-        "billing_last_name": payment_txn_captured.billing_last_name,
-        "billing_company_name": payment_txn_captured.billing_company_name,
-        "billing_address_1": payment_txn_captured.billing_address_1,
-        "billing_address_2": payment_txn_captured.billing_address_2,
-        "billing_city": payment_txn_captured.billing_city,
-        "billing_city_area": payment_txn_captured.billing_city_area,
-        "billing_postal_code": payment_txn_captured.billing_postal_code,
-        "billing_country_code": payment_txn_captured.billing_country_code,
-        "billing_country_area": payment_txn_captured.billing_country_area,
+        "shipping_price_gross_amount": str(
+            quantize_price(order.shipping_price.gross.amount, currency)
+        ),
+        "total_net_amount": str(quantize_price(order.total.net.amount, currency)),
+        "total_gross_amount": str(quantize_price(order.total.gross.amount, currency)),
+        "undiscounted_total_net_amount": str(
+            quantize_price(order.undiscounted_total.net.amount, currency)
+        ),
+        "undiscounted_total_gross_amount": str(
+            quantize_price(order.undiscounted_total.gross.amount, currency)
+        ),
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
@@ -590,6 +705,9 @@ def test_generate_list_gateways_payload(checkout):
     payload = generate_list_gateways_payload(currency, checkout)
     data = json.loads(payload)
     assert data["checkout"] == json.loads(generate_checkout_payload(checkout))[0]
+    assert data["checkout"]["channel"]["id"] == graphene.Node.to_global_id(
+        "Channel", checkout.channel.pk
+    )
     assert data["currency"] == currency
 
 
@@ -926,16 +1044,17 @@ def test_generate_sale_payload_calculates_set_differences(sale):
     assert set(payload["variants_removed"]) == {"ccc"}
 
 
+@freeze_time()
 @pytest.mark.parametrize("taxes_included", [True, False])
 def test_generate_checkout_payload(
-    checkout,
-    customer_user,
+    checkout_with_items,
     address,
     address_other_country,
     shipping_method,
     site_settings,
     taxes_included,
     warehouse,
+    customer_user,
 ):
     # given
     def parse_django_datetime(date):
@@ -944,7 +1063,7 @@ def test_generate_checkout_payload(
     site_settings.include_taxes_in_prices = taxes_included
     site_settings.save(update_fields=["include_taxes_in_prices"])
 
-    checkout = checkout
+    checkout = checkout_with_items
     billing_address = address
     shipping_address = address_other_country
     collection_point = warehouse
@@ -978,7 +1097,7 @@ def test_generate_checkout_payload(
     )
 
     # when
-    payload = json.loads(generate_checkout_payload(checkout))[0]
+    payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]
 
     # then
     assert payload == {
@@ -994,59 +1113,66 @@ def test_generate_checkout_payload(
         "discount_name": checkout.discount_name,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
-        "channel": checkout.channel_id,
+        "channel": {
+            "type": "Channel",
+            "id": graphene.Node.to_global_id("Channel", checkout.channel_id),
+            "currency_code": checkout.channel.currency_code,
+            "slug": checkout.channel.slug,
+        },
         "user": {
             "type": "User",
-            "id": graphene.Node.to_global_id("User", user.pk),
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
+            "id": graphene.Node.to_global_id("User", checkout.user.pk),
+            "email": checkout.user.email,
+            "first_name": checkout.user.first_name,
+            "last_name": checkout.user.last_name,
         },
         "billing_address": {
             "type": "Address",
-            "id": graphene.Node.to_global_id("Address", billing_address.pk),
-            "first_name": billing_address.first_name,
-            "last_name": billing_address.last_name,
-            "company_name": billing_address.company_name,
-            "street_address_1": billing_address.street_address_1,
-            "street_address_2": billing_address.street_address_2,
-            "city": billing_address.city,
-            "city_area": billing_address.city_area,
-            "postal_code": billing_address.postal_code,
-            "country": billing_address.country.code,
-            "country_area": billing_address.country_area,
-            "phone": str(billing_address.phone),
+            "id": graphene.Node.to_global_id("Address", checkout.billing_address.pk),
+            "first_name": checkout.billing_address.first_name,
+            "last_name": checkout.billing_address.last_name,
+            "company_name": checkout.billing_address.company_name,
+            "street_address_1": checkout.billing_address.street_address_1,
+            "street_address_2": checkout.billing_address.street_address_2,
+            "city": checkout.billing_address.city,
+            "city_area": checkout.billing_address.city_area,
+            "postal_code": checkout.billing_address.postal_code,
+            "country": checkout.billing_address.country.code,
+            "country_area": checkout.billing_address.country_area,
+            "phone": str(checkout.billing_address.phone),
         },
         "shipping_address": {
             "type": "Address",
-            "id": graphene.Node.to_global_id("Address", shipping_address.pk),
-            "first_name": shipping_address.first_name,
-            "last_name": shipping_address.last_name,
-            "company_name": shipping_address.company_name,
-            "street_address_1": shipping_address.street_address_1,
-            "street_address_2": shipping_address.street_address_2,
-            "city": shipping_address.city,
-            "city_area": shipping_address.city_area,
-            "postal_code": shipping_address.postal_code,
-            "country": shipping_address.country.code,
-            "country_area": shipping_address.country_area,
-            "phone": str(shipping_address.phone),
+            "id": graphene.Node.to_global_id("Address", checkout.shipping_address.pk),
+            "first_name": checkout.shipping_address.first_name,
+            "last_name": checkout.shipping_address.last_name,
+            "company_name": checkout.shipping_address.company_name,
+            "street_address_1": checkout.shipping_address.street_address_1,
+            "street_address_2": checkout.shipping_address.street_address_2,
+            "city": checkout.shipping_address.city,
+            "city_area": checkout.shipping_address.city_area,
+            "postal_code": checkout.shipping_address.postal_code,
+            "country": checkout.shipping_address.country.code,
+            "country_area": checkout.shipping_address.country_area,
+            "phone": str(checkout.shipping_address.phone),
         },
         "shipping_method": {
-            "id": graphene.Node.to_global_id("ShippingMethod", shipping_method.pk),
-            "name": shipping_method.name,
-            "type": shipping_method.type,
+            "id": graphene.Node.to_global_id(
+                "ShippingMethod", checkout.shipping_method.pk
+            ),
+            "name": checkout.shipping_method.name,
+            "type": checkout.shipping_method.type,
         },
-        "included_taxes_in_price": taxes_included,
         "lines": serialize_checkout_lines(checkout),
+        "included_taxes_in_price": taxes_included,
         "subtotal_net_amount": str(subtotal.net.amount),
         "subtotal_gross_amount": str(subtotal.gross.amount),
         "total_net_amount": str(total.net.amount),
         "total_gross_amount": str(total.gross.amount),
         "collection_point": json.loads(
-            _generate_collection_point_payload(collection_point)
+            _generate_collection_point_payload(checkout.collection_point)
         )[0],
-        "meta": ANY,
+        "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
 

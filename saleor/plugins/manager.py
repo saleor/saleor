@@ -180,7 +180,9 @@ class PluginsManager(PaymentInterface):
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
+        returned_value = plugin_method(
+            *args, **kwargs, previous_value=previous_value
+        )  # type:ignore
         if returned_value == NotImplemented:
             return previous_value
         return returned_value
