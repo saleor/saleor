@@ -19,7 +19,7 @@ from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...channel.utils import clean_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError, NonNullList
+from ...core.types import AccountError, NonNullList
 from ...meta.mutations import MetadataInput
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin

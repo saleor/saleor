@@ -7,7 +7,7 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...core.permissions import AccountPermissions
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from ..core.types.common import AccountError, NonNullList, StaffError
+from ..core.types import AccountError, NonNullList, StaffError
 from .types import User
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 

@@ -15,7 +15,7 @@ from ..account.utils import can_manage_app
 from ..core import types as grapqhl_types
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import AppError, NonNullList
+from ..core.types import AppError, NonNullList
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppInstallation, AppToken, Manifest
 from .utils import ensure_can_manage_permissions

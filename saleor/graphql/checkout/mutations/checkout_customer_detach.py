@@ -6,7 +6,7 @@ from ....core.permissions import AccountPermissions
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
