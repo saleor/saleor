@@ -4195,8 +4195,8 @@ interface ObjectWithMetadata {
 
 type Order implements Node & ObjectWithMetadata {
   id: ID!
-  privateMetadata: [MetadataItem]!
-  metadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
+  metadata: [MetadataItem!]!
   created: DateTime!
   status: OrderStatus!
   user: User
@@ -4206,20 +4206,20 @@ type Order implements Node & ObjectWithMetadata {
   shippingMethodName: String
   collectionPointName: String
   channel: Channel!
-  fulfillments: [Fulfillment]!
-  lines: [OrderLine]!
-  actions: [OrderAction]!
+  fulfillments: [Fulfillment!]!
+  lines: [OrderLine!]!
+  actions: [OrderAction!]!
   availableShippingMethods: [ShippingMethod] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
-  shippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethod!]
   availableCollectionPoints: [Warehouse!]!
-  invoices: [Invoice]
+  invoices: [Invoice!]
   number: String
   original: ID
   origin: OrderOriginEnum!
   isPaid: Boolean!
   paymentStatus: PaymentChargeStatusEnum!
   paymentStatusDisplay: String!
-  payments: [Payment]
+  payments: [Payment!]
   total: TaxedMoney!
   undiscountedTotal: TaxedMoney!
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -4227,7 +4227,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingTaxRate: Float!
   token: String!
   voucher: Voucher
-  giftCards: [GiftCard]
+  giftCards: [GiftCard!]
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
@@ -4237,7 +4237,7 @@ type Order implements Node & ObjectWithMetadata {
   canFinalize: Boolean!
   totalAuthorized: Money!
   totalCaptured: Money!
-  events: [OrderEvent]
+  events: [OrderEvent!]
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
