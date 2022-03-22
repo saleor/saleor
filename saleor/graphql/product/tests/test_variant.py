@@ -3007,16 +3007,19 @@ def test_update_product_variant_change_attribute_values_ordering(
         attribute=product_type_product_reference_attribute,
         name=product_list[0].name,
         slug=f"{variant.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         name=product_list[1].name,
         slug=f"{variant.pk}_{product_list[1].pk}",
+        reference_product=product_list[1],
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         name=product_list[2].name,
         slug=f"{variant.pk}_{product_list[2].pk}",
+        reference_product=product_list[2],
     )
 
     associate_attribute_values_to_instance(
@@ -3396,45 +3399,6 @@ def test_delete_variant_with_image(
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
     delete_versatile_image_mock.assert_not_called()
-
-
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
-@patch("saleor.order.tasks.recalculate_orders_task.delay")
-def test_delete_variant_with_file_attribute(
-    mocked_recalculate_orders_task,
-    product_variant_deleted_webhook_mock,
-    delete_from_storage_task_mock,
-    staff_api_client,
-    product,
-    permission_manage_products,
-    file_attribute,
-):
-    query = DELETE_VARIANT_MUTATION
-    variant = product.variants.first()
-
-    product_type = product.product_type
-    product_type.variant_attributes.add(file_attribute)
-    existing_value = file_attribute.values.first()
-    associate_attribute_values_to_instance(variant, file_attribute, existing_value)
-
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    flush_post_commit_hooks()
-    data = content["data"]["productVariantDelete"]
-
-    product_variant_deleted_webhook_mock.assert_called_once_with(variant)
-    assert data["productVariant"]["sku"] == variant.sku
-    with pytest.raises(variant._meta.model.DoesNotExist):
-        variant.refresh_from_db()
-    mocked_recalculate_orders_task.assert_not_called()
-    with pytest.raises(existing_value._meta.model.DoesNotExist):
-        existing_value.refresh_from_db()
-    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -6080,3 +6044,80 @@ def test_product_variant_deactivate_preorder_as_app(
     )
 
     assert_no_permission(response)
+
+
+VARIANT_CREATE_MUTATION = """
+    mutation variantCreate($input: ProductVariantCreateInput!) {
+        productVariantCreate (input: $input)
+        {
+            productVariant {
+                id
+            }
+            errors {
+                field,
+                message,
+                code,
+                attributes
+            }
+        }
+    }
+"""
+
+
+def test_variant_create_product_without_variant_attributes(
+    product_with_product_attributes, staff_api_client, permission_manage_products
+):
+    product = product_with_product_attributes
+
+    prod_id = graphene.Node.to_global_id("Product", product.pk)
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product.product_type.product_attributes.first().pk
+    )
+    input = {
+        "sku": "my-sku",
+        "product": prod_id,
+        "attributes": [{"id": attr_id, "values": ["1"]}],
+    }
+    response = staff_api_client.post_graphql(
+        VARIANT_CREATE_MUTATION,
+        variables={"input": input},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["productVariantCreate"]["errors"]
+    assert errors
+    assert errors[0]["code"] == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
+    assert len(errors[0]["attributes"]) == 1
+    assert errors[0]["attributes"][0] == attr_id
+
+
+def test_variant_create_product_with_variant_attributes_variant_flag_false(
+    product_with_variant_attributes, staff_api_client, permission_manage_products
+):
+    product = product_with_variant_attributes
+
+    product_type = product.product_type
+    product_type.has_variants = False
+    product_type.save()
+
+    prod_id = graphene.Node.to_global_id("Product", product.pk)
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product.product_type.variant_attributes.first().pk
+    )
+
+    input = {
+        "sku": "my-sku",
+        "product": prod_id,
+        "attributes": [{"id": attr_id, "values": ["1"]}],
+    }
+    response = staff_api_client.post_graphql(
+        VARIANT_CREATE_MUTATION,
+        variables={"input": input},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["productVariantCreate"]["errors"]
+    assert errors
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name

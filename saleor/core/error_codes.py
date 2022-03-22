@@ -16,6 +16,7 @@ class MetadataErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
+    NOT_UPDATED = "not_updated"
 
 
 class TranslationErrorCode(Enum):

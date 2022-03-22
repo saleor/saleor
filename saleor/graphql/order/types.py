@@ -1199,7 +1199,7 @@ class Order(ModelObjectType):
             return listing.then(calculate_price)
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
-            root.shipping_method_id
+            int(root.shipping_method_id)
         )
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 

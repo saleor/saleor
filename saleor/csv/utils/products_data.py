@@ -315,6 +315,8 @@ AttributeData = namedtuple(
         "rich_text",
         "boolean",
         "date_time",
+        "reference_page",
+        "reference_product",
     ],
 )
 
@@ -340,6 +342,8 @@ def handle_attribute_data(
         rich_text=data.pop(attribute_fields["rich_text"], None),
         boolean=data.pop(attribute_fields["boolean"], None),
         date_time=data.pop(attribute_fields["date_time"], None),
+        reference_page=data.pop(attribute_fields["value_reference_page"], None),
+        reference_product=data.pop(attribute_fields["value_reference_product"], None),
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -437,8 +441,13 @@ def prepare_attribute_value(attribute_data: AttributeData):
             if file_url
             else ""
         )
-    elif input_type == AttributeInputType.REFERENCE and attribute_data.value_slug:
-        reference_id = attribute_data.value_slug.split("_")[1]
+    elif input_type == AttributeInputType.REFERENCE and (
+        attribute_data.reference_page or attribute_data.reference_product
+    ):
+        if attribute_data.reference_page:
+            reference_id = attribute_data.reference_page
+        else:
+            reference_id = attribute_data.reference_product
         value = f"{attribute_data.entity_type}_{reference_id}"
     elif input_type == AttributeInputType.NUMERIC:
         value = f"{attribute_data.value_name}"

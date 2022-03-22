@@ -134,7 +134,7 @@ class ShippingMethodInfo(DeliveryMethodBase):
     @property
     def delivery_method_order_field(self) -> dict:
         if not self.delivery_method.is_external:
-            return {"shipping_method_id": self.delivery_method.id}
+            return {"shipping_method_id": int(self.delivery_method.id)}
         return {}
 
     def is_valid_delivery_method(self) -> bool:
