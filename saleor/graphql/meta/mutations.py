@@ -332,7 +332,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         )
         input = graphene.List(
             graphene.NonNull(MetadataInput),
-            description=("Fields required to update the object's metadata."),
+            description="Fields required to update the object's metadata.",
             required=True,
         )
 

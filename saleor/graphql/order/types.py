@@ -398,7 +398,7 @@ class Fulfillment(ModelObjectType):
     warehouse = graphene.Field(
         Warehouse,
         required=False,
-        description=("Warehouse from fulfillment was fulfilled."),
+        description="Warehouse from fulfillment was fulfilled.",
     )
 
     class Meta:
