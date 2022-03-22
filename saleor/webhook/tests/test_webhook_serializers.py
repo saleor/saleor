@@ -2,10 +2,54 @@ from operator import itemgetter
 from unittest.mock import ANY
 
 import graphene
+import pytest
 
 from ...attribute.models import AttributeValue
 from ...attribute.utils import associate_attribute_values_to_instance
-from ..serializers import serialize_product_or_variant_attributes
+from ...checkout.fetch import fetch_checkout_lines
+from ...core.prices import quantize_price
+from ..serializers import (
+    serialize_checkout_lines,
+    serialize_product_or_variant_attributes,
+)
+
+
+@pytest.mark.parametrize("taxes_calculated", [True, False])
+def test_serialize_checkout_lines(
+    checkout_with_items_for_cc, taxes_calculated, site_settings
+):
+    # given
+    checkout = checkout_with_items_for_cc
+    channel = checkout.channel
+    checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+
+    # when
+    checkout_lines_data = serialize_checkout_lines(checkout)
+
+    # then
+    checkout_with_items_for_cc.refresh_from_db()
+    for data, line_info in zip(checkout_lines_data, checkout_lines):
+        variant = line_info.line.variant
+        product = variant.product
+        collections = line_info.collections
+        variant_channel_listing = line_info.channel_listing
+
+        base_price = variant.get_price(
+            product, collections, channel, variant_channel_listing
+        )
+        currency = checkout.currency
+        assert data == {
+            "sku": variant.sku,
+            "quantity": line_info.line.quantity,
+            "base_price": str(quantize_price(base_price.amount, currency)),
+            "currency": channel.currency_code,
+            "full_name": variant.display_product(),
+            "product_name": product.name,
+            "variant_name": variant.name,
+            "attributes": serialize_product_or_variant_attributes(variant),
+            "variant_id": variant.get_global_id(),
+        }
+    assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
 def test_serialize_product_attributes(
