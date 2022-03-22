@@ -111,6 +111,7 @@ class Checkout(ModelWithMetadata):
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
+            (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
         )
 
     def __iter__(self):
@@ -184,6 +185,12 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    price_override = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         ordering = ("id",)

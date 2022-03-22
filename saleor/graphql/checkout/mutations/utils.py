@@ -1,7 +1,7 @@
 import datetime
 import uuid
-from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Union
+from collections import defaultdict, namedtuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -15,7 +15,8 @@ from ....checkout.utils import (
     clear_delivery_method,
     is_shipping_required,
 )
-from ....core.exceptions import InsufficientStock
+from ....core.exceptions import InsufficientStock, PermissionDenied
+from ....core.permissions import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing
 from ....shipping import interface as shipping_interface
@@ -23,6 +24,8 @@ from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
+
+CustomPrice = namedtuple("CustomPrice", "to_update, value")
 
 
 def clean_delivery_method(
@@ -213,13 +216,19 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
     return checkout
 
 
-def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
+def group_quantity_and_custom_prices_by_variants(
+    lines: List[Dict[str, Any]]
+) -> Tuple[List[int], List[CustomPrice]]:
     variant_quantity_map: Dict[str, int] = defaultdict(int)
+    variant_custom_prices_map: Dict[str, CustomPrice] = {}
 
-    for quantity, variant_id in (line.values() for line in lines):
-        variant_quantity_map[variant_id] += quantity
+    for line in lines:
+        variant_id = cast(str, line.get("variant_id"))
+        variant_quantity_map[variant_id] += line["quantity"]
+        custom_price = CustomPrice(to_update="price" in line, value=line.get("price"))
+        variant_custom_prices_map[variant_id] = custom_price
 
-    return list(variant_quantity_map.values())
+    return list(variant_quantity_map.values()), list(variant_custom_prices_map.values())
 
 
 def validate_checkout_email(checkout: models.Checkout):
@@ -228,3 +237,15 @@ def validate_checkout_email(checkout: models.Checkout):
             "Checkout email must be set.",
             code=CheckoutErrorCode.EMAIL_NOT_SET.value,
         )
+
+
+def check_permissions_for_custom_prices(app, custom_prices):
+    """Raise PermissionDenied when custom price is changed by user or app without perm.
+
+    Checkout line custom price can be changed only by app with
+    handle checkout permission.
+    """
+    if any([custom_price.to_update for custom_price in custom_prices]) and (
+        not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
+    ):
+        raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])

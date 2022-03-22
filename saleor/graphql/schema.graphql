@@ -1191,6 +1191,7 @@ type CheckoutLineDelete {
 input CheckoutLineInput {
   quantity: Int!
   variantId: ID!
+  price: PositiveDecimal
 }
 
 type CheckoutLinesAdd {
@@ -5198,6 +5199,7 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_CHECKOUTS
+  HANDLE_CHECKOUTS
 }
 
 type PermissionGroupCreate {

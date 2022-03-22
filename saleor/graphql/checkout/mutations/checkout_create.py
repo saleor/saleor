@@ -12,27 +12,39 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.utils import clean_channel
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import CheckoutError
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
 from ..types import Checkout
 from .utils import (
     check_lines_quantity,
-    group_quantity_by_variants,
+    check_permissions_for_custom_prices,
+    group_quantity_and_custom_prices_by_variants,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
 
 if TYPE_CHECKING:
     from ....account.models import Address
+    from .utils import CustomPrice
 
 
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
+    price = PositiveDecimal(
+        required=False,
+        description=(
+            f"{ADDED_IN_31} Custom price of the item. Can be set only by apps "
+            "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
+            "will be provided multiple times, the last price will be used. "
+            f"{PREVIEW_FEATURE}"
+        ),
+    )
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
@@ -88,7 +100,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_checkout_lines(
         cls, info, lines, country, channel
-    ) -> Tuple[List[product_models.ProductVariant], List[int]]:
+    ) -> Tuple[List[product_models.ProductVariant], List[int], List["CustomPrice"]]:
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
             variant_ids,
@@ -99,7 +111,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             ),
         )
 
-        quantities = group_quantity_by_variants(lines)
+        quantities, custom_prices = group_quantity_and_custom_prices_by_variants(lines)
+        check_permissions_for_custom_prices(info.context.app, custom_prices)
 
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
@@ -115,7 +128,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             info.context.site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(info.context.site.settings),
         )
-        return variants, quantities
+        return variants, quantities, custom_prices
 
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional["Address"]:
@@ -160,6 +173,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
+                cleaned_input["custom_prices"],
             ) = cls.clean_checkout_lines(
                 info,
                 lines,
@@ -193,11 +207,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         channel = cleaned_input["channel"]
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
+        custom_prices = cleaned_input.get("custom_prices")
         if variants and quantities:
             add_variants_to_checkout(
                 instance,
                 variants,
                 quantities,
+                custom_prices,
                 channel.slug,
                 info.context.site.settings.limit_quantity_per_checkout,
                 reservation_length=get_reservation_length(info.context),
