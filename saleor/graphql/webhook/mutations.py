@@ -65,7 +65,7 @@ class WebhookCreate(ModelMutation):
         object_type = Webhook
         permissions = (
             AppPermission.MANAGE_APPS,
-            PermissionFunctions.IS_AUTHENTICATED_APP,
+            PermissionFunctions.AUTHENTICATED_APP,
         )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
@@ -210,7 +210,7 @@ class WebhookDelete(ModelDeleteMutation):
         object_type = Webhook
         permissions = (
             AppPermission.MANAGE_APPS,
-            PermissionFunctions.IS_AUTHENTICATED_APP,
+            PermissionFunctions.AUTHENTICATED_APP,
         )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"

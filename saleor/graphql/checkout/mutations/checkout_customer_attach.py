@@ -37,8 +37,8 @@ class CheckoutCustomerAttach(BaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
         permissions = (
-            PermissionFunctions.IS_AUTHENTICATED_APP,
-            PermissionFunctions.IS_AUTHENTICATED_USER,
+            PermissionFunctions.AUTHENTICATED_APP,
+            PermissionFunctions.AUTHENTICATED_USER,
         )
 
     @classmethod

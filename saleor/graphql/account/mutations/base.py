@@ -54,7 +54,7 @@ def check_can_edit_address(context, address):
         if is_owner:
             return True
     raise PermissionDenied(
-        permissions=[AccountPermissions.MANAGE_USERS, PermissionFunctions.IS_OWNER]
+        permissions=[AccountPermissions.MANAGE_USERS, PermissionFunctions.OWNER]
     )
 
 
@@ -263,7 +263,7 @@ class PasswordChange(BaseMutation):
         description = "Change the password of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

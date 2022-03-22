@@ -177,7 +177,7 @@ class AccountUpdate(BaseCustomerCreate):
         exclude = ["password"]
         model = models.User
         object_type = User
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -208,7 +208,7 @@ class AccountRequestDeletion(BaseMutation):
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -247,7 +247,7 @@ class AccountDelete(ModelDeleteMutation):
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -302,7 +302,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     @traced_atomic_transaction()
@@ -372,7 +372,7 @@ class AccountSetDefaultAddress(BaseMutation):
         description = "Sets a default address for the authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -425,7 +425,7 @@ class RequestEmailChange(BaseMutation):
         description = "Request email change of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -497,7 +497,7 @@ class ConfirmEmailChange(BaseMutation):
         description = "Confirm the email change of the logged-in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     def get_token_payload(cls, token):

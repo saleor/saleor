@@ -298,7 +298,7 @@ class DeactivateAllUserTokens(BaseMutation):
         description = "Deactivate all JWT tokens of the currently authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = (PermissionFunctions.IS_AUTHENTICATED_USER,)
+        permissions = (PermissionFunctions.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):

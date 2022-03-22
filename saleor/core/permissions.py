@@ -112,25 +112,25 @@ def is_staff_user(context):
 
 class PermissionFunctions(BasePermissionEnum):
     # Grants access to any authenticated app.
-    IS_AUTHENTICATED_APP = "permission_functions.is_authenticated_app"
+    AUTHENTICATED_APP = "permission_functions.authenticated_app"
 
     # Grants access to any authenticated staff user.
-    IS_AUTHENTICATED_STAFF_USER = "permission_functions.is_authenticated_staff_user"
+    AUTHENTICATED_STAFF_USER = "permission_functions.authenticated_staff_user"
 
     # Grants access to any authenticated user.
-    IS_AUTHENTICATED_USER = "permission_functions.is_authenticated_user"
+    AUTHENTICATED_USER = "permission_functions.authenticated_user"
 
     # Grants access to the owner of the related object. This rule doesn't come with any
     # permission function, as the ownership needs to be defined individually in each
     # case.
-    IS_OWNER = "permission_functions.owner"
+    OWNER = "permission_functions.owner"
 
 
 def resolve_internal_permission_fn(perm):
     fn_map = {
-        PermissionFunctions.IS_AUTHENTICATED_APP: is_app,
-        PermissionFunctions.IS_AUTHENTICATED_USER: is_user,
-        PermissionFunctions.IS_AUTHENTICATED_STAFF_USER: is_staff_user,
+        PermissionFunctions.AUTHENTICATED_APP: is_app,
+        PermissionFunctions.AUTHENTICATED_USER: is_user,
+        PermissionFunctions.AUTHENTICATED_STAFF_USER: is_staff_user,
     }
     return fn_map.get(perm)
 

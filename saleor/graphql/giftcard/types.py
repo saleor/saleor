@@ -114,7 +114,7 @@ class GiftCardEvent(ModelObjectType):
                 permissions=[
                     AccountPermissions.MANAGE_STAFF,
                     AccountPermissions.MANAGE_USERS,
-                    PermissionFunctions.IS_OWNER,
+                    PermissionFunctions.OWNER,
                 ]
             )
 
@@ -130,7 +130,7 @@ class GiftCardEvent(ModelObjectType):
             if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
                 return app
             return PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, PermissionFunctions.IS_OWNER]
+                permissions=[AppPermission.MANAGE_APPS, PermissionFunctions.OWNER]
             )
 
         if root.app_id is None:
@@ -333,7 +333,7 @@ class GiftCard(ModelObjectType):
 
             return PermissionDenied(
                 permissions=[
-                    PermissionFunctions.IS_OWNER,
+                    PermissionFunctions.OWNER,
                     GiftcardPermissions.MANAGE_GIFT_CARD,
                 ]
             )
@@ -418,7 +418,7 @@ class GiftCard(ModelObjectType):
             if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
                 return app
             return PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, PermissionFunctions.IS_OWNER]
+                permissions=[AppPermission.MANAGE_APPS, PermissionFunctions.OWNER]
             )
 
         if root.app_id is None:

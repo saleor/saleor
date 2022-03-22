@@ -96,7 +96,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
 
         if not app_id:
             raise PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, PermissionFunctions.IS_OWNER]
+                permissions=[AppPermission.MANAGE_APPS, PermissionFunctions.OWNER]
             )
         return AppByIdLoader(info.context).load(app_id)
 
