@@ -31,10 +31,10 @@ class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
         description="Shipping price of the shipping method in this channel."
     )
     minimum_order_price = PositiveDecimal(
-        description=("Minimum order price to use this shipping method.")
+        description="Minimum order price to use this shipping method."
     )
     maximum_order_price = PositiveDecimal(
-        description=("Maximum order price to use this shipping method.")
+        description="Maximum order price to use this shipping method."
     )
 
 

@@ -813,7 +813,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         resolver=ChannelContextType.resolve_translation,
     )
     available_for_purchase = graphene.Date(
-        description="Date when product is available for purchase. "
+        description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."

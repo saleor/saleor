@@ -125,7 +125,7 @@ class DigitalContentDelete(BaseMutation):
 
     class Arguments:
         variant_id = graphene.ID(
-            description=("ID of a product variant with digital content to remove."),
+            description="ID of a product variant with digital content to remove.",
             required=True,
         )
 
@@ -161,7 +161,7 @@ class DigitalContentUpdate(BaseMutation):
 
     class Arguments:
         variant_id = graphene.ID(
-            description=("ID of a product variant with digital content to update."),
+            description="ID of a product variant with digital content to update.",
             required=True,
         )
         input = DigitalContentInput(
