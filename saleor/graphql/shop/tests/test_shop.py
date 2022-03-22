@@ -896,13 +896,10 @@ def test_query_available_shipping_methods_for_given_address(
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) == shipping_method_count - 1
-    assert (
-        graphene.Node.to_global_id(
-            "ShippingMethodType",
-            shipping_zone_without_countries.shipping_methods.first().pk,
-        )
-        not in {ship_meth["id"] for ship_meth in data}
-    )
+    assert graphene.Node.to_global_id(
+        "ShippingMethodType",
+        shipping_zone_without_countries.shipping_methods.first().pk,
+    ) not in {ship_meth["id"] for ship_meth in data}
 
 
 def test_query_available_shipping_methods_no_address_vatlayer_set(

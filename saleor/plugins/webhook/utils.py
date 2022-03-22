@@ -194,7 +194,7 @@ def parse_tax_data(
 ) -> Optional[TaxData]:
     try:
         return _unsafe_parse_tax_data(response_data)
-    except (KeyError, decimal.DecimalException):
+    except (TypeError, KeyError, decimal.DecimalException):
         return None
 
 

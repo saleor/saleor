@@ -33,11 +33,19 @@ MUTATION_CHECKOUT_COMPLETE = """
     mutation checkoutComplete($token: UUID, $redirectUrl: String) {
         checkoutComplete(token: $token, redirectUrl: $redirectUrl) {
             order {
-                id,
+                id
                 token
                 original
                 origin
-            },
+                deliveryMethod {
+                    ... on Warehouse {
+                        id
+                    }
+                    ... on ShippingMethod {
+                        id
+                    }
+                }
+            }
             errors {
                 field,
                 message,

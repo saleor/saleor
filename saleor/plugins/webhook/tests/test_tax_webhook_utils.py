@@ -130,6 +130,27 @@ def test_parse_tax_data_decimalexception(tax_data_response):
     assert tax_data is None
 
 
+@pytest.mark.parametrize(
+    "response_data",
+    [
+        [],
+        1.0,
+        "text",
+        None,
+        {"lines": {}},
+        {"lines": 1.0},
+        {"lines": "text"},
+        {"lines": None},
+        {"lines": [[]]},
+        {"lines": [1.0]},
+        {"lines": ["text"]},
+        {"lines": [None]},
+    ],
+)
+def test_parse_tax_data_malformed(response_data):
+    assert parse_tax_data(response_data) is None
+
+
 def test_parse_tax_codes_success(tax_codes_response):
     assert parse_tax_codes(tax_codes_response) == {
         tax["code"]: tax["description"] for tax in tax_codes_response

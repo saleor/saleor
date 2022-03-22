@@ -116,18 +116,23 @@ def fetch_kwargs(checkout_with_items, manager):
     }
 
 
+SALE = Decimal("1.0")
+DISCOUNT = Decimal("1.5")
+
+
 def get_checkout_taxed_prices_data(
     obj: Union[TaxData, TaxLineData],
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
 ) -> CheckoutTaxedPricesData:
+    currency = obj.currency
     money = TaxedMoney(
-        Money(getattr(obj, f"{attr}_net_amount"), obj.currency),
-        Money(getattr(obj, f"{attr}_gross_amount"), obj.currency),
+        Money(getattr(obj, f"{attr}_net_amount"), currency),
+        Money(getattr(obj, f"{attr}_gross_amount"), currency),
     )
     return CheckoutTaxedPricesData(
-        undiscounted_price=money,
+        undiscounted_price=money + Money(SALE, currency),
         price_with_sale=money,
-        price_with_discounts=money,
+        price_with_discounts=money - Money(DISCOUNT, currency),
     )
 
 
@@ -190,9 +195,18 @@ def test_fetch_checkout_prices_if_expired_plugins(
     assert checkout_with_items.shipping_price == shipping_price
     assert checkout_with_items.shipping_tax_rate == shipping_tax_rate
     assert checkout_with_items.total == total
+    currency = checkout_with_items.currency
     for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
-        assert checkout_line.unit_price == get_taxed_money(tax_line, "unit")
-        assert checkout_line.total_price == get_taxed_money(tax_line, "total")
+        unit_price = get_taxed_money(tax_line, "unit")
+        total_price = get_taxed_money(tax_line, "total")
+        sale = Money(SALE, currency)
+        discount = Money(DISCOUNT, currency)
+        assert checkout_line.undiscounted_unit_price == unit_price + sale
+        assert checkout_line.unit_price == unit_price
+        assert checkout_line.unit_price_with_discounts == unit_price - discount
+        assert checkout_line.undiscounted_total_price == total_price + sale
+        assert checkout_line.total_price == total_price
+        assert checkout_line.total_price_with_discounts == total_price - discount
         assert checkout_line.tax_rate == tax_line.tax_rate
 
 

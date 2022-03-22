@@ -98,13 +98,10 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = tax_data.shipping_tax_rate
     shipping = get_taxed_money(tax_data, "shipping_price")
-    subtotal = (
-        sum(
-            (get_taxed_money(line, "total") for line in tax_data.lines),
-            zero_taxed_money(order.currency),
-        )
-        + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
-    )
+    subtotal = sum(
+        (get_taxed_money(line, "total") for line in tax_data.lines),
+        zero_taxed_money(order.currency),
+    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
     total = shipping + subtotal
 
     manager = Mock(
@@ -272,13 +269,10 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     tax_rates = [line.tax_rate for line in tax_data.lines]
     shipping_tax_rate = tax_data.shipping_tax_rate
 
-    subtotal = (
-        sum(
-            [get_taxed_money(line, "total") for line in tax_data.lines],
-            zero_taxed_money(order.currency),
-        )
-        + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
-    )
+    subtotal = sum(
+        [get_taxed_money(line, "total") for line in tax_data.lines],
+        zero_taxed_money(order.currency),
+    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
 
     manager = Mock(
         calculate_order_line_unit=Mock(side_effect=unit_prices),
