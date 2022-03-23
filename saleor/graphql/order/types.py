@@ -137,11 +137,11 @@ def get_payment_status_for_order(order, payments):
 
     if captured_money >= order.total.gross:
         status = ChargeStatus.FULLY_CHARGED
-    if captured_money and captured_money <= order.total.gross:
+    elif captured_money and captured_money < order.total.gross:
         status = ChargeStatus.PARTIALLY_CHARGED
     if refunded_money >= order.total.gross:
         status = ChargeStatus.FULLY_REFUNDED
-    if refunded_money and refunded_money < order.total.gross:
+    elif refunded_money and refunded_money < order.total.gross:
         status = ChargeStatus.PARTIALLY_REFUNDED
     return status
 

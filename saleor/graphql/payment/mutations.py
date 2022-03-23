@@ -572,16 +572,16 @@ class PaymentUpdateInput(graphene.InputObjectType):
     amount_authorized = MoneyInput(description="Amount authorized by this payment.")
     amount_captured = MoneyInput(description="Amount captured by this payment.")
     amount_refunded = MoneyInput(description="Amount refunded by this payment.")
-    amount_voided = MoneyInput(description="Amount refunded by this payment.")
+    amount_voided = MoneyInput(description="Amount voided by this payment.")
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="User public metadata.",
+        description="Payment public metadata.",
         required=False,
     )
     private_metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="User public metadata.",
+        description="Payment private metadata.",
         required=False,
     )
 
