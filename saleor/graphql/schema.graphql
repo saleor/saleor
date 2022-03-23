@@ -7796,19 +7796,25 @@ enum StaffMemberStatus {
 }
 
 type Mutation {
-  """Creates a new webhook subscription."""
+  """
+  Creates a new webhook subscription. Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
+  """
   webhookCreate(
     """Fields required to create a webhook."""
     input: WebhookCreateInput!
   ): WebhookCreate
 
-  """Deletes a webhook subscription."""
+  """
+  Deletes a webhook subscription. Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
+  """
   webhookDelete(
     """ID of a webhook to delete."""
     id: ID!
   ): WebhookDelete
 
-  """Updates a webhook subscription."""
+  """
+  Updates a webhook subscription. Requires one of the following permissions: MANAGE_APPS.
+  """
   webhookUpdate(
     """ID of a webhook to update."""
     id: ID!
@@ -7817,19 +7823,25 @@ type Mutation {
     input: WebhookUpdateInput!
   ): WebhookUpdate
 
-  """Retries event delivery."""
+  """
+  Retries event delivery. Requires one of the following permissions: MANAGE_APPS.
+  """
   eventDeliveryRetry(
     """ID of the event delivery to retry."""
     id: ID!
   ): EventDeliveryRetry
 
-  """Creates new warehouse."""
+  """
+  Creates new warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   createWarehouse(
     """Fields required to create warehouse."""
     input: WarehouseCreateInput!
   ): WarehouseCreate
 
-  """Updates given warehouse."""
+  """
+  Updates given warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   updateWarehouse(
     """ID of a warehouse to update."""
     id: ID!
@@ -7838,13 +7850,17 @@ type Mutation {
     input: WarehouseUpdateInput!
   ): WarehouseUpdate
 
-  """Deletes selected warehouse."""
+  """
+  Deletes selected warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   deleteWarehouse(
     """ID of a warehouse to delete."""
     id: ID!
   ): WarehouseDelete
 
-  """Add shipping zone to given warehouse."""
+  """
+  Add shipping zone to given warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   assignWarehouseShippingZone(
     """ID of a warehouse to update."""
     id: ID!
@@ -7853,7 +7869,9 @@ type Mutation {
     shippingZoneIds: [ID!]!
   ): WarehouseShippingZoneAssign
 
-  """Remove shipping zone from given warehouse."""
+  """
+  Remove shipping zone from given warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   unassignWarehouseShippingZone(
     """ID of a warehouse to update."""
     id: ID!
@@ -7862,13 +7880,17 @@ type Mutation {
     shippingZoneIds: [ID!]!
   ): WarehouseShippingZoneUnassign
 
-  """Creates a new staff notification recipient."""
+  """
+  Creates a new staff notification recipient. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   staffNotificationRecipientCreate(
     """Fields required to create a staff notification recipient."""
     input: StaffNotificationRecipientInput!
   ): StaffNotificationRecipientCreate
 
-  """Updates a staff notification recipient."""
+  """
+  Updates a staff notification recipient. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   staffNotificationRecipientUpdate(
     """ID of a staff notification recipient to update."""
     id: ID!
@@ -7877,28 +7899,38 @@ type Mutation {
     input: StaffNotificationRecipientInput!
   ): StaffNotificationRecipientUpdate
 
-  """Delete staff notification recipient."""
+  """
+  Delete staff notification recipient. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   staffNotificationRecipientDelete(
     """ID of a staff notification recipient to delete."""
     id: ID!
   ): StaffNotificationRecipientDelete
 
-  """Updates site domain of the shop."""
+  """
+  Updates site domain of the shop. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   shopDomainUpdate(
     """Fields required to update site."""
     input: SiteDomainInput
   ): ShopDomainUpdate
 
-  """Updates shop settings."""
+  """
+  Updates shop settings. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
   ): ShopSettingsUpdate
 
-  """Fetch tax rates."""
+  """
+  Fetch tax rates. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   shopFetchTaxRates: ShopFetchTaxRates
 
-  """Creates/updates translations for shop settings."""
+  """
+  Creates/updates translations for shop settings. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   shopSettingsTranslate(
     """Fields required to update shop settings translations."""
     input: ShopSettingsTranslationInput!
@@ -7908,26 +7940,32 @@ type Mutation {
   ): ShopSettingsTranslate
 
   """
-  Update the shop's address. If the `null` value is passed, the currently selected address will be deleted.
+  Update the shop's address. If the `null` value is passed, the currently selected address will be deleted. Requires one of the following permissions: MANAGE_SETTINGS.
   """
   shopAddressUpdate(
     """Fields required to update shop address."""
     input: AddressInput
   ): ShopAddressUpdate
 
-  """Update shop order settings."""
+  """
+  Update shop order settings. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderSettingsUpdate(
     """Fields required to update shop order settings."""
     input: OrderSettingsUpdateInput!
   ): OrderSettingsUpdate
 
-  """Update gift card settings."""
+  """
+  Update gift card settings. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCardSettingsUpdate(
     """Fields required to update gift card settings."""
     input: GiftCardSettingsUpdateInput!
   ): GiftCardSettingsUpdate
 
-  """Manage shipping method's availability in channels."""
+  """
+  Manage shipping method's availability in channels. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingMethodChannelListingUpdate(
     """ID of a shipping method to update."""
     id: ID!
@@ -7936,25 +7974,33 @@ type Mutation {
     input: ShippingMethodChannelListingInput!
   ): ShippingMethodChannelListingUpdate
 
-  """Creates a new shipping price."""
+  """
+  Creates a new shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingPriceCreate(
     """Fields required to create a shipping price."""
     input: ShippingPriceInput!
   ): ShippingPriceCreate
 
-  """Deletes a shipping price."""
+  """
+  Deletes a shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingPriceDelete(
     """ID of a shipping price to delete."""
     id: ID!
   ): ShippingPriceDelete
 
-  """Deletes shipping prices."""
+  """
+  Deletes shipping prices. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingPriceBulkDelete(
     """List of shipping price IDs to delete."""
     ids: [ID]!
   ): ShippingPriceBulkDelete
 
-  """Updates a new shipping price."""
+  """
+  Updates a new shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingPriceUpdate(
     """ID of a shipping price to update."""
     id: ID!
@@ -7963,7 +8009,9 @@ type Mutation {
     input: ShippingPriceInput!
   ): ShippingPriceUpdate
 
-  """Creates/updates translations for a shipping method."""
+  """
+  Creates/updates translations for a shipping method. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   shippingPriceTranslate(
     """ShippingMethodType ID or ShippingMethodTranslatableContent ID."""
     id: ID!
@@ -7973,7 +8021,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): ShippingPriceTranslate
 
-  """Exclude products from shipping price."""
+  """
+  Exclude products from shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingPriceExcludeProducts(
     """ID of a shipping price."""
     id: ID!
@@ -7982,7 +8032,9 @@ type Mutation {
     input: ShippingPriceExcludeProductsInput!
   ): ShippingPriceExcludeProducts
 
-  """Remove product from excluded list for shipping price."""
+  """
+  Remove product from excluded list for shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingPriceRemoveProductFromExclude(
     """ID of a shipping price."""
     id: ID!
@@ -7991,25 +8043,33 @@ type Mutation {
     products: [ID]!
   ): ShippingPriceRemoveProductFromExclude
 
-  """Creates a new shipping zone."""
+  """
+  Creates a new shipping zone. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingZoneCreate(
     """Fields required to create a shipping zone."""
     input: ShippingZoneCreateInput!
   ): ShippingZoneCreate
 
-  """Deletes a shipping zone."""
+  """
+  Deletes a shipping zone. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingZoneDelete(
     """ID of a shipping zone to delete."""
     id: ID!
   ): ShippingZoneDelete
 
-  """Deletes shipping zones."""
+  """
+  Deletes shipping zones. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingZoneBulkDelete(
     """List of shipping zone IDs to delete."""
     ids: [ID]!
   ): ShippingZoneBulkDelete
 
-  """Updates a new shipping zone."""
+  """
+  Updates a new shipping zone. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingZoneUpdate(
     """ID of a shipping zone to update."""
     id: ID!
@@ -8018,7 +8078,9 @@ type Mutation {
     input: ShippingZoneUpdateInput!
   ): ShippingZoneUpdate
 
-  """Assign attributes to a given product type."""
+  """
+  Assign attributes to a given product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productAttributeAssign(
     """The operations to perform."""
     operations: [ProductAttributeAssignInput]!
@@ -8028,7 +8090,7 @@ type Mutation {
   ): ProductAttributeAssign
 
   """
-  New in Saleor 3.1. Update attributes assigned to product variant for given product type.
+  New in Saleor 3.1. Update attributes assigned to product variant for given product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   productAttributeAssignmentUpdate(
     """The operations to perform."""
@@ -8038,7 +8100,9 @@ type Mutation {
     productTypeId: ID!
   ): ProductAttributeAssignmentUpdate
 
-  """Un-assign attributes from a given product type."""
+  """
+  Un-assign attributes from a given product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productAttributeUnassign(
     """The IDs of the attributes to unassign."""
     attributeIds: [ID]!
@@ -8047,7 +8111,9 @@ type Mutation {
     productTypeId: ID!
   ): ProductAttributeUnassign
 
-  """Creates a new category."""
+  """
+  Creates a new category. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   categoryCreate(
     """Fields required to create a category."""
     input: CategoryInput!
@@ -8058,19 +8124,25 @@ type Mutation {
     parent: ID
   ): CategoryCreate
 
-  """Deletes a category."""
+  """
+  Deletes a category. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   categoryDelete(
     """ID of a category to delete."""
     id: ID!
   ): CategoryDelete
 
-  """Deletes categories."""
+  """
+  Deletes categories. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   categoryBulkDelete(
     """List of category IDs to delete."""
     ids: [ID]!
   ): CategoryBulkDelete
 
-  """Updates a category."""
+  """
+  Updates a category. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   categoryUpdate(
     """ID of a category to update."""
     id: ID!
@@ -8079,7 +8151,9 @@ type Mutation {
     input: CategoryInput!
   ): CategoryUpdate
 
-  """Creates/updates translations for a category."""
+  """
+  Creates/updates translations for a category. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   categoryTranslate(
     """Category ID or CategoryTranslatableContent ID."""
     id: ID!
@@ -8089,7 +8163,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): CategoryTranslate
 
-  """Adds products to a collection."""
+  """
+  Adds products to a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionAddProducts(
     """ID of a collection."""
     collectionId: ID!
@@ -8098,19 +8174,25 @@ type Mutation {
     products: [ID]!
   ): CollectionAddProducts
 
-  """Creates a new collection."""
+  """
+  Creates a new collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionCreate(
     """Fields required to create a collection."""
     input: CollectionCreateInput!
   ): CollectionCreate
 
-  """Deletes a collection."""
+  """
+  Deletes a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionDelete(
     """ID of a collection to delete."""
     id: ID!
   ): CollectionDelete
 
-  """Reorder the products of a collection."""
+  """
+  Reorder the products of a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionReorderProducts(
     """ID of a collection."""
     collectionId: ID!
@@ -8119,13 +8201,17 @@ type Mutation {
     moves: [MoveProductInput]!
   ): CollectionReorderProducts
 
-  """Deletes collections."""
+  """
+  Deletes collections. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionBulkDelete(
     """List of collection IDs to delete."""
     ids: [ID]!
   ): CollectionBulkDelete
 
-  """Remove products from a collection."""
+  """
+  Remove products from a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionRemoveProducts(
     """ID of a collection."""
     collectionId: ID!
@@ -8134,7 +8220,9 @@ type Mutation {
     products: [ID]!
   ): CollectionRemoveProducts
 
-  """Updates a collection."""
+  """
+  Updates a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionUpdate(
     """ID of a collection to update."""
     id: ID!
@@ -8143,7 +8231,9 @@ type Mutation {
     input: CollectionInput!
   ): CollectionUpdate
 
-  """Creates/updates translations for a collection."""
+  """
+  Creates/updates translations for a collection. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   collectionTranslate(
     """Collection ID or CollectionTranslatableContent ID."""
     id: ID!
@@ -8153,7 +8243,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): CollectionTranslate
 
-  """Manage collection's availability in channels."""
+  """
+  Manage collection's availability in channels. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   collectionChannelListingUpdate(
     """ID of a collection to update."""
     id: ID!
@@ -8162,25 +8254,33 @@ type Mutation {
     input: CollectionChannelListingUpdateInput!
   ): CollectionChannelListingUpdate
 
-  """Creates a new product."""
+  """
+  Creates a new product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productCreate(
     """Fields required to create a product."""
     input: ProductCreateInput!
   ): ProductCreate
 
-  """Deletes a product."""
+  """
+  Deletes a product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productDelete(
     """ID of a product to delete."""
     id: ID!
   ): ProductDelete
 
-  """Deletes products."""
+  """
+  Deletes products. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productBulkDelete(
     """List of product IDs to delete."""
     ids: [ID]!
   ): ProductBulkDelete
 
-  """Updates an existing product."""
+  """
+  Updates an existing product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productUpdate(
     """ID of a product to update."""
     id: ID!
@@ -8189,7 +8289,9 @@ type Mutation {
     input: ProductInput!
   ): ProductUpdate
 
-  """Creates/updates translations for a product."""
+  """
+  Creates/updates translations for a product. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   productTranslate(
     """Product ID or ProductTranslatableContent ID."""
     id: ID!
@@ -8199,7 +8301,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): ProductTranslate
 
-  """Manage product's availability in channels."""
+  """
+  Manage product's availability in channels. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productChannelListingUpdate(
     """ID of a product to update."""
     id: ID!
@@ -8209,7 +8313,7 @@ type Mutation {
   ): ProductChannelListingUpdate
 
   """
-  Create a media object (image or video URL) associated with product. For image, this mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+  Create a media object (image or video URL) associated with product. For image, this mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productMediaCreate(
     """Fields required to create a product media."""
@@ -8217,7 +8321,7 @@ type Mutation {
   ): ProductMediaCreate
 
   """
-  Reorder the variants of a product. Mutation updates updated_at on product and triggers PRODUCT_UPDATED webhook.
+  Reorder the variants of a product. Mutation updates updated_at on product and triggers PRODUCT_UPDATED webhook. Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantReorder(
     """The list of variant reordering operations."""
@@ -8227,19 +8331,25 @@ type Mutation {
     productId: ID!
   ): ProductVariantReorder
 
-  """Deletes a product media."""
+  """
+  Deletes a product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productMediaDelete(
     """ID of a product media to delete."""
     id: ID!
   ): ProductMediaDelete
 
-  """Deletes product media."""
+  """
+  Deletes product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productMediaBulkDelete(
     """List of product media IDs to delete."""
     ids: [ID]!
   ): ProductMediaBulkDelete
 
-  """Changes ordering of the product media."""
+  """
+  Changes ordering of the product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productMediaReorder(
     """IDs of a product media in the desired order."""
     mediaIds: [ID]!
@@ -8248,7 +8358,9 @@ type Mutation {
     productId: ID!
   ): ProductMediaReorder
 
-  """Updates a product media."""
+  """
+  Updates a product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productMediaUpdate(
     """ID of a product media to update."""
     id: ID!
@@ -8257,25 +8369,33 @@ type Mutation {
     input: ProductMediaUpdateInput!
   ): ProductMediaUpdate
 
-  """Creates a new product type."""
+  """
+  Creates a new product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productTypeCreate(
     """Fields required to create a product type."""
     input: ProductTypeInput!
   ): ProductTypeCreate
 
-  """Deletes a product type."""
+  """
+  Deletes a product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productTypeDelete(
     """ID of a product type to delete."""
     id: ID!
   ): ProductTypeDelete
 
-  """Deletes product types."""
+  """
+  Deletes product types. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productTypeBulkDelete(
     """List of product type IDs to delete."""
     ids: [ID]!
   ): ProductTypeBulkDelete
 
-  """Updates an existing product type."""
+  """
+  Updates an existing product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productTypeUpdate(
     """ID of a product type to update."""
     id: ID!
@@ -8284,7 +8404,9 @@ type Mutation {
     input: ProductTypeInput!
   ): ProductTypeUpdate
 
-  """Reorder the attributes of a product type."""
+  """
+  Reorder the attributes of a product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   productTypeReorderAttributes(
     """The list of attribute reordering operations."""
     moves: [ReorderInput]!
@@ -8296,7 +8418,9 @@ type Mutation {
     type: ProductAttributeType!
   ): ProductTypeReorderAttributes
 
-  """Reorder product attribute values."""
+  """
+  Reorder product attribute values. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productReorderAttributeValues(
     """ID of an attribute."""
     attributeId: ID!
@@ -8340,19 +8464,25 @@ type Mutation {
     input: DigitalContentUrlCreateInput!
   ): DigitalContentUrlCreate
 
-  """Creates a new variant for a product."""
+  """
+  Creates a new variant for a product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantCreate(
     """Fields required to create a product variant."""
     input: ProductVariantCreateInput!
   ): ProductVariantCreate
 
-  """Deletes a product variant."""
+  """
+  Deletes a product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantDelete(
     """ID of a product variant to delete."""
     id: ID!
   ): ProductVariantDelete
 
-  """Creates product variants for a given product."""
+  """
+  Creates product variants for a given product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantBulkCreate(
     """ID of the product to create the variants for."""
     product: ID!
@@ -8361,13 +8491,17 @@ type Mutation {
     variants: [ProductVariantBulkCreateInput]!
   ): ProductVariantBulkCreate
 
-  """Deletes product variants."""
+  """
+  Deletes product variants. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantBulkDelete(
     """List of product variant IDs to delete."""
     ids: [ID]!
   ): ProductVariantBulkDelete
 
-  """Creates stocks for product variant."""
+  """
+  Creates stocks for product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantStocksCreate(
     """Input list of stocks to create."""
     stocks: [StockInput!]!
@@ -8376,14 +8510,18 @@ type Mutation {
     variantId: ID!
   ): ProductVariantStocksCreate
 
-  """Delete stocks from product variant."""
+  """
+  Delete stocks from product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantStocksDelete(
     """ID of product variant for which stocks will be deleted."""
     variantId: ID!
     warehouseIds: [ID!]
   ): ProductVariantStocksDelete
 
-  """Update stocks for product variant."""
+  """
+  Update stocks for product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantStocksUpdate(
     """Input list of stocks to create."""
     stocks: [StockInput!]!
@@ -8392,7 +8530,9 @@ type Mutation {
     variantId: ID!
   ): ProductVariantStocksUpdate
 
-  """Updates an existing variant for product."""
+  """
+  Updates an existing variant for product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantUpdate(
     """ID of a product variant to update."""
     id: ID!
@@ -8402,7 +8542,7 @@ type Mutation {
   ): ProductVariantUpdate
 
   """
-  Set default variant for a product. Mutation triggers PRODUCT_UPDATED webhook.
+  Set default variant for a product. Mutation triggers PRODUCT_UPDATED webhook. Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantSetDefault(
     """Id of a product that will have the default variant set."""
@@ -8412,7 +8552,9 @@ type Mutation {
     variantId: ID!
   ): ProductVariantSetDefault
 
-  """Creates/updates translations for a product variant."""
+  """
+  Creates/updates translations for a product variant. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   productVariantTranslate(
     """ProductVariant ID or ProductVariantTranslatableContent ID."""
     id: ID!
@@ -8422,7 +8564,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): ProductVariantTranslate
 
-  """Manage product variant prices in channels."""
+  """
+  Manage product variant prices in channels. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantChannelListingUpdate(
     """ID of a product variant to update."""
     id: ID!
@@ -8433,7 +8577,9 @@ type Mutation {
     input: [ProductVariantChannelListingAddInput!]!
   ): ProductVariantChannelListingUpdate
 
-  """Reorder product variant attribute values."""
+  """
+  Reorder product variant attribute values. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   productVariantReorderAttributeValues(
     """ID of an attribute."""
     attributeId: ID!
@@ -8446,14 +8592,16 @@ type Mutation {
   ): ProductVariantReorderAttributeValues
 
   """
-  New in Saleor 3.1. Deactivates product variant preorder. It changes all preorder allocation into regular allocation. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Deactivates product variant preorder. It changes all preorder allocation into regular allocation. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantPreorderDeactivate(
     """ID of a variant which preorder should be deactivated."""
     id: ID!
   ): ProductVariantPreorderDeactivate
 
-  """Assign an media to a product variant."""
+  """
+  Assign an media to a product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   variantMediaAssign(
     """ID of a product media to assign to a variant."""
     mediaId: ID!
@@ -8462,7 +8610,9 @@ type Mutation {
     variantId: ID!
   ): VariantMediaAssign
 
-  """Unassign an media from a product variant."""
+  """
+  Unassign an media from a product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   variantMediaUnassign(
     """ID of a product media to unassign from a variant."""
     mediaId: ID!
@@ -8471,7 +8621,9 @@ type Mutation {
     variantId: ID!
   ): VariantMediaUnassign
 
-  """Captures the authorized payment amount."""
+  """
+  Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   paymentCapture(
     """Transaction amount."""
     amount: PositiveDecimal
@@ -8480,7 +8632,9 @@ type Mutation {
     paymentId: ID!
   ): PaymentCapture
 
-  """Refunds the captured payment amount."""
+  """
+  Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   paymentRefund(
     """Transaction amount."""
     amount: PositiveDecimal
@@ -8489,7 +8643,9 @@ type Mutation {
     paymentId: ID!
   ): PaymentRefund
 
-  """Voids the authorized payment."""
+  """
+  Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   paymentVoid(
     """Payment ID."""
     paymentId: ID!
@@ -8513,25 +8669,33 @@ type Mutation {
     input: PaymentCheckBalanceInput!
   ): PaymentCheckBalance
 
-  """Creates a new page."""
+  """
+  Creates a new page. Requires one of the following permissions: MANAGE_PAGES.
+  """
   pageCreate(
     """Fields required to create a page."""
     input: PageCreateInput!
   ): PageCreate
 
-  """Deletes a page."""
+  """
+  Deletes a page. Requires one of the following permissions: MANAGE_PAGES.
+  """
   pageDelete(
     """ID of a page to delete."""
     id: ID!
   ): PageDelete
 
-  """Deletes pages."""
+  """
+  Deletes pages. Requires one of the following permissions: MANAGE_PAGES.
+  """
   pageBulkDelete(
     """List of page IDs to delete."""
     ids: [ID]!
   ): PageBulkDelete
 
-  """Publish pages."""
+  """
+  Publish pages. Requires one of the following permissions: MANAGE_PAGES.
+  """
   pageBulkPublish(
     """List of page IDs to (un)publish."""
     ids: [ID]!
@@ -8540,7 +8704,9 @@ type Mutation {
     isPublished: Boolean!
   ): PageBulkPublish
 
-  """Updates an existing page."""
+  """
+  Updates an existing page. Requires one of the following permissions: MANAGE_PAGES.
+  """
   pageUpdate(
     """ID of a page to update."""
     id: ID!
@@ -8549,7 +8715,9 @@ type Mutation {
     input: PageInput!
   ): PageUpdate
 
-  """Creates/updates translations for a page."""
+  """
+  Creates/updates translations for a page. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   pageTranslate(
     """Page ID or PageTranslatableContent ID."""
     id: ID!
@@ -8559,13 +8727,17 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): PageTranslate
 
-  """Create a new page type."""
+  """
+  Create a new page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageTypeCreate(
     """Fields required to create page type."""
     input: PageTypeCreateInput!
   ): PageTypeCreate
 
-  """Update page type."""
+  """
+  Update page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageTypeUpdate(
     """ID of the page type to update."""
     id: ID
@@ -8574,19 +8746,25 @@ type Mutation {
     input: PageTypeUpdateInput!
   ): PageTypeUpdate
 
-  """Delete a page type."""
+  """
+  Delete a page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageTypeDelete(
     """ID of the page type to delete."""
     id: ID!
   ): PageTypeDelete
 
-  """Delete page types."""
+  """
+  Delete page types. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageTypeBulkDelete(
     """List of page type IDs to delete"""
     ids: [ID!]!
   ): PageTypeBulkDelete
 
-  """Assign attributes to a given page type."""
+  """
+  Assign attributes to a given page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageAttributeAssign(
     """The IDs of the attributes to assign."""
     attributeIds: [ID!]!
@@ -8595,7 +8773,9 @@ type Mutation {
     pageTypeId: ID!
   ): PageAttributeAssign
 
-  """Unassign attributes from a given page type."""
+  """
+  Unassign attributes from a given page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageAttributeUnassign(
     """The IDs of the attributes to unassign."""
     attributeIds: [ID!]!
@@ -8604,7 +8784,9 @@ type Mutation {
     pageTypeId: ID!
   ): PageAttributeUnassign
 
-  """Reorder the attributes of a page type."""
+  """
+  Reorder the attributes of a page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   pageTypeReorderAttributes(
     """The list of attribute reordering operations."""
     moves: [ReorderInput!]!
@@ -8613,7 +8795,9 @@ type Mutation {
     pageTypeId: ID!
   ): PageTypeReorderAttributes
 
-  """Reorder page attribute values."""
+  """
+  Reorder page attribute values. Requires one of the following permissions: MANAGE_PAGES.
+  """
   pageReorderAttributeValues(
     """ID of an attribute."""
     attributeId: ID!
@@ -8625,37 +8809,49 @@ type Mutation {
     pageId: ID!
   ): PageReorderAttributeValues
 
-  """Completes creating an order."""
+  """
+  Completes creating an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrderComplete(
     """ID of the order that will be completed."""
     id: ID!
   ): DraftOrderComplete
 
-  """Creates a new draft order."""
+  """
+  Creates a new draft order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrderCreate(
     """Fields required to create an order."""
     input: DraftOrderCreateInput!
   ): DraftOrderCreate
 
-  """Deletes a draft order."""
+  """
+  Deletes a draft order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrderDelete(
     """ID of a draft order to delete."""
     id: ID!
   ): DraftOrderDelete
 
-  """Deletes draft orders."""
+  """
+  Deletes draft orders. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrderBulkDelete(
     """List of draft order IDs to delete."""
     ids: [ID]!
   ): DraftOrderBulkDelete
 
-  """Deletes order lines."""
+  """
+  Deletes order lines. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrderLinesBulkDelete(
     """List of order lines IDs to delete."""
     ids: [ID]!
   ): DraftOrderLinesBulkDelete @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
-  """Updates a draft order."""
+  """
+  Updates a draft order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrderUpdate(
     """ID of a draft order to update."""
     id: ID!
@@ -8664,7 +8860,9 @@ type Mutation {
     input: DraftOrderInput!
   ): DraftOrderUpdate
 
-  """Adds note to the order."""
+  """
+  Adds note to the order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderAddNote(
     """ID of the order to add a note for."""
     order: ID!
@@ -8673,13 +8871,17 @@ type Mutation {
     input: OrderAddNoteInput!
   ): OrderAddNote
 
-  """Cancel an order."""
+  """
+  Cancel an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderCancel(
     """ID of the order to cancel."""
     id: ID!
   ): OrderCancel
 
-  """Capture an order."""
+  """
+  Capture an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderCapture(
     """Amount of money to capture."""
     amount: PositiveDecimal!
@@ -8688,13 +8890,17 @@ type Mutation {
     id: ID!
   ): OrderCapture
 
-  """Confirms an unconfirmed order by changing status to unfulfilled."""
+  """
+  Confirms an unconfirmed order by changing status to unfulfilled. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderConfirm(
     """ID of an order to confirm."""
     id: ID!
   ): OrderConfirm
 
-  """Creates new fulfillments for an order."""
+  """
+  Creates new fulfillments for an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderFulfill(
     """Fields required to create a fulfillment."""
     input: OrderFulfillInput!
@@ -8703,7 +8909,9 @@ type Mutation {
     order: ID
   ): OrderFulfill
 
-  """Cancels existing fulfillment and optionally restocks items."""
+  """
+  Cancels existing fulfillment and optionally restocks items. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderFulfillmentCancel(
     """ID of a fulfillment to cancel."""
     id: ID!
@@ -8712,7 +8920,9 @@ type Mutation {
     input: FulfillmentCancelInput
   ): FulfillmentCancel
 
-  """New in Saleor 3.1. Approve existing fulfillment."""
+  """
+  New in Saleor 3.1. Approve existing fulfillment. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderFulfillmentApprove(
     """True if stock could be exceeded."""
     allowStockToBeExceeded: Boolean = false
@@ -8724,7 +8934,9 @@ type Mutation {
     notifyCustomer: Boolean!
   ): FulfillmentApprove
 
-  """Updates a fulfillment for an order."""
+  """
+  Updates a fulfillment for an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderFulfillmentUpdateTracking(
     """ID of a fulfillment to update."""
     id: ID!
@@ -8733,7 +8945,9 @@ type Mutation {
     input: FulfillmentUpdateTrackingInput!
   ): FulfillmentUpdateTracking
 
-  """Refund products."""
+  """
+  Refund products. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderFulfillmentRefundProducts(
     """Fields required to create an refund fulfillment."""
     input: OrderRefundProductsInput!
@@ -8742,7 +8956,9 @@ type Mutation {
     order: ID!
   ): FulfillmentRefundProducts
 
-  """Return products."""
+  """
+  Return products. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderFulfillmentReturnProducts(
     """Fields required to return products."""
     input: OrderReturnProductsInput!
@@ -8751,7 +8967,9 @@ type Mutation {
     order: ID!
   ): FulfillmentReturnProducts
 
-  """Create order lines for an order."""
+  """
+  Create order lines for an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderLinesCreate(
     """ID of the order to add the lines to."""
     id: ID!
@@ -8760,13 +8978,17 @@ type Mutation {
     input: [OrderLineCreateInput]!
   ): OrderLinesCreate
 
-  """Deletes an order line from an order."""
+  """
+  Deletes an order line from an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderLineDelete(
     """ID of the order line to delete."""
     id: ID!
   ): OrderLineDelete
 
-  """Updates an order line of an order."""
+  """
+  Updates an order line of an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderLineUpdate(
     """ID of the order line to update."""
     id: ID!
@@ -8775,7 +8997,9 @@ type Mutation {
     input: OrderLineInput!
   ): OrderLineUpdate
 
-  """Adds discount to the order."""
+  """
+  Adds discount to the order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderDiscountAdd(
     """Fields required to create a discount for the order."""
     input: OrderDiscountCommonInput!
@@ -8784,7 +9008,9 @@ type Mutation {
     orderId: ID!
   ): OrderDiscountAdd
 
-  """Update discount for the order."""
+  """
+  Update discount for the order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderDiscountUpdate(
     """ID of a discount to update."""
     discountId: ID!
@@ -8793,13 +9019,17 @@ type Mutation {
     input: OrderDiscountCommonInput!
   ): OrderDiscountUpdate
 
-  """Remove discount from the order."""
+  """
+  Remove discount from the order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderDiscountDelete(
     """ID of a discount to remove."""
     discountId: ID!
   ): OrderDiscountDelete
 
-  """Update discount for the order line."""
+  """
+  Update discount for the order line. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderLineDiscountUpdate(
     """Fields required to update price for the order line."""
     input: OrderDiscountCommonInput!
@@ -8808,13 +9038,17 @@ type Mutation {
     orderLineId: ID!
   ): OrderLineDiscountUpdate
 
-  """Remove discount applied to the order line."""
+  """
+  Remove discount applied to the order line. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderLineDiscountRemove(
     """ID of a order line to remove its discount"""
     orderLineId: ID!
   ): OrderLineDiscountRemove
 
-  """Mark order as manually paid."""
+  """
+  Mark order as manually paid. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderMarkAsPaid(
     """ID of the order to mark paid."""
     id: ID!
@@ -8823,7 +9057,9 @@ type Mutation {
     transactionReference: String
   ): OrderMarkAsPaid
 
-  """Refund an order."""
+  """
+  Refund an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderRefund(
     """Amount of money to refund."""
     amount: PositiveDecimal!
@@ -8832,7 +9068,9 @@ type Mutation {
     id: ID!
   ): OrderRefund
 
-  """Updates an order."""
+  """
+  Updates an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderUpdate(
     """ID of an order to update."""
     id: ID!
@@ -8842,7 +9080,7 @@ type Mutation {
   ): OrderUpdate
 
   """
-  Updates a shipping method of the order. Requires shipping method ID to update, when null is passed then currently assigned shipping method is removed.
+  Updates a shipping method of the order. Requires shipping method ID to update, when null is passed then currently assigned shipping method is removed. Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderUpdateShipping(
     """ID of the order to update a shipping method."""
@@ -8852,19 +9090,25 @@ type Mutation {
     input: OrderUpdateShippingInput!
   ): OrderUpdateShipping
 
-  """Void an order."""
+  """
+  Void an order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderVoid(
     """ID of the order to void."""
     id: ID!
   ): OrderVoid
 
-  """Cancels orders."""
+  """
+  Cancels orders. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderBulkCancel(
     """List of orders IDs to cancel."""
     ids: [ID]!
   ): OrderBulkCancel
 
-  """Delete metadata of an object."""
+  """
+  Delete metadata of an object. To use it, you need to have access to the modified object.
+  """
   deleteMetadata(
     """ID or token (for Order and Checkout) of an object to update."""
     id: ID!
@@ -8873,7 +9117,9 @@ type Mutation {
     keys: [String!]!
   ): DeleteMetadata
 
-  """Delete object's private metadata."""
+  """
+  Delete object's private metadata. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
+  """
   deletePrivateMetadata(
     """ID or token (for Order and Checkout) of an object to update."""
     id: ID!
@@ -8882,7 +9128,9 @@ type Mutation {
     keys: [String!]!
   ): DeletePrivateMetadata
 
-  """Updates metadata of an object."""
+  """
+  Updates metadata of an object. To use it, you need to have access to the modified object.
+  """
   updateMetadata(
     """ID or token (for Order and Checkout) of an object to update."""
     id: ID!
@@ -8891,7 +9139,9 @@ type Mutation {
     input: [MetadataInput!]!
   ): UpdateMetadata
 
-  """Updates private metadata of an object."""
+  """
+  Updates private metadata of an object. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
+  """
   updatePrivateMetadata(
     """ID or token (for Order and Checkout) of an object to update."""
     id: ID!
@@ -8900,7 +9150,9 @@ type Mutation {
     input: [MetadataInput!]!
   ): UpdatePrivateMetadata
 
-  """Assigns storefront's navigation menus."""
+  """
+  Assigns storefront's navigation menus. Requires one of the following permissions: MANAGE_MENUS, MANAGE_SETTINGS.
+  """
   assignNavigation(
     """ID of the menu."""
     menu: ID
@@ -8909,25 +9161,33 @@ type Mutation {
     navigationType: NavigationType!
   ): AssignNavigation
 
-  """Creates a new Menu."""
+  """
+  Creates a new Menu. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuCreate(
     """Fields required to create a menu."""
     input: MenuCreateInput!
   ): MenuCreate
 
-  """Deletes a menu."""
+  """
+  Deletes a menu. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuDelete(
     """ID of a menu to delete."""
     id: ID!
   ): MenuDelete
 
-  """Deletes menus."""
+  """
+  Deletes menus. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuBulkDelete(
     """List of menu IDs to delete."""
     ids: [ID]!
   ): MenuBulkDelete
 
-  """Updates a menu."""
+  """
+  Updates a menu. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuUpdate(
     """ID of a menu to update."""
     id: ID!
@@ -8936,7 +9196,9 @@ type Mutation {
     input: MenuInput!
   ): MenuUpdate
 
-  """Creates a new menu item."""
+  """
+  Creates a new menu item. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuItemCreate(
     """
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
@@ -8944,19 +9206,25 @@ type Mutation {
     input: MenuItemCreateInput!
   ): MenuItemCreate
 
-  """Deletes a menu item."""
+  """
+  Deletes a menu item. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuItemDelete(
     """ID of a menu item to delete."""
     id: ID!
   ): MenuItemDelete
 
-  """Deletes menu items."""
+  """
+  Deletes menu items. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuItemBulkDelete(
     """List of menu item IDs to delete."""
     ids: [ID]!
   ): MenuItemBulkDelete
 
-  """Updates a menu item."""
+  """
+  Updates a menu item. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuItemUpdate(
     """ID of a menu item to update."""
     id: ID!
@@ -8967,7 +9235,9 @@ type Mutation {
     input: MenuItemInput!
   ): MenuItemUpdate
 
-  """Creates/updates translations for a menu item."""
+  """
+  Creates/updates translations for a menu item. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   menuItemTranslate(
     """MenuItem ID or MenuItemTranslatableContent ID."""
     id: ID!
@@ -8977,7 +9247,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): MenuItemTranslate
 
-  """Moves items of menus."""
+  """
+  Moves items of menus. Requires one of the following permissions: MANAGE_MENUS.
+  """
   menuItemMove(
     """ID of the menu."""
     menu: ID!
@@ -8986,7 +9258,9 @@ type Mutation {
     moves: [MenuItemMoveInput]!
   ): MenuItemMove
 
-  """Request an invoice for the order using plugin."""
+  """
+  Request an invoice for the order using plugin. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   invoiceRequest(
     """Invoice number, if not provided it will be generated."""
     number: String
@@ -8995,13 +9269,17 @@ type Mutation {
     orderId: ID!
   ): InvoiceRequest
 
-  """Requests deletion of an invoice."""
+  """
+  Requests deletion of an invoice. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   invoiceRequestDelete(
     """ID of an invoice to request the deletion."""
     id: ID!
   ): InvoiceRequestDelete
 
-  """Creates a ready to send invoice."""
+  """
+  Creates a ready to send invoice. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   invoiceCreate(
     """Fields required when creating an invoice."""
     input: InvoiceCreateInput!
@@ -9010,13 +9288,17 @@ type Mutation {
     orderId: ID!
   ): InvoiceCreate
 
-  """Deletes an invoice."""
+  """
+  Deletes an invoice. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   invoiceDelete(
     """ID of an invoice to delete."""
     id: ID!
   ): InvoiceDelete
 
-  """Updates an invoice."""
+  """
+  Updates an invoice. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   invoiceUpdate(
     """ID of an invoice to update."""
     id: ID!
@@ -9025,39 +9307,49 @@ type Mutation {
     input: UpdateInvoiceInput!
   ): InvoiceUpdate
 
-  """Send an invoice notification to the customer."""
+  """
+  Send an invoice notification to the customer. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   invoiceSendNotification(
     """ID of an invoice to be sent."""
     id: ID!
   ): InvoiceSendNotification
 
-  """Activate a gift card."""
+  """
+  Activate a gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCardActivate(
     """ID of a gift card to activate."""
     id: ID!
   ): GiftCardActivate
 
-  """Creates a new gift card."""
+  """
+  Creates a new gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCardCreate(
     """Fields required to create a gift card."""
     input: GiftCardCreateInput!
   ): GiftCardCreate
 
   """
-  New in Saleor 3.1. Delete gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Delete gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardDelete(
     """ID of the gift card to delete."""
     id: ID!
   ): GiftCardDelete
 
-  """Deactivate a gift card."""
+  """
+  Deactivate a gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCardDeactivate(
     """ID of a gift card to deactivate."""
     id: ID!
   ): GiftCardDeactivate
 
-  """Update a gift card."""
+  """
+  Update a gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCardUpdate(
     """ID of a gift card to update."""
     id: ID!
@@ -9067,7 +9359,7 @@ type Mutation {
   ): GiftCardUpdate
 
   """
-  New in Saleor 3.1. Resend a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Resend a gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardResend(
     """Fields required to resend a gift card."""
@@ -9075,7 +9367,7 @@ type Mutation {
   ): GiftCardResend
 
   """
-  New in Saleor 3.1. Adds note to the gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Adds note to the gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardAddNote(
     """ID of the gift card to add a note for."""
@@ -9086,7 +9378,7 @@ type Mutation {
   ): GiftCardAddNote
 
   """
-  New in Saleor 3.1. Create gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Create gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardBulkCreate(
     """Fields required to create gift cards."""
@@ -9094,7 +9386,7 @@ type Mutation {
   ): GiftCardBulkCreate
 
   """
-  New in Saleor 3.1. Delete gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Delete gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardBulkDelete(
     """List of gift card IDs to delete."""
@@ -9102,7 +9394,7 @@ type Mutation {
   ): GiftCardBulkDelete
 
   """
-  New in Saleor 3.1. Activate gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Activate gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardBulkActivate(
     """List of gift card IDs to activate."""
@@ -9110,14 +9402,16 @@ type Mutation {
   ): GiftCardBulkActivate
 
   """
-  New in Saleor 3.1. Deactivate gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Deactivate gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardBulkDeactivate(
     """List of gift card IDs to deactivate."""
     ids: [ID]!
   ): GiftCardBulkDeactivate
 
-  """Update plugin configuration."""
+  """
+  Update plugin configuration. Requires one of the following permissions: MANAGE_PLUGINS.
+  """
   pluginUpdate(
     """ID of a channel for which the data should be modified."""
     channelId: ID
@@ -9145,25 +9439,33 @@ type Mutation {
     pluginId: String
   ): ExternalNotificationTrigger
 
-  """Creates a new sale."""
+  """
+  Creates a new sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleCreate(
     """Fields required to create a sale."""
     input: SaleInput!
   ): SaleCreate
 
-  """Deletes a sale."""
+  """
+  Deletes a sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleDelete(
     """ID of a sale to delete."""
     id: ID!
   ): SaleDelete
 
-  """Deletes sales."""
+  """
+  Deletes sales. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleBulkDelete(
     """List of sale IDs to delete."""
     ids: [ID]!
   ): SaleBulkDelete
 
-  """Updates a sale."""
+  """
+  Updates a sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleUpdate(
     """ID of a sale to update."""
     id: ID!
@@ -9172,7 +9474,9 @@ type Mutation {
     input: SaleInput!
   ): SaleUpdate
 
-  """Adds products, categories, collections to a voucher."""
+  """
+  Adds products, categories, collections to a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleCataloguesAdd(
     """ID of a sale."""
     id: ID!
@@ -9181,7 +9485,9 @@ type Mutation {
     input: CatalogueInput!
   ): SaleAddCatalogues
 
-  """Removes products, categories, collections from a sale."""
+  """
+  Removes products, categories, collections from a sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleCataloguesRemove(
     """ID of a sale."""
     id: ID!
@@ -9190,7 +9496,9 @@ type Mutation {
     input: CatalogueInput!
   ): SaleRemoveCatalogues
 
-  """Creates/updates translations for a sale."""
+  """
+  Creates/updates translations for a sale. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   saleTranslate(
     """Sale ID or SaleTranslatableContent ID."""
     id: ID!
@@ -9200,7 +9508,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): SaleTranslate
 
-  """Manage sale's availability in channels."""
+  """
+  Manage sale's availability in channels. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   saleChannelListingUpdate(
     """ID of a sale to update."""
     id: ID!
@@ -9209,25 +9519,33 @@ type Mutation {
     input: SaleChannelListingInput!
   ): SaleChannelListingUpdate
 
-  """Creates a new voucher."""
+  """
+  Creates a new voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherCreate(
     """Fields required to create a voucher."""
     input: VoucherInput!
   ): VoucherCreate
 
-  """Deletes a voucher."""
+  """
+  Deletes a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherDelete(
     """ID of a voucher to delete."""
     id: ID!
   ): VoucherDelete
 
-  """Deletes vouchers."""
+  """
+  Deletes vouchers. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherBulkDelete(
     """List of voucher IDs to delete."""
     ids: [ID]!
   ): VoucherBulkDelete
 
-  """Updates a voucher."""
+  """
+  Updates a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherUpdate(
     """ID of a voucher to update."""
     id: ID!
@@ -9236,7 +9554,9 @@ type Mutation {
     input: VoucherInput!
   ): VoucherUpdate
 
-  """Adds products, categories, collections to a voucher."""
+  """
+  Adds products, categories, collections to a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherCataloguesAdd(
     """ID of a voucher."""
     id: ID!
@@ -9245,7 +9565,9 @@ type Mutation {
     input: CatalogueInput!
   ): VoucherAddCatalogues
 
-  """Removes products, categories, collections from a voucher."""
+  """
+  Removes products, categories, collections from a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherCataloguesRemove(
     """ID of a voucher."""
     id: ID!
@@ -9254,7 +9576,9 @@ type Mutation {
     input: CatalogueInput!
   ): VoucherRemoveCatalogues
 
-  """Creates/updates translations for a voucher."""
+  """
+  Creates/updates translations for a voucher. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   voucherTranslate(
     """Voucher ID or VoucherTranslatableContent ID."""
     id: ID!
@@ -9264,7 +9588,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): VoucherTranslate
 
-  """Manage voucher's availability in channels."""
+  """
+  Manage voucher's availability in channels. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucherChannelListingUpdate(
     """ID of a voucher to update."""
     id: ID!
@@ -9273,14 +9599,16 @@ type Mutation {
     input: VoucherChannelListingInput!
   ): VoucherChannelListingUpdate
 
-  """Export products to csv file."""
+  """
+  Export products to csv file. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
   ): ExportProducts
 
   """
-  New in Saleor 3.1. Export gift cards to csv file. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Export gift cards to csv file. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   exportGiftCards(
     """Fields required to export gift cards data."""
@@ -9363,7 +9691,9 @@ type Mutation {
     input: CheckoutCreateInput!
   ): CheckoutCreate
 
-  """Sets the customer as the owner of the checkout."""
+  """
+  Sets the customer as the owner of the checkout. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+  """
   checkoutCustomerAttach(
     """
     The ID of the checkout. 
@@ -9381,7 +9711,9 @@ type Mutation {
     token: UUID
   ): CheckoutCustomerAttach
 
-  """Removes the user assigned as the owner of the checkout."""
+  """
+  Removes the user assigned as the owner of the checkout. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+  """
   checkoutCustomerDetach(
     """
     The ID of the checkout. 
@@ -9567,13 +9899,17 @@ type Mutation {
     token: UUID
   ): CheckoutLanguageCodeUpdate
 
-  """Creates new channel."""
+  """
+  Creates new channel. Requires one of the following permissions: MANAGE_CHANNELS.
+  """
   channelCreate(
     """Fields required to create channel."""
     input: ChannelCreateInput!
   ): ChannelCreate
 
-  """Update a channel."""
+  """
+  Update a channel. Requires one of the following permissions: MANAGE_CHANNELS.
+  """
   channelUpdate(
     """ID of a channel to update."""
     id: ID!
@@ -9583,7 +9919,7 @@ type Mutation {
   ): ChannelUpdate
 
   """
-  Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed.
+  Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. Requires one of the following permissions: MANAGE_CHANNELS.
   """
   channelDelete(
     """ID of a channel to delete."""
@@ -9593,13 +9929,17 @@ type Mutation {
     input: ChannelDeleteInput
   ): ChannelDelete
 
-  """Activate a channel."""
+  """
+  Activate a channel. Requires one of the following permissions: MANAGE_CHANNELS.
+  """
   channelActivate(
     """ID of the channel to activate."""
     id: ID!
   ): ChannelActivate
 
-  """Deactivate a channel."""
+  """
+  Deactivate a channel. Requires one of the following permissions: MANAGE_CHANNELS.
+  """
   channelDeactivate(
     """ID of the channel to deactivate."""
     id: ID!
@@ -9611,13 +9951,17 @@ type Mutation {
     input: AttributeCreateInput!
   ): AttributeCreate
 
-  """Deletes an attribute."""
+  """
+  Deletes an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   attributeDelete(
     """ID of an attribute to delete."""
     id: ID!
   ): AttributeDelete
 
-  """Updates attribute."""
+  """
+  Updates attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   attributeUpdate(
     """ID of an attribute to update."""
     id: ID!
@@ -9626,7 +9970,9 @@ type Mutation {
     input: AttributeUpdateInput!
   ): AttributeUpdate
 
-  """Creates/updates translations for an attribute."""
+  """
+  Creates/updates translations for an attribute. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   attributeTranslate(
     """Attribute ID or AttributeTranslatableContent ID."""
     id: ID!
@@ -9636,19 +9982,25 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): AttributeTranslate
 
-  """Deletes attributes."""
+  """
+  Deletes attributes. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   attributeBulkDelete(
     """List of attribute IDs to delete."""
     ids: [ID]!
   ): AttributeBulkDelete
 
-  """Deletes values of attributes."""
+  """
+  Deletes values of attributes. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
   attributeValueBulkDelete(
     """List of attribute value IDs to delete."""
     ids: [ID]!
   ): AttributeValueBulkDelete
 
-  """Creates a value for an attribute."""
+  """
+  Creates a value for an attribute. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   attributeValueCreate(
     """Attribute to which value will be assigned."""
     attribute: ID!
@@ -9657,13 +10009,17 @@ type Mutation {
     input: AttributeValueCreateInput!
   ): AttributeValueCreate
 
-  """Deletes a value of an attribute."""
+  """
+  Deletes a value of an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   attributeValueDelete(
     """ID of a value to delete."""
     id: ID!
   ): AttributeValueDelete
 
-  """Updates value of an attribute."""
+  """
+  Updates value of an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   attributeValueUpdate(
     """ID of an AttributeValue to update."""
     id: ID!
@@ -9672,7 +10028,9 @@ type Mutation {
     input: AttributeValueUpdateInput!
   ): AttributeValueUpdate
 
-  """Creates/updates translations for an attribute value."""
+  """
+  Creates/updates translations for an attribute value. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   attributeValueTranslate(
     """AttributeValue ID or AttributeValueTranslatableContent ID."""
     id: ID!
@@ -9682,7 +10040,9 @@ type Mutation {
     languageCode: LanguageCodeEnum!
   ): AttributeValueTranslate
 
-  """Reorder the values of an attribute."""
+  """
+  Reorder the values of an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   attributeReorderValues(
     """ID of an attribute."""
     attributeId: ID!
@@ -9691,13 +10051,17 @@ type Mutation {
     moves: [ReorderInput]!
   ): AttributeReorderValues
 
-  """Creates a new app."""
+  """
+  Creates a new app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appCreate(
     """Fields required to create a new app."""
     input: AppInput!
   ): AppCreate
 
-  """Updates an existing app."""
+  """
+  Updates an existing app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appUpdate(
     """ID of an app to update."""
     id: ID!
@@ -9706,19 +10070,25 @@ type Mutation {
     input: AppInput!
   ): AppUpdate
 
-  """Deletes an app."""
+  """
+  Deletes an app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appDelete(
     """ID of an app to delete."""
     id: ID!
   ): AppDelete
 
-  """Creates a new token."""
+  """
+  Creates a new token. Requires one of the following permissions: MANAGE_APPS.
+  """
   appTokenCreate(
     """Fields required to create a new auth token."""
     input: AppTokenInput!
   ): AppTokenCreate
 
-  """Deletes an authentication token assigned to app."""
+  """
+  Deletes an authentication token assigned to app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appTokenDelete(
     """ID of an auth token to delete."""
     id: ID!
@@ -9730,13 +10100,17 @@ type Mutation {
     token: String!
   ): AppTokenVerify
 
-  """Install new app by using app manifest."""
+  """
+  Install new app by using app manifest. Requires one of the following permissions: MANAGE_APPS.
+  """
   appInstall(
     """Fields required to install a new app."""
     input: AppInstallInput!
   ): AppInstall
 
-  """Retry failed installation of new app."""
+  """
+  Retry failed installation of new app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appRetryInstall(
     """Determine if app will be set active or not."""
     activateAfterInstallation: Boolean = true
@@ -9745,22 +10119,30 @@ type Mutation {
     id: ID!
   ): AppRetryInstall
 
-  """Delete failed installation."""
+  """
+  Delete failed installation. Requires one of the following permissions: MANAGE_APPS.
+  """
   appDeleteFailedInstallation(
     """ID of failed installation to delete."""
     id: ID!
   ): AppDeleteFailedInstallation
 
-  """Fetch and validate manifest."""
+  """
+  Fetch and validate manifest. Requires one of the following permissions: MANAGE_APPS.
+  """
   appFetchManifest(manifestUrl: String!): AppFetchManifest
 
-  """Activate the app."""
+  """
+  Activate the app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appActivate(
     """ID of app to activate."""
     id: ID!
   ): AppActivate
 
-  """Deactivate the app."""
+  """
+  Deactivate the app. Requires one of the following permissions: MANAGE_APPS.
+  """
   appDeactivate(
     """ID of app to deactivate."""
     id: ID!
@@ -9794,7 +10176,9 @@ type Mutation {
     token: String!
   ): VerifyToken
 
-  """Deactivate all JWT tokens of the currently authenticated user."""
+  """
+  Deactivate all JWT tokens of the currently authenticated user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   tokensDeactivateAll: DeactivateAllUserTokens
 
   """Prepare external authentication url for user by custom plugin."""
@@ -9881,7 +10265,9 @@ type Mutation {
     token: String!
   ): SetPassword
 
-  """Change the password of the logged in user."""
+  """
+  Change the password of the logged in user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   passwordChange(
     """New user password."""
     newPassword: String!
@@ -9890,7 +10276,9 @@ type Mutation {
     oldPassword: String!
   ): PasswordChange
 
-  """Request email change of the logged in user."""
+  """
+  Request email change of the logged in user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   requestEmailChange(
     """
     Slug of a channel which will be used to notify users. Optional when only one channel exists.
@@ -9909,7 +10297,9 @@ type Mutation {
     redirectUrl: String!
   ): RequestEmailChange
 
-  """Confirm the email change of the logged-in user."""
+  """
+  Confirm the email change of the logged-in user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   confirmEmailChange(
     """
     Slug of a channel which will be used to notify users. Optional when only one channel exists.
@@ -9920,7 +10310,9 @@ type Mutation {
     token: String!
   ): ConfirmEmailChange
 
-  """Create a new address for the customer."""
+  """
+  Create a new address for the customer. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   accountAddressCreate(
     """Fields required to create address."""
     input: AddressInput!
@@ -9931,7 +10323,9 @@ type Mutation {
     type: AddressTypeEnum
   ): AccountAddressCreate
 
-  """Updates an address of the logged-in user."""
+  """
+  Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+  """
   accountAddressUpdate(
     """ID of the address to update."""
     id: ID!
@@ -9940,13 +10334,17 @@ type Mutation {
     input: AddressInput!
   ): AccountAddressUpdate
 
-  """Delete an address of the logged-in user."""
+  """
+  Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+  """
   accountAddressDelete(
     """ID of the address to delete."""
     id: ID!
   ): AccountAddressDelete
 
-  """Sets a default address for the authenticated user."""
+  """
+  Sets a default address for the authenticated user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   accountSetDefaultAddress(
     """ID of the address to set as default."""
     id: ID!
@@ -9961,13 +10359,17 @@ type Mutation {
     input: AccountRegisterInput!
   ): AccountRegister
 
-  """Updates the account of the logged-in user."""
+  """
+  Updates the account of the logged-in user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   accountUpdate(
     """Fields required to update the account of the logged-in user."""
     input: AccountInput!
   ): AccountUpdate
 
-  """Sends an email with the account removal link for the logged-in user."""
+  """
+  Sends an email with the account removal link for the logged-in user. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   accountRequestDeletion(
     """
     Slug of a channel which will be used to notify users. Optional when only one channel exists.
@@ -9980,7 +10382,9 @@ type Mutation {
     redirectUrl: String!
   ): AccountRequestDeletion
 
-  """Remove user account."""
+  """
+  Remove user account. Requires one of the following permissions: AUTHENTICATED_USER.
+  """
   accountDelete(
     """
     A one-time token required to remove account. Sent by email using AccountRequestDeletion mutation.
@@ -9988,7 +10392,9 @@ type Mutation {
     token: String!
   ): AccountDelete
 
-  """Creates user address."""
+  """
+  Creates user address. Requires one of the following permissions: MANAGE_USERS.
+  """
   addressCreate(
     """Fields required to create address."""
     input: AddressInput!
@@ -9997,7 +10403,9 @@ type Mutation {
     userId: ID!
   ): AddressCreate
 
-  """Updates an address."""
+  """
+  Updates an address. Requires one of the following permissions: MANAGE_USERS.
+  """
   addressUpdate(
     """ID of the address to update."""
     id: ID!
@@ -10006,13 +10414,17 @@ type Mutation {
     input: AddressInput!
   ): AddressUpdate
 
-  """Deletes an address."""
+  """
+  Deletes an address. Requires one of the following permissions: MANAGE_USERS.
+  """
   addressDelete(
     """ID of the address to delete."""
     id: ID!
   ): AddressDelete
 
-  """Sets a default address for the given user."""
+  """
+  Sets a default address for the given user. Requires one of the following permissions: MANAGE_USERS.
+  """
   addressSetDefault(
     """ID of the address."""
     addressId: ID!
@@ -10024,13 +10436,17 @@ type Mutation {
     userId: ID!
   ): AddressSetDefault
 
-  """Creates a new customer."""
+  """
+  Creates a new customer. Requires one of the following permissions: MANAGE_USERS.
+  """
   customerCreate(
     """Fields required to create a customer."""
     input: UserCreateInput!
   ): CustomerCreate
 
-  """Updates an existing customer."""
+  """
+  Updates an existing customer. Requires one of the following permissions: MANAGE_USERS.
+  """
   customerUpdate(
     """ID of a customer to update."""
     id: ID!
@@ -10039,25 +10455,33 @@ type Mutation {
     input: CustomerInput!
   ): CustomerUpdate
 
-  """Deletes a customer."""
+  """
+  Deletes a customer. Requires one of the following permissions: MANAGE_USERS.
+  """
   customerDelete(
     """ID of a customer to delete."""
     id: ID!
   ): CustomerDelete
 
-  """Deletes customers."""
+  """
+  Deletes customers. Requires one of the following permissions: MANAGE_USERS.
+  """
   customerBulkDelete(
     """List of user IDs to delete."""
     ids: [ID]!
   ): CustomerBulkDelete
 
-  """Creates a new staff user."""
+  """
+  Creates a new staff user. Requires one of the following permissions: MANAGE_STAFF.
+  """
   staffCreate(
     """Fields required to create a staff user."""
     input: StaffCreateInput!
   ): StaffCreate
 
-  """Updates an existing staff user."""
+  """
+  Updates an existing staff user. Requires one of the following permissions: MANAGE_STAFF.
+  """
   staffUpdate(
     """ID of a staff user to update."""
     id: ID!
@@ -10066,13 +10490,17 @@ type Mutation {
     input: StaffUpdateInput!
   ): StaffUpdate
 
-  """Deletes a staff user."""
+  """
+  Deletes a staff user. Requires one of the following permissions: MANAGE_STAFF.
+  """
   staffDelete(
     """ID of a staff user to delete."""
     id: ID!
   ): StaffDelete
 
-  """Deletes staff users."""
+  """
+  Deletes staff users. Requires one of the following permissions: MANAGE_STAFF.
+  """
   staffBulkDelete(
     """List of user IDs to delete."""
     ids: [ID]!
@@ -10089,7 +10517,9 @@ type Mutation {
   """Deletes a user avatar. Only for staff members."""
   userAvatarDelete: UserAvatarDelete
 
-  """Activate or deactivate users."""
+  """
+  Activate or deactivate users. Requires one of the following permissions: MANAGE_USERS.
+  """
   userBulkSetActive(
     """List of user IDs to (de)activate)."""
     ids: [ID]!
@@ -10098,13 +10528,17 @@ type Mutation {
     isActive: Boolean!
   ): UserBulkSetActive
 
-  """Create new permission group."""
+  """
+  Create new permission group. Requires one of the following permissions: MANAGE_STAFF.
+  """
   permissionGroupCreate(
     """Input fields to create permission group."""
     input: PermissionGroupCreateInput!
   ): PermissionGroupCreate
 
-  """Update permission group."""
+  """
+  Update permission group. Requires one of the following permissions: MANAGE_STAFF.
+  """
   permissionGroupUpdate(
     """ID of the group to update."""
     id: ID!
@@ -10113,14 +10547,18 @@ type Mutation {
     input: PermissionGroupUpdateInput!
   ): PermissionGroupUpdate
 
-  """Delete permission group."""
+  """
+  Delete permission group. Requires one of the following permissions: MANAGE_STAFF.
+  """
   permissionGroupDelete(
     """ID of the group to delete."""
     id: ID!
   ): PermissionGroupDelete
 }
 
-"""Creates a new webhook subscription."""
+"""
+Creates a new webhook subscription. Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
+"""
 type WebhookCreate {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WebhookError!]!
@@ -10179,14 +10617,18 @@ input WebhookCreateInput {
   secretKey: String
 }
 
-"""Deletes a webhook subscription."""
+"""
+Deletes a webhook subscription. Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
+"""
 type WebhookDelete {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WebhookError!]!
   webhook: Webhook
 }
 
-"""Updates a webhook subscription."""
+"""
+Updates a webhook subscription. Requires one of the following permissions: MANAGE_APPS.
+"""
 type WebhookUpdate {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WebhookError!]!
@@ -10223,14 +10665,18 @@ input WebhookUpdateInput {
   secretKey: String
 }
 
-"""Retries event delivery."""
+"""
+Retries event delivery. Requires one of the following permissions: MANAGE_APPS.
+"""
 type EventDeliveryRetry {
   """Event delivery."""
   delivery: EventDelivery
   errors: [WebhookError!]!
 }
 
-"""Creates new warehouse."""
+"""
+Creates new warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type WarehouseCreate {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
@@ -10277,7 +10723,9 @@ input WarehouseCreateInput {
   shippingZones: [ID]
 }
 
-"""Updates given warehouse."""
+"""
+Updates given warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type WarehouseUpdate {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
@@ -10308,28 +10756,36 @@ input WarehouseUpdateInput {
   isPrivate: Boolean
 }
 
-"""Deletes selected warehouse."""
+"""
+Deletes selected warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type WarehouseDelete {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
 }
 
-"""Add shipping zone to given warehouse."""
+"""
+Add shipping zone to given warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type WarehouseShippingZoneAssign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
 }
 
-"""Remove shipping zone from given warehouse."""
+"""
+Remove shipping zone from given warehouse. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type WarehouseShippingZoneUnassign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
 }
 
-"""Creates a new staff notification recipient."""
+"""
+Creates a new staff notification recipient. Requires one of the following permissions: MANAGE_SETTINGS.
+"""
 type StaffNotificationRecipientCreate {
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
@@ -10371,21 +10827,27 @@ input StaffNotificationRecipientInput {
   active: Boolean
 }
 
-"""Updates a staff notification recipient."""
+"""
+Updates a staff notification recipient. Requires one of the following permissions: MANAGE_SETTINGS.
+"""
 type StaffNotificationRecipientUpdate {
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
-"""Delete staff notification recipient."""
+"""
+Delete staff notification recipient. Requires one of the following permissions: MANAGE_SETTINGS.
+"""
 type StaffNotificationRecipientDelete {
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
-"""Updates site domain of the shop."""
+"""
+Updates site domain of the shop. Requires one of the following permissions: MANAGE_SETTINGS.
+"""
 type ShopDomainUpdate {
   """Updated shop."""
   shop: Shop
@@ -10401,7 +10863,9 @@ input SiteDomainInput {
   name: String
 }
 
-"""Updates shop settings."""
+"""
+Updates shop settings. Requires one of the following permissions: MANAGE_SETTINGS.
+"""
 type ShopSettingsUpdate {
   """Updated shop."""
   shop: Shop
@@ -10473,7 +10937,9 @@ input ShopSettingsInput {
   limitQuantityPerCheckout: Int
 }
 
-"""Fetch tax rates."""
+"""
+Fetch tax rates. Requires one of the following permissions: MANAGE_SETTINGS.
+"""
 type ShopFetchTaxRates {
   """Updated shop."""
   shop: Shop
@@ -10481,7 +10947,9 @@ type ShopFetchTaxRates {
   errors: [ShopError!]!
 }
 
-"""Creates/updates translations for shop settings."""
+"""
+Creates/updates translations for shop settings. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type ShopSettingsTranslate {
   """Updated shop settings."""
   shop: Shop
@@ -10516,7 +10984,7 @@ input ShopSettingsTranslationInput {
 }
 
 """
-Update the shop's address. If the `null` value is passed, the currently selected address will be deleted.
+Update the shop's address. If the `null` value is passed, the currently selected address will be deleted. Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type ShopAddressUpdate {
   """Updated shop."""
@@ -10525,7 +10993,9 @@ type ShopAddressUpdate {
   errors: [ShopError!]!
 }
 
-"""Update shop order settings."""
+"""
+Update shop order settings. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderSettingsUpdate {
   """Order settings."""
   orderSettings: OrderSettings
@@ -10563,7 +11033,9 @@ input OrderSettingsUpdateInput {
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
-"""Update gift card settings."""
+"""
+Update gift card settings. Requires one of the following permissions: MANAGE_GIFT_CARD.
+"""
 type GiftCardSettingsUpdate {
   """Gift card settings."""
   giftCardSettings: GiftCardSettings
@@ -10606,7 +11078,9 @@ input TimePeriodInputType {
   type: TimePeriodTypeEnum!
 }
 
-"""Manage shipping method's availability in channels."""
+"""
+Manage shipping method's availability in channels. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingMethodChannelListingUpdate {
   """An updated shipping method instance."""
   shippingMethod: ShippingMethodType
@@ -10667,7 +11141,9 @@ input ShippingMethodChannelListingAddInput {
   maximumOrderPrice: PositiveDecimal
 }
 
-"""Creates a new shipping price."""
+"""
+Creates a new shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingPriceCreate {
   """A shipping zone to which the shipping method belongs."""
   shippingZone: ShippingZone
@@ -10721,7 +11197,9 @@ input ShippingPostalCodeRulesCreateInputRange {
   end: String
 }
 
-"""Deletes a shipping price."""
+"""
+Deletes a shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingPriceDelete {
   """A shipping method to delete."""
   shippingMethod: ShippingMethodType
@@ -10732,7 +11210,9 @@ type ShippingPriceDelete {
   errors: [ShippingError!]!
 }
 
-"""Deletes shipping prices."""
+"""
+Deletes shipping prices. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingPriceBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -10740,7 +11220,9 @@ type ShippingPriceBulkDelete {
   errors: [ShippingError!]!
 }
 
-"""Updates a new shipping price."""
+"""
+Updates a new shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingPriceUpdate {
   """A shipping zone to which the shipping method belongs."""
   shippingZone: ShippingZone
@@ -10749,7 +11231,9 @@ type ShippingPriceUpdate {
   errors: [ShippingError!]!
 }
 
-"""Creates/updates translations for a shipping method."""
+"""
+Creates/updates translations for a shipping method. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type ShippingPriceTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
@@ -10763,7 +11247,9 @@ input ShippingPriceTranslationInput {
   description: JSONString
 }
 
-"""Exclude products from shipping price."""
+"""
+Exclude products from shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingPriceExcludeProducts {
   """A shipping method with new list of excluded products."""
   shippingMethod: ShippingMethodType
@@ -10776,7 +11262,9 @@ input ShippingPriceExcludeProductsInput {
   products: [ID]!
 }
 
-"""Remove product from excluded list for shipping price."""
+"""
+Remove product from excluded list for shipping price. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingPriceRemoveProductFromExclude {
   """A shipping method with new list of excluded products."""
   shippingMethod: ShippingMethodType
@@ -10784,7 +11272,9 @@ type ShippingPriceRemoveProductFromExclude {
   errors: [ShippingError!]!
 }
 
-"""Creates a new shipping zone."""
+"""
+Creates a new shipping zone. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingZoneCreate {
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
@@ -10813,14 +11303,18 @@ input ShippingZoneCreateInput {
   addChannels: [ID!]
 }
 
-"""Deletes a shipping zone."""
+"""
+Deletes a shipping zone. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingZoneDelete {
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
   shippingZone: ShippingZone
 }
 
-"""Deletes shipping zones."""
+"""
+Deletes shipping zones. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingZoneBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -10828,7 +11322,9 @@ type ShippingZoneBulkDelete {
   errors: [ShippingError!]!
 }
 
-"""Updates a new shipping zone."""
+"""
+Updates a new shipping zone. Requires one of the following permissions: MANAGE_SHIPPING.
+"""
 type ShippingZoneUpdate {
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
@@ -10863,7 +11359,9 @@ input ShippingZoneUpdateInput {
   removeChannels: [ID!]
 }
 
-"""Assign attributes to a given product type."""
+"""
+Assign attributes to a given product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductAttributeAssign {
   """The updated product type."""
   productType: ProductType
@@ -10931,7 +11429,7 @@ enum ProductAttributeType {
 }
 
 """
-New in Saleor 3.1. Update attributes assigned to product variant for given product type.
+New in Saleor 3.1. Update attributes assigned to product variant for given product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
 type ProductAttributeAssignmentUpdate {
   """The updated product type."""
@@ -10950,7 +11448,9 @@ input ProductAttributeAssignmentUpdateInput {
   variantSelection: Boolean!
 }
 
-"""Un-assign attributes from a given product type."""
+"""
+Un-assign attributes from a given product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductAttributeUnassign {
   """The updated product type."""
   productType: ProductType
@@ -10958,7 +11458,9 @@ type ProductAttributeUnassign {
   errors: [ProductError!]!
 }
 
-"""Creates a new category."""
+"""
+Creates a new category. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CategoryCreate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -10998,14 +11500,18 @@ Variables of this type must be set to null in mutations. They will be replaced w
 """
 scalar Upload
 
-"""Deletes a category."""
+"""
+Deletes a category. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CategoryDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   category: Category
 }
 
-"""Deletes categories."""
+"""
+Deletes categories. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CategoryBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -11013,14 +11519,18 @@ type CategoryBulkDelete {
   errors: [ProductError!]!
 }
 
-"""Updates a category."""
+"""
+Updates a category. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CategoryUpdate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   category: Category
 }
 
-"""Creates/updates translations for a category."""
+"""
+Creates/updates translations for a category. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type CategoryTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
@@ -11034,7 +11544,9 @@ input TranslationInput {
   description: JSONString
 }
 
-"""Adds products to a collection."""
+"""
+Adds products to a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionAddProducts {
   """Collection to which products will be added."""
   collection: Collection
@@ -11069,7 +11581,9 @@ enum CollectionErrorCode {
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 
-"""Creates a new collection."""
+"""
+Creates a new collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionCreate {
   collectionErrors: [CollectionError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CollectionError!]!
@@ -11105,14 +11619,18 @@ input CollectionCreateInput {
   products: [ID]
 }
 
-"""Deletes a collection."""
+"""
+Deletes a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionDelete {
   collectionErrors: [CollectionError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CollectionError!]!
   collection: Collection
 }
 
-"""Reorder the products of a collection."""
+"""
+Reorder the products of a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionReorderProducts {
   """Collection from which products are reordered."""
   collection: Collection
@@ -11130,7 +11648,9 @@ input MoveProductInput {
   sortOrder: Int
 }
 
-"""Deletes collections."""
+"""
+Deletes collections. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -11138,7 +11658,9 @@ type CollectionBulkDelete {
   errors: [CollectionError!]!
 }
 
-"""Remove products from a collection."""
+"""
+Remove products from a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionRemoveProducts {
   """Collection from which products will be removed."""
   collection: Collection
@@ -11146,7 +11668,9 @@ type CollectionRemoveProducts {
   errors: [CollectionError!]!
 }
 
-"""Updates a collection."""
+"""
+Updates a collection. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionUpdate {
   collectionErrors: [CollectionError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CollectionError!]!
@@ -11179,14 +11703,18 @@ input CollectionInput {
   publicationDate: Date
 }
 
-"""Creates/updates translations for a collection."""
+"""
+Creates/updates translations for a collection. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type CollectionTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   collection: Collection
 }
 
-"""Manage collection's availability in channels."""
+"""
+Manage collection's availability in channels. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type CollectionChannelListingUpdate {
   """An updated collection instance."""
   collection: Collection
@@ -11235,7 +11763,9 @@ input PublishableChannelListingInput {
   publicationDate: Date
 }
 
-"""Creates a new product."""
+"""
+Creates a new product. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductCreate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -11311,14 +11841,18 @@ input AttributeValueInput {
   dateTime: DateTime
 }
 
-"""Deletes a product."""
+"""
+Deletes a product. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   product: Product
 }
 
-"""Deletes products."""
+"""
+Deletes products. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -11326,7 +11860,9 @@ type ProductBulkDelete {
   errors: [ProductError!]!
 }
 
-"""Updates an existing product."""
+"""
+Updates an existing product. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductUpdate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -11368,14 +11904,18 @@ input ProductInput {
   rating: Float
 }
 
-"""Creates/updates translations for a product."""
+"""
+Creates/updates translations for a product. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type ProductTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   product: Product
 }
 
-"""Manage product's availability in channels."""
+"""
+Manage product's availability in channels. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductChannelListingUpdate {
   """An updated product instance."""
   product: Product
@@ -11447,7 +11987,7 @@ input ProductChannelListingAddInput {
 }
 
 """
-Create a media object (image or video URL) associated with product. For image, this mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+Create a media object (image or video URL) associated with product. For image, this mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: MANAGE_PRODUCTS.
 """
 type ProductMediaCreate {
   product: Product
@@ -11471,7 +12011,7 @@ input ProductMediaCreateInput {
 }
 
 """
-Reorder the variants of a product. Mutation updates updated_at on product and triggers PRODUCT_UPDATED webhook.
+Reorder the variants of a product. Mutation updates updated_at on product and triggers PRODUCT_UPDATED webhook. Requires one of the following permissions: MANAGE_PRODUCTS.
 """
 type ProductVariantReorder {
   product: Product
@@ -11489,7 +12029,9 @@ input ReorderInput {
   sortOrder: Int
 }
 
-"""Deletes a product media."""
+"""
+Deletes a product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductMediaDelete {
   product: Product
   media: ProductMedia
@@ -11497,7 +12039,9 @@ type ProductMediaDelete {
   errors: [ProductError!]!
 }
 
-"""Deletes product media."""
+"""
+Deletes product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductMediaBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -11505,7 +12049,9 @@ type ProductMediaBulkDelete {
   errors: [ProductError!]!
 }
 
-"""Changes ordering of the product media."""
+"""
+Changes ordering of the product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductMediaReorder {
   product: Product
   media: [ProductMedia!]
@@ -11513,7 +12059,9 @@ type ProductMediaReorder {
   errors: [ProductError!]!
 }
 
-"""Updates a product media."""
+"""
+Updates a product media. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductMediaUpdate {
   product: Product
   media: ProductMedia
@@ -11526,7 +12074,9 @@ input ProductMediaUpdateInput {
   alt: String
 }
 
-"""Creates a new product type."""
+"""
+Creates a new product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductTypeCreate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -11569,14 +12119,18 @@ input ProductTypeInput {
   taxCode: String
 }
 
-"""Deletes a product type."""
+"""
+Deletes a product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductTypeDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productType: ProductType
 }
 
-"""Deletes product types."""
+"""
+Deletes product types. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductTypeBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -11584,14 +12138,18 @@ type ProductTypeBulkDelete {
   errors: [ProductError!]!
 }
 
-"""Updates an existing product type."""
+"""
+Updates an existing product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductTypeUpdate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productType: ProductType
 }
 
-"""Reorder the attributes of a product type."""
+"""
+Reorder the attributes of a product type. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type ProductTypeReorderAttributes {
   """Product type from which attributes are reordered."""
   productType: ProductType
@@ -11599,7 +12157,9 @@ type ProductTypeReorderAttributes {
   errors: [ProductError!]!
 }
 
-"""Reorder product attribute values."""
+"""
+Reorder product attribute values. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductReorderAttributeValues {
   """Product from which attribute values are reordered."""
   product: Product
@@ -11683,7 +12243,9 @@ input DigitalContentUrlCreateInput {
   content: ID!
 }
 
-"""Creates a new variant for a product."""
+"""
+Creates a new variant for a product. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantCreate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -11738,14 +12300,18 @@ input StockInput {
   quantity: Int!
 }
 
-"""Deletes a product variant."""
+"""
+Deletes a product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productVariant: ProductVariant
 }
 
-"""Creates product variants for a given product."""
+"""
+Creates product variants for a given product. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantBulkCreate {
   """Returns how many objects were created."""
   count: Int!
@@ -11847,7 +12413,9 @@ input ProductVariantChannelListingAddInput {
   preorderThreshold: Int
 }
 
-"""Deletes product variants."""
+"""
+Deletes product variants. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -11855,7 +12423,9 @@ type ProductVariantBulkDelete {
   errors: [ProductError!]!
 }
 
-"""Creates stocks for product variant."""
+"""
+Creates stocks for product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantStocksCreate {
   """Updated product variant."""
   productVariant: ProductVariant
@@ -11885,7 +12455,9 @@ type BulkStockError {
   index: Int
 }
 
-"""Delete stocks from product variant."""
+"""
+Delete stocks from product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantStocksDelete {
   """Updated product variant."""
   productVariant: ProductVariant
@@ -11916,7 +12488,9 @@ enum StockErrorCode {
   UNIQUE
 }
 
-"""Update stocks for product variant."""
+"""
+Update stocks for product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantStocksUpdate {
   """Updated product variant."""
   productVariant: ProductVariant
@@ -11924,7 +12498,9 @@ type ProductVariantStocksUpdate {
   errors: [BulkStockError!]!
 }
 
-"""Updates an existing variant for product."""
+"""
+Updates an existing variant for product. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantUpdate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -11958,7 +12534,7 @@ input ProductVariantInput {
 }
 
 """
-Set default variant for a product. Mutation triggers PRODUCT_UPDATED webhook.
+Set default variant for a product. Mutation triggers PRODUCT_UPDATED webhook. Requires one of the following permissions: MANAGE_PRODUCTS.
 """
 type ProductVariantSetDefault {
   product: Product
@@ -11966,7 +12542,9 @@ type ProductVariantSetDefault {
   errors: [ProductError!]!
 }
 
-"""Creates/updates translations for a product variant."""
+"""
+Creates/updates translations for a product variant. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type ProductVariantTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
@@ -11977,7 +12555,9 @@ input NameTranslationInput {
   name: String
 }
 
-"""Manage product variant prices in channels."""
+"""
+Manage product variant prices in channels. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantChannelListingUpdate {
   """An updated product variant instance."""
   variant: ProductVariant
@@ -11985,7 +12565,9 @@ type ProductVariantChannelListingUpdate {
   errors: [ProductChannelListingError!]!
 }
 
-"""Reorder product variant attribute values."""
+"""
+Reorder product variant attribute values. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ProductVariantReorderAttributeValues {
   """Product variant from which attribute values are reordered."""
   productVariant: ProductVariant
@@ -11994,7 +12576,7 @@ type ProductVariantReorderAttributeValues {
 }
 
 """
-New in Saleor 3.1. Deactivates product variant preorder. It changes all preorder allocation into regular allocation. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Deactivates product variant preorder. It changes all preorder allocation into regular allocation. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_PRODUCTS.
 """
 type ProductVariantPreorderDeactivate {
   """Product variant with ended preorder."""
@@ -12002,7 +12584,9 @@ type ProductVariantPreorderDeactivate {
   errors: [ProductError!]!
 }
 
-"""Assign an media to a product variant."""
+"""
+Assign an media to a product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type VariantMediaAssign {
   productVariant: ProductVariant
   media: ProductMedia
@@ -12010,7 +12594,9 @@ type VariantMediaAssign {
   errors: [ProductError!]!
 }
 
-"""Unassign an media from a product variant."""
+"""
+Unassign an media from a product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type VariantMediaUnassign {
   productVariant: ProductVariant
   media: ProductMedia
@@ -12018,7 +12604,9 @@ type VariantMediaUnassign {
   errors: [ProductError!]!
 }
 
-"""Captures the authorized payment amount."""
+"""
+Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type PaymentCapture {
   """Updated payment."""
   payment: Payment
@@ -12063,7 +12651,9 @@ enum PaymentErrorCode {
   NO_CHECKOUT_LINES
 }
 
-"""Refunds the captured payment amount."""
+"""
+Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type PaymentRefund {
   """Updated payment."""
   payment: Payment
@@ -12071,7 +12661,9 @@ type PaymentRefund {
   errors: [PaymentError!]!
 }
 
-"""Voids the authorized payment."""
+"""
+Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type PaymentVoid {
   """Updated payment."""
   payment: Payment
@@ -12143,7 +12735,9 @@ input MoneyInput {
   amount: PositiveDecimal!
 }
 
-"""Creates a new page."""
+"""
+Creates a new page. Requires one of the following permissions: MANAGE_PAGES.
+"""
 type PageCreate {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
@@ -12206,14 +12800,18 @@ input PageCreateInput {
   pageType: ID!
 }
 
-"""Deletes a page."""
+"""
+Deletes a page. Requires one of the following permissions: MANAGE_PAGES.
+"""
 type PageDelete {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   page: Page
 }
 
-"""Deletes pages."""
+"""
+Deletes pages. Requires one of the following permissions: MANAGE_PAGES.
+"""
 type PageBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -12221,7 +12819,9 @@ type PageBulkDelete {
   errors: [PageError!]!
 }
 
-"""Publish pages."""
+"""
+Publish pages. Requires one of the following permissions: MANAGE_PAGES.
+"""
 type PageBulkPublish {
   """Returns how many objects were affected."""
   count: Int!
@@ -12229,7 +12829,9 @@ type PageBulkPublish {
   errors: [PageError!]!
 }
 
-"""Updates an existing page."""
+"""
+Updates an existing page. Requires one of the following permissions: MANAGE_PAGES.
+"""
 type PageUpdate {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
@@ -12259,7 +12861,9 @@ input PageInput {
   seo: SeoInput
 }
 
-"""Creates/updates translations for a page."""
+"""
+Creates/updates translations for a page. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type PageTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
@@ -12273,7 +12877,9 @@ input PageTranslationInput {
   content: JSONString
 }
 
-"""Create a new page type."""
+"""
+Create a new page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageTypeCreate {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
@@ -12291,7 +12897,9 @@ input PageTypeCreateInput {
   addAttributes: [ID!]
 }
 
-"""Update page type."""
+"""
+Update page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageTypeUpdate {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
@@ -12312,14 +12920,18 @@ input PageTypeUpdateInput {
   removeAttributes: [ID!]
 }
 
-"""Delete a page type."""
+"""
+Delete a page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageTypeDelete {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   pageType: PageType
 }
 
-"""Delete page types."""
+"""
+Delete page types. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageTypeBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -12327,7 +12939,9 @@ type PageTypeBulkDelete {
   errors: [PageError!]!
 }
 
-"""Assign attributes to a given page type."""
+"""
+Assign attributes to a given page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageAttributeAssign {
   """The updated page type."""
   pageType: PageType
@@ -12335,7 +12949,9 @@ type PageAttributeAssign {
   errors: [PageError!]!
 }
 
-"""Unassign attributes from a given page type."""
+"""
+Unassign attributes from a given page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageAttributeUnassign {
   """The updated page type."""
   pageType: PageType
@@ -12343,7 +12959,9 @@ type PageAttributeUnassign {
   errors: [PageError!]!
 }
 
-"""Reorder the attributes of a page type."""
+"""
+Reorder the attributes of a page type. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type PageTypeReorderAttributes {
   """Page type from which attributes are reordered."""
   pageType: PageType
@@ -12351,7 +12969,9 @@ type PageTypeReorderAttributes {
   errors: [PageError!]!
 }
 
-"""Reorder page attribute values."""
+"""
+Reorder page attribute values. Requires one of the following permissions: MANAGE_PAGES.
+"""
 type PageReorderAttributeValues {
   """Page from which attribute values are reordered."""
   page: Page
@@ -12359,7 +12979,9 @@ type PageReorderAttributeValues {
   errors: [PageError!]!
 }
 
-"""Completes creating an order."""
+"""
+Completes creating an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type DraftOrderComplete {
   """Completed order."""
   order: Order
@@ -12367,7 +12989,9 @@ type DraftOrderComplete {
   errors: [OrderError!]!
 }
 
-"""Creates a new draft order."""
+"""
+Creates a new draft order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type DraftOrderCreate {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
@@ -12419,14 +13043,18 @@ input OrderLineCreateInput {
   variantId: ID!
 }
 
-"""Deletes a draft order."""
+"""
+Deletes a draft order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type DraftOrderDelete {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
   order: Order
 }
 
-"""Deletes draft orders."""
+"""
+Deletes draft orders. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type DraftOrderBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -12434,7 +13062,9 @@ type DraftOrderBulkDelete {
   errors: [OrderError!]!
 }
 
-"""Deletes order lines."""
+"""
+Deletes order lines. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type DraftOrderLinesBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -12442,7 +13072,9 @@ type DraftOrderLinesBulkDelete {
   errors: [OrderError!]!
 }
 
-"""Updates a draft order."""
+"""
+Updates a draft order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type DraftOrderUpdate {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
@@ -12483,7 +13115,9 @@ input DraftOrderInput {
   redirectUrl: String
 }
 
-"""Adds note to the order."""
+"""
+Adds note to the order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderAddNote {
   """Order with the note added."""
   order: Order
@@ -12499,7 +13133,9 @@ input OrderAddNoteInput {
   message: String!
 }
 
-"""Cancel an order."""
+"""
+Cancel an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderCancel {
   """Canceled order."""
   order: Order
@@ -12507,7 +13143,9 @@ type OrderCancel {
   errors: [OrderError!]!
 }
 
-"""Capture an order."""
+"""
+Capture an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderCapture {
   """Captured order."""
   order: Order
@@ -12515,14 +13153,18 @@ type OrderCapture {
   errors: [OrderError!]!
 }
 
-"""Confirms an unconfirmed order by changing status to unfulfilled."""
+"""
+Confirms an unconfirmed order by changing status to unfulfilled. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderConfirm {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
 }
 
-"""Creates new fulfillments for an order."""
+"""
+Creates new fulfillments for an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderFulfill {
   """List of created fulfillments."""
   fulfillments: [Fulfillment]
@@ -12560,7 +13202,9 @@ input OrderFulfillStockInput {
   warehouse: ID!
 }
 
-"""Cancels existing fulfillment and optionally restocks items."""
+"""
+Cancels existing fulfillment and optionally restocks items. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type FulfillmentCancel {
   """A canceled fulfillment."""
   fulfillment: Fulfillment
@@ -12578,7 +13222,9 @@ input FulfillmentCancelInput {
   warehouseId: ID
 }
 
-"""New in Saleor 3.1. Approve existing fulfillment."""
+"""
+New in Saleor 3.1. Approve existing fulfillment. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type FulfillmentApprove {
   """An approved fulfillment."""
   fulfillment: Fulfillment
@@ -12589,7 +13235,9 @@ type FulfillmentApprove {
   errors: [OrderError!]!
 }
 
-"""Updates a fulfillment for an order."""
+"""
+Updates a fulfillment for an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type FulfillmentUpdateTracking {
   """A fulfillment with updated tracking."""
   fulfillment: Fulfillment
@@ -12608,7 +13256,9 @@ input FulfillmentUpdateTrackingInput {
   notifyCustomer: Boolean = false
 }
 
-"""Refund products."""
+"""
+Refund products. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type FulfillmentRefundProducts {
   """A refunded fulfillment."""
   fulfillment: Fulfillment
@@ -12651,7 +13301,9 @@ input OrderRefundFulfillmentLineInput {
   quantity: Int!
 }
 
-"""Return products."""
+"""
+Return products. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type FulfillmentReturnProducts {
   """A return fulfillment."""
   returnFulfillment: Fulfillment
@@ -12709,7 +13361,9 @@ input OrderReturnFulfillmentLineInput {
   replace: Boolean = false
 }
 
-"""Create order lines for an order."""
+"""
+Create order lines for an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderLinesCreate {
   """Related order."""
   order: Order
@@ -12720,7 +13374,9 @@ type OrderLinesCreate {
   errors: [OrderError!]!
 }
 
-"""Deletes an order line from an order."""
+"""
+Deletes an order line from an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderLineDelete {
   """A related order."""
   order: Order
@@ -12731,7 +13387,9 @@ type OrderLineDelete {
   errors: [OrderError!]!
 }
 
-"""Updates an order line of an order."""
+"""
+Updates an order line of an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderLineUpdate {
   """Related order."""
   order: Order
@@ -12745,7 +13403,9 @@ input OrderLineInput {
   quantity: Int!
 }
 
-"""Adds discount to the order."""
+"""
+Adds discount to the order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderDiscountAdd {
   """Order which has been discounted."""
   order: Order
@@ -12764,7 +13424,9 @@ input OrderDiscountCommonInput {
   reason: String
 }
 
-"""Update discount for the order."""
+"""
+Update discount for the order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderDiscountUpdate {
   """Order which has been discounted."""
   order: Order
@@ -12772,7 +13434,9 @@ type OrderDiscountUpdate {
   errors: [OrderError!]!
 }
 
-"""Remove discount from the order."""
+"""
+Remove discount from the order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderDiscountDelete {
   """Order which has removed discount."""
   order: Order
@@ -12780,7 +13444,9 @@ type OrderDiscountDelete {
   errors: [OrderError!]!
 }
 
-"""Update discount for the order line."""
+"""
+Update discount for the order line. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderLineDiscountUpdate {
   """Order line which has been discounted."""
   orderLine: OrderLine
@@ -12791,7 +13457,9 @@ type OrderLineDiscountUpdate {
   errors: [OrderError!]!
 }
 
-"""Remove discount applied to the order line."""
+"""
+Remove discount applied to the order line. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderLineDiscountRemove {
   """Order line which has removed discount."""
   orderLine: OrderLine
@@ -12802,7 +13470,9 @@ type OrderLineDiscountRemove {
   errors: [OrderError!]!
 }
 
-"""Mark order as manually paid."""
+"""
+Mark order as manually paid. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderMarkAsPaid {
   """Order marked as paid."""
   order: Order
@@ -12810,7 +13480,9 @@ type OrderMarkAsPaid {
   errors: [OrderError!]!
 }
 
-"""Refund an order."""
+"""
+Refund an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderRefund {
   """A refunded order."""
   order: Order
@@ -12818,7 +13490,9 @@ type OrderRefund {
   errors: [OrderError!]!
 }
 
-"""Updates an order."""
+"""
+Updates an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderUpdate {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
@@ -12837,7 +13511,7 @@ input OrderUpdateInput {
 }
 
 """
-Updates a shipping method of the order. Requires shipping method ID to update, when null is passed then currently assigned shipping method is removed.
+Updates a shipping method of the order. Requires shipping method ID to update, when null is passed then currently assigned shipping method is removed. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type OrderUpdateShipping {
   """Order with updated shipping method."""
@@ -12853,7 +13527,9 @@ input OrderUpdateShippingInput {
   shippingMethod: ID
 }
 
-"""Void an order."""
+"""
+Void an order. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderVoid {
   """A voided order."""
   order: Order
@@ -12861,7 +13537,9 @@ type OrderVoid {
   errors: [OrderError!]!
 }
 
-"""Cancels orders."""
+"""
+Cancels orders. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type OrderBulkCancel {
   """Returns how many objects were affected."""
   count: Int!
@@ -12869,7 +13547,9 @@ type OrderBulkCancel {
   errors: [OrderError!]!
 }
 
-"""Delete metadata of an object."""
+"""
+Delete metadata of an object. To use it, you need to have access to the modified object.
+"""
 type DeleteMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
@@ -12898,14 +13578,18 @@ enum MetadataErrorCode {
   NOT_UPDATED
 }
 
-"""Delete object's private metadata."""
+"""
+Delete object's private metadata. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
+"""
 type DeletePrivateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
   item: ObjectWithMetadata
 }
 
-"""Updates metadata of an object."""
+"""
+Updates metadata of an object. To use it, you need to have access to the modified object.
+"""
 type UpdateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
@@ -12920,14 +13604,18 @@ input MetadataInput {
   value: String!
 }
 
-"""Updates private metadata of an object."""
+"""
+Updates private metadata of an object. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
+"""
 type UpdatePrivateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
   item: ObjectWithMetadata
 }
 
-"""Assigns storefront's navigation menus."""
+"""
+Assigns storefront's navigation menus. Requires one of the following permissions: MANAGE_MENUS, MANAGE_SETTINGS.
+"""
 type AssignNavigation {
   """Assigned navigation menu."""
   menu: Menu
@@ -12969,7 +13657,9 @@ enum NavigationType {
   SECONDARY
 }
 
-"""Creates a new Menu."""
+"""
+Creates a new Menu. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuCreate {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
@@ -13004,14 +13694,18 @@ input MenuItemInput {
   page: ID
 }
 
-"""Deletes a menu."""
+"""
+Deletes a menu. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuDelete {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
 }
 
-"""Deletes menus."""
+"""
+Deletes menus. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -13019,7 +13713,9 @@ type MenuBulkDelete {
   errors: [MenuError!]!
 }
 
-"""Updates a menu."""
+"""
+Updates a menu. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuUpdate {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
@@ -13034,7 +13730,9 @@ input MenuInput {
   slug: String
 }
 
-"""Creates a new menu item."""
+"""
+Creates a new menu item. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuItemCreate {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
@@ -13064,14 +13762,18 @@ input MenuItemCreateInput {
   parent: ID
 }
 
-"""Deletes a menu item."""
+"""
+Deletes a menu item. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuItemDelete {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
 }
 
-"""Deletes menu items."""
+"""
+Deletes menu items. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuItemBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -13079,21 +13781,27 @@ type MenuItemBulkDelete {
   errors: [MenuError!]!
 }
 
-"""Updates a menu item."""
+"""
+Updates a menu item. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuItemUpdate {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
 }
 
-"""Creates/updates translations for a menu item."""
+"""
+Creates/updates translations for a menu item. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type MenuItemTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   menuItem: MenuItem
 }
 
-"""Moves items of menus."""
+"""
+Moves items of menus. Requires one of the following permissions: MANAGE_MENUS.
+"""
 type MenuItemMove {
   """Assigned menu to move within."""
   menu: Menu
@@ -13114,7 +13822,9 @@ input MenuItemMoveInput {
   sortOrder: Int
 }
 
-"""Request an invoice for the order using plugin."""
+"""
+Request an invoice for the order using plugin. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type InvoiceRequest {
   """Order related to an invoice."""
   order: Order
@@ -13148,14 +13858,18 @@ enum InvoiceErrorCode {
   NO_INVOICE_PLUGIN
 }
 
-"""Requests deletion of an invoice."""
+"""
+Requests deletion of an invoice. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type InvoiceRequestDelete {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
 }
 
-"""Creates a ready to send invoice."""
+"""
+Creates a ready to send invoice. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type InvoiceCreate {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
@@ -13170,14 +13884,18 @@ input InvoiceCreateInput {
   url: String!
 }
 
-"""Deletes an invoice."""
+"""
+Deletes an invoice. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type InvoiceDelete {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
 }
 
-"""Updates an invoice."""
+"""
+Updates an invoice. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type InvoiceUpdate {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
@@ -13192,14 +13910,18 @@ input UpdateInvoiceInput {
   url: String
 }
 
-"""Send an invoice notification to the customer."""
+"""
+Send an invoice notification to the customer. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type InvoiceSendNotification {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
 }
 
-"""Activate a gift card."""
+"""
+Activate a gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+"""
 type GiftCardActivate {
   """Activated gift card."""
   giftCard: GiftCard
@@ -13235,7 +13957,9 @@ enum GiftCardErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-"""Creates a new gift card."""
+"""
+Creates a new gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+"""
 type GiftCardCreate {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
@@ -13305,7 +14029,7 @@ input PriceInput {
 }
 
 """
-New in Saleor 3.1. Delete gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Delete gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardDelete {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -13313,7 +14037,9 @@ type GiftCardDelete {
   giftCard: GiftCard
 }
 
-"""Deactivate a gift card."""
+"""
+Deactivate a gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+"""
 type GiftCardDeactivate {
   """Deactivated gift card."""
   giftCard: GiftCard
@@ -13321,7 +14047,9 @@ type GiftCardDeactivate {
   errors: [GiftCardError!]!
 }
 
-"""Update a gift card."""
+"""
+Update a gift card. Requires one of the following permissions: MANAGE_GIFT_CARD.
+"""
 type GiftCardUpdate {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
@@ -13365,7 +14093,7 @@ input GiftCardUpdateInput {
 }
 
 """
-New in Saleor 3.1. Resend a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Resend a gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardResend {
   """Gift card which has been sent."""
@@ -13385,7 +14113,7 @@ input GiftCardResendInput {
 }
 
 """
-New in Saleor 3.1. Adds note to the gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Adds note to the gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardAddNote {
   """Gift card with the note added."""
@@ -13402,7 +14130,7 @@ input GiftCardAddNoteInput {
 }
 
 """
-New in Saleor 3.1. Create gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Create gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardBulkCreate {
   """Returns how many objects were created."""
@@ -13431,7 +14159,7 @@ input GiftCardBulkCreateInput {
 }
 
 """
-New in Saleor 3.1. Delete gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Delete gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardBulkDelete {
   """Returns how many objects were affected."""
@@ -13440,7 +14168,7 @@ type GiftCardBulkDelete {
 }
 
 """
-New in Saleor 3.1. Activate gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Activate gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardBulkActivate {
   """Returns how many objects were affected."""
@@ -13449,7 +14177,7 @@ type GiftCardBulkActivate {
 }
 
 """
-New in Saleor 3.1. Deactivate gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Deactivate gift cards. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type GiftCardBulkDeactivate {
   """Returns how many objects were affected."""
@@ -13457,7 +14185,9 @@ type GiftCardBulkDeactivate {
   errors: [GiftCardError!]!
 }
 
-"""Update plugin configuration."""
+"""
+Update plugin configuration. Requires one of the following permissions: MANAGE_PLUGINS.
+"""
 type PluginUpdate {
   plugin: Plugin
   pluginsErrors: [PluginError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -13548,7 +14278,9 @@ input ExternalNotificationTriggerInput {
   externalEventType: String!
 }
 
-"""Creates a new sale."""
+"""
+Creates a new sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleCreate {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
@@ -13613,14 +14345,18 @@ input SaleInput {
   endDate: DateTime
 }
 
-"""Deletes a sale."""
+"""
+Deletes a sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleDelete {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
 }
 
-"""Deletes sales."""
+"""
+Deletes sales. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -13628,14 +14364,18 @@ type SaleBulkDelete {
   errors: [DiscountError!]!
 }
 
-"""Updates a sale."""
+"""
+Updates a sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleUpdate {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
 }
 
-"""Adds products, categories, collections to a voucher."""
+"""
+Adds products, categories, collections to a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleAddCatalogues {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
@@ -13657,7 +14397,9 @@ input CatalogueInput {
   variants: [ID]
 }
 
-"""Removes products, categories, collections from a sale."""
+"""
+Removes products, categories, collections from a sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleRemoveCatalogues {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
@@ -13665,14 +14407,18 @@ type SaleRemoveCatalogues {
   errors: [DiscountError!]!
 }
 
-"""Creates/updates translations for a sale."""
+"""
+Creates/updates translations for a sale. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type SaleTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   sale: Sale
 }
 
-"""Manage sale's availability in channels."""
+"""
+Manage sale's availability in channels. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type SaleChannelListingUpdate {
   """An updated sale instance."""
   sale: Sale
@@ -13696,7 +14442,9 @@ input SaleChannelListingAddInput {
   discountValue: PositiveDecimal!
 }
 
-"""Creates a new voucher."""
+"""
+Creates a new voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherCreate {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
@@ -13753,14 +14501,18 @@ input VoucherInput {
   usageLimit: Int
 }
 
-"""Deletes a voucher."""
+"""
+Deletes a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherDelete {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
 }
 
-"""Deletes vouchers."""
+"""
+Deletes vouchers. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -13768,14 +14520,18 @@ type VoucherBulkDelete {
   errors: [DiscountError!]!
 }
 
-"""Updates a voucher."""
+"""
+Updates a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherUpdate {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
 }
 
-"""Adds products, categories, collections to a voucher."""
+"""
+Adds products, categories, collections to a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherAddCatalogues {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
@@ -13783,7 +14539,9 @@ type VoucherAddCatalogues {
   errors: [DiscountError!]!
 }
 
-"""Removes products, categories, collections from a voucher."""
+"""
+Removes products, categories, collections from a voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherRemoveCatalogues {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
@@ -13791,14 +14549,18 @@ type VoucherRemoveCatalogues {
   errors: [DiscountError!]!
 }
 
-"""Creates/updates translations for a voucher."""
+"""
+Creates/updates translations for a voucher. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type VoucherTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   voucher: Voucher
 }
 
-"""Manage voucher's availability in channels."""
+"""
+Manage voucher's availability in channels. Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
 type VoucherChannelListingUpdate {
   """An updated voucher instance."""
   voucher: Voucher
@@ -13825,7 +14587,9 @@ input VoucherChannelListingAddInput {
   minAmountSpent: PositiveDecimal
 }
 
-"""Export products to csv file."""
+"""
+Export products to csv file. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type ExportProducts {
   """
   The newly created export file job which is responsible for export data.
@@ -13920,7 +14684,7 @@ enum FileTypesEnum {
 }
 
 """
-New in Saleor 3.1. Export gift cards to csv file. Note: this feature is in a preview state and can be subject to changes at later point.
+New in Saleor 3.1. Export gift cards to csv file. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
 type ExportGiftCards {
   """
@@ -14101,7 +14865,9 @@ input CheckoutLineInput {
   variantId: ID!
 }
 
-"""Sets the customer as the owner of the checkout."""
+"""
+Sets the customer as the owner of the checkout. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+"""
 type CheckoutCustomerAttach {
   """An updated checkout."""
   checkout: Checkout
@@ -14109,7 +14875,9 @@ type CheckoutCustomerAttach {
   errors: [CheckoutError!]!
 }
 
-"""Removes the user assigned as the owner of the checkout."""
+"""
+Removes the user assigned as the owner of the checkout. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+"""
 type CheckoutCustomerDetach {
   """An updated checkout."""
   checkout: Checkout
@@ -14252,7 +15020,9 @@ type CheckoutLanguageCodeUpdate {
   errors: [CheckoutError!]!
 }
 
-"""Creates new channel."""
+"""
+Creates new channel. Requires one of the following permissions: MANAGE_CHANNELS.
+"""
 type ChannelCreate {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
@@ -14310,7 +15080,9 @@ input ChannelCreateInput {
   addShippingZones: [ID!]
 }
 
-"""Update a channel."""
+"""
+Update a channel. Requires one of the following permissions: MANAGE_CHANNELS.
+"""
 type ChannelUpdate {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
@@ -14340,7 +15112,7 @@ input ChannelUpdateInput {
 }
 
 """
-Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed.
+Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. Requires one of the following permissions: MANAGE_CHANNELS.
 """
 type ChannelDelete {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -14353,7 +15125,9 @@ input ChannelDeleteInput {
   channelId: ID!
 }
 
-"""Activate a channel."""
+"""
+Activate a channel. Requires one of the following permissions: MANAGE_CHANNELS.
+"""
 type ChannelActivate {
   """Activated channel."""
   channel: Channel
@@ -14361,7 +15135,9 @@ type ChannelActivate {
   errors: [ChannelError!]!
 }
 
-"""Deactivate a channel."""
+"""
+Deactivate a channel. Requires one of the following permissions: MANAGE_CHANNELS.
+"""
 type ChannelDeactivate {
   """Deactivated channel."""
   channel: Channel
@@ -14464,14 +15240,18 @@ input AttributeValueCreateInput {
   name: String!
 }
 
-"""Deletes an attribute."""
+"""
+Deletes an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeDelete {
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
   attribute: Attribute
 }
 
-"""Updates attribute."""
+"""
+Updates attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeUpdate {
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -14537,14 +15317,18 @@ input AttributeValueUpdateInput {
   name: String
 }
 
-"""Creates/updates translations for an attribute."""
+"""
+Creates/updates translations for an attribute. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type AttributeTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   attribute: Attribute
 }
 
-"""Deletes attributes."""
+"""
+Deletes attributes. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -14552,7 +15336,9 @@ type AttributeBulkDelete {
   errors: [AttributeError!]!
 }
 
-"""Deletes values of attributes."""
+"""
+Deletes values of attributes. Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeValueBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -14560,7 +15346,9 @@ type AttributeValueBulkDelete {
   errors: [AttributeError!]!
 }
 
-"""Creates a value for an attribute."""
+"""
+Creates a value for an attribute. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type AttributeValueCreate {
   """The updated attribute."""
   attribute: Attribute
@@ -14569,7 +15357,9 @@ type AttributeValueCreate {
   attributeValue: AttributeValue
 }
 
-"""Deletes a value of an attribute."""
+"""
+Deletes a value of an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeValueDelete {
   """The updated attribute."""
   attribute: Attribute
@@ -14578,7 +15368,9 @@ type AttributeValueDelete {
   attributeValue: AttributeValue
 }
 
-"""Updates value of an attribute."""
+"""
+Updates value of an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeValueUpdate {
   """The updated attribute."""
   attribute: Attribute
@@ -14587,7 +15379,9 @@ type AttributeValueUpdate {
   attributeValue: AttributeValue
 }
 
-"""Creates/updates translations for an attribute value."""
+"""
+Creates/updates translations for an attribute value. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
 type AttributeValueTranslate {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
@@ -14599,7 +15393,9 @@ input AttributeValueTranslationInput {
   richText: JSONString
 }
 
-"""Reorder the values of an attribute."""
+"""
+Reorder the values of an attribute. Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+"""
 type AttributeReorderValues {
   """Attribute from which values are reordered."""
   attribute: Attribute
@@ -14607,7 +15403,9 @@ type AttributeReorderValues {
   errors: [AttributeError!]!
 }
 
-"""Creates a new app."""
+"""
+Creates a new app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppCreate {
   """The newly created authentication token."""
   authToken: String
@@ -14657,21 +15455,27 @@ input AppInput {
   permissions: [PermissionEnum]
 }
 
-"""Updates an existing app."""
+"""
+Updates an existing app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppUpdate {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
 }
 
-"""Deletes an app."""
+"""
+Deletes an app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppDelete {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
 }
 
-"""Creates a new token."""
+"""
+Creates a new token. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppTokenCreate {
   """The newly created authentication token."""
   authToken: String
@@ -14688,7 +15492,9 @@ input AppTokenInput {
   app: ID!
 }
 
-"""Deletes an authentication token assigned to app."""
+"""
+Deletes an authentication token assigned to app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppTokenDelete {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
@@ -14703,7 +15509,9 @@ type AppTokenVerify {
   errors: [AppError!]!
 }
 
-"""Install new app by using app manifest."""
+"""
+Install new app by using app manifest. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppInstall {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
@@ -14724,21 +15532,27 @@ input AppInstallInput {
   permissions: [PermissionEnum]
 }
 
-"""Retry failed installation of new app."""
+"""
+Retry failed installation of new app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppRetryInstall {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   appInstallation: AppInstallation
 }
 
-"""Delete failed installation."""
+"""
+Delete failed installation. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppDeleteFailedInstallation {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   appInstallation: AppInstallation
 }
 
-"""Fetch and validate manifest."""
+"""
+Fetch and validate manifest. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppFetchManifest {
   manifest: Manifest
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -14779,14 +15593,18 @@ type AppManifestExtension {
   target: AppExtensionTargetEnum!
 }
 
-"""Activate the app."""
+"""
+Activate the app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppActivate {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
 }
 
-"""Deactivate the app."""
+"""
+Deactivate the app. Requires one of the following permissions: MANAGE_APPS.
+"""
 type AppDeactivate {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
@@ -14897,7 +15715,9 @@ String, Boolean, Int, Float, List or Object.
 """
 scalar GenericScalar
 
-"""Deactivate all JWT tokens of the currently authenticated user."""
+"""
+Deactivate all JWT tokens of the currently authenticated user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type DeactivateAllUserTokens {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
@@ -15000,7 +15820,9 @@ type SetPassword {
   errors: [AccountError!]!
 }
 
-"""Change the password of the logged in user."""
+"""
+Change the password of the logged in user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type PasswordChange {
   """A user instance with a new password."""
   user: User
@@ -15008,7 +15830,9 @@ type PasswordChange {
   errors: [AccountError!]!
 }
 
-"""Request email change of the logged in user."""
+"""
+Request email change of the logged in user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type RequestEmailChange {
   """A user instance."""
   user: User
@@ -15016,7 +15840,9 @@ type RequestEmailChange {
   errors: [AccountError!]!
 }
 
-"""Confirm the email change of the logged-in user."""
+"""
+Confirm the email change of the logged-in user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type ConfirmEmailChange {
   """A user instance with a new email."""
   user: User
@@ -15024,7 +15850,9 @@ type ConfirmEmailChange {
   errors: [AccountError!]!
 }
 
-"""Create a new address for the customer."""
+"""
+Create a new address for the customer. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type AccountAddressCreate {
   """A user instance for which the address was created."""
   user: User
@@ -15033,7 +15861,9 @@ type AccountAddressCreate {
   address: Address
 }
 
-"""Updates an address of the logged-in user."""
+"""
+Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+"""
 type AccountAddressUpdate {
   """A user object for which the address was edited."""
   user: User
@@ -15042,7 +15872,9 @@ type AccountAddressUpdate {
   address: Address
 }
 
-"""Delete an address of the logged-in user."""
+"""
+Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+"""
 type AccountAddressDelete {
   """A user instance for which the address was deleted."""
   user: User
@@ -15051,7 +15883,9 @@ type AccountAddressDelete {
   address: Address
 }
 
-"""Sets a default address for the authenticated user."""
+"""
+Sets a default address for the authenticated user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type AccountSetDefaultAddress {
   """An updated user instance."""
   user: User
@@ -15096,7 +15930,9 @@ input AccountRegisterInput {
   channel: String
 }
 
-"""Updates the account of the logged-in user."""
+"""
+Updates the account of the logged-in user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type AccountUpdate {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
@@ -15120,20 +15956,26 @@ input AccountInput {
   defaultShippingAddress: AddressInput
 }
 
-"""Sends an email with the account removal link for the logged-in user."""
+"""
+Sends an email with the account removal link for the logged-in user. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type AccountRequestDeletion {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
 
-"""Remove user account."""
+"""
+Remove user account. Requires one of the following permissions: AUTHENTICATED_USER.
+"""
 type AccountDelete {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
 }
 
-"""Creates user address."""
+"""
+Creates user address. Requires one of the following permissions: MANAGE_USERS.
+"""
 type AddressCreate {
   """A user instance for which the address was created."""
   user: User
@@ -15142,7 +15984,9 @@ type AddressCreate {
   address: Address
 }
 
-"""Updates an address."""
+"""
+Updates an address. Requires one of the following permissions: MANAGE_USERS.
+"""
 type AddressUpdate {
   """A user object for which the address was edited."""
   user: User
@@ -15151,7 +15995,9 @@ type AddressUpdate {
   address: Address
 }
 
-"""Deletes an address."""
+"""
+Deletes an address. Requires one of the following permissions: MANAGE_USERS.
+"""
 type AddressDelete {
   """A user instance for which the address was deleted."""
   user: User
@@ -15160,7 +16006,9 @@ type AddressDelete {
   address: Address
 }
 
-"""Sets a default address for the given user."""
+"""
+Sets a default address for the given user. Requires one of the following permissions: MANAGE_USERS.
+"""
 type AddressSetDefault {
   """An updated user instance."""
   user: User
@@ -15168,7 +16016,9 @@ type AddressSetDefault {
   errors: [AccountError!]!
 }
 
-"""Creates a new customer."""
+"""
+Creates a new customer. Requires one of the following permissions: MANAGE_USERS.
+"""
 type CustomerCreate {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
@@ -15211,7 +16061,9 @@ input UserCreateInput {
   channel: String
 }
 
-"""Updates an existing customer."""
+"""
+Updates an existing customer. Requires one of the following permissions: MANAGE_USERS.
+"""
 type CustomerUpdate {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
@@ -15244,14 +16096,18 @@ input CustomerInput {
   languageCode: LanguageCodeEnum
 }
 
-"""Deletes a customer."""
+"""
+Deletes a customer. Requires one of the following permissions: MANAGE_USERS.
+"""
 type CustomerDelete {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
 }
 
-"""Deletes customers."""
+"""
+Deletes customers. Requires one of the following permissions: MANAGE_USERS.
+"""
 type CustomerBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -15259,7 +16115,9 @@ type CustomerBulkDelete {
   errors: [AccountError!]!
 }
 
-"""Creates a new staff user."""
+"""
+Creates a new staff user. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type StaffCreate {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
@@ -15316,7 +16174,9 @@ input StaffCreateInput {
   redirectUrl: String
 }
 
-"""Updates an existing staff user."""
+"""
+Updates an existing staff user. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type StaffUpdate {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
@@ -15346,14 +16206,18 @@ input StaffUpdateInput {
   removeGroups: [ID!]
 }
 
-"""Deletes a staff user."""
+"""
+Deletes a staff user. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type StaffDelete {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
 }
 
-"""Deletes staff users."""
+"""
+Deletes staff users. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type StaffBulkDelete {
   """Returns how many objects were affected."""
   count: Int!
@@ -15379,7 +16243,9 @@ type UserAvatarDelete {
   errors: [AccountError!]!
 }
 
-"""Activate or deactivate users."""
+"""
+Activate or deactivate users. Requires one of the following permissions: MANAGE_USERS.
+"""
 type UserBulkSetActive {
   """Returns how many objects were affected."""
   count: Int!
@@ -15387,7 +16253,9 @@ type UserBulkSetActive {
   errors: [AccountError!]!
 }
 
-"""Create new permission group."""
+"""
+Create new permission group. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type PermissionGroupCreate {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
@@ -15436,7 +16304,9 @@ input PermissionGroupCreateInput {
   name: String!
 }
 
-"""Update permission group."""
+"""
+Update permission group. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type PermissionGroupUpdate {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
@@ -15460,7 +16330,9 @@ input PermissionGroupUpdateInput {
   removeUsers: [ID!]
 }
 
-"""Delete permission group."""
+"""
+Delete permission group. Requires one of the following permissions: MANAGE_STAFF.
+"""
 type PermissionGroupDelete {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
