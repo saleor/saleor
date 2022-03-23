@@ -7,7 +7,8 @@ from ..payment import gateway
 from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
-from .error_codes import CheckoutErrorCode
+from . import models
+from .error_codes import CheckoutErrorCode, OrderFromCheckoutCreateErrorCode
 from .utils import clear_delivery_method, is_fully_paid, is_shipping_required
 
 if TYPE_CHECKING:
@@ -17,7 +18,11 @@ if TYPE_CHECKING:
 def clean_checkout_shipping(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
+    error_code: Union[
+        Type[CheckoutErrorCode],
+        Type[PaymentErrorCode],
+        Type[OrderFromCheckoutCreateErrorCode],
+    ],
 ):
     delivery_method_info = checkout_info.delivery_method_info
 
@@ -54,7 +59,11 @@ def clean_checkout_shipping(
 
 def clean_billing_address(
     checkout_info: "CheckoutInfo",
-    error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
+    error_code: Union[
+        Type[CheckoutErrorCode],
+        Type[PaymentErrorCode],
+        Type[OrderFromCheckoutCreateErrorCode],
+    ],
 ):
     if not checkout_info.billing_address:
         raise ValidationError(
@@ -83,4 +92,12 @@ def clean_checkout_payment(
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=error_code.CHECKOUT_NOT_FULLY_PAID.value,
+        )
+
+
+def validate_checkout_email(checkout: models.Checkout):
+    if not checkout.email:
+        raise ValidationError(
+            "Checkout email must be set.",
+            code=CheckoutErrorCode.EMAIL_NOT_SET.value,
         )

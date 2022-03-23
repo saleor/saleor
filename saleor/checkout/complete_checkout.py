@@ -8,16 +8,16 @@ from django.db import transaction
 from prices import TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
-from ..account.models import User
+from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..checkout import calculations
-from ..checkout.error_codes import CheckoutErrorCode
+from ..checkout.error_codes import CheckoutErrorCode, OrderFromCheckoutCreateErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
-from ..discount.models import NotApplicable
+from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     get_sale_id_applied_as_a_discount,
@@ -43,7 +43,18 @@ from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
-from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
+from .checkout_cleaner import (
+    clean_billing_address,
+    clean_checkout_payment,
+    clean_checkout_shipping,
+    validate_checkout_email,
+)
+from .fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from .models import Checkout
 from .utils import get_voucher_for_checkout_info
 
@@ -51,7 +62,6 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
-    from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
 def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
@@ -410,7 +420,7 @@ def _prepare_order_data(
     try:
         manager.preprocess_order_creation(checkout_info, discounts, lines)
     except TaxError:
-        release_voucher_usage(order_data)
+        release_voucher_usage(order_data.get("voucher"), order_data.get("user_email"))
         raise
 
     return order_data
@@ -669,7 +679,7 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        release_voucher_usage(order_data)
+        release_voucher_usage(order_data.get("voucher"), order_data.get("user_email"))
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -740,7 +750,9 @@ def complete_checkout(
         action_required = txn.action_required
         if action_required:
             action_data = txn.action_required_data
-            release_voucher_usage(order_data)
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
+            )
 
     order = None
     if not action_required:
@@ -757,7 +769,9 @@ def complete_checkout(
             # remove checkout after order is successfully created
             checkout.delete()
         except InsufficientStock as e:
-            release_voucher_usage(order_data)
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
+            )
             gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
@@ -767,3 +781,419 @@ def complete_checkout(
             mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
+
+
+def validate_checkout(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    unavailable_variant_pks: Iterable[int],
+    discounts: List["DiscountInfo"],
+    manager: "PluginsManager",
+):
+    """Validate all required data for converting checkout into order."""
+    if not checkout_info.channel.is_active:
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    "Cannot complete checkout with inactive channel.",
+                    code=OrderFromCheckoutCreateErrorCode.CHANNEL_INACTIVE.value,
+                )
+            }
+        )
+    if unavailable_variant_pks:
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in unavailable_variant_pks
+        }
+        code = OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Some of the checkout lines variants are unavailable.",
+                    code=code,
+                    params={"variants": not_available_variants_ids},
+                )
+            }
+        )
+    if not lines:
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot complete checkout without lines",
+                    code=OrderFromCheckoutCreateErrorCode.NO_LINES.value,
+                )
+            }
+        )
+
+    if checkout_info.checkout.voucher_code and not checkout_info.voucher:
+        raise ValidationError(
+            {
+                "voucher_code": ValidationError(
+                    "Voucher not applicable",
+                    code=OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                )
+            }
+        )
+    validate_checkout_email(checkout_info.checkout)
+
+    clean_billing_address(checkout_info, OrderFromCheckoutCreateErrorCode)
+    clean_checkout_shipping(checkout_info, lines, OrderFromCheckoutCreateErrorCode)
+    _validate_gift_cards(checkout_info.checkout)
+
+    # call plugin's hooks to validate if we are able to create an order
+    try:
+        manager.preprocess_order_creation(checkout_info, discounts, lines)
+    except TaxError as tax_error:
+        raise ValidationError(
+            "Unable to calculate taxes - %s" % str(tax_error),
+            code=OrderFromCheckoutCreateErrorCode.TAX_ERROR.value,
+        )
+
+
+def _get_order_total(
+    checkout_info: CheckoutInfo,
+    lines: List[CheckoutLineInfo],
+    discounts: List["DiscountInfo"],
+    manager: "PluginsManager",
+    address: Optional["Address"],
+) -> TaxedMoney:
+    """Calculate a taxed total for order."""
+    taxed_total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+    )
+    cards_total = checkout_info.checkout.get_total_gift_cards_balance()
+    taxed_total.gross -= cards_total
+    taxed_total.net -= cards_total
+    taxed_total = max(taxed_total, zero_taxed_money(checkout_info.checkout.currency))
+    return taxed_total
+
+
+def _increase_voucher_usage(checkout_info: "CheckoutInfo"):
+    """Increase a voucher usage applied to the checkout."""
+    voucher = get_voucher_for_checkout_info(checkout_info, with_lock=True)
+    if not voucher:
+        return None
+
+    if voucher.apply_once_per_customer:
+        customer_email = cast(str, checkout_info.get_customer_email())
+        add_voucher_usage_by_customer(voucher, customer_email)
+
+    if voucher.usage_limit:
+        increase_voucher_usage(voucher)
+
+
+def _create_order_lines_from_checkout_lines(
+    checkout_info: CheckoutInfo,
+    lines: List[CheckoutLineInfo],
+    discounts: List["DiscountInfo"],
+    manager: "PluginsManager",
+    order_pk: int,
+    reservation_enabled: bool,
+    taxes_included_in_prices: bool,
+) -> List[OrderLineInfo]:
+    order_lines_info = _create_lines_for_order(
+        manager,
+        checkout_info,
+        lines,
+        discounts,
+        reservation_enabled,
+        taxes_included_in_prices,
+    )
+    order_lines = []
+    for line_info in order_lines_info:
+        line = line_info.line
+        line.order_id = order_pk
+        order_lines.append(line)
+
+    OrderLine.objects.bulk_create(order_lines)
+    return list(order_lines_info)
+
+
+def _handle_allocations_of_order_lines(
+    checkout_info: CheckoutInfo,
+    checkout_lines: List[CheckoutLineInfo],
+    order_lines_info: List[OrderLineInfo],
+    manager: "PluginsManager",
+    reservation_enabled: bool,
+):
+    country_code = checkout_info.get_country()
+    additional_warehouse_lookup = (
+        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+    )
+    allocate_stocks(
+        order_lines_info,
+        country_code,
+        checkout_info.channel.slug,
+        manager,
+        additional_warehouse_lookup,
+        check_reservations=reservation_enabled,
+        checkout_lines=[line.line for line in checkout_lines],
+    )
+    allocate_preorders(
+        order_lines_info,
+        checkout_info.channel.slug,
+        check_reservations=reservation_enabled,
+        checkout_lines=[line.line for line in checkout_lines],
+    )
+
+
+def _handle_checkout_discount(
+    order: "Order", checkout: "Checkout", voucher: Optional["Voucher"]
+):
+    if checkout.discount:
+        # store voucher as a fixed value as it this the simplest solution for now.
+        # This will be solved when we refactor the voucher logic to use .discounts
+        # relations
+
+        # When we have a voucher for specific products we track it directly in the
+        # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
+        # as we apply it only for single quantity of the cheapest line.
+        if not voucher or (
+            voucher.type != VoucherType.SPECIFIC_PRODUCT
+            and not voucher.apply_once_per_order
+        ):
+            order.discounts.create(
+                type=OrderDiscountType.VOUCHER,
+                value_type=DiscountValueType.FIXED,
+                value=checkout.discount.amount,
+                name=checkout.discount_name,
+                translated_name=checkout.translated_discount_name,
+                currency=checkout.currency,
+                amount_value=checkout.discount_amount,
+            )
+
+
+def _post_create_order_actions(
+    order: "Order",
+    checkout_info: "CheckoutInfo",
+    order_lines_info: List["OrderLineInfo"],
+    manager: "PluginsManager",
+    user: User,
+    app: Optional["App"],
+    site_settings: "SiteSettings",
+):
+    order_info = OrderInfo(
+        order=order,
+        customer_email=order.user_email,
+        channel=checkout_info.channel,
+        payment=order.get_last_payment(),
+        lines_data=order_lines_info,
+    )
+
+    transaction.on_commit(
+        lambda: order_created(
+            order_info=order_info, user=user, app=app, manager=manager
+        )
+    )
+
+    # Send the order confirmation email
+    transaction.on_commit(
+        lambda: send_order_confirmation(
+            order_info, checkout_info.checkout.redirect_url, manager
+        )
+    )
+
+    order_lines = [line.line for line in order_lines_info]
+    if site_settings.automatically_fulfill_non_shippable_gift_card:
+        fulfill_non_shippable_gift_cards(
+            order, order_lines, site_settings, user, app, manager
+        )
+
+
+def _create_order_from_checkout(
+    checkout_info: CheckoutInfo,
+    checkout_lines_info: List[CheckoutLineInfo],
+    discounts: List["DiscountInfo"],
+    manager: "PluginsManager",
+    user: User,
+    app: Optional["App"],
+    tracking_code: Optional[str] = None,
+):
+    from ..order.utils import add_gift_cards_to_order
+
+    site_settings = Site.objects.get_current().settings
+
+    address = checkout_info.shipping_address or checkout_info.billing_address
+
+    reservation_enabled = is_reservation_enabled(site_settings)
+    taxes_included_in_prices = site_settings.include_taxes_in_prices
+
+    # total
+    taxed_total = _get_order_total(
+        checkout_info,
+        checkout_lines_info,
+        discounts,
+        manager,
+        address,
+    )
+    undiscounted_total = taxed_total + checkout_info.checkout.discount
+
+    # voucher
+    voucher = checkout_info.voucher
+
+    # shipping
+    shipping_total = manager.calculate_checkout_shipping(
+        checkout_info, checkout_lines_info, address, discounts
+    )
+    shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
+        checkout_info, checkout_lines_info, address, discounts, shipping_total
+    )
+
+    # status
+    status = (
+        OrderStatus.UNFULFILLED
+        if site_settings.automatically_confirm_all_new_orders
+        else OrderStatus.UNCONFIRMED
+    )
+
+    # order
+    order = Order.objects.create(
+        status=status,
+        language_code=checkout_info.checkout.language_code,
+        tracking_client_id=tracking_code or "",
+        total=taxed_total,
+        undiscounted_total=undiscounted_total,
+        shipping_tax_rate=shipping_tax_rate,
+        voucher=voucher,
+        checkout_token=checkout_info.checkout.token,
+        origin=OrderOrigin.CHECKOUT,
+        channel=checkout_info.channel,
+        metadata=checkout_info.checkout.metadata,
+        private_metadata=checkout_info.checkout.private_metadata,
+        redirect_url=checkout_info.checkout.redirect_url,
+        **_process_shipping_data_for_order(
+            checkout_info, shipping_total, manager, checkout_lines_info
+        ),
+        **_process_user_data_for_order(checkout_info, manager),
+    )
+
+    # checkout discount
+    _handle_checkout_discount(order, checkout_info.checkout, voucher)
+
+    # lines
+    order_lines_info = _create_order_lines_from_checkout_lines(
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        discounts=discounts,
+        manager=manager,
+        order_pk=order.pk,
+        reservation_enabled=reservation_enabled,
+        taxes_included_in_prices=taxes_included_in_prices,
+    )
+
+    # allocations
+    _handle_allocations_of_order_lines(
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines_info,
+        order_lines_info=order_lines_info,
+        manager=manager,
+        reservation_enabled=reservation_enabled,
+    )
+
+    # giftcards
+    currency = checkout_info.checkout.currency
+    subtotal_list = [line.line.total_price for line in order_lines_info]
+    subtotal = sum(subtotal_list, zero_taxed_money(currency))
+    total_without_giftcard = subtotal + shipping_total - checkout_info.checkout.discount
+    add_gift_cards_to_order(
+        checkout_info, order, total_without_giftcard.gross, user, app
+    )
+
+    # payments
+    checkout_info.checkout.payments.update(order=order, checkout_id=None)
+
+    # order search
+    order.search_document = prepare_order_search_document_value(order)
+    order.save()
+
+    # post create actions
+    _post_create_order_actions(
+        order=order,
+        checkout_info=checkout_info,
+        order_lines_info=order_lines_info,
+        manager=manager,
+        user=user,
+        app=app,
+        site_settings=site_settings,
+    )
+    return order
+
+
+def create_order_from_checkout(
+    checkout: Checkout,
+    discounts: List["DiscountInfo"],
+    manager: "PluginsManager",
+    user: User,
+    app: Optional["App"],
+    tracking_code: str,
+    delete_checkout: bool = True,
+) -> Order:
+    """Crate order from checkout.
+
+    If checkout doesn't have all required data, the function will raise ValidationError.
+
+    Each order will get a private copy of both the billing and the shipping
+    address (if shipping).
+
+    If any of the addresses is new and the user is logged in the address
+    will also get saved to that user's address book.
+
+    Current user's language is saved in the order so we can later determine
+    which language to use when sending email.
+
+    Checkout can be deleted by setting flag `delete_checkout` to True
+
+    :raises: ValidationError
+    """
+    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, discounts, manager)
+
+    # FIXME when validation failed we should trigger a new refund webhook. This should
+    #  be done in next PRs
+    validate_checkout(
+        checkout_info=checkout_info,
+        lines=checkout_lines,
+        unavailable_variant_pks=unavailable_variant_pks,
+        discounts=discounts,
+        manager=manager,
+    )
+
+    if checkout_info.voucher:
+        with transaction.atomic():
+            try:
+                _increase_voucher_usage(checkout_info=checkout_info)
+            except NotApplicable:
+                raise ValidationError(
+                    "Voucher not applicable",
+                    code=OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                )
+
+    with transaction.atomic():
+        try:
+            order = _create_order_from_checkout(
+                checkout_info=checkout_info,
+                checkout_lines_info=list(checkout_lines),
+                discounts=discounts,
+                manager=manager,
+                user=user,
+                app=app,
+                tracking_code=tracking_code,
+            )
+            if delete_checkout:
+                checkout.delete()
+            return order
+        except InsufficientStock as e:
+            error = prepare_insufficient_stock_checkout_validation_error(e)
+            release_voucher_usage(
+                checkout_info.voucher, checkout_info.checkout.get_customer_email()
+            )
+            raise error
+        except ValidationError:
+            release_voucher_usage(
+                checkout_info.voucher, checkout_info.checkout.get_customer_email()
+            )
+            raise

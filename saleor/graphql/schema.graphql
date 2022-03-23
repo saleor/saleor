@@ -9567,6 +9567,19 @@ type Mutation {
     token: UUID
   ): CheckoutLanguageCodeUpdate
 
+  """
+  Note: this feature is in a preview state and can be subject to changes at later point. Create new order from existing checkout.
+  """
+  orderFromCheckoutCreate(
+    """
+    Determines if checkout should be removed after creating an order.Default true.
+    """
+    clearCheckout: Boolean = true
+
+    """ID of a checkout that will be converted to an order."""
+    id: ID!
+  ): OrderFromCheckoutCreate
+
   """Creates new channel."""
   channelCreate(
     """Fields required to create channel."""
@@ -14250,6 +14263,52 @@ type CheckoutLanguageCodeUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+"""
+Note: this feature is in a preview state and can be subject to changes at later point. Create new order from existing checkout.
+"""
+type OrderFromCheckoutCreate {
+  """Placed order."""
+  order: Order
+  errors: [OrderFromCheckoutCreateError!]!
+}
+
+type OrderFromCheckoutCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderFromCheckoutCreateErrorCode!
+
+  """List of varint IDs which causes the error."""
+  variants: [ID!]
+
+  """List of line Ids which cause the error."""
+  lines: [ID!]
+}
+
+"""An enumeration."""
+enum OrderFromCheckoutCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  CHANNEL_INACTIVE
+  INSUFFICIENT_STOCK
+  VOUCHER_NOT_APPLICABLE
+  GIFT_CARD_NOT_APPLICABLE
+  TAX_ERROR
+  SHIPPING_METHOD_NOT_SET
+  BILLING_ADDRESS_NOT_SET
+  SHIPPING_ADDRESS_NOT_SET
+  INVALID_SHIPPING_METHOD
+  NO_LINES
+  EMAIL_NOT_SET
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 """Creates new channel."""
