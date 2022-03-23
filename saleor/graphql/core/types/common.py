@@ -153,7 +153,7 @@ class OrderFromCheckoutCreateError(Error):
     )
     variants = graphene.List(
         graphene.NonNull(graphene.ID),
-        description="List of varint IDs which causes the error.",
+        description="List of variant IDs which causes the error.",
         required=False,
     )
     lines = graphene.List(
