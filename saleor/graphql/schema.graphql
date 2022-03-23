@@ -3326,9 +3326,9 @@ input AttributeFilterInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   availableInGrid: Boolean
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   search: String
-  ids: [ID]
+  ids: [ID!]
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
@@ -4196,20 +4196,20 @@ type Collection implements Node & ObjectWithMetadata {
 
 input ProductFilterInput {
   isPublished: Boolean
-  collections: [ID]
-  categories: [ID]
+  collections: [ID!]
+  categories: [ID!]
   hasCategory: Boolean
-  attributes: [AttributeInput]
+  attributes: [AttributeInput!]
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   updatedAt: DateTimeRangeInput
-  productTypes: [ID]
+  productTypes: [ID!]
   giftCard: Boolean
-  ids: [ID]
+  ids: [ID!]
   hasPreorderedVariants: Boolean
 
   """
@@ -4402,7 +4402,7 @@ type WarehouseCountableEdge {
 input WarehouseFilterInput {
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
   search: String
-  ids: [ID]
+  ids: [ID!]
   isPrivate: Boolean
 }
 
@@ -6663,7 +6663,7 @@ enum TimePeriodTypeEnum {
 
 input ShippingZoneFilterInput {
   search: String
-  channels: [ID]
+  channels: [ID!]
 }
 
 type DigitalContentCountableConnection {
@@ -6685,8 +6685,8 @@ type DigitalContentCountableEdge {
 
 input CategoryFilterInput {
   search: String
-  metadata: [MetadataFilter]
-  ids: [ID]
+  metadata: [MetadataFilter!]
+  ids: [ID!]
 }
 
 input CategorySortingInput {
@@ -6718,8 +6718,8 @@ enum CategorySortField {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
-  metadata: [MetadataFilter]
-  ids: [ID]
+  metadata: [MetadataFilter!]
+  ids: [ID!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6767,9 +6767,9 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
-  ids: [ID]
+  ids: [ID!]
 }
 
 enum ProductTypeConfigurable {
@@ -6803,8 +6803,8 @@ enum ProductTypeSortField {
 
 input ProductVariantFilterInput {
   search: String
-  sku: [String]
-  metadata: [MetadataFilter]
+  sku: [String!]
+  metadata: [MetadataFilter!]
   isPreorder: Boolean
   updatedAt: DateTimeRangeInput
 }
@@ -6840,7 +6840,7 @@ type PaymentCountableEdge {
 }
 
 input PaymentFilterInput {
-  checkouts: [ID]
+  checkouts: [ID!]
 }
 
 type PageCountableConnection {
@@ -6887,9 +6887,9 @@ enum PageSortField {
 
 input PageFilterInput {
   search: String
-  metadata: [MetadataFilter]
-  pageTypes: [ID]
-  ids: [ID]
+  metadata: [MetadataFilter!]
+  pageTypes: [ID!]
+  ids: [ID!]
 }
 
 type PageTypeCountableConnection {
@@ -6986,17 +6986,17 @@ enum OrderSortField {
 }
 
 input OrderFilterInput {
-  paymentStatus: [PaymentChargeStatusEnum]
-  status: [OrderStatusFilter]
+  paymentStatus: [PaymentChargeStatusEnum!]
+  status: [OrderStatusFilter!]
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
-  channels: [ID]
+  metadata: [MetadataFilter!]
+  channels: [ID!]
   updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
   isPreorder: Boolean
-  ids: [ID]
+  ids: [ID!]
   giftCardUsed: Boolean
   giftCardBought: Boolean
 }
@@ -7015,8 +7015,8 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
-  channels: [ID]
+  metadata: [MetadataFilter!]
+  channels: [ID!]
 }
 
 type MenuCountableConnection {
@@ -7054,8 +7054,8 @@ enum MenuSortField {
 
 input MenuFilterInput {
   search: String
-  slug: [String]
-  metadata: [MetadataFilter]
+  slug: [String!]
+  metadata: [MetadataFilter!]
 }
 
 type MenuItemCountableConnection {
@@ -7090,7 +7090,7 @@ enum MenuItemsSortField {
 
 input MenuItemFilterInput {
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
 }
 
 input GiftCardSortingInput {
@@ -7114,10 +7114,10 @@ enum GiftCardSortField {
 
 input GiftCardFilterInput {
   isActive: Boolean
-  metadata: [MetadataFilter]
-  tags: [String]
-  products: [ID]
-  usedBy: [ID]
+  metadata: [MetadataFilter!]
+  tags: [String!]
+  products: [ID!]
+  usedBy: [ID!]
   used: Boolean
   currency: String
   currentBalance: PriceRangeInput
@@ -7269,11 +7269,11 @@ type SaleCountableEdge {
 }
 
 input SaleFilterInput {
-  status: [DiscountStatusEnum]
+  status: [DiscountStatusEnum!]
   saleType: DiscountValueTypeEnum
   started: DateTimeRangeInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   updatedAt: DateTimeRangeInput
 }
 
@@ -7339,12 +7339,12 @@ type VoucherCountableEdge {
 }
 
 input VoucherFilterInput {
-  status: [DiscountStatusEnum]
+  status: [DiscountStatusEnum!]
   timesUsed: IntRangeInput
-  discountType: [VoucherDiscountType]
+  discountType: [VoucherDiscountType!]
   started: DateTimeRangeInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
 }
 
 enum VoucherDiscountType {
@@ -7527,8 +7527,8 @@ input CheckoutFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
-  channels: [ID]
+  metadata: [MetadataFilter!]
+  channels: [ID!]
 }
 
 type CheckoutLineCountableConnection {
@@ -7663,7 +7663,7 @@ type AppExtensionCountableEdge {
 }
 
 input AppExtensionFilterInput {
-  mount: [AppExtensionMountEnum]
+  mount: [AppExtensionMountEnum!]
   target: AppExtensionTargetEnum
 }
 
@@ -7714,7 +7714,7 @@ input CustomerFilterInput {
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   updatedAt: DateTimeRangeInput
 }
 
@@ -7765,7 +7765,7 @@ type GroupCountableEdge {
 
 input PermissionGroupFilterInput {
   search: String
-  ids: [ID]
+  ids: [ID!]
 }
 
 input PermissionGroupSortingInput {
@@ -7784,7 +7784,7 @@ enum PermissionGroupSortField {
 input StaffUserInput {
   status: StaffMemberStatus
   search: String
-  ids: [ID]
+  ids: [ID!]
 }
 
 enum StaffMemberStatus {

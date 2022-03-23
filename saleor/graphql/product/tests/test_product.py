@@ -3531,7 +3531,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_user(
     attr_value = product_attr.values.first()
 
     query = """
-    query Products($attributesFilter: [AttributeInput], $channel: String) {
+    query Products($attributesFilter: [AttributeInput!], $channel: String) {
         products(
             first: 5,
             filter: {attributes: $attributesFilter},
@@ -3574,7 +3574,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_staff(
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     query = """
-    query Products($attributesFilter: [AttributeInput], $channel: String) {
+    query Products($attributesFilter: [AttributeInput!], $channel: String) {
         products(
             first: 5,
             filter: {attributes: $attributesFilter},
