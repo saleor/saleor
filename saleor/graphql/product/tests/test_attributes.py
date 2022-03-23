@@ -588,7 +588,7 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
 
 PRODUCT_ASSIGN_ATTR_UPDATE_QUERY = """
     mutation assign(
-      $productTypeId: ID!, $operations: [ProductAttributeAssignmentUpdateInput]!
+      $productTypeId: ID!, $operations: [ProductAttributeAssignmentUpdateInput!]!
     ) {
       productAttributeAssignmentUpdate(
         productTypeId: $productTypeId, operations: $operations
