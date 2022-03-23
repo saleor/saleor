@@ -14867,7 +14867,7 @@ input CheckoutLineInput {
   variantId: ID!
 
   """
-  Custom price of the item. Can be set only by apps with handle checkouts permission. When the line with the same variant will be provided multiple times, the last price will be used.
+  New in Saleor 3.1. Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   price: PositiveDecimal
 }
