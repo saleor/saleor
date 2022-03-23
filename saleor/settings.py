@@ -578,6 +578,7 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     """
     sentry_sdk.init(dsn, **sentry_opts)
     ignore_logger("graphql.execution.utils")
+    ignore_logger("graphql.execution.executor")
 
 
 GRAPHENE = {
