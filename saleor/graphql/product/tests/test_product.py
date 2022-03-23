@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.utils.functional import SimpleLazyObject
 from django.utils.html import strip_tags
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -7640,7 +7641,11 @@ def test_delete_product_trigger_webhook(
         product, variants_id, staff_api_client.user
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_DELETED,
+        [any_webhook],
+        product,
+        SimpleLazyObject(lambda: staff_api_client.user),
     )
     mocked_recalculate_orders_task.assert_not_called()
 

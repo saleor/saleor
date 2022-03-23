@@ -8,6 +8,7 @@ from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
 from graphql import get_default_backend, parse
 from graphql.error import GraphQLSyntaxError
+from graphql.execution.middleware import MiddlewareManager
 from promise import Promise
 
 from ..app.models import App
@@ -71,10 +72,10 @@ def generate_payload_from_subscription(
         schema,
         ast,
     )
-
     graphql_middleware = graphene_settings.MIDDLEWARE
-    graphql_middleware = list(instantiate_middleware(graphql_middleware))
-
+    graphql_middleware = MiddlewareManager(
+        instantiate_middleware(graphql_middleware), wrap_in_promise=False
+    )
     app_id = app.pk if app else None
 
     context.app = app  # type: ignore

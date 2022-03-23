@@ -27,6 +27,7 @@ from ...webhook.event_types import (
     WebhookEventSyncType,
 )
 from ...webhook.models import Webhook
+from ...webhook.payloads import generate_meta, generate_requestor
 from ...webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_context,
@@ -82,7 +83,6 @@ def _get_webhooks_for_event(event_type, webhooks=None):
         is_active=True,
         app__is_active=True,
         events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
-        subscription_query__isnull=True,
         **permissions,
     )
     webhooks = webhooks.select_related("app").prefetch_related(
@@ -91,8 +91,8 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
-def create_payloads_for_subscriptions(
-    event_type, subscribable_object
+def create_deliveries_for_subscriptions(
+    event_type, subscribable_object, webhooks, meta=None
 ) -> List[EventDelivery]:
     """Create webhook payload based on subscription query.
 
@@ -108,16 +108,11 @@ def create_payloads_for_subscriptions(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
         return []
-    webhooks_with_subscriptions = Webhook.objects.select_related("app").filter(
-        is_active=True,
-        subscription_query__isnull=False,
-        app__is_active=True,
-    )
 
     context = initialize_context()
     event_payloads = []
     event_deliveries = []
-    for webhook in webhooks_with_subscriptions:
+    for webhook in webhooks:
         data = generate_payload_from_subscription(
             event_type=event_type,
             subscribable_object=subscribable_object,
@@ -130,7 +125,7 @@ def create_payloads_for_subscriptions(
             continue
         if len(data) == 1 and "__typename" in data:
             continue
-        event_payload = EventPayload(payload=json.dumps({"payload": data, "meta": {}}))
+        event_payload = EventPayload(payload=json.dumps([{**data, "meta": meta}]))
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -141,25 +136,54 @@ def create_payloads_for_subscriptions(
             )
         )
 
-    # FIXME we can combine creation of the event deliveries from old webhooks and the
-    #  new one
     EventPayload.objects.bulk_create(event_payloads)
     return EventDelivery.objects.bulk_create(event_deliveries)
 
 
-def trigger_webhooks_async(data, event_type, webhooks, subscribable_object=None):
-    payload = EventPayload.objects.create(payload=data)
-    deliveries = create_event_delivery_list_for_webhooks(
-        webhooks=webhooks,
-        event_payload=payload,
-        event_type=event_type,
-    )
-    subscription_deliveries = create_payloads_for_subscriptions(
-        event_type=event_type, subscribable_object=subscribable_object
-    )
-    deliveries.extend(subscription_deliveries)
+def trigger_webhooks_async(
+    data, event_type, webhooks, subscribable_object=None, requestor=None
+):
+    """Trigger async webhooks - both regular and subscription.
+
+    :param data: used as payload in regular webhooks.
+    :param event_type: used in both webhook types as event type.
+    :param webhooks: used in both webhook types, queryset of async webhooks.
+    :param subscribable_object: subscribable object used in subscription webhooks.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
+    """
+    regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
+    deliveries = []
+    if regular_webhooks:
+        payload = EventPayload.objects.create(payload=data)
+        deliveries.extend(
+            create_event_delivery_list_for_webhooks(
+                webhooks=webhooks,
+                event_payload=payload,
+                event_type=event_type,
+            )
+        )
+    if subscription_webhooks:
+        meta = {}
+        if requestor:
+            meta = generate_meta(requestor_data=generate_requestor(requestor))
+        deliveries.extend(
+            create_deliveries_for_subscriptions(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                webhooks=subscription_webhooks,
+                meta=meta,
+            )
+        )
+
     for delivery in deliveries:
         send_webhook_request_async.delay(delivery.id)
+
+
+def group_webhooks_by_subscription(webhooks):
+    subscription = [webhook for webhook in webhooks if webhook.subscription_query]
+    regular = [webhook for webhook in webhooks if not webhook.subscription_query]
+
+    return regular, subscription
 
 
 def trigger_webhook_sync(

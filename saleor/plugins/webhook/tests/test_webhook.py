@@ -131,7 +131,11 @@ def test_order_created(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -152,7 +156,11 @@ def test_order_confirmed(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_CONFIRMED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CONFIRMED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -173,7 +181,11 @@ def test_draft_order_created(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.DRAFT_ORDER_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.DRAFT_ORDER_CREATED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -194,7 +206,11 @@ def test_draft_order_deleted(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.DRAFT_ORDER_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.DRAFT_ORDER_DELETED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -215,7 +231,11 @@ def test_draft_order_updated(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.DRAFT_ORDER_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -236,7 +256,11 @@ def test_customer_created(
     expected_data = generate_customer_payload(customer_user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CUSTOMER_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.CUSTOMER_CREATED,
+        [any_webhook],
+        customer_user,
+        None,
     )
 
 
@@ -257,7 +281,11 @@ def test_customer_updated(
     expected_data = generate_customer_payload(customer_user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CUSTOMER_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.CUSTOMER_UPDATED,
+        [any_webhook],
+        customer_user,
+        None,
     )
 
 
@@ -278,7 +306,11 @@ def test_order_fully_paid(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_FULLY_PAID, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_FULLY_PAID,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -299,7 +331,11 @@ def test_collection_created(
     expected_data = generate_collection_payload(collection)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.COLLECTION_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.COLLECTION_CREATED,
+        [any_webhook],
+        collection,
+        None,
     )
 
 
@@ -320,7 +356,11 @@ def test_collection_updated(
     expected_data = generate_collection_payload(collection)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.COLLECTION_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.COLLECTION_UPDATED,
+        [any_webhook],
+        collection,
+        None,
     )
 
 
@@ -341,7 +381,11 @@ def test_collection_deleted(
     expected_data = generate_collection_payload(collection)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.COLLECTION_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.COLLECTION_DELETED,
+        [any_webhook],
+        collection,
+        None,
     )
 
 
@@ -362,7 +406,11 @@ def test_product_created(
     expected_data = generate_product_payload(product)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_CREATED,
+        [any_webhook],
+        product,
+        None,
     )
 
 
@@ -383,7 +431,11 @@ def test_product_updated(
     expected_data = generate_product_payload(product)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_UPDATED,
+        [any_webhook],
+        product,
+        None,
     )
 
 
@@ -419,7 +471,11 @@ def test_product_deleted(
     assert variant_global_ids == expected_data_dict["variants"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_DELETED,
+        [any_webhook],
+        product,
+        None,
     )
 
 
@@ -440,7 +496,11 @@ def test_product_variant_created(
     expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_VARIANT_CREATED,
+        [any_webhook],
+        variant,
+        None,
     )
 
 
@@ -461,7 +521,11 @@ def test_product_variant_updated(
     expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED,
+        [any_webhook],
+        variant,
+        None,
     )
 
 
@@ -482,7 +546,11 @@ def test_product_variant_deleted(
     expected_data = generate_product_variant_payload([variant])
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_VARIANT_DELETED,
+        [any_webhook],
+        variant,
+        None,
     )
 
 
@@ -496,16 +564,19 @@ def test_product_variant_out_of_stock(
     settings,
     variant_with_many_stocks,
 ):
+    variant = variant_with_many_stocks.stocks.first()
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    manager.product_variant_out_of_stock(variant_with_many_stocks.stocks.first())
+    manager.product_variant_out_of_stock(variant)
 
-    expected_data = generate_product_variant_with_stock_payload(
-        [variant_with_many_stocks.stocks.first()]
-    )
+    expected_data = generate_product_variant_with_stock_payload([variant])
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK,
+        [any_webhook],
+        variant,
+        None,
     )
 
 
@@ -519,18 +590,19 @@ def test_product_variant_back_in_stock(
     settings,
     variant_with_many_stocks,
 ):
+    variant = variant_with_many_stocks.stocks.first()
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    manager.product_variant_back_in_stock(variant_with_many_stocks.stocks.first())
+    manager.product_variant_back_in_stock(variant)
 
-    expected_data = generate_product_variant_with_stock_payload(
-        [variant_with_many_stocks.stocks.first()]
-    )
+    expected_data = generate_product_variant_with_stock_payload([variant])
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,
         WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
         [any_webhook],
+        variant,
+        None,
     )
 
 
@@ -551,7 +623,11 @@ def test_order_updated(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_UPDATED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -572,7 +648,11 @@ def test_order_cancelled(
     expected_data = generate_order_payload(order_with_lines)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.ORDER_CANCELLED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.ORDER_CANCELLED,
+        [any_webhook],
+        order_with_lines,
+        None,
     )
 
 
@@ -593,7 +673,11 @@ def test_checkout_created(
     expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CHECKOUT_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.CHECKOUT_CREATED,
+        [any_webhook],
+        checkout_with_items,
+        None,
     )
 
 
@@ -614,7 +698,11 @@ def test_checkout_updated(
     expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.CHECKOUT_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.CHECKOUT_UPDATED,
+        [any_webhook],
+        checkout_with_items,
+        None,
     )
 
 
@@ -631,9 +719,7 @@ def test_page_created(
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data,
-        WebhookEventAsyncType.PAGE_CREATED,
-        [any_webhook],
+        expected_data, WebhookEventAsyncType.PAGE_CREATED, [any_webhook], page, None
     )
 
 
@@ -650,7 +736,7 @@ def test_page_updated(
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_UPDATED, [any_webhook]
+        expected_data, WebhookEventAsyncType.PAGE_UPDATED, [any_webhook], page, None
     )
 
 
@@ -670,7 +756,7 @@ def test_page_deleted(
     expected_data = generate_page_payload(page)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_DELETED, [any_webhook]
+        expected_data, WebhookEventAsyncType.PAGE_DELETED, [any_webhook], page, None
     )
 
 
@@ -692,7 +778,11 @@ def test_invoice_request(
     expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.INVOICE_REQUESTED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.INVOICE_REQUESTED,
+        [any_webhook],
+        invoice,
+        None,
     )
 
 
@@ -714,7 +804,11 @@ def test_invoice_delete(
     expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.INVOICE_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.INVOICE_DELETED,
+        [any_webhook],
+        invoice,
+        None,
     )
 
 
@@ -736,7 +830,7 @@ def test_invoice_sent(
     expected_data = generate_invoice_payload(invoice)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.INVOICE_SENT, [any_webhook]
+        expected_data, WebhookEventAsyncType.INVOICE_SENT, [any_webhook], invoice, None
     )
 
 
@@ -842,7 +936,7 @@ def test_sale_created(
     manager.sale_created(sale, current_catalogue=sale_catalogue_info)
     expected_data = generate_sale_payload(sale, current_catalogue=sale_catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_CREATED, [any_webhook]
+        expected_data, WebhookEventAsyncType.SALE_CREATED, [any_webhook], sale, None
     )
 
 
@@ -879,7 +973,7 @@ def test_sale_updated(
         previous_catalogue=previous_sale_catalogue_info,
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_UPDATED, [any_webhook]
+        expected_data, WebhookEventAsyncType.SALE_UPDATED, [any_webhook], sale, None
     )
 
 
@@ -898,7 +992,7 @@ def test_sale_deleted(
     manager.sale_deleted(sale, previous_catalogue=sale_catalogue_info)
     expected_data = generate_sale_payload(sale, previous_catalogue=sale_catalogue_info)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.SALE_DELETED, [any_webhook]
+        expected_data, WebhookEventAsyncType.SALE_DELETED, [any_webhook], sale, None
     )
 
 

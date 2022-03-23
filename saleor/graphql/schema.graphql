@@ -1088,6 +1088,10 @@ input CheckoutCreateInput {
   languageCode: LanguageCodeEnum
 }
 
+type CheckoutCreated {
+  checkout: Checkout
+}
+
 type CheckoutCustomerAttach {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -1247,6 +1251,10 @@ input CheckoutSortingInput {
   field: CheckoutSortField!
 }
 
+type CheckoutUpdated {
+  checkout: Checkout
+}
+
 type ChoiceValue {
   raw: String
   verbose: String
@@ -1337,10 +1345,18 @@ input CollectionCreateInput {
   products: [ID]
 }
 
+type CollectionCreated {
+  collection(channel: String): Collection
+}
+
 type CollectionDelete {
   collectionErrors: [CollectionError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CollectionError!]!
   collection: Collection
+}
+
+type CollectionDeleted {
+  collection(channel: String): Collection
 }
 
 type CollectionError {
@@ -1440,6 +1456,10 @@ type CollectionUpdate {
   collectionErrors: [CollectionError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CollectionError!]!
   collection: Collection
+}
+
+type CollectionUpdated {
+  collection(channel: String): Collection
 }
 
 type ConfigurationItem {
@@ -1769,6 +1789,10 @@ type CustomerCreate {
   user: User
 }
 
+type CustomerCreated {
+  user: User
+}
+
 type CustomerDelete {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
@@ -1826,6 +1850,10 @@ input CustomerInput {
 type CustomerUpdate {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
+  user: User
+}
+
+type CustomerUpdated {
   user: User
 }
 
@@ -2017,9 +2045,17 @@ input DraftOrderCreateInput {
   lines: [OrderLineCreateInput]
 }
 
+type DraftOrderCreated {
+  order: Order
+}
+
 type DraftOrderDelete {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+  order: Order
+}
+
+type DraftOrderDeleted {
   order: Order
 }
 
@@ -2048,7 +2084,11 @@ type DraftOrderUpdate {
   order: Order
 }
 
-union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | ProductCreated | ProductUpdated | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock
+type DraftOrderUpdated {
+  order: Order
+}
+
+union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted
 
 type EventDelivery implements Node {
   id: ID!
@@ -2349,6 +2389,14 @@ type FulfillmentCancel {
 
 input FulfillmentCancelInput {
   warehouseId: ID
+}
+
+type FulfillmentCanceled {
+  fulfillment: Fulfillment
+}
+
+type FulfillmentCreated {
+  fulfillment: Fulfillment
 }
 
 type FulfillmentLine implements Node {
@@ -2739,6 +2787,10 @@ type InvoiceDelete {
   invoice: Invoice
 }
 
+type InvoiceDeleted {
+  invoice: Invoice
+}
+
 type InvoiceError {
   field: String
   message: String
@@ -2769,9 +2821,17 @@ type InvoiceRequestDelete {
   invoice: Invoice
 }
 
+type InvoiceRequested {
+  invoice: Invoice
+}
+
 type InvoiceSendNotification {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+type InvoiceSent {
   invoice: Invoice
 }
 
@@ -4285,6 +4345,10 @@ type OrderCancel {
   errors: [OrderError!]!
 }
 
+type OrderCancelled {
+  order: Order
+}
+
 type OrderCapture {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -4561,6 +4625,10 @@ input OrderFulfillLineInput {
 input OrderFulfillStockInput {
   quantity: Int!
   warehouse: ID!
+}
+
+type OrderFulfilled {
+  order: Order
 }
 
 type OrderFullyPaid {
@@ -4854,9 +4922,17 @@ input PageCreateInput {
   pageType: ID!
 }
 
+type PageCreated {
+  page: Page
+}
+
 type PageDelete {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
+  page: Page
+}
+
+type PageDeleted {
   page: Page
 }
 
@@ -5038,6 +5114,10 @@ input PageTypeUpdateInput {
 type PageUpdate {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
+  page: Page
+}
+
+type PageUpdated {
   page: Page
 }
 
@@ -5547,12 +5627,18 @@ input ProductCreateInput {
 
 type ProductCreated {
   product(channel: String): Product
+  category: Category
 }
 
 type ProductDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   product: Product
+}
+
+type ProductDeleted {
+  product(channel: String): Product
+  category: Category
 }
 
 type ProductError {
@@ -5884,6 +5970,7 @@ type ProductUpdate {
 
 type ProductUpdated {
   product(channel: String): Product
+  category: Category
 }
 
 type ProductVariant implements Node & ObjectWithMetadata {
@@ -6001,6 +6088,10 @@ type ProductVariantDelete {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productVariant: ProductVariant
+}
+
+type ProductVariantDeleted {
+  productVariant(channel: String): ProductVariant
 }
 
 input ProductVariantFilterInput {
@@ -6288,10 +6379,18 @@ type SaleCreate {
   sale: Sale
 }
 
+type SaleCreated {
+  sale(channel: String): Sale
+}
+
 type SaleDelete {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
+}
+
+type SaleDeleted {
+  sale(channel: String): Sale
 }
 
 input SaleFilterInput {
@@ -6363,6 +6462,10 @@ type SaleUpdate {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
+}
+
+type SaleUpdated {
+  sale(channel: String): Sale
 }
 
 type SelectedAttribute {
