@@ -90,7 +90,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
-## Other
 #### Saleor Apps
 
 - Add API for webhook payloads and deliveries - #8227 by @jakubkuc
