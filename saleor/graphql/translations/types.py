@@ -402,8 +402,8 @@ class PageTranslatableContent(ModelObjectType):
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
         description=(
-            "A static page that can be manually added by a shop operator ",
-            "through the dashboard.",
+            "A static page that can be manually added by a shop operator "
+            "through the dashboard."
         ),
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."

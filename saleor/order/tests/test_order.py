@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
@@ -39,7 +39,6 @@ from ..notifications import (
     get_default_fulfillment_payload,
     send_fulfillment_confirmation_to_customer,
 )
-from ..templatetags.order_lines import display_translated_order_line_name
 from ..utils import (
     add_variant_to_order,
     change_order_line_quantity,
@@ -787,35 +786,6 @@ def test_validate_voucher_in_order_without_voucher(
 
     validate_voucher_in_order(order_with_lines)
     mock_validate_voucher.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    "product_name, variant_name, translated_product_name, translated_variant_name,"
-    "expected_display_name",
-    [
-        ("product", "variant", "", "", "product (variant)"),
-        ("product", "", "", "", "product"),
-        ("product", "", "productPL", "", "productPL"),
-        ("product", "variant", "productPL", "", "productPL (variant)"),
-        ("product", "variant", "productPL", "variantPl", "productPL (variantPl)"),
-        ("product", "variant", "", "variantPl", "product (variantPl)"),
-    ],
-)
-def test_display_translated_order_line_name(
-    product_name,
-    variant_name,
-    translated_product_name,
-    translated_variant_name,
-    expected_display_name,
-):
-    order_line = MagicMock(
-        product_name=product_name,
-        variant_name=variant_name,
-        translated_product_name=translated_product_name,
-        translated_variant_name=translated_variant_name,
-    )
-    display_name = display_translated_order_line_name(order_line)
-    assert display_name == expected_display_name
 
 
 @pytest.mark.parametrize(

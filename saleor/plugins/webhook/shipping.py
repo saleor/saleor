@@ -3,11 +3,13 @@ import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
-import graphene
 from django.core.cache import cache
 from django.db.models import QuerySet
+from graphql import GraphQLError
 from prices import Money
 
+from ...graphql.core.utils import from_global_id_or_error
+from ...graphql.shipping.types import ShippingMethod
 from ...shipping.interface import ShippingMethodData
 from ..base_plugin import ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
@@ -127,18 +129,14 @@ def get_excluded_shipping_methods_from_response(
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
-            raw_id = method_data["id"]
-            typename, _id = graphene.Node.from_global_id(raw_id)
-            if typename == APP_ID_PREFIX:
-                method_id = raw_id
-            elif typename == "ShippingMethod":
-                method_id = _id
-            else:
+            type_name, method_id = from_global_id_or_error(method_data["id"])
+            if type_name not in (APP_ID_PREFIX, str(ShippingMethod)):
                 logger.warning(
-                    "Invalid type received. Expected ShippingMethod, got %s", typename
+                    "Invalid type received. Expected ShippingMethod, got %s", type_name
                 )
                 continue
-        except (KeyError, ValueError, TypeError) as e:
+
+        except (KeyError, ValueError, TypeError, GraphQLError) as e:
             logger.warning("Malformed ShippingMethod id was provided: %s", e)
             continue
         excluded_methods.append(

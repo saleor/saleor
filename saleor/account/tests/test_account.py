@@ -5,13 +5,11 @@ import i18naddress
 import pytest
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
-from django.template import Context, Template
 from django_countries.fields import Country
 
 from ...order.models import Order
 from .. import forms, i18n
 from ..models import User
-from ..templatetags.i18n_address_tags import format_address
 from ..validators import validate_possible_number
 
 
@@ -164,34 +162,6 @@ def test_validate_possible_number(input_data, is_valid):
             validate_possible_number(**input_data)
     else:
         validate_possible_number(**input_data)
-
-
-def test_format_address(address):
-    formatted_address = format_address(address)
-    address_html = "<br>".join(map(str, formatted_address["address_lines"]))
-    context = Context({"address": address})
-    tpl = Template("{% load i18n_address_tags %}" "{% format_address address %}")
-    rendered_html = tpl.render(context)
-    assert address_html in rendered_html
-    assert "inline-address" not in rendered_html
-    assert str(address.phone) in rendered_html
-
-
-def test_format_address_all_options(address):
-    formatted_address = format_address(
-        address, include_phone=False, inline=True, latin=True
-    )
-    address_html = ", ".join(map(str, formatted_address["address_lines"]))
-    context = Context({"address": address})
-    tpl = Template(
-        r"{% load i18n_address_tags %}"
-        r"{% format_address address include_phone=False inline=True"
-        r" latin=True %}"
-    )
-    rendered_html = tpl.render(context)
-    assert address_html in rendered_html
-    assert "inline-address" in rendered_html
-    assert str(address.phone) not in rendered_html
 
 
 def test_address_as_data(address):

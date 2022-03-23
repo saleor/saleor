@@ -817,16 +817,13 @@ def test_recalculate_checkout_discount_with_sale(
 
     recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
-    assert (
-        calculations.checkout_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=checkout.shipping_address,
-            discounts=[discount_info],
-        ).gross
-        == Money("13.50", "USD")
-    )
+    assert calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+        discounts=[discount_info],
+    ).gross == Money("13.50", "USD")
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
@@ -872,15 +869,12 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
-    channel_listing.price = (
-        calculations.checkout_subtotal(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=checkout.shipping_address,
-        ).gross
-        + Money("10.00", "USD")
-    )
+    channel_listing.price = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    ).gross + Money("10.00", "USD")
     channel_listing.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
@@ -914,15 +908,12 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
-    channel_listing.price = (
-        calculations.checkout_subtotal(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=checkout.shipping_address,
-        ).gross
-        - Money("1.00", "USD")
-    )
+    channel_listing.price = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    ).gross - Money("1.00", "USD")
     channel_listing.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)

@@ -1,11 +1,12 @@
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import graphene
 
-from ..attribute import AttributeInputType
+from ..attribute import AttributeEntityType, AttributeInputType
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
+from ..discount import DiscountInfo
 from ..product.models import Product
 
 if TYPE_CHECKING:
@@ -14,7 +15,9 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
+def serialize_checkout_lines(
+    checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
+) -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
@@ -24,7 +27,9 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
         channel_listing = line_info.channel_listing
         collections = line_info.collections
         product = variant.product
-        base_price = variant.get_price(product, collections, channel, channel_listing)
+        base_price = variant.get_price(
+            product, collections, channel, channel_listing, discounts or []
+        )
         data.append(
             {
                 "sku": variant.sku,
@@ -46,11 +51,16 @@ def serialize_product_or_variant_attributes(
 ) -> List[Dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_slug):
+    def _prepare_reference(attribute, attr_value):
         if attribute.input_type != AttributeInputType.REFERENCE:
             return
+        if attribute.entity_type == AttributeEntityType.PAGE:
+            reference_pk = attr_value.reference_page_id
+        elif attribute.entity_type == AttributeEntityType.PRODUCT:
+            reference_pk = attr_value.reference_product_id
+        else:
+            return None
 
-        reference_pk = attr_slug.split("_")[1]
         reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
         return reference_id
 
@@ -79,7 +89,7 @@ def serialize_product_or_variant_attributes(
                 "boolean": attr_value.boolean,
                 "date_time": attr_value.date_time,
                 "date": attr_value.date_time,
-                "reference": _prepare_reference(attribute, attr_slug),
+                "reference": _prepare_reference(attribute, attr_value),
                 "file": None,
             }
 

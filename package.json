@@ -2,23 +2,22 @@
   "name": "saleor",
   "version": "3.1.0-a.0",
   "engines": {
-    "node": ">=14 <15",
-    "npm": ">=6.11.0 <7"
+    "node": ">=16 <17",
+    "npm": ">=7"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/mirumee/saleor.git"
+    "url": "git://github.com/saleor/saleor.git"
   },
-  "author": "Mirumee Software",
+  "author": "Saleor Commerce",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/mirumee/saleor/issues"
+    "url": "https://github.com/saleor/saleor/issues"
   },
   "homepage": "http://saleor.io/",
-  "dependencies": {},
   "devDependencies": {
-    "@release-it/bumper": "^2.0.0",
-    "release-it": "^14.5.0"
+    "@release-it/bumper": "^3.0.1",
+    "release-it": "^14.12.5"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",

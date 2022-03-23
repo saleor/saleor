@@ -6,16 +6,50 @@ All notable, unreleased changes to this project will be documented in this file.
 # Unreleased
 
 ### Breaking changes
-- Require manage orders for fetching `user.orders` - #9128 by @IKarbowiak
+
+### Other changes
+
+- Add `CREATED_AT` and `LAST_MODIFIED_AT` sorting to some GraphQL fields - #9245 by @rafalp
+  - Added `LAST_MODIFIED_AT` sort option to `ExportFileSortingInput`
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `OrderSortingInput` type
+  - Added `LAST_MODIFIED_AT` and `PUBLISHED_AT` sort options to `ProductOrder` type
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `SaleSortingInput` type
+  - Added `CREATED_AT` and `LAST_MODIFIED_AT` sort options to `UserSortingInput` type
+  - Added `ProductVariantSortingInput` type with `LAST_MODIFIED_AT` sort option
+  - Deprecated `UPDATED_AT` sort option on `ExportFileSortingInput`
+  - Deprecated `LAST_MODIFIED` and `PUBLICATION_DATE` sort options on `ProductOrder` type
+  - Deprecated `CREATION_DATE` sort option on `OrderSortingInput` type
+- Drop wishlist models - #9313 by @maarcingebala
+
+# 3.1.2
+
+### Breaking changes
+- Require `MANAGE_ORDERS` permission in `User.orders` query (#9128) (521dfd639)
   - only staff with `manage orders` and can fetch customer orders
   - the customer can fetch his own orders, except drafts
 
 ### Other changes
-- Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification - #9137 by @rafalp
-- Add possibility for plugins to execute code before each mutation - #9193 by @NyanKiyoshi
-- Add support for hiding plugins - #9219 by @NyanKiyoshi
-- Remove `graphene-federation` dependency - #9184 by @rafalp
-- Override graphene.JSONString to have more meaningful error message #9171 by @L3str4nge
+- Fix failing `on_failure` export tasks method (#9160) (efab6db9d)
+- Fix mutations breaks on partially invalid IDs (#9227) (e3b6df2eb)
+- Fix voucher migrations (#9249) (3c565ba0c)
+- List the missing permissions where possible (#9250) (f8df1aa0d)
+- Invalidate stocks dataloader (#9188) (e2366a5e6)
+- Override `graphene.JSONString` to have more meaningful message in error message (#9171) (2a0c5a71a)
+- Small schema fixes (#9224) (932e64808)
+- Support Braintree subaccounts (#9191) (035bf705c)
+- Split checkout mutations into separate files (#9266) (1d37b0aa3)
+
+
+# 3.1.1
+
+- Drop product channel listings when removing last available variant (#9232) (b92d3b686)
+- Handle product media deletion in a Celery task (#9187) (2b10fc236)
+- Filter Customer/Order/Sale/Product/ProductVariant by datetime of last modification (#9137) (55a845c7b)
+- Add support for hiding plugins (#9219) (bc9405307)
+- Fix missing update of payment methods when using stored payment method (#9158) (ee4bf520b)
+- Fix invalid paths in VCR cassettes (#9236) (f6c268d2e)
+- Fix Razorpay comment to be inline with code (#9238) (de417af24)
+- Remove `graphene-federation` dependency (#9184) (dd43364f7)
 
 
 # 3.1.0
@@ -81,6 +115,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError in `CheckoutAddPromoCode`, `CheckoutPaymentCreate` when product in the checkout is
 unavailable - #8978 by @IKarbowiak
 - Remove `graphene-django` dependency - #9170 by @rafalp
+- Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
+- Fix failing `on_failure` export tasks method - #9160 by @IKarbowiak
 
 
 # 3.0.0

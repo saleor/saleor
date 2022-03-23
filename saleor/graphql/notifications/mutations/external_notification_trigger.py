@@ -44,7 +44,7 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
 class ExternalNotificationTrigger(BaseMutation):
     class Arguments:
         input = ExternalNotificationTriggerInput(
-            required=True, description="Input for External Notification Trigger. "
+            required=True, description="Input for External Notification Trigger."
         )
         plugin_id = graphene.String(description="The ID of notification plugin.")
         channel = graphene.String(

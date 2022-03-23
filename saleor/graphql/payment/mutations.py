@@ -17,7 +17,7 @@ from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
-from ..checkout.mutations import get_checkout_by_token
+from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import to_enum

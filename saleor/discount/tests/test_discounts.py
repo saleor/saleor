@@ -18,7 +18,6 @@ from ..models import (
     VoucherChannelListing,
     VoucherCustomer,
 )
-from ..templatetags.voucher import discount_as_negative
 from ..utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
@@ -725,24 +724,6 @@ def test_sale_active(current_date, start_date, end_date, is_active, channel_USD)
     )
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active
-
-
-def test_discount_as_negative():
-    discount = Money(10, "USD")
-    result = discount_as_negative(discount)
-    assert result == "-$10.00"
-
-
-def test_discount_as_negative_for_zero_value():
-    discount = Money(0, "USD")
-    result = discount_as_negative(discount)
-    assert result == "$0.00"
-
-
-def test_discount_as_negative_for_html():
-    discount = Money(10, "USD")
-    result = discount_as_negative(discount, True)
-    assert result == '-<span class="currency">$</span>10.00'
 
 
 def test_get_fixed_sale_discount(sale):

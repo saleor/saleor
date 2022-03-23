@@ -1,5 +1,6 @@
 import fnmatch
 import hashlib
+import importlib
 import json
 import logging
 import traceback
@@ -74,12 +75,30 @@ class GraphQLView(View):
         super().__init__()
         if backend is None:
             backend = get_default_backend()
+        if middleware is None:
+            if middleware := settings.GRAPHENE.get("MIDDLEWARE"):
+                middleware = [
+                    self.import_middleware(middleware_name)
+                    for middleware_name in middleware
+                ]
         self.schema = self.schema or schema
         if middleware is not None:
-            self.middleware = list()
+            self.middleware = list(instantiate_middleware(middleware))
         self.executor = executor
         self.root_value = root_value
         self.backend = backend
+
+    @staticmethod
+    def import_middleware(middleware_name):
+        try:
+            parts = middleware_name.split(".")
+            module_path, class_name = ".".join(parts[:-1]), parts[-1]
+            module = importlib.import_module(module_path)
+            return getattr(module, class_name)
+        except (ImportError, AttributeError):
+            raise ImportError(
+                "Cannot import '%s' graphene middleware!" % middleware_name
+            )
 
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.

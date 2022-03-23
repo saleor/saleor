@@ -16,9 +16,7 @@ class DigitalContentUrl(ModelObjectType):
     created = graphene.DateTime(required=True)
     download_num = graphene.Int(required=True)
     url = graphene.String(description="URL for digital content.")
-    token = graphene.Field(
-        UUID, description=("UUID of digital content."), required=True
-    )
+    token = graphene.Field(UUID, description="UUID of digital content.", required=True)
 
     class Meta:
         model = models.DigitalContentUrl

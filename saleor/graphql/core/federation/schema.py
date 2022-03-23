@@ -7,6 +7,7 @@ from graphene.utils.str_converters import to_snake_case
 from graphql import GraphQLArgument, GraphQLError, GraphQLField, GraphQLList
 
 from ...channel import ChannelContext
+from ...schema_printer import print_schema
 from .entities import federated_entities
 
 
@@ -135,7 +136,7 @@ def resolve_entities(_, info, *, representations):
 
 def create_service_sdl_resolver(schema):
     # Render schema to string
-    federated_schema_sdl = str(schema)
+    federated_schema_sdl = print_schema(schema)
 
     # Remove "schema { ... }"
     schema_start = federated_schema_sdl.find("schema {")

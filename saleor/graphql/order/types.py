@@ -398,7 +398,7 @@ class Fulfillment(ModelObjectType):
     warehouse = graphene.Field(
         Warehouse,
         required=False,
-        description=("Warehouse from fulfillment was fulfilled."),
+        description="Warehouse from fulfillment was fulfilled.",
     )
 
     class Meta:
@@ -757,16 +757,22 @@ class Order(ModelObjectType):
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
+        ),
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
+        ),
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use discounts field. ",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
+        ),
     )
 
     discounts = graphene.List(
@@ -1102,7 +1108,7 @@ class Order(ModelObjectType):
             return listing.then(calculate_price)
 
         shipping_method = ShippingMethodByIdLoader(info.context).load(
-            root.shipping_method_id
+            int(root.shipping_method_id)
         )
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
