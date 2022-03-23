@@ -96,35 +96,6 @@ def sort_by_id(dicts):
     return sorted(dicts, key=lambda d: d["id"])
 
 
-# @freeze_time()
-# @mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
-# @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
-# @pytest.mark.parametrize("taxes_included", [True, False])
-# def test_generate_order_payload(
-#     mocked_fulfillment_lines,
-#     mocked_order_lines,
-#     fulfilled_order,
-#     payment_txn_captured,
-#     customer_user,
-#     site_settings,
-#     taxes_included,
-# ):
-#     fulfillment_lines = '"fulfillment_lines"'
-#     mocked_fulfillment_lines.return_value = fulfillment_lines
-#     order_lines = '"order_lines"'
-#     mocked_order_lines.return_value = order_lines
-#
-#     site_settings.include_taxes_in_prices = taxes_included
-#     site_settings.save(update_fields=["include_taxes_in_prices"])
-#
-#     order = fulfilled_order
-#     payment = payment_txn_captured
-#
-#     payment.psp_reference = "123"
-#     payment.save(update_fields=["psp_reference"])
-# >>>>>>> upstream/taxes-by-sync-webhooks
-
-
 @pytest.fixture
 def payment_for_payload(payment_txn_captured):
     payment_txn_captured.psp_reference = "123"
@@ -288,6 +259,31 @@ def test_generate_order_payload(
         ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
+
+    assert sort_by_id(payload["discounts"]) == sort_by_id(
+        [
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
+                "type": discount_1.type,
+                "value_type": discount_1.value_type,
+                "value": ANY,
+                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
+                "name": discount_1.name,
+                "translated_name": discount_1.translated_name,
+                "reason": discount_1.reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
+                "type": discount_2.type,
+                "value_type": discount_2.value_type,
+                "value": ANY,
+                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
+                "name": discount_2.name,
+                "translated_name": discount_2.translated_name,
+                "reason": discount_2.reason,
+            },
+        ],
+    )
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
     mocked_order_lines.assert_called_once_with(order, ANY, ANY)
