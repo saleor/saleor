@@ -470,38 +470,17 @@ def test_fetch_order_prices_if_expired_prefetch_with_lines(
     assert all(line._state.fields_cache for line in order_lines)
 
 
-def test_fetch_order_prices_if_expired_price_quantization(
-    fetch_kwargs, order_with_lines
-):
-    # given
-    currency = order_with_lines.currency
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(**fetch_kwargs)
-
-    # then
-    assert order.total == quantize_price(order.total, currency)
-    assert order.undiscounted_total == quantize_price(
-        order.undiscounted_total, currency
-    )
-    assert order.shipping_price == quantize_price(order.shipping_price, currency)
-    for line in lines:
-        assert line.unit_price == quantize_price(line.unit_price, currency)
-        assert line.undiscounted_unit_price == quantize_price(
-            line.undiscounted_unit_price, currency
-        )
-        assert line.total_price == quantize_price(line.total_price, currency)
-        assert line.undiscounted_total_price == quantize_price(
-            line.undiscounted_total_price, currency
-        )
-
-
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_line_unit(mocked_fetch_order_prices_if_expired):
     # given
-    expected_line_unit_price = sentinel.UNIT_PRICE
-    expected_line_undiscounted_unit_price = sentinel.UNDISCOUNTED_UNIT_PRICE
+    expected_line_unit_price = create_taxed_money(
+        Decimal("1234.0000"), Decimal("1234.0000"), "USD"
+    )
+    expected_line_undiscounted_unit_price = create_taxed_money(
+        Decimal("5678.0000"), Decimal("5678.0000"), "USD"
+    )
 
+    order = Mock(currency="USD")
     order_line = Mock(
         pk=1,
         unit_price=expected_line_unit_price,
@@ -510,7 +489,7 @@ def test_order_line_unit(mocked_fetch_order_prices_if_expired):
     mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
 
     # when
-    line_unit_price = calculations.order_line_unit(Mock(), order_line, Mock())
+    line_unit_price = calculations.order_line_unit(order, order_line, Mock())
 
     # then
     assert line_unit_price == OrderTaxedPricesData(
@@ -522,9 +501,14 @@ def test_order_line_unit(mocked_fetch_order_prices_if_expired):
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_line_total(mocked_fetch_order_prices_if_expired):
     # given
-    expected_line_total_price = sentinel.TOTAL_PRICE
-    expected_line_undiscounted_total_price = sentinel.UNDISCOUNTED_TOTAL_PRICE
+    expected_line_total_price = create_taxed_money(
+        Decimal("1234.0000"), Decimal("1234.0000"), "USD"
+    )
+    expected_line_undiscounted_total_price = create_taxed_money(
+        Decimal("5678.0000"), Decimal("5678.0000"), "USD"
+    )
 
+    order = Mock(currency="USD")
     order_line = Mock(
         pk=1,
         total_price=expected_line_total_price,
@@ -533,7 +517,7 @@ def test_order_line_total(mocked_fetch_order_prices_if_expired):
     mocked_fetch_order_prices_if_expired.return_value = (Mock(), [order_line])
 
     # when
-    line_total_price = calculations.order_line_total(Mock(), order_line, Mock())
+    line_total_price = calculations.order_line_total(order, order_line, Mock())
 
     # then
     assert line_total_price == OrderTaxedPricesData(
@@ -560,16 +544,16 @@ def test_order_line_tax_rate(mocked_fetch_order_prices_if_expired):
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_shipping(mocked_fetch_order_prices_if_expired):
     # given
-    expected_shipping_price = sentinel.SHIPPING
+    expected_shipping_price = Decimal("1234.0000")
 
-    order = Mock(shipping_price=expected_shipping_price)
+    order = Mock(shipping_price=expected_shipping_price, currency="USD")
     mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
 
     # when
     shipping_price = calculations.order_shipping(order, Mock())
 
     # then
-    assert shipping_price == expected_shipping_price
+    assert shipping_price == quantize_price(expected_shipping_price, order.currency)
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
@@ -590,28 +574,30 @@ def test_order_shipping_tax_rate(mocked_fetch_order_prices_if_expired):
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_total(mocked_fetch_order_prices_if_expired):
     # given
-    expected_total = sentinel.TOTAL
+    expected_total = Decimal("1234.0000")
 
-    order = Mock(total=expected_total)
+    order = Mock(total=expected_total, currency="USD")
     mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
 
     # when
     total = calculations.order_total(order, Mock())
 
     # then
-    assert total == expected_total
+    assert total == quantize_price(expected_total, order.currency)
 
 
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_undiscounted_total(mocked_fetch_order_prices_if_expired):
     # given
-    expected_undiscounted_total = sentinel.UNDISCOUNTED_TOTAL
+    expected_undiscounted_total = Decimal("1234.0000")
 
-    order = Mock(undiscounted_total=expected_undiscounted_total)
+    order = Mock(undiscounted_total=expected_undiscounted_total, currency="USD")
     mocked_fetch_order_prices_if_expired.return_value = (order, Mock())
 
     # when
     undiscounted_total = calculations.order_undiscounted_total(order, Mock())
 
     # then
-    assert undiscounted_total == expected_undiscounted_total
+    assert undiscounted_total == quantize_price(
+        expected_undiscounted_total, order.currency
+    )

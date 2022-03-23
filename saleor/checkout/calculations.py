@@ -30,6 +30,7 @@ def checkout_shipping_price(
 
     It takes in account all plugins.
     """
+    currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
@@ -37,7 +38,7 @@ def checkout_shipping_price(
         address=address,
         discounts=discounts,
     )
-    return checkout_info.checkout.shipping_price
+    return quantize_price(checkout_info.checkout.shipping_price, currency)
 
 
 def checkout_shipping_tax_rate(
@@ -74,6 +75,7 @@ def checkout_subtotal(
 
     It takes in account all plugins.
     """
+    currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
@@ -81,7 +83,7 @@ def checkout_subtotal(
         address=address,
         discounts=discounts,
     )
-    return checkout_info.checkout.subtotal
+    return quantize_price(checkout_info.checkout.subtotal, currency)
 
 
 def calculate_checkout_total_with_gift_cards(
@@ -120,6 +122,7 @@ def checkout_total(
 
     It takes in account all plugins.
     """
+    currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_prices_if_expired(
         checkout_info,
         manager=manager,
@@ -127,7 +130,7 @@ def checkout_total(
         address=address,
         discounts=discounts,
     )
-    return checkout_info.checkout.total
+    return quantize_price(checkout_info.checkout.total, currency)
 
 
 def _find_checkout_line_info(
@@ -157,6 +160,7 @@ def checkout_line_total(
 
     It takes in account all plugins.
     """
+    currency = checkout_info.checkout.currency
     address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_prices_if_expired(
         checkout_info,
@@ -167,9 +171,13 @@ def checkout_line_total(
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
     return CheckoutTaxedPricesData(
-        undiscounted_price=checkout_line.undiscounted_total_price,
-        price_with_sale=checkout_line.total_price,
-        price_with_discounts=checkout_line.total_price_with_discounts,
+        undiscounted_price=quantize_price(
+            checkout_line.undiscounted_total_price, currency
+        ),
+        price_with_sale=quantize_price(checkout_line.total_price, currency),
+        price_with_discounts=quantize_price(
+            checkout_line.total_price_with_discounts, currency
+        ),
     )
 
 
@@ -185,6 +193,7 @@ def checkout_line_unit_price(
 
     It takes in account all plugins.
     """
+    currency = checkout_info.checkout.currency
     address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_prices_if_expired(
         checkout_info,
@@ -195,9 +204,13 @@ def checkout_line_unit_price(
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
     return CheckoutTaxedPricesData(
-        undiscounted_price=checkout_line.undiscounted_unit_price,
-        price_with_sale=checkout_line.unit_price,
-        price_with_discounts=checkout_line.unit_price_with_discounts,
+        undiscounted_price=quantize_price(
+            checkout_line.undiscounted_unit_price, currency
+        ),
+        price_with_sale=quantize_price(checkout_line.unit_price, currency),
+        price_with_discounts=quantize_price(
+            checkout_line.unit_price_with_discounts, currency
+        ),
     )
 
 
