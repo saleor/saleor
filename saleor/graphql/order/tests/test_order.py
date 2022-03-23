@@ -1834,6 +1834,23 @@ def test_draft_order_create(
     assert created_draft_event.user == staff_user
     assert created_draft_event.parameters == {}
 
+    # Ensure the order_added_products_event was created properly
+    added_products_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.ADDED_PRODUCTS
+    )
+    event_parameters = added_products_event.parameters
+    assert event_parameters
+    assert len(event_parameters["lines"]) == 2
+
+    order_lines = list(order.lines.all())
+    assert event_parameters["lines"][0]["item"] == str(order_lines[0])
+    assert event_parameters["lines"][0]["line_pk"] == order_lines[0].pk
+    assert event_parameters["lines"][0]["quantity"] == 2
+
+    assert event_parameters["lines"][1]["item"] == str(order_lines[1])
+    assert event_parameters["lines"][1]["line_pk"] == order_lines[1].pk
+    assert event_parameters["lines"][1]["quantity"] == 1
+
 
 def test_draft_order_create_with_inactive_channel(
     staff_api_client,
@@ -7074,6 +7091,49 @@ def test_order_query_with_filter_created(
     Order.objects.create(channel=channel_USD)
     with freeze_time("2012-01-14"):
         Order.objects.create(channel=channel_USD)
+    variables = {"filter": orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    assert len(orders) == count
+
+
+@pytest.mark.parametrize(
+    "orders_filter, count",
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:59:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T11:05:00+00:00"}}, 1),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_order_query_with_filter_updated_at(
+    orders_filter,
+    count,
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    channel_USD,
+):
+    with freeze_time("2012-01-14 11:00:00"):
+        Order.objects.create(channel=channel_USD)
+
+    with freeze_time("2012-01-14 12:00:00"):
+        Order.objects.create(channel=channel_USD)
+
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)

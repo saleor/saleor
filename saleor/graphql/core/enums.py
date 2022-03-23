@@ -30,7 +30,6 @@ from ...shipping import error_codes as shipping_error_codes
 from ...site import error_codes as site_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
-from ...wishlist import error_codes as wishlist_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
 from .utils import str_to_enum
 
@@ -135,5 +134,4 @@ StockErrorCode = graphene.Enum.from_enum(warehouse_error_codes.StockErrorCode)
 UploadErrorCode = graphene.Enum.from_enum(core_error_codes.UploadErrorCode)
 WarehouseErrorCode = graphene.Enum.from_enum(warehouse_error_codes.WarehouseErrorCode)
 WebhookErrorCode = graphene.Enum.from_enum(webhook_error_codes.WebhookErrorCode)
-WishlistErrorCode = graphene.Enum.from_enum(wishlist_error_codes.WishlistErrorCode)
 TranslationErrorCode = graphene.Enum.from_enum(core_error_codes.TranslationErrorCode)

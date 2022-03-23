@@ -92,6 +92,39 @@ def order_for_payload(fulfilled_order):
     return order
 
 
+def sort_by_id(dicts):
+    return sorted(dicts, key=lambda d: d["id"])
+
+
+# @freeze_time()
+# @mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
+# @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
+# @pytest.mark.parametrize("taxes_included", [True, False])
+# def test_generate_order_payload(
+#     mocked_fulfillment_lines,
+#     mocked_order_lines,
+#     fulfilled_order,
+#     payment_txn_captured,
+#     customer_user,
+#     site_settings,
+#     taxes_included,
+# ):
+#     fulfillment_lines = '"fulfillment_lines"'
+#     mocked_fulfillment_lines.return_value = fulfillment_lines
+#     order_lines = '"order_lines"'
+#     mocked_order_lines.return_value = order_lines
+#
+#     site_settings.include_taxes_in_prices = taxes_included
+#     site_settings.save(update_fields=["include_taxes_in_prices"])
+#
+#     order = fulfilled_order
+#     payment = payment_txn_captured
+#
+#     payment.psp_reference = "123"
+#     payment.save(update_fields=["psp_reference"])
+# >>>>>>> upstream/taxes-by-sync-webhooks
+
+
 @pytest.fixture
 def payment_for_payload(payment_txn_captured):
     payment_txn_captured.psp_reference = "123"
@@ -173,9 +206,9 @@ def test_generate_order_payload(
                 "modified": parse_django_datetime(payment.modified),
                 "charge_status": payment.charge_status,
                 "psp_reference": payment.psp_reference,
-                "total": str(payment.total.quantize(Decimal("0.01"))),
+                "total": str(quantize_price(payment.total, currency)),
                 "captured_amount": str(
-                    payment.captured_amount.quantize(Decimal("0.01"))
+                    quantize_price(payment.captured_amount, currency)
                 ),
                 "currency": payment.currency,
                 "billing_email": payment.billing_email,
@@ -221,31 +254,10 @@ def test_generate_order_payload(
             "country_area": order.billing_address.country_area,
             "phone": str(order.billing_address.phone),
         },
-        "discounts": [
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
-                "type": discount_1.type,
-                "value_type": discount_1.value_type,
-                "value": str(discount_1.value),
-                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
-                "name": discount_1.name,
-                "translated_name": discount_1.translated_name,
-                "reason": discount_1.reason,
-            },
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
-                "type": discount_2.type,
-                "value_type": discount_2.value_type,
-                "value": str(discount_2.value),
-                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
-                "name": discount_2.name,
-                "translated_name": discount_2.translated_name,
-                "reason": discount_2.reason,
-            },
-        ],
+        "discounts": ANY,
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines),
-        "included_taxes_in_prices": include_taxes_in_prices(),
+        "included_taxes_in_prices": taxes_included,
         "fulfillments": [
             {
                 "id": graphene.Node.to_global_id("Fulfillment", fulfillment.pk),
@@ -404,28 +416,7 @@ def test_generate_order_payload_without_taxes(
             "country_area": order.billing_address.country_area,
             "phone": str(order.billing_address.phone),
         },
-        "discounts": [
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
-                "type": discount_1.type,
-                "value_type": discount_1.value_type,
-                "value": str(discount_1.value),
-                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
-                "name": discount_1.name,
-                "translated_name": discount_1.translated_name,
-                "reason": discount_1.reason,
-            },
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
-                "type": discount_2.type,
-                "value_type": discount_2.value_type,
-                "value": str(discount_2.value),
-                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
-                "name": discount_2.name,
-                "translated_name": discount_2.translated_name,
-                "reason": discount_2.reason,
-            },
-        ],
+        "discounts": ANY,
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines),
         "included_taxes_in_prices": include_taxes_in_prices(),
@@ -457,6 +448,31 @@ def test_generate_order_payload_without_taxes(
         ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
+
+    assert sort_by_id(payload["discounts"]) == sort_by_id(
+        [
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
+                "type": discount_1.type,
+                "value_type": discount_1.value_type,
+                "value": ANY,
+                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
+                "name": discount_1.name,
+                "translated_name": discount_1.translated_name,
+                "reason": discount_1.reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
+                "type": discount_2.type,
+                "value_type": discount_2.value_type,
+                "value": ANY,
+                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
+                "name": discount_2.name,
+                "translated_name": discount_2.translated_name,
+                "reason": discount_2.reason,
+            },
+        ],
+    )
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
     mocked_order_lines.assert_called_once_with(order, ANY, ANY)
@@ -989,6 +1005,9 @@ def test_generate_list_gateways_payload(checkout):
     payload = generate_list_gateways_payload(currency, checkout)
     data = json.loads(payload)
     assert data["checkout"] == json.loads(generate_checkout_payload(checkout))[0]
+    assert data["checkout"]["channel"]["id"] == graphene.Node.to_global_id(
+        "Channel", checkout.channel.pk
+    )
     assert data["currency"] == currency
 
 
@@ -1364,7 +1383,12 @@ def test_generate_checkout_payload_without_taxes(
         "discount_name": checkout.discount_name,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
-        "channel": checkout.channel_id,
+        "channel": {
+            "type": "Channel",
+            "id": graphene.Node.to_global_id("Channel", checkout.channel_id),
+            "currency_code": checkout.channel.currency_code,
+            "slug": checkout.channel.slug,
+        },
         "user": {
             "type": "User",
             "id": graphene.Node.to_global_id("User", checkout.user.pk),
@@ -1463,7 +1487,12 @@ def test_generate_checkout_payload(
         "discount_name": checkout.discount_name,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
-        "channel": checkout.channel_id,
+        "channel": {
+            "type": "Channel",
+            "id": graphene.Node.to_global_id("Channel", checkout.channel_id),
+            "currency_code": checkout.channel.currency_code,
+            "slug": checkout.channel.slug,
+        },
         "user": {
             "type": "User",
             "id": graphene.Node.to_global_id("User", checkout.user.pk),

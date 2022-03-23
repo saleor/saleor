@@ -17,10 +17,11 @@ from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
-from ..checkout.mutations import get_checkout_by_token
+from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.enums import to_enum
+from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
@@ -403,7 +404,7 @@ class PaymentInitialize(BaseMutation):
         channel = graphene.String(
             description="Slug of a channel for which the data should be returned.",
         )
-        payment_data = graphene.JSONString(
+        payment_data = JSONString(
             required=False,
             description=(
                 "Client-side generated data required to initialize the payment."
@@ -490,7 +491,7 @@ class PaymentCheckBalanceInput(graphene.InputObjectType):
 
 
 class PaymentCheckBalance(BaseMutation):
-    data = graphene.types.JSONString(description="Response from the gateway.")
+    data = JSONString(description="Response from the gateway.")
 
     class Arguments:
         input = PaymentCheckBalanceInput(

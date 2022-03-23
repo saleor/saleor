@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
+from freezegun import freeze_time
 
 from ....product.models import Product, ProductVariant
 from ...tests.utils import get_graphql_content
@@ -185,3 +186,54 @@ def test_products_pagination_with_filtering(
                 if product_node["node"]["sku"] is None
             ]
         )
+
+
+@pytest.mark.parametrize(
+    "variants_filter, count",
+    [
+        ({"updatedAt": {"gte": "2012-01-14T10:59:00+00:00"}}, 2),
+        ({"updatedAt": {"lte": "2012-01-14T12:00:05+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2012-01-14T11:59:00+00:00"}}, 1),
+        ({"updatedAt": {"lte": "2012-01-14T11:05:00+00:00"}}, 1),
+        ({"updatedAt": {"gte": "2012-01-14T12:01:00+00:00"}}, 0),
+        ({"updatedAt": {"lte": "2012-01-14T10:59:00+00:00"}}, 0),
+        (
+            {
+                "updatedAt": {
+                    "lte": "2012-01-14T12:01:00+00:00",
+                    "gte": "2012-01-14T11:59:00+00:00",
+                },
+            },
+            1,
+        ),
+    ],
+)
+def test_product_variant_query_with_filter_updated_at(
+    variants_filter,
+    count,
+    product_type,
+    category,
+    staff_api_client,
+    permission_manage_products,
+):
+    product = Product.objects.create(
+        name="Product1",
+        slug="prod1",
+        category=category,
+        product_type=product_type,
+    )
+
+    with freeze_time("2012-01-14 11:00:00"):
+        ProductVariant.objects.create(product=product, sku="P1-V1")
+
+    with freeze_time("2012-01-14 12:00:00"):
+        ProductVariant.objects.create(product=product, sku="P1-V2")
+
+    variables = {"filter": variants_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    response = staff_api_client.post_graphql(QUERY_VARIANTS_FILTER, variables)
+    content = get_graphql_content(response)
+    variants = content["data"]["productVariants"]["edges"]
+
+    assert len(variants) == count

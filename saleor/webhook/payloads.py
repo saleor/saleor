@@ -512,7 +512,6 @@ def _generate_checkout_payload(
         "discount_name",
         "private_metadata",
         "metadata",
-        "channel",
     )
 
     quantize_price_fields(checkout, ["discount_amount"], checkout.currency)

@@ -44,6 +44,8 @@ def aggregate_plugins_configuration(
 
     for plugin in manager.all_plugins:
         hide_private_configuration_fields(plugin.configuration, plugin.CONFIG_STRUCTURE)
+        if plugin.HIDDEN is True:
+            continue
         if not getattr(plugin, "CONFIGURATION_PER_CHANNEL", False):
             global_plugins[plugin.PLUGIN_ID] = plugin
         else:
@@ -54,7 +56,7 @@ def aggregate_plugins_configuration(
 def resolve_plugin(id, manager):
     global_plugins, plugins_per_channel = aggregate_plugins_configuration(manager)
     plugin: BasePlugin = manager.get_plugin(id)
-    if not plugin:
+    if not plugin or plugin.HIDDEN is True:
         return None
 
     return Plugin(

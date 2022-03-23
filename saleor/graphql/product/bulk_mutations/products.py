@@ -1,9 +1,12 @@
 from collections import defaultdict
+from typing import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models.fields import IntegerField
+from django.db.models.functions import Coalesce
 from graphene.types import InputObjectType
 
 from ....attribute import AttributeInputType
@@ -36,6 +39,9 @@ from ...core.types.common import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...warehouse.dataloaders import (
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
+)
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
@@ -605,6 +611,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         )
 
         cls.delete_assigned_attribute_values(pks)
+        cls.delete_product_channel_listings_without_available_variants(product_pks, pks)
         response = super().perform_mutation(_root, info, ids, **data)
 
         transaction.on_commit(
@@ -637,7 +644,9 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         for product in products:
             product.search_document = prepare_product_search_document_value(product)
             product.default_variant = product.variants.first()
-            product.save(update_fields=["default_variant", "search_document"])
+            product.save(
+                update_fields=["default_variant", "search_document", "updated_at"]
+            )
 
         return response
 
@@ -647,6 +656,38 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             variantassignments__variant_id__in=instance_pks,
             attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
         ).delete()
+
+    @staticmethod
+    def delete_product_channel_listings_without_available_variants(
+        product_pks: Iterable[int], variant_pks: Iterable[int]
+    ):
+        """Delete invalid channel listings.
+
+        Delete product channel listings for product and channel for which
+        the last available variant has been deleted.
+        """
+        variants = models.ProductVariant.objects.filter(
+            product_id__in=product_pks
+        ).exclude(id__in=variant_pks)
+
+        variant_subquery = Subquery(
+            queryset=variants.filter(id=OuterRef("variant_id")).values("product_id"),
+            output_field=IntegerField(),
+        )
+        variant_channel_listings = models.ProductVariantChannelListing.objects.annotate(
+            product_id=Coalesce(variant_subquery, 0)
+        )
+
+        invalid_product_channel_listings = models.ProductChannelListing.objects.filter(
+            product_id__in=product_pks
+        ).exclude(
+            Exists(
+                variant_channel_listings.filter(
+                    channel_id=OuterRef("channel_id"), product_id=OuterRef("product_id")
+                )
+            )
+        )
+        invalid_product_channel_listings.delete()
 
 
 class ProductVariantStocksCreate(BaseMutation):
@@ -691,8 +732,11 @@ class ProductVariantStocksCreate(BaseMutation):
                     lambda: manager.product_variant_back_in_stock(stock)
                 )
 
-        variant = ChannelContext(node=variant, channel_slug=None)
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -764,6 +808,10 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             manager = info.context.plugins
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
+
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
@@ -827,13 +875,16 @@ class ProductVariantStocksDelete(BaseMutation):
             product_variant=variant, warehouse__pk__in=warehouses_pks
         )
 
-        variant = ChannelContext(node=variant, channel_slug=None)
-
         for stock in stocks_to_delete:
             transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
 
         stocks_to_delete.delete()
 
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
 

@@ -9,9 +9,7 @@
   },
   "plugins": {
     "@release-it/bumper": {
-      "in": "composer.json",
       "out": [
-        "package.json",
         {
           "file": "pyproject.toml",
           "path": "tool.poetry.version"

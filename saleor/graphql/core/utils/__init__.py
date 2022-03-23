@@ -2,6 +2,7 @@ import binascii
 import os
 import secrets
 from typing import TYPE_CHECKING, Type, Union
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -11,6 +12,7 @@ from graphql.error import GraphQLError
 from PIL import Image
 
 from ....core.utils import generate_unique_slug
+from ....plugins.webhook.utils import APP_ID_PREFIX
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -139,24 +141,46 @@ def validate_required_string_field(cleaned_input, field_name: str):
     return cleaned_input
 
 
-def from_global_id_or_error(
-    id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
-):
-    """Resolve database ID from global ID or raise ValidationError.
+def validate_if_int_or_uuid(id):
+    result = True
+    try:
+        int(id)
+    except ValueError:
+        try:
+            UUID(id)
+        except (AttributeError, ValueError):
+            result = False
+    return result
 
+
+def from_global_id_or_error(
+    global_id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+):
+    """Resolve global ID or raise GraphQLError.
+
+    Validates if given ID is a proper ID handled by Saleor.
+    Valid IDs formats, base64 encoded:
+    'app:<int>:<str>' : External app ID with 'app' prefix
+    '<type>:<int>' : Internal ID containing object type and ID as integer
+    '<type>:<UUID>' : Internal ID containing object type and UUID
     Optionally validate the object type, if `only_type` is provided,
     raise GraphQLError when `raise_error` is set to True.
     """
     try:
-        _type, _id = graphene.Node.from_global_id(id)
+        type_, id_ = graphene.Node.from_global_id(global_id)
     except (binascii.Error, UnicodeDecodeError, ValueError):
-        raise GraphQLError(f"Couldn't resolve id: {id}.")
+        raise GraphQLError(f"Couldn't resolve id: {global_id}.")
+    if type_ == APP_ID_PREFIX:
+        id_ = global_id
+    else:
+        if not validate_if_int_or_uuid(id_):
+            raise GraphQLError(f"Error occurred during ID - {global_id} validation.")
 
-    if only_type and str(_type) != str(only_type):
+    if only_type and str(type_) != str(only_type):
         if not raise_error:
-            return _type, None
+            return type_, None
         raise GraphQLError(f"Must receive a {only_type} id.")
-    return _type, _id
+    return type_, id_
 
 
 def add_hash_to_file_name(file):

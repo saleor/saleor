@@ -33,6 +33,7 @@ def delete_expired_reservations_task():
         )
 
 
+@app.task
 def update_stocks_quantity_allocated_task():
     stocks_to_update = []
     for mismatched_stock in Stock.objects.annotate(

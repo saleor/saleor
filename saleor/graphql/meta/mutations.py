@@ -1,7 +1,9 @@
+import logging
 from typing import List
 
 import graphene
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldDoesNotExist, ValidationError
+from django.db import DatabaseError
 from graphql.error.base import GraphQLError
 
 from ...checkout import models as checkout_models
@@ -21,6 +23,38 @@ from ..payment.utils import metadata_contains_empty_key
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
+
+logger = logging.getLogger(__name__)
+
+
+def _save_instance(instance, metadata_field: str):
+    fields = [metadata_field]
+
+    try:
+        if bool(instance._meta.get_field("updated_at")):
+            fields.append("updated_at")
+    except FieldDoesNotExist:
+        pass
+
+    try:
+        instance.save(update_fields=fields)
+    except DatabaseError as e:
+        msg = (
+            "Cannot update metadata for instance: %s. "
+            "Updating not existing object. "
+            "Details: %s.",
+            instance,
+            str(e),
+        )
+        logger.warning(msg)
+        raise ValidationError(
+            {
+                "metadata": ValidationError(
+                    msg,
+                    code=MetadataErrorCode.NOT_FOUND.value,
+                )
+            }
+        )
 
 
 class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -60,6 +94,7 @@ class BaseMetadataMutation(BaseMutation):
             # ShippingMethodType represents the ShippingMethod model
             if type_name == "ShippingMethodType":
                 qs = shipping_models.ShippingMethod.objects
+
             return cls.get_node_or_error(info, object_id, qs=qs)
         except GraphQLError as e:
             if instance := cls.get_instance_by_token(object_id, qs):
@@ -139,8 +174,8 @@ class BaseMetadataMutation(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        type_name, object_pk = cls.get_object_type_name_and_pk(data)
         try:
+            type_name, object_pk = cls.get_object_type_name_and_pk(data)
             permissions = cls.get_permissions(info, type_name, object_pk, **data)
         except GraphQLError as e:
             error = ValidationError(
@@ -149,8 +184,10 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(error)
         except ValidationError as e:
             return cls.handle_errors(e)
+
         if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=permissions)
+
         try:
             result = super().mutate(root, info, **data)
             if not result.errors:
@@ -247,7 +284,8 @@ class UpdateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
-            instance.save(update_fields=["metadata"])
+            _save_instance(instance, "metadata")
+
         return cls.success_response(instance)
 
 
@@ -276,7 +314,7 @@ class DeleteMetadata(BaseMetadataMutation):
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
                 instance.delete_value_from_metadata(key)
-            instance.save(update_fields=["metadata"])
+            _save_instance(instance, "metadata")
         return cls.success_response(instance)
 
 
@@ -306,7 +344,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
-            instance.save(update_fields=["private_metadata"])
+            _save_instance(instance, "private_metadata")
         return cls.success_response(instance)
 
 
@@ -335,5 +373,5 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             metadata_keys = data.pop("keys")
             for key in metadata_keys:
                 instance.delete_value_from_private_metadata(key)
-            instance.save(update_fields=["private_metadata"])
+            _save_instance(instance, "private_metadata")
         return cls.success_response(instance)

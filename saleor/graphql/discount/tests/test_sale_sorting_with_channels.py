@@ -75,6 +75,13 @@ def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
             ),
         ]
     )
+
+    sales[4].save()
+    sales[2].save()
+    sales[0].save()
+    sales[1].save()
+    sales[3].save()
+
     return sales
 
 
@@ -125,6 +132,22 @@ def test_sales_with_sorting_and_without_channel(
             {"field": "VALUE", "direction": "DESC"},
             ["Sale2", "Sale3", "Sale15", "Sale1"],
         ),
+        (
+            {"field": "CREATED_AT", "direction": "ASC"},
+            ["Sale1", "Sale2", "Sale3", "Sale15"],
+        ),
+        (
+            {"field": "CREATED_AT", "direction": "DESC"},
+            ["Sale15", "Sale3", "Sale2", "Sale1"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
+            ["Sale15", "Sale3", "Sale1", "Sale2"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "DESC"},
+            ["Sale2", "Sale1", "Sale3", "Sale15"],
+        ),
     ],
 )
 def test_sales_with_sorting_and_channel_USD(
@@ -163,6 +186,22 @@ def test_sales_with_sorting_and_channel_USD(
         (
             {"field": "VALUE", "direction": "DESC"},
             ["Sale1", "Sale15", "Sale4", "Sale2"],
+        ),
+        (
+            {"field": "CREATED_AT", "direction": "ASC"},
+            ["Sale1", "Sale2", "Sale4", "Sale15"],
+        ),
+        (
+            {"field": "CREATED_AT", "direction": "DESC"},
+            ["Sale15", "Sale4", "Sale2", "Sale1"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "ASC"},
+            ["Sale15", "Sale1", "Sale2", "Sale4"],
+        ),
+        (
+            {"field": "LAST_MODIFIED_AT", "direction": "DESC"},
+            ["Sale4", "Sale2", "Sale1", "Sale15"],
         ),
     ],
 )

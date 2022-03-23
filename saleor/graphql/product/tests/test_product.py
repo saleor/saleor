@@ -5,10 +5,12 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, Mock, patch
 
+import before_after
 import graphene
 import pytest
 import pytz
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -588,6 +590,75 @@ def test_product_only_with_variants_without_sku_query_by_anonymous(
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     assert product_data["variants"] == [{"id": variant_id}]
+
+
+QUERY_PRODUCT_BY_ID_WITH_MEDIA = """
+    query ($id: ID, $channel: String){
+        product(id: $id, channel: $channel) {
+            media {
+                id
+            }
+            variants {
+                id
+                name
+                media {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_product_query_with_media_to_remove(
+    user_api_client, permission_manage_products, product_with_images
+):
+    # given
+    query = QUERY_PRODUCT_BY_ID_WITH_MEDIA
+    variables = {"id": graphene.Node.to_global_id("Product", product_with_images.pk)}
+    ProductMedia.objects.filter(product=product_with_images.pk).update(to_remove=True)
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    # then
+    assert product_data is not None
+    assert len(product_data["media"]) == 0
+
+
+def test_product_variant_query_with_media_to_remove(
+    user_api_client, permission_manage_products, variant_with_image
+):
+    # given
+    query = QUERY_PRODUCT_BY_ID_WITH_MEDIA
+    product = variant_with_image.product
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    variants_count = ProductVariant.objects.all().count()
+    ProductMedia.objects.filter(product=product.pk).update(to_remove=True)
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    # then
+    assert product_data is not None
+    assert len(product_data["media"]) == 0
+    assert len(product_data["variants"]) == variants_count
+    for variant in product_data["variants"]:
+        assert variant["media"] == []
 
 
 QUERY_COLLECTION_FROM_PRODUCT = """
@@ -4786,6 +4857,57 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
     assert product_type_product_reference_attribute.values.count() == values_count + 3
 
 
+def test_create_product_with_page_reference_attribute_and_invalid_product_one(
+    staff_api_client,
+    product_type,
+    product,
+    category,
+    color_attribute,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    page,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+
+    reference = graphene.Node.to_global_id("Page", page.pk)
+    invalid_reference = graphene.Node.to_global_id("Product", product.pk)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [
+                {"id": reference_attr_id, "references": [reference]},
+                {"id": reference_attr_id, "references": [invalid_reference]},
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"][0]["message"] == "Invalid reference type."
+    assert data["errors"][0]["field"] == "attributes"
+    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
+
+
 def test_create_product_with_file_attribute_new_attribute_value(
     staff_api_client,
     product_type,
@@ -5961,6 +6083,34 @@ def test_product_create_with_collections_webhook(
     get_graphql_content(response)
 
 
+def test_product_create_with_invalid_json_description(staff_api_client):
+    query = """
+        mutation ProductCreate {
+            productCreate(
+                input: {
+                    description: "I'm not a valid JSON"
+                    category: "Q2F0ZWdvcnk6MjQ="
+                    name: "Breaky McErrorface"
+                    productType: "UHJvZHVjdFR5cGU6NTE="
+                }
+            ) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content_from_response(response)
+
+    assert content["errors"]
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["extensions"]["exception"]["code"] == "GraphQLError"
+    assert "is not a valid JSONString" in content["errors"][0]["message"]
+
+
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
         productUpdate(id: $productId, input: $input) {
@@ -6719,6 +6869,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
         attribute=product_type_page_reference_attribute,
         name=page.title,
         slug=f"{product.pk}_{page.pk}",
+        reference_page=page,
     )
     associate_attribute_values_to_instance(
         product, product_type_page_reference_attribute, attr_value
@@ -6906,6 +7057,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
         attribute=product_type_product_reference_attribute,
         name=product_ref.name,
         slug=f"{product.pk}_{product_ref.pk}",
+        reference_product=product_ref,
     )
     associate_attribute_values_to_instance(
         product, product_type_product_reference_attribute, attr_value
@@ -7026,11 +7178,13 @@ def test_update_product_change_values_ordering(
         attribute=product_type_page_reference_attribute,
         name=page_list[0].title,
         slug=f"{product.pk}_{page_list[0].pk}",
+        reference_page=page_list[0],
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
         name=page_list[1].title,
         slug=f"{product.pk}_{page_list[1].pk}",
+        reference_page=page_list[1],
     )
 
     associate_attribute_values_to_instance(
@@ -7532,11 +7686,11 @@ def test_delete_product(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_with_image(
     mocked_recalculate_orders_task,
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     staff_api_client,
     product_with_image,
     variant_with_image,
@@ -7553,6 +7707,7 @@ def test_delete_product_with_image(
 
     product_img_paths = [media.image for media in product.media.all()]
     variant_img_paths = [media.image for media in variant.media.all()]
+    product_media_ids = [media.id for media in product.media.all()]
     images = product_img_paths + variant_img_paths
 
     variables = {"id": node_id}
@@ -7570,10 +7725,10 @@ def test_delete_product_with_image(
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
 
-    assert delete_versatile_image_mock.call_count == len(images)
+    assert delete_product_media_task_mock.call_count == len(images)
     assert {
-        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
-    } == set(images)
+        call_args.args[0] for call_args in delete_product_media_task_mock.call_args_list
+    } == set(product_media_ids)
     mocked_recalculate_orders_task.assert_not_called()
 
 
@@ -7616,11 +7771,9 @@ def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_with_file_attribute(
     mocked_recalculate_orders_task,
-    delete_from_storage_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -7646,7 +7799,6 @@ def test_delete_product_with_file_attribute(
     mocked_recalculate_orders_task.assert_not_called()
     with pytest.raises(existing_value._meta.model.DoesNotExist):
         existing_value.refresh_from_db()
-    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
 
 
 def test_delete_product_removes_checkout_lines(
@@ -7770,6 +7922,129 @@ def test_delete_product_variant_in_draft_order(
     ]
     for param in expected_params:
         assert param in event.parameters
+
+
+def test_product_delete_removes_reference_to_product(
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = DELETE_PRODUCT_MUTATION
+
+    product = product_list[0]
+    product_ref = product_list[1]
+
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_ref.name,
+        slug=f"{product.pk}_{product_ref.pk}",
+        reference_product=product_ref,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_product_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Product", product_ref.pk)
+
+    variables = {"id": reference_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product_ref._meta.model.DoesNotExist):
+        product_ref.refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_product_variant(
+    staff_api_client,
+    variant,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    product_list,
+):
+    query = DELETE_PRODUCT_MUTATION
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([product_type_product_reference_attribute])
+
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_list[0].name,
+        slug=f"{variant.pk}_{product_list[0].pk}",
+        reference_product=product_list[0],
+    )
+
+    associate_attribute_values_to_instance(
+        variant,
+        product_type_product_reference_attribute,
+        attr_value,
+    )
+    reference_id = graphene.Node.to_global_id("Product", product_list[0].pk)
+
+    variables = {"id": reference_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product_list[0]._meta.model.DoesNotExist):
+        product_list[0].refresh_from_db()
+
+    assert not data["errors"]
+
+
+def test_product_delete_removes_reference_to_page(
+    staff_api_client,
+    permission_manage_products,
+    page,
+    page_type_product_reference_attribute,
+    product,
+):
+    query = DELETE_PRODUCT_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(page_type_product_reference_attribute)
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        name=page.title,
+        slug=f"{page.pk}_{product.pk}",
+        reference_product=product,
+    )
+    associate_attribute_values_to_instance(
+        page, page_type_product_reference_attribute, attr_value
+    )
+
+    reference_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"id": reference_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    with pytest.raises(attr_value._meta.model.DoesNotExist):
+        attr_value.refresh_from_db()
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+
+    assert not data["errors"]
 
 
 def test_product_type(user_api_client, product_type, channel_USD):
@@ -9058,9 +9333,9 @@ def test_product_type_delete_mutation(
         product_type.refresh_from_db()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 def test_product_type_delete_mutation_deletes_also_images(
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     staff_api_client,
     product_type,
     product_with_image,
@@ -9078,14 +9353,12 @@ def test_product_type_delete_mutation_deletes_also_images(
     assert data["productType"]["name"] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
-    delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+    delete_product_media_task_mock.assert_called_once_with(media_obj.id)
     with pytest.raises(product_with_image._meta.model.DoesNotExist):
         product_with_image.refresh_from_db()
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_product_type_delete_with_file_attributes(
-    delete_from_storage_task_mock,
     staff_api_client,
     product_with_variant_with_file_attribute,
     file_attribute,
@@ -9114,10 +9387,6 @@ def test_product_type_delete_with_file_attributes(
     for value in values:
         with pytest.raises(value._meta.model.DoesNotExist):
             value.refresh_from_db()
-    assert delete_from_storage_task_mock.call_count == len(values)
-    assert set(
-        data.args[0] for data in delete_from_storage_task_mock.call_args_list
-    ) == {v.file_url for v in values}
     with pytest.raises(
         product_with_variant_with_file_attribute._meta.model.DoesNotExist
     ):
@@ -9472,9 +9741,9 @@ def test_product_image_update_mutation(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
-@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.product.signals.delete_product_media_task.delay")
 def test_product_media_delete(
-    delete_versatile_image_mock,
+    delete_product_media_task_mock,
     product_updated_mock,
     staff_api_client,
     product_with_image,
@@ -9500,11 +9769,11 @@ def test_product_media_delete(
     content = get_graphql_content(response)
     data = content["data"]["productMediaDelete"]
     assert media_obj.image.url in data["media"]["url"]
-    with pytest.raises(media_obj._meta.model.DoesNotExist):
-        media_obj.refresh_from_db()
+    media_obj.refresh_from_db()
+    assert media_obj.to_remove
     assert node_id == data["media"]["id"]
     product_updated_mock.assert_called_once_with(product)
-    delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+    delete_product_media_task_mock.assert_called_once_with(media_obj.id)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -9546,6 +9815,52 @@ def test_reorder_media(
     assert media_0.id == reordered_media_1.id
     assert media_1.id == reordered_media_0.id
     product_updated_mock.assert_called_once_with(product)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_reorder_not_existing_media(
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
+):
+    query = """
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
+            product {
+                id
+            }
+            errors{
+            field
+            code
+            message
+        }
+        }
+    }
+    """
+    product = product_with_images
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
+    media_1_id = graphene.Node.to_global_id("ProductMedia", media_1.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    def delete_media(*args, **kwargs):
+        with transaction.atomic():
+            media.delete()
+
+    with before_after.before(
+        "saleor.graphql.product.mutations.products.update_ordered_media", delete_media
+    ):
+        variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    response = get_graphql_content(response, ignore_errors=True)
+    assert (
+        response["data"]["productMediaReorder"]["errors"][0]["code"]
+        == ProductErrorCode.NOT_FOUND.name
+    )
 
 
 ASSIGN_VARIANT_QUERY = """

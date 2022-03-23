@@ -1072,7 +1072,7 @@ type CheckoutCountableEdge {
 }
 
 type CheckoutCreate {
-  created: Boolean @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `True`.")
+  created: Boolean @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `true`.")
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
   checkout: Checkout
@@ -1808,6 +1808,7 @@ input CustomerFilterInput {
   placedOrders: DateRangeInput
   search: String
   metadata: [MetadataFilter]
+  updatedAt: DateTimeRangeInput
 }
 
 input CustomerInput {
@@ -2188,6 +2189,7 @@ enum ExportFileSortField {
   STATUS
   CREATED_AT
   UPDATED_AT
+  LAST_MODIFIED_AT
 }
 
 input ExportFileSortingInput {
@@ -3861,6 +3863,7 @@ enum MetadataErrorCode {
   INVALID
   NOT_FOUND
   REQUIRED
+  NOT_UPDATED
 }
 
 input MetadataFilter {
@@ -4197,6 +4200,7 @@ type Order implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   created: DateTime!
+  updatedAt: DateTime!
   status: OrderStatus!
   user: User
   trackingClientId: String!
@@ -4243,9 +4247,9 @@ type Order implements Node & ObjectWithMetadata {
   deliveryMethod: DeliveryMethod
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
   languageCodeEnum: LanguageCodeEnum!
-  discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
-  discountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field.")
-  translatedDiscountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use discounts field. ")
+  discount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead.")
+  discountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead.")
+  translatedDiscountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead. ")
   discounts: [OrderDiscount!]
   errors: [OrderError!]!
 }
@@ -4519,6 +4523,7 @@ input OrderFilterInput {
   search: String
   metadata: [MetadataFilter]
   channels: [ID]
+  updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
   isPreorder: Boolean
   ids: [ID]
@@ -4703,6 +4708,8 @@ input OrderSettingsUpdateInput {
 enum OrderSortField {
   NUMBER
   CREATION_DATE
+  CREATED_AT
+  LAST_MODIFIED_AT
   CUSTOMER
   PAYMENT
   FULFILLMENT_STATUS
@@ -5381,7 +5388,8 @@ type Product implements Node & ObjectWithMetadata {
   productType: ProductType!
   slug: String!
   category: Category
-  updatedAt: DateTime
+  created: DateTime!
+  updatedAt: DateTime!
   chargeTaxes: Boolean!
   weight: Weight
   defaultVariant: ProductVariant
@@ -5585,6 +5593,7 @@ input ProductFilterInput {
   metadata: [MetadataFilter]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
+  updatedAt: DateTimeRangeInput
   productTypes: [ID]
   giftCard: Boolean
   ids: [ID]
@@ -5684,10 +5693,13 @@ enum ProductOrderField {
   RANK
   PRICE
   MINIMAL_PRICE
+  LAST_MODIFIED
   DATE
   TYPE
   PUBLISHED
   PUBLICATION_DATE
+  PUBLISHED_AT
+  LAST_MODIFIED_AT
   COLLECTION
   RATING
 }
@@ -5878,6 +5890,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
   quantityAvailable(address: AddressInput, countryCode: CountryCode): Int
   preorder: PreorderData
+  created: DateTime!
+  updatedAt: DateTime!
 }
 
 type ProductVariantBulkCreate {
@@ -5965,6 +5979,7 @@ input ProductVariantFilterInput {
   sku: [String]
   metadata: [MetadataFilter]
   isPreorder: Boolean
+  updatedAt: DateTimeRangeInput
 }
 
 input ProductVariantInput {
@@ -5997,6 +6012,15 @@ type ProductVariantSetDefault {
   product: Product
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
+}
+
+enum ProductVariantSortField {
+  LAST_MODIFIED_AT
+}
+
+input ProductVariantSortingInput {
+  direction: OrderDirection!
+  field: ProductVariantSortField!
 }
 
 type ProductVariantStocksCreate {
@@ -6075,7 +6099,7 @@ type Query {
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID, sku: String, channel: String): ProductVariant
-  productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+  productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, sortBy: ProductVariantSortingInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, channel: String!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
   payments(filter: PaymentFilterInput, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
@@ -6171,6 +6195,8 @@ type Sale implements Node & ObjectWithMetadata {
   type: SaleType!
   startDate: DateTime!
   endDate: DateTime
+  created: DateTime!
+  updatedAt: DateTime!
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -6245,6 +6271,7 @@ input SaleFilterInput {
   started: DateTimeRangeInput
   search: String
   metadata: [MetadataFilter]
+  updatedAt: DateTimeRangeInput
 }
 
 input SaleInput {
@@ -6271,6 +6298,8 @@ enum SaleSortField {
   END_DATE
   VALUE
   TYPE
+  CREATED_AT
+  LAST_MODIFIED_AT
 }
 
 input SaleSortingInput {
@@ -7005,7 +7034,7 @@ type User implements Node & ObjectWithMetadata {
   isStaff: Boolean!
   isActive: Boolean!
   addresses: [Address]
-  checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkout_tokens` field to fetch the user checkouts.")
+  checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
   checkoutTokens(channel: String): [UUID!]
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   note: String
@@ -7021,6 +7050,7 @@ type User implements Node & ObjectWithMetadata {
   defaultBillingAddress: Address
   lastLogin: DateTime
   dateJoined: DateTime!
+  updatedAt: DateTime!
 }
 
 type UserAvatarDelete {
@@ -7076,6 +7106,8 @@ enum UserSortField {
   LAST_NAME
   EMAIL
   ORDER_COUNT
+  CREATED_AT
+  LAST_MODIFIED_AT
 }
 
 input UserSortingInput {

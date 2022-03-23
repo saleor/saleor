@@ -4,7 +4,7 @@ from typing import cast
 import graphene
 from django.db.models import QuerySet
 
-from ...attribute import AttributeInputType, AttributeType, models
+from ...attribute import AttributeEntityType, AttributeInputType, AttributeType, models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
@@ -16,7 +16,7 @@ from ..core.connection import (
 )
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
-from ..core.fields import ConnectionField, FilterConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.types import File, ModelObjectType
 from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..decorators import check_attribute_required_permissions
@@ -46,7 +46,7 @@ class AttributeValue(ModelObjectType):
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
-    rich_text = graphene.JSONString(
+    rich_text = JSONString(
         description=AttributeValueDescriptions.RICH_TEXT, required=False
     )
     boolean = graphene.Boolean(
@@ -70,10 +70,10 @@ class AttributeValue(ModelObjectType):
             if attribute.type == AttributeType.PAGE_TYPE:
                 if requester.has_perm(PagePermissions.MANAGE_PAGES):
                     return attribute.input_type
-                raise PermissionDenied()
+                raise PermissionDenied(permissions=[PagePermissions.MANAGE_PAGES])
             elif requester.has_perm(ProductPermissions.MANAGE_PRODUCTS):
                 return attribute.input_type
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=[ProductPermissions.MANAGE_PRODUCTS])
 
         return (
             AttributesByAttributeId(info.context)
@@ -92,7 +92,12 @@ class AttributeValue(ModelObjectType):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
-            reference_pk = root.slug.split("_")[1]
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                reference_pk = root.reference_page_id
+            elif attribute.entity_type == AttributeEntityType.PRODUCT:
+                reference_pk = root.reference_product_id
+            else:
+                return
             reference_id = graphene.Node.to_global_id(
                 attribute.entity_type, reference_pk
             )
@@ -347,9 +352,7 @@ class AttributeValueInput(graphene.InputObjectType):
         description="List of entity IDs that will be used as references.",
         required=False,
     )
-    rich_text = graphene.JSONString(
-        required=False, description="Text content in JSON format."
-    )
+    rich_text = JSONString(required=False, description="Text content in JSON format.")
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )

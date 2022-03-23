@@ -698,10 +698,17 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
 
     allocations_to_create = []
     stocks_to_create = []
+    stocks_to_update = []
     for preorder_allocation in preorder_allocations:
         stock = _get_stock_for_preorder_allocation(preorder_allocation, product_variant)
         if stock._state.adding:
+            stock.quantity_allocated += preorder_allocation.quantity
             stocks_to_create.append(stock)
+        else:
+            stock.quantity_allocated = (
+                F("quantity_allocated") + preorder_allocation.quantity
+            )
+            stocks_to_update.append(stock)
         allocations_to_create.append(
             Allocation(
                 order_line=preorder_allocation.order_line,
@@ -713,6 +720,9 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
     if stocks_to_create:
         Stock.objects.bulk_create(stocks_to_create)
 
+    if stocks_to_update:
+        Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+
     if allocations_to_create:
         Allocation.objects.bulk_create(allocations_to_create)
 
@@ -723,7 +733,12 @@ def deactivate_preorder_for_variant(product_variant: ProductVariant):
     product_variant.preorder_end_date = None
     product_variant.is_preorder = False
     product_variant.save(
-        update_fields=["preorder_global_threshold", "preorder_end_date", "is_preorder"]
+        update_fields=[
+            "preorder_global_threshold",
+            "preorder_end_date",
+            "is_preorder",
+            "updated_at",
+        ]
     )
 
     ProductVariantChannelListing.objects.filter(variant_id=product_variant.pk).update(

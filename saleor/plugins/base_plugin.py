@@ -95,6 +95,7 @@ class BasePlugin:
     CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
+    HIDDEN = False
 
     @classmethod
     def check_plugin_id(cls, plugin_id: str) -> bool:

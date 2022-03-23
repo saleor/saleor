@@ -5,13 +5,14 @@ from typing import List, Tuple
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied, PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
@@ -42,6 +43,7 @@ from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
@@ -71,11 +73,12 @@ from ..utils import (
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
+    update_ordered_media,
 )
 
 
 class CategoryInput(graphene.InputObjectType):
-    description = graphene.JSONString(description="Category description (JSON).")
+    description = JSONString(description="Category description (JSON).")
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -193,9 +196,7 @@ class CollectionInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Name of the collection.")
     slug = graphene.String(description="Slug of the collection.")
-    description = graphene.JSONString(
-        description="Description of the collection (JSON)."
-    )
+    description = JSONString(description="Description of the collection (JSON).")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -527,7 +528,7 @@ class ProductInput(graphene.InputObjectType):
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
-    description = graphene.JSONString(description="Product description (JSON).")
+    description = JSONString(description="Product description (JSON).")
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
@@ -930,13 +931,28 @@ class ProductVariantCreate(ModelMutation):
                 cleaned_input["product"]
             )
 
+        variant_attributes_ids = {
+            graphene.Node.to_global_id("Attribute", attr_id)
+            for attr_id in list(
+                product_type.variant_attributes.all().values_list("pk", flat=True)
+            )
+        }
+        attributes = cleaned_input.get("attributes")
+        attributes_ids = {attr["id"] for attr in attributes or []}
+        invalid_attributes = attributes_ids - variant_attributes_ids
+        if len(invalid_attributes) > 0:
+            raise ValidationError(
+                "Given attributes are not a variant attributes.",
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
+                params={"attributes": invalid_attributes},
+            )
+
         # Run the validation only if product type is configurable
         if product_type.has_variants:
             # Attributes are provided as list of `AttributeValueInput` objects.
             # We need to transform them into the format they're stored in the
             # `Product` model, which is HStore field that maps attribute's PK to
             # the value's PK.
-            attributes = cleaned_input.get("attributes")
             try:
                 if attributes:
                     cleaned_attributes = cls.clean_attributes(attributes, product_type)
@@ -956,6 +972,12 @@ class ProductVariantCreate(ModelMutation):
                     )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+        else:
+            if attributes:
+                raise ValidationError(
+                    "Cannot assign attributes for product type without variants",
+                    ProductErrorCode.INVALID.value,
+                )
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
@@ -1125,7 +1147,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         # if the product default variant has been removed set the new one
         if not product.default_variant:
             product.default_variant = product.variants.first()
-            product.save(update_fields=["default_variant"])
+            product.save(update_fields=["default_variant", "updated_at"])
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 
@@ -1145,6 +1167,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         ).get(id=instance.id)
 
         cls.delete_assigned_attribute_values(variant)
+        cls.delete_product_channel_listings_without_available_variants(variant)
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
@@ -1174,6 +1197,35 @@ class ProductVariantDelete(ModelDeleteMutation):
         attribute_models.AttributeValue.objects.filter(
             variantassignments__variant_id=instance.id,
             attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
+
+    @staticmethod
+    def delete_product_channel_listings_without_available_variants(instance):
+        """Delete invalid product channel listings.
+
+        Delete product channel listings for channels for which the deleted variant
+        was the last available variant.
+        """
+        channel_ids = set(
+            instance.channel_listings.values_list("channel_id", flat=True)
+        )
+        product_id = instance.product_id
+        variants = (
+            models.ProductVariant.objects.filter(product_id=product_id)
+            .exclude(id=instance.id)
+            .values("id")
+        )
+        available_channel_ids = set(
+            models.ProductVariantChannelListing.objects.filter(
+                Exists(
+                    variants.filter(id=OuterRef("variant_id")),
+                    channel_id__in=channel_ids,
+                )
+            ).values_list("channel_id", flat=True)
+        )
+        not_available_channel_ids = channel_ids - available_channel_ids
+        models.ProductChannelListing.objects.filter(
+            product_id=product_id, channel_id__in=not_available_channel_ids
         ).delete()
 
 
@@ -1569,9 +1621,7 @@ class ProductMediaReorder(BaseMutation):
                 )
             ordered_media.append(media)
 
-        for order, media in enumerate(ordered_media):
-            media.sort_order = order
-            media.save(update_fields=["sort_order"])
+        update_ordered_media(ordered_media)
 
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
@@ -1693,7 +1743,7 @@ class ProductVariantReorder(BaseMutation):
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
 
-        product.save(update_fields=["updated_at"])
+        product.save(update_fields=["updated_at", "updated_at"])
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)
@@ -1715,8 +1765,19 @@ class ProductMediaDelete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         media_obj = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
+        if media_obj.to_remove:
+            raise ValidationError(
+                {
+                    "media_id": ValidationError(
+                        "Media not found.",
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
         media_id = media_obj.id
-        media_obj.delete()
+        media_obj.to_remove = True
+        media_obj.save(update_fields=["to_remove"])
+        delete_product_media_task.delay(media_id)
         media_obj.id = media_id
         product = models.Product.objects.prefetched_for_webhook().get(
             pk=media_obj.product_id

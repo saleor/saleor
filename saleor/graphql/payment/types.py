@@ -8,6 +8,7 @@ from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31
+from ..core.fields import JSONString
 from ..core.types import ModelObjectType, Money
 from ..decorators import permission_required
 from ..meta.permissions import public_payment_permissions
@@ -25,7 +26,7 @@ class Transaction(ModelObjectType):
     kind = TransactionKindEnum(required=True)
     is_success = graphene.Boolean(required=True)
     error = graphene.String()
-    gateway_response = graphene.JSONString(required=True)
+    gateway_response = JSONString(required=True)
     amount = graphene.Field(Money, description="Total amount of the transaction.")
 
     class Meta:
@@ -184,7 +185,7 @@ class Payment(ModelObjectType):
         permissions = public_payment_permissions(info, root.pk)
         requester = get_user_or_app_from_context(info.context)
         if not requester.has_perms(permissions):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 
     def resolve_checkout(root: models.Payment, info):
@@ -208,6 +209,4 @@ class PaymentInitialized(graphene.ObjectType):
 
     gateway = graphene.String(description="ID of a payment gateway.", required=True)
     name = graphene.String(description="Payment gateway name.", required=True)
-    data = graphene.JSONString(
-        description="Initialized data by gateway.", required=False
-    )
+    data = JSONString(description="Initialized data by gateway.", required=False)

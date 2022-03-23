@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 import graphene
 from prices import TaxedMoney
 
-from ..attribute import AttributeInputType
+from ..attribute import AttributeEntityType, AttributeInputType
 from ..checkout import calculations
 from ..core.prices import quantize_price
+from ..discount.utils import fetch_active_discounts
 from ..plugins.manager import PluginsManager
 from ..product.models import Product
 
@@ -26,7 +27,9 @@ def get_base_price(price: TaxedMoney, use_gross_as_base_price: bool) -> Decimal:
 
 
 def _get_checkout_line_payload_data(
-    checkout: "Checkout", line_info: "CheckoutLineInfo"
+    checkout: "Checkout",
+    line_info: "CheckoutLineInfo",
+    discounts: Iterable["DiscountInfo"],
 ) -> Dict[str, Any]:
     channel = checkout.channel
     currency = channel.currency_code
@@ -35,7 +38,9 @@ def _get_checkout_line_payload_data(
     channel_listing = line_info.channel_listing
     collections = line_info.collections
     product = variant.product
-    base_price = variant.get_price(product, collections, channel, channel_listing)
+    base_price = variant.get_price(
+        product, collections, channel, channel_listing, discounts
+    )
 
     return {
         "id": line_id,
@@ -76,7 +81,7 @@ def serialize_checkout_lines_with_taxes(
 
         data.append(
             {
-                **_get_checkout_line_payload_data(checkout, line_info),
+                **_get_checkout_line_payload_data(checkout, line_info, discounts),
                 "price_net_amount": str(unit_price.net.amount),
                 "price_gross_amount": str(unit_price.gross.amount),
                 "price_with_discounts_net_amount": str(
@@ -102,7 +107,9 @@ def serialize_checkout_lines_without_taxes(
 
     return [
         {
-            **_get_checkout_line_payload_data(checkout, line_info),
+            **_get_checkout_line_payload_data(
+                checkout, line_info, fetch_active_discounts()
+            ),
             "base_price_with_discounts": str(
                 untaxed_price_amount(line_info.line.unit_price_with_discounts)
             ),
@@ -116,11 +123,16 @@ def serialize_product_or_variant_attributes(
 ) -> List[Dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_slug):
+    def _prepare_reference(attribute, attr_value):
         if attribute.input_type != AttributeInputType.REFERENCE:
             return
+        if attribute.entity_type == AttributeEntityType.PAGE:
+            reference_pk = attr_value.reference_page_id
+        elif attribute.entity_type == AttributeEntityType.PRODUCT:
+            reference_pk = attr_value.reference_product_id
+        else:
+            return None
 
-        reference_pk = attr_slug.split("_")[1]
         reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
         return reference_id
 
@@ -149,7 +161,7 @@ def serialize_product_or_variant_attributes(
                 "boolean": attr_value.boolean,
                 "date_time": attr_value.date_time,
                 "date": attr_value.date_time,
-                "reference": _prepare_reference(attribute, attr_slug),
+                "reference": _prepare_reference(attribute, attr_value),
                 "file": None,
             }
 
