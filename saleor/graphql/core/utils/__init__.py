@@ -183,6 +183,22 @@ def from_global_id_or_error(
     return type_, id_
 
 
+def from_global_id_or_none(
+    global_id, only_type: Union[ObjectType, str] = None, raise_error: bool = False
+):
+    if not global_id:
+        return None
+
+    return from_global_id_or_error(global_id, only_type, raise_error)[1]
+
+
+def to_global_id_or_none(instance):
+    class_name = instance.__class__.__name__
+    if instance.id is None:
+        return None
+    return graphene.Node.to_global_id(class_name, instance.id)
+
+
 def add_hash_to_file_name(file):
     """Add unique text fragment to the file name to prevent file overriding."""
     file_name, format = os.path.splitext(file._name)

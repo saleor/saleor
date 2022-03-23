@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
-from ..core.utils import graphql_id
+from ..graphql.core.utils import to_global_id_or_none
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -13,10 +13,10 @@ if TYPE_CHECKING:
 
 def get_invoice_payload(invoice):
     return {
-        "id": graphql_id(invoice),
+        "id": to_global_id_or_none(invoice),
         "number": invoice.number,
         "download_url": invoice.url,
-        "order_id": graphql_id(invoice.order),
+        "order_id": to_global_id_or_none(invoice.order),
     }
 
 
@@ -30,8 +30,8 @@ def send_invoice(
     payload = {
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),  # type: ignore
-        "requester_user_id": graphql_id(staff_user),
-        "requester_app_id": graphql_id(app) if app else None,
+        "requester_user_id": to_global_id_or_none(staff_user),
+        "requester_app_id": to_global_id_or_none(app) if app else None,
         **get_site_context(),
     }
 

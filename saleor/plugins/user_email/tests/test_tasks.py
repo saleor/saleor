@@ -1,9 +1,9 @@
 from unittest import mock
 
 from ....account.notifications import get_default_user_payload
-from ....core.utils import graphql_id
 from ....giftcard import GiftCardEvents
 from ....giftcard.models import GiftCardEvent
+from ....graphql.core.utils import to_global_id_or_none
 from ....invoice import InvoiceEvents
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order import OrderEvents, OrderEventsEmails
@@ -416,15 +416,15 @@ def test_send_invoice_email_task_default_template_by_user(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": graphql_id(invoice),
-            "order_id": graphql_id(order),
+            "id": to_global_id_or_none(invoice),
+            "order_id": to_global_id_or_none(order),
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -459,8 +459,8 @@ def test_send_invoice_email_task_default_template_by_app(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": graphql_id(invoice),
-            "order_id": graphql_id(order),
+            "id": to_global_id_or_none(invoice),
+            "order_id": to_global_id_or_none(order),
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
@@ -468,7 +468,7 @@ def test_send_invoice_email_task_default_template_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     send_invoice_email_task(
@@ -505,15 +505,15 @@ def test_send_invoice_email_task_custom_template(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": graphql_id(invoice),
+            "id": to_global_id_or_none(invoice),
             "number": 999,
-            "order_id": graphql_id(order),
+            "order_id": to_global_id_or_none(order),
             "download_url": "http://localhost:8000/download",
         },
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -608,7 +608,7 @@ def test_send_fulfillment_confirmation_email_task_default_template(
     mocked_send_mail, user_email_dict_config, order, fulfillment, staff_user
 ):
     payload = get_default_fulfillment_payload(order, fulfillment)
-    payload["requester_user_id"] = graphql_id(staff_user)
+    payload["requester_user_id"] = to_global_id_or_none(staff_user)
     payload["requester_app_id"] = None
 
     send_fulfillment_confirmation_email_task(
@@ -646,7 +646,7 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_user(
         fulfillment_confirmation_subject=expected_subject,
     )
     payload = get_default_fulfillment_payload(order, fulfillment)
-    payload["requester_user_id"] = graphql_id(staff_user)
+    payload["requester_user_id"] = to_global_id_or_none(staff_user)
     payload["requester_app_id"] = None
     payload["digital_lines"] = [{"fulfillmentLine": {"id": 1}}]
     recipient_email = payload["recipient_email"]
@@ -700,7 +700,7 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_app(
     )
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = None
-    payload["requester_app_id"] = graphql_id(app)
+    payload["requester_app_id"] = to_global_id_or_none(app)
     payload["digital_lines"] = [{"fulfillmentLine": {"id": 1}}]
     recipient_email = payload["recipient_email"]
 
@@ -876,7 +876,7 @@ def test_send_order_canceled_email_task_default_template_by_user(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -899,7 +899,7 @@ def test_send_order_canceled_email_task_default_template_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     send_order_canceled_email_task(
@@ -926,7 +926,7 @@ def test_send_order_canceled_email_task_custom_template(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
     send_order_canceled_email_task(
@@ -959,7 +959,7 @@ def test_send_order_refund_email_task_default_template_by_user(
         "currency": order.currency,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -990,7 +990,7 @@ def test_send_order_refund_email_task_default_template_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     send_order_refund_email_task(
@@ -1025,7 +1025,7 @@ def test_send_order_refund_email_task_custom_template(
         "currency": order.currency,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
     send_order_refund_email_task(
@@ -1059,7 +1059,7 @@ def test_send_order_confirmed_email_task_default_template_by_user(
     payload = {
         "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
         "recipient_email": recipient_email,
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "site_name": "Saleor",
         "domain": "localhost:8000",
@@ -1089,7 +1089,7 @@ def test_send_order_confirmed_email_task_default_template_by_app(
     payload = {
         "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
         "recipient_email": recipient_email,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
         "requester_user_id": None,
         "site_name": "Saleor",
         "domain": "localhost:8000",
@@ -1125,7 +1125,7 @@ def test_send_order_confirmed_email_task_custom_template(
     payload = {
         "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
         "recipient_email": recipient_email,
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "site_name": "Saleor",
         "domain": "localhost:8000",
@@ -1166,12 +1166,12 @@ def test_send_gift_card_email_task_by_user(
 
     payload = {
         "user": get_default_user_payload(staff_user),
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "recipient_email": recipient_email,
         "resending": False,
         "gift_card": {
-            "id": graphql_id(gift_card),
+            "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
@@ -1219,13 +1219,13 @@ def test_send_gift_card_email_task_by_user_resending(
 
     payload = {
         "user": get_default_user_payload(staff_user),
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "recipient_email": recipient_email,
         "resending": True,
         "recipient_email": recipient_email,
         "gift_card": {
-            "id": graphql_id(gift_card),
+            "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
@@ -1273,12 +1273,12 @@ def test_send_gift_card_email_task_by_app(
     payload = {
         "user": None,
         "requester_user_id": None,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
         "recipient_email": recipient_email,
         "resending": False,
         "recipient_email": recipient_email,
         "gift_card": {
-            "id": graphql_id(gift_card),
+            "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,

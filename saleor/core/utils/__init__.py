@@ -3,7 +3,6 @@ import socket
 from typing import TYPE_CHECKING, Optional, Type, Union
 from urllib.parse import urljoin
 
-import graphene
 from babel.numbers import get_territory_currencies
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -157,19 +156,3 @@ def generate_unique_slug(
 def delete_versatile_image(image):
     image.delete_all_created_images()
     image.delete(save=False)
-
-
-def graphql_id(instance):
-    class_name = instance.__class__.__name__
-    if instance.id is None:
-        return None
-    return graphene.Node.to_global_id(class_name, instance.id)
-
-
-def get_id_from_graphql_id(_id):
-    if not _id:
-        return _id
-
-    values = graphene.Node.from_global_id(_id)
-    assert len(values) == 2
-    return values[1]

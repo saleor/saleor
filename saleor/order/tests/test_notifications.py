@@ -7,8 +7,8 @@ from prices import Money, fixed_discount
 
 from ...core.notify_events import NotifyEventType
 from ...core.prices import quantize_price
-from ...core.utils import graphql_id
 from ...discount import DiscountValueType
+from ...graphql.core.utils import to_global_id_or_none
 from ...order import notifications
 from ...order.fetch import fetch_order_info
 from ...plugins.manager import get_plugins_manager
@@ -28,8 +28,8 @@ def test_get_custom_order_payload(order):
     expected_payload = get_custom_order_payload(order)
     assert expected_payload == {
         "order": {
-            "id": graphql_id(order),
-            "number": graphql_id(order),
+            "id": to_global_id_or_none(order),
+            "number": to_global_id_or_none(order),
             "private_metadata": {},
             "metadata": {},
             "status": "unfulfilled",
@@ -126,7 +126,7 @@ def test_get_order_line_payload(order_line):
     currency = order_line.currency
     assert payload == {
         "variant": {
-            "id": graphql_id(order_line.variant),
+            "id": to_global_id_or_none(order_line.variant),
             "first_image": None,
             "images": None,
             "weight": "",
@@ -139,17 +139,17 @@ def test_get_order_line_payload(order_line):
             "first_image": None,
             "images": None,
             "weight": "5.0 kg",
-            "id": graphql_id(order_line.variant.product),
+            "id": to_global_id_or_none(order_line.variant.product),
         },
         "translated_product_name": order_line.translated_product_name
         or order_line.product_name,
         "translated_variant_name": order_line.translated_variant_name
         or order_line.variant_name,
-        "id": graphql_id(order_line),
+        "id": to_global_id_or_none(order_line),
         "product_name": order_line.product_name,
         "variant_name": order_line.variant_name,
         "product_sku": order_line.product_sku,
-        "product_variant_id": graphql_id(order_line.variant),
+        "product_variant_id": to_global_id_or_none(order_line.variant),
         "is_shipping_required": order_line.is_shipping_required,
         "quantity": order_line.quantity,
         "quantity_fulfilled": order_line.quantity_fulfilled,
@@ -236,9 +236,9 @@ def test_get_default_order_payload(order_line):
             }
         ],
         "channel_slug": order.channel.slug,
-        "id": graphql_id(order),
-        "number": graphql_id(order),
-        "token": order.id,
+        "id": to_global_id_or_none(order),
+        "number": to_global_id_or_none(order),
+        "token": order.token,
         "created": str(order.created),
         "display_gross_prices": order.display_gross_prices,
         "currency": order.currency,
@@ -487,7 +487,7 @@ def test_send_fulfillment_confirmation_by_user(
     )
 
     expected_payload = get_default_fulfillment_payload(fulfilled_order, fulfillment)
-    expected_payload["requester_user_id"] = graphql_id(staff_user)
+    expected_payload["requester_user_id"] = to_global_id_or_none(staff_user)
     expected_payload["requester_app_id"] = None
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
@@ -515,7 +515,7 @@ def test_send_fulfillment_confirmation_by_app(
 
     expected_payload = get_default_fulfillment_payload(fulfilled_order, fulfillment)
     expected_payload["requester_user_id"] = None
-    expected_payload["requester_app_id"] = graphql_id(app)
+    expected_payload["requester_app_id"] = to_global_id_or_none(app)
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
         payload=expected_payload,
@@ -559,7 +559,7 @@ def test_send_email_order_canceled_by_user(
         "recipient_email": order.get_customer_email(),
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
     mocked_notify.assert_called_once_with(
@@ -584,7 +584,7 @@ def test_send_email_order_canceled_by_app(mocked_notify, order, site_settings, a
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
         "requester_user_id": None,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CANCELED,
@@ -608,7 +608,7 @@ def test_send_email_order_refunded_by_user(
 
     # then
     expected_payload = {
-        "requester_user_id": graphql_id(staff_user),
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "order": get_default_order_payload(order),
         "amount": amount,
@@ -639,7 +639,7 @@ def test_send_email_order_refunded_by_app(mocked_notify, order, site_settings, a
     # then
     expected_payload = {
         "requester_user_id": None,
-        "requester_app_id": graphql_id(app),
+        "requester_app_id": to_global_id_or_none(app),
         "order": get_default_order_payload(order),
         "amount": amount,
         "currency": order.currency,

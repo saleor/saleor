@@ -21,7 +21,6 @@ from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
-from ....core.utils import graphql_id
 from ....discount.models import OrderDiscount
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
@@ -43,6 +42,7 @@ from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
+from ...core.utils import to_global_id_or_none
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -1035,7 +1035,7 @@ def test_order_confirm(
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
-        "requester_user_id": graphql_id(staff_api_client.user),
+        "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
@@ -1093,7 +1093,7 @@ def test_order_confirm_without_sku(
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
-        "requester_user_id": graphql_id(staff_api_client.user),
+        "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
