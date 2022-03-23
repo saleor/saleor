@@ -51,7 +51,6 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
 """
 
 
-# TODO: Add same test for multi discounts
 def test_add_order_discount_more_than_total_shouldnt_cause_negative_prices(
     draft_order, staff_api_client, permission_manage_orders
 ):
@@ -79,6 +78,40 @@ def test_add_order_discount_more_than_total_shouldnt_cause_negative_prices(
         total_without_discount.amount
     )
     assert order["discounts"][0]["value"] == float(discount_value.amount)
+
+
+def test_add_order_discount_sum_of_fixed_vouchers_value_more_then_order_total(
+    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+):
+    draft_order = draft_order_with_fixed_discount_order
+    total_with_one_discount = draft_order.total.gross
+    discount_value = draft_order.total.gross + Money(
+        Decimal("10"), draft_order.currency
+    )
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": discount_value.amount,
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    content = get_graphql_content(response)
+    order = content["data"]["orderDiscountAdd"]["order"]
+
+    assert order["total"]["gross"]["amount"] == 0
+    assert order["total"]["net"]["amount"] == 0
+
+    assert len(order["discounts"]) == 2
+
+    assert order["discounts"][1]["amount"]["amount"] == float(
+        total_with_one_discount.amount
+    )
+    assert order["discounts"][1]["value"] == float(discount_value.amount)
+
+    discounts_value = order["discounts"][0]["value"] + order["discounts"][1]["value"]
+    assert discounts_value > float(draft_order.undiscounted_total.gross.amount)
 
 
 def test_add_order_discount_more_than_100_percentage(
@@ -157,6 +190,60 @@ def test_add_fixed_order_discount_to_order(
 
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
+    assert order_discount.value == value
+    assert order_discount.value_type == DiscountValueType.FIXED
+    assert order_discount.amount.amount == value
+    assert order_discount.reason is None
+
+    event = order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_ADDED
+    parameters = event.parameters
+    discount_data = parameters.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_add_secoud_order_discount_to_order(
+    status,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    order = draft_order_with_fixed_discount_order
+    first_discount = order.discounts.get()
+    order.status = status
+    order.save(update_fields=["status"])
+    total_before_order_discount = order.total
+    value = Decimal("5")
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": value},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderDiscountAdd"]
+
+    order.refresh_from_db()
+    expected_gross = total_before_order_discount.gross.amount - value
+    expected_net = total_before_order_discount.net.amount - value
+
+    errors = data["errors"]
+    assert len(errors) == 0
+
+    assert expected_gross == order.total.gross.amount
+    assert expected_net == order.total.net.amount
+
+    assert (
+        order.undiscounted_total.gross.amount - first_discount.value
+        == total_before_order_discount.gross.amount
+    )
+
+    assert order.discounts.count() == 2
+    order_discount = order.discounts.last()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.FIXED
     assert order_discount.amount.amount == value

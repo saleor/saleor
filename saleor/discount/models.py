@@ -392,3 +392,4 @@ class OrderDiscount(models.Model):
     class Meta:
         # Orders searching index
         indexes = [GinIndex(fields=["name", "translated_name"])]
+        ordering = ("pk",)
