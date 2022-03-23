@@ -5,6 +5,7 @@ import graphene
 
 from ....plugins.webhook.tasks import create_deliveries_for_subscriptions, logger
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.subscription_payload import validate_subscription_query
 
 
 def test_product_created(product, subscription_product_created_webhook):
@@ -467,3 +468,27 @@ def test_create_deliveries_for_subscriptions_unsubscribable_event(
         "Skipping subscription webhook. Event %s is not subscribable.", event_type
     )
     assert len(deliveries) == 0
+
+
+TEST_VALID_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ProductUpdated{
+          product{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+def test_validate_subscription_query_valid():
+    result = validate_subscription_query(TEST_VALID_SUBSCRIPTION_QUERY)
+    assert result is True
+
+
+def test_validate_subscription_query_invalid():
+
+    result = validate_subscription_query("invalid_query")
+    assert result is False
