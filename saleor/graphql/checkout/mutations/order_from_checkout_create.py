@@ -1,13 +1,20 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
+from ....checkout.error_codes import OrderFromCheckoutCreateErrorCode
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import analytics
+from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
+from ....discount.models import NotApplicable
 from ...core.descriptions import PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderFromCheckoutCreateError
 from ...order.types import Order
 from ..types import Checkout
+from ..utils import prepare_insufficient_stock_checkout_validation_error
 
 
 class OrderFromCheckoutCreate(BaseMutation):
@@ -42,9 +49,26 @@ class OrderFromCheckoutCreate(BaseMutation):
         )
         tracking_code = analytics.get_client_id(info.context)
         # FIXME Do we want to limit this mutation only to App's token?
-        return OrderFromCheckoutCreate(
-            order=create_order_from_checkout(
-                checkout=checkout,
+
+        discounts = info.context.discounts
+        manager = info.context.plugins
+        checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout, checkout_lines, discounts, manager
+        )
+
+        validate_checkout(
+            checkout_info=checkout_info,
+            lines=checkout_lines,
+            unavailable_variant_pks=unavailable_variant_pks,
+            discounts=discounts,
+            manager=manager,
+        )
+
+        try:
+            order = create_order_from_checkout(
+                checkout_info=checkout_info,
+                checkout_lines=checkout_lines,
                 discounts=info.context.discounts,
                 manager=info.context.plugins,
                 user=info.context.user,
@@ -52,4 +76,20 @@ class OrderFromCheckoutCreate(BaseMutation):
                 tracking_code=tracking_code,
                 delete_checkout=data["clear_checkout"],
             )
-        )
+        except NotApplicable:
+            code = OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value
+            raise ValidationError(
+                {
+                    "voucher_code": ValidationError(
+                        "Voucher not applicable",
+                        code=code,
+                    )
+                }
+            )
+        except InsufficientStock as e:
+            error = prepare_insufficient_stock_checkout_validation_error(e)
+            raise error
+        except GiftCardNotApplicable as e:
+            raise ValidationError({"gift_cards": e})
+
+        return OrderFromCheckoutCreate(order=order)
