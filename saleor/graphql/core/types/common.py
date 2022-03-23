@@ -27,7 +27,9 @@ from ..enums import (
     OrderFromCheckoutCreateErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
+    PaymentCreateErrorCode,
     PaymentErrorCode,
+    PaymentUpdateErrorCode,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
@@ -338,6 +340,14 @@ class PaymentError(Error):
         description="List of varint IDs which causes the error.",
         required=False,
     )
+
+
+class PaymentCreateError(Error):
+    code = PaymentCreateErrorCode(description="The error code.", required=True)
+
+
+class PaymentUpdateError(Error):
+    code = PaymentUpdateErrorCode(description="The error code.", required=True)
 
 
 class GiftCardError(Error):
