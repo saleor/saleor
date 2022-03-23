@@ -234,9 +234,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
 
         invalidate_order_prices(order)
         update_order_search_document(order)
-        order.save(
-            update_fields=["price_expiration_for_unconfirmed", "search_document"]
-        )
+        order.save(update_fields=["invalid_prices_for_unconfirmed", "search_document"])
 
         return OrderDiscountDelete(order=order)
 

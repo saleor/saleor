@@ -1,10 +1,8 @@
 from decimal import Decimal
 from typing import Iterable, Optional, Tuple
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import prefetch_related_objects
-from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
@@ -131,7 +129,7 @@ def fetch_order_prices_if_expired(
         if order.status not in ORDER_EDITABLE_STATUS:
             return order, lines
 
-        if not force_update and order.price_expiration_for_unconfirmed > timezone.now():
+        if not force_update and not order.invalid_prices_for_unconfirmed:
             return order, lines
 
         if lines is None:
@@ -139,9 +137,7 @@ def fetch_order_prices_if_expired(
         else:
             prefetch_related_objects(lines, "variant__product")
 
-        order.price_expiration_for_unconfirmed = (
-            timezone.now() + settings.ORDER_PRICES_TTL
-        )
+        order.invalid_prices_for_unconfirmed = False
 
         _recalculate_order_prices(manager, order, lines)
 
@@ -161,7 +157,7 @@ def fetch_order_prices_if_expired(
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
                 "shipping_tax_rate",
-                "price_expiration_for_unconfirmed",
+                "invalid_prices_for_unconfirmed",
             ]
         )
         order.lines.bulk_update(

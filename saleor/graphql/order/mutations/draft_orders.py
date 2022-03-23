@@ -332,7 +332,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         update_order_search_document(instance)
         instance.save(
             update_fields=[
-                "price_expiration_for_unconfirmed",
+                "invalid_prices_for_unconfirmed",
                 "weight",
                 "search_document",
             ]

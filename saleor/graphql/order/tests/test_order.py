@@ -8562,7 +8562,6 @@ def test_order_by_token_query_payment_details_available_fields_with_permissions(
     assert_order_and_payment_ids(content, payment_txn_captured)
 
 
-@freeze_time()
 @pytest.mark.parametrize(
     "fun_to_patch, price_name",
     [
@@ -8585,7 +8584,7 @@ def test_order_resolver_tax_recalculation(
     )
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
-    order.price_expiration_for_unconfirmed = timezone.now()
+    order.invalid_prices_for_unconfirmed = True
     order.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -8629,7 +8628,6 @@ ORDER_LINE_PRICE_DATA = OrderTaxedPricesData(
 )
 
 
-@freeze_time()
 @pytest.mark.parametrize(
     "fun_to_patch, price_name, expected_price",
     [
@@ -8653,7 +8651,7 @@ def test_order_line_resolver_tax_recalculation(
     # given
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
-    order.price_expiration_for_unconfirmed = timezone.now()
+    order.invalid_prices_for_unconfirmed = True
     order.save()
 
     order.lines.last().delete()
@@ -8710,7 +8708,6 @@ query OrderLineTaxRate($id: ID!) {
 """
 
 
-@freeze_time()
 @pytest.mark.parametrize(
     "query, fun_to_patch, path",
     [
@@ -8730,7 +8727,7 @@ def test_order_tax_rate_resolver_tax_recalculation(
     tax_rate = Decimal("0.01")
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
-    order.price_expiration_for_unconfirmed = timezone.now()
+    order.invalid_prices_for_unconfirmed = True
     order.save()
 
     order.lines.last().delete()

@@ -4,7 +4,6 @@ from decimal import Decimal
 
 import graphene
 import pytest
-from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
@@ -56,21 +55,21 @@ def draft_orders_for_pagination(db, channel_USD):
                 total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
-                price_expiration_for_unconfirmed=timezone.now() + timedelta(hours=24),
+                invalid_prices_for_unconfirmed=False,
             ),
             Order(
                 token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
-                price_expiration_for_unconfirmed=timezone.now() + timedelta(hours=24),
+                invalid_prices_for_unconfirmed=False,
             ),
             Order(
                 token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
-                price_expiration_for_unconfirmed=timezone.now() + timedelta(hours=24),
+                invalid_prices_for_unconfirmed=False,
             ),
         ]
     )
@@ -390,7 +389,7 @@ def test_draft_order_query_pagination_with_filter_created(
         Order.objects.create(
             status=OrderStatus.DRAFT,
             channel=channel_USD,
-            price_expiration_for_unconfirmed=timezone.now() + timedelta(hours=24),
+            invalid_prices_for_unconfirmed=False,
         )
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}

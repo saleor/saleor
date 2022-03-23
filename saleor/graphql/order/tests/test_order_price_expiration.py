@@ -1,6 +1,4 @@
 import pytest
-from django.utils import timezone
-from freezegun import freeze_time
 from graphene import Node
 
 from ....order import OrderStatus
@@ -39,7 +37,6 @@ def order_with_lines(order_with_lines):
     return order_with_lines
 
 
-@freeze_time()
 def test_draft_order_update_shipping_address_invalidate_prices(
     staff_api_client,
     permission_manage_orders,
@@ -65,10 +62,9 @@ def test_draft_order_update_shipping_address_invalidate_prices(
     # then
     assert not content["data"]["draftOrderUpdate"]["errors"]
     draft_order.refresh_from_db()
-    assert draft_order.price_expiration_for_unconfirmed == timezone.now()
+    assert draft_order.invalid_prices_for_unconfirmed
 
 
-@freeze_time()
 def test_draft_order_update_billing_address_invalidate_prices(
     staff_api_client,
     permission_manage_orders,
@@ -94,7 +90,7 @@ def test_draft_order_update_billing_address_invalidate_prices(
     # then
     assert not content["data"]["draftOrderUpdate"]["errors"]
     draft_order.refresh_from_db()
-    assert draft_order.price_expiration_for_unconfirmed == timezone.now()
+    assert draft_order.invalid_prices_for_unconfirmed
 
 
 ORDER_UPDATE_MUTATION = """
@@ -124,7 +120,6 @@ mutation orderUpdate(
 """
 
 
-@freeze_time()
 def test_order_update_shipping_address_invalidate_prices(
     staff_api_client,
     permission_manage_orders,
@@ -151,10 +146,9 @@ def test_order_update_shipping_address_invalidate_prices(
     # then
     assert not content["data"]["orderUpdate"]["errors"]
     order.refresh_from_db()
-    assert order.price_expiration_for_unconfirmed == timezone.now()
+    assert order.invalid_prices_for_unconfirmed
 
 
-@freeze_time()
 def test_order_update_billing_address_invalidate_prices(
     staff_api_client,
     permission_manage_orders,
@@ -181,7 +175,7 @@ def test_order_update_billing_address_invalidate_prices(
     # then
     assert not content["data"]["orderUpdate"]["errors"]
     order.refresh_from_db()
-    assert order.price_expiration_for_unconfirmed == timezone.now()
+    assert order.invalid_prices_for_unconfirmed
 
 
 ORDER_LINES_CREATE_MUTATION = """
@@ -208,7 +202,6 @@ mutation OrderLinesCreate(
 """
 
 
-@freeze_time()
 def test_order_lines_create_invalidate_prices(
     order_with_lines,
     permission_manage_orders,
@@ -235,7 +228,7 @@ def test_order_lines_create_invalidate_prices(
     # then
     assert not content["data"]["orderLinesCreate"]["errors"]
     order.refresh_from_db()
-    assert order.price_expiration_for_unconfirmed == timezone.now()
+    assert order.invalid_prices_for_unconfirmed
 
 
 ORDER_LINE_UPDATE_MUTATION = """
@@ -258,7 +251,6 @@ mutation OrderLineUpdate(
 """
 
 
-@freeze_time()
 def test_order_line_update_invalidate_prices(
     order_with_lines,
     permission_manage_orders,
@@ -281,7 +273,7 @@ def test_order_line_update_invalidate_prices(
     # then
     assert not content["data"]["orderLineUpdate"]["errors"]
     order.refresh_from_db()
-    assert order.price_expiration_for_unconfirmed == timezone.now()
+    assert order.invalid_prices_for_unconfirmed
 
 
 ORDER_LINE_DELETE_MUTATION = """
@@ -300,7 +292,6 @@ mutation OrderLineDelete(
 """
 
 
-@freeze_time()
 def test_order_line_remove(
     order_with_lines, permission_manage_orders, staff_api_client
 ):
@@ -320,4 +311,4 @@ def test_order_line_remove(
     # then
     assert not content["data"]["orderLineDelete"]["errors"]
     order.refresh_from_db()
-    assert order.price_expiration_for_unconfirmed == timezone.now()
+    assert order.invalid_prices_for_unconfirmed
