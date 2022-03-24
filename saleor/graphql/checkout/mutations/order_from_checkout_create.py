@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
-from ....checkout.error_codes import OrderFromCheckoutCreateErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
@@ -11,10 +10,27 @@ from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
 from ...core.descriptions import PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
-from ...core.types.common import OrderFromCheckoutCreateError
+from ...core.types import Error
 from ...order.types import Order
+from ..enums import OrderFromCheckoutCreateErrorCode
 from ..types import Checkout
 from ..utils import prepare_insufficient_stock_checkout_validation_error
+
+
+class OrderFromCheckoutCreateError(Error):
+    code = OrderFromCheckoutCreateErrorCode(
+        description="The error code.", required=True
+    )
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of variant IDs which causes the error.",
+        required=False,
+    )
+    lines = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of line Ids which cause the error.",
+        required=False,
+    )
 
 
 class OrderFromCheckoutCreate(BaseMutation):
@@ -25,7 +41,7 @@ class OrderFromCheckoutCreate(BaseMutation):
             required=True,
             description="ID of a checkout that will be converted to an order.",
         )
-        clear_checkout = graphene.Boolean(
+        remove_checkout = graphene.Boolean(
             description=(
                 "Determines if checkout should be removed after creating an order. "
                 "Default true."
@@ -74,7 +90,7 @@ class OrderFromCheckoutCreate(BaseMutation):
                 user=info.context.user,
                 app=info.context.app,
                 tracking_code=tracking_code,
-                delete_checkout=data["clear_checkout"],
+                delete_checkout=data["remove_checkout"],
             )
         except NotApplicable:
             code = OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value

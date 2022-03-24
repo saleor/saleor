@@ -105,10 +105,6 @@ AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErro
 ChannelErrorCode = graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
 
-OrderFromCheckoutCreateErrorCode = graphene.Enum.from_enum(
-    checkout_error_codes.OrderFromCheckoutCreateErrorCode
-)
-
 ExternalNotificationTriggerErrorCode = graphene.Enum.from_enum(
     external_notifications_error_codes.ExternalNotificationErrorCodes
 )

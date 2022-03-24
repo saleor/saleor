@@ -24,7 +24,6 @@ from ..enums import (
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
-    OrderFromCheckoutCreateErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
@@ -144,22 +143,6 @@ class CheckoutError(Error):
     )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
-    )
-
-
-class OrderFromCheckoutCreateError(Error):
-    code = OrderFromCheckoutCreateErrorCode(
-        description="The error code.", required=True
-    )
-    variants = graphene.List(
-        graphene.NonNull(graphene.ID),
-        description="List of variant IDs which causes the error.",
-        required=False,
-    )
-    lines = graphene.List(
-        graphene.NonNull(graphene.ID),
-        description="List of line Ids which cause the error.",
-        required=False,
     )
 
 
