@@ -1069,10 +1069,8 @@ def create_order_from_checkout(
 
     Checkout can be deleted by setting flag `delete_checkout` to True
 
-    :raises: ValidationError
+    :raises: InsufficientStock, GiftCardNotApplicable
     """
-    # FIXME when validation failed we should trigger a new refund webhook. This should
-    #  be done in next PRs
 
     if checkout_info.voucher:
         with transaction.atomic():
