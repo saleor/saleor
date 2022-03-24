@@ -121,9 +121,8 @@ def fetch_order_prices_if_expired(
     First calculate and apply all order prices with taxes separately,
     then apply tax data as well if we receive one.
 
-    Prices can be updated only if force_update == True,
-    or if order price expiration time was exceeded
-    (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
+    Prices will be updated if force_update is True,
+    or if order.should_refresh_prices is True.
     """
     with transaction.atomic():
         if order.status not in ORDER_EDITABLE_STATUS:
