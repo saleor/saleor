@@ -452,6 +452,67 @@ def test_update_fixed_order_discount_to_order(
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_update_fixed_order_discounts_to_order(
+    status,
+    draft_order_with_many_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    order = draft_order_with_many_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
+    order_discount = draft_order_with_many_fixed_discount_order.discounts.first()
+    secoud_order_discount = draft_order_with_many_fixed_discount_order.discounts.last()
+    current_undiscounted_total = order.undiscounted_total
+
+    value = Decimal("30.000")
+    variables = {
+        "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": value,
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderDiscountUpdate"]
+
+    order.refresh_from_db()
+
+    discount = partial(
+        fixed_discount,
+        discount=Money(value + secoud_order_discount.value, currency=order.currency),
+    )
+    expected_total = discount(current_undiscounted_total)
+
+    errors = data["errors"]
+    assert len(errors) == 0
+
+    assert order.undiscounted_total == current_undiscounted_total
+
+    assert expected_total == order.total
+
+    assert order.discounts.count() == 2
+    order_discount = order.discounts.first()
+    assert order_discount.value == value
+    assert order_discount.value_type == DiscountValueType.FIXED
+    expected_amount = (current_undiscounted_total - expected_total).gross - Money(
+        secoud_order_discount.value, currency=order.currency
+    )
+    assert order_discount.amount == expected_amount
+
+    event = order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_UPDATED
+    parameters = event.parameters
+    discount_data = parameters.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+
+
 def test_update_order_discount_order_is_not_draft(
     draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
 ):

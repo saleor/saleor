@@ -4085,7 +4085,15 @@ def draft_order(order_with_lines, shipping_method):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
     order_with_lines.shipping_method = shipping_method
-    order_with_lines.save(update_fields=["status", "origin"])
+    order_with_lines.undiscounted_total = order_with_lines.total
+    order_with_lines.save(
+        update_fields=[
+            "status",
+            "origin",
+            "undiscounted_total_net_amount",
+            "undiscounted_total_gross_amount",
+        ]
+    )
     return order_with_lines
 
 
@@ -4093,12 +4101,27 @@ def draft_order(order_with_lines, shipping_method):
 def draft_order_with_fixed_discount_order(draft_order):
     value = Decimal("20")
     discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
-    draft_order.undiscounted_total = draft_order.total
     draft_order.total = discount(draft_order.total)
     draft_order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=value,
         reason="Discount reason",
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+    )
+    draft_order.save()
+    return draft_order
+
+
+@pytest.fixture
+def draft_order_with_many_fixed_discount_order(draft_order_with_fixed_discount_order):
+    value = Decimal("10")
+    draft_order = draft_order_with_fixed_discount_order
+    discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
+    draft_order.total = discount(draft_order.total)
+    draft_order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=value,
+        reason="Secoud discount reason",
         amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
     )
     draft_order.save()
