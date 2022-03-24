@@ -128,6 +128,29 @@ def test_filter_attributes_by_global_id_list(api_client, product_type_attribute_
     assert received_slugs == expected_slugs
 
 
+def test_filter_attribute_values_by_global_id_list(
+    api_client, attribute_choices_for_sorting
+):
+    # given
+    values = attribute_choices_for_sorting.values.all()
+    global_ids = [
+        graphene.Node.to_global_id("AttributeValue", value.pk) for value in values[:2]
+    ]
+    variables = {"filters": {"ids": global_ids}}
+
+    # when
+    content = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_VALUE_FILTER_QUERY, variables)
+    )
+
+    # then
+    expected_slugs = sorted([values[0].slug, values[1].slug])
+    values = content["data"]["attributes"]["edges"][0]["node"]["choices"]["edges"]
+    assert len(values) == 2
+    received_slugs = sorted([value["node"]["slug"] for value in values])
+    assert received_slugs == expected_slugs
+
+
 def test_filter_attributes_in_category_invalid_category_id(
     user_api_client, product_list, weight_attribute, channel_USD
 ):
