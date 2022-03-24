@@ -1715,7 +1715,7 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "psycopg2-binary"
+name = "psycopg2"
 version = "2.9.3"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
 category = "main"
