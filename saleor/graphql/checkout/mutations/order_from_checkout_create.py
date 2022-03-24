@@ -61,7 +61,7 @@ class OrderFromCheckoutCreate(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         checkout_id = data.get("id")
         checkout = cls.get_node_or_error(
-            info, checkout_id, field="token", only_type=Checkout
+            info, checkout_id, field="id", only_type=Checkout
         )
         tracking_code = analytics.get_client_id(info.context)
         # FIXME Do we want to limit this mutation only to App's token?
