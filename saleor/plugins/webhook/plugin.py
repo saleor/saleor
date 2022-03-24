@@ -15,6 +15,7 @@ from ...product.models import Collection, Product, ProductType, ProductVariant
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
+    generate_checkout_payload_without_taxes,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
@@ -24,6 +25,7 @@ from ...webhook.payloads import (
     generate_list_gateways_payload,
     generate_meta,
     generate_order_payload,
+    generate_order_payload_without_taxes,
     generate_page_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
@@ -618,7 +620,7 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            lambda: generate_checkout_payload(checkout, self.requestor),
+            lambda: generate_checkout_payload_without_taxes(checkout, self.requestor),
             parse_tax_data,
         )
 
@@ -627,7 +629,7 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-            lambda: generate_order_payload(order, self.requestor),
+            lambda: generate_order_payload_without_taxes(order, self.requestor),
             parse_tax_data,
         )
 
@@ -639,7 +641,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
-            payload = generate_checkout_payload(checkout, self.requestor)
+            payload = generate_checkout_payload_without_taxes(checkout, self.requestor)
             for app in apps:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,

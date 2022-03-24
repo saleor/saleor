@@ -358,7 +358,7 @@ def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
 
 
 @pytest.mark.parametrize(
-    "prices, discount_value, discount_type, apply_once_per_order, " "expected_value",
+    "prices, discount_value, discount_type, apply_once_per_order, expected_value",
     [
         ([10], 10, DiscountValueType.FIXED, True, 10),
         ([5], 10, DiscountValueType.FIXED, True, 5),

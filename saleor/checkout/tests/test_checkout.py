@@ -315,7 +315,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
 
 
 @pytest.mark.parametrize(
-    "discount_value, discount_type, apply_once_per_order, " "discount_amount",
+    "discount_value, discount_type, apply_once_per_order, discount_amount",
     [
         (5, DiscountValueType.FIXED, True, Decimal("5.00")),
         (5, DiscountValueType.FIXED, False, Decimal("15.00")),
