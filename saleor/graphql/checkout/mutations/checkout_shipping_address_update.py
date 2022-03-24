@@ -163,7 +163,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 shipping_channel_listings,
             )
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout, save=False
+            checkout_info, lines, manager, discounts, save=False
         )
         checkout.save(
             update_fields=shipping_address_updated_fields

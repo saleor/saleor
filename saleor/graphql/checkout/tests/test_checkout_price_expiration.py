@@ -6,6 +6,7 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
 from ...tests.utils import get_graphql_content
 
@@ -186,6 +187,7 @@ def test_checkout_shipping_address_update_invalidate_prices(
     api_client,
     checkout_with_items,
     graphql_address_data,
+    plugins_manager,
 ):
     # given
     query = UPDATE_CHECKOUT_SHIPPING_ADDRESS
@@ -194,13 +196,17 @@ def test_checkout_shipping_address_update_invalidate_prices(
         "address": graphql_address_data,
     }
     mocked_function.return_value = []
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], plugins_manager)
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
 
     # then
     assert not response["data"]["checkoutShippingAddressUpdate"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items, save=False)
+    mocked_function.assert_called_once_with(
+        checkout_info, lines, mock.ANY, [], save=False
+    )
 
 
 UPDATE_CHECKOUT_BILLING_ADDRESS = """
@@ -224,6 +230,7 @@ def test_checkout_billing_address_update_invalidate_prices(
     api_client,
     checkout_with_items,
     graphql_address_data,
+    plugins_manager,
 ):
     # given
     query = UPDATE_CHECKOUT_BILLING_ADDRESS
@@ -232,13 +239,17 @@ def test_checkout_billing_address_update_invalidate_prices(
         "address": graphql_address_data,
     }
     mocked_function.return_value = []
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], plugins_manager)
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
 
     # then
     assert not response["data"]["checkoutBillingAddressUpdate"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items, save=False)
+    mocked_function.assert_called_once_with(
+        checkout_info, lines, [], mock.ANY, save=False
+    )
 
 
 UPDATE_CHECKOUT_SHIPPING_METHOD = """
@@ -329,13 +340,17 @@ def test_checkout_delivery_method_update_invalidate_prices(
 
 
 @freeze_time("2020-12-12 12:00:00")
-def test_invalidate_checkout_prices_with_save(checkout):
+def test_invalidate_checkout_prices_with_save(checkout, plugins_manager):
     # given
     checkout.price_expiration = timezone.now() + timedelta(minutes=5)
     checkout.save(update_fields=["price_expiration"])
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
 
     # when
-    updated_fields = invalidate_checkout_prices(checkout, save=True)
+    updated_fields = invalidate_checkout_prices(
+        checkout_info, lines, plugins_manager, [], save=True
+    )
 
     # then
     checkout.refresh_from_db()
@@ -344,15 +359,19 @@ def test_invalidate_checkout_prices_with_save(checkout):
 
 
 @freeze_time("2020-12-12 12:00:00")
-def test_invalidate_checkout_prices_without_save(checkout):
+def test_invalidate_checkout_prices_without_save(checkout, plugins_manager):
     # given
     original_expiration = checkout.price_expiration = timezone.now() + timedelta(
         minutes=5
     )
     checkout.save(update_fields=["price_expiration"])
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
 
     # when
-    updated_fields = invalidate_checkout_prices(checkout, save=False)
+    updated_fields = invalidate_checkout_prices(
+        checkout_info, lines, plugins_manager, [], save=False
+    )
 
     # then
     checkout.refresh_from_db()

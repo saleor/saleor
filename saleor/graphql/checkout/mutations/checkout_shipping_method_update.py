@@ -173,7 +173,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
-        invalidate_checkout_prices(checkout, save=False)
+        invalidate_checkout_prices(
+            checkout_info, lines, manager, info.context.discounts, save=False
+        )
         checkout.save(
             update_fields=[
                 "private_metadata",
@@ -205,7 +207,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
         checkout.shipping_method = None
-        invalidate_checkout_prices(checkout, save=False)
+        invalidate_checkout_prices(
+            checkout_info, lines, manager, info.context.discounts, save=False
+        )
         checkout.save(
             update_fields=[
                 "private_metadata",

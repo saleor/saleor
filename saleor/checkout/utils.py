@@ -52,12 +52,28 @@ if TYPE_CHECKING:
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
-def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
+def invalidate_checkout_prices(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    manager: "PluginsManager",
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
+    *,
+    save: bool
+) -> List[str]:
     """Mark checkout as ready for prices recalculation."""
+    checkout = checkout_info.checkout
+
+    if voucher := checkout_info.voucher:
+        check_voucher_for_checkout(
+            voucher, manager, checkout_info, lines, discounts or []
+        )
+
     checkout.price_expiration = timezone.now()
     updated_fields = ["price_expiration", "last_change"]
+
     if save:
         checkout.save(update_fields=updated_fields)
+
     return updated_fields
 
 
@@ -500,6 +516,31 @@ def get_voucher_for_checkout_info(
     )
 
 
+def check_voucher_for_checkout(
+    voucher: Voucher,
+    manager: PluginsManager,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
+):
+    checkout = checkout_info.checkout
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    try:
+        discount = get_voucher_discount_for_checkout(
+            manager,
+            voucher,
+            checkout_info,
+            lines,
+            address,
+            discounts,
+        )
+        return discount
+    except NotApplicable:
+        remove_voucher_from_checkout(checkout)
+        checkout_info.voucher = None
+        return None
+
+
 def recalculate_checkout_discount(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
@@ -513,20 +554,14 @@ def recalculate_checkout_discount(
     """
     checkout = checkout_info.checkout
     if voucher := checkout_info.voucher:
-        address = checkout_info.shipping_address or checkout_info.billing_address
-        try:
-            discount = get_voucher_discount_for_checkout(
-                manager,
-                voucher,
-                checkout_info,
-                lines,
-                address,
-                discounts,
-            )
-        except NotApplicable:
-            remove_voucher_from_checkout(checkout)
-            checkout_info.voucher = None
-        else:
+        discount = check_voucher_for_checkout(
+            voucher,
+            manager,
+            checkout_info,
+            lines,
+            discounts,
+        )
+        if discount:
             subtotal = base_calculations.base_checkout_subtotal(
                 lines,
                 checkout_info.channel,

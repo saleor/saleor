@@ -6,7 +6,7 @@ from graphql.error import GraphQLError
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     invalidate_checkout_prices,
     remove_promo_code_from_checkout,
@@ -92,7 +92,10 @@ class CheckoutRemovePromoCode(BaseMutation):
             )
 
         if removed:
-            invalidate_checkout_prices(checkout, save=True)
+            lines, _ = fetch_checkout_lines(checkout)
+            invalidate_checkout_prices(
+                checkout_info, lines, manager, info.context.discounts, save=True
+            )
             manager.checkout_updated(checkout)
 
         return CheckoutRemovePromoCode(checkout=checkout)

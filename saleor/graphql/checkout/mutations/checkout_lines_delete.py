@@ -65,7 +65,9 @@ class CheckoutLinesDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(checkout, save=True)
+        invalidate_checkout_prices(
+            checkout_info, lines, manager, info.context.discounts, save=True
+        )
         manager.checkout_updated(checkout)
 
         return CheckoutLinesDelete(checkout=checkout)

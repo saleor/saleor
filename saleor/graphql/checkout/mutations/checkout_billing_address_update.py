@@ -2,6 +2,7 @@ import graphene
 
 from ....checkout import AddressType
 from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     change_billing_address_in_checkout,
     invalidate_checkout_prices,
@@ -66,8 +67,16 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             change_address_updated_fields = change_billing_address_in_checkout(
                 checkout, billing_address
             )
+            lines, _ = fetch_checkout_lines(checkout)
+            checkout_info = fetch_checkout_info(
+                checkout, lines, info.context.discounts, info.context.plugins
+            )
             invalidate_prices_updated_fields = invalidate_checkout_prices(
-                checkout, save=False
+                checkout_info,
+                lines,
+                info.context.plugins,
+                info.context.discounts,
+                save=False,
             )
             checkout.save(
                 update_fields=change_address_updated_fields
