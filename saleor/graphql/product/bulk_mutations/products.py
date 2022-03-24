@@ -221,7 +221,7 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
     )
     stocks = graphene.List(
         graphene.NonNull(StockInput),
-        description=("Stocks of a product available for sale."),
+        description="Stocks of a product available for sale.",
         required=False,
     )
     channel_listings = graphene.List(

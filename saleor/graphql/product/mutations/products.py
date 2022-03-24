@@ -73,6 +73,7 @@ from ..utils import (
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
+    update_ordered_media,
 )
 
 
@@ -830,7 +831,7 @@ class ProductVariantCreateInput(ProductVariantInput):
     )
     stocks = graphene.List(
         graphene.NonNull(StockInput),
-        description=("Stocks of a product available for sale."),
+        description="Stocks of a product available for sale.",
         required=False,
     )
 
@@ -936,7 +937,8 @@ class ProductVariantCreate(ModelMutation):
                 product_type.variant_attributes.all().values_list("pk", flat=True)
             )
         }
-        attributes_ids = {attr["id"] for attr in data.get("attributes") or []}
+        attributes = cleaned_input.get("attributes")
+        attributes_ids = {attr["id"] for attr in attributes or []}
         invalid_attributes = attributes_ids - variant_attributes_ids
         if len(invalid_attributes) > 0:
             raise ValidationError(
@@ -951,7 +953,6 @@ class ProductVariantCreate(ModelMutation):
             # We need to transform them into the format they're stored in the
             # `Product` model, which is HStore field that maps attribute's PK to
             # the value's PK.
-            attributes = cleaned_input.get("attributes")
             try:
                 if attributes:
                     cleaned_attributes = cls.clean_attributes(attributes, product_type)
@@ -972,10 +973,11 @@ class ProductVariantCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
         else:
-            raise ValidationError(
-                "Product type is not configurable.",
-                ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
-            )
+            if attributes:
+                raise ValidationError(
+                    "Cannot assign attributes for product type without variants",
+                    ProductErrorCode.INVALID.value,
+                )
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
@@ -1619,9 +1621,7 @@ class ProductMediaReorder(BaseMutation):
                 )
             ordered_media.append(media)
 
-        for order, media in enumerate(ordered_media):
-            media.sort_order = order
-            media.save(update_fields=["sort_order"])
+        update_ordered_media(ordered_media)
 
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)

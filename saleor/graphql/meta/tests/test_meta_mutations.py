@@ -1,10 +1,13 @@
 import base64
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
+from ....checkout.models import Checkout
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
@@ -52,6 +55,7 @@ def execute_update_public_metadata_for_item(
     item_type,
     key=PUBLIC_KEY,
     value=PUBLIC_VALUE,
+    ignore_errors=False,
 ):
     variables = {
         "id": item_id,
@@ -63,7 +67,7 @@ def execute_update_public_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=ignore_errors)
     return response
 
 
@@ -122,6 +126,21 @@ def item_contains_multiple_proper_public_metadata(
             item.get_value_from_metadata(key2) == value2,
         ]
     )
+
+
+def test_meta_mutations_handle_validation_errors(staff_api_client):
+    invalid_id = "6QjoLs5LIqb3At7hVKKcUlqXceKkFK"
+    variables = {
+        "id": invalid_id,
+        "input": [{"key": "year", "value": "of-saleor"}],
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "Checkout", variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["updateMetadata"]["errors"]
+    assert errors
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -750,6 +769,34 @@ def test_update_public_metadata_for_item(api_client, checkout):
         checkout,
         checkout_id,
         value="NewMetaValue",
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
+    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["metadata"])
+
+    def delete_checkout_object(*args, **kwargs):
+        with transaction.atomic():
+            Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with before_after.before(
+        "saleor.graphql.meta.mutations._save_instance", delete_checkout_object
+    ):
+        response = execute_update_public_metadata_for_item(
+            api_client,
+            None,
+            checkout.token,
+            "Checkout",
+            value="NewMetaValue",
+            ignore_errors=True,
+        )
+
+    assert not Checkout.objects.filter(pk=checkout.pk).first()
+    assert (
+        response["data"]["updateMetadata"]["errors"][0]["code"]
+        == MetadataErrorCode.NOT_FOUND.name
     )
 
 
