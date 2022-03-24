@@ -13,7 +13,7 @@ from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from . import models
-from .error_codes import CheckoutErrorCode, OrderFromCheckoutCreateErrorCode
+from .error_codes import CheckoutErrorCode, OrderCreateFromCheckoutErrorCode
 from .models import Checkout
 from .utils import clear_delivery_method, is_fully_paid, is_shipping_required
 
@@ -27,7 +27,7 @@ def clean_checkout_shipping(
     error_code: Union[
         Type[CheckoutErrorCode],
         Type[PaymentErrorCode],
-        Type[OrderFromCheckoutCreateErrorCode],
+        Type[OrderCreateFromCheckoutErrorCode],
     ],
 ):
     delivery_method_info = checkout_info.delivery_method_info
@@ -68,7 +68,7 @@ def clean_billing_address(
     error_code: Union[
         Type[CheckoutErrorCode],
         Type[PaymentErrorCode],
-        Type[OrderFromCheckoutCreateErrorCode],
+        Type[OrderCreateFromCheckoutErrorCode],
     ],
 ):
     if not checkout_info.billing_address:
@@ -134,7 +134,7 @@ def validate_checkout(
             {
                 "channel": ValidationError(
                     "Cannot complete checkout with inactive channel.",
-                    code=OrderFromCheckoutCreateErrorCode.CHANNEL_INACTIVE.value,
+                    code=OrderCreateFromCheckoutErrorCode.CHANNEL_INACTIVE.value,
                 )
             }
         )
@@ -143,7 +143,7 @@ def validate_checkout(
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in unavailable_variant_pks
         }
-        code = OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
+        code = OrderCreateFromCheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
         raise ValidationError(
             {
                 "lines": ValidationError(
@@ -158,7 +158,7 @@ def validate_checkout(
             {
                 "lines": ValidationError(
                     "Cannot complete checkout without lines",
-                    code=OrderFromCheckoutCreateErrorCode.NO_LINES.value,
+                    code=OrderCreateFromCheckoutErrorCode.NO_LINES.value,
                 )
             }
         )
@@ -168,14 +168,14 @@ def validate_checkout(
             {
                 "voucher_code": ValidationError(
                     "Voucher not applicable",
-                    code=OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    code=OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }
         )
     validate_checkout_email(checkout_info.checkout)
 
-    clean_billing_address(checkout_info, OrderFromCheckoutCreateErrorCode)
-    clean_checkout_shipping(checkout_info, lines, OrderFromCheckoutCreateErrorCode)
+    clean_billing_address(checkout_info, OrderCreateFromCheckoutErrorCode)
+    clean_checkout_shipping(checkout_info, lines, OrderCreateFromCheckoutErrorCode)
     _validate_gift_cards(checkout_info.checkout)
 
     # call plugin's hooks to validate if we are able to create an order
@@ -185,5 +185,5 @@ def validate_checkout(
     except TaxError as tax_error:
         raise ValidationError(
             "Unable to calculate taxes - %s" % str(tax_error),
-            code=OrderFromCheckoutCreateErrorCode.TAX_ERROR.value,
+            code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
         )

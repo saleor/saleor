@@ -12,13 +12,13 @@ from ...core.descriptions import PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
 from ...order.types import Order
-from ..enums import OrderFromCheckoutCreateErrorCode
+from ..enums import OrderCreateFromCheckoutErrorCode
 from ..types import Checkout
 from ..utils import prepare_insufficient_stock_checkout_validation_error
 
 
-class OrderFromCheckoutCreateError(Error):
-    code = OrderFromCheckoutCreateErrorCode(
+class OrderCreateFromCheckoutError(Error):
+    code = OrderCreateFromCheckoutErrorCode(
         description="The error code.", required=True
     )
     variants = graphene.List(
@@ -33,7 +33,7 @@ class OrderFromCheckoutCreateError(Error):
     )
 
 
-class OrderFromCheckoutCreate(BaseMutation):
+class OrderCreateFromCheckout(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
 
     class Arguments:
@@ -55,7 +55,7 @@ class OrderFromCheckoutCreate(BaseMutation):
 
         # FIXME this should be a separate permission probably
         permissions = (CheckoutPermissions.MANAGE_CHECKOUTS,)
-        error_type_class = OrderFromCheckoutCreateError
+        error_type_class = OrderCreateFromCheckoutError
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -93,7 +93,7 @@ class OrderFromCheckoutCreate(BaseMutation):
                 delete_checkout=data["remove_checkout"],
             )
         except NotApplicable:
-            code = OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value
+            code = OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value
             raise ValidationError(
                 {
                     "voucher_code": ValidationError(
@@ -108,4 +108,4 @@ class OrderFromCheckoutCreate(BaseMutation):
         except GiftCardNotApplicable as e:
             raise ValidationError({"gift_cards": e})
 
-        return OrderFromCheckoutCreate(order=order)
+        return OrderCreateFromCheckout(order=order)
