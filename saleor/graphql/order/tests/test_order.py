@@ -8584,7 +8584,7 @@ def test_order_resolver_tax_recalculation(
     )
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
-    order.invalid_prices_for_unconfirmed = True
+    order.should_refresh_prices = True
     order.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -8651,7 +8651,7 @@ def test_order_line_resolver_tax_recalculation(
     # given
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
-    order.invalid_prices_for_unconfirmed = True
+    order.should_refresh_prices = True
     order.save()
 
     order.lines.last().delete()
@@ -8727,7 +8727,7 @@ def test_order_tax_rate_resolver_tax_recalculation(
     tax_rate = Decimal("0.01")
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
-    order.invalid_prices_for_unconfirmed = True
+    order.should_refresh_prices = True
     order.save()
 
     order.lines.last().delete()

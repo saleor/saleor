@@ -14,14 +14,14 @@ from ....order.utils import invalidate_order_prices
 )
 def test_invalidate_order_prices_status(order, status, invalid_prices):
     # given
-    order.invalid_prices_for_unconfirmed = False
+    order.should_refresh_prices = False
     order.status = status
 
     # when
     invalidate_order_prices(order, save=False)
 
     # then
-    assert order.invalid_prices_for_unconfirmed is invalid_prices
+    assert order.should_refresh_prices is invalid_prices
 
 
 @pytest.mark.parametrize(
@@ -33,14 +33,14 @@ def test_invalidate_order_prices_status(order, status, invalid_prices):
 )
 def test_invalidate_order_prices_save(order, save, invalid_prices):
     # given
-    order.invalid_prices_for_unconfirmed = False
-    order.save(update_fields=["invalid_prices_for_unconfirmed"])
+    order.should_refresh_prices = False
+    order.save(update_fields=["should_refresh_prices"])
     order.status = OrderStatus.DRAFT
 
     # when
     invalidate_order_prices(order, save=save)
 
     # then
-    assert order.invalid_prices_for_unconfirmed
+    assert order.should_refresh_prices
     order.refresh_from_db()
-    assert order.invalid_prices_for_unconfirmed is invalid_prices
+    assert order.should_refresh_prices is invalid_prices

@@ -129,7 +129,7 @@ def fetch_order_prices_if_expired(
         if order.status not in ORDER_EDITABLE_STATUS:
             return order, lines
 
-        if not force_update and not order.invalid_prices_for_unconfirmed:
+        if not force_update and not order.should_refresh_prices:
             return order, lines
 
         if lines is None:
@@ -137,7 +137,7 @@ def fetch_order_prices_if_expired(
         else:
             prefetch_related_objects(lines, "variant__product")
 
-        order.invalid_prices_for_unconfirmed = False
+        order.should_refresh_prices = False
 
         _recalculate_order_prices(manager, order, lines)
 
@@ -157,7 +157,7 @@ def fetch_order_prices_if_expired(
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
                 "shipping_tax_rate",
-                "invalid_prices_for_unconfirmed",
+                "should_refresh_prices",
             ]
         )
         order.lines.bulk_update(

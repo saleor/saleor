@@ -55,21 +55,21 @@ def draft_orders_for_pagination(db, channel_USD):
                 total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
-                invalid_prices_for_unconfirmed=False,
+                should_refresh_prices=False,
             ),
             Order(
                 token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
-                invalid_prices_for_unconfirmed=False,
+                should_refresh_prices=False,
             ),
             Order(
                 token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
-                invalid_prices_for_unconfirmed=False,
+                should_refresh_prices=False,
             ),
         ]
     )
@@ -389,7 +389,7 @@ def test_draft_order_query_pagination_with_filter_created(
         Order.objects.create(
             status=OrderStatus.DRAFT,
             channel=channel_USD,
-            invalid_prices_for_unconfirmed=False,
+            should_refresh_prices=False,
         )
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}

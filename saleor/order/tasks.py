@@ -12,4 +12,4 @@ def recalculate_orders_task(order_ids: List[int]):
     for order in orders:
         invalidate_order_prices(order)
 
-    Order.objects.bulk_update(orders, ["invalid_prices_for_unconfirmed"])
+    Order.objects.bulk_update(orders, ["should_refresh_prices"])

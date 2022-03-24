@@ -788,7 +788,7 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
-        invalid_prices_for_unconfirmed=False,
+        should_refresh_prices=False,
     )
     return order
 

@@ -62,7 +62,7 @@ def test_draft_order_update_shipping_address_invalidate_prices(
     # then
     assert not content["data"]["draftOrderUpdate"]["errors"]
     draft_order.refresh_from_db()
-    assert draft_order.invalid_prices_for_unconfirmed
+    assert draft_order.should_refresh_prices
 
 
 def test_draft_order_update_billing_address_invalidate_prices(
@@ -90,7 +90,7 @@ def test_draft_order_update_billing_address_invalidate_prices(
     # then
     assert not content["data"]["draftOrderUpdate"]["errors"]
     draft_order.refresh_from_db()
-    assert draft_order.invalid_prices_for_unconfirmed
+    assert draft_order.should_refresh_prices
 
 
 ORDER_UPDATE_MUTATION = """
@@ -146,7 +146,7 @@ def test_order_update_shipping_address_invalidate_prices(
     # then
     assert not content["data"]["orderUpdate"]["errors"]
     order.refresh_from_db()
-    assert order.invalid_prices_for_unconfirmed
+    assert order.should_refresh_prices
 
 
 def test_order_update_billing_address_invalidate_prices(
@@ -175,7 +175,7 @@ def test_order_update_billing_address_invalidate_prices(
     # then
     assert not content["data"]["orderUpdate"]["errors"]
     order.refresh_from_db()
-    assert order.invalid_prices_for_unconfirmed
+    assert order.should_refresh_prices
 
 
 ORDER_LINES_CREATE_MUTATION = """
@@ -228,7 +228,7 @@ def test_order_lines_create_invalidate_prices(
     # then
     assert not content["data"]["orderLinesCreate"]["errors"]
     order.refresh_from_db()
-    assert order.invalid_prices_for_unconfirmed
+    assert order.should_refresh_prices
 
 
 ORDER_LINE_UPDATE_MUTATION = """
@@ -273,7 +273,7 @@ def test_order_line_update_invalidate_prices(
     # then
     assert not content["data"]["orderLineUpdate"]["errors"]
     order.refresh_from_db()
-    assert order.invalid_prices_for_unconfirmed
+    assert order.should_refresh_prices
 
 
 ORDER_LINE_DELETE_MUTATION = """
@@ -311,4 +311,4 @@ def test_order_line_remove(
     # then
     assert not content["data"]["orderLineDelete"]["errors"]
     order.refresh_from_db()
-    assert order.invalid_prices_for_unconfirmed
+    assert order.should_refresh_prices

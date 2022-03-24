@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="order",
-            name="invalid_prices_for_unconfirmed",
+            name="should_refresh_prices",
             field=models.BooleanField(default=True),
         ),
     ]
