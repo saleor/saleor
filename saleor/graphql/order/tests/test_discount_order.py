@@ -621,12 +621,71 @@ def test_delete_order_discount_from_order(
     assert order.undiscounted_total == current_undiscounted_total
     assert order.total == current_undiscounted_total
 
+    assert order.discounts.count() == 0
+
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
 
     assert order.search_document
     assert name not in order.search_document
     assert translated_name not in order.search_document
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_delete_one_of_order_discount_from_order(
+    status,
+    draft_order_with_many_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    order = draft_order_with_many_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
+
+    order_discount = order.discounts.first()
+    name = "discount translated"
+    translated_name = "first translated name"
+    order_discount.name = name
+    order_discount.translated_name = translated_name
+    order_discount.save(update_fields=["name", "translated_name"])
+
+    secoud_order_discount = order.discounts.last()
+    secoud_discount_name = "secoud discount"
+    secoud_discount_translated_name = "secoud translated name"
+    secoud_order_discount.name = secoud_discount_name
+    secoud_order_discount.translated_name = secoud_discount_translated_name
+    secoud_order_discount.save(update_fields=["name", "translated_name"])
+
+    current_undiscounted_total = order.undiscounted_total
+
+    variables = {
+        "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_DELETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderDiscountDelete"]
+
+    order.refresh_from_db()
+
+    errors = data["errors"]
+    assert len(errors) == 0
+
+    assert order.undiscounted_total == current_undiscounted_total
+    assert order.total == current_undiscounted_total - Money(
+        secoud_order_discount.value, currency=order.currency
+    )
+
+    assert order.discounts.count() == 1
+
+    event = order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
+
+    assert order.search_document
+    assert name not in order.search_document
+    assert translated_name not in order.search_document
+    assert secoud_discount_name in order.search_document
+    assert secoud_discount_translated_name in order.search_document
 
 
 def test_delete_order_discount_order_is_not_draft(
