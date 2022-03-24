@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
+from ....plugins.manager import get_plugins_manager
 from ...tests.utils import get_graphql_content
 
 ADD_CHECKOUT_LINES = """
@@ -32,6 +33,7 @@ def test_checkout_lines_add_invalidate_prices(
     stock,
 ):
     # given
+    manager = get_plugins_manager()
     query = ADD_CHECKOUT_LINES
     variables = {
         "checkoutId": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -48,7 +50,12 @@ def test_checkout_lines_add_invalidate_prices(
 
     # then
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items, save=True)
+    checkout_with_items.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    mocked_function.assert_called_once_with(
+        checkout_info, lines, mock.ANY, [], save=True
+    )
 
 
 UPDATE_CHECKOUT_LINES = """
@@ -73,6 +80,7 @@ def test_checkout_lines_update_invalidate_prices(
     stock,
 ):
     # given
+    manager = get_plugins_manager()
     query = UPDATE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
@@ -89,7 +97,12 @@ def test_checkout_lines_update_invalidate_prices(
 
     # then
     assert not response["data"]["checkoutLinesUpdate"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items, save=True)
+    checkout_with_items.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    mocked_function.assert_called_once_with(
+        checkout_info, lines, mock.ANY, [], save=True
+    )
 
 
 DELETE_CHECKOUT_LINES = """
@@ -113,6 +126,7 @@ def test_checkout_lines_delete_invalidate_prices(
     checkout_with_items,
 ):
     # given
+    manager = get_plugins_manager()
     query = DELETE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
@@ -126,7 +140,12 @@ def test_checkout_lines_delete_invalidate_prices(
 
     # then
     assert not response["data"]["checkoutLinesDelete"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items, save=True)
+    checkout_with_items.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    mocked_function.assert_called_once_with(
+        checkout_info, lines, mock.ANY, [], save=True
+    )
 
 
 DELETE_CHECKOUT_LINE = """
@@ -150,6 +169,7 @@ def test_checkout_line_delete_invalidate_prices(
     checkout_with_items,
 ):
     # given
+    manager = get_plugins_manager()
     query = DELETE_CHECKOUT_LINE
     variables = {
         "token": checkout_with_items.token,
@@ -163,7 +183,12 @@ def test_checkout_line_delete_invalidate_prices(
 
     # then
     assert not response["data"]["checkoutLineDelete"]["errors"]
-    mocked_function.assert_called_once_with(checkout_with_items, save=True)
+    checkout_with_items.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    mocked_function.assert_called_once_with(
+        checkout_info, lines, mock.ANY, [], save=True
+    )
 
 
 UPDATE_CHECKOUT_SHIPPING_ADDRESS = """
@@ -190,20 +215,22 @@ def test_checkout_shipping_address_update_invalidate_prices(
     plugins_manager,
 ):
     # given
+    manager = get_plugins_manager()
     query = UPDATE_CHECKOUT_SHIPPING_ADDRESS
     variables = {
         "token": checkout_with_items.token,
         "address": graphql_address_data,
     }
     mocked_function.return_value = []
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], plugins_manager)
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
 
     # then
     assert not response["data"]["checkoutShippingAddressUpdate"]["errors"]
+    checkout_with_items.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], save=False
     )
@@ -230,25 +257,26 @@ def test_checkout_billing_address_update_invalidate_prices(
     api_client,
     checkout_with_items,
     graphql_address_data,
-    plugins_manager,
 ):
     # given
+    manager = get_plugins_manager()
     query = UPDATE_CHECKOUT_BILLING_ADDRESS
     variables = {
         "token": checkout_with_items.token,
         "address": graphql_address_data,
     }
     mocked_function.return_value = []
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], plugins_manager)
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
 
     # then
     assert not response["data"]["checkoutBillingAddressUpdate"]["errors"]
+    checkout_with_items.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
     mocked_function.assert_called_once_with(
-        checkout_info, lines, [], mock.ANY, save=False
+        checkout_info, lines, mock.ANY, [], save=False
     )
 
 
