@@ -27,7 +27,7 @@ class OrderFromCheckoutCreate(BaseMutation):
         )
         clear_checkout = graphene.Boolean(
             description=(
-                "Determines if checkout should be removed after creating an order."
+                "Determines if checkout should be removed after creating an order. "
                 "Default true."
             ),
             default_value=True,
