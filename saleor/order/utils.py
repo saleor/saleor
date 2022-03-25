@@ -108,10 +108,10 @@ def invalidate_order_prices(order: Order, *, save: bool = False) -> None:
     if order.status not in ORDER_EDITABLE_STATUS:
         return
 
-    order.price_expiration_for_unconfirmed = timezone.now()
+    order.should_refresh_prices = True
 
     if save:
-        order.save(update_fields=["price_expiration_for_unconfirmed"])
+        order.save(update_fields=["should_refresh_prices"])
 
 
 def recalculate_order_weight(order: Order, *, save: bool = False):

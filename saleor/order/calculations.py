@@ -1,10 +1,8 @@
 from decimal import Decimal
 from typing import Iterable, Optional, Tuple
 
-from django.conf import settings
 from django.db import transaction
 from django.db.models import prefetch_related_objects
-from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
@@ -123,15 +121,14 @@ def fetch_order_prices_if_expired(
     First calculate and apply all order prices with taxes separately,
     then apply tax data as well if we receive one.
 
-    Prices can be updated only if force_update == True,
-    or if order price expiration time was exceeded
-    (which is settings.ORDER_PRICES_TTL if the prices are not invalidated).
+    Prices will be updated if force_update is True,
+    or if order.should_refresh_prices is True.
     """
     with transaction.atomic():
         if order.status not in ORDER_EDITABLE_STATUS:
             return order, lines
 
-        if not force_update and order.price_expiration_for_unconfirmed > timezone.now():
+        if not force_update and not order.should_refresh_prices:
             return order, lines
 
         if lines is None:
@@ -139,9 +136,7 @@ def fetch_order_prices_if_expired(
         else:
             prefetch_related_objects(lines, "variant__product")
 
-        order.price_expiration_for_unconfirmed = (
-            timezone.now() + settings.ORDER_PRICES_TTL
-        )
+        order.should_refresh_prices = False
 
         _recalculate_order_prices(manager, order, lines)
 
@@ -161,7 +156,7 @@ def fetch_order_prices_if_expired(
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
                 "shipping_tax_rate",
-                "price_expiration_for_unconfirmed",
+                "should_refresh_prices",
             ]
         )
         order.lines.bulk_update(
