@@ -9801,7 +9801,7 @@ type Mutation {
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
-    lines: [CheckoutLineInput!]!
+    lines: [CheckoutLineUpdateInput!]!
 
     """Checkout token."""
     token: UUID
@@ -14931,6 +14931,19 @@ type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+input CheckoutLineUpdateInput {
+  """The number of items purchased. Required for not app requestor."""
+  quantity: Int
+
+  """ID of the product variant."""
+  variantId: ID!
+
+  """
+  New in Saleor 3.1. Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  price: PositiveDecimal
 }
 
 """Remove a gift card or a voucher from a checkout."""

@@ -1,7 +1,9 @@
 import datetime
 import uuid
-from collections import defaultdict, namedtuple
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
+from collections import defaultdict
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Any, Dict, Iterable, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -25,7 +27,13 @@ from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
-CustomPrice = namedtuple("CustomPrice", "to_update, value")
+
+@dataclass
+class CheckoutLineData:
+    quantity: int = 0
+    quantity_to_update: bool = False
+    custom_price: Optional[Decimal] = None
+    custom_price_to_update: bool = False
 
 
 def clean_delivery_method(
@@ -218,17 +226,22 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
 
 def group_quantity_and_custom_prices_by_variants(
     lines: List[Dict[str, Any]]
-) -> Tuple[List[int], List[CustomPrice]]:
-    variant_quantity_map: Dict[str, int] = defaultdict(int)
-    variant_custom_prices_map: Dict[str, CustomPrice] = {}
+) -> List[CheckoutLineData]:
+    variant_checkout_line_data_map: Dict[str, CheckoutLineData] = defaultdict(
+        CheckoutLineData
+    )
 
     for line in lines:
         variant_id = cast(str, line.get("variant_id"))
-        variant_quantity_map[variant_id] += line["quantity"]
-        custom_price = CustomPrice(to_update="price" in line, value=line.get("price"))
-        variant_custom_prices_map[variant_id] = custom_price
+        line_data = variant_checkout_line_data_map[variant_id]
+        if (quantity := line.get("quantity")) is not None:
+            line_data.quantity += quantity
+            line_data.quantity_to_update = True
+        if "price" in line:
+            line_data.custom_price = line["price"]
+            line_data.custom_price_to_update = True
 
-    return list(variant_quantity_map.values()), list(variant_custom_prices_map.values())
+    return list(variant_checkout_line_data_map.values())
 
 
 def validate_checkout_email(checkout: models.Checkout):
@@ -239,13 +252,13 @@ def validate_checkout_email(checkout: models.Checkout):
         )
 
 
-def check_permissions_for_custom_prices(app, custom_prices):
+def check_permissions_for_custom_prices(app, lines):
     """Raise PermissionDenied when custom price is changed by user or app without perm.
 
     Checkout line custom price can be changed only by app with
     handle checkout permission.
     """
-    if any([custom_price.to_update for custom_price in custom_prices]) and (
+    if any(["price" in line for line in lines]) and (
         not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
     ):
         raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])
