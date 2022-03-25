@@ -43,6 +43,7 @@ class MenuPermissions(BasePermissionEnum):
 
 class CheckoutPermissions(BasePermissionEnum):
     MANAGE_CHECKOUTS = "checkout.manage_checkouts"
+    HANDLE_CHECKOUTS = "checkout.handle_checkouts"
 
 
 class OrderPermissions(BasePermissionEnum):
