@@ -276,7 +276,7 @@ def test_checkout_billing_address_update_invalidate_prices(
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
     mocked_function.assert_called_once_with(
-        checkout_info, lines, mock.ANY, [], save=False
+        checkout_info, lines, mock.ANY, [], recalculate_discount=False, save=False
     )
 
 

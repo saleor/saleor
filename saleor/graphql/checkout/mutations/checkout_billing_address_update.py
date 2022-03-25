@@ -76,6 +76,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 lines,
                 info.context.plugins,
                 info.context.discounts,
+                recalculate_discount=False,
                 save=False,
             )
             checkout.save(

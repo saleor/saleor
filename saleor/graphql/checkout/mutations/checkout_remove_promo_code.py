@@ -94,7 +94,12 @@ class CheckoutRemovePromoCode(BaseMutation):
         if removed:
             lines, _ = fetch_checkout_lines(checkout)
             invalidate_checkout_prices(
-                checkout_info, lines, manager, info.context.discounts, save=True
+                checkout_info,
+                lines,
+                manager,
+                info.context.discounts,
+                recalculate_discount=False,
+                save=True,
             )
             manager.checkout_updated(checkout)
 

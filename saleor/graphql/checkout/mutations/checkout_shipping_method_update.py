@@ -9,7 +9,6 @@ from ....checkout.utils import (
     delete_external_shipping_id,
     invalidate_checkout_prices,
     is_shipping_required,
-    recalculate_checkout_discount,
     set_external_shipping_id,
 )
 from ....plugins.webhook.utils import APP_ID_PREFIX
@@ -185,9 +184,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
         )
 
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
-        )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 

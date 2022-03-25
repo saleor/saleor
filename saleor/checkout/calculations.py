@@ -254,14 +254,9 @@ def fetch_checkout_prices_if_expired(
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
-    from .utils import recalculate_checkout_discount
-
     checkout = checkout_info.checkout
     if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines
-
-    # Discounts are calculated first, as they depend solely on the "base" price
-    recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
 
     # Taxes are applied to the discounted prices
     _apply_tax_data_from_plugins(

@@ -58,15 +58,14 @@ def invalidate_checkout_prices(
     manager: "PluginsManager",
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     *,
+    recalculate_discount: bool = True,
     save: bool
 ) -> List[str]:
     """Mark checkout as ready for prices recalculation."""
     checkout = checkout_info.checkout
 
-    if voucher := checkout_info.voucher:
-        check_voucher_for_checkout(
-            voucher, manager, checkout_info, lines, discounts or []
-        )
+    if recalculate_discount:
+        recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
 
     checkout.price_expiration = timezone.now()
     updated_fields = ["price_expiration", "last_change"]
@@ -578,6 +577,15 @@ def recalculate_checkout_discount(
                 voucher.translated.name
                 if voucher.translated.name != voucher.name
                 else ""
+            )
+            checkout.save(
+                update_fields=[
+                    "translated_discount_name",
+                    "discount_amount",
+                    "discount_name",
+                    "currency",
+                    "last_change",
+                ]
             )
     else:
         remove_voucher_from_checkout(checkout)
