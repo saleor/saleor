@@ -31,7 +31,7 @@ class CheckoutErrorCode(Enum):
     NO_LINES = "no_lines"
 
 
-class OrderFromCheckoutCreateErrorCode(Enum):
+class OrderCreateFromCheckoutErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     CHANNEL_INACTIVE = "channel_inactive"

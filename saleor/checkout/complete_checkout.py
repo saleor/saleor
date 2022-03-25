@@ -1,4 +1,3 @@
-from datetime import date
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, cast
 
 import graphene
@@ -11,8 +10,8 @@ from ..account.error_codes import AccountErrorCode
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..checkout import calculations
-from ..checkout.error_codes import CheckoutErrorCode, OrderFromCheckoutCreateErrorCode
-from ..core.exceptions import InsufficientStock
+from ..checkout.error_codes import CheckoutErrorCode
+from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
@@ -24,7 +23,6 @@ from ..discount.utils import (
     increase_voucher_usage,
     release_voucher_usage,
 )
-from ..giftcard.models import GiftCard
 from ..giftcard.utils import fulfill_non_shippable_gift_cards
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
@@ -44,17 +42,11 @@ from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .checkout_cleaner import (
-    clean_billing_address,
+    _validate_gift_cards,
     clean_checkout_payment,
     clean_checkout_shipping,
-    validate_checkout_email,
 )
-from .fetch import (
-    CheckoutInfo,
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
 from .utils import get_voucher_for_checkout_info
 
@@ -137,18 +129,6 @@ def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
         "billing_address": billing_address,
         "customer_note": checkout_info.checkout.note,
     }
-
-
-def _validate_gift_cards(checkout: Checkout):
-    """Check if all gift cards assigned to checkout are available."""
-    today = date.today()
-    all_gift_cards = GiftCard.objects.filter(checkouts=checkout.token).count()
-    active_gift_cards = (
-        GiftCard.objects.active(date=today).filter(checkouts=checkout.token).count()
-    )
-    if not all_gift_cards == active_gift_cards:
-        msg = "Gift card has expired. Order placement cancelled."
-        raise NotApplicable(msg)
 
 
 def _create_line_for_order(
@@ -639,6 +619,8 @@ def _get_order_data(
             "Voucher not applicable",
             code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
         )
+    except GiftCardNotApplicable as e:
+        raise ValidationError(e.message, code=e.code)
     except TaxError as tax_error:
         raise ValidationError(
             "Unable to calculate taxes - %s" % str(tax_error),
@@ -775,79 +757,18 @@ def complete_checkout(
             gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
+        except GiftCardNotApplicable as e:
+            release_voucher_usage(
+                order_data.get("voucher"), order_data.get("user_email")
+            )
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            raise ValidationError(code=e.code, message=e.message)
 
         # if the order total value is 0 it is paid from the definition
         if order.total.net.amount == 0:
             mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
-
-
-def validate_checkout(
-    checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
-    unavailable_variant_pks: Iterable[int],
-    discounts: List["DiscountInfo"],
-    manager: "PluginsManager",
-):
-    """Validate all required data for converting checkout into order."""
-    if not checkout_info.channel.is_active:
-        raise ValidationError(
-            {
-                "channel": ValidationError(
-                    "Cannot complete checkout with inactive channel.",
-                    code=OrderFromCheckoutCreateErrorCode.CHANNEL_INACTIVE.value,
-                )
-            }
-        )
-    if unavailable_variant_pks:
-        not_available_variants_ids = {
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in unavailable_variant_pks
-        }
-        code = OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
-        raise ValidationError(
-            {
-                "lines": ValidationError(
-                    "Some of the checkout lines variants are unavailable.",
-                    code=code,
-                    params={"variants": not_available_variants_ids},
-                )
-            }
-        )
-    if not lines:
-        raise ValidationError(
-            {
-                "lines": ValidationError(
-                    "Cannot complete checkout without lines",
-                    code=OrderFromCheckoutCreateErrorCode.NO_LINES.value,
-                )
-            }
-        )
-
-    if checkout_info.checkout.voucher_code and not checkout_info.voucher:
-        raise ValidationError(
-            {
-                "voucher_code": ValidationError(
-                    "Voucher not applicable",
-                    code=OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value,
-                )
-            }
-        )
-    validate_checkout_email(checkout_info.checkout)
-
-    clean_billing_address(checkout_info, OrderFromCheckoutCreateErrorCode)
-    clean_checkout_shipping(checkout_info, lines, OrderFromCheckoutCreateErrorCode)
-    _validate_gift_cards(checkout_info.checkout)
-
-    # call plugin's hooks to validate if we are able to create an order
-    try:
-        manager.preprocess_order_creation(checkout_info, discounts, lines)
-    except TaxError as tax_error:
-        raise ValidationError(
-            "Unable to calculate taxes - %s" % str(tax_error),
-            code=OrderFromCheckoutCreateErrorCode.TAX_ERROR.value,
-        )
 
 
 def _get_order_total(
@@ -1124,7 +1045,8 @@ def _create_order_from_checkout(
 
 
 def create_order_from_checkout(
-    checkout: Checkout,
+    checkout_info: CheckoutInfo,
+    checkout_lines: Iterable["CheckoutLineInfo"],
     discounts: List["DiscountInfo"],
     manager: "PluginsManager",
     user: User,
@@ -1147,30 +1069,12 @@ def create_order_from_checkout(
 
     Checkout can be deleted by setting flag `delete_checkout` to True
 
-    :raises: ValidationError
+    :raises: InsufficientStock, GiftCardNotApplicable
     """
-    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, discounts, manager)
-
-    # FIXME when validation failed we should trigger a new refund webhook. This should
-    #  be done in next PRs
-    validate_checkout(
-        checkout_info=checkout_info,
-        lines=checkout_lines,
-        unavailable_variant_pks=unavailable_variant_pks,
-        discounts=discounts,
-        manager=manager,
-    )
 
     if checkout_info.voucher:
         with transaction.atomic():
-            try:
-                _increase_voucher_usage(checkout_info=checkout_info)
-            except NotApplicable:
-                raise ValidationError(
-                    "Voucher not applicable",
-                    code=OrderFromCheckoutCreateErrorCode.VOUCHER_NOT_APPLICABLE.value,
-                )
+            _increase_voucher_usage(checkout_info=checkout_info)
 
     with transaction.atomic():
         try:
@@ -1184,15 +1088,14 @@ def create_order_from_checkout(
                 tracking_code=tracking_code,
             )
             if delete_checkout:
-                checkout.delete()
+                checkout_info.checkout.delete()
             return order
-        except InsufficientStock as e:
-            error = prepare_insufficient_stock_checkout_validation_error(e)
+        except InsufficientStock:
             release_voucher_usage(
                 checkout_info.voucher, checkout_info.checkout.get_customer_email()
             )
-            raise error
-        except ValidationError:
+            raise
+        except GiftCardNotApplicable:
             release_voucher_usage(
                 checkout_info.voucher, checkout_info.checkout.get_customer_email()
             )

@@ -9640,15 +9640,15 @@ type Mutation {
   """
   Note: this feature is in a preview state and can be subject to changes at later point. Create new order from existing checkout.
   """
-  orderFromCheckoutCreate(
-    """
-    Determines if checkout should be removed after creating an order.Default true.
-    """
-    clearCheckout: Boolean = true
-
+  orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
     id: ID!
-  ): OrderFromCheckoutCreate
+
+    """
+    Determines if checkout should be removed after creating an order. Default true.
+    """
+    removeCheckout: Boolean = true
+  ): OrderCreateFromCheckout
 
   """Creates new channel."""
   channelCreate(
@@ -14473,13 +14473,13 @@ type CheckoutLanguageCodeUpdate {
 """
 Note: this feature is in a preview state and can be subject to changes at later point. Create new order from existing checkout.
 """
-type OrderFromCheckoutCreate {
+type OrderCreateFromCheckout {
   """Placed order."""
   order: Order
-  errors: [OrderFromCheckoutCreateError!]!
+  errors: [OrderCreateFromCheckoutError!]!
 }
 
-type OrderFromCheckoutCreateError {
+type OrderCreateFromCheckoutError {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -14489,9 +14489,9 @@ type OrderFromCheckoutCreateError {
   message: String
 
   """The error code."""
-  code: OrderFromCheckoutCreateErrorCode!
+  code: OrderCreateFromCheckoutErrorCode!
 
-  """List of varint IDs which causes the error."""
+  """List of variant IDs which causes the error."""
   variants: [ID!]
 
   """List of line Ids which cause the error."""
@@ -14499,7 +14499,7 @@ type OrderFromCheckoutCreateError {
 }
 
 """An enumeration."""
-enum OrderFromCheckoutCreateErrorCode {
+enum OrderCreateFromCheckoutErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   CHANNEL_INACTIVE

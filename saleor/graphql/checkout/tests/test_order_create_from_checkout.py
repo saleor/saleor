@@ -9,7 +9,7 @@ from django.utils import timezone
 from prices import Money
 
 from ....checkout import calculations
-from ....checkout.error_codes import OrderFromCheckoutCreateErrorCode
+from ....checkout.error_codes import OrderCreateFromCheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.taxes import TaxError, zero_money, zero_taxed_money
@@ -23,9 +23,9 @@ from ....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOpt
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 
-MUTATION_ORDER_FROM_CHECKOUT_CREATE = """
-mutation orderFromCheckoutCreate($id: ID!){
-    orderFromCheckoutCreate(id: $id){
+MUTATION_ORDER_CREATE_FROM_CHECKOUT = """
+mutation orderCreateFromCheckout($id: ID!){
+    orderCreateFromCheckout(id: $id){
         order{
             id,
             token
@@ -66,16 +66,16 @@ def test_order_from_checkout_with_inactive_channel(
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert (
         data["errors"][0]["code"]
-        == OrderFromCheckoutCreateErrorCode.CHANNEL_INACTIVE.name
+        == OrderCreateFromCheckoutErrorCode.CHANNEL_INACTIVE.name
     )
     assert data["errors"][0]["field"] == "channel"
 
@@ -119,13 +119,13 @@ def test_order_from_checkout(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -173,7 +173,7 @@ def test_order_from_checkout_by_app_with_missing_permission(
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
     )
 
@@ -210,13 +210,13 @@ def test_order_from_checkout_gift_card_bought(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     assert Order.objects.count() == orders_count + 1
@@ -258,16 +258,16 @@ def test_order_from_checkout_no_checkout_email(
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert len(data["errors"]) == 1
     assert (
-        data["errors"][0]["code"] == OrderFromCheckoutCreateErrorCode.EMAIL_NOT_SET.name
+        data["errors"][0]["code"] == OrderCreateFromCheckoutErrorCode.EMAIL_NOT_SET.name
     )
 
 
@@ -297,13 +297,13 @@ def test_order_from_checkout_with_variant_without_sku(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -342,16 +342,16 @@ def test_order_from_checkout_with_variant_without_price(
     variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    errors = content["data"]["orderFromCheckoutCreate"]["errors"]
+    errors = content["data"]["orderCreateFromCheckout"]["errors"]
     assert (
         errors[0]["code"]
-        == OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+        == OrderCreateFromCheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     )
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [variant_id]
@@ -372,7 +372,7 @@ def test_order_from_checkout_requires_confirmation(
         "id": graphene.Node.to_global_id("Checkout", checkout_ready_to_complete.pk),
     }
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
@@ -380,7 +380,7 @@ def test_order_from_checkout_requires_confirmation(
 
     order_id = int(
         graphene.Node.from_global_id(
-            content["data"]["orderFromCheckoutCreate"]["order"]["id"]
+            content["data"]["orderCreateFromCheckout"]["order"]["id"]
         )[1]
     )
     order = Order.objects.get(pk=order_id)
@@ -416,13 +416,13 @@ def test_order_from_checkout_with_voucher(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -466,15 +466,15 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
 
-    assert data["errors"][0]["code"] == OrderFromCheckoutCreateErrorCode.TAX_ERROR.name
+    assert data["errors"][0]["code"] == OrderCreateFromCheckoutErrorCode.TAX_ERROR.name
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == 0
@@ -510,13 +510,13 @@ def test_order_from_checkout_without_inventory_tracking(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -559,17 +559,17 @@ def test_order_from_checkout_checkout_without_lines(
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "lines"
-    assert errors[0]["code"] == OrderFromCheckoutCreateErrorCode.NO_LINES.name
+    assert errors[0]["code"] == OrderCreateFromCheckoutErrorCode.NO_LINES.name
 
 
 def test_order_from_checkout_insufficient_stock(
@@ -594,12 +594,12 @@ def test_order_from_checkout_insufficient_stock(
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     orders_count = Order.objects.count()
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
@@ -642,12 +642,12 @@ def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
     }
     orders_count = Order.objects.count()
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
@@ -684,12 +684,12 @@ def test_order_from_checkout_own_reservation(
 
     orders_count = Order.objects.count()
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -724,11 +724,11 @@ def test_order_from_checkout_with_digital(
 
     # Send the creation request
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert not content["errors"]
 
     # Ensure the order was actually created
@@ -779,13 +779,13 @@ def test_order_from_checkout_0_total_value(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -826,11 +826,11 @@ def test_order_from_checkout_for_click_and_collect(
     )
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
 
     assert not content["errors"]
     assert Order.objects.count() == order_count + 1
@@ -867,15 +867,15 @@ def test_order_from_checkout_raises_error_for_local_stock(
     )
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert (
         content["errors"][0]["code"]
-        == OrderFromCheckoutCreateErrorCode.INSUFFICIENT_STOCK.name
+        == OrderCreateFromCheckoutErrorCode.INSUFFICIENT_STOCK.name
     )
     assert Order.objects.count() == initial_order_count
 
@@ -909,11 +909,11 @@ def test_order_from_checkout_for_all_warehouse_even_if_not_available_locally(
     checkout.save(update_fields=["collection_point"])
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert not content["errors"]
     assert Order.objects.count() == initial_order_count + 1
 
@@ -948,14 +948,14 @@ def test_checkout_from_order_raises_insufficient_stock_when_quantity_above_stock
     checkout.save(update_fields=["collection_point", "billing_address"])
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert (
         content["errors"][0]["code"]
-        == OrderFromCheckoutCreateErrorCode.INSUFFICIENT_STOCK.name
+        == OrderCreateFromCheckoutErrorCode.INSUFFICIENT_STOCK.name
     )
     assert Order.objects.count() == initial_order_count
 
@@ -991,15 +991,15 @@ def test_order_from_checkout_raises_invalid_shipping_method_when_warehouse_disab
     )
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
 
     assert (
         content["errors"][0]["code"]
-        == OrderFromCheckoutCreateErrorCode.INVALID_SHIPPING_METHOD.name
+        == OrderCreateFromCheckoutErrorCode.INVALID_SHIPPING_METHOD.name
     )
     assert Order.objects.count() == initial_order_count
 
@@ -1035,13 +1035,13 @@ def test_order_from_draft_create_with_preorder_variant(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -1120,15 +1120,15 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     )
 
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
-    content = get_graphql_content(response)["data"]["orderFromCheckoutCreate"]
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
 
     assert (
         content["errors"][0]["code"]
-        == OrderFromCheckoutCreateErrorCode.INVALID_SHIPPING_METHOD.name
+        == OrderCreateFromCheckoutErrorCode.INVALID_SHIPPING_METHOD.name
     )
     assert Order.objects.count() == initial_order_count
 
@@ -1161,19 +1161,19 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     errors = data["errors"]
     assert len(errors) == 1
     assert (
         errors[0]["code"]
-        == OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+        == OrderCreateFromCheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     )
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [
@@ -1215,19 +1215,19 @@ def test_order_from_draft_create_variant_channel_listing_no_price(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     errors = data["errors"]
     assert len(errors) == 1
     assert (
         errors[0]["code"]
-        == OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+        == OrderCreateFromCheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     )
     assert errors[0]["field"] == "lines"
     assert set(errors[0]["variants"]) == {
@@ -1265,19 +1265,19 @@ def test_order_from_draft_create_product_channel_listing_does_not_exist(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     errors = data["errors"]
     assert len(errors) == 1
     assert (
         errors[0]["code"]
-        == OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+        == OrderCreateFromCheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     )
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [
@@ -1321,19 +1321,19 @@ def test_order_from_draft_create_product_channel_listing_not_available_for_purch
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     errors = data["errors"]
     assert len(errors) == 1
     assert (
         errors[0]["code"]
-        == OrderFromCheckoutCreateErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+        == OrderCreateFromCheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     )
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [
@@ -1377,13 +1377,13 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
 
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
@@ -1435,12 +1435,12 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
-        MUTATION_ORDER_FROM_CHECKOUT_CREATE,
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderFromCheckoutCreate"]
+    data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
 
     order_token = data["order"]["token"]
