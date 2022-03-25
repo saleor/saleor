@@ -54,10 +54,6 @@ def parse_django_datetime(date):
     return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
 
 
-def sort_by_id(dicts):
-    return sorted(dicts, key=lambda d: d["id"])
-
-
 @freeze_time()
 @mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
 @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
@@ -200,7 +196,28 @@ def test_generate_order_payload(
             "country_area": order.billing_address.country_area,
             "phone": str(order.billing_address.phone),
         },
-        "discounts": ANY,
+        "discounts": [
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
+                "type": discount_1.type,
+                "value_type": discount_1.value_type,
+                "value": "20.000",
+                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
+                "name": discount_1.name,
+                "translated_name": discount_1.translated_name,
+                "reason": discount_1.reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
+                "type": discount_2.type,
+                "value_type": discount_2.value_type,
+                "value": "10.000",
+                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
+                "name": discount_2.name,
+                "translated_name": discount_2.translated_name,
+                "reason": discount_2.reason,
+            },
+        ],
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines),
         "fulfillments": [
@@ -210,8 +227,8 @@ def test_generate_order_payload(
                 "status": fulfillment.status,
                 "tracking_number": fulfillment.tracking_number,
                 "created": parse_django_datetime(fulfillment.created),
-                "shipping_refund_amount": ANY,
-                "total_refund_amount": ANY,
+                "shipping_refund_amount": "0.00",
+                "total_refund_amount": "0.00",
                 "lines": json.loads(fulfillment_lines),
             }
         ],
@@ -233,31 +250,6 @@ def test_generate_order_payload(
         ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
-
-    assert sort_by_id(payload["discounts"]) == sort_by_id(
-        [
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
-                "type": discount_1.type,
-                "value_type": discount_1.value_type,
-                "value": ANY,
-                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
-                "name": discount_1.name,
-                "translated_name": discount_1.translated_name,
-                "reason": discount_1.reason,
-            },
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
-                "type": discount_2.type,
-                "value_type": discount_2.value_type,
-                "value": ANY,
-                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
-                "name": discount_2.name,
-                "translated_name": discount_2.translated_name,
-                "reason": discount_2.reason,
-            },
-        ],
-    )
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
 
