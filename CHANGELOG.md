@@ -20,6 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated `LAST_MODIFIED` and `PUBLICATION_DATE` sort options on `ProductOrder` type
   - Deprecated `CREATION_DATE` sort option on `OrderSortingInput` type
 - Drop wishlist models - #9313 by @maarcingebala
+- Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
 
 # 3.1.2
 
