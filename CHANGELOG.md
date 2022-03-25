@@ -15,7 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
   instead.
 
 ### Other changes
-...
+- Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
 
 
 # 3.1.7

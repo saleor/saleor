@@ -2326,7 +2326,49 @@ def test_create_checkout_with_unpublished_product(
     assert error["code"] == CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.name
 
 
+MUTATION_CHECKOUT_CUSTOMER_ATTACH = """
+    mutation checkoutCustomerAttach($token: UUID, $customerId: ID) {
+        checkoutCustomerAttach(token: $token, customerId: $customerId) {
+            checkout {
+                token
+            }
+            errors {
+                code
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 def test_checkout_customer_attach(
+    user_api_client, checkout_with_item, customer_user, permission_impersonate_user
+):
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+    assert checkout.user is None
+    previous_last_change = checkout.last_change
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"token": checkout.token, "customerId": customer_id}
+
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutCustomerAttach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user
+    assert checkout.email == customer_user.email
+    assert checkout.last_change != previous_last_change
+
+
+def test_checkout_customer_attach_no_customer_id(
     api_client, user_api_client, checkout_with_item, customer_user
 ):
     checkout = checkout_with_item
@@ -2335,21 +2377,8 @@ def test_checkout_customer_attach(
     assert checkout.user is None
     previous_last_change = checkout.last_change
 
-    query = """
-        mutation checkoutCustomerAttach($token: UUID) {
-            checkoutCustomerAttach(token: $token) {
-                checkout {
-                    token
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
-    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
-    variables = {"token": checkout.token, "customerId": customer_id}
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    variables = {"token": checkout.token}
 
     # Mutation should fail for unauthenticated customers
     response = api_client.post_graphql(query, variables)
@@ -2375,19 +2404,7 @@ def test_checkout_customer_attach_by_app(
     assert checkout.user is None
     previous_last_change = checkout.last_change
 
-    query = """
-        mutation checkoutCustomerAttach($token: UUID, $customerId: ID) {
-            checkoutCustomerAttach(token: $token, customerId: $customerId) {
-                checkout {
-                    token
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"token": checkout.token, "customerId": customer_id}
 
@@ -2404,6 +2421,31 @@ def test_checkout_customer_attach_by_app(
     assert checkout.last_change != previous_last_change
 
 
+def test_checkout_customer_attach_by_app_no_customer_id(
+    app_api_client, checkout_with_item, permission_impersonate_user
+):
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+    assert checkout.user is None
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    variables = {"token": checkout.token}
+
+    # Mutation should succeed for authenticated customer
+    response = app_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_impersonate_user],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerAttach"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.REQUIRED.name
+    assert data["errors"][0]["field"] == "customerId"
+
+
 def test_checkout_customer_attach_by_app_without_permission(
     app_api_client, checkout_with_item, customer_user
 ):
@@ -2412,19 +2454,7 @@ def test_checkout_customer_attach_by_app_without_permission(
     checkout.save()
     assert checkout.user is None
 
-    query = """
-        mutation checkoutCustomerAttach($token: UUID, $customerId: ID) {
-            checkoutCustomerAttach(token: $token, customerId: $customerId) {
-                checkout {
-                    token
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"token": checkout.token, "customerId": customer_id}
 

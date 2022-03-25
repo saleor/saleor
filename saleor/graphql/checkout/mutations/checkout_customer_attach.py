@@ -1,4 +1,5 @@
 import graphene
+from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
@@ -70,6 +71,16 @@ class CheckoutCustomerAttach(BaseMutation):
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
+        elif info.context.user.is_anonymous:
+            raise ValidationError(
+                {
+                    "customer_id": ValidationError(
+                        "The customerId value must be provided "
+                        "when running mutation as app.",
+                        code=CheckoutErrorCode.REQUIRED.value,
+                    )
+                }
+            )
         else:
             customer = info.context.user
 
