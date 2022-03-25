@@ -18,7 +18,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
-from ..core.types import ModelObjectType, Money, TaxedMoney
+from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
@@ -51,12 +51,12 @@ class GatewayConfigLine(graphene.ObjectType):
 class PaymentGateway(graphene.ObjectType):
     name = graphene.String(required=True, description="Payment gateway name.")
     id = graphene.ID(required=True, description="Payment gateway ID.")
-    config = graphene.List(
-        graphene.NonNull(GatewayConfigLine),
+    config = NonNullList(
+        GatewayConfigLine,
         required=True,
         description="Payment gateway client configuration.",
     )
-    currencies = graphene.List(
+    currencies = NonNullList(
         graphene.String,
         required=True,
         description="Payment gateway supported currencies.",
@@ -196,32 +196,32 @@ class Checkout(ModelObjectType):
     discount_name = graphene.String()
     translated_discount_name = graphene.String()
     voucher_code = graphene.String()
-    available_shipping_methods = graphene.List(
+    available_shipping_methods = NonNullList(
         ShippingMethod,
         required=True,
         description="Shipping methods that can be used with this checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `shippingMethods` instead."),
     )
-    shipping_methods = graphene.List(
+    shipping_methods = NonNullList(
         ShippingMethod,
         required=True,
         description="Shipping methods that can be used with this checkout.",
     )
-    available_collection_points = graphene.List(
-        graphene.NonNull(Warehouse),
+    available_collection_points = NonNullList(
+        Warehouse,
         required=True,
         description=(
             f"{ADDED_IN_31} Collection points that can be used for this order. "
             f"{PREVIEW_FEATURE}"
         ),
     )
-    available_payment_gateways = graphene.List(
-        graphene.NonNull(PaymentGateway),
+    available_payment_gateways = NonNullList(
+        PaymentGateway,
         description="List of available payment gateways.",
         required=True,
     )
     email = graphene.String(description="Email of a customer.", required=False)
-    gift_cards = graphene.List(
+    gift_cards = NonNullList(
         GiftCard, description="List of gift cards associated with this checkout."
     )
     is_shipping_required = graphene.Boolean(
@@ -234,7 +234,7 @@ class Checkout(ModelObjectType):
             " expires or null if no stock is reserved."
         ),
     )
-    lines = graphene.List(
+    lines = NonNullList(
         CheckoutLine,
         description=(
             "A list of checkout lines, each containing information about "

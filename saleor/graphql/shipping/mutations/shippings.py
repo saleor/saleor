@@ -20,7 +20,7 @@ from ...channel.types import ChannelContext
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types.common import ShippingError
+from ...core.types import NonNullList, ShippingError
 from ...product import types as product_types
 from ...shipping import types as shipping_types
 from ...utils import resolve_global_ids_to_primary_keys
@@ -55,12 +55,12 @@ class ShippingPriceInput(graphene.InputObjectType):
     shipping_zone = graphene.ID(
         description="Shipping zone this method belongs to.", name="shippingZone"
     )
-    add_postal_code_rules = graphene.List(
-        graphene.NonNull(ShippingPostalCodeRulesCreateInputRange),
+    add_postal_code_rules = NonNullList(
+        ShippingPostalCodeRulesCreateInputRange,
         description="Postal code rules to add.",
     )
-    delete_postal_code_rules = graphene.List(
-        graphene.NonNull(graphene.ID),
+    delete_postal_code_rules = NonNullList(
+        graphene.ID,
         description="Postal code rules to delete.",
     )
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
@@ -73,7 +73,7 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
         description="Shipping zone's name. Visible only to the staff."
     )
     description = graphene.String(description="Description of the shipping zone.")
-    countries = graphene.List(
+    countries = NonNullList(
         graphene.String, description="List of countries in this shipping zone."
     )
     default = graphene.Boolean(
@@ -82,23 +82,23 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
             "zones."
         )
     )
-    add_warehouses = graphene.List(
+    add_warehouses = NonNullList(
         graphene.ID,
         description="List of warehouses to assign to a shipping zone",
     )
-    add_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_channels = NonNullList(
+        graphene.ID,
         description="List of channels to assign to the shipping zone.",
     )
 
 
 class ShippingZoneUpdateInput(ShippingZoneCreateInput):
-    remove_warehouses = graphene.List(
+    remove_warehouses = NonNullList(
         graphene.ID,
         description="List of warehouses to unassign from a shipping zone",
     )
-    remove_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_channels = NonNullList(
+        graphene.ID,
         description="List of channels to unassign from the shipping zone.",
     )
 
@@ -537,7 +537,7 @@ class ShippingPriceDelete(BaseMutation):
 
 
 class ShippingPriceExcludeProductsInput(graphene.InputObjectType):
-    products = graphene.List(
+    products = NonNullList(
         graphene.ID,
         description="List of products which will be excluded.",
         required=True,
@@ -596,7 +596,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping price.")
-        products = graphene.List(
+        products = NonNullList(
             graphene.ID,
             required=True,
             description="List of products which will be removed from excluded list.",

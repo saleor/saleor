@@ -4,7 +4,7 @@ from .....attribute.models import AttributeValue
 from ....tests.utils import get_graphql_content
 
 ATTRIBUTE_VALUES_REORDER_MUTATION = """
-    mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput]!) {
+    mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput!]!) {
         attributeReorderValues(attributeId: $attributeId, moves: $moves) {
             attribute {
                 id

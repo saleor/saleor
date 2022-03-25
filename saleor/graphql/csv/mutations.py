@@ -12,7 +12,7 @@ from ..channel.types import Channel
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.enums import ExportErrorCode
 from ..core.mutations import BaseMutation
-from ..core.types.common import ExportError
+from ..core.types import ExportError, NonNullList
 from ..giftcard.filters import GiftCardFilterInput
 from ..giftcard.types import GiftCard
 from ..product.filters import ProductFilterInput
@@ -73,20 +73,20 @@ class BaseExportMutation(BaseMutation):
 
 
 class ExportInfoInput(graphene.InputObjectType):
-    attributes = graphene.List(
-        graphene.NonNull(graphene.ID),
+    attributes = NonNullList(
+        graphene.ID,
         description="List of attribute ids witch should be exported.",
     )
-    warehouses = graphene.List(
-        graphene.NonNull(graphene.ID),
+    warehouses = NonNullList(
+        graphene.ID,
         description="List of warehouse ids witch should be exported.",
     )
-    channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    channels = NonNullList(
+        graphene.ID,
         description="List of channels ids which should be exported.",
     )
-    fields = graphene.List(
-        graphene.NonNull(ProductFieldEnum),
+    fields = NonNullList(
+        ProductFieldEnum,
         description="List of product fields witch should be exported.",
     )
 
@@ -98,8 +98,8 @@ class ExportProductsInput(graphene.InputObjectType):
     filter = ProductFilterInput(
         description="Filtering options for products.", required=False
     )
-    ids = graphene.List(
-        graphene.NonNull(graphene.ID),
+    ids = NonNullList(
+        graphene.ID,
         description="List of products IDs to export.",
         required=False,
     )
@@ -173,8 +173,8 @@ class ExportGiftCardsInput(graphene.InputObjectType):
     filter = GiftCardFilterInput(
         description="Filtering options for gift cards.", required=False
     )
-    ids = graphene.List(
-        graphene.NonNull(graphene.ID),
+    ids = NonNullList(
+        graphene.ID,
         description="List of gift cards IDs to export.",
         required=False,
     )

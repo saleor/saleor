@@ -16,7 +16,7 @@ PLUGIN_UPDATE_MUTATION = """
         $id: ID!
         $active: Boolean
         $channel: ID
-        $configuration: [ConfigurationItemInput]
+        $configuration: [ConfigurationItemInput!]
     ) {
         pluginUpdate(
             id: $id

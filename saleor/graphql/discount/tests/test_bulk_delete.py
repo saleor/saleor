@@ -55,7 +55,7 @@ def voucher_list(channel_USD):
 
 def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
     query = """
-    mutation saleBulkDelete($ids: [ID]!) {
+    mutation saleBulkDelete($ids: [ID!]!) {
         saleBulkDelete(ids: $ids) {
             count
         }
@@ -76,7 +76,7 @@ def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
 
 def test_delete_vouchers(staff_api_client, voucher_list, permission_manage_discounts):
     query = """
-    mutation voucherBulkDelete($ids: [ID]!) {
+    mutation voucherBulkDelete($ids: [ID!]!) {
         voucherBulkDelete(ids: $ids) {
             count
         }

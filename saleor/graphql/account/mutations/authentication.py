@@ -23,7 +23,7 @@ from ....core.jwt import (
 from ....core.permissions import get_permissions_from_names
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
-from ...core.types.common import AccountError
+from ...core.types import AccountError
 from ..types import User
 
 

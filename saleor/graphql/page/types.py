@@ -15,7 +15,7 @@ from ..core.connection import (
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString
-from ..core.types import ModelObjectType
+from ..core.types import ModelObjectType, NonNullList
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -33,7 +33,7 @@ class PageType(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     slug = graphene.String(required=True)
-    attributes = graphene.List(
+    attributes = NonNullList(
         Attribute, description="Page attributes of that page type."
     )
     available_attributes = FilterConnectionField(
@@ -104,8 +104,8 @@ class Page(ModelObjectType):
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
+    attributes = NonNullList(
+        SelectedAttribute,
         required=True,
         description="List of attributes assigned to this product.",
     )
