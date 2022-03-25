@@ -28,7 +28,7 @@ def test_get_custom_order_payload(order):
     assert expected_payload == {
         "order": {
             "id": expected_payload["order"]["id"],
-            "number": expected_payload["order"]["id"],
+            "number": expected_payload["order"]["number"],
             "private_metadata": {},
             "metadata": {},
             "status": "unfulfilled",
@@ -236,8 +236,8 @@ def test_get_default_order_payload(order_line):
         ],
         "channel_slug": order.channel.slug,
         "id": order.id,
-        "number": order.id,
-        "token": order.token,
+        "number": order.number,
+        "token": order.id,
         "created": str(order.created),
         "display_gross_prices": order.display_gross_prices,
         "currency": order.currency,
@@ -250,7 +250,7 @@ def test_get_default_order_payload(order_line):
         "private_metadata": order.private_metadata,
         "shipping_price_net_amount": order.shipping_price_net_amount,
         "shipping_price_gross_amount": order.shipping_price_gross_amount,
-        "order_details_url": f"{redirect_url}?token={order.token}",
+        "order_details_url": f"{redirect_url}?token={order.id}",
         "email": order.get_customer_email(),
         "subtotal_gross_amount": subtotal.gross.amount,
         "subtotal_net_amount": subtotal.net.amount,

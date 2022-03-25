@@ -57,7 +57,7 @@ class VAT(graphene.ObjectType):
     country_code = graphene.String(description="Country code.", required=True)
     standard_rate = graphene.Float(description="Standard VAT rate in percent.")
     reduced_rates = graphene.List(
-        lambda: ReducedRate,
+        graphene.NonNull(lambda: ReducedRate),
         description="Country's VAT rate exceptions for specific types of goods.",
         required=True,
     )

@@ -3,13 +3,13 @@ import graphene
 from ...core.permissions import DiscountPermissions
 from ...discount import models
 from ..core.mutations import ModelBulkDeleteMutation
-from ..core.types.common import DiscountError
+from ..core.types import DiscountError, NonNullList
 from .types import Sale, Voucher
 
 
 class SaleBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of sale IDs to delete."
         )
 
@@ -24,7 +24,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
 
 class VoucherBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of voucher IDs to delete."
         )
 

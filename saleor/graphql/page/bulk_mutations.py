@@ -7,13 +7,13 @@ from ...core.permissions import PagePermissions, PageTypePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...page import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from ..core.types.common import PageError
+from ..core.types import NonNullList, PageError
 from .types import Page, PageType
 
 
 class PageBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of page IDs to delete."
         )
 
@@ -45,7 +45,7 @@ class PageBulkDelete(ModelBulkDeleteMutation):
 
 class PageBulkPublish(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of page IDs to (un)publish."
         )
         is_published = graphene.Boolean(
@@ -67,8 +67,8 @@ class PageBulkPublish(BaseBulkMutation):
 
 class PageTypeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
-            graphene.NonNull(graphene.ID),
+        ids = NonNullList(
+            graphene.ID,
             description="List of page type IDs to delete",
             required=True,
         )

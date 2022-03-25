@@ -67,7 +67,7 @@ execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or pyt
 faker==13.3.2; python_version >= "3.6"
 filelock==3.6.0; python_full_version >= "3.6.1" and python_version >= "3.7"
 flake8==4.0.1; python_version >= "3.6"
-fonttools==4.31.1; python_version >= "3.7"
+fonttools==4.31.2; python_version >= "3.7"
 freezegun==1.2.1; python_version >= "3.6"
 google-api-core==2.7.1; python_version >= "3.7"
 google-auth==2.6.2; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
@@ -110,10 +110,11 @@ maxminddb==2.2.0; python_version >= "3.6"
 mccabe==0.6.1; python_version >= "3.6" and python_full_version >= "3.6.2"
 measurement==3.2.0
 micawber==0.5.4
+mock==1.0.1
 mpmath==1.2.1; python_version >= "3.7"
 multidict==6.0.2; python_version >= "3.7"
 mypy-extensions==0.4.3; python_full_version >= "3.6.2" and python_version >= "3.6"
-mypy==0.940; python_version >= "3.6"
+mypy==0.941; python_version >= "3.6"
 nodeenv==1.6.0; python_full_version >= "3.6.1"
 oauthlib==3.2.0; python_version >= "3.6"
 openpyxl==3.0.9; python_version >= "3.6"
@@ -132,7 +133,7 @@ promise==2.3; python_version >= "3.6" and python_version < "4.0"
 prompt-toolkit==3.0.28; python_full_version >= "3.6.2" and python_version >= "3.7"
 proto-plus==1.20.3; python_version >= "3.6"
 protobuf==3.19.4
-psycopg2-binary==2.9.3; python_version >= "3.6"
+psycopg2==2.9.3; python_version >= "3.6"
 py==1.11.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
 pyasn1-modules==0.2.8; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
 pyasn1==0.4.8; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7") or python_full_version >= "3.6.0" and python_version >= "3.7" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")

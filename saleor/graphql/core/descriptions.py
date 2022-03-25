@@ -8,6 +8,7 @@ DEPRECATED_IN_3X_INPUT = "\n\nDEPRECATED: this field will be removed in Saleor 4
 
 
 ADDED_IN_31 = "New in Saleor 3.1."
+ADDED_IN_32 = "New in Saleor 3.2."
 PREVIEW_FEATURE = (
     "Note: this feature is in a preview state and can be subject to changes at later "
     "point."

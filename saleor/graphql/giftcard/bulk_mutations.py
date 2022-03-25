@@ -12,7 +12,7 @@ from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import is_gift_card_expired
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
-from ..core.types.common import GiftCardError, PriceInput
+from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.validators import validate_price_precision
 from .mutations import GiftCardCreate
 from .types import GiftCard
@@ -23,8 +23,8 @@ class GiftCardBulkCreateInput(graphene.InputObjectType):
     balance = graphene.Field(
         PriceInput, description="Balance of the gift card.", required=True
     )
-    tags = graphene.List(
-        graphene.NonNull(graphene.String),
+    tags = NonNullList(
+        graphene.String,
         description="The gift card tags.",
     )
     expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
@@ -39,8 +39,8 @@ class GiftCardBulkCreate(BaseMutation):
         default_value=0,
         description="Returns how many objects were created.",
     )
-    gift_cards = graphene.List(
-        graphene.NonNull(GiftCard),
+    gift_cards = NonNullList(
+        GiftCard,
         required=True,
         default_value=[],
         description="List of created gift cards.",
@@ -150,7 +150,7 @@ class GiftCardBulkCreate(BaseMutation):
 
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of gift card IDs to delete."
         )
 
@@ -164,7 +164,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
 
 class GiftCardBulkActivate(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of gift card IDs to activate."
         )
 
@@ -196,7 +196,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
 
 class GiftCardBulkDeactivate(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of gift card IDs to deactivate.",

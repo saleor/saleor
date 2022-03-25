@@ -3,13 +3,13 @@ import graphene
 from ...core.permissions import MenuPermissions
 from ...menu import models
 from ..core.mutations import ModelBulkDeleteMutation
-from ..core.types.common import MenuError
+from ..core.types import MenuError, NonNullList
 from .types import Menu, MenuItem
 
 
 class MenuBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of menu IDs to delete."
         )
 
@@ -24,7 +24,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
 
 class MenuItemBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of menu item IDs to delete."
         )
 

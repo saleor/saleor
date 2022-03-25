@@ -1,6 +1,7 @@
+from uuid import UUID
+
 import django_filters
-from django.db.models import Exists, IntegerField, OuterRef, Q
-from django.db.models.functions import Cast
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ...giftcard import GiftCardEvents
@@ -14,11 +15,11 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types.common import DateRangeInput, DateTimeRangeInput
+from ..core.types import DateRangeInput, DateTimeRangeInput
 from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_by_id, filter_range_field
+from ..utils.filters import filter_range_field
 from .enums import OrderStatusFilter
 
 
@@ -121,10 +122,24 @@ def filter_gift_card_bought(qs, _, value):
 
 def filter_by_gift_card(qs, value, gift_card_type):
     gift_card_events = GiftCardEvent.objects.filter(type=gift_card_type).values(
-        order_id=Cast("parameters__order_id", IntegerField())
+        "order_id"
     )
     lookup = Exists(gift_card_events.filter(order_id=OuterRef("id")))
     return qs.filter(lookup) if value is True else qs.exclude(lookup)
+
+
+def filter_order_by_id(qs, _, value):
+    if not value:
+        return qs
+    _, obj_pks = resolve_global_ids_to_primary_keys(value, "Order")
+    pks = []
+    old_pks = []
+    for pk in obj_pks:
+        try:
+            pks.append(UUID(pk))
+        except ValueError:
+            old_pks.append(pk)
+    return qs.filter(Q(id__in=pks) | (Q(use_old_id=True) & Q(number__in=old_pks)))
 
 
 class DraftOrderFilter(MetadataFilterBase):
@@ -154,7 +169,7 @@ class OrderFilter(DraftOrderFilter):
         method=filter_is_click_and_collect
     )
     is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Order"))
+    ids = GlobalIDMultipleChoiceFilter(method=filter_order_by_id)
     gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
     gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
 

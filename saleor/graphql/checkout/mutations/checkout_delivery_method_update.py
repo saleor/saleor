@@ -19,7 +19,7 @@ from ....warehouse import models as warehouse_models
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse

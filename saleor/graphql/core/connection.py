@@ -17,6 +17,7 @@ from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import OrderDirection
+from ..core.types import NonNullList
 from ..utils.sorting import sort_queryset_for_connection
 
 ConnectionArguments = Dict[str, Any]
@@ -452,7 +453,7 @@ class NonNullConnection(Connection):
         # Override the `edges` field to make it non-null list
         # of non-null edges.
         cls._meta.fields["edges"] = graphene.Field(
-            graphene.NonNull(graphene.List(graphene.NonNull(cls.Edge)))
+            graphene.NonNull(NonNullList(cls.Edge))
         )
 
 

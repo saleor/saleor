@@ -11,7 +11,7 @@ type Query {
   ): Webhook
 
   """List of all available webhook events."""
-  webhookEvents: [WebhookEvent] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
+  webhookEvents: [WebhookEvent!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
 
   """
   Retrieve a sample payload for a given webhook event based on real data. It can be useful for some integrations where sample payload is required.
@@ -300,7 +300,7 @@ type Query {
   """List of product variants."""
   productVariants(
     """Filter product variants by given IDs."""
-    ids: [ID]
+    ids: [ID!]
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -503,7 +503,7 @@ type Query {
     channel: String
   ): TaxedMoney
 
-  """Look up an order by token."""
+  """{DEPRECATED_IN_3X_FIELD} Look up an order by token."""
   orderByToken(
     """The order's token."""
     token: UUID!
@@ -772,7 +772,7 @@ type Query {
   ): ExportFileCountableConnection
 
   """List of all tax rates available from tax gateway."""
-  taxTypes: [TaxType]
+  taxTypes: [TaxType!]
 
   """Look up a checkout by token and slug of channel."""
   checkout(
@@ -1279,13 +1279,13 @@ type App implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 
   """List of the app's permissions."""
-  permissions: [Permission]
+  permissions: [Permission!]
 
   """The date and time when the app was created."""
   created: DateTime
@@ -1300,10 +1300,10 @@ type App implements Node & ObjectWithMetadata {
   type: AppTypeEnum
 
   """Last 4 characters of the tokens."""
-  tokens: [AppToken]
+  tokens: [AppToken!]
 
   """List of webhooks assigned to this app."""
-  webhooks: [Webhook]
+  webhooks: [Webhook!]
 
   """Description of this app."""
   aboutApp: String
@@ -1342,10 +1342,10 @@ interface ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 }
 
 type MetadataItem {
@@ -1386,6 +1386,7 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_CHECKOUTS
+  HANDLE_CHECKOUTS
 }
 
 """
@@ -1663,10 +1664,10 @@ type Warehouse implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   slug: String!
   email: String!
@@ -1739,7 +1740,7 @@ type VAT {
   standardRate: Float
 
   """Country's VAT rate exceptions for specific types of goods."""
-  reducedRates: [ReducedRate]!
+  reducedRates: [ReducedRate!]!
 }
 
 """Represents a reduced VAT rate for a particular type of goods."""
@@ -1784,10 +1785,10 @@ type ShippingZone implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   default: Boolean!
 
@@ -1795,12 +1796,12 @@ type ShippingZone implements Node & ObjectWithMetadata {
   priceRange: MoneyRange
 
   """List of countries available for the method."""
-  countries: [CountryDisplay]
+  countries: [CountryDisplay!]
 
   """
   List of shipping methods available for orders shipped to countries within this shipping zone.
   """
-  shippingMethods: [ShippingMethodType]
+  shippingMethods: [ShippingMethodType!]
 
   """List of warehouses for shipping zone."""
   warehouses: [Warehouse!]!
@@ -1840,10 +1841,10 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 
   """Shipping method name."""
   name: String!
@@ -1872,7 +1873,7 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   """
   Postal code ranges rule of exclusion or inclusion of the shipping method.
   """
-  postalCodeRules: [ShippingMethodPostalCodeRule]
+  postalCodeRules: [ShippingMethodPostalCodeRule!]
 
   """List of excluded products for the shipping method."""
   excludedProducts(
@@ -2779,10 +2780,10 @@ type Product implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   seoTitle: String
   seoDescription: String
   name: String!
@@ -2851,16 +2852,16 @@ type Product implements Node & ObjectWithMetadata {
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
   """List of variants for the product."""
-  variants: [ProductVariant]
+  variants: [ProductVariant!]
 
   """List of media for the product."""
   media: [ProductMedia!]
 
   """List of images for the product."""
-  images: [ProductImage] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
+  images: [ProductImage!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
 
   """List of collections for the product."""
-  collections: [Collection]
+  collections: [Collection!]
 
   """Returns translated product fields for the given language code."""
   translation(
@@ -2884,10 +2885,10 @@ type ProductType implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   slug: String!
   hasVariants: Boolean!
@@ -2923,7 +2924,7 @@ type ProductType implements Node & ObjectWithMetadata {
   variantAttributes(
     """Define scope of returned attributes."""
     variantSelection: VariantAttributeScope
-  ): [Attribute] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `assignedVariantAttributes` instead.")
+  ): [Attribute!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `assignedVariantAttributes` instead.")
 
   """
   New in Saleor 3.1. Variant attributes of that product type with attached variant selection.
@@ -2931,10 +2932,10 @@ type ProductType implements Node & ObjectWithMetadata {
   assignedVariantAttributes(
     """Define scope of returned attributes."""
     variantSelection: VariantAttributeScope
-  ): [AssignedVariantAttribute]
+  ): [AssignedVariantAttribute!]
 
   """Product attributes of that product type."""
-  productAttributes: [Attribute]
+  productAttributes: [Attribute!]
   availableAttributes(
     filter: AttributeFilterInput
 
@@ -2994,10 +2995,10 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -3326,9 +3327,9 @@ input AttributeFilterInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   availableInGrid: Boolean
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   search: String
-  ids: [ID]
+  ids: [ID!]
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
@@ -3358,10 +3359,10 @@ type Category implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   seoTitle: String
   seoDescription: String
   name: String!
@@ -3479,10 +3480,10 @@ type ProductVariant implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   sku: String
   product: Product!
@@ -3526,7 +3527,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   revenue(period: ReportingPeriod): TaxedMoney
 
   """List of images for the product variant."""
-  images: [ProductImage] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
+  images: [ProductImage!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
 
   """List of media for the product variant."""
   media: [ProductMedia!]
@@ -3553,7 +3554,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `address` argument instead.
     """
     countryCode: CountryCode
-  ): [Stock]
+  ): [Stock!]
 
   """
   Quantity of a product available for sale in one checkout. Field value will be `null` when no `limitQuantityPerCheckout` in global settings has been set, and `productVariant` stocks are not tracked.
@@ -3940,7 +3941,7 @@ type SelectedAttribute {
   attribute: Attribute!
 
   """Values of an attribute."""
-  values: [AttributeValue]!
+  values: [AttributeValue!]!
 }
 
 enum ReportingPeriod {
@@ -4003,10 +4004,10 @@ type DigitalContent implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   useDefaultSettings: Boolean!
   automaticFulfillment: Boolean!
   contentFile: String!
@@ -4014,7 +4015,7 @@ type DigitalContent implements Node & ObjectWithMetadata {
   urlValidDays: Int
 
   """List of URLs for the digital variant."""
-  urls: [DigitalContentUrl]
+  urls: [DigitalContentUrl!]
 
   """Product variant assigned to digital content."""
   productVariant: ProductVariant!
@@ -4141,10 +4142,10 @@ type Collection implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   seoTitle: String
   seoDescription: String
   name: String!
@@ -4196,20 +4197,20 @@ type Collection implements Node & ObjectWithMetadata {
 
 input ProductFilterInput {
   isPublished: Boolean
-  collections: [ID]
-  categories: [ID]
+  collections: [ID!]
+  categories: [ID!]
   hasCategory: Boolean
-  attributes: [AttributeInput]
+  attributes: [AttributeInput!]
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   updatedAt: DateTimeRangeInput
-  productTypes: [ID]
+  productTypes: [ID!]
   giftCard: Boolean
-  ids: [ID]
+  ids: [ID!]
   hasPreorderedVariants: Boolean
 
   """
@@ -4225,7 +4226,7 @@ input AttributeInput {
   slug: String!
 
   """Internal representation of a value (unique per attribute)."""
-  values: [String]
+  values: [String!]
 
   """The range that the returned values should be in."""
   valuesRange: IntRangeInput
@@ -4402,7 +4403,7 @@ type WarehouseCountableEdge {
 input WarehouseFilterInput {
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
   search: String
-  ids: [ID]
+  ids: [ID!]
   isPrivate: Boolean
 }
 
@@ -4595,10 +4596,10 @@ type Page implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   seoTitle: String
   seoDescription: String
   title: String!
@@ -4633,15 +4634,15 @@ type PageType implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   slug: String!
 
   """Page attributes of that page type."""
-  attributes: [Attribute]
+  attributes: [Attribute!]
 
   """Attributes that can be assigned to the page type."""
   availableAttributes(
@@ -4714,10 +4715,10 @@ type Sale implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   type: SaleType!
   startDate: DateTime!
@@ -4881,10 +4882,10 @@ type Voucher implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String
   code: String!
   usageLimit: Int
@@ -4957,7 +4958,7 @@ type Voucher implements Node & ObjectWithMetadata {
   ): ProductVariantCountableConnection
 
   """List of countries available for the shipping voucher."""
-  countries: [CountryDisplay]
+  countries: [CountryDisplay!]
 
   """Returns translated voucher fields for the given language code."""
   translation(
@@ -5037,10 +5038,10 @@ type MenuItem implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   menu: Menu!
   parent: MenuItem
@@ -5048,7 +5049,7 @@ type MenuItem implements Node & ObjectWithMetadata {
   collection: Collection
   page: Page
   level: Int!
-  children: [MenuItem]
+  children: [MenuItem!]
 
   """URL to the menu item."""
   url: String
@@ -5069,13 +5070,13 @@ type Menu implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   name: String!
   slug: String!
-  items: [MenuItem]
+  items: [MenuItem!]
 }
 
 enum TranslatableKinds {
@@ -5142,7 +5143,7 @@ type Shop {
 
     """Address for which available shipping methods should be returned."""
     address: AddressInput
-  ): [ShippingMethod]
+  ): [ShippingMethod!]
 
   """
   New in Saleor 3.1. List of all currencies supported by shop's channels.
@@ -5178,16 +5179,16 @@ type Shop {
   domain: Domain!
 
   """List of the shops's supported languages."""
-  languages: [LanguageDisplay]!
+  languages: [LanguageDisplay!]!
 
   """Shop's name."""
   name: String!
 
   """List of available permissions."""
-  permissions: [Permission]!
+  permissions: [Permission!]!
 
   """List of possible phone prefixes."""
-  phonePrefixes: [String]!
+  phonePrefixes: [String!]!
 
   """Header text."""
   headerText: String
@@ -5250,7 +5251,7 @@ type Shop {
   customerSetPasswordUrl: String
 
   """List of staff notification recipients."""
-  staffNotificationRecipients: [StaffNotificationRecipient]
+  staffNotificationRecipients: [StaffNotificationRecipient!]
 
   """Resource limitations and current usage if any set for a shop"""
   limits: LimitInfo!
@@ -5273,7 +5274,7 @@ type PaymentGateway {
   config: [GatewayConfigLine!]!
 
   """Payment gateway supported currencies."""
-  currencies: [String]!
+  currencies: [String!]!
 }
 
 """Payment gateway client configuration key and value pair."""
@@ -5303,10 +5304,10 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 
   """Type of the shipping method."""
   type: ShippingMethodTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0.")
@@ -5402,10 +5403,10 @@ type User implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   email: String!
   firstName: String!
   lastName: String!
@@ -5413,7 +5414,7 @@ type User implements Node & ObjectWithMetadata {
   isActive: Boolean!
 
   """List of all user's addresses."""
-  addresses: [Address]
+  addresses: [Address!]
 
   """Returns the last open checkout of this user."""
   checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
@@ -5458,26 +5459,26 @@ type User implements Node & ObjectWithMetadata {
   ): OrderCountableConnection
 
   """List of user's permissions."""
-  userPermissions: [UserPermission]
+  userPermissions: [UserPermission!]
 
   """List of user's permission groups."""
-  permissionGroups: [Group]
+  permissionGroups: [Group!]
 
   """List of user's permission groups which user can manage."""
-  editableGroups: [Group]
+  editableGroups: [Group!]
   avatar(
     """Size of the avatar."""
     size: Int
   ): Image
 
   """List of events associated with the user."""
-  events: [CustomerEvent]
+  events: [CustomerEvent!]
 
   """List of stored payment sources."""
   storedPaymentSources(
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): [PaymentSource]
+  ): [PaymentSource!]
 
   """User language code."""
   languageCode: LanguageCodeEnum!
@@ -5495,10 +5496,10 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   created: DateTime!
   lastChange: DateTime!
   user: User
@@ -5512,10 +5513,10 @@ type Checkout implements Node & ObjectWithMetadata {
   voucherCode: String
 
   """Shipping methods that can be used with this checkout."""
-  availableShippingMethods: [ShippingMethod]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
+  availableShippingMethods: [ShippingMethod!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
 
   """Shipping methods that can be used with this checkout."""
-  shippingMethods: [ShippingMethod]!
+  shippingMethods: [ShippingMethod!]!
 
   """
   New in Saleor 3.1. Collection points that can be used for this order. Note: this feature is in a preview state and can be subject to changes at later point.
@@ -5529,7 +5530,7 @@ type Checkout implements Node & ObjectWithMetadata {
   email: String
 
   """List of gift cards associated with this checkout."""
-  giftCards: [GiftCard]
+  giftCards: [GiftCard!]
 
   """Returns True, if checkout requires shipping."""
   isShippingRequired: Boolean!
@@ -5545,7 +5546,7 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   A list of checkout lines, each containing information about an item in the checkout.
   """
-  lines: [CheckoutLine]
+  lines: [CheckoutLine!]
 
   """The price of the shipping, with all the taxes included."""
   shippingPrice: TaxedMoney
@@ -5582,10 +5583,10 @@ type GiftCard implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 
   """Code in format which allows displaying in a user interface."""
   displayCode: String!
@@ -5810,10 +5811,10 @@ type Order implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   created: DateTime!
   updatedAt: DateTime!
   status: OrderStatus!
@@ -5826,21 +5827,21 @@ type Order implements Node & ObjectWithMetadata {
   channel: Channel!
 
   """List of shipments for the order."""
-  fulfillments: [Fulfillment]!
+  fulfillments: [Fulfillment!]!
 
   """List of order lines."""
-  lines: [OrderLine]!
+  lines: [OrderLine!]!
 
   """
   List of actions that can be performed in the current state of an order.
   """
-  actions: [OrderAction]!
+  actions: [OrderAction!]!
 
   """Shipping methods that can be used with this order."""
-  availableShippingMethods: [ShippingMethod] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
+  availableShippingMethods: [ShippingMethod!] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
 
   """Shipping methods related to this order."""
-  shippingMethods: [ShippingMethod]
+  shippingMethods: [ShippingMethod!]
 
   """
   New in Saleor 3.1. Collection points that can be used for this order. Note: this feature is in a preview state and can be subject to changes at later point.
@@ -5848,7 +5849,7 @@ type Order implements Node & ObjectWithMetadata {
   availableCollectionPoints: [Warehouse!]!
 
   """List of order invoices."""
-  invoices: [Invoice]
+  invoices: [Invoice!]
 
   """User-friendly number of an order."""
   number: String
@@ -5869,7 +5870,7 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatusDisplay: String!
 
   """List of payments for the order."""
-  payments: [Payment]
+  payments: [Payment!]
 
   """Total amount of the order."""
   total: TaxedMoney!
@@ -5883,11 +5884,11 @@ type Order implements Node & ObjectWithMetadata {
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
-  token: String!
+  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
   """List of user gift cards."""
-  giftCards: [GiftCard]
+  giftCards: [GiftCard!]
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
@@ -5911,7 +5912,7 @@ type Order implements Node & ObjectWithMetadata {
   totalCaptured: Money!
 
   """List of events associated with the order."""
-  events: [OrderEvent]
+  events: [OrderEvent!]
 
   """The difference between the paid and the order total amount."""
   totalBalance: Money!
@@ -5966,17 +5967,17 @@ type Fulfillment implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   fulfillmentOrder: Int!
   status: FulfillmentStatus!
   trackingNumber: String!
   created: DateTime!
 
   """List of lines for the fulfillment."""
-  lines: [FulfillmentLine]
+  lines: [FulfillmentLine!]
 
   """User-friendly fulfillment status."""
   statusDisplay: String
@@ -6098,10 +6099,10 @@ type Invoice implements ObjectWithMetadata & Job & Node {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 
   """Job status."""
   status: JobStatusEnum!
@@ -6166,10 +6167,10 @@ type Payment implements Node & ObjectWithMetadata {
   """
   List of private metadata items.Requires proper staff permissions to access.
   """
-  privateMetadata: [MetadataItem]!
+  privateMetadata: [MetadataItem!]!
 
   """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
   gateway: String!
   isActive: Boolean!
   created: DateTime!
@@ -6186,7 +6187,7 @@ type Payment implements Node & ObjectWithMetadata {
   """
   List of actions that can be performed in the current state of a payment.
   """
-  actions: [OrderAction]!
+  actions: [OrderAction!]!
 
   """Total amount of the payment."""
   total: Money
@@ -6195,7 +6196,7 @@ type Payment implements Node & ObjectWithMetadata {
   capturedAmount: Money
 
   """List of all transactions within this payment."""
-  transactions: [Transaction]
+  transactions: [Transaction!]
 
   """Maximum amount of money that can be captured."""
   availableCaptureAmount: Money
@@ -6300,13 +6301,13 @@ type OrderEvent implements Node {
   invoiceNumber: String
 
   """List of oversold lines names."""
-  oversoldItems: [String]
+  oversoldItems: [String!]
 
   """The concerned lines."""
-  lines: [OrderEventOrderLineObject]
+  lines: [OrderEventOrderLineObject!]
 
   """The lines fulfilled."""
-  fulfilledItems: [FulfillmentLine]
+  fulfilledItems: [FulfillmentLine!]
 
   """The warehouse were items were restocked."""
   warehouse: Warehouse
@@ -6532,10 +6533,10 @@ type Group implements Node {
   name: String!
 
   """List of group users"""
-  users: [User]
+  users: [User!]
 
   """List of group permissions"""
-  permissions: [Permission]
+  permissions: [Permission!]
 
   """
   True, if the currently authenticated user has rights to manage a group.
@@ -6605,7 +6606,7 @@ type PaymentSource {
   """
   New in Saleor 3.1. List of public metadata items. Can be accessed without permissions.
   """
-  metadata: [MetadataItem]!
+  metadata: [MetadataItem!]!
 }
 
 type LimitInfo {
@@ -6663,7 +6664,7 @@ enum TimePeriodTypeEnum {
 
 input ShippingZoneFilterInput {
   search: String
-  channels: [ID]
+  channels: [ID!]
 }
 
 type DigitalContentCountableConnection {
@@ -6685,8 +6686,8 @@ type DigitalContentCountableEdge {
 
 input CategoryFilterInput {
   search: String
-  metadata: [MetadataFilter]
-  ids: [ID]
+  metadata: [MetadataFilter!]
+  ids: [ID!]
 }
 
 input CategorySortingInput {
@@ -6718,8 +6719,8 @@ enum CategorySortField {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
-  metadata: [MetadataFilter]
-  ids: [ID]
+  metadata: [MetadataFilter!]
+  ids: [ID!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -6767,9 +6768,9 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
-  ids: [ID]
+  ids: [ID!]
 }
 
 enum ProductTypeConfigurable {
@@ -6803,8 +6804,8 @@ enum ProductTypeSortField {
 
 input ProductVariantFilterInput {
   search: String
-  sku: [String]
-  metadata: [MetadataFilter]
+  sku: [String!]
+  metadata: [MetadataFilter!]
   isPreorder: Boolean
   updatedAt: DateTimeRangeInput
 }
@@ -6840,7 +6841,7 @@ type PaymentCountableEdge {
 }
 
 input PaymentFilterInput {
-  checkouts: [ID]
+  checkouts: [ID!]
 }
 
 type PageCountableConnection {
@@ -6887,9 +6888,9 @@ enum PageSortField {
 
 input PageFilterInput {
   search: String
-  metadata: [MetadataFilter]
-  pageTypes: [ID]
-  ids: [ID]
+  metadata: [MetadataFilter!]
+  pageTypes: [ID!]
+  ids: [ID!]
 }
 
 type PageTypeCountableConnection {
@@ -6986,17 +6987,17 @@ enum OrderSortField {
 }
 
 input OrderFilterInput {
-  paymentStatus: [PaymentChargeStatusEnum]
-  status: [OrderStatusFilter]
+  paymentStatus: [PaymentChargeStatusEnum!]
+  status: [OrderStatusFilter!]
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
-  channels: [ID]
+  metadata: [MetadataFilter!]
+  channels: [ID!]
   updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
   isPreorder: Boolean
-  ids: [ID]
+  ids: [ID!]
   giftCardUsed: Boolean
   giftCardBought: Boolean
 }
@@ -7015,8 +7016,8 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
-  channels: [ID]
+  metadata: [MetadataFilter!]
+  channels: [ID!]
 }
 
 type MenuCountableConnection {
@@ -7054,8 +7055,8 @@ enum MenuSortField {
 
 input MenuFilterInput {
   search: String
-  slug: [String]
-  metadata: [MetadataFilter]
+  slug: [String!]
+  metadata: [MetadataFilter!]
 }
 
 type MenuItemCountableConnection {
@@ -7090,7 +7091,7 @@ enum MenuItemsSortField {
 
 input MenuItemFilterInput {
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
 }
 
 input GiftCardSortingInput {
@@ -7114,10 +7115,10 @@ enum GiftCardSortField {
 
 input GiftCardFilterInput {
   isActive: Boolean
-  metadata: [MetadataFilter]
-  tags: [String]
-  products: [ID]
-  usedBy: [ID]
+  metadata: [MetadataFilter!]
+  tags: [String!]
+  products: [ID!]
+  usedBy: [ID!]
   used: Boolean
   currency: String
   currentBalance: PriceRangeInput
@@ -7173,7 +7174,7 @@ type PluginConfiguration {
   channel: Channel
 
   """Configuration of the plugin."""
-  configuration: [ConfigurationItem]
+  configuration: [ConfigurationItem!]
 }
 
 """Stores information about a single configuration field."""
@@ -7269,11 +7270,11 @@ type SaleCountableEdge {
 }
 
 input SaleFilterInput {
-  status: [DiscountStatusEnum]
+  status: [DiscountStatusEnum!]
   saleType: DiscountValueTypeEnum
   started: DateTimeRangeInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   updatedAt: DateTimeRangeInput
 }
 
@@ -7339,12 +7340,12 @@ type VoucherCountableEdge {
 }
 
 input VoucherFilterInput {
-  status: [DiscountStatusEnum]
+  status: [DiscountStatusEnum!]
   timesUsed: IntRangeInput
-  discountType: [VoucherDiscountType]
+  discountType: [VoucherDiscountType!]
   started: DateTimeRangeInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
 }
 
 enum VoucherDiscountType {
@@ -7527,8 +7528,8 @@ input CheckoutFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
-  channels: [ID]
+  metadata: [MetadataFilter!]
+  channels: [ID!]
 }
 
 type CheckoutLineCountableConnection {
@@ -7663,7 +7664,7 @@ type AppExtensionCountableEdge {
 }
 
 input AppExtensionFilterInput {
-  mount: [AppExtensionMountEnum]
+  mount: [AppExtensionMountEnum!]
   target: AppExtensionTargetEnum
 }
 
@@ -7672,18 +7673,18 @@ type AddressValidationData {
   countryName: String
   addressFormat: String
   addressLatinFormat: String
-  allowedFields: [String]
-  requiredFields: [String]
-  upperFields: [String]
+  allowedFields: [String!]
+  requiredFields: [String!]
+  upperFields: [String!]
   countryAreaType: String
-  countryAreaChoices: [ChoiceValue]
+  countryAreaChoices: [ChoiceValue!]
   cityType: String
-  cityChoices: [ChoiceValue]
+  cityChoices: [ChoiceValue!]
   cityAreaType: String
-  cityAreaChoices: [ChoiceValue]
+  cityAreaChoices: [ChoiceValue!]
   postalCodeType: String
-  postalCodeMatchers: [String]
-  postalCodeExamples: [String]
+  postalCodeMatchers: [String!]
+  postalCodeExamples: [String!]
   postalCodePrefix: String
 }
 
@@ -7714,7 +7715,7 @@ input CustomerFilterInput {
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
   search: String
-  metadata: [MetadataFilter]
+  metadata: [MetadataFilter!]
   updatedAt: DateTimeRangeInput
 }
 
@@ -7765,7 +7766,7 @@ type GroupCountableEdge {
 
 input PermissionGroupFilterInput {
   search: String
-  ids: [ID]
+  ids: [ID!]
 }
 
 input PermissionGroupSortingInput {
@@ -7784,7 +7785,7 @@ enum PermissionGroupSortField {
 input StaffUserInput {
   status: StaffMemberStatus
   search: String
-  ids: [ID]
+  ids: [ID!]
 }
 
 enum StaffMemberStatus {
@@ -7951,7 +7952,7 @@ type Mutation {
   """Deletes shipping prices."""
   shippingPriceBulkDelete(
     """List of shipping price IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): ShippingPriceBulkDelete
 
   """Updates a new shipping price."""
@@ -7988,7 +7989,7 @@ type Mutation {
     id: ID!
 
     """List of products which will be removed from excluded list."""
-    products: [ID]!
+    products: [ID!]!
   ): ShippingPriceRemoveProductFromExclude
 
   """Creates a new shipping zone."""
@@ -8006,7 +8007,7 @@ type Mutation {
   """Deletes shipping zones."""
   shippingZoneBulkDelete(
     """List of shipping zone IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): ShippingZoneBulkDelete
 
   """Updates a new shipping zone."""
@@ -8021,7 +8022,7 @@ type Mutation {
   """Assign attributes to a given product type."""
   productAttributeAssign(
     """The operations to perform."""
-    operations: [ProductAttributeAssignInput]!
+    operations: [ProductAttributeAssignInput!]!
 
     """ID of the product type to assign the attributes into."""
     productTypeId: ID!
@@ -8032,7 +8033,7 @@ type Mutation {
   """
   productAttributeAssignmentUpdate(
     """The operations to perform."""
-    operations: [ProductAttributeAssignmentUpdateInput]!
+    operations: [ProductAttributeAssignmentUpdateInput!]!
 
     """ID of the product type to assign the attributes into."""
     productTypeId: ID!
@@ -8041,7 +8042,7 @@ type Mutation {
   """Un-assign attributes from a given product type."""
   productAttributeUnassign(
     """The IDs of the attributes to unassign."""
-    attributeIds: [ID]!
+    attributeIds: [ID!]!
 
     """ID of the product type from which the attributes should be unassigned."""
     productTypeId: ID!
@@ -8067,7 +8068,7 @@ type Mutation {
   """Deletes categories."""
   categoryBulkDelete(
     """List of category IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): CategoryBulkDelete
 
   """Updates a category."""
@@ -8095,7 +8096,7 @@ type Mutation {
     collectionId: ID!
 
     """List of product IDs."""
-    products: [ID]!
+    products: [ID!]!
   ): CollectionAddProducts
 
   """Creates a new collection."""
@@ -8116,13 +8117,13 @@ type Mutation {
     collectionId: ID!
 
     """The collection products position operations."""
-    moves: [MoveProductInput]!
+    moves: [MoveProductInput!]!
   ): CollectionReorderProducts
 
   """Deletes collections."""
   collectionBulkDelete(
     """List of collection IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): CollectionBulkDelete
 
   """Remove products from a collection."""
@@ -8131,7 +8132,7 @@ type Mutation {
     collectionId: ID!
 
     """List of product IDs."""
-    products: [ID]!
+    products: [ID!]!
   ): CollectionRemoveProducts
 
   """Updates a collection."""
@@ -8177,7 +8178,7 @@ type Mutation {
   """Deletes products."""
   productBulkDelete(
     """List of product IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): ProductBulkDelete
 
   """Updates an existing product."""
@@ -8221,7 +8222,7 @@ type Mutation {
   """
   productVariantReorder(
     """The list of variant reordering operations."""
-    moves: [ReorderInput]!
+    moves: [ReorderInput!]!
 
     """Id of product that variants order will be altered."""
     productId: ID!
@@ -8236,13 +8237,13 @@ type Mutation {
   """Deletes product media."""
   productMediaBulkDelete(
     """List of product media IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): ProductMediaBulkDelete
 
   """Changes ordering of the product media."""
   productMediaReorder(
     """IDs of a product media in the desired order."""
-    mediaIds: [ID]!
+    mediaIds: [ID!]!
 
     """ID of product that media order will be altered."""
     productId: ID!
@@ -8272,7 +8273,7 @@ type Mutation {
   """Deletes product types."""
   productTypeBulkDelete(
     """List of product type IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): ProductTypeBulkDelete
 
   """Updates an existing product type."""
@@ -8287,7 +8288,7 @@ type Mutation {
   """Reorder the attributes of a product type."""
   productTypeReorderAttributes(
     """The list of attribute reordering operations."""
-    moves: [ReorderInput]!
+    moves: [ReorderInput!]!
 
     """ID of a product type."""
     productTypeId: ID!
@@ -8302,7 +8303,7 @@ type Mutation {
     attributeId: ID!
 
     """The list of reordering operations for given attribute values."""
-    moves: [ReorderInput]!
+    moves: [ReorderInput!]!
 
     """ID of a product."""
     productId: ID!
@@ -8358,13 +8359,13 @@ type Mutation {
     product: ID!
 
     """Input list of product variants to create."""
-    variants: [ProductVariantBulkCreateInput]!
+    variants: [ProductVariantBulkCreateInput!]!
   ): ProductVariantBulkCreate
 
   """Deletes product variants."""
   productVariantBulkDelete(
     """List of product variant IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): ProductVariantBulkDelete
 
   """Creates stocks for product variant."""
@@ -8439,7 +8440,7 @@ type Mutation {
     attributeId: ID!
 
     """The list of reordering operations for given attribute values."""
-    moves: [ReorderInput]!
+    moves: [ReorderInput!]!
 
     """ID of a product variant."""
     variantId: ID!
@@ -8528,13 +8529,13 @@ type Mutation {
   """Deletes pages."""
   pageBulkDelete(
     """List of page IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): PageBulkDelete
 
   """Publish pages."""
   pageBulkPublish(
     """List of page IDs to (un)publish."""
-    ids: [ID]!
+    ids: [ID!]!
 
     """Determine if pages will be published or not."""
     isPublished: Boolean!
@@ -8619,7 +8620,7 @@ type Mutation {
     attributeId: ID!
 
     """The list of reordering operations for given attribute values."""
-    moves: [ReorderInput]!
+    moves: [ReorderInput!]!
 
     """ID of a page."""
     pageId: ID!
@@ -8646,13 +8647,13 @@ type Mutation {
   """Deletes draft orders."""
   draftOrderBulkDelete(
     """List of draft order IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): DraftOrderBulkDelete
 
   """Deletes order lines."""
   draftOrderLinesBulkDelete(
     """List of order lines IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): DraftOrderLinesBulkDelete @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Updates a draft order."""
@@ -8757,7 +8758,7 @@ type Mutation {
     id: ID!
 
     """Fields required to add order lines."""
-    input: [OrderLineCreateInput]!
+    input: [OrderLineCreateInput!]!
   ): OrderLinesCreate
 
   """Deletes an order line from an order."""
@@ -8861,7 +8862,7 @@ type Mutation {
   """Cancels orders."""
   orderBulkCancel(
     """List of orders IDs to cancel."""
-    ids: [ID]!
+    ids: [ID!]!
   ): OrderBulkCancel
 
   """Delete metadata of an object."""
@@ -8924,7 +8925,7 @@ type Mutation {
   """Deletes menus."""
   menuBulkDelete(
     """List of menu IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): MenuBulkDelete
 
   """Updates a menu."""
@@ -8953,7 +8954,7 @@ type Mutation {
   """Deletes menu items."""
   menuItemBulkDelete(
     """List of menu item IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): MenuItemBulkDelete
 
   """Updates a menu item."""
@@ -8983,7 +8984,7 @@ type Mutation {
     menu: ID!
 
     """The menu position data."""
-    moves: [MenuItemMoveInput]!
+    moves: [MenuItemMoveInput!]!
   ): MenuItemMove
 
   """Request an invoice for the order using plugin."""
@@ -9098,7 +9099,7 @@ type Mutation {
   """
   giftCardBulkDelete(
     """List of gift card IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): GiftCardBulkDelete
 
   """
@@ -9106,7 +9107,7 @@ type Mutation {
   """
   giftCardBulkActivate(
     """List of gift card IDs to activate."""
-    ids: [ID]!
+    ids: [ID!]!
   ): GiftCardBulkActivate
 
   """
@@ -9114,7 +9115,7 @@ type Mutation {
   """
   giftCardBulkDeactivate(
     """List of gift card IDs to deactivate."""
-    ids: [ID]!
+    ids: [ID!]!
   ): GiftCardBulkDeactivate
 
   """Update plugin configuration."""
@@ -9160,7 +9161,7 @@ type Mutation {
   """Deletes sales."""
   saleBulkDelete(
     """List of sale IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): SaleBulkDelete
 
   """Updates a sale."""
@@ -9224,7 +9225,7 @@ type Mutation {
   """Deletes vouchers."""
   voucherBulkDelete(
     """List of voucher IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): VoucherBulkDelete
 
   """Updates a voucher."""
@@ -9429,7 +9430,7 @@ type Mutation {
   """Deletes checkout lines."""
   checkoutLinesDelete(
     """A list of checkout lines."""
-    linesIds: [ID]!
+    linesIds: [ID!]!
 
     """Checkout token."""
     token: UUID!
@@ -9449,7 +9450,7 @@ type Mutation {
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
-    lines: [CheckoutLineInput]!
+    lines: [CheckoutLineInput!]!
 
     """Checkout token."""
     token: UUID
@@ -9467,7 +9468,7 @@ type Mutation {
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
-    lines: [CheckoutLineInput]!
+    lines: [CheckoutLineInput!]!
 
     """Checkout token."""
     token: UUID
@@ -9639,13 +9640,13 @@ type Mutation {
   """Deletes attributes."""
   attributeBulkDelete(
     """List of attribute IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): AttributeBulkDelete
 
   """Deletes values of attributes."""
   attributeValueBulkDelete(
     """List of attribute value IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): AttributeValueBulkDelete
 
   """Creates a value for an attribute."""
@@ -9688,7 +9689,7 @@ type Mutation {
     attributeId: ID!
 
     """The list of reordering operations for given attribute values."""
-    moves: [ReorderInput]!
+    moves: [ReorderInput!]!
   ): AttributeReorderValues
 
   """Creates a new app."""
@@ -10048,7 +10049,7 @@ type Mutation {
   """Deletes customers."""
   customerBulkDelete(
     """List of user IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): CustomerBulkDelete
 
   """Creates a new staff user."""
@@ -10075,7 +10076,7 @@ type Mutation {
   """Deletes staff users."""
   staffBulkDelete(
     """List of user IDs to delete."""
-    ids: [ID]!
+    ids: [ID!]!
   ): StaffBulkDelete
 
   """
@@ -10092,7 +10093,7 @@ type Mutation {
   """Activate or deactivate users."""
   userBulkSetActive(
     """List of user IDs to (de)activate)."""
-    ids: [ID]!
+    ids: [ID!]!
 
     """Determine if users will be set active or not."""
     isActive: Boolean!
@@ -10161,7 +10162,7 @@ input WebhookCreateInput {
   
   DEPRECATED: this field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.
   """
-  events: [WebhookEventTypeEnum]
+  events: [WebhookEventTypeEnum!]
 
   """The asynchronous events that webhook wants to subscribe."""
   asyncEvents: [WebhookEventTypeAsyncEnum!]
@@ -10205,7 +10206,7 @@ input WebhookUpdateInput {
   
   DEPRECATED: this field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.
   """
-  events: [WebhookEventTypeEnum]
+  events: [WebhookEventTypeEnum!]
 
   """The asynchronous events that webhook wants to subscribe."""
   asyncEvents: [WebhookEventTypeAsyncEnum!]
@@ -10274,7 +10275,7 @@ input WarehouseCreateInput {
   address: AddressInput!
 
   """Shipping zones supported by the warehouse."""
-  shippingZones: [ID]
+  shippingZones: [ID!]
 }
 
 """Updates given warehouse."""
@@ -10773,7 +10774,7 @@ type ShippingPriceExcludeProducts {
 
 input ShippingPriceExcludeProductsInput {
   """List of products which will be excluded."""
-  products: [ID]!
+  products: [ID!]!
 }
 
 """Remove product from excluded list for shipping price."""
@@ -10799,7 +10800,7 @@ input ShippingZoneCreateInput {
   description: String
 
   """List of countries in this shipping zone."""
-  countries: [String]
+  countries: [String!]
 
   """
   Default shipping zone will be used for countries not covered by other zones.
@@ -10807,7 +10808,7 @@ input ShippingZoneCreateInput {
   default: Boolean
 
   """List of warehouses to assign to a shipping zone"""
-  addWarehouses: [ID]
+  addWarehouses: [ID!]
 
   """List of channels to assign to the shipping zone."""
   addChannels: [ID!]
@@ -10843,7 +10844,7 @@ input ShippingZoneUpdateInput {
   description: String
 
   """List of countries in this shipping zone."""
-  countries: [String]
+  countries: [String!]
 
   """
   Default shipping zone will be used for countries not covered by other zones.
@@ -10851,13 +10852,13 @@ input ShippingZoneUpdateInput {
   default: Boolean
 
   """List of warehouses to assign to a shipping zone"""
-  addWarehouses: [ID]
+  addWarehouses: [ID!]
 
   """List of channels to assign to the shipping zone."""
   addChannels: [ID!]
 
   """List of warehouses to unassign from a shipping zone"""
-  removeWarehouses: [ID]
+  removeWarehouses: [ID!]
 
   """List of channels to unassign from the shipping zone."""
   removeChannels: [ID!]
@@ -11102,7 +11103,7 @@ input CollectionCreateInput {
   publicationDate: Date
 
   """List of products to be added to the collection."""
-  products: [ID]
+  products: [ID!]
 }
 
 """Deletes a collection."""
@@ -11549,12 +11550,12 @@ input ProductTypeInput {
   hasVariants: Boolean
 
   """List of attributes shared among all product variants."""
-  productAttributes: [ID]
+  productAttributes: [ID!]
 
   """
   List of attributes used to distinguish between different variants of a product.
   """
-  variantAttributes: [ID]
+  variantAttributes: [ID!]
 
   """Determines if shipping is required for products of this variant."""
   isShippingRequired: Boolean
@@ -12408,7 +12409,7 @@ input DraftOrderCreateInput {
   redirectUrl: String
 
   """Variant line input consisting of variant ID and quantity of products."""
-  lines: [OrderLineCreateInput]
+  lines: [OrderLineCreateInput!]
 }
 
 input OrderLineCreateInput {
@@ -12525,7 +12526,7 @@ type OrderConfirm {
 """Creates new fulfillments for an order."""
 type OrderFulfill {
   """List of created fulfillments."""
-  fulfillments: [Fulfillment]
+  fulfillments: [Fulfillment!]
 
   """Fulfilled order."""
   order: Order
@@ -12984,7 +12985,7 @@ input MenuCreateInput {
   slug: String
 
   """List of menu items."""
-  items: [MenuItemInput]
+  items: [MenuItemInput!]
 }
 
 input MenuItemInput {
@@ -13492,7 +13493,7 @@ input PluginUpdateInput {
   active: Boolean
 
   """Configuration of the plugin."""
-  configuration: [ConfigurationItemInput]
+  configuration: [ConfigurationItemInput!]
 }
 
 input ConfigurationItemInput {
@@ -13535,7 +13536,7 @@ input ExternalNotificationTriggerInput {
   """
   The list of customers or orders node IDs that will be serialized and included in the notification payload.
   """
-  ids: [ID]!
+  ids: [ID!]!
 
   """
   Additional payload that will be merged with the one based on the bussines object ID.
@@ -13597,14 +13598,14 @@ input SaleInput {
   value: PositiveDecimal
 
   """Products related to the discount."""
-  products: [ID]
-  variants: [ID]
+  products: [ID!]
+  variants: [ID!]
 
   """Categories related to the discount."""
-  categories: [ID]
+  categories: [ID!]
 
   """Collections related to the discount."""
-  collections: [ID]
+  collections: [ID!]
 
   """Start date of the voucher in ISO 8601 format."""
   startDate: DateTime
@@ -13645,16 +13646,16 @@ type SaleAddCatalogues {
 
 input CatalogueInput {
   """Products related to the discount."""
-  products: [ID]
+  products: [ID!]
 
   """Categories related to the discount."""
-  categories: [ID]
+  categories: [ID!]
 
   """Collections related to the discount."""
-  collections: [ID]
+  collections: [ID!]
 
   """New in Saleor 3.1. Product variant related to the discount."""
-  variants: [ID]
+  variants: [ID!]
 }
 
 """Removes products, categories, collections from a sale."""
@@ -13723,22 +13724,22 @@ input VoucherInput {
   discountValueType: DiscountValueTypeEnum
 
   """Products discounted by the voucher."""
-  products: [ID]
+  products: [ID!]
 
   """New in Saleor 3.1. Variants discounted by the voucher."""
-  variants: [ID]
+  variants: [ID!]
 
   """Collections discounted by the voucher."""
-  collections: [ID]
+  collections: [ID!]
 
   """Categories discounted by the voucher."""
-  categories: [ID]
+  categories: [ID!]
 
   """Minimal quantity of checkout items required to apply the voucher."""
   minCheckoutItemsQuantity: Int
 
   """Country codes that can be used with the shipping voucher."""
-  countries: [String]
+  countries: [String!]
 
   """Voucher should be applied to the cheapest item or entire order."""
   applyOncePerOrder: Boolean
@@ -14076,7 +14077,7 @@ input CheckoutCreateInput {
   """
   A list of checkout lines, each containing information about an item in the checkout.
   """
-  lines: [CheckoutLineInput]!
+  lines: [CheckoutLineInput!]!
 
   """The customer's email address."""
   email: String
@@ -14419,7 +14420,7 @@ input AttributeCreateInput {
   unit: MeasurementUnitsEnum
 
   """List of attribute's values."""
-  values: [AttributeValueCreateInput]
+  values: [AttributeValueCreateInput!]
 
   """Whether the attribute requires values to be passed or not."""
   valueRequired: Boolean
@@ -14489,10 +14490,10 @@ input AttributeUpdateInput {
   unit: MeasurementUnitsEnum
 
   """IDs of values to be removed from this attribute."""
-  removeValues: [ID]
+  removeValues: [ID!]
 
   """New values to be created for this attribute."""
-  addValues: [AttributeValueUpdateInput]
+  addValues: [AttributeValueUpdateInput!]
 
   """Whether the attribute requires values to be passed or not."""
   valueRequired: Boolean
@@ -14654,7 +14655,7 @@ input AppInput {
   name: String
 
   """List of permission code names to assign to this app."""
-  permissions: [PermissionEnum]
+  permissions: [PermissionEnum!]
 }
 
 """Updates an existing app."""
@@ -14721,7 +14722,7 @@ input AppInstallInput {
   activateAfterInstallation: Boolean = true
 
   """List of permission code names to assign to this app."""
-  permissions: [PermissionEnum]
+  permissions: [PermissionEnum!]
 }
 
 """Retry failed installation of new app."""
@@ -14751,7 +14752,7 @@ type Manifest {
   version: String!
   name: String!
   about: String
-  permissions: [Permission]
+  permissions: [Permission!]
   appUrl: String
   configurationUrl: String
   tokenTargetUrl: String

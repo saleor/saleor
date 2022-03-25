@@ -19,7 +19,14 @@ from ..channel.types import (
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import ConnectionField, JSONString
-from ..core.types import CountryDisplay, ModelObjectType, Money, MoneyRange, Weight
+from ..core.types import (
+    CountryDisplay,
+    ModelObjectType,
+    Money,
+    MoneyRange,
+    NonNullList,
+    Weight,
+)
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
@@ -83,8 +90,8 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         type_name="shipping method",
         resolver=None,  # Disable default resolver
     )
-    channel_listings = graphene.List(
-        graphene.NonNull(ShippingMethodChannelListing),
+    channel_listings = NonNullList(
+        ShippingMethodChannelListing,
         description="List of channels available for the method.",
     )
     maximum_order_price = graphene.Field(
@@ -93,7 +100,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     minimum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
-    postal_code_rules = graphene.List(
+    postal_code_rules = NonNullList(
         ShippingMethodPostalCodeRule,
         description=(
             "Postal code ranges rule of exclusion or inclusion of the shipping method."
@@ -218,23 +225,23 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
-    countries = graphene.List(
+    countries = NonNullList(
         CountryDisplay, description="List of countries available for the method."
     )
-    shipping_methods = graphene.List(
+    shipping_methods = NonNullList(
         ShippingMethodType,
         description=(
             "List of shipping methods available for orders"
             " shipped to countries within this shipping zone."
         ),
     )
-    warehouses = graphene.List(
-        graphene.NonNull(Warehouse),
+    warehouses = NonNullList(
+        Warehouse,
         description="List of warehouses for shipping zone.",
         required=True,
     )
-    channels = graphene.List(
-        graphene.NonNull(Channel),
+    channels = NonNullList(
+        Channel,
         description="List of channels for shipping zone.",
         required=True,
     )

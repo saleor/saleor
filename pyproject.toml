@@ -39,7 +39,7 @@ documentation = "https://docs.saleor.io/"
   opentracing = "^2.3.0"
   phonenumberslite = "^8.12.25"
   prices = "^1.0"
-  psycopg2-binary = "^2.8.3"
+  psycopg2 = "^2.8.3"
   razorpay = "^1.2"
   requests = "^2.22"
   sentry-sdk = "^1.0"
@@ -116,6 +116,7 @@ documentation = "https://docs.saleor.io/"
   # django-stubs locked to 1.8.0 due to https://github.com/typeddjango/django-stubs/issues/700
   django-stubs = "1.8.0"
   pytest-socket = "^0.5.1"
+  before_after = "^1.0.1"
 
 [tool.black]
 target_version = [ "py35", "py36", "py37", "py38" ]

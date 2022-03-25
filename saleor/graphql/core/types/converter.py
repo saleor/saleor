@@ -13,6 +13,7 @@ from ..filters import (
     ListObjectTypeFilter,
     ObjectTypeFilter,
 )
+from .common import NonNullList
 
 
 def get_form_field_description(field):
@@ -58,9 +59,9 @@ def convert_form_field_to_id(field):
 
 @convert_form_field.register(ListObjectTypeFilter)
 def convert_list_object_type(field):
-    return graphene.List(field.input_class)
+    return NonNullList(field.input_class)
 
 
 @convert_form_field.register(GlobalIDMultipleChoiceField)
 def convert_form_field_to_list(field):
-    return graphene.List(graphene.ID, required=field.required)
+    return NonNullList(graphene.ID, required=field.required)

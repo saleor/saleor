@@ -17,7 +17,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
-from ..core.types import ModelObjectType, Money
+from ..core.types import ModelObjectType, Money, NonNullList
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
@@ -76,12 +76,12 @@ class GiftCardEvent(ModelObjectType):
             "User-friendly number of an order where gift card was used or bought."
         )
     )
-    tags = graphene.List(
-        graphene.NonNull(graphene.String),
+    tags = NonNullList(
+        graphene.String,
         description="The list of gift card tags.",
     )
-    old_tags = graphene.List(
-        graphene.NonNull(graphene.String),
+    old_tags = NonNullList(
+        graphene.String,
         description="The list of old gift card tags.",
     )
     balance = graphene.Field(GiftCardEventBalance, description="The gift card balance.")
@@ -135,13 +135,22 @@ class GiftCardEvent(ModelObjectType):
 
     @staticmethod
     def resolve_order_id(root: models.GiftCardEvent, info):
-        order_id = root.parameters.get("order_id")
+        order_id = root.order_id
         return graphene.Node.to_global_id("Order", order_id) if order_id else None
 
     @staticmethod
     def resolve_order_number(root: models.GiftCardEvent, info):
-        order_id = root.parameters.get("order_id")
-        return str(order_id) if order_id else None
+        def _resolve_order_number(order):
+            return order.number
+
+        if not root.order_id:
+            return None
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_order_number)
+        )
 
     @staticmethod
     def resolve_tags(root: models.GiftCardEvent, _info):
@@ -252,8 +261,8 @@ class GiftCard(ModelObjectType):
         "saleor.graphql.product.types.products.Product",
         description=f"{ADDED_IN_31} Related gift card product. {PREVIEW_FEATURE}",
     )
-    events = graphene.List(
-        graphene.NonNull(GiftCardEvent),
+    events = NonNullList(
+        GiftCardEvent,
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
@@ -263,8 +272,8 @@ class GiftCard(ModelObjectType):
         ),
         required=True,
     )
-    tags = graphene.List(
-        graphene.NonNull(GiftCardTag),
+    tags = NonNullList(
+        GiftCardTag,
         description=f"{ADDED_IN_31} The gift card tag. {PREVIEW_FEATURE}",
         required=True,
     )
@@ -463,8 +472,11 @@ class GiftCard(ModelObjectType):
                     .then(get_channel_slug)
                 )
 
-            order_id = bought_event.parameters["order_id"]
-            return OrderByIdLoader(info.context).load(order_id).then(with_order)
+            return (
+                OrderByIdLoader(info.context)
+                .load(bought_event.order_id)
+                .then(with_order)
+            )
 
         return (
             GiftCardEventsByGiftCardIdLoader(info.context)
