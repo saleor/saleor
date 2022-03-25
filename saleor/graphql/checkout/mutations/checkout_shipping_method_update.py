@@ -172,7 +172,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
-        invalidate_checkout_prices(
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout_info, lines, manager, info.context.discounts, save=False
         )
         checkout.save(
@@ -182,6 +182,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 "price_expiration",
                 "last_change",
             ]
+            + invalidate_prices_updated_fields
         )
 
         manager.checkout_updated(checkout)
@@ -203,7 +204,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
         checkout.shipping_method = None
-        invalidate_checkout_prices(
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout_info, lines, manager, info.context.discounts, save=False
         )
         checkout.save(
@@ -213,6 +214,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 "price_expiration",
                 "last_change",
             ]
+            + invalidate_prices_updated_fields
         )
         manager.checkout_updated(checkout)
 

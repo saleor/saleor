@@ -187,7 +187,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
-        invalidate_checkout_prices(
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout_info, lines, manager, discounts or [], save=False
         )
         checkout.save(
@@ -198,6 +198,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 "price_expiration",
                 "last_change",
             ]
+            + invalidate_prices_updated_fields
         )
         manager.checkout_updated(checkout)
 
