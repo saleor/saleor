@@ -8,7 +8,7 @@ from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....core.permissions import CheckoutPermissions
 from ....discount.models import NotApplicable
-from ...core.descriptions import PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.types import Error
 from ...order.types import Order
@@ -50,7 +50,9 @@ class OrderCreateFromCheckout(BaseMutation):
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Create new order from existing checkout."
+        description = (
+            f"{ADDED_IN_32} Create new order from existing checkout. {PREVIEW_FEATURE}"
+        )
         object_type = Order
 
         # FIXME this should be a separate permission probably

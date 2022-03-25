@@ -9568,7 +9568,7 @@ type Mutation {
   ): CheckoutLanguageCodeUpdate
 
   """
-  Note: this feature is in a preview state and can be subject to changes at later point. Create new order from existing checkout.
+  New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
@@ -14266,7 +14266,7 @@ type CheckoutLanguageCodeUpdate {
 }
 
 """
-Note: this feature is in a preview state and can be subject to changes at later point. Create new order from existing checkout.
+New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point.
 """
 type OrderCreateFromCheckout {
   """Placed order."""
