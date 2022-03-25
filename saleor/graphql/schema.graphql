@@ -503,7 +503,7 @@ type Query {
     channel: String
   ): TaxedMoney
 
-  """Look up an order by token."""
+  """{DEPRECATED_IN_3X_FIELD} Look up an order by token."""
   orderByToken(
     """The order's token."""
     token: UUID!
@@ -5884,7 +5884,7 @@ type Order implements Node & ObjectWithMetadata {
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
-  token: String!
+  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
   """List of user gift cards."""

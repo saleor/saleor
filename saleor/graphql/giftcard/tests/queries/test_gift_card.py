@@ -474,7 +474,7 @@ def test_query_gift_card_events(
     assert events_data[1]["message"] == parameters["message"]
     assert events_data[1]["email"] == parameters["email"]
     assert events_data[1]["orderId"] == graphene.Node.to_global_id("Order", order.pk)
-    assert events_data[1]["orderNumber"] == str(order.pk)
+    assert events_data[1]["orderNumber"] == str(order.number)
     assert events_data[1]["tags"] == parameters["tags"]
     assert events_data[1]["oldTags"] == parameters["old_tags"]
     assert (
@@ -553,6 +553,7 @@ def test_query_gift_card_used_in_order_event(
     staff_api_client,
     gift_card,
     app,
+    order,
     permission_manage_gift_card,
     permission_manage_apps,
     permission_manage_users,
@@ -560,8 +561,7 @@ def test_query_gift_card_used_in_order_event(
     # given
     previous_balance = 10.0
     balance_data = [(gift_card, previous_balance)]
-    order_id = 1
-    events.gift_cards_used_in_order_event(balance_data, order_id, None, app)
+    events.gift_cards_used_in_order_event(balance_data, order, None, app)
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
 
     # when
@@ -603,7 +603,7 @@ def test_query_gift_card_bought_event(
     permission_manage_users,
 ):
     # given
-    events.gift_cards_bought_event([gift_card_expiry_date], order.id, None, app)
+    events.gift_cards_bought_event([gift_card_expiry_date], order, None, app)
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card_expiry_date.pk)}
 
     # when
@@ -655,11 +655,9 @@ def test_query_gift_card_events_filter_by_type(
     # given
     previous_balance = 10.0
     balance_data = [(gift_card, previous_balance)]
-    events.gift_cards_bought_event(
-        [gift_card, gift_card_expiry_date], order.id, None, app
-    )
-    events.gift_cards_used_in_order_event(balance_data, 1, None, app)
-    events.gift_cards_used_in_order_event(balance_data, 2, None, app)
+    events.gift_cards_bought_event([gift_card, gift_card_expiry_date], order, None, app)
+    events.gift_cards_used_in_order_event(balance_data, order, None, app)
+    events.gift_cards_used_in_order_event(balance_data, order, None, app)
 
     assert gift_card.events.count() == 3
     assert GiftCardEvent.objects.count() == 4
@@ -699,25 +697,22 @@ def test_query_gift_card_events_filter_by_orders(
     permission_manage_gift_card,
     permission_manage_apps,
     permission_manage_users,
+    order_list,
 ):
     # given
     previous_balance = 10.0
-    order_pk_1 = 1
     events.gift_cards_bought_event(
-        [gift_card, gift_card_expiry_date], order_pk_1, None, app
+        [gift_card, gift_card_expiry_date], order_list[0], None, app
     )
     balance_data = [(gift_card, previous_balance)]
-    order_pk_2 = 2
-    events.gift_cards_used_in_order_event(balance_data, order_pk_2, None, app)
-    order_pk_3 = 3
-    events.gift_cards_used_in_order_event(balance_data, order_pk_3, None, app)
+    events.gift_cards_used_in_order_event(balance_data, order_list[1], None, app)
+    events.gift_cards_used_in_order_event(balance_data, order_list[2], None, app)
 
     assert gift_card.events.count() == 3
     assert GiftCardEvent.objects.count() == 4
 
     order_ids = [
-        graphene.Node.to_global_id("Order", order_pk)
-        for order_pk in [order_pk_1, order_pk_2]
+        graphene.Node.to_global_id("Order", order.pk) for order in order_list[:2]
     ]
     variables = {
         "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
@@ -762,11 +757,8 @@ def test_query_gift_card_events_filter_by_orders_no_events(
     # given
     previous_balance = 10.0
     balance_data = [(gift_card, previous_balance)]
-    order_pk = 1
-    events.gift_cards_bought_event(
-        [gift_card, gift_card_expiry_date], order.id, None, app
-    )
-    events.gift_cards_used_in_order_event(balance_data, order_pk, None, app)
+    events.gift_cards_bought_event([gift_card, gift_card_expiry_date], order, None, app)
+    events.gift_cards_used_in_order_event(balance_data, order, None, app)
 
     assert gift_card.events.count() == 2
     assert GiftCardEvent.objects.count() == 3

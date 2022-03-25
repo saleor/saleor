@@ -355,7 +355,7 @@ class OrderEvent(ModelObjectType):
         order_pk = root.parameters.get("related_order_pk")
         if not order_pk:
             return None
-        return OrderByIdLoader(info.context).load(order_pk)
+        return OrderByIdLoader(info.context).load(UUID(order_pk))
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -696,7 +696,10 @@ class Order(ModelObjectType):
         TaxedMoney, description="Total price of shipping.", required=True
     )
     shipping_tax_rate = graphene.Float(required=True)
-    token = graphene.String(required=True)
+    token = graphene.String(
+        required=True,
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
+    )
     voucher = graphene.Field(Voucher)
     gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
     display_gross_prices = graphene.Boolean(required=True)
@@ -791,6 +794,10 @@ class Order(ModelObjectType):
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Order
+
+    @staticmethod
+    def resolve_token(root: models.Order, info):
+        return root.id
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
@@ -996,7 +1003,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_number(root: models.Order, _info):
-        return str(root.pk)
+        return str(root.number)
 
     @staticmethod
     @traced_resolver

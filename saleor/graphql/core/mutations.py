@@ -2,6 +2,7 @@ import os
 import secrets
 from itertools import chain
 from typing import Iterable, Tuple, Union
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import (
@@ -10,6 +11,7 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.core.files.storage import default_storage
+from django.db.models import Q
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
@@ -158,11 +160,25 @@ class BaseMutation(graphene.Mutation):
         Whether by using the provided query set object or by calling type's get_node().
         """
         if qs is not None:
+            if str(graphene_type) == "Order":
+                return cls._get_order_node_by_pk(pk, qs)
             return qs.filter(pk=pk).first()
         get_node = getattr(graphene_type, "get_node", None)
         if get_node:
             return get_node(info, pk)
         return None
+
+    @classmethod
+    def _get_order_node_by_pk(cls, pk: Union[int, str], qs):
+        # This is temporary method that allows fetching orders with use of
+        # new and old id.
+        lookup = Q(pk=pk)
+        if pk is not None:
+            try:
+                UUID(str(pk))
+            except ValueError:
+                lookup = Q(number=pk) & Q(use_old_id=True)
+        return qs.filter(lookup).first()
 
     @classmethod
     def get_global_id_or_error(

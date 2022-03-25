@@ -7,7 +7,7 @@ from ..core.types import SortInputObjectType
 
 
 class OrderSortField(graphene.Enum):
-    NUMBER = ["pk"]
+    NUMBER = ["number"]
     CREATION_DATE = ["created", "status", "pk"]
     CREATED_AT = ["created", "status", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "status", "pk"]

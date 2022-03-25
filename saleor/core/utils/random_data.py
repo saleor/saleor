@@ -1462,8 +1462,8 @@ def create_gift_cards(how_many=5):
                 "current_balance": Money(20, DEFAULT_CURRENCY),
             },
         )
-        order_id = Order.objects.order_by("?").first().id
-        gift_card_events.gift_cards_bought_event([gift_card], order_id, user, None)
+        order = Order.objects.order_by("?").first()
+        gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
         if created:
             yield "Gift card #%d" % gift_card.id
         else:
