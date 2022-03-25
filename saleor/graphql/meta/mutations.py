@@ -17,7 +17,7 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
-from ..core.types.common import MetadataError
+from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
 from ..payment.utils import metadata_contains_empty_key
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
@@ -270,8 +270,8 @@ class UpdateMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        input = graphene.List(
-            graphene.NonNull(MetadataInput),
+        input = NonNullList(
+            MetadataInput,
             description="Fields required to update the object's metadata.",
             required=True,
         )
@@ -301,8 +301,8 @@ class DeleteMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        keys = graphene.List(
-            graphene.NonNull(graphene.String),
+        keys = NonNullList(
+            graphene.String,
             description="Metadata keys to delete.",
             required=True,
         )
@@ -330,8 +330,8 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        input = graphene.List(
-            graphene.NonNull(MetadataInput),
+        input = NonNullList(
+            MetadataInput,
             description="Fields required to update the object's metadata.",
             required=True,
         )
@@ -360,8 +360,8 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        keys = graphene.List(
-            graphene.NonNull(graphene.String),
+        keys = NonNullList(
+            graphene.String,
             description="Metadata keys to delete.",
             required=True,
         )

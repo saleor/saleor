@@ -7,7 +7,7 @@ from ...enums import WebhookEventTypeEnum
 
 WEBHOOK_CREATE_BY_APP = """
     mutation webhookCreate($name: String, $target_url: String,
-            $events: [WebhookEventTypeEnum]){
+            $events: [WebhookEventTypeEnum!]){
       webhookCreate(input:{name: $name, targetUrl:$target_url, events:$events}){
         errors{
           field
@@ -90,7 +90,7 @@ def test_webhook_create_app_doesnt_exist(app_api_client, app):
 
 WEBHOOK_CREATE_BY_STAFF = """
     mutation webhookCreate(
-        $target_url: String, $events: [WebhookEventTypeEnum], $app: ID){
+        $target_url: String, $events: [WebhookEventTypeEnum!], $app: ID){
       webhookCreate(input:{
             targetUrl:$target_url, events:$events, app: $app}){
         errors{
@@ -159,7 +159,7 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
 
 WEBHOOK_UPDATE = """
     mutation webhookUpdate(
-        $id: ID!, $events: [WebhookEventTypeEnum], $is_active: Boolean){
+        $id: ID!, $events: [WebhookEventTypeEnum!], $is_active: Boolean){
       webhookUpdate(id: $id, input:{events: $events, isActive: $is_active}){
         errors{
           field

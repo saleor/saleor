@@ -5,7 +5,7 @@ from .....giftcard.models import GiftCard, GiftCardEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_GIFT_CARD_BULK_DEACTIVATE = """
-    mutation GiftCardBulkDeactivate($ids: [ID]!) {
+    mutation GiftCardBulkDeactivate($ids: [ID!]!) {
         giftCardBulkDeactivate(ids: $ids) {
             count
             errors {

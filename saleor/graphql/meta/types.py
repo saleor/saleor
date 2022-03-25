@@ -2,6 +2,7 @@ import graphene
 
 from ...core.models import ModelWithMetadata
 from ..channel import ChannelContext
+from ..core.types import NonNullList
 from .resolvers import (
     resolve_metadata,
     resolve_object_with_metadata_type,
@@ -15,7 +16,7 @@ class MetadataItem(graphene.ObjectType):
 
 
 class ObjectWithMetadata(graphene.Interface):
-    private_metadata = graphene.List(
+    private_metadata = NonNullList(
         MetadataItem,
         required=True,
         description=(
@@ -23,7 +24,7 @@ class ObjectWithMetadata(graphene.Interface):
             "Requires proper staff permissions to access."
         ),
     )
-    metadata = graphene.List(
+    metadata = NonNullList(
         MetadataItem,
         required=True,
         description=(

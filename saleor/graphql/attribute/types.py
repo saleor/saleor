@@ -17,8 +17,14 @@ from ..core.connection import (
 from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
-from ..core.types import File, ModelObjectType
-from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
+from ..core.types import (
+    DateRangeInput,
+    DateTimeRangeInput,
+    File,
+    IntRangeInput,
+    ModelObjectType,
+    NonNullList,
+)
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
@@ -299,7 +305,7 @@ class SelectedAttribute(graphene.ObjectType):
         description=AttributeDescriptions.NAME,
         required=True,
     )
-    values = graphene.List(
+    values = NonNullList(
         AttributeValue, description="Values of an attribute.", required=True
     )
 
@@ -309,7 +315,7 @@ class SelectedAttribute(graphene.ObjectType):
 
 class AttributeInput(graphene.InputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
-    values = graphene.List(
+    values = NonNullList(
         graphene.String, required=False, description=AttributeValueDescriptions.SLUG
     )
     values_range = graphene.Field(
@@ -334,8 +340,8 @@ class AttributeInput(graphene.InputObjectType):
 
 class AttributeValueInput(graphene.InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
-    values = graphene.List(
-        graphene.NonNull(graphene.String),
+    values = NonNullList(
+        graphene.String,
         required=False,
         description=(
             "The value or slug of an attribute to resolve. "
@@ -347,8 +353,8 @@ class AttributeValueInput(graphene.InputObjectType):
         description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
-    references = graphene.List(
-        graphene.NonNull(graphene.ID),
+    references = NonNullList(
+        graphene.ID,
         description="List of entity IDs that will be used as references.",
         required=False,
     )

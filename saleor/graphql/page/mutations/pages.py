@@ -15,7 +15,7 @@ from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import PageError, SeoInput
+from ...core.types import NonNullList, PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
 from ...utils.validators import check_for_duplicates
 from ..types import Page, PageType
@@ -28,9 +28,7 @@ class PageInput(graphene.InputObjectType):
     slug = graphene.String(description="Page internal name.")
     title = graphene.String(description="Page title.")
     content = JSONString(description="Page content in JSON format.")
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput), description="List of attributes."
-    )
+    attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     is_published = graphene.Boolean(
         description="Determines if page is visible in the storefront."
     )
@@ -176,15 +174,15 @@ class PageDelete(ModelDeleteMutation):
 class PageTypeCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the page type.")
     slug = graphene.String(description="Page type slug.")
-    add_attributes = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_attributes = NonNullList(
+        graphene.ID,
         description="List of attribute IDs to be assigned to the page type.",
     )
 
 
 class PageTypeUpdateInput(PageTypeCreateInput):
-    remove_attributes = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_attributes = NonNullList(
+        graphene.ID,
         description="List of attribute IDs to be assigned to the page type.",
     )
 

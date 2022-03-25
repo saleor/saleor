@@ -11,7 +11,7 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core.connection import CountableConnection
-from ..core.types import ModelObjectType
+from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..page.types import Page
@@ -36,7 +36,7 @@ class Menu(ChannelContextTypeWithMetadata, ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     slug = graphene.String(required=True)
-    items = graphene.List(lambda: MenuItem)
+    items = NonNullList(lambda: MenuItem)
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -72,7 +72,7 @@ class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
     collection = graphene.Field(Collection)
     page = graphene.Field(Page)
     level = graphene.Int(required=True)
-    children = graphene.List(lambda: MenuItem)
+    children = NonNullList(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
     translation = TranslationField(
         MenuItemTranslation,

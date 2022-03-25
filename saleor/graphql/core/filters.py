@@ -7,7 +7,7 @@ from graphql_relay import from_global_id
 
 from ..utils.filters import filter_range_field
 from .enums import JobStatusEnum
-from .types.common import DateTimeRangeInput
+from .types import DateTimeRangeInput
 
 
 class DefaultMultipleChoiceField(MultipleChoiceField):

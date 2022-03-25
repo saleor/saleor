@@ -7,8 +7,7 @@ from ..account.utils import check_requestor_access
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core.connection import CountableConnection
-from ..core.types import ModelObjectType
-from ..core.types.common import Job
+from ..core.types import Job, ModelObjectType, NonNullList
 from ..utils import get_user_or_app_from_context
 from .enums import ExportEventEnum
 
@@ -55,8 +54,8 @@ class ExportEvent(ModelObjectType):
 class ExportFile(ModelObjectType):
     id = graphene.GlobalID(required=True)
     url = graphene.String(description="The URL of field to download.")
-    events = graphene.List(
-        graphene.NonNull(ExportEvent),
+    events = NonNullList(
+        ExportEvent,
         description="List of events associated with the export.",
     )
     user = graphene.Field(User)

@@ -4,6 +4,7 @@ import graphene
 
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
+from ..core.types import NonNullList
 from .enums import ConfigurationTypeFieldEnum
 
 if TYPE_CHECKING:
@@ -29,7 +30,7 @@ class PluginConfiguration(graphene.ObjectType):
         Channel,
         description="The channel to which the plugin configuration is assigned to.",
     )
-    configuration = graphene.List(
+    configuration = NonNullList(
         ConfigurationItem, description="Configuration of the plugin."
     )
 
@@ -51,8 +52,8 @@ class Plugin(graphene.ObjectType):
         PluginConfiguration,
         description="Global configuration of the plugin (not channel-specific).",
     )
-    channel_configurations = graphene.List(
-        graphene.NonNull(PluginConfiguration),
+    channel_configurations = NonNullList(
+        PluginConfiguration,
         description="Channel-specific plugin configuration.",
         required=True,
     )

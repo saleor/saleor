@@ -32,7 +32,7 @@ query_test_invalid_data = [
         },
         400,
         'Variable "$input" got invalid value {"externalEventType": {},'
-        ' "extraPayload": "\\"{}\\""}.\nIn field "ids": Expected "[ID]!", found null.',
+        ' "extraPayload": "\\"{}\\""}.\nIn field "ids": Expected "[ID!]!", found null.',
     ),
     (
         {

@@ -16,7 +16,7 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import ConnectionField
 from ..core.scalars import PositiveDecimal
-from ..core.types import ModelObjectType, Money
+from ..core.types import ModelObjectType, Money, NonNullList
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..product.types import (
@@ -85,8 +85,8 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
-    channel_listings = graphene.List(
-        graphene.NonNull(SaleChannelListing),
+    channel_listings = NonNullList(
+        SaleChannelListing,
         description="List of channels available for the sale.",
     )
     discount_value = graphene.Float(description="Sale value.")
@@ -215,7 +215,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         ProductVariantCountableConnection,
         description=f"{ADDED_IN_31} List of product variants this voucher applies to.",
     )
-    countries = graphene.List(
+    countries = NonNullList(
         types.CountryDisplay,
         description="List of countries available for the shipping voucher.",
     )
@@ -234,8 +234,8 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         Money, description="Minimum order value to apply voucher."
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
-    channel_listings = graphene.List(
-        graphene.NonNull(VoucherChannelListing),
+    channel_listings = NonNullList(
+        VoucherChannelListing,
         description="List of availability in channels for the voucher.",
     )
 

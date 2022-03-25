@@ -1703,7 +1703,7 @@ def test_staff_query_order_with_invalid_object_type(
 
 DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
-        $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
+        $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput!],
         $shippingAddress: AddressInput, $billingAddress: AddressInput,
         $shippingMethod: ID, $voucher: ID, $customerNote: String, $channel: ID,
         $redirectUrl: String
@@ -6653,7 +6653,7 @@ def test_order_query_address_without_order_user(
 
 
 MUTATION_ORDER_BULK_CANCEL = """
-mutation CancelManyOrders($ids: [ID]!) {
+mutation CancelManyOrders($ids: [ID!]!) {
     orderBulkCancel(ids: $ids) {
         count
         errors{

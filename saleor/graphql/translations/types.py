@@ -18,7 +18,7 @@ from ..channel import ChannelContext
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString
-from ..core.types import LanguageDisplay, ModelObjectType
+from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..page.dataloaders import SelectedAttributesByPageIdLoader
@@ -154,8 +154,8 @@ class ProductVariantTranslatableContent(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
         ),
     )
-    attribute_values = graphene.List(
-        graphene.NonNull(AttributeValueTranslatableContent),
+    attribute_values = NonNullList(
+        AttributeValueTranslatableContent,
         required=True,
         description="List of product variant attribute values that can be translated.",
     )
@@ -220,8 +220,8 @@ class ProductTranslatableContent(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
         ),
     )
-    attribute_values = graphene.List(
-        graphene.NonNull(AttributeValueTranslatableContent),
+    attribute_values = NonNullList(
+        AttributeValueTranslatableContent,
         required=True,
         description="List of product attribute values that can be translated.",
     )
@@ -409,8 +409,8 @@ class PageTranslatableContent(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
         ),
     )
-    attribute_values = graphene.List(
-        graphene.NonNull(AttributeValueTranslatableContent),
+    attribute_values = NonNullList(
+        AttributeValueTranslatableContent,
         required=True,
         description="List of page content attribute values that can be translated.",
     )

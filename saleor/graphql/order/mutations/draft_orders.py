@@ -33,7 +33,7 @@ from ...account.types import AddressInput
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import OrderError
+from ...core.types import NonNullList, OrderError
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order, OrderLine
@@ -85,7 +85,7 @@ class DraftOrderInput(InputObjectType):
 
 
 class DraftOrderCreateInput(DraftOrderInput):
-    lines = graphene.List(
+    lines = NonNullList(
         OrderLineCreateInput,
         description=(
             "Variant line input consisting of variant ID and quantity of products."

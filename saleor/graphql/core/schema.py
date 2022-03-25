@@ -1,11 +1,11 @@
 import graphene
 
 from .mutations import FileUpload
-from .types.common import TaxType
+from .types import NonNullList, TaxType
 
 
 class CoreQueries(graphene.ObjectType):
-    tax_types = graphene.List(
+    tax_types = NonNullList(
         TaxType, description="List of all tax rates available from tax gateway."
     )
 

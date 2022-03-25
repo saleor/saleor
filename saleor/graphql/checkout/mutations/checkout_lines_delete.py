@@ -5,7 +5,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import recalculate_checkout_discount
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError, NonNullList
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
 from .utils import get_checkout_by_token, update_checkout_shipping_method_if_invalid
@@ -16,7 +16,7 @@ class CheckoutLinesDelete(BaseMutation):
 
     class Arguments:
         token = UUID(description="Checkout token.", required=True)
-        lines_ids = graphene.List(
+        lines_ids = NonNullList(
             graphene.ID,
             required=True,
             description="A list of checkout lines.",
