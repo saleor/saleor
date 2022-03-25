@@ -111,6 +111,7 @@ class Checkout(ModelWithMetadata):
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
+            (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
         )
 
     def __iter__(self):
