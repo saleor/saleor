@@ -363,7 +363,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
                     "shipping_method_name",
-                    "price_expiration_for_unconfirmed",
+                    "should_refresh_prices",
                     "updated_at",
                 ]
             )
@@ -407,7 +407,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
-                "price_expiration_for_unconfirmed",
+                "should_refresh_prices",
                 "updated_at",
             ]
         )
@@ -889,7 +889,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         update_order_search_document(order)
         order.save(
             update_fields=[
-                "price_expiration_for_unconfirmed",
+                "should_refresh_prices",
                 "weight",
                 "search_document",
             ]
@@ -970,7 +970,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         update_order_search_document(order)
         order.save(
             update_fields=[
-                "price_expiration_for_unconfirmed",
+                "should_refresh_prices",
                 "weight",
                 "search_document",
             ]
@@ -1048,9 +1048,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             )
         invalidate_order_prices(instance.order)
         recalculate_order_weight(instance.order)
-        instance.order.save(
-            update_fields=["price_expiration_for_unconfirmed", "weight"]
-        )
+        instance.order.save(update_fields=["should_refresh_prices", "weight"])
 
         func = get_webhook_handler_by_order_status(instance.order.status, info)
         transaction.on_commit(lambda: func(instance.order))

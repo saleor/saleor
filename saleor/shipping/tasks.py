@@ -26,4 +26,4 @@ def drop_invalid_shipping_methods_relations_for_given_channels(
         status__in=ORDER_EDITABLE_STATUS,
         shipping_method_id__in=shipping_method_ids,
         channel_id__in=channel_ids,
-    ).update(shipping_method=None, price_expiration_for_unconfirmed=timezone.now())
+    ).update(shipping_method=None, should_refresh_prices=True)

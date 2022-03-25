@@ -56,23 +56,23 @@ def test_drop_invalid_shipping_method_relations(
     order_confirmed.status = OrderStatus.UNFULFILLED
     order_confirmed.shipping_method = shipping_method
     order_confirmed.channel = channel_USD
-    order_confirmed.price_expiration_for_unconfirmed = valid_time
+    order_confirmed.should_refresh_prices = False
 
     order_draft = order_list[1]
     order_draft.status = OrderStatus.DRAFT
     order_draft.shipping_method = shipping_method
     order_draft.channel = channel_USD
-    order_draft.price_expiration_for_unconfirmed = valid_time
+    order_draft.should_refresh_prices = False
 
     order_draft_PLN = order_list[2]
     order_draft_PLN.status = OrderStatus.DRAFT
     order_draft_PLN.shipping_method = shipping_method
     order_draft_PLN.channel = channel_PLN
-    order_draft_PLN.price_expiration_for_unconfirmed = valid_time
+    order_draft_PLN.should_refresh_prices = False
 
     Order.objects.bulk_update(
         [order_confirmed, order_draft, order_draft_PLN],
-        ["status", "shipping_method", "channel", "price_expiration_for_unconfirmed"],
+        ["status", "shipping_method", "channel", "should_refresh_prices"],
     )
 
     # when
@@ -105,6 +105,6 @@ def test_drop_invalid_shipping_method_relations(
     assert order_draft.shipping_method is None
     assert order_draft_PLN.shipping_method == shipping_method
 
-    assert order_confirmed.price_expiration_for_unconfirmed == valid_time
-    assert order_draft.price_expiration_for_unconfirmed == timezone.now()
-    assert order_draft_PLN.price_expiration_for_unconfirmed == valid_time
+    assert not order_confirmed.should_refresh_prices
+    assert order_draft.should_refresh_prices
+    assert not order_draft_PLN.should_refresh_prices
