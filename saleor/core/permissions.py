@@ -110,29 +110,31 @@ def is_staff_user(context):
     return is_user(context) and context.user.is_staff
 
 
-class PermissionFunctions(BasePermissionEnum):
+class AuthorizationFilters(BasePermissionEnum):
     # Grants access to any authenticated app.
-    AUTHENTICATED_APP = "permission_functions.authenticated_app"
+    AUTHENTICATED_APP = "authorization_filters.authenticated_app"
 
     # Grants access to any authenticated staff user.
-    AUTHENTICATED_STAFF_USER = "permission_functions.authenticated_staff_user"
+    AUTHENTICATED_STAFF_USER = "authorization_filters.authenticated_staff_user"
 
     # Grants access to any authenticated user.
-    AUTHENTICATED_USER = "permission_functions.authenticated_user"
+    AUTHENTICATED_USER = "authorization_filters.authenticated_user"
 
     # Grants access to the owner of the related object. This rule doesn't come with any
     # permission function, as the ownership needs to be defined individually in each
     # case.
-    OWNER = "permission_functions.owner"
+    OWNER = "authorization_filters.owner"
 
 
-def resolve_internal_permission_fn(perm):
-    fn_map = {
-        PermissionFunctions.AUTHENTICATED_APP: is_app,
-        PermissionFunctions.AUTHENTICATED_USER: is_user,
-        PermissionFunctions.AUTHENTICATED_STAFF_USER: is_staff_user,
-    }
-    return fn_map.get(perm)
+AUTHORIZATION_FILTER_MAP = {
+    AuthorizationFilters.AUTHENTICATED_APP: is_app,
+    AuthorizationFilters.AUTHENTICATED_USER: is_user,
+    AuthorizationFilters.AUTHENTICATED_STAFF_USER: is_staff_user,
+}
+
+
+def resolve_authorization_filter_fn(perm):
+    return AUTHORIZATION_FILTER_MAP.get(perm)
 
 
 def split_permission_codename(permissions):

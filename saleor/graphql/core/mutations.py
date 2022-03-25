@@ -20,8 +20,8 @@ from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
-    PermissionFunctions,
-    resolve_internal_permission_fn,
+    AuthorizationFilters,
+    resolve_authorization_filter_fn,
 )
 from ..decorators import staff_member_or_app_required
 from ..utils import (
@@ -346,41 +346,37 @@ class BaseMutation(graphene.Mutation):
         if not all_permissions:
             return True
 
-        permission_fns = [
-            p for p in all_permissions if isinstance(p, PermissionFunctions)
+        authorization_filters = [
+            p for p in all_permissions if isinstance(p, AuthorizationFilters)
         ]
-        admin_permissions = [
-            p for p in all_permissions if not isinstance(p, PermissionFunctions)
+        permissions = [
+            p for p in all_permissions if not isinstance(p, AuthorizationFilters)
         ]
 
-        granted_by_admin_permissions = False
-        granted_by_permission_fns = False
+        granted_by_permissions = False
+        granted_by_authorization_filters = False
 
         app = getattr(context, "app", None)
-        if (
-            app
-            and admin_permissions
-            and AccountPermissions.MANAGE_STAFF in admin_permissions
-        ):
+        if app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
             # `MANAGE_STAFF` permission for apps is not supported. If apps could use it
             # they could create a staff user with full access which would be a
             # permission leak issue.
             return False
 
         requestor = get_user_or_app_from_context(context)
-        if admin_permissions:
-            granted_by_admin_permissions = requestor.has_perms(admin_permissions)
+        if permissions:
+            granted_by_permissions = requestor.has_perms(permissions)
 
-        if permission_fns:
+        if authorization_filters:
             internal_perm_checks = []
-            for p in permission_fns:
-                perm_fn = resolve_internal_permission_fn(p)
+            for p in authorization_filters:
+                perm_fn = resolve_authorization_filter_fn(p)
                 if perm_fn:
                     res = perm_fn(context)
                     internal_perm_checks.append(bool(res))
-            granted_by_permission_fns = any(internal_perm_checks)
+            granted_by_authorization_filters = any(internal_perm_checks)
 
-        return granted_by_admin_permissions or granted_by_permission_fns
+        return granted_by_permissions or granted_by_authorization_filters
 
     @classmethod
     def mutate(cls, root, info, **data):
