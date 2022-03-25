@@ -169,26 +169,26 @@ def get_discounts_payload(order):
     order_discounts = order.discounts.all()
     voucher_discount = None
     all_discounts = []
-    discount_amount = 0
+    discount_amount = Decimal(0)
     for order_discount in order_discounts:
-        dicount_obj = {
+        discount_obj = {
             "type": order_discount.type,
             "value_type": order_discount.value_type,
             "value": order_discount.value,
-            "amount_value": order_discount.amount_value,
+            "amount_value": quantize_price(order_discount.amount_value, order.currency),
             "name": order_discount.name,
             "translated_name": order_discount.translated_name,
             "reason": order_discount.reason,
         }
-        all_discounts.append(dicount_obj)
+        all_discounts.append(discount_obj)
         if order_discount.type == OrderDiscountType.VOUCHER:
-            voucher_discount = dicount_obj
+            voucher_discount = discount_obj
         discount_amount += order_discount.amount_value
 
     return {
         "voucher_discount": voucher_discount,
         "discounts": all_discounts,
-        "discount_amount": discount_amount,
+        "discount_amount": quantize_price(discount_amount, order.currency),
     }
 
 

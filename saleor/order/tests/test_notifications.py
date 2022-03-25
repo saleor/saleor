@@ -207,17 +207,21 @@ def test_get_default_order_payload(order_line):
     order.total = subtotal + order.shipping_price
     tax = order.total_gross_amount - order.total_net_amount
 
-    value = Decimal("20")
-    discount = partial(fixed_discount, discount=Money(value, order.currency))
     order.undiscounted_total = order.total
-    order.total = discount(order.total)
-    order.discounts.create(
-        value_type=DiscountValueType.FIXED,
-        value=value,
-        reason="Discount reason",
-        amount=(order.undiscounted_total - order.total).gross,
-        # type: ignore
-    )
+    previous_total = order.undiscounted_total
+    for i in [1, 2]:
+        value = Decimal("5") * i
+        discount = partial(fixed_discount, discount=Money(value, order.currency))
+        order.total = discount(order.total)
+        order.discounts.create(
+            value_type=DiscountValueType.FIXED,
+            value=value,
+            name=f"Discount-{i}",
+            reason=f"Discount reason {i}",
+            amount=(previous_total - order.total).gross,
+            # type: ignore
+        )
+        previous_total = order.total
     order.save()
 
     payload = get_default_order_payload(order, redirect_url)
@@ -225,14 +229,23 @@ def test_get_default_order_payload(order_line):
     assert payload == {
         "discounts": [
             {
-                "amount_value": Decimal("20.000"),
-                "name": None,
-                "reason": "Discount reason",
+                "amount_value": Decimal("5.00"),
+                "name": "Discount-1",
+                "reason": "Discount reason 1",
                 "translated_name": None,
                 "type": "manual",
-                "value": Decimal("20.000"),
+                "value": Decimal("5.000"),
                 "value_type": "fixed",
-            }
+            },
+            {
+                "amount_value": Decimal("10.00"),
+                "name": "Discount-2",
+                "reason": "Discount reason 2",
+                "translated_name": None,
+                "type": "manual",
+                "value": Decimal("10.000"),
+                "value_type": "fixed",
+            },
         ],
         "channel_slug": order.channel.slug,
         "id": order.id,
@@ -259,7 +272,7 @@ def test_get_default_order_payload(order_line):
         "billing_address": get_address_payload(order.billing_address),
         "shipping_address": get_address_payload(order.shipping_address),
         "language_code": order.language_code,
-        "discount_amount": Decimal("20.000"),
+        "discount_amount": Decimal("15.00"),
         "undiscounted_total_gross_amount": order.undiscounted_total.gross.amount,
         "undiscounted_total_net_amount": order.undiscounted_total.net.amount,
         "voucher_discount": None,
