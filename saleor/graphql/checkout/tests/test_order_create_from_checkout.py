@@ -45,7 +45,7 @@ mutation orderCreateFromCheckout($id: ID!){
 
 def test_order_from_checkout_with_inactive_channel(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_gift_card,
     gift_card,
     address,
@@ -68,7 +68,7 @@ def test_order_from_checkout_with_inactive_channel(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -85,7 +85,7 @@ def test_order_from_checkout_with_inactive_channel(
 def test_order_from_checkout(
     order_confirmed_mock,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     site_settings,
     checkout_with_gift_card,
     gift_card,
@@ -121,7 +121,7 @@ def test_order_from_checkout(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -189,7 +189,7 @@ def test_order_from_checkout_gift_card_bought(
     customer_user,
     app_api_client,
     app,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_gift_card_items,
     address,
     shipping_method,
@@ -212,7 +212,7 @@ def test_order_from_checkout_gift_card_bought(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -242,7 +242,7 @@ def test_order_from_checkout_gift_card_bought(
 
 def test_order_from_checkout_no_checkout_email(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_gift_card,
     address,
     shipping_method,
@@ -260,7 +260,7 @@ def test_order_from_checkout_no_checkout_email(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -276,7 +276,7 @@ def test_order_from_checkout_with_variant_without_sku(
     app_api_client,
     checkout_with_item,
     gift_card,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     address,
     shipping_method,
 ):
@@ -299,7 +299,7 @@ def test_order_from_checkout_with_variant_without_sku(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -320,7 +320,7 @@ def test_order_from_checkout_with_variant_without_sku(
 def test_order_from_checkout_with_variant_without_price(
     site_settings,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_item,
     gift_card,
     address,
@@ -344,7 +344,7 @@ def test_order_from_checkout_with_variant_without_price(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -361,7 +361,7 @@ def test_order_from_checkout_with_variant_without_price(
 def test_order_from_checkout_requires_confirmation(
     order_confirmed_mock,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     site_settings,
     checkout_ready_to_complete,
 ):
@@ -374,7 +374,7 @@ def test_order_from_checkout_requires_confirmation(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
 
@@ -391,7 +391,7 @@ def test_order_from_checkout_requires_confirmation(
 @pytest.mark.integration
 def test_order_from_checkout_with_voucher(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_voucher_percentage,
     voucher_percentage,
     address,
@@ -418,7 +418,7 @@ def test_order_from_checkout_with_voucher(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -447,7 +447,7 @@ def test_order_from_checkout_with_voucher(
 def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_failure(
     mocked_preprocess_order_creation,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_voucher_percentage,
     voucher_percentage,
     address,
@@ -468,7 +468,7 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -483,7 +483,7 @@ def test_order_from_checkout_voucher_not_increase_uses_on_preprocess_creation_fa
 @pytest.mark.integration
 def test_order_from_checkout_without_inventory_tracking(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_variant_without_inventory_tracking,
     address,
     shipping_method,
@@ -512,7 +512,7 @@ def test_order_from_checkout_without_inventory_tracking(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -538,7 +538,7 @@ def test_order_from_checkout_without_inventory_tracking(
 def test_order_from_checkout_checkout_without_lines(
     site_settings,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout,
     address,
     shipping_method,
@@ -561,7 +561,7 @@ def test_order_from_checkout_checkout_without_lines(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -578,7 +578,7 @@ def test_order_from_checkout_insufficient_stock(
     checkout_with_item,
     address,
     shipping_method,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     checkout = checkout_with_item
     checkout_line = checkout.lines.first()
@@ -596,7 +596,7 @@ def test_order_from_checkout_insufficient_stock(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]
@@ -607,7 +607,7 @@ def test_order_from_checkout_insufficient_stock(
 def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
     site_settings_with_reservations,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_item,
     address,
     shipping_method,
@@ -644,7 +644,7 @@ def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]
@@ -655,7 +655,7 @@ def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
 def test_order_from_checkout_own_reservation(
     site_settings_with_reservations,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_item,
     address,
     shipping_method,
@@ -686,7 +686,7 @@ def test_order_from_checkout_own_reservation(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]
@@ -708,7 +708,7 @@ def test_order_from_checkout_own_reservation(
 
 def test_order_from_checkout_with_digital(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_digital_item,
     address,
 ):
@@ -726,7 +726,7 @@ def test_order_from_checkout_with_digital(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert not content["errors"]
@@ -742,7 +742,7 @@ def test_order_from_checkout_0_total_value(
     app_api_client,
     checkout_with_item,
     gift_card,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     address,
     shipping_method,
 ):
@@ -781,7 +781,7 @@ def test_order_from_checkout_0_total_value(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -812,7 +812,7 @@ def test_order_from_checkout_for_click_and_collect(
     checkout_with_item_for_cc,
     address,
     warehouse_for_cc,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
@@ -828,7 +828,7 @@ def test_order_from_checkout_for_click_and_collect(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
 
@@ -845,7 +845,7 @@ def test_order_from_checkout_for_click_and_collect(
 
 def test_order_from_checkout_raises_error_for_local_stock(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_item_for_cc,
     address,
     warehouse_for_cc,
@@ -869,7 +869,7 @@ def test_order_from_checkout_raises_error_for_local_stock(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
@@ -886,7 +886,7 @@ def test_order_from_checkout_for_all_warehouse_even_if_not_available_locally(
     checkout_with_item_for_cc,
     address,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     initial_order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
@@ -911,7 +911,7 @@ def test_order_from_checkout_for_all_warehouse_even_if_not_available_locally(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert not content["errors"]
@@ -924,7 +924,7 @@ def test_checkout_from_order_raises_insufficient_stock_when_quantity_above_stock
     checkout_with_item_for_cc,
     address,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     initial_order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
@@ -950,7 +950,7 @@ def test_checkout_from_order_raises_insufficient_stock_when_quantity_above_stock
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert (
@@ -965,7 +965,7 @@ def test_order_from_checkout_raises_invalid_shipping_method_when_warehouse_disab
     checkout_with_item_for_cc,
     address,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     initial_order_count = Order.objects.count()
     checkout = checkout_with_item_for_cc
@@ -993,7 +993,7 @@ def test_order_from_checkout_raises_invalid_shipping_method_when_warehouse_disab
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
 
@@ -1010,7 +1010,7 @@ def test_order_from_draft_create_with_preorder_variant(
     order_confirmed_mock,
     site_settings,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_item_and_preorder_item,
     address,
     shipping_method,
@@ -1037,7 +1037,7 @@ def test_order_from_draft_create_with_preorder_variant(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -1079,7 +1079,7 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     checkout_with_items_for_cc,
     address,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
     initial_order_count = Order.objects.count()
     checkout = checkout_with_items_for_cc
@@ -1122,7 +1122,7 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
 
@@ -1138,7 +1138,7 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
     address,
     shipping_method,
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
 ):
 
     # given
@@ -1163,7 +1163,7 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     # then
@@ -1186,7 +1186,7 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
 
 def test_order_from_draft_create_variant_channel_listing_no_price(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_items,
     address,
     shipping_method,
@@ -1217,7 +1217,7 @@ def test_order_from_draft_create_variant_channel_listing_no_price(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     # then
@@ -1240,7 +1240,7 @@ def test_order_from_draft_create_variant_channel_listing_no_price(
 
 def test_order_from_draft_create_product_channel_listing_does_not_exist(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_items,
     address,
     shipping_method,
@@ -1267,7 +1267,7 @@ def test_order_from_draft_create_product_channel_listing_does_not_exist(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     # then
@@ -1293,7 +1293,7 @@ def test_order_from_draft_create_product_channel_listing_does_not_exist(
 )
 def test_order_from_draft_create_product_channel_listing_not_available_for_purchase(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_with_items,
     address,
     shipping_method,
@@ -1323,7 +1323,7 @@ def test_order_from_draft_create_product_channel_listing_not_available_for_purch
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     # then
@@ -1347,7 +1347,7 @@ def test_order_from_draft_create_product_channel_listing_not_available_for_purch
 @pytest.mark.integration
 def test_order_from_draft_create_0_total_value_from_voucher(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_without_shipping_required,
     shipping_method,
     address,
@@ -1379,7 +1379,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
 
     content = get_graphql_content(response)
@@ -1408,7 +1408,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
 @pytest.mark.integration
 def test_order_from_draft_create_0_total_value_from_giftcard(
     app_api_client,
-    permission_manage_checkouts,
+    permission_handle_checkouts,
     checkout_without_shipping_required,
     address,
     gift_card,
@@ -1437,7 +1437,7 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     response = app_api_client.post_graphql(
         MUTATION_ORDER_CREATE_FROM_CHECKOUT,
         variables,
-        permissions=[permission_manage_checkouts],
+        permissions=[permission_handle_checkouts],
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]

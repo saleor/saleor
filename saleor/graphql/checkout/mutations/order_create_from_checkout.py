@@ -54,10 +54,17 @@ class OrderCreateFromCheckout(BaseMutation):
             f"{ADDED_IN_32} Create new order from existing checkout. {PREVIEW_FEATURE}"
         )
         object_type = Order
-
-        # FIXME this should be a separate permission probably
-        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS,)
+        permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        """Determine whether app has rights to perform this mutation."""
+        permissions = permissions or cls._meta.permissions
+        app = getattr(context, "app", None)
+        if app:
+            return app.has_perms(permissions)
+        return False
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -66,7 +73,6 @@ class OrderCreateFromCheckout(BaseMutation):
             info, checkout_id, field="id", only_type=Checkout
         )
         tracking_code = analytics.get_client_id(info.context)
-        # FIXME Do we want to limit this mutation only to App's token?
 
         discounts = info.context.discounts
         manager = info.context.plugins
