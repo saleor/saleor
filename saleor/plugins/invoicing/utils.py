@@ -68,7 +68,7 @@ def get_product_limit_first_page(products):
 
 def get_gift_cards_payment_amount(order):
     events = GiftCardEvent.objects.filter(
-        type=GiftCardEvents.USED_IN_ORDER, parameters__order_id=order.id
+        type=GiftCardEvents.USED_IN_ORDER, order_id=order.id
     )
     total_paid = 0
     for event in events:

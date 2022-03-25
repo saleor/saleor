@@ -1,3 +1,7 @@
+from uuid import UUID
+
+from django.db.models import Q
+
 from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
@@ -39,7 +43,14 @@ def resolve_orders_total(_info, period, channel_slug):
 
 
 def resolve_order(id):
-    return models.Order.objects.filter(pk=id).first()
+    if id is None:
+        return None
+    try:
+        id = UUID(id)
+        lookup = Q(id=id)
+    except ValueError:
+        lookup = Q(number=id) & Q(use_old_id=True)
+    return models.Order.objects.filter(lookup).first()
 
 
 def resolve_homepage_events():
@@ -54,7 +65,5 @@ def resolve_homepage_events():
 
 def resolve_order_by_token(token):
     return (
-        models.Order.objects.exclude(status=OrderStatus.DRAFT)
-        .filter(token=token)
-        .first()
+        models.Order.objects.exclude(status=OrderStatus.DRAFT).filter(id=token).first()
     )

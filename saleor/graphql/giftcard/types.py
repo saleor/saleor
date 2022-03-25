@@ -135,13 +135,22 @@ class GiftCardEvent(ModelObjectType):
 
     @staticmethod
     def resolve_order_id(root: models.GiftCardEvent, info):
-        order_id = root.parameters.get("order_id")
+        order_id = root.order_id
         return graphene.Node.to_global_id("Order", order_id) if order_id else None
 
     @staticmethod
     def resolve_order_number(root: models.GiftCardEvent, info):
-        order_id = root.parameters.get("order_id")
-        return str(order_id) if order_id else None
+        def _resolve_order_number(order):
+            return order.number
+
+        if not root.order_id:
+            return None
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_order_number)
+        )
 
     @staticmethod
     def resolve_tags(root: models.GiftCardEvent, _info):
@@ -463,8 +472,11 @@ class GiftCard(ModelObjectType):
                     .then(get_channel_slug)
                 )
 
-            order_id = bought_event.parameters["order_id"]
-            return OrderByIdLoader(info.context).load(order_id).then(with_order)
+            return (
+                OrderByIdLoader(info.context)
+                .load(bought_event.order_id)
+                .then(with_order)
+            )
 
         return (
             GiftCardEventsByGiftCardIdLoader(info.context)

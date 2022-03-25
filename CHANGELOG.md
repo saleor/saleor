@@ -20,6 +20,12 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated `LAST_MODIFIED` and `PUBLICATION_DATE` sort options on `ProductOrder` type
   - Deprecated `CREATION_DATE` sort option on `OrderSortingInput` type
 - Drop wishlist models - #9313 by @maarcingebala
+- Migrate order id from int to UUID - #9324 by @IKarbowiak
+  - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
+  for old orders.
+  - Deprecated the `order.token` field, the `order.id` should be used instead.
+  - Deprecated the `token` field in order payload, the `id` field should be used
+  instead.
 
 # 3.1.2
 
