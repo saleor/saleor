@@ -89,6 +89,17 @@ tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)"
 tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
 
 [[package]]
+name = "authlib"
+version = "1.0.0"
+description = "The ultimate Python library in building OAuth and OpenID Connect servers and clients."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+cryptography = ">=3.2"
+
+[[package]]
 name = "authorizenet"
 version = "1.1.4"
 description = "Authorize.Net Python SDK"
@@ -426,6 +437,17 @@ description = "cryptography is a package which provides cryptographic recipes an
 category = "main"
 optional = false
 python-versions = ">=3.6"
+
+[package.dependencies]
+cffi = ">=1.12"
+
+[package.extras]
+docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
+docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
+pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
+sdist = ["setuptools_rust (>=0.11.4)"]
+ssh = ["bcrypt (>=3.1.5)"]
+test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
 
 [[package]]
 name = "cssselect2"
@@ -2723,7 +2745,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "11e9994dcc7e6847563a801576ccdf3ac9a28a9a116bd066d05a93f10b804313"
+content-hash = "d3ef959662959b020a83469cf669ba013ac44c03170cd33a59e5007f30b4f5bf"
 
 [metadata.files]
 adyen = [
@@ -2756,6 +2778,10 @@ atomicwrites = [
 attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
     {file = "attrs-21.4.0.tar.gz", hash = "sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd"},
+]
+authlib = [
+    {file = "Authlib-1.0.0-py2.py3-none-any.whl", hash = "sha256:e8d589a886b5bcde64ebf961157bf619d613666ef6703822c06254c5b108b3e6"},
+    {file = "Authlib-1.0.0.tar.gz", hash = "sha256:2b13b4ba6465bdc46b89b1a07b2707c85b3434502d5a5fe202f5bdef8ebd5ac9"},
 ]
 authorizenet = [
     {file = "authorizenet-1.1.4.tar.gz", hash = "sha256:d1f910953b5a31a49340b52469c4023f3b1e0d66ec1a02ab3558b01741b84006"},

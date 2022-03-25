@@ -6,6 +6,7 @@ asgiref==3.5.0; python_version >= "3.7" and python_version < "4.0"
 astroid==2.9.3; python_full_version >= "3.6.2"
 atomicwrites==1.4.0; python_version >= "3.7" and python_full_version < "3.0.0" and sys_platform == "win32" and python_version < "4.0" or sys_platform == "win32" and python_version >= "3.7" and python_full_version >= "3.4.0" and python_version < "4.0"
 attrs==21.4.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
+authlib==1.0.0
 authorizenet==1.1.4
 babel==2.9.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 beautifulsoup4==4.7.1
