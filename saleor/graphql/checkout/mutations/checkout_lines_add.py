@@ -63,11 +63,12 @@ class CheckoutLinesAdd(BaseMutation):
         cls,
         info,
         variants,
-        quantities,
+        checkout_lines_data,
         country,
         channel_slug,
         lines=None,
     ):
+        quantities = [line_data.quantity for line_data in checkout_lines_data]
         check_lines_quantity(
             variants,
             quantities,
@@ -84,8 +85,7 @@ class CheckoutLinesAdd(BaseMutation):
         info,
         checkout,
         variants,
-        quantities,
-        custom_prices,
+        checkout_lines_data,
         checkout_info,
         lines,
         manager,
@@ -97,7 +97,7 @@ class CheckoutLinesAdd(BaseMutation):
         cls.validate_checkout_lines(
             info,
             variants,
-            quantities,
+            checkout_lines_data,
             checkout.get_country(),
             channel_slug,
             lines=lines,
@@ -105,8 +105,8 @@ class CheckoutLinesAdd(BaseMutation):
 
         variants_ids_to_validate = {
             variant.id
-            for variant, quantity in zip(variants, quantities)
-            if quantity != 0
+            for variant, line_data in zip(variants, checkout_lines_data)
+            if line_data.quantity_to_update and line_data.quantity != 0
         }
 
         # validate variant only when line quantity is bigger than 0
@@ -123,12 +123,11 @@ class CheckoutLinesAdd(BaseMutation):
                 variants_ids_to_validate, checkout.channel_id
             )
 
-        if variants and quantities:
+        if variants and checkout_lines_data:
             checkout = add_variants_to_checkout(
                 checkout,
                 variants,
-                quantities,
-                custom_prices,
+                checkout_lines_data,
                 channel_slug,
                 replace=replace,
                 replace_reservations=True,
@@ -157,6 +156,7 @@ class CheckoutLinesAdd(BaseMutation):
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+        check_permissions_for_custom_prices(info.context.app, lines)
 
         if token:
             checkout = get_checkout_by_token(token)
@@ -171,10 +171,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        input_quantities, custom_prices = group_quantity_and_custom_prices_by_variants(
-            lines
-        )
-        check_permissions_for_custom_prices(info.context.app, custom_prices)
+        checkout_lines_data = group_quantity_and_custom_prices_by_variants(lines)
 
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
@@ -186,8 +183,7 @@ class CheckoutLinesAdd(BaseMutation):
             info,
             checkout,
             variants,
-            input_quantities,
-            custom_prices,
+            checkout_lines_data,
             checkout_info,
             lines,
             manager,

@@ -1,14 +1,43 @@
 import graphene
+from django.forms import ValidationError
 
+from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
-from ...core.types import CheckoutError
+from ...core.types import CheckoutError, NonNullList
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.scalars import UUID
 from ..types import Checkout
+from .checkout_create import CheckoutLineInput
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import check_lines_quantity
 
 
+class CheckoutLineUpdateInput(CheckoutLineInput):
+    quantity = graphene.Int(
+        required=False,
+        description="The number of items purchased. Required for not app requestor.",
+    )
+
+
 class CheckoutLinesUpdate(CheckoutLinesAdd):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
+
+    class Arguments:
+        checkout_id = graphene.ID(
+            description=(
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
+        lines = NonNullList(
+            CheckoutLineUpdateInput,
+            required=True,
+            description=(
+                "A list of checkout lines, each containing information about "
+                "an item in the checkout."
+            ),
+        )
 
     class Meta:
         description = "Updates checkout line in the existing checkout."
@@ -20,13 +49,20 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         cls,
         info,
         variants,
-        quantities,
+        checkout_lines_data,
         country,
         channel_slug,
         lines=None,
     ):
+        variants_to_validate = []
+        quantities = []
+        for variant, line_data in zip(variants, checkout_lines_data):
+            if line_data.quantity_to_update:
+                variants_to_validate.append(variant)
+                quantities.append(line_data.quantity)
+
         check_lines_quantity(
-            variants,
+            variants_to_validate,
             quantities,
             country,
             channel_slug,
@@ -35,6 +71,48 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             existing_lines=lines,
             replace=True,
             check_reservations=is_reservation_enabled(info.context.site.settings),
+        )
+
+    @classmethod
+    def clean_input(
+        cls,
+        info,
+        checkout,
+        variants,
+        checkout_lines_data,
+        checkout_info,
+        lines,
+        manager,
+        discounts,
+        replace,
+    ):
+        # if the requestor is not app, the quantity is required for all lines
+        if not info.context.app:
+            if any(
+                [
+                    line_data.quantity_to_update is False
+                    for line_data in checkout_lines_data
+                ]
+            ):
+                raise ValidationError(
+                    {
+                        "quantity": ValidationError(
+                            "The quantity is required for all lines.",
+                            code=CheckoutErrorCode.REQUIRED.value,
+                        )
+                    }
+                )
+
+        return super().clean_input(
+            info,
+            checkout,
+            variants,
+            checkout_lines_data,
+            checkout_info,
+            lines,
+            manager,
+            discounts,
+            replace,
         )
 
     @classmethod

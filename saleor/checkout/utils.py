@@ -158,8 +158,7 @@ def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
 def add_variants_to_checkout(
     checkout,
     variants,
-    quantities,
-    custom_prices,
+    checkout_lines_data,
     channel_slug,
     replace=False,
     replace_reservations=False,
@@ -178,26 +177,30 @@ def add_variants_to_checkout(
     to_create = []
     to_update = []
     to_delete = []
-    for variant, quantity, custom_price in zip(variants, quantities, custom_prices):
+    for variant, line_data in zip(variants, checkout_lines_data):
         if variant.pk in variant_ids_in_lines:
             line = variant_ids_in_lines[variant.pk]
-            if quantity > 0:
-                if replace:
-                    line.quantity = quantity
+            if line_data.quantity_to_update:
+                quantity = line_data.quantity
+                if quantity > 0:
+                    if replace:
+                        line.quantity = quantity
+                    else:
+                        line.quantity += quantity
+                    to_update.append(line)
                 else:
-                    line.quantity += quantity
-                if custom_price.to_update:
-                    line.price_override = custom_price.value
-                to_update.append(line)
-            else:
-                to_delete.append(line)
-        elif quantity > 0:
+                    to_delete.append(line)
+            if line_data.custom_price_to_update:
+                if line not in to_delete:
+                    line.price_override = line_data.custom_price
+                    to_update.append(line)
+        elif line_data.quantity > 0:
             to_create.append(
                 CheckoutLine(
                     checkout=checkout,
                     variant=variant,
-                    quantity=quantity,
-                    price_override=custom_price.value,
+                    quantity=line_data.quantity,
+                    price_override=line_data.custom_price,
                 )
             )
     if to_delete:
