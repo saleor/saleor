@@ -116,6 +116,7 @@ documentation = "https://docs.saleor.io/"
   # django-stubs locked to 1.8.0 due to https://github.com/typeddjango/django-stubs/issues/700
   django-stubs = "1.8.0"
   pytest-socket = "^0.5.1"
+  before_after = "^1.0.1"
 
 [tool.black]
 target_version = [ "py35", "py36", "py37", "py38" ]
