@@ -1,5 +1,6 @@
 from ..core.permissions import (
     AccountPermissions,
+    AppPermission,
     CheckoutPermissions,
     DiscountPermissions,
     OrderPermissions,
@@ -65,6 +66,8 @@ class WebhookEventAsyncType:
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
+    OBSERVABILITY = "observability"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -105,6 +108,7 @@ class WebhookEventAsyncType:
         PAGE_DELETED: "Page Deleted",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
+        OBSERVABILITY: "Observability",
     }
 
     CHOICES = [
@@ -147,6 +151,7 @@ class WebhookEventAsyncType:
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
+        (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -190,6 +195,7 @@ class WebhookEventAsyncType:
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
+        OBSERVABILITY: AppPermission.MANAGE_APPS,
     }
 
 
