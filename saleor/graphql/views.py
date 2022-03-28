@@ -25,6 +25,7 @@ from jwt.exceptions import PyJWTError
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from ..webhook import observability_reporter
 from .api import API_PATH, schema
 from .context import get_context_value
 from .core.validators.query_cost import validate_query_cost
@@ -102,30 +103,32 @@ class GraphQLView(View):
 
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
-        if request.method == "GET":
-            if settings.PLAYGROUND_ENABLED:
-                return self.render_playground(request)
-            return HttpResponseNotAllowed(["OPTIONS", "POST"])
-        if request.method == "OPTIONS":
-            response = self.options(request, *args, **kwargs)
-        elif request.method == "POST":
-            response = self.handle_query(request)
-        else:
-            return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
-        # Add access control headers
-        if "HTTP_ORIGIN" in request.META:
-            for origin in settings.ALLOWED_GRAPHQL_ORIGINS:
-                if fnmatch.fnmatchcase(request.META["HTTP_ORIGIN"], origin):
-                    response["Access-Control-Allow-Origin"] = request.META[
-                        "HTTP_ORIGIN"
-                    ]
-                    response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-                    response["Access-Control-Allow-Headers"] = (
-                        "Origin, Content-Type, Accept, Authorization, "
-                        "Authorization-Bearer"
-                    )
-                    response["Access-Control-Allow-Credentials"] = "true"
-                    break
+        with observability_reporter.api_call_context(request) as api_call:
+            if request.method == "GET":
+                if settings.PLAYGROUND_ENABLED:
+                    return self.render_playground(request)
+                return HttpResponseNotAllowed(["OPTIONS", "POST"])
+            if request.method == "OPTIONS":
+                response = self.options(request, *args, **kwargs)
+            elif request.method == "POST":
+                response = self.handle_query(request)
+            else:
+                return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
+            # Add access control headers
+            if "HTTP_ORIGIN" in request.META:
+                for origin in settings.ALLOWED_GRAPHQL_ORIGINS:
+                    if fnmatch.fnmatchcase(request.META["HTTP_ORIGIN"], origin):
+                        response["Access-Control-Allow-Origin"] = request.META[
+                            "HTTP_ORIGIN"
+                        ]
+                        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+                        response["Access-Control-Allow-Headers"] = (
+                            "Origin, Content-Type, Accept, Authorization, "
+                            "Authorization-Bearer"
+                        )
+                        response["Access-Control-Allow-Credentials"] = "true"
+                        break
+            api_call.response = response
         return response
 
     def render_playground(self, request):
@@ -197,30 +200,33 @@ class GraphQLView(View):
             # we can calculate the RAW UTF-8 size using the length of
             # response.content of type 'bytes'
             span.set_tag("http.content_length", len(response.content))
-
+            with observability_reporter.api_call_context(request) as api_call:
+                api_call.response = response
+                api_call.report()
             return response
 
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
-        if execution_result:
-            response = {}
-            if execution_result.errors:
-                response["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-            if execution_result.invalid:
-                status_code = 400
+        with observability_reporter.gql_operation_context() as operation:
+            execution_result = self.execute_graphql_request(request, data)
+            status_code = 200
+            if execution_result:
+                response = {}
+                if execution_result.errors:
+                    response["errors"] = [
+                        self.format_error(e) for e in execution_result.errors
+                    ]
+                if execution_result.invalid:
+                    status_code = 400
+                else:
+                    response["data"] = execution_result.data
+                if execution_result.extensions:
+                    response["extensions"] = execution_result.extensions
+                result: Optional[Dict[str, List[Any]]] = response
             else:
-                response["data"] = execution_result.data
-            if execution_result.extensions:
-                response["extensions"] = execution_result.extensions
-            result: Optional[Dict[str, List[Any]]] = response
-        else:
-            result = None
-
+                result = None
+            operation.result, operation.status_code = result, status_code
         return result, status_code
 
     def get_root_value(self):
@@ -279,6 +285,10 @@ class GraphQLView(View):
             query_cost = 0
 
             document, error = self.parse_query(query)
+            with observability_reporter.gql_operation_context() as operation:
+                operation.query = document
+                operation.name = operation_name
+                operation.variables = variables
             if error:
                 return error
 
