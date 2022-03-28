@@ -7,7 +7,7 @@ from django.utils import timezone
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher, VoucherQueryset
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
-from ..core.types.common import DateTimeRangeInput, IntRangeInput
+from ..core.types import DateTimeRangeInput, IntRangeInput
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 

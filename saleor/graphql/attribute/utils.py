@@ -257,17 +257,30 @@ class AttributeAssignmentMixin:
             attribute.entity_type  # type: ignore
         ]
         get_or_create = attribute.values.get_or_create
-        return tuple(
-            get_or_create(
-                attribute=attribute,
-                slug=slugify(
-                    f"{instance.id}_{reference.id}",  # type: ignore
-                    allow_unicode=True,
-                ),
-                defaults={"name": getattr(reference, field_name)},
-            )[0]
-            for reference in attr_values.references
-        )
+
+        reference_list = []
+        for ref in attr_values.references:
+            reference_page = None
+            reference_product = None
+
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                reference_page = ref
+            else:
+                reference_product = ref
+
+            reference_list.append(
+                get_or_create(
+                    attribute=attribute,
+                    reference_product=reference_product,
+                    reference_page=reference_page,
+                    slug=slugify(
+                        f"{instance.id}_{ref.id}",  # type: ignore
+                        allow_unicode=True,
+                    ),
+                    defaults={"name": getattr(ref, field_name)},
+                )[0]
+            )
+        return tuple(reference_list)
 
     @classmethod
     def _pre_save_file_value(
@@ -435,9 +448,14 @@ class AttributeAssignmentMixin:
         entity_model = cls.ENTITY_TYPE_TO_MODEL_MAPPING[
             attribute.entity_type  # type: ignore
         ]
-        ref_instances = get_nodes(references, attribute.entity_type, model=entity_model)
-        values.references = ref_instances
-        return values
+        try:
+            ref_instances = get_nodes(
+                references, attribute.entity_type, model=entity_model
+            )
+            values.references = ref_instances
+            return values
+        except GraphQLError:
+            raise ValidationError("Invalid reference type.", code=error_class.INVALID)
 
     @classmethod
     def _validate_attributes_input(

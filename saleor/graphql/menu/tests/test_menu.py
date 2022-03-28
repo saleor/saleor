@@ -939,7 +939,7 @@ def test_assign_menu(
 
 
 QUERY_REORDER_MENU = """
-mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput]!) {
+mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput!]!) {
   menuItemMove(menu: $menu, moves: $moves) {
     errors {
       field

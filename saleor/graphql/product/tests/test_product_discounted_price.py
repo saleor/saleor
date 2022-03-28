@@ -103,7 +103,7 @@ def test_collection_add_products_updates_discounted_price(
     sale.collections.add(collection)
     assert collection.products.count() == 0
     query = """
-        mutation CollectionAddProducts($id: ID!, $products: [ID]!) {
+        mutation CollectionAddProducts($id: ID!, $products: [ID!]!) {
             collectionAddProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -147,7 +147,7 @@ def test_collection_remove_products_updates_discounted_price(
     sale.collections.add(collection)
     assert collection.products.count() == 0
     query = """
-        mutation CollectionRemoveProducts($id: ID!, $products: [ID]!) {
+        mutation CollectionRemoveProducts($id: ID!, $products: [ID!]!) {
             collectionRemoveProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -191,7 +191,7 @@ def test_sale_create_updates_products_discounted_prices(
             $name: String,
             $type: DiscountValueTypeEnum,
             $value: PositiveDecimal,
-            $products: [ID]
+            $products: [ID!]
     ) {
         saleCreate(input: {
                 name: $name,

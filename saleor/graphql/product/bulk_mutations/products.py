@@ -30,15 +30,19 @@ from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
-from ...core.types.common import (
+from ...core.types import (
     BulkProductError,
     BulkStockError,
     CollectionError,
+    NonNullList,
     ProductError,
     StockError,
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...warehouse.dataloaders import (
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
+)
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
@@ -65,7 +69,7 @@ from ..utils import (
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of category IDs to delete."
         )
 
@@ -84,7 +88,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of collection IDs to delete."
         )
 
@@ -115,7 +119,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of product IDs to delete."
         )
 
@@ -193,8 +197,8 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
 class BulkAttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
-    values = graphene.List(
-        graphene.NonNull(graphene.String),
+    values = NonNullList(
+        graphene.String,
         required=False,
         description=(
             "The value or slug of an attribute to resolve. "
@@ -211,18 +215,18 @@ class BulkAttributeValueInput(InputObjectType):
 
 
 class ProductVariantBulkCreateInput(ProductVariantInput):
-    attributes = graphene.List(
-        graphene.NonNull(BulkAttributeValueInput),
+    attributes = NonNullList(
+        BulkAttributeValueInput,
         required=True,
         description="List of attributes specific to this variant.",
     )
-    stocks = graphene.List(
-        graphene.NonNull(StockInput),
-        description=("Stocks of a product available for sale."),
+    stocks = NonNullList(
+        StockInput,
+        description="Stocks of a product available for sale.",
         required=False,
     )
-    channel_listings = graphene.List(
-        graphene.NonNull(ProductVariantChannelListingAddInput),
+    channel_listings = NonNullList(
+        ProductVariantChannelListingAddInput,
         description="List of prices assigned to channels.",
         required=False,
     )
@@ -235,15 +239,15 @@ class ProductVariantBulkCreate(BaseMutation):
         default_value=0,
         description="Returns how many objects were created.",
     )
-    product_variants = graphene.List(
-        graphene.NonNull(ProductVariant),
+    product_variants = NonNullList(
+        ProductVariant,
         required=True,
         default_value=[],
         description="List of the created variants.",
     )
 
     class Arguments:
-        variants = graphene.List(
+        variants = NonNullList(
             ProductVariantBulkCreateInput,
             required=True,
             description="Input list of product variants to create.",
@@ -568,7 +572,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of product variant IDs to delete.",
@@ -697,8 +701,8 @@ class ProductVariantStocksCreate(BaseMutation):
             required=True,
             description="ID of a product variant for which stocks will be created.",
         )
-        stocks = graphene.List(
-            graphene.NonNull(StockInput),
+        stocks = NonNullList(
+            StockInput,
             required=True,
             description="Input list of stocks to create.",
         )
@@ -729,8 +733,11 @@ class ProductVariantStocksCreate(BaseMutation):
                     lambda: manager.product_variant_back_in_stock(stock)
                 )
 
-        variant = ChannelContext(node=variant, channel_slug=None)
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -802,6 +809,10 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             manager = info.context.plugins
             cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
 
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
+
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
@@ -841,9 +852,7 @@ class ProductVariantStocksDelete(BaseMutation):
             required=True,
             description="ID of product variant for which stocks will be deleted.",
         )
-        warehouse_ids = graphene.List(
-            graphene.NonNull(graphene.ID),
-        )
+        warehouse_ids = NonNullList(graphene.ID)
 
     class Meta:
         description = "Delete stocks from product variant."
@@ -865,19 +874,22 @@ class ProductVariantStocksDelete(BaseMutation):
             product_variant=variant, warehouse__pk__in=warehouses_pks
         )
 
-        variant = ChannelContext(node=variant, channel_slug=None)
-
         for stock in stocks_to_delete:
             transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
 
         stocks_to_delete.delete()
 
+        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+            info.context
+        ).clear((variant.id, None, None))
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
 
 class ProductTypeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of product type IDs to delete.",
@@ -914,7 +926,7 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
 
 class ProductMediaBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of product media IDs to delete.",

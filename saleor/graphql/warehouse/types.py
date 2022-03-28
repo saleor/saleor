@@ -11,7 +11,7 @@ from ..channel import ChannelContext
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.fields import ConnectionField
-from ..core.types import ModelObjectType
+from ..core.types import ModelObjectType, NonNullList
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from .enums import WarehouseClickAndCollectOptionEnum
@@ -29,7 +29,7 @@ class WarehouseCreateInput(WarehouseInput):
         description="Address of the warehouse.",
         required=True,
     )
-    shipping_zones = graphene.List(
+    shipping_zones = NonNullList(
         graphene.ID, description="Shipping zones supported by the warehouse."
     )
 

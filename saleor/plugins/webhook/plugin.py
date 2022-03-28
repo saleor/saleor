@@ -634,7 +634,7 @@ class WebhookPlugin(BasePlugin):
             order,
             available_shipping_methods,
         )
-        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order.token
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order.id)
         return get_excluded_shipping_data(
             event_type=WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,

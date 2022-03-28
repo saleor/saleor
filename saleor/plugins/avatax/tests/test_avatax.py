@@ -2652,7 +2652,7 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
             "companyCode": conf["Company name"],
             "type": TransactionType.INVOICE,
             "lines": [],
-            "code": order.token,
+            "code": str(order.id),
             "date": datetime.date.today().strftime("%Y-%m-%d"),
             "customerCode": 0,
             "addresses": {

@@ -245,7 +245,9 @@ def test_sort_export_files_query_by_created_at_date(
     )
 
 
+@pytest.mark.parametrize("sort_by", ["UPDATED_AT", "LAST_MODIFIED_AT"])
 def test_sort_export_files_query_by_updated_at_date(
+    sort_by,
     staff_api_client,
     user_export_file,
     permission_manage_products,
@@ -264,7 +266,7 @@ def test_sort_export_files_query_by_updated_at_date(
     second_export_file.save()
 
     query = SORT_EXPORT_FILES_QUERY
-    variables = {"sortBy": {"field": "UPDATED_AT", "direction": "ASC"}}
+    variables = {"sortBy": {"field": sort_by, "direction": "ASC"}}
 
     response = staff_api_client.post_graphql(
         query,

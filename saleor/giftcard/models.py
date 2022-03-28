@@ -131,6 +131,7 @@ class GiftCardEvent(models.Model):
     app = models.ForeignKey(
         App, related_name="gift_card_events", on_delete=models.SET_NULL, null=True
     )
+    order = models.ForeignKey("order.Order", null=True, on_delete=models.SET_NULL)
     gift_card = models.ForeignKey(
         GiftCard, related_name="events", on_delete=models.CASCADE
     )

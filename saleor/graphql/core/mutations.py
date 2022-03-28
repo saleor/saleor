@@ -2,6 +2,7 @@ import os
 import secrets
 from itertools import chain
 from typing import Iterable, Tuple, Union
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import (
@@ -10,6 +11,7 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.core.files.storage import default_storage
+from django.db.models import Q
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
@@ -21,8 +23,7 @@ from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
-from .types import File, Upload
-from .types.common import UploadError
+from .types import File, NonNullList, Upload, UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -35,8 +36,8 @@ def get_model_name(model):
 
 def get_error_fields(error_type_class, error_type_field, deprecation_reason=None):
     error_field = graphene.Field(
-        graphene.List(
-            graphene.NonNull(error_type_class),
+        NonNullList(
+            error_type_class,
             description="List of errors that occurred executing the mutation.",
         ),
         default_value=[],
@@ -158,11 +159,25 @@ class BaseMutation(graphene.Mutation):
         Whether by using the provided query set object or by calling type's get_node().
         """
         if qs is not None:
+            if str(graphene_type) == "Order":
+                return cls._get_order_node_by_pk(pk, qs)
             return qs.filter(pk=pk).first()
         get_node = getattr(graphene_type, "get_node", None)
         if get_node:
             return get_node(info, pk)
         return None
+
+    @classmethod
+    def _get_order_node_by_pk(cls, pk: Union[int, str], qs):
+        # This is temporary method that allows fetching orders with use of
+        # new and old id.
+        lookup = Q(pk=pk)
+        if pk is not None:
+            try:
+                UUID(str(pk))
+            except ValueError:
+                lookup = Q(number=pk) & Q(use_old_id=True)
+        return qs.filter(lookup).first()
 
     @classmethod
     def get_global_id_or_error(

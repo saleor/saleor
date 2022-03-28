@@ -1,15 +1,16 @@
 import hashlib
 from typing import Union
+from uuid import UUID
 
 import graphene
-from django.db.models import Value
+from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id
 
 from ..core.enums import PermissionEnum
 from ..core.types import Permission
+from ..core.utils import from_global_id_or_error
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -33,7 +34,7 @@ def resolve_global_ids_to_primary_keys(
             continue
 
         try:
-            node_type, _id = from_global_id(graphql_id)
+            node_type, _id = from_global_id_or_error(graphql_id)
         except Exception:
             invalid_ids.append(graphql_id)
             continue
@@ -79,7 +80,6 @@ def get_nodes(
     nodes_type, pks = resolve_global_ids_to_primary_keys(
         ids, graphene_type, raise_error=True
     )
-
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
     # types.
@@ -94,18 +94,41 @@ def get_nodes(
     elif model is not None:
         qs = model.objects
 
-    nodes = list(qs.filter(pk__in=pks))
-    nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
+    is_order_object_type = str(graphene_type) == "Order"
+    if is_order_object_type:
+        nodes = _get_nodes_for_order(qs, pks)
+    else:
+        nodes = list(qs.filter(pk__in=pks))
+        nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
 
     if not nodes:
         raise GraphQLError(ERROR_COULD_NO_RESOLVE_GLOBAL_ID % ids)
 
     nodes_pk_list = [str(node.pk) for node in nodes]
+    if is_order_object_type:
+        nodes_pk_list.extend([str(node.number) for node in nodes])
     for pk in pks:
         assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
             graphene_type, pk
         )
     return nodes
+
+
+def _get_nodes_for_order(qs, pks):
+    uuid_pks = []
+    old_pks = []
+
+    for pk in pks:
+        try:
+            uuid_pks.append(UUID(str(pk)))
+        except ValueError:
+            old_pks.append(pk)
+    nodes = list(
+        qs.filter(Q(id__in=uuid_pks) | (Q(use_old_id=True) & Q(number__in=old_pks)))
+    )
+    return sorted(
+        nodes, key=lambda e: pks.index(str(e.pk) if e.pk in uuid_pks else str(e.number))
+    )  # preserve order in pks
 
 
 def format_permissions_for_display(permissions):

@@ -23,8 +23,9 @@ from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import (
+from ...core.types import (
     CollectionChannelListingError,
+    NonNullList,
     ProductChannelListingError,
 )
 from ...core.utils import get_duplicated_values
@@ -66,28 +67,28 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
             "the current day is assumed."
         )
     )
-    add_variants = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_variants = NonNullList(
+        graphene.ID,
         description="List of variants to which the channel should be assigned.",
         required=False,
     )
-    remove_variants = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_variants = NonNullList(
+        graphene.ID,
         description="List of variants from which the channel should be unassigned.",
         required=False,
     )
 
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
-    update_channels = graphene.List(
-        graphene.NonNull(ProductChannelListingAddInput),
+    update_channels = NonNullList(
+        ProductChannelListingAddInput,
         description=(
             "List of channels to which the product should be assigned or updated."
         ),
         required=False,
     )
-    remove_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_channels = NonNullList(
+        graphene.ID,
         description="List of channels from which the product should be unassigned.",
         required=False,
     )
@@ -323,8 +324,8 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         id = graphene.ID(
             required=True, description="ID of a product variant to update."
         )
-        input = graphene.List(
-            graphene.NonNull(ProductVariantChannelListingAddInput),
+        input = NonNullList(
+            ProductVariantChannelListingAddInput,
             required=True,
             description=(
                 "List of fields required to create or upgrade product variant "
@@ -470,13 +471,13 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
 
 class CollectionChannelListingUpdateInput(graphene.InputObjectType):
-    add_channels = graphene.List(
-        graphene.NonNull(PublishableChannelListingInput),
+    add_channels = NonNullList(
+        PublishableChannelListingInput,
         description="List of channels to which the collection should be assigned.",
         required=False,
     )
-    remove_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_channels = NonNullList(
+        graphene.ID,
         description="List of channels from which the collection should be unassigned.",
         required=False,
     )

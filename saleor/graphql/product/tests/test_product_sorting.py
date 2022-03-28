@@ -6,10 +6,11 @@ import pytest
 from freezegun import freeze_time
 
 from ....product.models import CollectionProduct, Product, ProductChannelListing
+from ...core.connection import to_global_cursor
 from ...tests.utils import get_graphql_content
 
 COLLECTION_RESORT_QUERY = """
-mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput]!) {
+mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput!]!) {
   collectionReorderProducts(collectionId: $collectionId, moves: $moves) {
     collection {
       id
@@ -227,3 +228,77 @@ def test_sort_products_by_rating(
         graphene.Node.to_global_id("Product", product.pk) for product in sorted_products
     ]
     assert [node["node"]["id"] for node in data] == expected_ids
+
+
+QUERY_SORT_BY_COLLECTION = """
+query CollectionProducts($id: ID, $channel: String, $after: String) {
+  collection(id: $id channel: $channel) {
+    id
+    products(first: 2, sortBy: {field: COLLECTION, direction: ASC},after: $after) {
+      totalCount
+      edges {
+        node {
+          id
+          category {
+            id
+            name
+          }
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
+    }
+  }
+}
+"""
+
+
+def test_query_products_sorted_by_collection(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = 0
+    collection_prod_2.sort_order = 1
+    collection_prod_3.sort_order = 2
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "after": to_global_cursor(
+            (collection_prod_2.sort_order, collection_prod_2.product.pk)
+        ),
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 1
+    assert not products["pageInfo"]["hasNextPage"]
+    assert products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_3.product_id
+    )

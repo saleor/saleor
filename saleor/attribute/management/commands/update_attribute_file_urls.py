@@ -28,7 +28,7 @@ class Command(BaseCommand):
             if not file_url or file_url.startswith(directory):
                 continue
             file_name = re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
-            new_file_name = storage._clean_name(fr"{directory}/{file_name}")
+            new_file_name = storage._clean_name(rf"{directory}/{file_name}")
             new_file_url = storage._normalize_name(new_file_name)
             old_file_url = storage._normalize_name(storage._clean_name(file_name))
             try:

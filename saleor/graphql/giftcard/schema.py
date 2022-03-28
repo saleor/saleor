@@ -6,6 +6,7 @@ from ...giftcard import models
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField
+from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .bulk_mutations import (
@@ -49,8 +50,8 @@ class GiftCardQueries(graphene.ObjectType):
         ),
         description="List of gift cards.",
     )
-    gift_card_currencies = graphene.Field(
-        graphene.List(graphene.NonNull(graphene.String)),
+    gift_card_currencies = NonNullList(
+        graphene.String,
         description=f"{ADDED_IN_31} List of gift card currencies. {PREVIEW_FEATURE}",
         required=True,
     )

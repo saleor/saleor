@@ -9,7 +9,7 @@ from ....core.permissions import AccountPermissions, OrderPermissions
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CUSTOMER_BULK_DELETE_MUTATION = """
-    mutation customerBulkDelete($ids: [ID]!) {
+    mutation customerBulkDelete($ids: [ID!]!) {
         customerBulkDelete(ids: $ids) {
             count
         }
@@ -102,7 +102,7 @@ def test_delete_customers_by_app(
 
 
 STAFF_BULK_DELETE_MUTATION = """
-    mutation staffBulkDelete($ids: [ID]!) {
+    mutation staffBulkDelete($ids: [ID!]!) {
         staffBulkDelete(ids: $ids) {
             count
             errors{

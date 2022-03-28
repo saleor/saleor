@@ -1,7 +1,6 @@
 import datetime
 import os
 import re
-import uuid
 from collections import defaultdict
 from datetime import timedelta
 from unittest.mock import ANY, MagicMock, Mock, patch
@@ -4770,9 +4769,9 @@ def test_query_customers_with_filter_placed_orders_(
 ):
     Order.objects.bulk_create(
         [
-            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
-            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
-            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD),
         ]
     )
     second_customer = User.objects.create(email="second_example@example.com")
@@ -4884,12 +4883,16 @@ QUERY_CUSTOMERS_WITH_SORT = """
         ({"field": "EMAIL", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
         ({"field": "ORDER_COUNT", "direction": "ASC"}, ["John", "Leslie", "Joe"]),
         ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
+        ({"field": "CREATED_AT", "direction": "ASC"}, ["John", "Joe", "Leslie"]),
+        ({"field": "CREATED_AT", "direction": "DESC"}, ["Leslie", "Joe", "John"]),
+        ({"field": "LAST_MODIFIED_AT", "direction": "ASC"}, ["Leslie", "John", "Joe"]),
+        ({"field": "LAST_MODIFIED_AT", "direction": "DESC"}, ["Joe", "John", "Leslie"]),
     ],
 )
 def test_query_customers_with_sort(
     customer_sort, result_order, staff_api_client, permission_manage_users, channel_USD
 ):
-    User.objects.bulk_create(
+    users = User.objects.bulk_create(
         [
             User(
                 first_name="John",
@@ -4914,9 +4917,15 @@ def test_query_customers_with_sort(
             ),
         ]
     )
+
+    users[2].save()
+    users[0].save()
+    users[1].save()
+
     Order.objects.create(
         user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
     )
+
     variables = {"sort_by": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_SORT, variables)
@@ -5190,7 +5199,7 @@ def test_query_staff_members_with_sort(
 
 
 USER_CHANGE_ACTIVE_STATUS_MUTATION = """
-    mutation userChangeActiveStatus($ids: [ID]!, $is_active: Boolean!) {
+    mutation userChangeActiveStatus($ids: [ID!]!, $is_active: Boolean!) {
         userBulkSetActive(ids: $ids, isActive: $is_active) {
             count
             errors {

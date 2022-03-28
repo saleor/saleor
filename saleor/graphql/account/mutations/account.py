@@ -19,7 +19,7 @@ from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...channel.utils import clean_channel
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError
+from ...core.types import AccountError, NonNullList
 from ...meta.mutations import MetadataInput
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
@@ -54,8 +54,8 @@ class AccountRegisterInput(AccountBaseInput):
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="User language code."
     )
-    metadata = graphene.List(
-        graphene.NonNull(MetadataInput),
+    metadata = NonNullList(
+        MetadataInput,
         description="User public metadata.",
         required=False,
     )

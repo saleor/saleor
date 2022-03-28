@@ -22,7 +22,7 @@ from ..channel.mutations import BaseChannelListingMutation
 from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
-from ..core.types.common import DiscountError
+from ..core.types import DiscountError, NonNullList
 from ..core.validators import validate_end_is_after_start, validate_price_precision
 from ..discount.dataloaders import SaleChannelListingBySaleIdLoader
 from ..product.types import Category, Collection, Product, ProductVariant
@@ -52,20 +52,20 @@ def convert_catalogue_info_to_global_ids(
 
 
 class CatalogueInput(graphene.InputObjectType):
-    products = graphene.List(
+    products = NonNullList(
         graphene.ID, description="Products related to the discount.", name="products"
     )
-    categories = graphene.List(
+    categories = NonNullList(
         graphene.ID,
         description="Categories related to the discount.",
         name="categories",
     )
-    collections = graphene.List(
+    collections = NonNullList(
         graphene.ID,
         description="Collections related to the discount.",
         name="collections",
     )
-    variants = graphene.List(
+    variants = NonNullList(
         graphene.ID,
         description=f"{ADDED_IN_31} Product variant related to the discount.",
         name="variants",
@@ -145,7 +145,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
 class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
-        description=("Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER.")
+        description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
     )
     name = graphene.String(description="Voucher name.")
     code = graphene.String(description="Code to use the voucher.")
@@ -158,20 +158,20 @@ class VoucherInput(graphene.InputObjectType):
     discount_value_type = DiscountValueTypeEnum(
         description="Choices: fixed or percentage."
     )
-    products = graphene.List(
+    products = NonNullList(
         graphene.ID, description="Products discounted by the voucher.", name="products"
     )
-    variants = graphene.List(
+    variants = NonNullList(
         graphene.ID,
         description=f"{ADDED_IN_31} Variants discounted by the voucher.",
         name="variants",
     )
-    collections = graphene.List(
+    collections = NonNullList(
         graphene.ID,
         description="Collections discounted by the voucher.",
         name="collections",
     )
-    categories = graphene.List(
+    categories = NonNullList(
         graphene.ID,
         description="Categories discounted by the voucher.",
         name="categories",
@@ -179,7 +179,7 @@ class VoucherInput(graphene.InputObjectType):
     min_checkout_items_quantity = graphene.Int(
         description="Minimal quantity of checkout items required to apply the voucher."
     )
-    countries = graphene.List(
+    countries = NonNullList(
         graphene.String,
         description="Country codes that can be used with the shipping voucher.",
     )
@@ -290,7 +290,7 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
         id = graphene.ID(required=True, description="ID of a voucher.")
         input = CatalogueInput(
             required=True,
-            description=("Fields required to modify catalogue IDs of voucher."),
+            description="Fields required to modify catalogue IDs of voucher.",
         )
 
     class Meta:
@@ -345,13 +345,13 @@ class VoucherChannelListingAddInput(graphene.InputObjectType):
 
 
 class VoucherChannelListingInput(graphene.InputObjectType):
-    add_channels = graphene.List(
-        graphene.NonNull(VoucherChannelListingAddInput),
+    add_channels = NonNullList(
+        VoucherChannelListingAddInput,
         description="List of channels to which the voucher should be assigned.",
         required=False,
     )
-    remove_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_channels = NonNullList(
+        graphene.ID,
         description="List of channels from which the voucher should be unassigned.",
         required=False,
     )
@@ -525,20 +525,20 @@ class SaleInput(graphene.InputObjectType):
     name = graphene.String(description="Voucher name.")
     type = DiscountValueTypeEnum(description="Fixed or percentage.")
     value = PositiveDecimal(description="Value of the voucher.")
-    products = graphene.List(
+    products = NonNullList(
         graphene.ID, description="Products related to the discount.", name="products"
     )
-    variants = graphene.List(
+    variants = NonNullList(
         graphene.ID,
         descriptions=f"{ADDED_IN_31} Product variant related to the discount.",
         name="variants",
     )
-    categories = graphene.List(
+    categories = NonNullList(
         graphene.ID,
         description="Categories related to the discount.",
         name="categories",
     )
-    collections = graphene.List(
+    collections = NonNullList(
         graphene.ID,
         description="Collections related to the discount.",
         name="collections",
@@ -752,13 +752,13 @@ class SaleChannelListingAddInput(graphene.InputObjectType):
 
 
 class SaleChannelListingInput(graphene.InputObjectType):
-    add_channels = graphene.List(
-        graphene.NonNull(SaleChannelListingAddInput),
+    add_channels = NonNullList(
+        SaleChannelListingAddInput,
         description="List of channels to which the sale should be assigned.",
         required=False,
     )
-    remove_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_channels = NonNullList(
+        graphene.ID,
         description=("List of channels from which the sale should be unassigned."),
         required=False,
     )

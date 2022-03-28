@@ -30,7 +30,7 @@ from ...core.mutations import (
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.types.common import AccountError
+from ...core.types import AccountError
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"

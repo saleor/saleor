@@ -11,15 +11,15 @@ from ....core.notification.validation import (
     validate_and_get_payload_params,
     validate_ids_and_get_model_type_and_pks,
 )
-from ....graphql.core.types.common import ExternalNotificationError
-from ....graphql.notifications.error_codes import ExternalNotificationErrorCodes
 from ...core.descriptions import ADDED_IN_31
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
+from ...core.types import ExternalNotificationError, NonNullList
+from ...notifications.error_codes import ExternalNotificationErrorCodes
 
 
 class ExternalNotificationTriggerInput(graphene.InputObjectType):
-    ids = graphene.List(
+    ids = NonNullList(
         graphene.ID,
         required=True,
         description=(
@@ -44,7 +44,7 @@ class ExternalNotificationTriggerInput(graphene.InputObjectType):
 class ExternalNotificationTrigger(BaseMutation):
     class Arguments:
         input = ExternalNotificationTriggerInput(
-            required=True, description="Input for External Notification Trigger. "
+            required=True, description="Input for External Notification Trigger."
         )
         plugin_id = graphene.String(description="The ID of notification plugin.")
         channel = graphene.String(

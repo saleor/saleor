@@ -21,7 +21,7 @@ from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_31
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
-from ...core.types.common import ProductError
+from ...core.types import NonNullList, ProductError
 from ...core.utils.reordering import perform_reordering
 from ...product.types import Product, ProductType, ProductVariant
 from ..enums import ProductAttributeType
@@ -93,7 +93,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
             required=True,
             description="ID of the product type to assign the attributes into.",
         )
-        operations = graphene.List(
+        operations = NonNullList(
             ProductAttributeAssignInput,
             required=True,
             description="The operations to perform.",
@@ -306,7 +306,7 @@ class ProductAttributeUnassign(BaseMutation):
                 "ID of the product type from which the attributes should be unassigned."
             ),
         )
-        attribute_ids = graphene.List(
+        attribute_ids = NonNullList(
             graphene.ID,
             required=True,
             description="The IDs of the attributes to unassign.",
@@ -357,7 +357,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
             required=True,
             description="ID of the product type to assign the attributes into.",
         )
-        operations = graphene.List(
+        operations = NonNullList(
             ProductAttributeAssignmentUpdateInput,
             required=True,
             description="The operations to perform.",
@@ -560,7 +560,7 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
         type = ProductAttributeType(
             required=True, description="The attribute type to reorder."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of attribute reordering operations.",
@@ -623,7 +623,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
         attribute_id = graphene.Argument(
             graphene.ID, required=True, description="ID of an attribute."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of reordering operations for given attribute values.",
@@ -679,7 +679,7 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
         attribute_id = graphene.Argument(
             graphene.ID, required=True, description="ID of an attribute."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of reordering operations for given attribute values.",
