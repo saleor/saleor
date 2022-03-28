@@ -7,7 +7,7 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from jwt import ExpiredSignatureError, InvalidTokenError
-from requests import PreparedRequest
+from requests import HTTPError, PreparedRequest
 
 from saleor.account.models import User
 from saleor.core.auth import get_token_from_request
@@ -344,7 +344,7 @@ class OpenIDConnectPlugin(BasePlugin):
                 token_endpoint,
                 refresh_token=saleor_refresh_token[OAUTH_TOKEN_REFRESH_FIELD],
             )
-        except AuthlibBaseError:
+        except (AuthlibBaseError, HTTPError):
             logger.warning("Unable to refresh the token.", exc_info=True)
             raise ValidationError(
                 {

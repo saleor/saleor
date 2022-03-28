@@ -67,6 +67,12 @@ def validate_storefront_redirect_url(storefront_redirect_url: Optional[str]):
 
 
 def fetch_jwks(jwks_url) -> Optional[dict]:
+    """Fetch JSON Web Key Sets from a provider.
+
+    Fetched keys will be stored in the cache to the reduced amount of possible
+    requests.
+    :raises AuthenticationError
+    """
     response = None
     try:
         response = requests.get(jwks_url, timeout=REQUEST_TIMEOUT)
@@ -86,6 +92,7 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
     keys = jwks.get("keys", [])
     if not keys:
         logger.warning("List of JWKS keys is empty")
+    cache.set(JWKS_KEY, keys, JWKS_CACHE_TIME)
     return keys
 
 
@@ -93,7 +100,6 @@ def get_jwks_keys_from_cache_or_fetch(jwks_url: str) -> dict:
     jwks_keys = cache.get(JWKS_KEY)
     if jwks_keys is None:
         jwks_keys = fetch_jwks(jwks_url)
-        cache.set(JWKS_KEY, jwks_keys, JWKS_CACHE_TIME)
     return jwks_keys
 
 

@@ -2,6 +2,7 @@ import json
 import time
 import warnings
 from datetime import datetime
+from unittest import mock
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -23,6 +24,8 @@ from saleor.core.jwt import (
 
 from ..exceptions import AuthenticationError
 from ..utils import (
+    JWKS_CACHE_TIME,
+    JWKS_KEY,
     create_jwt_refresh_token,
     create_jwt_token,
     create_tokens_from_oauth_payload,
@@ -54,10 +57,12 @@ def test_fetch_jwks_raises_error(monkeypatch, error):
 
 
 @pytest.mark.vcr
-def test_fetch_jwks():
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+def test_fetch_jwks(mocked_cache_set):
     jwks_url = "https://saleor.io/.well-known/jwks.json"
     keys = fetch_jwks(jwks_url)
     assert len(keys) == 2
+    mocked_cache_set.assert_called_once_with(JWKS_KEY, keys, JWKS_CACHE_TIME)
 
 
 def test_get_or_create_user_from_token_missing_email(id_payload):

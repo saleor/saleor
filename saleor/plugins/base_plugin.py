@@ -137,7 +137,9 @@ class BasePlugin:
     #  Authenticate user which should be assigned to the request.
     #
     #  Overwrite this method if the plugin handles authentication flow.
-    authenticate_user: Callable[[WSGIRequest, Any], Union["User", NoneType]]
+    authenticate_user: Callable[
+        [WSGIRequest, Optional["User"]], Union["User", NoneType]
+    ]
 
     authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
 
@@ -280,31 +282,34 @@ class BasePlugin:
     #  Handle authentication request.
     #
     #  Overwrite this method if the plugin handles authentication flow.
-    external_authentication_url: Callable[[dict, WSGIRequest, Any], dict]
+    external_authentication_url: Callable[[dict, WSGIRequest, dict], dict]
 
     #  Handle logout request.
     #
     #  Overwrite this method if the plugin handles logout flow.
-    external_logout: Callable[[dict, WSGIRequest, Any], Any]
+    external_logout: Callable[[dict, WSGIRequest, dict], Any]
 
     #  Handle authentication request responsible for obtaining access tokens.
     #
     #  Overwrite this method if the plugin handles authentication flow.
     external_obtain_access_tokens: Callable[
-        [dict, WSGIRequest, Any], ExternalAccessTokens
+        [dict, WSGIRequest, ExternalAccessTokens], ExternalAccessTokens
     ]
 
     #  Handle authentication refresh request.
     #
     #  Overwrite this method if the plugin handles authentication flow and supports
     #  refreshing the access.
-    external_refresh: Callable[[dict, WSGIRequest, Any], ExternalAccessTokens]
+    external_refresh: Callable[
+        [dict, WSGIRequest, ExternalAccessTokens], ExternalAccessTokens
+    ]
 
     #  Verify the provided authentication data.
     #
     #  Overwrite this method if the plugin should validate the authentication data.
     external_verify: Callable[
-        [dict, WSGIRequest, Any], Tuple[Union["User", NoneType], dict]
+        [dict, WSGIRequest, Tuple[Union["User", NoneType], dict]],
+        Tuple[Union["User", NoneType], dict],
     ]
 
     #  Triggered when ShopFetchTaxRates mutation is called.
