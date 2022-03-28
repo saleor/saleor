@@ -427,6 +427,17 @@ category = "main"
 optional = false
 python-versions = ">=3.6"
 
+[package.dependencies]
+cffi = ">=1.12"
+
+[package.extras]
+docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
+docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
+pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
+sdist = ["setuptools_rust (>=0.11.4)"]
+ssh = ["bcrypt (>=3.1.5)"]
+test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
+
 [[package]]
 name = "cssselect2"
 version = "0.5.0"
@@ -2506,7 +2517,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-requests"
-version = "2.27.14"
+version = "2.27.15"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -2722,8 +2733,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "11e9994dcc7e6847563a801576ccdf3ac9a28a9a116bd066d05a93f10b804313"
+python-versions = "~3.9"
+content-hash = "3802b8a4076e24aafbce6bb052d05fd36db960b2142dbf1ef7f1a300480a153d"
 
 [metadata.files]
 adyen = [
@@ -4214,8 +4225,8 @@ types-pytz = [
     {file = "types_pytz-2021.3.6-py3-none-any.whl", hash = "sha256:6805c72d51118923c5bf98633c39593d5b464d2ab49a803440e2d7ab6b8920df"},
 ]
 types-requests = [
-    {file = "types-requests-2.27.14.tar.gz", hash = "sha256:04579ee164f7c2659be46950e3c2f8d51a081ad252ef1b01d4b12faba5c3810b"},
-    {file = "types_requests-2.27.14-py3-none-any.whl", hash = "sha256:c01838abfe3e8a83ba68346cd373afff97594c19c15c922ddee4a0e80ba7e329"},
+    {file = "types-requests-2.27.15.tar.gz", hash = "sha256:2d371183c535208d2cc8fe7473d9b49c344c7077eb70302eb708638fb86086a8"},
+    {file = "types_requests-2.27.15-py3-none-any.whl", hash = "sha256:77d09182a68e447e9e8b0ffc21abf54618b96f07689dffbb6a41cf0356542969"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.11.tar.gz", hash = "sha256:24d64e441168851eb05f1d022de18ae31558f5649c8f1117e384c2e85e31315b"},
