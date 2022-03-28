@@ -1,3 +1,4 @@
+import enum
 import os
 from io import BytesIO
 from unittest.mock import patch
@@ -171,10 +172,19 @@ def test_filter_input():
     assert created.type == CreatedEnum
 
 
+class TestPermission(enum.Enum):
+    TEST = "test"
+
+
 @patch("graphene.types.mutation.Mutation.__init_subclass_with_meta__")
 @pytest.mark.parametrize(
     "should_fail,permissions_value",
-    ((False, "valid"), (False, ("valid",)), (True, 123)),
+    (
+        (False, (TestPermission.TEST,)),
+        (True, TestPermission.TEST),
+        (True, 123),
+        (True, ("TEST",)),
+    ),
 )
 def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_value):
     def _run_test():
@@ -188,10 +198,8 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
         _run_test()
         return
 
-    with pytest.raises(ImproperlyConfigured) as exc:
+    with pytest.raises(ImproperlyConfigured):
         _run_test()
-
-    assert exc.value.args[0] == "Permissions should be a tuple or a string in Meta"
 
 
 @pytest.mark.parametrize(

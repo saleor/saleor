@@ -3,7 +3,7 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -37,10 +37,10 @@ class CheckoutCustomerAttach(BaseMutation):
         description = "Sets the customer as the owner of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated or context.app
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_USER,
+        )
 
     @classmethod
     def perform_mutation(
@@ -62,7 +62,12 @@ class CheckoutCustomerAttach(BaseMutation):
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
         if checkout.user_id:
-            raise PermissionDenied()
+            raise PermissionDenied(
+                message=(
+                    "You cannot reassign a checkout that is already attached to a "
+                    "user."
+                )
+            )
 
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)
