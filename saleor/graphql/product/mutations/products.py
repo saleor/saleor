@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.exceptions import PermissionDenied, PreorderAllocationError
+from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
@@ -176,8 +176,6 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Category)
 

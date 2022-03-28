@@ -8,7 +8,12 @@ from graphene import relay
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    AppPermission,
+    AuthorizationFilters,
+    OrderPermissions,
+)
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ..account.utils import check_requestor_access
@@ -165,7 +170,13 @@ class CustomerEvent(ModelObjectType):
             or user.has_perm(AccountPermissions.MANAGE_STAFF)
         ):
             return root.user
-        raise PermissionDenied()
+        raise PermissionDenied(
+            permissions=[
+                AccountPermissions.MANAGE_STAFF,
+                AccountPermissions.MANAGE_USERS,
+                AuthorizationFilters.OWNER,
+            ]
+        )
 
     @staticmethod
     def resolve_app(root: models.CustomerEvent, info):
@@ -364,11 +375,16 @@ class User(ModelObjectType):
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 # allow fetch requestor orders (except drafts)
                 if root == info.context.user:
-                    orders = list(
-                        filter(lambda order: order.status != OrderStatus.DRAFT, orders)
-                    )
+                    orders = [
+                        order for order in orders if order.status != OrderStatus.DRAFT
+                    ]
                 else:
-                    raise PermissionDenied()
+                    raise PermissionDenied(
+                        permissions=[
+                            AuthorizationFilters.OWNER,
+                            OrderPermissions.MANAGE_ORDERS,
+                        ]
+                    )
 
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection
@@ -393,7 +409,7 @@ class User(ModelObjectType):
 
         if root == info.context.user:
             return resolve_payment_sources(info, root, channel_slug=channel)
-        raise PermissionDenied()
+        raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
@@ -491,7 +507,9 @@ class StaffNotificationRecipient(graphene.ObjectType):
         user = info.context.user
         if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
             return root.user
-        raise PermissionDenied()
+        raise PermissionDenied(
+            permissions=[AccountPermissions.MANAGE_STAFF, AuthorizationFilters.OWNER]
+        )
 
     @staticmethod
     def resolve_email(root: models.StaffNotificationRecipient, _info):

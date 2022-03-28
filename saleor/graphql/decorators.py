@@ -12,6 +12,8 @@ from ..core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
     has_one_of_permissions,
+    is_app,
+    is_staff_user,
 )
 from ..core.permissions import permission_required as core_permission_required
 from .utils import get_user_or_app_from_context
@@ -83,16 +85,25 @@ def one_of_permissions_required(perms: Iterable[Enum]):
 
 
 def _check_staff_member(context):
-    if not context.user.is_active or not context.user.is_staff:
-        raise PermissionDenied()
+    if not is_staff_user(context):
+        raise PermissionDenied(
+            message=(
+                "You need to be authenticated as a staff member to perform this action"
+            )
+        )
 
 
 staff_member_required = account_passes_test(_check_staff_member)
 
 
 def _check_staff_member_or_app(context):
-    if not context.app and (not context.user.is_active or not context.user.is_staff):
-        raise PermissionDenied()
+    if not (is_app(context) or is_staff_user(context)):
+        raise PermissionDenied(
+            message=(
+                "You need to be authenticated as a staff member or an app to perform "
+                "this action"
+            )
+        )
 
 
 staff_member_or_app_required = account_passes_test(_check_staff_member_or_app)
