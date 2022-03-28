@@ -6,9 +6,12 @@ from django.db import migrations, models
 
 def set_default_checkout_line_currency(apps, schema_editor):
     CheckoutLine = apps.get_model("checkout", "CheckoutLine")
-    for checkout_line in CheckoutLine.objects.all().iterator():
-        checkout_line.currency = checkout_line.checkout.currency
-        checkout_line.save(update_fields=["currency"])
+    lines = CheckoutLine.objects.select_related("checkout")
+
+    for line in lines:
+        line.currency = line.checkout.currency
+
+    CheckoutLine.objects.bulk_update(lines, ["currency"])
 
 
 class Migration(migrations.Migration):
