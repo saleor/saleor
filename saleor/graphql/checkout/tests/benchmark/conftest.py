@@ -16,65 +16,6 @@ def customer_checkout(customer_user, checkout_with_voucher_percentage_and_shippi
 
 
 @pytest.fixture()
-def checkout_with_variants(
-    checkout,
-    stock,
-    product_with_default_variant,
-    product_with_single_variant,
-    product_with_two_variants,
-):
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-
-    add_variant_to_checkout(
-        checkout_info, product_with_default_variant.variants.get(), 1
-    )
-    add_variant_to_checkout(
-        checkout_info, product_with_single_variant.variants.get(), 10
-    )
-    add_variant_to_checkout(
-        checkout_info, product_with_two_variants.variants.first(), 3
-    )
-    add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
-
-    checkout.save()
-    return checkout
-
-
-@pytest.fixture
-def checkout_with_variants_for_cc(
-    checkout, stocks_for_cc, product_variant_list, product_with_two_variants
-):
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
-
-    add_variant_to_checkout(checkout_info, product_variant_list[0], 3)
-    add_variant_to_checkout(checkout_info, product_variant_list[1], 10)
-    add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
-
-    checkout.save()
-    return checkout
-
-
-@pytest.fixture()
-def checkout_with_shipping_address(checkout_with_variants, address):
-    checkout = checkout_with_variants
-
-    checkout.shipping_address = address.get_copy()
-    checkout.save()
-
-    return checkout
-
-
-@pytest.fixture()
-def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address):
-    checkout = checkout_with_variants_for_cc
-
-    checkout.shipping_address = address.get_copy()
-    checkout.save()
-
-    return checkout
-
-
-@pytest.fixture()
 def checkout_with_shipping_method(checkout_with_shipping_address, shipping_method):
     checkout = checkout_with_shipping_address
 

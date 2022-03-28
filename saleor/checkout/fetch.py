@@ -214,20 +214,22 @@ def fetch_checkout_lines(
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
-    prefetched_fields = [
+    select_related_fields = ["variant__product__product_type"]
+    prefetch_related_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
         "variant__channel_listings__channel",
-        "variant__product__product_type",
     ]
     if prefetch_variant_attributes:
-        prefetched_fields.extend(
+        prefetch_related_fields.extend(
             [
                 "variant__attributes__assignment__attribute",
                 "variant__attributes__values",
             ]
         )
-    lines = checkout.lines.prefetch_related(*prefetched_fields)
+    lines = checkout.lines.select_related(*select_related_fields).prefetch_related(
+        *prefetch_related_fields
+    )
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
@@ -525,7 +527,7 @@ def update_delivery_method_lists_for_checkout_info(
 ):
     """Update the list of shipping methods for checkout info.
 
-    Shipping <methods excluded by Saleor's own business logic are not present
+    Shipping methods excluded by Saleor's own business logic are not present
     in the result list.
 
     Availability of shipping methods according to plugins is indicated

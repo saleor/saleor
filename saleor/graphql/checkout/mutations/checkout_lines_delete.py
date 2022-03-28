@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import invalidate_checkout_prices, recalculate_checkout_discount
+from ....checkout.utils import invalidate_checkout_prices
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types.common import CheckoutError
@@ -65,10 +65,9 @@ class CheckoutLinesDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+        invalidate_checkout_prices(
+            checkout_info, lines, manager, info.context.discounts, save=True
         )
-        invalidate_checkout_prices(checkout, save=True)
         manager.checkout_updated(checkout)
 
         return CheckoutLinesDelete(checkout=checkout)

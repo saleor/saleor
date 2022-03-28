@@ -844,6 +844,9 @@ def test_recalculate_checkout_discount_with_sale(
 
     recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
+
+    checkout.price_expiration = timezone.now()
+    checkout.save()
     assert calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -903,9 +906,14 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
         address=checkout.shipping_address,
     ).gross + Money("10.00", "USD")
     channel_listing.save()
+    checkout.price_expiration = timezone.now()
+    checkout.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     recalculate_checkout_discount(manager, checkout_info, lines, None)
+
+    checkout.price_expiration = timezone.now()
+    checkout.save()
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -942,9 +950,13 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
         address=checkout.shipping_address,
     ).gross - Money("1.00", "USD")
     channel_listing.save()
+    checkout.price_expiration = timezone.now()
+    checkout.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     recalculate_checkout_discount(manager, checkout_info, lines, None)
+    checkout.price_expiration = timezone.now()
+    checkout.save()
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"

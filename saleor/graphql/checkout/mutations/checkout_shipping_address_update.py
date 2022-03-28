@@ -14,7 +14,6 @@ from ....checkout.utils import (
     change_shipping_address_in_checkout,
     invalidate_checkout_prices,
     is_shipping_required,
-    recalculate_checkout_discount,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
@@ -163,9 +162,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 manager,
                 shipping_channel_listings,
             )
-        recalculate_checkout_discount(manager, checkout_info, lines, discounts)
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout, save=False
+            checkout_info, lines, manager, discounts, save=False
         )
         checkout.save(
             update_fields=shipping_address_updated_fields

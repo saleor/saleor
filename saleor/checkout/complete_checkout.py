@@ -13,7 +13,7 @@ from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import TaxError, zero_taxed_money
+from ..core.taxes import TaxError
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
@@ -43,7 +43,7 @@ from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
-from .calculations import force_taxes_recalculation
+from .calculations import fetch_checkout_prices_if_expired
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
 from .utils import get_voucher_for_checkout_info
@@ -350,18 +350,13 @@ def _prepare_order_data(
         checkout_info.shipping_address or checkout_info.billing_address
     )  # FIXME: check which address we need here
 
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,
     )
-    cards_total = checkout.get_total_gift_cards_balance()
-    taxed_total.gross -= cards_total
-    taxed_total.net -= cards_total
-
-    taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
     undiscounted_total = taxed_total + checkout.discount
 
     shipping_total = calculations.checkout_shipping_price(
@@ -705,12 +700,7 @@ def complete_checkout(
     :raises ValidationError
     """
 
-    force_taxes_recalculation(
-        checkout_info=checkout_info,
-        manager=manager,
-        lines=lines,
-        discounts=discounts,
-    )
+    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug

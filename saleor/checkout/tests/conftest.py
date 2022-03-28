@@ -49,9 +49,8 @@ def priced_checkout_factory():
         checkout.shipping_price_gross_amount *= tax
         checkout.subtotal_gross_amount *= tax
         checkout.total_gross_amount *= tax
-
-        checkout.price_expiration = timezone.now() - timedelta(minutes=10)
-
+        # Cache prices until invalidated by force
+        checkout.price_expiration = timezone.now() + timedelta(days=1)
         checkout.save()
 
         return checkout

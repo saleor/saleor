@@ -124,24 +124,24 @@ def fetch_order_prices_if_expired(
     Prices will be updated if force_update is True,
     or if order.should_refresh_prices is True.
     """
-    with transaction.atomic():
-        if order.status not in ORDER_EDITABLE_STATUS:
-            return order, lines
+    if order.status not in ORDER_EDITABLE_STATUS:
+        return order, lines
 
-        if not force_update and not order.should_refresh_prices:
-            return order, lines
+    if not force_update and not order.should_refresh_prices:
+        return order, lines
 
-        if lines is None:
-            lines = list(order.lines.prefetch_related("variant__product"))
-        else:
-            prefetch_related_objects(lines, "variant__product")
+    if lines is None:
+        lines = list(order.lines.select_related("variant__product__product_type"))
+    else:
+        prefetch_related_objects(lines, "variant__product__product_type")
 
-        order.should_refresh_prices = False
+    order.should_refresh_prices = False
 
-        _recalculate_order_prices(manager, order, lines)
+    _recalculate_order_prices(manager, order, lines)
 
-        tax_data = manager.get_taxes_for_order(order)
+    tax_data = manager.get_taxes_for_order(order)
 
+    with transaction.atomic(savepoint=False):
         if tax_data:
             _apply_tax_data(order, lines, tax_data)
 

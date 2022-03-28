@@ -132,7 +132,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
 `CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
 unavailable - #8978 by @IKarbowiak
-- Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
 - Add support for providing shipping methods by Saleor Apps - #7975 by @bogdal:
   - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook

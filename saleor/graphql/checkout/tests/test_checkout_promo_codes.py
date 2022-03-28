@@ -5,6 +5,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.utils import timezone
 from prices import Money
 
 from ....checkout import base_calculations, calculations
@@ -244,6 +245,11 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                     id
                     last4CodeChars
                 }
+                subtotalPrice {
+                    gross {
+                        amount
+                    }
+                }
                 totalPrice {
                     gross {
                         amount
@@ -280,6 +286,31 @@ def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, vouc
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_voucher_code_invalidates_price(
+    api_client, checkout_with_item, voucher
+):
+    # given
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+    )
+    expected_total = subtotal.amount - voucher.channel_listings.get().discount.amount
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
@@ -399,6 +430,7 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     subtotal = calculations.checkout_subtotal(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
+    checkout_with_item.price_expiration = timezone.now()
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -438,6 +470,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout_with_item.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -479,6 +512,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         address=checkout.shipping_address,
     )
 
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -517,6 +551,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -555,6 +590,7 @@ def test_checkout_add_category_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
+    checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -735,14 +771,12 @@ def test_checkout_get_total_with_many_gift_card(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_gift_card)
     checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, [], manager)
-    taxed_total = calculations.checkout_total(
+    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_gift_card.shipping_address,
     )
-    taxed_total.gross -= checkout_with_gift_card.get_total_gift_cards_balance()
-    taxed_total.net -= checkout_with_gift_card.get_total_gift_cards_balance()
     total_with_gift_card = (
         taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount
     )
@@ -857,6 +891,7 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     variant = variant_with_many_stocks_different_shipping_zones
     add_variant_to_checkout(checkout_info, variant, 5)
+    checkout.save()
 
     # Apply voucher
     variables = {"token": checkout.token, "promoCode": voucher.code}
@@ -995,6 +1030,16 @@ MUTATION_CHECKOUT_REMOVE_PROMO_CODE = """
                     id
                     last4CodeChars
                 }
+                totalPrice {
+                    gross {
+                        amount
+                    }
+                }
+                subtotalPrice {
+                    gross {
+                        amount
+                    }
+                }
             }
         }
     }
@@ -1024,6 +1069,33 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
     assert checkout_with_voucher.last_change != previous_checkout_last_change
+
+
+def test_checkout_remove_voucher_code_invalidates_price(
+    api_client, checkout_with_item, voucher
+):
+    # given
+    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.voucher_code = voucher.code
+    checkout_with_item.save(update_fields=["voucher_code", "price_expiration"])
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    subtotal = base_calculations.base_checkout_subtotal(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+    )
+    expected_total = subtotal.amount
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total
 
 
 def test_checkout_remove_voucher_code_with_inactive_channel(
@@ -1091,6 +1163,8 @@ def test_checkout_remove_one_of_gift_cards(
 
 
 def test_checkout_remove_promo_code_invalid_promo_code(api_client, checkout_with_item):
+    checkout_with_item.price_expiration = timezone.now() + timedelta(days=2)
+    checkout_with_item.save(update_fields=["price_expiration"])
     previous_checkout_last_change = checkout_with_item.last_change
     variables = {"token": checkout_with_item.token, "promoCode": "unexisting_code"}
 

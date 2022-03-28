@@ -470,6 +470,65 @@ def checkout_with_variant_without_inventory_tracking(
     return checkout
 
 
+@pytest.fixture()
+def checkout_with_variants(
+    checkout,
+    stock,
+    product_with_default_variant,
+    product_with_single_variant,
+    product_with_two_variants,
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+
+    add_variant_to_checkout(
+        checkout_info, product_with_default_variant.variants.get(), 1
+    )
+    add_variant_to_checkout(
+        checkout_info, product_with_single_variant.variants.get(), 10
+    )
+    add_variant_to_checkout(
+        checkout_info, product_with_two_variants.variants.first(), 3
+    )
+    add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
+
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture()
+def checkout_with_shipping_address(checkout_with_variants, address):
+    checkout = checkout_with_variants
+
+    checkout.shipping_address = address.get_copy()
+    checkout.save()
+
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_variants_for_cc(
+    checkout, stocks_for_cc, product_variant_list, product_with_two_variants
+):
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+
+    add_variant_to_checkout(checkout_info, product_variant_list[0], 3)
+    add_variant_to_checkout(checkout_info, product_variant_list[1], 10)
+    add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
+
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture()
+def checkout_with_shipping_address_for_cc(checkout_with_variants_for_cc, address):
+    checkout = checkout_with_variants_for_cc
+
+    checkout.shipping_address = address.get_copy()
+    checkout.save()
+
+    return checkout
+
+
 @pytest.fixture
 def checkout_with_items(checkout, product_list, product):
     variant = product.variants.get()
@@ -478,6 +537,7 @@ def checkout_with_items(checkout, product_list, product):
     for prod in product_list:
         variant = prod.variants.get()
         add_variant_to_checkout(checkout_info, variant, 1)
+    checkout.save()
     checkout.refresh_from_db()
     return checkout
 
@@ -5221,6 +5281,30 @@ def shipping_app(db, permission_manage_shipping):
 
 
 @pytest.fixture
+def tax_app(db, permission_handle_taxes):
+    app = App.objects.create(name="Tax App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_handle_taxes)
+
+    webhook = Webhook.objects.create(
+        name="tax-webhook-1",
+        app=app,
+        target_url="https://tax-app.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in [
+                WebhookEventSyncType.FETCH_TAX_CODES,
+                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
+                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+            ]
+        ]
+    )
+    return app
+
+
+@pytest.fixture
 def external_app(db):
     app = App.objects.create(
         name="External App",
@@ -5453,7 +5537,6 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
-        price_expiration=timezone.now() + settings.CHECKOUT_PRICES_TTL,
         email=customer_user.email,
     )
 

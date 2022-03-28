@@ -52,12 +52,27 @@ if TYPE_CHECKING:
 PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
 
 
-def invalidate_checkout_prices(checkout: models.Checkout, *, save: bool) -> List[str]:
+def invalidate_checkout_prices(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    manager: "PluginsManager",
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
+    *,
+    recalculate_discount: bool = True,
+    save: bool
+) -> List[str]:
     """Mark checkout as ready for prices recalculation."""
+    checkout = checkout_info.checkout
+
+    if recalculate_discount:
+        recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
+
     checkout.price_expiration = timezone.now()
-    updated_fields = ["price_expiration"]
+    updated_fields = ["price_expiration", "last_change"]
+
     if save:
         checkout.save(update_fields=updated_fields)
+
     return updated_fields
 
 
@@ -151,6 +166,8 @@ def add_variant_to_checkout(
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
 
+    # invalidate calculated prices
+    checkout.price_expiration = timezone.now()
     return checkout
 
 
@@ -498,6 +515,31 @@ def get_voucher_for_checkout_info(
     )
 
 
+def check_voucher_for_checkout(
+    voucher: Voucher,
+    manager: PluginsManager,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
+):
+    checkout = checkout_info.checkout
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    try:
+        discount = get_voucher_discount_for_checkout(
+            manager,
+            voucher,
+            checkout_info,
+            lines,
+            address,
+            discounts,
+        )
+        return discount
+    except NotApplicable:
+        remove_voucher_from_checkout(checkout)
+        checkout_info.voucher = None
+        return None
+
+
 def recalculate_checkout_discount(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
@@ -511,20 +553,14 @@ def recalculate_checkout_discount(
     """
     checkout = checkout_info.checkout
     if voucher := checkout_info.voucher:
-        address = checkout_info.shipping_address or checkout_info.billing_address
-        try:
-            discount = get_voucher_discount_for_checkout(
-                manager,
-                voucher,
-                checkout_info,
-                lines,
-                address,
-                discounts,
-            )
-        except NotApplicable:
-            remove_voucher_from_checkout(checkout)
-            checkout_info.voucher = None
-        else:
+        discount = check_voucher_for_checkout(
+            voucher,
+            manager,
+            checkout_info,
+            lines,
+            discounts,
+        )
+        if discount:
             subtotal = base_calculations.base_checkout_subtotal(
                 lines,
                 checkout_info.channel,
@@ -661,20 +697,33 @@ def add_voucher_to_checkout(
     checkout_info.voucher = voucher
 
 
-def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
-    """Remove gift card or voucher data from checkout."""
+def remove_promo_code_from_checkout(
+    checkout_info: "CheckoutInfo", promo_code: str
+) -> bool:
+    """Remove gift card or voucher data from checkout.
+
+    Return information whether promo code was removed.
+    """
     if promo_code_is_voucher(promo_code):
-        remove_voucher_code_from_checkout(checkout_info, promo_code)
+        return remove_voucher_code_from_checkout(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
+        return remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
+    return False
 
 
-def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
-    """Remove voucher data from checkout by code."""
+def remove_voucher_code_from_checkout(
+    checkout_info: "CheckoutInfo", voucher_code: str
+) -> bool:
+    """Remove voucher data from checkout by code.
+
+    Return information whether promo code was removed.
+    """
     existing_voucher = checkout_info.voucher
     if existing_voucher and existing_voucher.code == voucher_code:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
+        return True
+    return False
 
 
 def remove_voucher_from_checkout(checkout: Checkout):
@@ -787,15 +836,12 @@ def is_fully_paid(
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
     address = checkout_info.shipping_address or checkout_info.billing_address
-    checkout_total = (
-        calculations.checkout_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=address,
-            discounts=discounts,
-        )
-        - checkout.get_total_gift_cards_balance()
+    checkout_total = calculations.calculate_checkout_total_with_gift_cards(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
     checkout_total = max(
         checkout_total, zero_taxed_money(checkout_total.currency)

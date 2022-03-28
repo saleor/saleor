@@ -238,22 +238,6 @@ def checkout_line_tax_rate(
     return checkout_line_info.line.tax_rate
 
 
-def force_taxes_recalculation(
-    checkout_info: "CheckoutInfo",
-    manager: "PluginsManager",
-    lines: Iterable["CheckoutLineInfo"],
-    address: Optional["Address"] = None,
-    discounts: Optional[Iterable["DiscountInfo"]] = None,
-) -> None:
-    """Fetch checkout prices with taxes.
-
-    Prices will be updated without taking into consideration price_expiration.
-    """
-    fetch_checkout_prices_if_expired(
-        checkout_info, manager, lines, address, discounts, force_update=True
-    )
-
-
 def fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -271,22 +255,22 @@ def fetch_checkout_prices_if_expired(
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
     checkout = checkout_info.checkout
-
-    if not force_update and checkout.price_expiration < timezone.now():
+    if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines
 
+    # Taxes are applied to the discounted prices
     _apply_tax_data_from_plugins(
         checkout, manager, checkout_info, lines, address, discounts
     )
 
     tax_data = manager.get_taxes_for_checkout(checkout)
-
     if tax_data:
         _apply_tax_data(checkout, lines, tax_data)
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
+            "voucher_code",
             "total_net_amount",
             "total_gross_amount",
             "subtotal_net_amount",
@@ -295,6 +279,10 @@ def fetch_checkout_prices_if_expired(
             "shipping_price_gross_amount",
             "shipping_tax_rate",
             "price_expiration",
+            "translated_discount_name",
+            "discount_amount",
+            "discount_name",
+            "currency",
         ]
     )
 
