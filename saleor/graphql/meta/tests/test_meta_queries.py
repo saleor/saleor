@@ -306,7 +306,7 @@ def test_query_public_meta_for_order_by_token_as_anonymous_user(api_client, orde
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = api_client.post_graphql(QUERY_ORDER_BY_TOKEN_PUBLIC_META, variables)
@@ -323,7 +323,7 @@ def test_query_public_meta_for_order_by_token_as_customer(user_api_client, order
     order.user = user_api_client.user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["user", "metadata"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = user_api_client.post_graphql(QUERY_ORDER_BY_TOKEN_PUBLIC_META, variables)
@@ -342,7 +342,7 @@ def test_query_public_meta_for_order_by_token_as_staff(
     order.user = customer_user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["user", "metadata"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = staff_api_client.post_graphql(
@@ -366,7 +366,7 @@ def test_query_public_meta_for_order_by_token_as_app(
     order.user = customer_user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["user", "metadata"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = app_api_client.post_graphql(
@@ -574,7 +574,7 @@ def test_query_public_meta_for_fulfillment_as_anonymous_user(
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     fulfillment.save(update_fields=["metadata"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = api_client.post_graphql(QUERY_FULFILLMENT_PUBLIC_META, variables)
@@ -595,7 +595,7 @@ def test_query_public_meta_for_fulfillment_as_customer(
     fulfillment.save(update_fields=["metadata"])
     fulfilled_order.user = user_api_client.user
     fulfilled_order.save(update_fields=["user"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = user_api_client.post_graphql(QUERY_FULFILLMENT_PUBLIC_META, variables)
@@ -616,7 +616,7 @@ def test_query_public_meta_for_fulfillment_as_staff(
     fulfillment.save(update_fields=["metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = staff_api_client.post_graphql(
@@ -642,7 +642,7 @@ def test_query_public_meta_for_fulfillment_as_app(
     fulfillment.save(update_fields=["metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = app_api_client.post_graphql(
@@ -1959,7 +1959,7 @@ QUERY_ORDER_BY_TOKEN_PRIVATE_META = """
 
 def test_query_private_meta_for_order_by_token_as_anonymous_user(api_client, order):
     # given
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = api_client.post_graphql(QUERY_ORDER_BY_TOKEN_PRIVATE_META, variables)
@@ -1972,7 +1972,7 @@ def test_query_private_meta_for_order_by_token_as_customer(user_api_client, orde
     # given
     order.user = user_api_client.user
     order.save(update_fields=["user"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = user_api_client.post_graphql(
@@ -1990,7 +1990,7 @@ def test_query_private_meta_for_order_by_token_as_staff(
     order.user = customer_user
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     order.save(update_fields=["user", "private_metadata"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = staff_api_client.post_graphql(
@@ -2014,7 +2014,7 @@ def test_query_private_meta_for_order_by_token_as_app(
     order.user = customer_user
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     order.save(update_fields=["user", "private_metadata"])
-    variables = {"token": order.token}
+    variables = {"token": order.id}
 
     # when
     response = app_api_client.post_graphql(
@@ -2218,7 +2218,7 @@ def test_query_private_meta_for_fulfillment_as_anonymous_user(
     api_client, fulfilled_order
 ):
     # given
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = api_client.post_graphql(QUERY_FULFILLMENT_PRIVATE_META, variables)
@@ -2233,7 +2233,7 @@ def test_query_private_meta_for_fulfillment_as_customer(
     # given
     fulfilled_order.user = user_api_client.user
     fulfilled_order.save(update_fields=["user"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = user_api_client.post_graphql(QUERY_FULFILLMENT_PRIVATE_META, variables)
@@ -2251,7 +2251,7 @@ def test_query_private_meta_for_fulfillment_as_staff(
     fulfillment.save(update_fields=["private_metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = staff_api_client.post_graphql(
@@ -2277,7 +2277,7 @@ def test_query_private_meta_for_fulfillment_as_app(
     fulfillment.save(update_fields=["private_metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
-    variables = {"token": fulfilled_order.token}
+    variables = {"token": fulfilled_order.id}
 
     # when
     response = app_api_client.post_graphql(

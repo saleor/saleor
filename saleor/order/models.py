@@ -7,7 +7,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import connection, models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max
 from django.db.models.expressions import Exists, OuterRef
@@ -82,7 +82,18 @@ class OrderQueryset(models.QuerySet):
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
+def get_order_number():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT nextval('order_order_number_seq')")
+        result = cursor.fetchone()
+        return result[0]
+
+
 class Order(ModelWithMetadata):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    number = models.IntegerField(unique=True, default=get_order_number, editable=False)
+    use_old_id = models.BooleanField(default=False)
+
     created = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
@@ -178,7 +189,6 @@ class Order(ModelWithMetadata):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    token = models.CharField(max_length=36, unique=True, blank=True)
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
 
@@ -255,7 +265,7 @@ class Order(ModelWithMetadata):
     objects = models.Manager.from_queryset(OrderQueryset)()
 
     class Meta:
-        ordering = ("-pk",)
+        ordering = ("-number",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
@@ -272,11 +282,6 @@ class Order(ModelWithMetadata):
                 opclasses=["gin_trgm_ops"],
             ),
         ]
-
-    def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = str(uuid4())
-        return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
         return self.total_paid >= self.total.gross
@@ -426,7 +431,10 @@ class OrderLineQueryset(models.QuerySet):
 
 class OrderLine(models.Model):
     order = models.ForeignKey(
-        Order, related_name="lines", editable=False, on_delete=models.CASCADE
+        Order,
+        related_name="lines",
+        editable=False,
+        on_delete=models.CASCADE,
     )
     variant = models.ForeignKey(
         "product.ProductVariant",
@@ -592,7 +600,10 @@ class OrderLine(models.Model):
 class Fulfillment(ModelWithMetadata):
     fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
-        Order, related_name="fulfillments", editable=False, on_delete=models.CASCADE
+        Order,
+        related_name="fulfillments",
+        editable=False,
+        on_delete=models.CASCADE,
     )
     status = models.CharField(
         max_length=32,
@@ -635,7 +646,7 @@ class Fulfillment(ModelWithMetadata):
 
     @property
     def composed_id(self):
-        return "%s-%s" % (self.order.id, self.fulfillment_order)
+        return "%s-%s" % (self.order.number, self.fulfillment_order)
 
     def can_edit(self):
         return self.status != FulfillmentStatus.CANCELED

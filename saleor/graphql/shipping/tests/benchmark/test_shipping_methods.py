@@ -173,7 +173,7 @@ def test_exclude_products_for_shipping_method_already_has_excluded_products(
 
 REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION = """
     mutation shippingPriceRemoveProductFromExclude(
-        $id: ID!, $products: [ID]!
+        $id: ID!, $products: [ID!]!
         ) {
         shippingPriceRemoveProductFromExclude(
             id: $id

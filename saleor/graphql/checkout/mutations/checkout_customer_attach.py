@@ -1,12 +1,13 @@
 import graphene
+from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
@@ -36,10 +37,10 @@ class CheckoutCustomerAttach(BaseMutation):
         description = "Sets the customer as the owner of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated or context.app
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_USER,
+        )
 
     @classmethod
     def perform_mutation(
@@ -61,7 +62,12 @@ class CheckoutCustomerAttach(BaseMutation):
         # Raise error when trying to attach a user to a checkout
         # that is already owned by another user.
         if checkout.user_id:
-            raise PermissionDenied()
+            raise PermissionDenied(
+                message=(
+                    "You cannot reassign a checkout that is already attached to a "
+                    "user."
+                )
+            )
 
         if customer_id:
             requestor = get_user_or_app_from_context(info.context)
@@ -70,6 +76,16 @@ class CheckoutCustomerAttach(BaseMutation):
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
+        elif info.context.user.is_anonymous:
+            raise ValidationError(
+                {
+                    "customer_id": ValidationError(
+                        "The customerId value must be provided "
+                        "when running mutation as app.",
+                        code=CheckoutErrorCode.REQUIRED.value,
+                    )
+                }
+            )
         else:
             customer = info.context.user
 

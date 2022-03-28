@@ -6,7 +6,7 @@ from ...plugins.error_codes import PluginErrorCode
 from ...plugins.manager import get_plugins_manager
 from ..channel.types import Channel
 from ..core.mutations import BaseMutation
-from ..core.types.common import PluginError
+from ..core.types import NonNullList, PluginError
 from .resolvers import resolve_plugin
 from .types import Plugin
 
@@ -22,7 +22,7 @@ class PluginUpdateInput(graphene.InputObjectType):
     active = graphene.Boolean(
         required=False, description="Indicates whether the plugin should be enabled."
     )
-    configuration = graphene.List(
+    configuration = NonNullList(
         ConfigurationItemInput,
         required=False,
         description="Configuration of the plugin.",

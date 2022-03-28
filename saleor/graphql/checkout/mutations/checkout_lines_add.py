@@ -11,7 +11,7 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import (
     validate_one_of_args_is_in_mutation,
     validate_variants_available_in_channel,
@@ -40,7 +40,7 @@ class CheckoutLinesAdd(BaseMutation):
             required=False,
         )
         token = UUID(description="Checkout token.", required=False)
-        lines = graphene.List(
+        lines = NonNullList(
             CheckoutLineInput,
             required=True,
             description=(

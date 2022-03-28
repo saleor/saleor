@@ -4,7 +4,7 @@ from .....page.models import Page
 from ....tests.utils import get_graphql_content
 
 MUTATION_PUBLISH_PAGES = """
-    mutation publishManyPages($ids: [ID]!, $is_published: Boolean!) {
+    mutation publishManyPages($ids: [ID!]!, $is_published: Boolean!) {
         pageBulkPublish(ids: $ids, isPublished: $is_published) {
             count
         }

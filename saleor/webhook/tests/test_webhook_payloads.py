@@ -141,7 +141,7 @@ def test_generate_order_payload(
     assert payload == {
         "id": graphene.Node.to_global_id("Order", order.id),
         "type": "Order",
-        "token": order.token,
+        "token": str(order.id),
         "created": parse_django_datetime(order.created),
         "status": order.status,
         "origin": order.origin,
@@ -328,7 +328,7 @@ def test_generate_order_payload_without_taxes(
     assert payload == {
         "id": graphene.Node.to_global_id("Order", order.id),
         "type": "Order",
-        "token": order.token,
+        "token": str(order.id),
         "created": parse_django_datetime(order.created),
         "status": order.status,
         "origin": order.origin,
@@ -970,7 +970,7 @@ def test_generate_invoice_payload(fulfilled_order):
         },
         "order": {
             "type": "Order",
-            "token": invoice.order.token,
+            "token": str(invoice.order.id),
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
             "private_metadata": {},
             "metadata": {},

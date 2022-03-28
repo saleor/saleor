@@ -9,7 +9,7 @@ from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import JSONString
-from ..core.types import ModelObjectType, Money
+from ..core.types import ModelObjectType, Money, NonNullList
 from ..decorators import permission_required
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
@@ -48,11 +48,11 @@ class CreditCard(graphene.ObjectType):
         description="Last 4 digits of the card number.", required=True
     )
     exp_month = graphene.Int(
-        description=("Two-digit number representing the card’s expiration month."),
+        description="Two-digit number representing the card’s expiration month.",
         required=False,
     )
     exp_year = graphene.Int(
-        description=("Four-digit number representing the card’s expiration year."),
+        description="Four-digit number representing the card’s expiration year.",
         required=False,
     )
 
@@ -69,7 +69,7 @@ class PaymentSource(graphene.ObjectType):
     credit_card_info = graphene.Field(
         CreditCard, description="Stored credit card details if available."
     )
-    metadata = graphene.List(
+    metadata = NonNullList(
         MetadataItem,
         required=True,
         description=(
@@ -93,7 +93,7 @@ class Payment(ModelObjectType):
     charge_status = PaymentChargeStatusEnum(
         description="Internal payment status.", required=True
     )
-    actions = graphene.List(
+    actions = NonNullList(
         OrderAction,
         description=(
             "List of actions that can be performed in the current state of a payment."
@@ -104,7 +104,7 @@ class Payment(ModelObjectType):
     captured_amount = graphene.Field(
         Money, description="Total amount captured for this payment."
     )
-    transactions = graphene.List(
+    transactions = NonNullList(
         Transaction, description="List of all transactions within this payment."
     )
     available_capture_amount = graphene.Field(

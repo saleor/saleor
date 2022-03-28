@@ -31,7 +31,7 @@ def test_delete_shipping_methods(
     staff_api_client, shipping_method_list, permission_manage_shipping
 ):
     query = """
-    mutation shippingPriceBulkDelete($ids: [ID]!) {
+    mutation shippingPriceBulkDelete($ids: [ID!]!) {
         shippingPriceBulkDelete(ids: $ids) {
             count
         }
@@ -59,7 +59,7 @@ def test_delete_shipping_zones(
     staff_api_client, shipping_zone_list, permission_manage_shipping
 ):
     query = """
-    mutation shippingZoneBulkDelete($ids: [ID]!) {
+    mutation shippingZoneBulkDelete($ids: [ID!]!) {
         shippingZoneBulkDelete(ids: $ids) {
             count
         }

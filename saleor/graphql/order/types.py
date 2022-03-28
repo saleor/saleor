@@ -57,8 +57,15 @@ from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEA
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
-from ..core.types import ModelObjectType, Money, TaxedMoney, Weight
-from ..core.types.common import Image, OrderError
+from ..core.types import (
+    Image,
+    ModelObjectType,
+    Money,
+    NonNullList,
+    OrderError,
+    TaxedMoney,
+    Weight,
+)
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
@@ -187,11 +194,11 @@ class OrderEvent(ModelObjectType):
     invoice_number = graphene.String(
         description="Number of an invoice related to the order."
     )
-    oversold_items = graphene.List(
+    oversold_items = NonNullList(
         graphene.String, description="List of oversold lines names."
     )
-    lines = graphene.List(OrderEventOrderLineObject, description="The concerned lines.")
-    fulfilled_items = graphene.List(
+    lines = NonNullList(OrderEventOrderLineObject, description="The concerned lines.")
+    fulfilled_items = NonNullList(
         lambda: FulfillmentLine, description="The lines fulfilled."
     )
     warehouse = graphene.Field(
@@ -355,7 +362,7 @@ class OrderEvent(ModelObjectType):
         order_pk = root.parameters.get("related_order_pk")
         if not order_pk:
             return None
-        return OrderByIdLoader(info.context).load(order_pk)
+        return OrderByIdLoader(info.context).load(UUID(order_pk))
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -391,14 +398,14 @@ class Fulfillment(ModelObjectType):
     status = FulfillmentStatusEnum(required=True)
     tracking_number = graphene.String(required=True)
     created = graphene.DateTime(required=True)
-    lines = graphene.List(
+    lines = NonNullList(
         FulfillmentLine, description="List of lines for the fulfillment."
     )
     status_display = graphene.String(description="User-friendly fulfillment status.")
     warehouse = graphene.Field(
         Warehouse,
         required=False,
-        description=("Warehouse from fulfillment was fulfilled."),
+        description="Warehouse from fulfillment was fulfilled.",
     )
 
     class Meta:
@@ -477,8 +484,8 @@ class OrderLine(ModelObjectType):
     translated_variant_name = graphene.String(
         required=True, description="Variant name in the customer's language"
     )
-    allocations = graphene.List(
-        graphene.NonNull(Allocation),
+    allocations = NonNullList(
+        Allocation,
         description="List of allocations across warehouses.",
     )
     quantity_to_fulfill = graphene.Int(
@@ -681,37 +688,37 @@ class Order(ModelObjectType):
     shipping_method_name = graphene.String()
     collection_point_name = graphene.String()
     channel = graphene.Field(Channel, required=True)
-    fulfillments = graphene.List(
+    fulfillments = NonNullList(
         Fulfillment, required=True, description="List of shipments for the order."
     )
-    lines = graphene.List(
+    lines = NonNullList(
         lambda: OrderLine, required=True, description="List of order lines."
     )
-    actions = graphene.List(
+    actions = NonNullList(
         OrderAction,
         description=(
             "List of actions that can be performed in the current state of an order."
         ),
         required=True,
     )
-    available_shipping_methods = graphene.List(
+    available_shipping_methods = NonNullList(
         ShippingMethod,
         required=False,
         description="Shipping methods that can be used with this order.",
         deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
     )
-    shipping_methods = graphene.List(
+    shipping_methods = NonNullList(
         ShippingMethod, description="Shipping methods related to this order."
     )
-    available_collection_points = graphene.List(
-        graphene.NonNull(Warehouse),
+    available_collection_points = NonNullList(
+        Warehouse,
         required=True,
         description=(
             f"{ADDED_IN_31} Collection points that can be used for this order. "
             f"{PREVIEW_FEATURE}"
         ),
     )
-    invoices = graphene.List(
+    invoices = NonNullList(
         Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
@@ -728,7 +735,7 @@ class Order(ModelObjectType):
     payment_status_display = graphene.String(
         description="User-friendly payment status.", required=True
     )
-    payments = graphene.List(Payment, description="List of payments for the order.")
+    payments = NonNullList(Payment, description="List of payments for the order.")
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
     )
@@ -749,9 +756,12 @@ class Order(ModelObjectType):
         TaxedMoney, description="Total price of shipping.", required=True
     )
     shipping_tax_rate = graphene.Float(required=True)
-    token = graphene.String(required=True)
+    token = graphene.String(
+        required=True,
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
+    )
     voucher = graphene.Field(Voucher)
-    gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
+    gift_cards = NonNullList(GiftCard, description="List of user gift cards.")
     display_gross_prices = graphene.Boolean(required=True)
     customerNote = graphene.Boolean(required=True)
     customer_note = graphene.String(required=True)
@@ -776,7 +786,7 @@ class Order(ModelObjectType):
     total_captured = graphene.Field(
         Money, description="Amount captured by payment.", required=True
     )
-    events = graphene.List(
+    events = NonNullList(
         OrderEvent, description="List of events associated with the order."
     )
     total_balance = graphene.Field(
@@ -828,13 +838,13 @@ class Order(ModelObjectType):
         ),
     )
 
-    discounts = graphene.List(
-        graphene.NonNull("saleor.graphql.discount.types.OrderDiscount"),
+    discounts = NonNullList(
+        "saleor.graphql.discount.types.OrderDiscount",
         description="List of all discounts assigned to the order.",
         required=False,
     )
-    errors = graphene.List(
-        graphene.NonNull(OrderError),
+    errors = NonNullList(
+        OrderError,
         description="List of errors that occurred during order validation.",
         default_value=[],
         required=True,
@@ -844,6 +854,10 @@ class Order(ModelObjectType):
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Order
+
+    @staticmethod
+    def resolve_token(root: models.Order, info):
+        return root.id
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
@@ -1048,7 +1062,7 @@ class Order(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_total_captured(root: models.Order, info):
+    def resolve_total_captured(root: models.Order, _info):
         return root.total_paid
 
     @staticmethod
@@ -1087,7 +1101,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_number(root: models.Order, _info):
-        return str(root.pk)
+        return str(root.number)
 
     @staticmethod
     @traced_resolver

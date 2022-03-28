@@ -8,7 +8,12 @@ from graphene import relay
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    AppPermission,
+    AuthorizationFilters,
+    OrderPermissions,
+)
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ..account.utils import check_requestor_access
@@ -22,7 +27,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField
 from ..core.scalars import UUID
-from ..core.types import CountryDisplay, Image, ModelObjectType, Permission
+from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.dataloaders import GiftCardsByUserLoader
@@ -165,7 +170,13 @@ class CustomerEvent(ModelObjectType):
             or user.has_perm(AccountPermissions.MANAGE_STAFF)
         ):
             return root.user
-        raise PermissionDenied()
+        raise PermissionDenied(
+            permissions=[
+                AccountPermissions.MANAGE_STAFF,
+                AccountPermissions.MANAGE_USERS,
+                AuthorizationFilters.OWNER,
+            ]
+        )
 
     @staticmethod
     def resolve_app(root: models.CustomerEvent, info):
@@ -191,8 +202,8 @@ class CustomerEvent(ModelObjectType):
 
 
 class UserPermission(Permission):
-    source_permission_groups = graphene.List(
-        graphene.NonNull("saleor.graphql.account.types.Group"),
+    source_permission_groups = NonNullList(
+        "saleor.graphql.account.types.Group",
         description="List of user permission groups which contains this permission.",
         user_id=graphene.Argument(
             graphene.ID,
@@ -202,6 +213,7 @@ class UserPermission(Permission):
         required=False,
     )
 
+    @staticmethod
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
@@ -220,7 +232,7 @@ class User(ModelObjectType):
     last_name = graphene.String(required=True)
     is_staff = graphene.Boolean(required=True)
     is_active = graphene.Boolean(required=True)
-    addresses = graphene.List(Address, description="List of all user's addresses.")
+    addresses = NonNullList(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
         Checkout,
         description="Returns the last open checkout of this user.",
@@ -229,8 +241,8 @@ class User(ModelObjectType):
             "Use the `checkoutTokens` field to fetch the user checkouts."
         ),
     )
-    checkout_tokens = graphene.List(
-        graphene.NonNull(UUID),
+    checkout_tokens = NonNullList(
+        UUID,
         description="Returns the checkout UUID's assigned to this user.",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -245,22 +257,22 @@ class User(ModelObjectType):
         "saleor.graphql.order.types.OrderCountableConnection",
         description="List of user's orders.",
     )
-    user_permissions = graphene.List(
+    user_permissions = NonNullList(
         UserPermission, description="List of user's permissions."
     )
-    permission_groups = graphene.List(
+    permission_groups = NonNullList(
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups.",
     )
-    editable_groups = graphene.List(
+    editable_groups = NonNullList(
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
-    events = graphene.List(
+    events = NonNullList(
         CustomerEvent, description="List of events associated with the user."
     )
-    stored_payment_sources = graphene.List(
+    stored_payment_sources = NonNullList(
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
         channel=graphene.String(
@@ -363,11 +375,16 @@ class User(ModelObjectType):
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 # allow fetch requestor orders (except drafts)
                 if root == info.context.user:
-                    orders = list(
-                        filter(lambda order: order.status != OrderStatus.DRAFT, orders)
-                    )
+                    orders = [
+                        order for order in orders if order.status != OrderStatus.DRAFT
+                    ]
                 else:
-                    raise PermissionDenied()
+                    raise PermissionDenied(
+                        permissions=[
+                            AuthorizationFilters.OWNER,
+                            OrderPermissions.MANAGE_ORDERS,
+                        ]
+                    )
 
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection
@@ -392,7 +409,7 @@ class User(ModelObjectType):
 
         if root == info.context.user:
             return resolve_payment_sources(info, root, channel_slug=channel)
-        raise PermissionDenied()
+        raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
     @staticmethod
     def resolve_language_code(root, _info, **_kwargs):
@@ -439,18 +456,18 @@ class AddressValidationData(graphene.ObjectType):
     country_name = graphene.String()
     address_format = graphene.String()
     address_latin_format = graphene.String()
-    allowed_fields = graphene.List(graphene.String)
-    required_fields = graphene.List(graphene.String)
-    upper_fields = graphene.List(graphene.String)
+    allowed_fields = NonNullList(graphene.String)
+    required_fields = NonNullList(graphene.String)
+    upper_fields = NonNullList(graphene.String)
     country_area_type = graphene.String()
-    country_area_choices = graphene.List(ChoiceValue)
+    country_area_choices = NonNullList(ChoiceValue)
     city_type = graphene.String()
-    city_choices = graphene.List(ChoiceValue)
+    city_choices = NonNullList(ChoiceValue)
     city_area_type = graphene.String()
-    city_area_choices = graphene.List(ChoiceValue)
+    city_area_choices = NonNullList(ChoiceValue)
     postal_code_type = graphene.String()
-    postal_code_matchers = graphene.List(graphene.String)
-    postal_code_examples = graphene.List(graphene.String)
+    postal_code_matchers = NonNullList(graphene.String)
+    postal_code_examples = NonNullList(graphene.String)
     postal_code_prefix = graphene.String()
 
 
@@ -490,7 +507,9 @@ class StaffNotificationRecipient(graphene.ObjectType):
         user = info.context.user
         if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
             return root.user
-        raise PermissionDenied()
+        raise PermissionDenied(
+            permissions=[AccountPermissions.MANAGE_STAFF, AuthorizationFilters.OWNER]
+        )
 
     @staticmethod
     def resolve_email(root: models.StaffNotificationRecipient, _info):
@@ -501,8 +520,8 @@ class StaffNotificationRecipient(graphene.ObjectType):
 class Group(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
-    users = graphene.List(User, description="List of group users")
-    permissions = graphene.List(Permission, description="List of group permissions")
+    users = NonNullList(User, description="List of group users")
+    permissions = NonNullList(Permission, description="List of group permissions")
     user_can_manage = graphene.Boolean(
         required=True,
         description=(

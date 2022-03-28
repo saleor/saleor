@@ -14,13 +14,11 @@ import sentry_sdk.utils
 from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
-from graphql.utils import schema_printer
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
-from . import patched_print_object
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 
 
@@ -578,6 +576,7 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     """
     sentry_sdk.init(dsn, **sentry_opts)
     ignore_logger("graphql.execution.utils")
+    ignore_logger("graphql.execution.executor")
 
 
 GRAPHENE = {
@@ -692,11 +691,3 @@ CHECKOUT_PRICES_TTL = timedelta(
 
 
 # Support multiple interface notation in schema for Apollo tooling.
-
-# In `graphql-core` V2 separator for interface is `,`.
-# Apollo tooling to generate TypeScript types using `&` as interfaces separator.
-# https://github.com/graphql-python/graphql-core-legacy/pull/258
-# https://github.com/graphql-python/graphql-core-legacy/issues/176
-
-assert hasattr(schema_printer, "_print_object")
-schema_printer._print_object = patched_print_object

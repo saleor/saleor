@@ -1,6 +1,9 @@
 from typing import Any, List
 
+from django.core.exceptions import ValidationError
+
 from ...account import models as account_models
+from ...account.error_codes import AccountErrorCode
 from ...attribute import AttributeType
 from ...attribute import models as attribute_models
 from ...core.exceptions import PermissionDenied
@@ -36,7 +39,13 @@ def public_user_permissions(info, user_pk: int) -> List[BasePermissionEnum]:
     """
     user = account_models.User.objects.filter(pk=user_pk).first()
     if not user:
-        raise PermissionDenied()
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Couldn't resolve user.", code=AccountErrorCode.NOT_FOUND.value
+                )
+            }
+        )
     if info.context.user.pk == user.pk:
         return []
     if user.is_staff:
@@ -117,7 +126,7 @@ def public_payment_permissions(info, payment_pk: int) -> List[BasePermissionEnum
 def private_payment_permissions(info, _object_pk: Any) -> List[BasePermissionEnum]:
     if info.context.app is not None or info.context.user.is_staff:
         return [PaymentPermissions.HANDLE_PAYMENTS]
-    raise PermissionDenied()
+    raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
 
 
 def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:

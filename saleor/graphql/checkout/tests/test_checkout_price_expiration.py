@@ -106,7 +106,7 @@ def test_checkout_lines_update_invalidate_prices(
 
 
 DELETE_CHECKOUT_LINES = """
-mutation deleteCheckoutLines($token: UUID!, $lineId: ID){
+mutation deleteCheckoutLines($token: UUID!, $lineId: ID!){
   checkoutLinesDelete(token: $token, linesIds: [$lineId]) {
     errors {
       field
@@ -149,7 +149,7 @@ def test_checkout_lines_delete_invalidate_prices(
 
 
 DELETE_CHECKOUT_LINE = """
-mutation deleteCheckoutLine($token: UUID!, $lineId: ID){
+mutation deleteCheckoutLine($token: UUID!, $lineId: ID!){
   checkoutLineDelete(token: $token, lineId: $lineId) {
     errors {
       field
@@ -192,7 +192,7 @@ def test_checkout_line_delete_invalidate_prices(
 
 
 UPDATE_CHECKOUT_SHIPPING_ADDRESS = """
-mutation UpdateCheckoutShippingAddress($token: UUID, $address: AddressInput!) {
+mutation UpdateCheckoutShippingAddress($token: UUID!, $address: AddressInput!) {
   checkoutShippingAddressUpdate(token: $token, shippingAddress: $address) {
     errors {
       field
@@ -237,7 +237,7 @@ def test_checkout_shipping_address_update_invalidate_prices(
 
 
 UPDATE_CHECKOUT_BILLING_ADDRESS = """
-mutation UpdateCheckoutBillingAddress($token: UUID, $address: AddressInput!) {
+mutation UpdateCheckoutBillingAddress($token: UUID!, $address: AddressInput!) {
   checkoutBillingAddressUpdate(token: $token, billingAddress: $address) {
     errors {
       field
@@ -281,7 +281,7 @@ def test_checkout_billing_address_update_invalidate_prices(
 
 
 UPDATE_CHECKOUT_SHIPPING_METHOD = """
-mutation updateCheckoutShippingOptions($token: UUID, $shippingMethodId: ID!) {
+mutation updateCheckoutShippingOptions($token: UUID!, $shippingMethodId: ID!) {
   checkoutShippingMethodUpdate(token: $token, shippingMethodId: $shippingMethodId) {
     errors {
       field
@@ -325,7 +325,7 @@ def test_checkout_shipping_method_update_invalidate_prices(
 
 
 UPDATE_CHECKOUT_DELIVERY_METHOD = """
-mutation updateCheckoutDeliveryOptions($token: UUID, $deliveryMethodId: ID) {
+mutation updateCheckoutDeliveryOptions($token: UUID!, $deliveryMethodId: ID!) {
   checkoutDeliveryMethodUpdate(token: $token, deliveryMethodId: $deliveryMethodId) {
     errors {
       field

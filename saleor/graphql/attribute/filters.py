@@ -61,6 +61,7 @@ def filter_attribute_type(qs, _, value):
 
 class AttributeValueFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="filter_search")
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = AttributeValue

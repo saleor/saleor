@@ -19,7 +19,7 @@ from ....order.utils import (
 )
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import OrderError
+from ...core.types import OrderError
 from ...discount.enums import DiscountValueTypeEnum
 from ..types import Order, OrderLine
 

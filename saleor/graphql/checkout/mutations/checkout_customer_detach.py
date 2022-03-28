@@ -2,11 +2,11 @@ import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
@@ -29,10 +29,10 @@ class CheckoutCustomerDetach(BaseMutation):
         description = "Removes the user assigned as the owner of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated or context.app
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_USER,
+        )
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id=None, token=None):

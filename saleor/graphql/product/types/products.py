@@ -57,6 +57,7 @@ from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.types import (
     Image,
     ModelObjectType,
+    NonNullList,
     TaxedMoney,
     TaxedMoneyRange,
     TaxType,
@@ -232,8 +233,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             "gateway to resolve this object in a federated query."
         ),
     )
-    channel_listings = graphene.List(
-        graphene.NonNull(ProductVariantChannelListing),
+    channel_listings = NonNullList(
+        ProductVariantChannelListing,
         description="List of price information in channels for the product.",
     )
     pricing = graphene.Field(
@@ -244,8 +245,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             "only meant for displaying."
         ),
     )
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
+    attributes = NonNullList(
+        SelectedAttribute,
         required=True,
         description="List of attributes assigned to this variant.",
         variant_selection=graphene.Argument(
@@ -264,13 +265,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             "optimizations suitable for such calculations."
         ),
     )
-    images = graphene.List(
+    images = NonNullList(
         lambda: ProductImage,
         description="List of images for the product variant.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
-    media = graphene.List(
-        graphene.NonNull(lambda: ProductMedia),
+    media = NonNullList(
+        lambda: ProductMedia,
         description="List of media for the product variant.",
     )
     translation = TranslationField(
@@ -282,7 +283,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         DigitalContent, description="Digital content for the product variant."
     )
     stocks = graphene.Field(
-        graphene.List(Stock),
+        NonNullList(Stock),
         description="Stocks for the product variant.",
         address=destination_address_argument,
         country_code=graphene.Argument(
@@ -770,13 +771,13 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
+    attributes = NonNullList(
+        SelectedAttribute,
         required=True,
         description="List of attributes assigned to this product.",
     )
-    channel_listings = graphene.List(
-        graphene.NonNull(ProductChannelListing),
+    channel_listings = NonNullList(
+        ProductChannelListing,
         description="List of availability in channels for the product.",
     )
     media_by_id = graphene.Field(
@@ -792,19 +793,19 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `mediaById` field instead."
         ),
     )
-    variants = graphene.List(
+    variants = NonNullList(
         ProductVariant, description="List of variants for the product."
     )
-    media = graphene.List(
-        graphene.NonNull(lambda: ProductMedia),
+    media = NonNullList(
+        lambda: ProductMedia,
         description="List of media for the product.",
     )
-    images = graphene.List(
+    images = NonNullList(
         lambda: ProductImage,
         description="List of images for the product.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
-    collections = graphene.List(
+    collections = NonNullList(
         lambda: Collection, description="List of collections for the product."
     )
     translation = TranslationField(
@@ -813,7 +814,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         resolver=ChannelContextType.resolve_translation,
     )
     available_for_purchase = graphene.Date(
-        description="Date when product is available for purchase. "
+        description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
@@ -1223,7 +1224,7 @@ class ProductType(ModelObjectType):
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
-    variant_attributes = graphene.List(
+    variant_attributes = NonNullList(
         Attribute,
         description="Variant attributes of that product type.",
         variant_selection=graphene.Argument(
@@ -1234,7 +1235,7 @@ class ProductType(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use `assignedVariantAttributes` instead."
         ),
     )
-    assigned_variant_attributes = graphene.List(
+    assigned_variant_attributes = NonNullList(
         AssignedVariantAttribute,
         description=(
             f"{ADDED_IN_31} Variant attributes of that product "
@@ -1245,7 +1246,7 @@ class ProductType(ModelObjectType):
             description="Define scope of returned attributes.",
         ),
     )
-    product_attributes = graphene.List(
+    product_attributes = NonNullList(
         Attribute, description="Product attributes of that product type."
     )
     available_attributes = FilterConnectionField(
@@ -1402,8 +1403,8 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         type_name="collection",
         resolver=ChannelContextType.resolve_translation,
     )
-    channel_listings = graphene.List(
-        graphene.NonNull(CollectionChannelListing),
+    channel_listings = NonNullList(
+        CollectionChannelListing,
         description="List of channels in which the collection is available.",
     )
 

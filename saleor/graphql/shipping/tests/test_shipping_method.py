@@ -15,8 +15,8 @@ CREATE_SHIPPING_ZONE_QUERY = """
         $name: String
         $description: String
         $default: Boolean
-        $countries: [String]
-        $addWarehouses: [ID]
+        $countries: [String!]
+        $addWarehouses: [ID!]
         $addChannels: [ID!]
     ) {
         shippingZoneCreate(
@@ -185,9 +185,9 @@ UPDATE_SHIPPING_ZONE_QUERY = """
         $name: String
         $description: String
         $default: Boolean
-        $countries: [String]
-        $addWarehouses: [ID]
-        $removeWarehouses: [ID]
+        $countries: [String!]
+        $addWarehouses: [ID!]
+        $removeWarehouses: [ID!]
         $addChannels: [ID!]
         $removeChannels: [ID!]
     ) {
@@ -1465,7 +1465,7 @@ def test_exclude_products_for_shipping_method_already_has_excluded_products(
 
 REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION = """
     mutation shippingPriceRemoveProductFromExclude(
-        $id: ID!, $products: [ID]!
+        $id: ID!, $products: [ID!]!
         ) {
         shippingPriceRemoveProductFromExclude(
             id: $id

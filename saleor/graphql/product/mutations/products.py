@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.exceptions import PermissionDenied, PreorderAllocationError
+from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
@@ -47,8 +47,7 @@ from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types import SeoInput, Upload
-from ...core.types.common import CollectionError, ProductError
+from ...core.types import CollectionError, NonNullList, ProductError, SeoInput, Upload
 from ...core.utils import (
     add_hash_to_file_name,
     clean_seo_fields,
@@ -177,8 +176,6 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Category)
 
@@ -204,7 +201,7 @@ class CollectionInput(graphene.InputObjectType):
 
 
 class CollectionCreateInput(CollectionInput):
-    products = graphene.List(
+    products = NonNullList(
         graphene.ID,
         description="List of products to be added to the collection.",
         name="products",
@@ -354,7 +351,7 @@ class CollectionReorderProducts(BaseMutation):
         collection_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a collection."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             MoveProductInput,
             required=True,
             description="The collection products position operations.",
@@ -418,7 +415,7 @@ class CollectionAddProducts(BaseMutation):
         collection_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a collection."
         )
-        products = graphene.List(
+        products = NonNullList(
             graphene.ID, required=True, description="List of product IDs."
         )
 
@@ -481,7 +478,7 @@ class CollectionRemoveProducts(BaseMutation):
         collection_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a collection."
         )
-        products = graphene.List(
+        products = NonNullList(
             graphene.ID, required=True, description="List of product IDs."
         )
 
@@ -516,15 +513,13 @@ class CollectionRemoveProducts(BaseMutation):
 
 
 class ProductInput(graphene.InputObjectType):
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput), description="List of attributes."
-    )
+    attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
         description="Determine if taxes are being charged for the product."
     )
-    collections = graphene.List(
-        graphene.NonNull(graphene.ID),
+    collections = NonNullList(
+        graphene.ID,
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
@@ -791,8 +786,8 @@ class PreorderSettingsInput(graphene.InputObjectType):
 
 
 class ProductVariantInput(graphene.InputObjectType):
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput),
+    attributes = NonNullList(
+        AttributeValueInput,
         required=False,
         description="List of attributes specific to this variant.",
     )
@@ -819,8 +814,8 @@ class ProductVariantInput(graphene.InputObjectType):
 
 
 class ProductVariantCreateInput(ProductVariantInput):
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput),
+    attributes = NonNullList(
+        AttributeValueInput,
         required=True,
         description="List of attributes specific to this variant.",
     )
@@ -829,9 +824,9 @@ class ProductVariantCreateInput(ProductVariantInput):
         name="product",
         required=True,
     )
-    stocks = graphene.List(
-        graphene.NonNull(StockInput),
-        description=("Stocks of a product available for sale."),
+    stocks = NonNullList(
+        StockInput,
+        description="Stocks of a product available for sale.",
         required=False,
     )
 
@@ -1240,12 +1235,12 @@ class ProductTypeInput(graphene.InputObjectType):
             "least one variant created under the hood."
         )
     )
-    product_attributes = graphene.List(
+    product_attributes = NonNullList(
         graphene.ID,
         description="List of attributes shared among all product variants.",
         name="productAttributes",
     )
-    variant_attributes = graphene.List(
+    variant_attributes = NonNullList(
         graphene.ID,
         description=(
             "List of attributes used to distinguish between different variants of "
@@ -1566,14 +1561,14 @@ class ProductMediaUpdate(BaseMutation):
 
 class ProductMediaReorder(BaseMutation):
     product = graphene.Field(Product)
-    media = graphene.List(graphene.NonNull(ProductMedia))
+    media = NonNullList(ProductMedia)
 
     class Arguments:
         product_id = graphene.ID(
             required=True,
             description="ID of product that media order will be altered.",
         )
-        media_ids = graphene.List(
+        media_ids = NonNullList(
             graphene.ID,
             required=True,
             description="IDs of a product media in the desired order.",
@@ -1687,7 +1682,7 @@ class ProductVariantReorder(BaseMutation):
             required=True,
             description="Id of product that variants order will be altered.",
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of variant reordering operations.",

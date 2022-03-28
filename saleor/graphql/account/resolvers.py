@@ -9,6 +9,7 @@ from ...account import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
+    AuthorizationFilters,
     OrderPermissions,
     has_one_of_permissions,
 )
@@ -201,12 +202,14 @@ def prepare_graphql_payment_sources_type(payment_sources):
 def resolve_address(info, id):
     user = info.context.user
     app = info.context.app
-    _model, address_pk = from_global_id_or_error(id, Address)
+    _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
-    raise PermissionDenied()
+    raise PermissionDenied(
+        permissions=[AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
+    )
 
 
 def resolve_addresses(info, ids):

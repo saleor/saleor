@@ -1,5 +1,6 @@
 import graphene
 
+from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..decorators import staff_member_or_app_required
 from .mutations import (
@@ -19,9 +20,7 @@ class ChannelQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the channel."),
         description="Look up a channel by ID.",
     )
-    channels = graphene.List(
-        graphene.NonNull(Channel), description="List of all channels."
-    )
+    channels = NonNullList(Channel, description="List of all channels.")
 
     @staff_member_or_app_required
     def resolve_channel(self, info, id=None, **kwargs):

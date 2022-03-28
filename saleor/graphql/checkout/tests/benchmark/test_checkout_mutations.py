@@ -579,7 +579,7 @@ def test_add_billing_address_to_checkout(
 MUTATION_CHECKOUT_LINES_UPDATE = (
     FRAGMENT_CHECKOUT_LINE
     + """
-        mutation updateCheckoutLine($token: UUID, $lines: [CheckoutLineInput]!){
+        mutation updateCheckoutLine($token: UUID, $lines: [CheckoutLineInput!]!){
           checkoutLinesUpdate(token: $token, lines: $lines) {
             checkout {
               id
@@ -741,7 +741,7 @@ def test_update_checkout_lines_with_reservations(
 MUTATION_CHECKOUT_LINES_ADD = (
     FRAGMENT_CHECKOUT_LINE
     + """
-        mutation addCheckoutLines($checkoutId: ID!, $lines: [CheckoutLineInput]!){
+        mutation addCheckoutLines($checkoutId: ID!, $lines: [CheckoutLineInput!]!){
           checkoutLinesAdd(checkoutId: $checkoutId, lines: $lines) {
             checkout {
               id

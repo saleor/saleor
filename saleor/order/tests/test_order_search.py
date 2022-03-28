@@ -17,7 +17,7 @@ def test_update_order_search_document(order):
     update_order_search_document(order)
 
     # then
-    assert f"{order.id}\n{order.user_email}\n".lower() in order.search_document
+    assert f"{order.number}\n{order.user_email}\n".lower() in order.search_document
 
 
 def test_prepare_order_search_document_value(
@@ -44,7 +44,7 @@ def test_prepare_order_search_document_value(
     search_document_value = prepare_order_search_document_value(order)
 
     # then
-    assert str(order.id) in search_document_value
+    assert str(order.number) in search_document_value
     user = order.user
     assert (
         f"{order.user_email}\n{user.email}\n{user.first_name}\n{user.last_name}".lower()
@@ -96,7 +96,7 @@ def test_prepare_order_search_document_value_empty_relation_fields(
     # then
     user = order.user
     assert (
-        f"#{order.id}\n{order.user_email}\n{user.email}\n"
+        f"#{order.number}\n{order.user_email}\n{user.email}\n"
         f"{user.first_name}\n{user.last_name}\n"
         f"{payment_id}\n".lower() == search_document_value
     )
@@ -118,4 +118,4 @@ def test_prepare_order_search_document_value_no_relations_data(order, address_us
     search_document_value = prepare_order_search_document_value(order)
 
     # then
-    assert f"#{order.id}\n{order.user_email}\n".lower() == search_document_value
+    assert f"#{order.number}\n{order.user_email}\n".lower() == search_document_value
