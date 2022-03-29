@@ -16,7 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
-
+- Add new mutation `orderCreateFromCheckout` - #9343 by @korycins
 
 # 3.1.7
 
