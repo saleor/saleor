@@ -94,7 +94,7 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
 
     required_permissions = get_required_permission(info, item_id)
 
-    if not required_permissions:
+    if not isinstance(required_permissions, list):
         raise PermissionDenied()
 
     requester = get_user_or_app_from_context(info.context)

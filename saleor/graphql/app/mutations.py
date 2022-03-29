@@ -16,6 +16,7 @@ from ..core import types as grapqhl_types
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import AppError, NonNullList
+from ..decorators import staff_member_required
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppInstallation, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
@@ -154,6 +155,11 @@ class AppCreate(ModelMutation):
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
+
+    @classmethod
+    @staff_member_required
+    def perform_mutation(cls, root, info, **data):
+        return super().perform_mutation(root, info, **data)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -370,6 +376,11 @@ class AppInstall(ModelMutation):
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
+
+    @classmethod
+    @staff_member_required
+    def perform_mutation(cls, root, info, **data):
+        return super().perform_mutation(root, info, **data)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
