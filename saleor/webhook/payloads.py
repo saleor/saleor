@@ -1211,7 +1211,7 @@ def generate_order_payload(
     with_meta: bool = True,
 ):
     manager = get_plugins_manager()
-    lines = OrderLine.objects.select_related("variant__product__product_type")
+    lines = order.lines.select_related("variant__product__product_type")
 
     return _generate_order_payload(
         order,
@@ -1230,7 +1230,7 @@ def generate_order_payload_without_taxes(
     requestor: Optional["RequestorOrLazyObject"] = None,
     with_meta: bool = True,
 ):
-    lines = OrderLine.objects.select_related("variant__product__product_type")
+    lines = order.lines.select_related("variant__product__product_type")
     included_taxes_in_prices = include_taxes_in_prices()
 
     return _generate_order_payload(
