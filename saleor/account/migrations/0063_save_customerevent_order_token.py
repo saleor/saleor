@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0127_add_order_number_and_alter_order_token"),
+        ("order", "0129_alter_order_number"),
         ("account", "0062_alter_user_updated_at"),
     ]
 

@@ -2,14 +2,6 @@
 import uuid
 
 from django.db import migrations, models
-from django.db.models import F
-
-import saleor.order.models
-
-
-def set_order_number(apps, schema_editor):
-    Order = apps.get_model("order", "Order")
-    Order.objects.all().update(number=F("id"), use_old_id=True)
 
 
 class Migration(migrations.Migration):
@@ -33,29 +25,5 @@ class Migration(migrations.Migration):
             model_name="order",
             name="number",
             field=models.IntegerField(blank=True, null=True),
-        ),
-        migrations.RunPython(set_order_number, reverse_code=migrations.RunPython.noop),
-        migrations.AlterField(
-            model_name="order",
-            name="number",
-            field=models.IntegerField(unique=True),
-        ),
-        # define auto incrementing for order number field
-        migrations.RunSQL(
-            """
-            CREATE SEQUENCE order_order_number_seq OWNED BY order_order.number;
-
-            SELECT setval('order_order_number_seq', coalesce(max(number), 0) + 1, false)
-            FROM order_order;
-        """
-        ),
-        migrations.AlterField(
-            model_name="order",
-            name="number",
-            field=models.IntegerField(
-                default=saleor.order.models.get_order_number,
-                editable=False,
-                unique=True,
-            ),
         ),
     ]
