@@ -82,7 +82,7 @@ def menu_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [MenuPermissions.MANAGE_MENUS]
 
 
-def app_permissions(info, object_pk: int) -> List[BasePermissionEnum]:
+def app_permissions(info, object_pk: str) -> List[BasePermissionEnum]:
     app = info.context.app
     if app and app.pk == int(object_pk):
         return []
