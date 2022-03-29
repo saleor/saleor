@@ -943,7 +943,9 @@ type Query {
     id: ID!
   ): Address
 
-  """List of the shop's customers."""
+  """
+  List of the shop's customers. Requires one of the following permissions: MANAGE_ORDERS, MANAGE_USERS.
+  """
   customers(
     """Filtering options for customers."""
     filter: CustomerFilterInput
@@ -964,7 +966,9 @@ type Query {
     last: Int
   ): UserCountableConnection
 
-  """List of permission groups."""
+  """
+  List of permission groups. Requires one of the following permissions: MANAGE_STAFF.
+  """
   permissionGroups(
     """Filtering options for permission groups."""
     filter: PermissionGroupFilterInput
@@ -985,7 +989,9 @@ type Query {
     last: Int
   ): GroupCountableConnection
 
-  """Look up permission group by ID."""
+  """
+  Look up permission group by ID. Requires one of the following permissions: MANAGE_STAFF.
+  """
   permissionGroup(
     """ID of the group."""
     id: ID!
@@ -994,7 +1000,9 @@ type Query {
   """Return the currently authenticated user."""
   me: User
 
-  """List of the shop's staff users."""
+  """
+  List of the shop's staff users. Requires one of the following permissions: MANAGE_STAFF.
+  """
   staffUsers(
     """Filtering options for staff users."""
     filter: StaffUserInput
@@ -1015,7 +1023,9 @@ type Query {
     last: Int
   ): UserCountableConnection
 
-  """Look up a user by ID or email address."""
+  """
+  Look up a user by ID or email address. Requires one of the following permissions: MANAGE_STAFF, MANAGE_USERS, MANAGE_ORDERS.
+  """
   user(
     """ID of the user."""
     id: ID

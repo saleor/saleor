@@ -23,6 +23,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
     AuthorizationFilters,
+    message_one_of_permissions_required,
     resolve_authorization_filter_fn,
 )
 from ..decorators import staff_member_or_app_required
@@ -150,11 +151,8 @@ class BaseMutation(graphene.Mutation):
         _meta.errors_mapping = errors_mapping
 
         if permissions and auto_permission_message:
-            permission_msg = ", ".join([p.name for p in permissions])
-            description = (
-                f"{description} Requires one of the following "
-                f"permissions: {permission_msg}."
-            )
+            permissions_msg = message_one_of_permissions_required(permissions)
+            description = f"{description} {permissions_msg}"
 
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options

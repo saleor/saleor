@@ -221,3 +221,8 @@ def has_one_of_permissions(requestor, permissions=None):
         if permission_required((perm,), requestor):
             return True
     return False
+
+
+def message_one_of_permissions_required(permissions):
+    permission_msg = ", ".join([p.name for p in permissions])
+    return f"Requires one of the following permissions: {permission_msg}."
