@@ -1,3 +1,5 @@
+import uuid
+
 import graphene
 import pytest
 
@@ -113,7 +115,7 @@ def test_create_invoice_invalid_order_status(
 
 def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", 1337),
+        "orderId": graphene.Node.to_global_id("Order", uuid.uuid4()),
         "number": "01/12/2020/TEST",
         "url": "http://www.example.com",
     }

@@ -9,7 +9,7 @@ from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import WarehouseError
+from ..core.types import NonNullList, WarehouseError
 from ..core.utils import (
     validate_required_string_field,
     validate_slug_and_generate_if_needed,
@@ -110,8 +110,8 @@ class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to update.", required=True)
-        shipping_zone_ids = graphene.List(
-            graphene.NonNull(graphene.ID),
+        shipping_zone_ids = NonNullList(
+            graphene.ID,
             required=True,
             description="List of shipping zone IDs.",
         )
@@ -137,8 +137,8 @@ class WarehouseShippingZoneUnassign(WarehouseMixin, ModelMutation, I18nMixin):
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to update.", required=True)
-        shipping_zone_ids = graphene.List(
-            graphene.NonNull(graphene.ID),
+        shipping_zone_ids = NonNullList(
+            graphene.ID,
             required=True,
             description="List of shipping zone IDs.",
         )

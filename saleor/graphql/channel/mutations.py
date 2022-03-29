@@ -14,7 +14,7 @@ from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_
 from ..account.enums import CountryCodeEnum
 from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import ChannelError, ChannelErrorCode
+from ..core.types import ChannelError, ChannelErrorCode, NonNullList
 from ..core.utils import get_duplicated_values, get_duplicates_items
 from ..utils.validators import check_for_duplicates
 from .types import Channel
@@ -38,8 +38,8 @@ class ChannelCreateInput(ChannelInput):
         ),
         required=True,
     )
-    add_shipping_zones = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_shipping_zones = NonNullList(
+        graphene.ID,
         description="List of shipping zones to assign to the channel.",
         required=False,
     )
@@ -91,13 +91,13 @@ class ChannelUpdateInput(ChannelInput):
             "when the country was not explicitly provided."
         )
     )
-    add_shipping_zones = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_shipping_zones = NonNullList(
+        graphene.ID,
         description="List of shipping zones to assign to the channel.",
         required=False,
     )
-    remove_shipping_zones = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_shipping_zones = NonNullList(
+        graphene.ID,
         description="List of shipping zones to unassign from the channel.",
         required=False,
     )

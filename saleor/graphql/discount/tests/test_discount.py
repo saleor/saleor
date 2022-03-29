@@ -921,7 +921,7 @@ def test_create_sale(
     query = """
     mutation  saleCreate(
             $type: DiscountValueTypeEnum, $name: String, $value: PositiveDecimal,
-            $startDate: DateTime, $endDate: DateTime, $products: [ID]) {
+            $startDate: DateTime, $endDate: DateTime, $products: [ID!]) {
         saleCreate(input: {
                 name: $name, type: $type, value: $value,
                 startDate: $startDate, endDate: $endDate, products: $products}) {
@@ -1022,7 +1022,7 @@ def test_update_sale(
     product_list,
 ):
     query = """
-    mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!, $products: [ID]) {
+    mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!, $products: [ID!]) {
             saleUpdate(id: $id, input: {type: $type, products: $products}) {
                 errors {
                     field

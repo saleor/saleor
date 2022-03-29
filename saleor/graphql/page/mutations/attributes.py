@@ -16,7 +16,7 @@ from ...attribute.mutations import (
 from ...attribute.types import Attribute
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
-from ...core.types.common import PageError
+from ...core.types import NonNullList, PageError
 from ...core.utils.reordering import perform_reordering
 from ...page.types import Page, PageType
 from ...utils import resolve_global_ids_to_primary_keys
@@ -30,8 +30,8 @@ class PageAttributeAssign(BaseMutation):
             required=True,
             description="ID of the page type to assign the attributes into.",
         )
-        attribute_ids = graphene.List(
-            graphene.NonNull(graphene.ID),
+        attribute_ids = NonNullList(
+            graphene.ID,
             required=True,
             description="The IDs of the attributes to assign.",
         )
@@ -122,8 +122,8 @@ class PageAttributeUnassign(BaseMutation):
                 "ID of the page type from which the attributes should be unassign."
             ),
         )
-        attribute_ids = graphene.List(
-            graphene.NonNull(graphene.ID),
+        attribute_ids = NonNullList(
+            graphene.ID,
             required=True,
             description="The IDs of the attributes to unassign.",
         )
@@ -159,8 +159,8 @@ class PageTypeReorderAttributes(BaseReorderAttributesMutation):
         page_type_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a page type."
         )
-        moves = graphene.List(
-            graphene.NonNull(ReorderInput),
+        moves = NonNullList(
+            ReorderInput,
             required=True,
             description="The list of attribute reordering operations.",
         )
@@ -223,7 +223,7 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
         attribute_id = graphene.Argument(
             graphene.ID, required=True, description="ID of an attribute."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of reordering operations for given attribute values.",

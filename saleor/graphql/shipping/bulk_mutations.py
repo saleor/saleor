@@ -3,13 +3,13 @@ import graphene
 from ...core.permissions import ShippingPermissions
 from ...shipping import models
 from ..core.mutations import ModelBulkDeleteMutation
-from ..core.types.common import ShippingError
+from ..core.types import NonNullList, ShippingError
 from .types import ShippingMethod, ShippingZone
 
 
 class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of shipping zone IDs to delete.",
@@ -26,7 +26,7 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
 
 class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of shipping price IDs to delete.",

@@ -1,4 +1,3 @@
-import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -22,17 +21,14 @@ def orders_for_pagination(db, channel_USD):
     orders = Order.objects.bulk_create(
         [
             Order(
-                token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 channel=channel_USD,
             ),
@@ -51,19 +47,16 @@ def draft_orders_for_pagination(db, channel_USD):
     orders = Order.objects.bulk_create(
         [
             Order(
-                token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
@@ -295,9 +288,7 @@ def test_order_query_pagination_with_filter_customer_fields(
     customer_user.save()
     customer_user.refresh_from_db()
 
-    order = Order.objects.create(
-        user=customer_user, token=str(uuid.uuid4()), channel=channel_USD
-    )
+    order = Order.objects.create(user=customer_user, channel=channel_USD)
 
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}
@@ -336,7 +327,6 @@ def test_draft_order_query_pagination_with_filter_customer_fields(
     order = Order.objects.create(
         status=OrderStatus.DRAFT,
         user=customer_user,
-        token=str(uuid.uuid4()),
         channel=channel_USD,
     )
 
@@ -428,17 +418,14 @@ def test_orders_query_pagination_with_filter_search(
         [
             Order(
                 user=customer_user,
-                token=str(uuid.uuid4()),
                 user_email="test@mirumee.com",
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email1@example.com",
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email2@example.com",
                 channel=channel_USD,
             ),
@@ -508,19 +495,16 @@ def test_draft_orders_query_pagination_with_filter_search(
         [
             Order(
                 user=customer_user,
-                token=str(uuid.uuid4()),
                 user_email="test@mirumee.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
-                token=str(uuid.uuid4()),
                 user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
@@ -565,19 +549,19 @@ def test_draft_orders_query_pagination_with_filter_search(
         assert orders[i]["node"]["total"]["gross"]["amount"] == orders_order[i]
 
 
-def test_orders_query_pagination_with_filter_search_by_id(
+def test_orders_query_pagination_with_filter_search_by_number(
     order_with_search_document_value, staff_api_client, permission_manage_orders
 ):
     order = order_with_search_document_value
     page_size = 2
-    variables = {"first": page_size, "after": None, "filter": {"search": order.pk}}
+    variables = {"first": page_size, "after": None, "filter": {"search": order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == 1
 
 
-def test_draft_orders_query_pagination_with_filter_search_by_id(
+def test_draft_orders_query_pagination_with_filter_search_by_number(
     draft_order,
     staff_api_client,
     permission_manage_orders,
@@ -587,7 +571,7 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
     variables = {
         "first": page_size,
         "after": None,
-        "filter": {"search": draft_order.pk},
+        "filter": {"search": draft_order.number},
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(
@@ -626,7 +610,6 @@ def test_query_orders_pagination_with_sort(
     with freeze_time("2017-01-14"):
         created_orders.append(
             Order.objects.create(
-                token=str(uuid.uuid4()),
                 billing_address=address,
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
@@ -639,7 +622,6 @@ def test_query_orders_pagination_with_sort(
         address2.save()
         created_orders.append(
             Order.objects.create(
-                token=str(uuid.uuid4()),
                 billing_address=address2,
                 status=OrderStatus.FULFILLED,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
@@ -651,7 +633,6 @@ def test_query_orders_pagination_with_sort(
     address3.save()
     created_orders.append(
         Order.objects.create(
-            token=str(uuid.uuid4()),
             billing_address=address3,
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
@@ -671,4 +652,6 @@ def test_query_orders_pagination_with_sort(
     orders = content["data"]["orders"]["edges"]
 
     for order, order_number in enumerate(result_order):
-        assert orders[order]["node"]["number"] == str(created_orders[order_number].pk)
+        assert orders[order]["node"]["number"] == str(
+            created_orders[order_number].number
+        )

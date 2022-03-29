@@ -21,7 +21,7 @@ from ...giftcard.utils import (
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
-from ..core.types.common import GiftCardError, PriceInput
+from ..core.types import GiftCardError, NonNullList, PriceInput
 from ..core.utils import validate_required_string_field
 from ..core.validators import validate_price_precision
 from ..utils.validators import check_for_duplicates
@@ -41,8 +41,8 @@ def clean_gift_card(gift_card: GiftCard):
 
 
 class GiftCardInput(graphene.InputObjectType):
-    add_tags = graphene.List(
-        graphene.NonNull(graphene.String),
+    add_tags = NonNullList(
+        graphene.String,
         description=f"{ADDED_IN_31} The gift card tags to add. {PREVIEW_FEATURE}",
     )
     expiry_date = graphene.types.datetime.Date(
@@ -99,8 +99,8 @@ class GiftCardCreateInput(GiftCardInput):
 
 
 class GiftCardUpdateInput(GiftCardInput):
-    remove_tags = graphene.List(
-        graphene.NonNull(graphene.String),
+    remove_tags = NonNullList(
+        graphene.String,
         description=f"{ADDED_IN_31} The gift card tags to remove. {PREVIEW_FEATURE}",
     )
     balance_amount = PositiveDecimal(

@@ -40,7 +40,7 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import OrderError
+from ...core.types import NonNullList, OrderError
 from ...core.utils import validate_required_string_field
 from ...order.mutations.draft_orders import (
     DraftOrderCreate,
@@ -770,15 +770,13 @@ class OrderConfirm(ModelMutation):
 
 class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="Related order.")
-    order_lines = graphene.List(
-        graphene.NonNull(OrderLine), description="List of added order lines."
-    )
+    order_lines = NonNullList(OrderLine, description="List of added order lines.")
 
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of the order to add the lines to."
         )
-        input = graphene.List(
+        input = NonNullList(
             OrderLineCreateInput,
             required=True,
             description="Fields required to add order lines.",

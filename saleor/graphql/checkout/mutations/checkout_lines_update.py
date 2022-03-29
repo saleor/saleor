@@ -1,7 +1,7 @@
 import graphene
 
 from ....warehouse.reservations import is_reservation_enabled
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import check_lines_quantity

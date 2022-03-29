@@ -13,7 +13,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import MenuError
+from ..core.types import MenuError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
@@ -52,7 +52,7 @@ class MenuCreateInput(graphene.InputObjectType):
         description="Slug of the menu. Will be generated if not provided.",
         required=False,
     )
-    items = graphene.List(MenuItemInput, description="List of menu items.")
+    items = NonNullList(MenuItemInput, description="List of menu items.")
 
 
 class MenuCreate(ModelMutation):
@@ -306,7 +306,7 @@ class MenuItemMove(BaseMutation):
 
     class Arguments:
         menu = graphene.ID(required=True, description="ID of the menu.")
-        moves = graphene.List(
+        moves = NonNullList(
             MenuItemMoveInput, required=True, description="The menu position data."
         )
 

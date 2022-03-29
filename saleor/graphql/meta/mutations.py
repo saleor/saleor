@@ -17,7 +17,7 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
-from ..core.types.common import MetadataError
+from ..core.types import MetadataError, NonNullList
 from ..core.utils import from_global_id_or_error
 from ..payment.utils import metadata_contains_empty_key
 from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
@@ -110,7 +110,7 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_instance_by_token(cls, object_id, qs):
         if not qs:
-            if order := order_models.Order.objects.filter(token=object_id).first():
+            if order := order_models.Order.objects.filter(id=object_id).first():
                 return order
             if checkout := checkout_models.Checkout.objects.filter(
                 token=object_id
@@ -204,7 +204,7 @@ class BaseMetadataMutation(BaseMutation):
         try:
             return from_global_id_or_error(object_id)
         except GraphQLError:
-            if order := order_models.Order.objects.filter(token=object_id).first():
+            if order := order_models.Order.objects.filter(id=object_id).first():
                 return "Order", order.pk
             if checkout := checkout_models.Checkout.objects.filter(
                 token=object_id
@@ -260,7 +260,10 @@ class MetadataInput(graphene.InputObjectType):
 
 class UpdateMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Updates metadata of an object."
+        description = (
+            "Updates metadata of an object. To use it, you need to have access to the "
+            "modified object."
+        )
         permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -270,8 +273,8 @@ class UpdateMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        input = graphene.List(
-            graphene.NonNull(MetadataInput),
+        input = NonNullList(
+            MetadataInput,
             description="Fields required to update the object's metadata.",
             required=True,
         )
@@ -291,7 +294,10 @@ class UpdateMetadata(BaseMetadataMutation):
 
 class DeleteMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Delete metadata of an object."
+        description = (
+            "Delete metadata of an object. To use it, you need to have access to the "
+            "modified object."
+        )
         permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -301,8 +307,8 @@ class DeleteMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        keys = graphene.List(
-            graphene.NonNull(graphene.String),
+        keys = NonNullList(
+            graphene.String,
             description="Metadata keys to delete.",
             required=True,
         )
@@ -320,7 +326,10 @@ class DeleteMetadata(BaseMetadataMutation):
 
 class UpdatePrivateMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Updates private metadata of an object."
+        description = (
+            "Updates private metadata of an object. To use it, you need to be an "
+            "authenticated staff user or an app and have access to the modified object."
+        )
         permission_map = PRIVATE_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -330,8 +339,8 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        input = graphene.List(
-            graphene.NonNull(MetadataInput),
+        input = NonNullList(
+            MetadataInput,
             description="Fields required to update the object's metadata.",
             required=True,
         )
@@ -350,7 +359,10 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
 
 class DeletePrivateMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Delete object's private metadata."
+        description = (
+            "Delete object's private metadata. To use it, you need to be an "
+            "authenticated staff user or an app and have access to the modified object."
+        )
         permission_map = PRIVATE_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -360,8 +372,8 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             description="ID or token (for Order and Checkout) of an object to update.",
             required=True,
         )
-        keys = graphene.List(
-            graphene.NonNull(graphene.String),
+        keys = NonNullList(
+            graphene.String,
             description="Metadata keys to delete.",
             required=True,
         )

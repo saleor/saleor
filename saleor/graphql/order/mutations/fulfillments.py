@@ -25,7 +25,7 @@ from ....order.notifications import send_fulfillment_update
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import OrderError
+from ...core.types import NonNullList, OrderError
 from ...core.utils import get_duplicated_values
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -47,16 +47,16 @@ class OrderFulfillLineInput(graphene.InputObjectType):
     order_line_id = graphene.ID(
         description="The ID of the order line.", name="orderLineId"
     )
-    stocks = graphene.List(
-        graphene.NonNull(OrderFulfillStockInput),
+    stocks = NonNullList(
+        OrderFulfillStockInput,
         required=True,
         description="List of stock items to create.",
     )
 
 
 class OrderFulfillInput(graphene.InputObjectType):
-    lines = graphene.List(
-        graphene.NonNull(OrderFulfillLineInput),
+    lines = NonNullList(
+        OrderFulfillLineInput,
         required=True,
         description="List of items informing how to fulfill the order.",
     )
@@ -79,9 +79,7 @@ class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
 
 
 class OrderFulfill(BaseMutation):
-    fulfillments = graphene.List(
-        Fulfillment, description="List of created fulfillments."
-    )
+    fulfillments = NonNullList(Fulfillment, description="List of created fulfillments.")
     order = graphene.Field(Order, description="Fulfilled order.")
 
     class Arguments:
@@ -506,12 +504,12 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
 
 
 class OrderRefundProductsInput(graphene.InputObjectType):
-    order_lines = graphene.List(
-        graphene.NonNull(OrderRefundLineInput),
+    order_lines = NonNullList(
+        OrderRefundLineInput,
         description="List of unfulfilled lines to refund.",
     )
-    fulfillment_lines = graphene.List(
-        graphene.NonNull(OrderRefundFulfillmentLineInput),
+    fulfillment_lines = NonNullList(
+        OrderRefundFulfillmentLineInput,
         description="List of fulfilled lines to refund.",
     )
     amount_to_refund = PositiveDecimal(
@@ -808,12 +806,12 @@ class OrderReturnFulfillmentLineInput(graphene.InputObjectType):
 
 
 class OrderReturnProductsInput(graphene.InputObjectType):
-    order_lines = graphene.List(
-        graphene.NonNull(OrderReturnLineInput),
+    order_lines = NonNullList(
+        OrderReturnLineInput,
         description="List of unfulfilled lines to return.",
     )
-    fulfillment_lines = graphene.List(
-        graphene.NonNull(OrderReturnFulfillmentLineInput),
+    fulfillment_lines = NonNullList(
+        OrderReturnFulfillmentLineInput,
         description="List of fulfilled lines to return.",
     )
     amount_to_refund = PositiveDecimal(

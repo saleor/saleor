@@ -57,7 +57,7 @@ def test_checkout_complete_order_already_exists(
 
     order_data = data["order"]
     assert Order.objects.count() == orders_count
-    assert order_with_lines.token == order_data["token"]
+    assert str(order_with_lines.id) == order_data["token"]
     assert order_data["origin"] == order_with_lines.origin.upper()
     assert not order_data["original"]
 
@@ -122,7 +122,7 @@ def test_checkout_complete(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
-    assert order.token == order_token
+    assert str(order.id) == order_token
     assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata

@@ -537,7 +537,7 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     data = generate_request_data(
         transaction_type=transaction,
         lines=lines,
-        transaction_token=order.token,
+        transaction_token=str(order.id),
         address=address.as_data() if address else {},
         customer_email=order.user_email,
         config=config,
@@ -551,7 +551,7 @@ def get_order_tax_data(
 ) -> Dict[str, Any]:
     data = get_order_request_data(order, config)
     response = get_cached_response_or_fetch(
-        data, "order_%s" % order.token, config, force_refresh
+        data, "order_%s" % order.id, config, force_refresh
     )
     error = response.get("error")
     if error:

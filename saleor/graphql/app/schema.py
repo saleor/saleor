@@ -4,7 +4,7 @@ from ...core.permissions import AppPermission
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField
-from ..core.types import FilterInputObjectType
+from ..core.types import FilterInputObjectType, NonNullList
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required, staff_member_or_app_required
 from .dataloaders import AppByIdLoader, AppExtensionByIdLoader
@@ -50,8 +50,8 @@ class AppExtensionFilterInput(FilterInputObjectType):
 
 
 class AppQueries(graphene.ObjectType):
-    apps_installations = graphene.List(
-        graphene.NonNull(AppInstallation),
+    apps_installations = NonNullList(
+        AppInstallation,
         description="List of all apps installations",
         required=True,
     )

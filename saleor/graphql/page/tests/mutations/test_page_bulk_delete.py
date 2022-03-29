@@ -7,7 +7,7 @@ from ....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
 
 PAGE_BULK_DELETE_MUTATION = """
-    mutation pageBulkDelete($ids: [ID]!) {
+    mutation pageBulkDelete($ids: [ID!]!) {
         pageBulkDelete(ids: $ids) {
             count
             errors {
