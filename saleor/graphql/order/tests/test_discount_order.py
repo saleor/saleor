@@ -14,6 +14,200 @@ from ....order.interface import OrderTaxedPricesData
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
+ORDER_DISCOUNT_QUERY = """
+query Order($id: ID!) {
+  order(id: $id) {
+    id
+    shippingPrice {
+      gross {
+        amount
+      }
+    }
+    subtotal {
+      gross {
+        amount
+      }
+    }
+    total {
+      gross {
+        amount
+      }
+    }
+    discounts {
+      id
+      amount {
+        amount
+      }
+      value
+    }
+    undiscountedTotal {
+      gross {
+        amount
+      }
+    }
+  }
+}
+"""
+
+
+def test_calculate_order_discount_fixed_discounts(
+    draft_order_with_many_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    # given
+    order = draft_order_with_many_fixed_discount_order
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    discount1_data = order_data["discounts"][0]
+    discount2_data = order_data["discounts"][1]
+    discounts_amount = (
+        discount1_data["amount"]["amount"] + discount2_data["amount"]["amount"]
+    )
+    order_total = order_data["total"]["gross"]["amount"]
+    order_subtotal = order_data["subtotal"]["gross"]["amount"]
+    order_shipping_price = order_data["shippingPrice"]["gross"]["amount"]
+    order_undiscounted_total = order_data["undiscountedTotal"]["gross"]["amount"]
+    assert len(order_data["discounts"]) == 2
+    assert (
+        discounts_amount + order_total
+        == round(order_subtotal + order_shipping_price, 2)
+        == order_undiscounted_total
+    )
+    assert discount1_data["amount"]["amount"] == discount1_data["value"]
+    assert discount2_data["amount"]["amount"] == discount2_data["value"]
+
+
+def test_calculate_order_discount_fixed_and_percentage_discount(
+    draft_order_with_fixed_and_percentage_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    # given
+    order = draft_order_with_fixed_and_percentage_discount_order
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    discount1_data = order_data["discounts"][0]
+    discount2_data = order_data["discounts"][1]
+    discounts_amount = (
+        discount1_data["amount"]["amount"] + discount2_data["amount"]["amount"]
+    )
+    order_total = order_data["total"]["gross"]["amount"]
+    order_subtotal = order_data["subtotal"]["gross"]["amount"]
+    order_shipping_price = order_data["shippingPrice"]["gross"]["amount"]
+    order_undiscounted_total = order_data["undiscountedTotal"]["gross"]["amount"]
+    discount2_amount = round(
+        (order_undiscounted_total - discount1_data["amount"]["amount"]) * 0.1, 2
+    )
+    assert len(order_data["discounts"]) == 2
+    assert (
+        discounts_amount + order_total
+        == round(order_subtotal + order_shipping_price, 2)
+        == order_undiscounted_total
+    )
+    assert discount1_data["amount"]["amount"] == discount1_data["value"]
+    assert discount2_data["amount"]["amount"] == discount2_amount
+    assert discount2_data["value"] == 10
+
+
+def test_calculate_order_discount_percentage_and_fixed_discount(
+    draft_order_with_percentage_and_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    # given
+    order = draft_order_with_percentage_and_fixed_discount_order
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    discount1_data = order_data["discounts"][0]
+    discount2_data = order_data["discounts"][1]
+    discounts_amount = (
+        discount1_data["amount"]["amount"] + discount2_data["amount"]["amount"]
+    )
+    order_total = order_data["total"]["gross"]["amount"]
+    order_subtotal = order_data["subtotal"]["gross"]["amount"]
+    order_shipping_price = order_data["shippingPrice"]["gross"]["amount"]
+    order_undiscounted_total = order_data["undiscountedTotal"]["gross"]["amount"]
+    discount1_amount = round(order_undiscounted_total * 0.1, 2)
+    assert len(order_data["discounts"]) == 2
+    assert (
+        discounts_amount + order_total
+        == round(order_subtotal + order_shipping_price, 2)
+        == order_undiscounted_total
+    )
+    assert discount1_data["amount"]["amount"] == discount1_amount
+    assert discount1_data["value"] == 10
+    assert discount2_data["amount"]["amount"] == discount2_data["value"]
+
+
+def test_calculate_order_discount_percentage_discounts(
+    draft_order_with_many_percentage_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    # given
+    order = draft_order_with_many_percentage_discount_order
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    discount1_data = order_data["discounts"][0]
+    discount2_data = order_data["discounts"][1]
+    discounts_amount = (
+        discount1_data["amount"]["amount"] + discount2_data["amount"]["amount"]
+    )
+    order_total = order_data["total"]["gross"]["amount"]
+    order_subtotal = order_data["subtotal"]["gross"]["amount"]
+    order_shipping_price = order_data["shippingPrice"]["gross"]["amount"]
+    order_undiscounted_total = order_data["undiscountedTotal"]["gross"]["amount"]
+    discount1_amount = round(order_undiscounted_total * 0.1, 2)
+    discount2_amount = round((order_undiscounted_total - discount1_amount) * 0.2, 2)
+    assert len(order_data["discounts"]) == 2
+    assert (
+        round(discounts_amount + order_total, 2)
+        == round(order_subtotal + order_shipping_price, 2)
+        == order_undiscounted_total
+    )
+    assert discount1_data["amount"]["amount"] == discount1_amount
+    assert discount1_data["value"] == 10
+    assert discount2_data["amount"]["amount"] == discount2_amount
+    assert discount2_data["value"] == 20
+
+
 ORDER_DISCOUNT_ADD = """
 mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
   orderDiscountAdd(orderId:$orderId, input:$input){

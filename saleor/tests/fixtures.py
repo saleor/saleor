@@ -4113,22 +4113,6 @@ def draft_order_with_fixed_discount_order(draft_order):
 
 
 @pytest.fixture
-def draft_order_with_many_fixed_discount_order(draft_order_with_fixed_discount_order):
-    value = Decimal("10")
-    draft_order = draft_order_with_fixed_discount_order
-    discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
-    draft_order.total = discount(draft_order.total)
-    draft_order.discounts.create(
-        value_type=DiscountValueType.FIXED,
-        value=value,
-        reason="Secoud discount reason",
-        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
-    )
-    draft_order.save()
-    return draft_order
-
-
-@pytest.fixture
 def draft_order_without_inventory_tracking(order_with_line_without_inventory_tracking):
     order_with_line_without_inventory_tracking.status = OrderStatus.DRAFT
     order_with_line_without_inventory_tracking.origin = OrderStatus.DRAFT
