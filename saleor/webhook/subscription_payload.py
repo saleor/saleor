@@ -121,10 +121,7 @@ def generate_payload_from_subscription(
         return None
 
     payload_instance = payload[0]
-
     event_payload = payload_instance.data.get("event")
-
-    # TODO Make sure that we handle missing permissions in proper way.
 
     # Queries that use dataloaders return Promise object for the "event" field. In that
     # case, we need to resolve them first.
