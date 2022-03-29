@@ -102,7 +102,8 @@ def test_checkout_complete_unconfirmed_order_already_exists(
 
     order_data = data["order"]
     assert Order.objects.count() == orders_count
-    assert order_with_lines.token == order_data["token"]
+    assert order_data["id"] == graphene.Node.to_global_id("Order", order_with_lines.id)
+    assert str(order_with_lines.id) == order_data["token"]
     assert order_data["origin"] == order_with_lines.origin.upper()
     assert not order_data["original"]
 
@@ -126,7 +127,8 @@ def test_checkout_complete_order_already_exists(
 
     order_data = data["order"]
     assert Order.objects.count() == orders_count
-    assert order_with_lines.token == order_data["token"]
+    assert order_data["id"] == graphene.Node.to_global_id("Order", order_with_lines.id)
+    assert str(order_with_lines.id) == order_data["token"]
     assert order_data["origin"] == order_with_lines.origin.upper()
     assert not order_data["original"]
 
@@ -257,12 +259,14 @@ def test_checkout_complete(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
-    assert order.token == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert str(order.id) == order_token
     assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
@@ -555,9 +559,9 @@ def test_checkout_complete_with_variant_without_sku(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    order_token = data["order"]["token"]
+    order_id = graphene.Node.from_global_id(data["order"]["id"])[1]
     assert Order.objects.count() == orders_count + 1
-    order = Order.objects.get(token=order_token)
+    order = Order.objects.get(id=order_id)
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
 
@@ -621,11 +625,9 @@ def test_checkout_complete_requires_confirmation(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
 
-    order_id = int(
-        graphene.Node.from_global_id(
-            content["data"]["checkoutComplete"]["order"]["id"]
-        )[1]
-    )
+    order_id = graphene.Node.from_global_id(
+        content["data"]["checkoutComplete"]["order"]["id"]
+    )[1]
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
@@ -681,9 +683,11 @@ def test_checkout_with_voucher_complete(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
 
@@ -794,9 +798,11 @@ def test_checkout_complete_without_inventory_tracking(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -1388,9 +1394,11 @@ def test_checkout_complete_own_reservation(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
 
     order_line = order.lines.first()
     assert order_line.quantity == quantity_available
@@ -1450,9 +1458,11 @@ def test_checkout_complete_without_redirect_url(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
 
     order_line = order.lines.first()
@@ -1542,9 +1552,11 @@ def test_order_already_exists(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
 
     assert Checkout.objects.count() == 0
 
@@ -1679,9 +1691,11 @@ def test_checkout_complete_0_total_value(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -1985,12 +1999,14 @@ def test_checkout_complete_with_preorder_variant(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
 
     assert order.lines.count() == len(variants_and_quantities)
@@ -2366,9 +2382,11 @@ def test_checkout_complete_0_total_value_no_payment(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -2422,9 +2440,11 @@ def test_checkout_complete_0_total_value_from_voucher(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -2474,9 +2494,11 @@ def test_checkout_complete_0_total_value_from_giftcard(
     assert not data["errors"]
 
     order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata

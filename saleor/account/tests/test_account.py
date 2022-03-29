@@ -1,4 +1,3 @@
-import uuid
 from urllib.parse import urlencode
 
 import i18naddress
@@ -267,12 +266,10 @@ def test_customers_doesnt_return_duplicates(customer_user, channel_USD):
             Order(
                 user=customer_user,
                 channel=channel_USD,
-                token=str(uuid.uuid4()),
             ),
             Order(
                 user=customer_user,
                 channel=channel_USD,
-                token=str(uuid.uuid4()),
             ),
         ]
     )
@@ -284,6 +281,5 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
     Order.objects.create(
         user=admin_user,
         channel=channel_USD,
-        token=str(uuid.uuid4()),
     )
     assert User.objects.customers().count() == 1

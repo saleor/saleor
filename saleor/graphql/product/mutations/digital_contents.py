@@ -7,8 +7,7 @@ from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...channel import ChannelContext
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import Upload
-from ...core.types.common import ProductError
+from ...core.types import ProductError, Upload
 from ...decorators import permission_required
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 

@@ -33,7 +33,7 @@ from ...account.types import AddressInput
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import OrderError
+from ...core.types import NonNullList, OrderError
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order, OrderLine
@@ -85,7 +85,7 @@ class DraftOrderInput(InputObjectType):
 
 
 class DraftOrderCreateInput(DraftOrderInput):
-    lines = graphene.List(
+    lines = NonNullList(
         OrderLineCreateInput,
         description=(
             "Variant line input consisting of variant ID and quantity of products."
@@ -271,12 +271,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input):
-        created = instance.pk
+    def _commit_changes(cls, info, instance, cleaned_input, new_instance):
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
-        if not created:
+        if new_instance:
             events.draft_order_created_event(
                 order=instance, user=info.context.user, app=info.context.app
             )
@@ -306,15 +305,17 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
-        new_instance = not bool(instance.pk)
+        return cls._save_draft_order(info, instance, cleaned_input, new_instance=True)
 
+    @classmethod
+    @traced_atomic_transaction()
+    def _save_draft_order(cls, info, instance, cleaned_input, *, new_instance):
         # Process addresses
         cls._save_addresses(info, instance, cleaned_input)
 
         # Save any changes create/update the draft
-        cls._commit_changes(info, instance, cleaned_input)
+        cls._commit_changes(info, instance, cleaned_input, new_instance)
 
         try:
             # Process any lines to add
@@ -378,6 +379,10 @@ class DraftOrderUpdate(DraftOrderCreate):
                 }
             )
         return instance
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        return cls._save_draft_order(info, instance, cleaned_input, new_instance=False)
 
 
 class DraftOrderDelete(ModelDeleteMutation):

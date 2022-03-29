@@ -13,7 +13,7 @@ from ..account.types import AddressInput, StaffNotificationRecipient
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import (
+from ..core.types import (
     GiftCardSettingsError,
     OrderSettingsError,
     ShopError,

@@ -143,7 +143,7 @@ def test_update_gift_card(
 
 
 MUTATION_GIFT_CARD_BULK_ACTIVATE = """
-    mutation GiftCardBulkActivate($ids: [ID]!) {
+    mutation GiftCardBulkActivate($ids: [ID!]!) {
         giftCardBulkActivate(ids: $ids) {
             count
             errors {

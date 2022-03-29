@@ -1,12 +1,14 @@
 from typing import List
+from uuid import UUID
 
 import django_filters
 import graphene
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
 from graphql.error import GraphQLError
 
 from ...account import models as account_models
 from ...giftcard import models
+from ...order import models as order_models
 from ...product import models as product_models
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
@@ -14,8 +16,7 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import FilterInputObjectType
-from ..core.types.common import PriceRangeInput
+from ..core.types import FilterInputObjectType, NonNullList, PriceRangeInput
 from ..utils import resolve_global_ids_to_primary_keys
 from .enums import GiftCardEventsEnum
 
@@ -128,17 +129,34 @@ def filter_events_by_type(events: List[models.GiftCardEvent], type_value: str):
 
 
 def filter_events_by_orders(events: List[models.GiftCardEvent], order_ids: List[str]):
-    _, order_pks = resolve_global_ids_to_primary_keys(order_ids, "Order")
+    order_pks = _get_order_pks(order_ids)
+
     filtered_events = []
     for event in events:
-        if str(event.parameters.get("order_id")) in order_pks:
+        if event.order_id in order_pks:
             filtered_events.append(event)
     return filtered_events
 
 
+def _get_order_pks(order_ids: List[str]):
+    _, order_pks = resolve_global_ids_to_primary_keys(order_ids, "Order")
+
+    pks = []
+    old_pks = []
+    for pk in order_pks:
+        try:
+            pks.append(UUID(pk))
+        except ValueError:
+            old_pks.append(pk)
+
+    return order_models.Order.objects.filter(
+        Q(id__in=pks) | (Q(use_old_id=True) & Q(number__in=old_pks))
+    ).values_list("id", flat=True)
+
+
 class GiftCardEventFilterInput(graphene.InputObjectType):
     type = graphene.Argument(GiftCardEventsEnum)
-    orders = graphene.List(graphene.NonNull(graphene.ID))
+    orders = NonNullList(graphene.ID)
 
 
 def filter_gift_card_tag_search(qs, _, value):

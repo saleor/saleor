@@ -14,7 +14,7 @@ from ....checkout.utils import (
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.types import Voucher

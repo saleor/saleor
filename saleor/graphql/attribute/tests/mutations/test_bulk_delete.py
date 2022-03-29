@@ -6,7 +6,7 @@ from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
 
 ATTRIBUTE_BULK_DELETE_MUTATION = """
-    mutation attributeBulkDelete($ids: [ID]!) {
+    mutation attributeBulkDelete($ids: [ID!]!) {
         attributeBulkDelete(ids: $ids) {
             count
         }
@@ -116,7 +116,7 @@ def test_delete_attributes_products_search_document_updated(
 
 
 ATTRIBUTE_VALUE_BULK_DELETE_MUTATION = """
-    mutation attributeValueBulkDelete($ids: [ID]!) {
+    mutation attributeValueBulkDelete($ids: [ID!]!) {
         attributeValueBulkDelete(ids: $ids) {
             count
         }

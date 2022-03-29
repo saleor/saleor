@@ -187,7 +187,7 @@ def gift_cards_create(
             non_shippable_gift_cards.extend(line_gift_cards)
 
     gift_cards = GiftCard.objects.bulk_create(gift_cards)
-    events.gift_cards_bought_event(gift_cards, order.id, requestor_user, app)
+    events.gift_cards_bought_event(gift_cards, order, requestor_user, app)
 
     channel_slug = order.channel.slug
     # send to customer all non-shippable gift cards
@@ -242,7 +242,7 @@ def deactivate_order_gift_cards(
     order_id: int, user: Optional["User"], app: Optional["App"]
 ):
     gift_card_events = GiftCardEvent.objects.filter(
-        type=GiftCardEvents.BOUGHT, parameters__order_id=order_id
+        type=GiftCardEvents.BOUGHT, order_id=order_id
     )
     gift_cards = GiftCard.objects.filter(
         Exists(gift_card_events.filter(gift_card_id=OuterRef("id")))

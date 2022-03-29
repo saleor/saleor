@@ -7,7 +7,7 @@ from ....core.tracing import traced_atomic_transaction
 from ...account.types import AddressInput
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate

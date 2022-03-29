@@ -59,7 +59,10 @@ class Payment(ModelWithMetadata):
         Checkout, null=True, related_name="payments", on_delete=models.SET_NULL
     )
     order = models.ForeignKey(
-        "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
+        "order.Order",
+        related_name="payments",
+        null=True,
+        on_delete=models.PROTECT,
     )
     store_payment_method = models.CharField(
         max_length=11,

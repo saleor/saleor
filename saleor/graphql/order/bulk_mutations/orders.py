@@ -4,14 +4,14 @@ from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import cancel_order
 from ...core.mutations import BaseBulkMutation
-from ...core.types.common import OrderError
+from ...core.types import NonNullList, OrderError
 from ..mutations.orders import clean_order_cancel
 from ..types import Order
 
 
 class OrderBulkCancel(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of orders IDs to cancel."
         )
 

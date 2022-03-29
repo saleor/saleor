@@ -378,13 +378,13 @@ def test_add_gift_cards_to_order(
     assert gift_card_event.type == GiftCardEvents.USED_IN_ORDER
     assert gift_card_event.user == staff_user
     assert gift_card_event.app is None
+    assert gift_card_event.order == order
     assert gift_card_event.parameters == {
         "balance": {
             "currency": "USD",
             "current_balance": "0",
             "old_current_balance": "10.000",
         },
-        "order_id": order.id,
     }
 
     order_created_event = GiftCardEvent.objects.get(
@@ -392,13 +392,13 @@ def test_add_gift_cards_to_order(
     )
     assert order_created_event.user == staff_user
     assert order_created_event.app is None
+    assert order_created_event.order == order
     assert order_created_event.parameters == {
         "balance": {
             "currency": "USD",
             "current_balance": "0",
             "old_current_balance": "20.000",
         },
-        "order_id": order.id,
     }
 
 
@@ -435,13 +435,13 @@ def test_add_gift_cards_to_order_no_checkout_user(
     assert gift_card_event.type == GiftCardEvents.USED_IN_ORDER
     assert gift_card_event.user == staff_user
     assert gift_card_event.app is None
+    assert gift_card_event.order == order
     assert gift_card_event.parameters == {
         "balance": {
             "currency": "USD",
             "current_balance": "0",
             "old_current_balance": "10.000",
         },
-        "order_id": order.id,
     }
 
     order_created_event = GiftCardEvent.objects.get(
@@ -449,13 +449,13 @@ def test_add_gift_cards_to_order_no_checkout_user(
     )
     assert order_created_event.user == staff_user
     assert order_created_event.app is None
+    assert order_created_event.order == order
     assert order_created_event.parameters == {
         "balance": {
             "currency": "USD",
             "current_balance": "0",
             "old_current_balance": "20.000",
         },
-        "order_id": order.id,
     }
 
 
