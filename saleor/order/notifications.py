@@ -243,7 +243,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload.update(
         {
             "id": to_global_id_or_none(order),
-            "token": to_global_id_or_none(order),
+            "token": order.id,  # DEPRECATED: will be removed in Saleor 4.0.
             "number": order.id,
             "channel_slug": order.channel.slug,
             "created": str(order.created),
