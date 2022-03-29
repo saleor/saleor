@@ -508,28 +508,49 @@ def test_add_percentage_order_discount_to_order(
 
 
 ORDER_DISCOUNT_UPDATE = """
-mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!){
-  orderDiscountUpdate(discountId:$discountId, input: $input){
-    order{
+mutation OrderDiscountUpdate(
+  $discountId: ID!
+  $input: OrderDiscountCommonInput!
+) {
+  orderDiscountUpdate(discountId: $discountId, input: $input) {
+    errors {
+      field
+      message
+      code
+    }
+    order {
       id
-      total{
-        gross{
+      shippingPrice {
+        gross {
           amount
         }
       }
-      undiscountedTotal{
-        gross{
+      subtotal {
+        gross {
+          amount
+        }
+      }
+      total {
+        gross {
+          amount
+        }
+      }
+      discounts {
+        id
+        amount {
+          amount
+        }
+        value
+      }
+      undiscountedTotal {
+        gross {
           amount
         }
       }
     }
-    errors{
-        field
-        message
-        code
-      }
   }
 }
+
 """
 
 
@@ -705,6 +726,57 @@ def test_update_fixed_order_discounts_to_order(
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_update_fixed_discount_should_recalculate_percentage_discount(
+    status,
+    draft_order_with_fixed_and_percentage_discount_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    order = draft_order_with_fixed_and_percentage_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
+    order_discount = order.discounts.first()
+    value = Decimal("30.000")
+
+    variables = {
+        "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": value,
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_UPDATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderDiscountUpdate"]
+
+    order_data = data["order"]
+    discount1_data = order_data["discounts"][0]
+    discount2_data = order_data["discounts"][1]
+    discounts_amount = (
+        discount1_data["amount"]["amount"] + discount2_data["amount"]["amount"]
+    )
+    order_total = order_data["total"]["gross"]["amount"]
+    order_subtotal = order_data["subtotal"]["gross"]["amount"]
+    order_shipping_price = order_data["shippingPrice"]["gross"]["amount"]
+    order_undiscounted_total = order_data["undiscountedTotal"]["gross"]["amount"]
+    discount2_amount = round(
+        (order_undiscounted_total - discount1_data["amount"]["amount"]) * 0.1, 2
+    )
+    errors = data["errors"]
+    assert len(errors) == 0
+    assert len(order_data["discounts"]) == 2
+    assert (
+        discounts_amount + order_total
+        == round(order_subtotal + order_shipping_price, 2)
+        == order_undiscounted_total
+    )
+    assert discount1_data["amount"]["amount"] == discount1_data["value"]
+    assert discount2_data["amount"]["amount"] == discount2_amount
+    assert discount2_data["value"] == 10
 
 
 def test_update_order_discount_order_is_not_draft(
