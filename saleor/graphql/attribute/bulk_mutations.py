@@ -6,14 +6,14 @@ from ...core.permissions import PageTypePermissions
 from ...product import models as product_models
 from ...product.search import update_products_search_document
 from ..core.mutations import ModelBulkDeleteMutation
-from ..core.types.common import AttributeError
+from ..core.types import AttributeError, NonNullList
 from ..utils import resolve_global_ids_to_primary_keys
 from .types import Attribute, AttributeValue
 
 
 class AttributeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of attribute IDs to delete."
         )
 
@@ -65,7 +65,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID,
             required=True,
             description="List of attribute value IDs to delete.",

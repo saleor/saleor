@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
-from ....core.exceptions import PermissionDenied, PreorderAllocationError
+from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
@@ -47,8 +47,7 @@ from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types import SeoInput, Upload
-from ...core.types.common import CollectionError, ProductError
+from ...core.types import CollectionError, NonNullList, ProductError, SeoInput, Upload
 from ...core.utils import (
     add_hash_to_file_name,
     clean_seo_fields,
@@ -73,6 +72,7 @@ from ..utils import (
     get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
+    update_ordered_media,
 )
 
 
@@ -176,8 +176,6 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Category)
 
@@ -203,7 +201,7 @@ class CollectionInput(graphene.InputObjectType):
 
 
 class CollectionCreateInput(CollectionInput):
-    products = graphene.List(
+    products = NonNullList(
         graphene.ID,
         description="List of products to be added to the collection.",
         name="products",
@@ -353,7 +351,7 @@ class CollectionReorderProducts(BaseMutation):
         collection_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a collection."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             MoveProductInput,
             required=True,
             description="The collection products position operations.",
@@ -417,7 +415,7 @@ class CollectionAddProducts(BaseMutation):
         collection_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a collection."
         )
-        products = graphene.List(
+        products = NonNullList(
             graphene.ID, required=True, description="List of product IDs."
         )
 
@@ -480,7 +478,7 @@ class CollectionRemoveProducts(BaseMutation):
         collection_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a collection."
         )
-        products = graphene.List(
+        products = NonNullList(
             graphene.ID, required=True, description="List of product IDs."
         )
 
@@ -515,15 +513,13 @@ class CollectionRemoveProducts(BaseMutation):
 
 
 class ProductInput(graphene.InputObjectType):
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput), description="List of attributes."
-    )
+    attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
         description="Determine if taxes are being charged for the product."
     )
-    collections = graphene.List(
-        graphene.NonNull(graphene.ID),
+    collections = NonNullList(
+        graphene.ID,
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
@@ -790,8 +786,8 @@ class PreorderSettingsInput(graphene.InputObjectType):
 
 
 class ProductVariantInput(graphene.InputObjectType):
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput),
+    attributes = NonNullList(
+        AttributeValueInput,
         required=False,
         description="List of attributes specific to this variant.",
     )
@@ -818,8 +814,8 @@ class ProductVariantInput(graphene.InputObjectType):
 
 
 class ProductVariantCreateInput(ProductVariantInput):
-    attributes = graphene.List(
-        graphene.NonNull(AttributeValueInput),
+    attributes = NonNullList(
+        AttributeValueInput,
         required=True,
         description="List of attributes specific to this variant.",
     )
@@ -828,9 +824,9 @@ class ProductVariantCreateInput(ProductVariantInput):
         name="product",
         required=True,
     )
-    stocks = graphene.List(
-        graphene.NonNull(StockInput),
-        description=("Stocks of a product available for sale."),
+    stocks = NonNullList(
+        StockInput,
+        description="Stocks of a product available for sale.",
         required=False,
     )
 
@@ -936,7 +932,8 @@ class ProductVariantCreate(ModelMutation):
                 product_type.variant_attributes.all().values_list("pk", flat=True)
             )
         }
-        attributes_ids = {attr["id"] for attr in data.get("attributes") or []}
+        attributes = cleaned_input.get("attributes")
+        attributes_ids = {attr["id"] for attr in attributes or []}
         invalid_attributes = attributes_ids - variant_attributes_ids
         if len(invalid_attributes) > 0:
             raise ValidationError(
@@ -951,7 +948,6 @@ class ProductVariantCreate(ModelMutation):
             # We need to transform them into the format they're stored in the
             # `Product` model, which is HStore field that maps attribute's PK to
             # the value's PK.
-            attributes = cleaned_input.get("attributes")
             try:
                 if attributes:
                     cleaned_attributes = cls.clean_attributes(attributes, product_type)
@@ -972,10 +968,11 @@ class ProductVariantCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
         else:
-            raise ValidationError(
-                "Product type is not configurable.",
-                ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
-            )
+            if attributes:
+                raise ValidationError(
+                    "Cannot assign attributes for product type without variants",
+                    ProductErrorCode.INVALID.value,
+                )
 
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
@@ -1238,12 +1235,12 @@ class ProductTypeInput(graphene.InputObjectType):
             "least one variant created under the hood."
         )
     )
-    product_attributes = graphene.List(
+    product_attributes = NonNullList(
         graphene.ID,
         description="List of attributes shared among all product variants.",
         name="productAttributes",
     )
-    variant_attributes = graphene.List(
+    variant_attributes = NonNullList(
         graphene.ID,
         description=(
             "List of attributes used to distinguish between different variants of "
@@ -1564,14 +1561,14 @@ class ProductMediaUpdate(BaseMutation):
 
 class ProductMediaReorder(BaseMutation):
     product = graphene.Field(Product)
-    media = graphene.List(graphene.NonNull(ProductMedia))
+    media = NonNullList(ProductMedia)
 
     class Arguments:
         product_id = graphene.ID(
             required=True,
             description="ID of product that media order will be altered.",
         )
-        media_ids = graphene.List(
+        media_ids = NonNullList(
             graphene.ID,
             required=True,
             description="IDs of a product media in the desired order.",
@@ -1619,9 +1616,7 @@ class ProductMediaReorder(BaseMutation):
                 )
             ordered_media.append(media)
 
-        for order, media in enumerate(ordered_media):
-            media.sort_order = order
-            media.save(update_fields=["sort_order"])
+        update_ordered_media(ordered_media)
 
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
@@ -1687,7 +1682,7 @@ class ProductVariantReorder(BaseMutation):
             required=True,
             description="Id of product that variants order will be altered.",
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of variant reordering operations.",

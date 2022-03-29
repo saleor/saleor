@@ -47,9 +47,7 @@ def test_generate_invoice_pdf_for_order(
     gift_card.save(update_fields=["current_balance_amount"])
 
     balance_data = [(gift_card, previous_current_balance.amount)]
-    gift_cards_used_in_order_event(
-        balance_data, fulfilled_order.id, customer_user, None
-    )
+    gift_cards_used_in_order_event(balance_data, fulfilled_order, customer_user, None)
 
     content, creation = generate_invoice_pdf(fulfilled_order.invoices.first())
 
@@ -100,7 +98,7 @@ def test_get_gift_cards_payment_amount(
         (gift_card_used, previous_current_balance_gift_card_used),
     ]
 
-    gift_cards_used_in_order_event(balance_data, order.id, customer_user, None)
+    gift_cards_used_in_order_event(balance_data, order, customer_user, None)
 
     # when
     gift_cards_payment = get_gift_cards_payment_amount(order)

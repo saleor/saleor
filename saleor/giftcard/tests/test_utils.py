@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from ...core import TimePeriodType
+from ...core.exceptions import GiftCardNotApplicable
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
@@ -243,8 +243,8 @@ def test_gift_cards_create(
     assert bought_event_for_shippable_card.user == staff_user
     assert bought_event_for_shippable_card.app is None
     assert bought_event_for_shippable_card.type == GiftCardEvents.BOUGHT
+    assert bought_event_for_shippable_card.order == order
     assert bought_event_for_shippable_card.parameters == {
-        "order_id": order.id,
         "expiry_date": None,
     }
 
@@ -262,7 +262,10 @@ def test_gift_cards_create(
     )
     assert non_shippable_event.user == staff_user
     assert non_shippable_event.app is None
-    assert non_shippable_event.parameters == {"order_id": order.id, "expiry_date": None}
+    assert non_shippable_event.order == order
+    assert non_shippable_event.parameters == {
+        "expiry_date": None,
+    }
 
     flush_post_commit_hooks()
 
@@ -336,8 +339,8 @@ def test_gift_cards_create_expiry_date_set(
     event = GiftCardEvent.objects.get(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
     assert event.user == staff_user
     assert event.app is None
+    assert event.order == order
     assert event.parameters == {
-        "order_id": order.id,
         "expiry_date": gift_card.expiry_date.isoformat(),
     }
 
@@ -618,7 +621,7 @@ def test_fulfill_gift_card_lines_lack_of_stock(
     )
 
     # when
-    with pytest.raises(ValidationError):
+    with pytest.raises(GiftCardNotApplicable):
         fulfill_gift_card_lines(lines, staff_user, None, order, site_settings, manager)
 
 
@@ -627,7 +630,7 @@ def test_deactivate_order_gift_cards(
 ):
     # given
     bought_cards = [gift_card, gift_card_expiry_date]
-    events.gift_cards_bought_event(bought_cards, order.id, staff_user, None)
+    events.gift_cards_bought_event(bought_cards, order, staff_user, None)
 
     for card in [gift_card, gift_card_expiry_date, gift_card_created_by_staff]:
         assert card.is_active

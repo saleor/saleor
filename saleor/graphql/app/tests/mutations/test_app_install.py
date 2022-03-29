@@ -9,7 +9,7 @@ from ....tests.utils import get_graphql_content
 
 INSTALL_APP_MUTATION = """
     mutation AppInstall(
-        $app_name: String, $manifest_url: String, $permissions: [PermissionEnum]){
+        $app_name: String, $manifest_url: String, $permissions: [PermissionEnum!]){
         appInstall(
             input:{appName: $app_name, manifestUrl: $manifest_url,
                 permissions:$permissions}){

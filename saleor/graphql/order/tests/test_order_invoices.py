@@ -79,5 +79,5 @@ def test_order_query_invoices_customer_user_by_token(api_client, fulfilled_order
         }
     }
     """
-    response = api_client.post_graphql(query, {"token": fulfilled_order.token})
+    response = api_client.post_graphql(query, {"token": fulfilled_order.id})
     assert_no_permission(response)

@@ -12,8 +12,7 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import FilterInputObjectType
-from ..core.types.common import DateRangeInput
+from ..core.types import DateRangeInput, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field

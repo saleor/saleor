@@ -5,10 +5,12 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, Mock, patch
 
+import before_after
 import graphene
 import pytest
 import pytz
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -3529,7 +3531,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_user(
     attr_value = product_attr.values.first()
 
     query = """
-    query Products($attributesFilter: [AttributeInput], $channel: String) {
+    query Products($attributesFilter: [AttributeInput!], $channel: String) {
         products(
             first: 5,
             filter: {attributes: $attributesFilter},
@@ -3572,7 +3574,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_staff(
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     query = """
-    query Products($attributesFilter: [AttributeInput], $channel: String) {
+    query Products($attributesFilter: [AttributeInput!], $channel: String) {
         products(
             first: 5,
             filter: {attributes: $attributesFilter},
@@ -5514,7 +5516,7 @@ PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
 
 
 REORDER_PRODUCT_VARIANTS_MUTATION = """
-    mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput]!) {
+    mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput!]!) {
         productVariantReorder(productId: $product, moves: $moves) {
             errors {
                 code
@@ -7769,11 +7771,9 @@ def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_with_file_attribute(
     mocked_recalculate_orders_task,
-    delete_from_storage_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -7799,7 +7799,6 @@ def test_delete_product_with_file_attribute(
     mocked_recalculate_orders_task.assert_not_called()
     with pytest.raises(existing_value._meta.model.DoesNotExist):
         existing_value.refresh_from_db()
-    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
 
 
 def test_delete_product_removes_checkout_lines(
@@ -8396,8 +8395,8 @@ PRODUCT_TYPE_CREATE_MUTATION = """
         $taxCode: String,
         $hasVariants: Boolean,
         $isShippingRequired: Boolean,
-        $productAttributes: [ID],
-        $variantAttributes: [ID],
+        $productAttributes: [ID!],
+        $variantAttributes: [ID!],
         $weight: WeightScalar) {
         productTypeCreate(
             input: {
@@ -8911,7 +8910,7 @@ mutation updateProductType(
     $name: String!,
     $hasVariants: Boolean!,
     $isShippingRequired: Boolean!,
-    $productAttributes: [ID],
+    $productAttributes: [ID!],
     ) {
         productTypeUpdate(
         id: $id,
@@ -9359,9 +9358,7 @@ def test_product_type_delete_mutation_deletes_also_images(
         product_with_image.refresh_from_db()
 
 
-@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_product_type_delete_with_file_attributes(
-    delete_from_storage_task_mock,
     staff_api_client,
     product_with_variant_with_file_attribute,
     file_attribute,
@@ -9390,10 +9387,6 @@ def test_product_type_delete_with_file_attributes(
     for value in values:
         with pytest.raises(value._meta.model.DoesNotExist):
             value.refresh_from_db()
-    assert delete_from_storage_task_mock.call_count == len(values)
-    assert set(
-        data.args[0] for data in delete_from_storage_task_mock.call_args_list
-    ) == {v.file_url for v in values}
     with pytest.raises(
         product_with_variant_with_file_attribute._meta.model.DoesNotExist
     ):
@@ -9791,7 +9784,7 @@ def test_reorder_media(
     permission_manage_products,
 ):
     query = """
-    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
         productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
             product {
                 id
@@ -9822,6 +9815,52 @@ def test_reorder_media(
     assert media_0.id == reordered_media_1.id
     assert media_1.id == reordered_media_0.id
     product_updated_mock.assert_called_once_with(product)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_reorder_not_existing_media(
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
+):
+    query = """
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID!]!) {
+        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
+            product {
+                id
+            }
+            errors{
+            field
+            code
+            message
+        }
+        }
+    }
+    """
+    product = product_with_images
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
+    media_1_id = graphene.Node.to_global_id("ProductMedia", media_1.id)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    def delete_media(*args, **kwargs):
+        with transaction.atomic():
+            media.delete()
+
+    with before_after.before(
+        "saleor.graphql.product.mutations.products.update_ordered_media", delete_media
+    ):
+        variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}
+        response = staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    response = get_graphql_content(response, ignore_errors=True)
+    assert (
+        response["data"]["productMediaReorder"]["errors"][0]["code"]
+        == ProductErrorCode.NOT_FOUND.name
+    )
 
 
 ASSIGN_VARIANT_QUERY = """
@@ -9977,7 +10016,7 @@ def test_product_type_update_changes_variant_name(
         $id: ID!,
         $hasVariants: Boolean!,
         $isShippingRequired: Boolean!,
-        $variantAttributes: [ID],
+        $variantAttributes: [ID!],
         ) {
             productTypeUpdate(
             id: $id,

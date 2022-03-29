@@ -18,7 +18,7 @@ from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum, TranslationErrorCode
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
-from ..core.types.common import TranslationError
+from ..core.types import TranslationError
 from ..core.utils import from_global_id_or_error
 from ..discount.types import Sale, Voucher
 from ..menu.types import MenuItem
@@ -382,7 +382,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         id = graphene.ID(
             required=True,
             description=(
-                "ShippingMethodType ID or ShippingMethodTranslatableContent ID.",
+                "ShippingMethodType ID or ShippingMethodTranslatableContent ID."
             ),
         )
         language_code = graphene.Argument(
@@ -474,7 +474,7 @@ class ShopSettingsTranslate(BaseMutation):
             LanguageCodeEnum, required=True, description="Translation language code."
         )
         input = ShopSettingsTranslationInput(
-            description=("Fields required to update shop settings translations."),
+            description="Fields required to update shop settings translations.",
             required=True,
         )
 

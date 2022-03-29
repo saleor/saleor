@@ -1,10 +1,15 @@
 import base64
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
+from ....account.error_codes import AccountErrorCode
+from ....account.models import User
+from ....checkout.models import Checkout
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
@@ -52,6 +57,7 @@ def execute_update_public_metadata_for_item(
     item_type,
     key=PUBLIC_KEY,
     value=PUBLIC_VALUE,
+    ignore_errors=False,
 ):
     variables = {
         "id": item_id,
@@ -63,7 +69,7 @@ def execute_update_public_metadata_for_item(
         variables,
         permissions=[permissions] if permissions else None,
     )
-    response = get_graphql_content(response)
+    response = get_graphql_content(response, ignore_errors=ignore_errors)
     return response
 
 
@@ -124,6 +130,21 @@ def item_contains_multiple_proper_public_metadata(
     )
 
 
+def test_meta_mutations_handle_validation_errors(staff_api_client):
+    invalid_id = "6QjoLs5LIqb3At7hVKKcUlqXceKkFK"
+    variables = {
+        "id": invalid_id,
+        "input": [{"key": "year", "value": "of-saleor"}],
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "Checkout", variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["updateMetadata"]["errors"]
+    assert errors
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
+
+
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_base_metadata_mutation_handles_errors_from_extra_action(
     mock_checkout_updated, api_client, checkout
@@ -176,6 +197,23 @@ def test_add_public_metadata_for_customer_as_app(
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer_user, customer_id
+    )
+
+
+def test_change_metadata_for_non_existing_user(app_api_client, customer_user):
+    # given the non-existing user ID
+    last_id = User.objects.order_by("id").values_list("id", flat=True).last()
+    customer_id = graphene.Node.to_global_id("User", last_id + 100)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        app_api_client, [], customer_id, "User"
+    )
+
+    # then
+    assert (
+        response["data"]["updateMetadata"]["errors"][0]["code"]
+        == AccountErrorCode.NOT_FOUND.name
     )
 
 
@@ -398,7 +436,7 @@ def test_add_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order.token, "Order"
+        api_client, None, order.id, "Order"
     )
 
     # then
@@ -428,7 +466,7 @@ def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, draft_order.token, "Order"
+        api_client, None, draft_order.id, "Order"
     )
 
     # then
@@ -750,6 +788,34 @@ def test_update_public_metadata_for_item(api_client, checkout):
         checkout,
         checkout_id,
         value="NewMetaValue",
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
+    checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["metadata"])
+
+    def delete_checkout_object(*args, **kwargs):
+        with transaction.atomic():
+            Checkout.objects.filter(pk=checkout.pk).delete()
+
+    with before_after.before(
+        "saleor.graphql.meta.mutations._save_instance", delete_checkout_object
+    ):
+        response = execute_update_public_metadata_for_item(
+            api_client,
+            None,
+            checkout.token,
+            "Checkout",
+            value="NewMetaValue",
+            ignore_errors=True,
+        )
+
+    assert not Checkout.objects.filter(pk=checkout.pk).first()
+    assert (
+        response["data"]["updateMetadata"]["errors"][0]["code"]
+        == MetadataErrorCode.NOT_FOUND.name
     )
 
 
@@ -1178,7 +1244,7 @@ def test_delete_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, order.token, "Order"
+        api_client, None, order.id, "Order"
     )
 
     # then
@@ -1212,7 +1278,7 @@ def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, draft_order.token, "Order"
+        api_client, None, draft_order.id, "Order"
     )
 
     # then
@@ -1985,7 +2051,7 @@ def test_add_private_metadata_for_order_by_token(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, order.token, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -2019,7 +2085,7 @@ def test_add_private_metadata_for_draft_order_by_token(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, draft_order.token, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then
@@ -2838,7 +2904,7 @@ def test_delete_private_metadata_for_order_by_token(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, order.token, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -2876,7 +2942,7 @@ def test_delete_private_metadata_for_draft_order_by_token(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, draft_order.token, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then

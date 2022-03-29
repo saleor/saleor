@@ -9,7 +9,7 @@ PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION = """
     mutation PageReorderAttributeValues(
       $pageId: ID!
       $attributeId: ID!
-      $moves: [ReorderInput]!
+      $moves: [ReorderInput!]!
     ) {
       pageReorderAttributeValues(
         pageId: $pageId

@@ -1097,7 +1097,7 @@ def color_attribute(db):
 
 @pytest.fixture
 def attribute_without_values():
-    attribute = Attribute.objects.create(
+    return Attribute.objects.create(
         slug="dropdown",
         name="Dropdown",
         type=AttributeType.PRODUCT_TYPE,
@@ -1107,8 +1107,6 @@ def attribute_without_values():
         visible_in_storefront=True,
         entity_type=None,
     )
-
-    return attribute
 
 
 @pytest.fixture
@@ -1141,26 +1139,24 @@ def product_type_with_variant_attributes(attribute_without_values):
 def product_with_product_attributes(
     product_type_with_product_attributes, non_default_category
 ):
-    product = Product.objects.create(
+    return Product.objects.create(
         name="product_with_product_attributes",
         slug="product-with-product-attributes",
         product_type=product_type_with_product_attributes,
         category=non_default_category,
     )
-    return product
 
 
 @pytest.fixture
 def product_with_variant_attributes(
     product_type_with_variant_attributes, non_default_category
 ):
-    product = Product.objects.create(
+    return Product.objects.create(
         name="product_with_variant_attributes",
         slug="product-with-variant-attributes",
         product_type=product_type_with_variant_attributes,
         category=non_default_category,
     )
-    return product
 
 
 @pytest.fixture
@@ -1741,6 +1737,11 @@ def permission_manage_orders():
 @pytest.fixture
 def permission_manage_checkouts():
     return Permission.objects.get(codename="manage_checkouts")
+
+
+@pytest.fixture
+def permission_handle_checkouts():
+    return Permission.objects.get(codename="handle_checkouts")
 
 
 @pytest.fixture
@@ -3489,7 +3490,6 @@ def gift_card_event(gift_card, order, app, staff_user):
     parameters = {
         "message": "test message",
         "email": "testemail@email.com",
-        "order_id": order.pk,
         "tags": ["test tag"],
         "old_tags": ["test old tag"],
         "balance": {
@@ -3506,6 +3506,7 @@ def gift_card_event(gift_card, order, app, staff_user):
         user=staff_user,
         app=app,
         gift_card=gift_card,
+        order=order,
         type=GiftCardEvents.UPDATED,
         parameters=parameters,
         date=timezone.now() + datetime.timedelta(days=10),

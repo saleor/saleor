@@ -119,7 +119,7 @@ def test_excluded_shipping_methods_for_order(
         shipping_app,
         EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order_with_lines.token
+    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
     expected_excluded_shipping_method = [{"id": "1", "reason": webhook_reason}]
 
@@ -204,7 +204,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         second_shipping_app,
         EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
-    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + order_with_lines.token
+    expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
     expected_excluded_shipping_method = [
         {"id": "1", "reason": webhook_reason},

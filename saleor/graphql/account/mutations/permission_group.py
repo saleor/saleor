@@ -18,7 +18,7 @@ from ...account.utils import (
 )
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import PermissionGroupError
+from ...core.types import NonNullList, PermissionGroupError
 from ...utils.validators import check_for_duplicates
 from ..types import Group
 
@@ -27,13 +27,13 @@ if TYPE_CHECKING:
 
 
 class PermissionGroupInput(graphene.InputObjectType):
-    add_permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    add_permissions = NonNullList(
+        PermissionEnum,
         description="List of permission code names to assign to this group.",
         required=False,
     )
-    add_users = graphene.List(
-        graphene.NonNull(graphene.ID),
+    add_users = NonNullList(
+        graphene.ID,
         description="List of users to assign to this group.",
         required=False,
     )
@@ -170,13 +170,13 @@ class PermissionGroupCreate(ModelMutation):
 
 class PermissionGroupUpdateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=False)
-    remove_permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
+    remove_permissions = NonNullList(
+        PermissionEnum,
         description="List of permission code names to unassign from this group.",
         required=False,
     )
-    remove_users = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_users = NonNullList(
+        graphene.ID,
         description="List of users to unassign from this group.",
         required=False,
     )

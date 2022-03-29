@@ -170,7 +170,7 @@ def test_create_collection(
     query = """
         mutation createCollection(
                 $name: String!, $slug: String,
-                $description: JSONString, $products: [ID],
+                $description: JSONString, $products: [ID!],
                 $backgroundImage: Upload, $backgroundImageAlt: String) {
             collectionCreate(
                 input: {
@@ -271,7 +271,7 @@ def test_collection_add_products(
 ):
     query = """
         mutation collectionAddProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionAddProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -312,7 +312,7 @@ def test_remove_products_from_collection(
 ):
     query = """
         mutation collectionRemoveProducts(
-            $id: ID!, $products: [ID]!) {
+            $id: ID!, $products: [ID!]!) {
             collectionRemoveProducts(collectionId: $id, products: $products) {
                 collection {
                     products {
@@ -354,7 +354,7 @@ def test_collection_bulk_delete(
     settings,
 ):
     query = """
-    mutation collectionBulkDelete($ids: [ID]!) {
+    mutation collectionBulkDelete($ids: [ID!]!) {
         collectionBulkDelete(ids: $ids) {
             count
             errors {

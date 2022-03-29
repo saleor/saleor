@@ -6,7 +6,7 @@ from ....core.enums import PermissionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_UPDATE_MUTATION = """
-mutation AppUpdate($id: ID!, $permissions: [PermissionEnum]){
+mutation AppUpdate($id: ID!, $permissions: [PermissionEnum!]){
     appUpdate(id: $id,
         input:{permissions:$permissions}){
         app{

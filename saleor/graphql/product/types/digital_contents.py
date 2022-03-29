@@ -5,7 +5,7 @@ from ....product import models
 from ...channel import ChannelContext
 from ...core.connection import CountableConnection
 from ...core.scalars import UUID
-from ...core.types import ModelObjectType
+from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
 
@@ -16,9 +16,7 @@ class DigitalContentUrl(ModelObjectType):
     created = graphene.DateTime(required=True)
     download_num = graphene.Int(required=True)
     url = graphene.String(description="URL for digital content.")
-    token = graphene.Field(
-        UUID, description=("UUID of digital content."), required=True
-    )
+    token = graphene.Field(UUID, description="UUID of digital content.", required=True)
 
     class Meta:
         model = models.DigitalContentUrl
@@ -36,7 +34,7 @@ class DigitalContent(ModelObjectType):
     content_file = graphene.String(required=True)
     max_downloads = graphene.Int()
     url_valid_days = graphene.Int()
-    urls = graphene.List(
+    urls = NonNullList(
         lambda: DigitalContentUrl,
         description="List of URLs for the digital variant.",
     )

@@ -2,9 +2,9 @@ from unittest import mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import ValidationError
 from django.test import override_settings
 
+from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money, zero_taxed_money
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
@@ -31,10 +31,13 @@ def test_create_order_insufficient_stock(
     checkout.tracking_code = "tracking_code"
     checkout.save()
 
+    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, [], manager)
     lines, _ = fetch_checkout_lines(checkout)
-    with pytest.raises(ValidationError):
+    with pytest.raises(InsufficientStock):
         create_order_from_checkout(
-            checkout=checkout,
+            checkout_info=checkout_info,
+            checkout_lines=checkout_lines,
             discounts=[],
             manager=manager,
             user=AnonymousUser(),
@@ -79,7 +82,8 @@ def test_create_order_with_gift_card(
     gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     order = create_order_from_checkout(
-        checkout=checkout,
+        checkout_info=checkout_info,
+        checkout_lines=lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),
@@ -123,8 +127,12 @@ def test_create_order_with_gift_card_partial_use(
     checkout.gift_cards.add(gift_card_used)
     checkout.save()
 
+    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, [], manager)
+
     order = create_order_from_checkout(
-        checkout=checkout,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),
@@ -182,8 +190,12 @@ def test_create_order_with_many_gift_cards(
     checkout.gift_cards.add(gift_card)
     checkout.save()
 
+    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, [], manager)
+
     order = create_order_from_checkout(
-        checkout=checkout,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser,
@@ -248,7 +260,8 @@ def test_create_order_gift_card_bought(
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
     order = create_order_from_checkout(
-        checkout=checkout,
+        checkout_info=checkout_info,
+        checkout_lines=lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),
@@ -322,7 +335,8 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
     order = create_order_from_checkout(
-        checkout=checkout,
+        checkout_info=checkout_info,
+        checkout_lines=lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),
@@ -377,7 +391,8 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
     order = create_order_from_checkout(
-        checkout=checkout,
+        checkout_info=checkout_info,
+        checkout_lines=lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),
@@ -401,8 +416,12 @@ def test_note_in_created_order(
     checkout_with_item.save()
     manager = get_plugins_manager()
 
+    checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+
     order = create_order_from_checkout(
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
+        checkout_lines=checkout_lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),
@@ -431,7 +450,7 @@ def test_create_order_use_translations(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     variant = lines[0].variant
     product = lines[0].product
 
@@ -447,7 +466,8 @@ def test_create_order_use_translations(
     )
 
     order = create_order_from_checkout(
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
+        checkout_lines=lines,
         discounts=[],
         manager=manager,
         user=AnonymousUser(),

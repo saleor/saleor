@@ -6,7 +6,7 @@ from ....checkout.utils import recalculate_checkout_discount
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout, CheckoutLine
 from .utils import get_checkout_by_token, update_checkout_shipping_method_if_invalid

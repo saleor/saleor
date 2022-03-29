@@ -68,9 +68,7 @@ def test_page_delete_trigger_webhook(
     )
 
 
-@mock.patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_page_delete_with_file_attribute(
-    delete_from_storage_task_mock,
     staff_api_client,
     page,
     permission_manage_pages,
@@ -97,7 +95,6 @@ def test_page_delete_with_file_attribute(
         page.refresh_from_db()
     with pytest.raises(existing_value._meta.model.DoesNotExist):
         existing_value.refresh_from_db()
-    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
 
 
 def test_page_delete_removes_reference_to_product(

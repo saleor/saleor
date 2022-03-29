@@ -133,7 +133,7 @@ class ProductOrderField(graphene.Enum):
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
     PUBLISHED_AT = ["publication_date", "name", "slug"]
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
-    COLLECTION = ["sort_order"]
+    COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
 
     @property

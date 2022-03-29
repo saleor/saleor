@@ -41,8 +41,14 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
-from ..core.types.common import DateTimeRangeInput, IntRangeInput, PriceRangeInput
+from ..core.types import (
+    ChannelFilterInputObjectType,
+    DateTimeRangeInput,
+    FilterInputObjectType,
+    IntRangeInput,
+    NonNullList,
+    PriceRangeInput,
+)
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_id, filter_range_field
 from ..warehouse import types as warehouse_types
@@ -565,7 +571,7 @@ def filter_updated_at_range(qs, _, value):
 
 
 class ProductStockFilterInput(graphene.InputObjectType):
-    warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
+    warehouse_ids = NonNullList(graphene.ID, required=False)
     quantity = graphene.Field(IntRangeInput, required=False)
 
 

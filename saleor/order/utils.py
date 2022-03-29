@@ -507,7 +507,7 @@ def add_gift_cards_to_order(
         "used_by_email",
     ]
     GiftCard.objects.bulk_update(gift_cards_to_update, update_fields)
-    gift_card_events.gift_cards_used_in_order_event(balance_data, order.id, user, app)
+    gift_card_events.gift_cards_used_in_order_event(balance_data, order, user, app)
 
 
 def update_gift_card_balance(

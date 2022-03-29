@@ -28,7 +28,7 @@ def prepare_order_search_document_value(order: "Order", *, already_prefetched=Fa
             "discounts",
             "lines",
         )
-    search_document = f"#{str(order.id)}\n"
+    search_document = f"#{str(order.number)}\n"
     user_data = order.user_email + "\n"
     if user := order.user:
         user_data += generate_user_fields_search_document_value(user)

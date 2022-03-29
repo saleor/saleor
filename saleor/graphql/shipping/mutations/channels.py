@@ -14,7 +14,7 @@ from ....shipping.tasks import (
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import ShippingError
+from ...core.types import NonNullList, ShippingError
 from ...core.validators import validate_decimal_max_value, validate_price_precision
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import ShippingMethodType
@@ -31,21 +31,21 @@ class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
         description="Shipping price of the shipping method in this channel."
     )
     minimum_order_price = PositiveDecimal(
-        description=("Minimum order price to use this shipping method.")
+        description="Minimum order price to use this shipping method."
     )
     maximum_order_price = PositiveDecimal(
-        description=("Maximum order price to use this shipping method.")
+        description="Maximum order price to use this shipping method."
     )
 
 
 class ShippingMethodChannelListingInput(graphene.InputObjectType):
-    add_channels = graphene.List(
-        graphene.NonNull(ShippingMethodChannelListingAddInput),
+    add_channels = NonNullList(
+        ShippingMethodChannelListingAddInput,
         description="List of channels to which the shipping method should be assigned.",
         required=False,
     )
-    remove_channels = graphene.List(
-        graphene.NonNull(graphene.ID),
+    remove_channels = NonNullList(
+        graphene.ID,
         description=(
             "List of channels from which the shipping method should be unassigned."
         ),
