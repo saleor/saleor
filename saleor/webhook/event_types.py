@@ -300,4 +300,6 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.PAGE_CREATED,
     WebhookEventAsyncType.PAGE_UPDATED,
     WebhookEventAsyncType.PAGE_DELETED,
+    WebhookEventAsyncType.TRANSLATION_CREATED,
+    WebhookEventAsyncType.TRANSLATION_UPDATED,
 ]

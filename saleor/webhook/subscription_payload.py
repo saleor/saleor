@@ -4,11 +4,9 @@ from celery.utils.log import get_task_logger
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
-from graphene_django.settings import graphene_settings
-from graphene_django.views import instantiate_middleware
-from graphql import get_default_backend, parse
+from graphql import GraphQLDocument, get_default_backend, parse
 from graphql.error import GraphQLSyntaxError
-from graphql.execution.middleware import MiddlewareManager
+from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ..app.models import App
@@ -21,16 +19,40 @@ def validate_subscription_query(query: str) -> bool:
 
     graphql_backend = get_default_backend()
     try:
-        graphql_backend.document_from_string(schema, query)
+        document = graphql_backend.document_from_string(schema, query)
     except (ValueError, GraphQLSyntaxError):
         return False
+    if not check_document_is_single_subscription(document):
+        return False
     return True
+
+
+def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
+    """Check if document contains only a single subscription definition.
+
+    # Only fragments and single subscription definition are allowed.
+    """
+    result = True
+    subscriptions = []
+    for definition in document.document_ast.definitions:
+        if isinstance(definition, FragmentDefinition):
+            pass
+        elif isinstance(definition, OperationDefinition):
+            if definition.operation == "subscription":
+                subscriptions.append(definition)
+            else:
+                return False
+        else:
+            return False
+    if len(subscriptions) != 1:
+        result = False
+    return result
 
 
 def initialize_context() -> HttpRequest:
     """Prepare a request object for webhook subscription.
 
-    It creates a dummy request object and initialize middleware on it. It is required
+    # It creates a dummy request object and initialize middleware on it. It is required
     to process a request in the same way as API logic does.
     return: HttpRequest
     """
@@ -72,10 +94,6 @@ def generate_payload_from_subscription(
         schema,
         ast,
     )
-    graphql_middleware = graphene_settings.MIDDLEWARE
-    graphql_middleware = MiddlewareManager(
-        instantiate_middleware(graphql_middleware), wrap_in_promise=False
-    )
     app_id = app.pk if app else None
 
     context.app = app  # type: ignore
@@ -84,12 +102,11 @@ def generate_payload_from_subscription(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),
         context=context,
-        middleware=graphql_middleware,
     )
     if hasattr(results, "errors"):
-        logger.warning(str(results.errors))
         logger.warning(
-            "Unable to build a payload for subscription",
+            "Unable to build a payload for subscription. \n"
+            "error: %s" % str(results.errors),
             extra={"query": subscription_query, "app": app_id},
         )
         return None
@@ -101,6 +118,7 @@ def generate_payload_from_subscription(
             "Subscription did not return a payload.",
             extra={"query": subscription_query, "app": app_id},
         )
+        return None
 
     payload_instance = payload[0]
 

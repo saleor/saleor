@@ -121,10 +121,11 @@ def create_deliveries_for_subscriptions(
             app=webhook.app,
         )
         if not data:
-            # FIXME build better way of handling such cases
+            logger.warning(
+                "No payload was generated with subscription for event: %s" % event_type
+            )
             continue
-        if len(data) == 1 and "__typename" in data:
-            continue
+
         event_payload = EventPayload(payload=json.dumps([{**data, "meta": meta}]))
         event_payloads.append(event_payload)
         event_deliveries.append(

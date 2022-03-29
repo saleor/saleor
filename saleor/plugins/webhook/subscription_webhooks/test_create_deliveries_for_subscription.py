@@ -44,7 +44,6 @@ def test_product_deleted(product, subscription_product_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-# PRODUCT VARIANT EVENTS
 def test_product_variant_created(variant, subscription_product_variant_created_webhook):
     webhooks = [subscription_product_variant_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_CREATED
@@ -455,6 +454,20 @@ def test_page_deleted(page, subscription_page_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_product_created_multiple_events_in_subscription(
+    product, subscription_product_created_multiple_events_webhook
+):
+    webhooks = [subscription_product_created_multiple_events_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_CREATED
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
+    expected_payload = json.dumps([{"product": {"id": product_id}, "meta": None}])
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 @patch.object(logger, "info")
 def test_create_deliveries_for_subscriptions_unsubscribable_event(
     mocked_logger, product, subscription_product_updated_webhook, any_webhook
@@ -491,4 +504,82 @@ def test_validate_subscription_query_valid():
 def test_validate_subscription_query_invalid():
 
     result = validate_subscription_query("invalid_query")
+    assert result is False
+
+
+TEST_VALID_SUBSCRIPTION_QUERY_WITH_FRAGMENT = """
+fragment productFragment on Product{
+  name
+}
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+        ...productFragment
+      }
+    }
+  }
+}
+"""
+
+
+def test_validate_subscription_query_valid_with_fragment():
+
+    result = validate_subscription_query(TEST_VALID_SUBSCRIPTION_QUERY_WITH_FRAGMENT)
+    assert result is True
+
+
+TEST_INVALID_MULTIPLE_QUERY_AND_SUBSCRIPTION = """
+query{
+  products(first:100){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+      }
+    }
+  }
+}"""
+
+
+def test_validate_invalid_query_and_subscription():
+
+    result = validate_subscription_query(TEST_INVALID_MULTIPLE_QUERY_AND_SUBSCRIPTION)
+    assert result is False
+
+
+TEST_INVALID_MULTIPLE_SUBSCRIPTION_AND_QUERY = """
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+      }
+    }
+  }
+}
+query{
+  products(first:100){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_validate_invalid_subscription_and_query():
+
+    result = validate_subscription_query(TEST_INVALID_MULTIPLE_SUBSCRIPTION_AND_QUERY)
     assert result is False

@@ -10179,7 +10179,9 @@ input WebhookCreateInput {
   """The secret key used to create a hash signature with each payload."""
   secretKey: String
 
-  """Subscription query used to define a webhook payload."""
+  """
+  Subscription query used to define a webhook payload. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   query: String
 }
 
@@ -15475,44 +15477,54 @@ type PermissionGroupDelete {
 }
 
 type Subscription {
+  """Look up subscription event."""
   event: Event
 }
 
-union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted
+union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
 
 type OrderCreated {
+  """Look up an order."""
   order: Order
 }
 
 type OrderUpdated {
+  """Look up an order."""
   order: Order
 }
 
 type OrderConfirmed {
+  """Look up an order."""
   order: Order
 }
 
 type OrderFullyPaid {
+  """Look up an order."""
   order: Order
 }
 
 type OrderCancelled {
+  """Look up an order."""
   order: Order
 }
 
 type OrderFulfilled {
+  """Look up an order."""
   order: Order
 }
 
 type DraftOrderCreated {
+  """Look up an order."""
   order: Order
 }
 
 type DraftOrderUpdated {
+  """Look up an order."""
   order: Order
 }
 
 type DraftOrderDeleted {
+  """Look up an order."""
   order: Order
 }
 
@@ -15701,6 +15713,18 @@ type PageUpdated {
 type PageDeleted {
   """Look up a page."""
   page: Page
+}
+
+type TranslationCreated {
+  """Look up a translation."""
+  translation: TranslationTypes
+}
+
+union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
+
+type TranslationUpdated {
+  """Look up a translation."""
+  translation: TranslationTypes
 }
 
 """An enumeration."""

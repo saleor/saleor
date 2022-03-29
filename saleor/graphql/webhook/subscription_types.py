@@ -2,12 +2,40 @@ import graphene
 from graphene import AbstractType, ObjectType, Union
 from rx import Observable
 
+from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...discount.models import SaleTranslation, VoucherTranslation
+from ...menu.models import MenuItemTranslation
+from ...page.models import PageTranslation
+from ...product.models import (
+    CategoryTranslation,
+    CollectionTranslation,
+    ProductTranslation,
+    ProductVariantTranslation,
+)
+from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType
 from ..channel import ChannelContext
+from ..translations import types as translation_types
+
+TRANSLATIONS_TYPES_MAP = {
+    ProductTranslation: translation_types.ProductTranslation,
+    CollectionTranslation: translation_types.CollectionTranslation,
+    CategoryTranslation: translation_types.CategoryTranslation,
+    AttributeTranslation: translation_types.AttributeTranslation,
+    AttributeValueTranslation: translation_types.AttributeValueTranslation,
+    ProductVariantTranslation: translation_types.ProductVariantTranslation,
+    PageTranslation: translation_types.PageTranslation,
+    ShippingMethodTranslation: translation_types.ShippingMethodTranslation,
+    SaleTranslation: translation_types.SaleTranslation,
+    VoucherTranslation: translation_types.VoucherTranslation,
+    MenuItemTranslation: translation_types.MenuItemTranslation,
+}
 
 
 class OrderBase(AbstractType):
-    order = graphene.Field("saleor.graphql.order.types.Order")
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order", description="Look up an order."
+    )
 
     @staticmethod
     def resolve_order(root, info):
@@ -312,6 +340,39 @@ class PageDeleted(ObjectType, PageBase):
     ...
 
 
+class TranslationTypes(Union):
+    class Meta:
+        types = tuple(TRANSLATIONS_TYPES_MAP.values())
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        instance_type = type(instance)
+        if instance_type in TRANSLATIONS_TYPES_MAP:
+            return TRANSLATIONS_TYPES_MAP[instance_type]
+
+        return super(TranslationTypes, cls).resolve_type(instance, info)
+
+
+class TranslationBase(AbstractType):
+    translation = graphene.Field(
+        TranslationTypes,
+        description="Look up a translation.",
+    )
+
+    @staticmethod
+    def resolve_translation(root, _info):
+        _, translation = root
+        return translation
+
+
+class TranslationCreated(ObjectType, TranslationBase):
+    ...
+
+
+class TranslationUpdated(ObjectType, TranslationBase):
+    ...
+
+
 class Event(Union):
     class Meta:
         types = (
@@ -350,6 +411,8 @@ class Event(Union):
             PageCreated,
             PageUpdated,
             PageDeleted,
+            TranslationCreated,
+            TranslationUpdated,
         )
 
     @classmethod
@@ -369,8 +432,12 @@ class Event(Union):
             WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
             WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
             WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
-            WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,  # noqa
-            WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,  # noqa
+            WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: (
+                ProductVariantOutOfStock
+            ),
+            WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: (
+                ProductVariantBackInStock
+            ),
             WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
             WebhookEventAsyncType.SALE_CREATED: SaleCreated,
             WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
@@ -390,6 +457,8 @@ class Event(Union):
             WebhookEventAsyncType.PAGE_CREATED: PageCreated,
             WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,
             WebhookEventAsyncType.PAGE_DELETED: PageDeleted,
+            WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
+            WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
         }
         return types.get(object_type)
 
@@ -400,7 +469,7 @@ class Event(Union):
 
 
 class Subscription(ObjectType):
-    event = graphene.Field(Event)
+    event = graphene.Field(Event, description="Look up subscription event.")
 
     @staticmethod
     def resolve_event(root, info):
