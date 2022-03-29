@@ -35,6 +35,8 @@ def assing_permissions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ("product", "0159_auto_20220209_1501"),
+        ("order", "0131_rename_order_token_id"),
         ("checkout", "0039_alter_checkout_email"),
     ]
 
