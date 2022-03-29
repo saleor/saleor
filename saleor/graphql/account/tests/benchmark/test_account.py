@@ -280,7 +280,7 @@ def test_delete_staff_members(
 ):
     """Ensure user can delete users when all permissions will be manageable."""
     query = """
-        mutation staffBulkDelete($ids: [ID]!) {
+        mutation staffBulkDelete($ids: [ID!]!) {
             staffBulkDelete(ids: $ids) {
                 count
                 errors{

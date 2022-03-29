@@ -1,7 +1,6 @@
 import datetime
 import os
 import re
-import uuid
 from collections import defaultdict
 from datetime import timedelta
 from unittest.mock import ANY, MagicMock, Mock, patch
@@ -4770,9 +4769,9 @@ def test_query_customers_with_filter_placed_orders_(
 ):
     Order.objects.bulk_create(
         [
-            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
-            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
-            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD),
         ]
     )
     second_customer = User.objects.create(email="second_example@example.com")
@@ -5200,7 +5199,7 @@ def test_query_staff_members_with_sort(
 
 
 USER_CHANGE_ACTIVE_STATUS_MUTATION = """
-    mutation userChangeActiveStatus($ids: [ID]!, $is_active: Boolean!) {
+    mutation userChangeActiveStatus($ids: [ID!]!, $is_active: Boolean!) {
         userBulkSetActive(ids: $ids, isActive: $is_active) {
             count
             errors {

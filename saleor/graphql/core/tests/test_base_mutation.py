@@ -9,6 +9,9 @@ from graphql.execution import ExecutionResult
 from saleor.core.permissions import ProductPermissions
 from saleor.plugins.tests.sample_plugins import PluginSample
 
+from ....order.models import Order
+from ....product.models import Product
+from ...order import types as order_types
 from ...product import types as product_types
 from ..mutations import BaseMutation
 from . import ErrorTest
@@ -56,14 +59,36 @@ class RestrictedMutation(Mutation):
         error_type_class = ErrorTest
 
 
+class OrderMutation(BaseMutation):
+    number = graphene.Field(graphene.String)
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        channel = graphene.String()
+
+    class Meta:
+        description = "Base mutation"
+        error_type_class = ErrorTest
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, channel):
+        # Need to mock `app_middleware`
+        info.context.app = None
+
+        order = cls.get_node_or_error(info, id, only_type=order_types.Order)
+        return OrderMutation(number=order.number)
+
+
 class Mutations(graphene.ObjectType):
     test = Mutation.Field()
     test_with_custom_errors = MutationWithCustomErrors.Field()
     restricted_mutation = RestrictedMutation.Field()
+    test_order_mutation = OrderMutation.Field()
 
 
 schema = graphene.Schema(
-    mutation=Mutations, types=[product_types.Product, product_types.ProductVariant]
+    mutation=Mutations,
+    types=[product_types.Product, product_types.ProductVariant, order_types.Order],
 )
 
 
@@ -121,6 +146,46 @@ def test_user_error_nonexistent_id(schema_context, channel_USD):
     assert user_errors
     assert user_errors[0]["field"] == "productId"
     assert user_errors[0]["message"] == "Couldn't resolve id: not-really."
+
+
+TEST_ORDER_MUTATION = """
+    mutation TestOrderMutation($id: ID!, $channel: String) {
+        testOrderMutation(id: $id, channel: $channel) {
+            number
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_order_mutation_resolve_uuid_id(order, schema_context, channel_USD):
+    """Ensure that order migrations can be perfromed with use of
+    new order id (uuid type)."""
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    variables = {"id": order_id, "channel": channel_USD.slug}
+    result = schema.execute(
+        TEST_ORDER_MUTATION, variables=variables, context_value=schema_context
+    )
+    assert not result.errors
+    assert result.data["testOrderMutation"]["number"] == str(order.number)
+
+
+def test_order_mutation_for_old_int_id(order, schema_context, channel_USD):
+    """Ensure that order migrations for orders with `use_old_id` flag set to True,
+    can be perfromed with use of old order id (int type)."""
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    order_id = graphene.Node.to_global_id("Order", order.number)
+    variables = {"id": order_id, "channel": channel_USD.slug}
+    result = schema.execute(
+        TEST_ORDER_MUTATION, variables=variables, context_value=schema_context
+    )
+    assert not result.errors
+    assert result.data["testOrderMutation"]["number"] == str(order.number)
 
 
 def test_mutation_custom_errors_default_value(product, schema_context, channel_USD):
@@ -294,9 +359,7 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
         mutation_query, variables=variables, context_value=schema_context
     )
     assert len(result.errors) == 1, result.to_dict()
-    assert result.errors[0].message == (
-        "You do not have permission to perform this action"
-    )
+    assert "You need one of the following permissions" in result.errors[0].message
 
     # When permission is not missing, the execution of the plugin should happen
     staff_user.user_permissions.set([permission_manage_products])
@@ -306,3 +369,63 @@ def test_mutation_calls_plugin_perform_mutation_after_permission_checks(
     )
     assert len(result.errors) == 1, result.to_dict()
     assert result.errors[0].message == "My Custom Error"
+
+
+def test_base_mutation_get_node_by_pk_with_order_qs_and_old_int_id(staff_user, order):
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
+    # when
+    node = BaseMutation._get_node_by_pk(
+        info, order_types.Order, order.number, qs=Order.objects.all()
+    )
+
+    # then
+    assert node.id == order.id
+
+
+def test_base_mutation_get_node_by_pk_with_order_qs_and_new_uuid_id(staff_user, order):
+    # given
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
+    # when
+    node = BaseMutation._get_node_by_pk(
+        info, order_types.Order, order.pk, qs=Order.objects.all()
+    )
+
+    # then
+    assert node.id == order.id
+
+
+def test_base_mutation_get_node_by_pk_with_order_qs_and_int_id_use_old_id_set_to_false(
+    staff_user, order
+):
+    # given
+    order.use_old_id = False
+    order.save(update_fields=["use_old_id"])
+
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
+    # when
+    node = BaseMutation._get_node_by_pk(
+        info, order_types.Order, order.number, qs=Order.objects.all()
+    )
+
+    # then
+    assert node is None
+
+
+def test_base_mutation_get_node_by_pk_with_qs_for_product(staff_user, product):
+    # given
+    info = mock.Mock(context=mock.Mock(user=staff_user))
+
+    # when
+    node = BaseMutation._get_node_by_pk(
+        info, product_types.Product, product.pk, qs=Product.objects.all()
+    )
+
+    # then
+    assert node.id == product.id

@@ -65,7 +65,6 @@ def users_for_customers_benchmarks(channel_USD, address, shipping_method):
 
     orders = [
         Order(
-            token=str(uuid.uuid4()),
             channel=channel_USD,
             billing_address=address.get_copy(),
             shipping_address=address.get_copy(),

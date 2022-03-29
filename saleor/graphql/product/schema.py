@@ -9,6 +9,7 @@ from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.enums import ReportingPeriod
 from ..core.fields import ConnectionField, FilterConnectionField
+from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
@@ -228,7 +229,7 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variants = FilterConnectionField(
         ProductVariantCountableConnection,
-        ids=graphene.List(
+        ids=NonNullList(
             graphene.ID, description="Filter product variants by given IDs."
         ),
         channel=graphene.String(

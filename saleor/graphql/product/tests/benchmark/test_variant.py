@@ -127,7 +127,7 @@ def test_product_variant_bulk_create(
 ):
     query = """
     mutation ProductVariantBulkCreate(
-        $variants: [ProductVariantBulkCreateInput]!, $productId: ID!
+        $variants: [ProductVariantBulkCreateInput!]!, $productId: ID!
     ) {
         productVariantBulkCreate(variants: $variants, product: $productId) {
             errors {

@@ -9,7 +9,7 @@ from ..core.filters import (
     MetadataFilterBase,
     ObjectTypeFilter,
 )
-from ..core.types.common import DateRangeInput, DateTimeRangeInput, IntRangeInput
+from ..core.types import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from ..utils.filters import filter_by_id, filter_range_field
 from . import types as account_types
 from .enums import StaffMemberStatus

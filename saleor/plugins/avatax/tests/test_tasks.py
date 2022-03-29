@@ -72,7 +72,7 @@ def test_api_post_request_task_creates_order_event(
         transaction_url, request_data, asdict(config), order_with_lines.id
     )
 
-    expected_event_msg = f"Order sent to Avatax. Order ID: {order_with_lines.token}"
+    expected_event_msg = f"Order sent to Avatax. Order ID: {order_with_lines.id}"
     assert order_with_lines.events.count() == 1
     event = order_with_lines.events.get()
     assert event.type == OrderEvents.EXTERNAL_SERVICE_NOTIFICATION

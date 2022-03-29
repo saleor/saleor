@@ -52,7 +52,7 @@ def product_type_list():
 
 
 MUTATION_CATEGORY_BULK_DELETE = """
-    mutation categoryBulkDelete($ids: [ID]!) {
+    mutation categoryBulkDelete($ids: [ID!]!) {
         categoryBulkDelete(ids: $ids) {
             count
         }
@@ -233,7 +233,7 @@ def test_delete_categories_with_subcategories_and_products(
 
 
 MUTATION_COLLECTION_BULK_DELETE = """
-    mutation collectionBulkDelete($ids: [ID]!) {
+    mutation collectionBulkDelete($ids: [ID!]!) {
         collectionBulkDelete(ids: $ids) {
             count
         }
@@ -359,7 +359,7 @@ def test_delete_collections_trigger_product_updated_webhook(
 
 
 DELETE_PRODUCTS_MUTATION = """
-mutation productBulkDelete($ids: [ID]!) {
+mutation productBulkDelete($ids: [ID!]!) {
     productBulkDelete(ids: $ids) {
         count
         errors {
@@ -704,7 +704,7 @@ def test_delete_product_media(
     media = product_with_images.media.all()
 
     query = """
-    mutation productMediaBulkDelete($ids: [ID]!) {
+    mutation productMediaBulkDelete($ids: [ID!]!) {
         productMediaBulkDelete(ids: $ids) {
             count
         }
@@ -729,7 +729,7 @@ def test_delete_product_media(
 
 
 PRODUCT_TYPE_BULK_DELETE_MUTATION = """
-    mutation productTypeBulkDelete($ids: [ID]!) {
+    mutation productTypeBulkDelete($ids: [ID!]!) {
         productTypeBulkDelete(ids: $ids) {
             count
             errors {
@@ -827,7 +827,7 @@ def test_delete_product_types_with_file_attributes(
 
 
 PRODUCT_VARIANT_BULK_DELETE_MUTATION = """
-mutation productVariantBulkDelete($ids: [ID]!) {
+mutation productVariantBulkDelete($ids: [ID!]!) {
     productVariantBulkDelete(ids: $ids) {
         count
         errors {

@@ -1,13 +1,13 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import AppPermission
+from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
 from ...webhook.subscription_payload import validate_subscription_query
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import WebhookError
+from ..core.types import NonNullList, WebhookError
 from . import enums
 from .types import EventDelivery, Webhook
 
@@ -30,19 +30,19 @@ def validate_query(query):
 class WebhookCreateInput(graphene.InputObjectType):
     name = graphene.String(description="The name of the webhook.", required=False)
     target_url = graphene.String(description="The url to receive the payload.")
-    events = graphene.List(
+    events = NonNullList(
         enums.WebhookEventTypeEnum,
         description=(
             f"The events that webhook wants to subscribe. {DEPRECATED_IN_3X_INPUT} "
             "Use `asyncEvents` or `syncEvents` instead."
         ),
     )
-    async_events = graphene.List(
-        graphene.NonNull(enums.WebhookEventTypeAsyncEnum),
+    async_events = NonNullList(
+        enums.WebhookEventTypeAsyncEnum,
         description="The asynchronous events that webhook wants to subscribe.",
     )
-    sync_events = graphene.List(
-        graphene.NonNull(enums.WebhookEventTypeSyncEnum),
+    sync_events = NonNullList(
+        enums.WebhookEventTypeSyncEnum,
         description="The synchronous events that webhook wants to subscribe.",
     )
     app = graphene.ID(
@@ -84,7 +84,10 @@ class WebhookCreate(ModelMutation):
         description = "Creates a new webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
 
@@ -124,12 +127,6 @@ class WebhookCreate(ModelMutation):
         return instance
 
     @classmethod
-    def check_permissions(cls, context):
-        has_perm = super().check_permissions(context)
-        has_perm = bool(context.app) or has_perm
-        return has_perm
-
-    @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
@@ -146,7 +143,7 @@ class WebhookUpdateInput(graphene.InputObjectType):
     target_url = graphene.String(
         description="The url to receive the payload.", required=False
     )
-    events = graphene.List(
+    events = NonNullList(
         enums.WebhookEventTypeEnum,
         description=(
             f"The events that webhook wants to subscribe. {DEPRECATED_IN_3X_INPUT} "
@@ -154,13 +151,13 @@ class WebhookUpdateInput(graphene.InputObjectType):
         ),
         required=False,
     )
-    async_events = graphene.List(
-        graphene.NonNull(enums.WebhookEventTypeAsyncEnum),
+    async_events = NonNullList(
+        enums.WebhookEventTypeAsyncEnum,
         description="The asynchronous events that webhook wants to subscribe.",
         required=False,
     )
-    sync_events = graphene.List(
-        graphene.NonNull(enums.WebhookEventTypeSyncEnum),
+    sync_events = NonNullList(
+        enums.WebhookEventTypeSyncEnum,
         description="The synchronous events that webhook wants to subscribe.",
         required=False,
     )
@@ -243,15 +240,12 @@ class WebhookDelete(ModelDeleteMutation):
         description = "Deletes a webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        has_perm = super().check_permissions(context)
-        has_perm = bool(context.app) or has_perm
-        return has_perm
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

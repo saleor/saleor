@@ -15,7 +15,7 @@ from ...channel.utils import clean_channel
 from ...core.descriptions import DEPRECATED_IN_3X_FIELD
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
-from ...core.types.common import CheckoutError
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
 from ..types import Checkout
@@ -39,7 +39,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
     channel = graphene.String(
         description="Slug of a channel in which to create a checkout."
     )
-    lines = graphene.List(
+    lines = NonNullList(
         CheckoutLineInput,
         description=(
             "A list of checkout lines, each containing information about "

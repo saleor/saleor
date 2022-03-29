@@ -144,7 +144,10 @@ def test_invoice_request_no_number(
 
 
 def test_invoice_request_invalid_id(staff_api_client, permission_manage_orders):
-    variables = {"orderId": "T3JkZXI6MTMzNzEzMzc=", "number": "01/12/2020/TEST"}
+    variables = {
+        "orderId": "T3JkZXI6ZmZmMTVjYjItZTc1OC00MGJhLThkYTktNjE3ZTIwNDhlMGQ2",
+        "number": "01/12/2020/TEST",
+    }
     response = staff_api_client.post_graphql(
         INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )

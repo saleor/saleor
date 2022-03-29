@@ -5,12 +5,11 @@ import graphene
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AppPermission
+from ...core.permissions import AppPermission, AuthorizationFilters
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.types import ModelObjectType, Permission
-from ..core.types.common import Job
+from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -25,8 +24,8 @@ from .resolvers import (
 
 
 class AppManifestExtension(graphene.ObjectType):
-    permissions = graphene.List(
-        graphene.NonNull(Permission),
+    permissions = NonNullList(
+        Permission,
         description="List of the app extension's permissions.",
         required=True,
     )
@@ -95,7 +94,9 @@ class AppExtension(AppManifestExtension, ModelObjectType):
                 app_id = root.app_id
 
         if not app_id:
-            raise PermissionDenied()
+            raise PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
         return AppByIdLoader(info.context).load(app_id)
 
     @staticmethod
@@ -120,7 +121,7 @@ class Manifest(graphene.ObjectType):
     version = graphene.String(required=True)
     name = graphene.String(required=True)
     about = graphene.String()
-    permissions = graphene.List(Permission)
+    permissions = NonNullList(Permission)
     app_url = graphene.String()
     configuration_url = graphene.String()
     token_target_url = graphene.String()
@@ -128,7 +129,7 @@ class Manifest(graphene.ObjectType):
     data_privacy_url = graphene.String()
     homepage_url = graphene.String()
     support_url = graphene.String()
-    extensions = graphene.List(graphene.NonNull(AppManifestExtension), required=True)
+    extensions = NonNullList(AppManifestExtension, required=True)
 
     class Meta:
         description = "The manifest definition."
@@ -165,9 +166,7 @@ class AppToken(graphene.ObjectType):
 @federated_entity("id")
 class App(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    permissions = graphene.List(
-        Permission, description="List of the app's permissions."
-    )
+    permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
         description="The date and time when the app was created."
     )
@@ -176,8 +175,8 @@ class App(ModelObjectType):
     )
     name = graphene.String(description="Name of the app.")
     type = AppTypeEnum(description="Type of the app.")
-    tokens = graphene.List(AppToken, description="Last 4 characters of the tokens.")
-    webhooks = graphene.List(
+    tokens = NonNullList(AppToken, description="Last 4 characters of the tokens.")
+    webhooks = NonNullList(
         Webhook, description="List of webhooks assigned to this app."
     )
 
@@ -199,8 +198,8 @@ class App(ModelObjectType):
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app."
     )
-    extensions = graphene.List(
-        graphene.NonNull(AppExtension),
+    extensions = NonNullList(
+        AppExtension,
         description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
         required=True,
     )

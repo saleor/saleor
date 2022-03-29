@@ -7,6 +7,8 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ....account.error_codes import AccountErrorCode
+from ....account.models import User
 from ....checkout.models import Checkout
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
@@ -195,6 +197,23 @@ def test_add_public_metadata_for_customer_as_app(
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer_user, customer_id
+    )
+
+
+def test_change_metadata_for_non_existing_user(app_api_client, customer_user):
+    # given the non-existing user ID
+    last_id = User.objects.order_by("id").values_list("id", flat=True).last()
+    customer_id = graphene.Node.to_global_id("User", last_id + 100)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        app_api_client, [], customer_id, "User"
+    )
+
+    # then
+    assert (
+        response["data"]["updateMetadata"]["errors"][0]["code"]
+        == AccountErrorCode.NOT_FOUND.name
     )
 
 
@@ -417,7 +436,7 @@ def test_add_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order.token, "Order"
+        api_client, None, order.id, "Order"
     )
 
     # then
@@ -447,7 +466,7 @@ def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, draft_order.token, "Order"
+        api_client, None, draft_order.id, "Order"
     )
 
     # then
@@ -1225,7 +1244,7 @@ def test_delete_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, order.token, "Order"
+        api_client, None, order.id, "Order"
     )
 
     # then
@@ -1259,7 +1278,7 @@ def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, draft_order.token, "Order"
+        api_client, None, draft_order.id, "Order"
     )
 
     # then
@@ -2032,7 +2051,7 @@ def test_add_private_metadata_for_order_by_token(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, order.token, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -2066,7 +2085,7 @@ def test_add_private_metadata_for_draft_order_by_token(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, draft_order.token, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then
@@ -2885,7 +2904,7 @@ def test_delete_private_metadata_for_order_by_token(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, order.token, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -2923,7 +2942,7 @@ def test_delete_private_metadata_for_draft_order_by_token(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_orders, draft_order.token, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then

@@ -1,8 +1,7 @@
 import graphene
 
 from ...invoice import models
-from ..core.types import ModelObjectType
-from ..core.types.common import Job
+from ..core.types import Job, ModelObjectType
 from ..meta.types import ObjectWithMetadata
 
 

@@ -22,7 +22,7 @@ from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import AttributeError
+from ..core.types import AttributeError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -214,7 +214,7 @@ class AttributeCreateInput(graphene.InputObjectType):
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
-    values = graphene.List(
+    values = NonNullList(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
     value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
@@ -242,12 +242,12 @@ class AttributeUpdateInput(graphene.InputObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
-    remove_values = graphene.List(
+    remove_values = NonNullList(
         graphene.ID,
         name="removeValues",
         description="IDs of values to be removed from this attribute.",
     )
-    add_values = graphene.List(
+    add_values = NonNullList(
         AttributeValueUpdateInput,
         name="addValues",
         description="New values to be created for this attribute.",
@@ -795,7 +795,7 @@ class AttributeReorderValues(BaseMutation):
         attribute_id = graphene.Argument(
             graphene.ID, required=True, description="ID of an attribute."
         )
-        moves = graphene.List(
+        moves = NonNullList(
             ReorderInput,
             required=True,
             description="The list of reordering operations for given attribute values.",

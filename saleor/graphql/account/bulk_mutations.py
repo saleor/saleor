@@ -7,14 +7,14 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...core.permissions import AccountPermissions
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from ..core.types.common import AccountError, StaffError
+from ..core.types import AccountError, NonNullList, StaffError
 from .types import User
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 
 
 class UserBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of user IDs to delete."
         )
 
@@ -74,7 +74,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
 
 class UserBulkSetActive(BaseBulkMutation):
     class Arguments:
-        ids = graphene.List(
+        ids = NonNullList(
             graphene.ID, required=True, description="List of user IDs to (de)activate)."
         )
         is_active = graphene.Boolean(

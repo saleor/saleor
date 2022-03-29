@@ -7,7 +7,45 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Migrate order id from int to UUID - #9324 by @IKarbowiak
+  - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
+  for old orders.
+  - Deprecated the `order.token` field, the `order.id` should be used instead.
+  - Deprecated the `token` field in order payload, the `id` field should be used
+  instead.
+
 ### Other changes
+- Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
+
+
+# 3.1.7
+
+- Handle `ValidationError` in metadata mutations (#9380) (75deaf6ea)
+- Fix order and checkout payload serializers (#9369) (8219b6e9b)
+- Fix filtering products ordered by collection (#9285) (57aed02a2)
+- Cast `shipping_method_id` to int (#9364) (8d0584710)
+- Catch "update_fields did not affect any rows" errors and return response with message (#9225) (29c7644fc)
+- Fix "str object has no attribute input type" error (#9345) (34c64b5ee)
+- Fix `graphene-django` middleware imports (#9360) (2af1cc55d)
+- Fix preorders to update stock `quantity_allocated` (#9308) (8cf83df81)
+- Do not drop attribute value files when value is deleted (#9320) (57b2888bf)
+- Always cast database ID to int in data loader (#9340) (dbc5ec3e3)
+- Fix removing references when user removes the referenced object (#9162) (68b33d95a)
+- Pass correct list of order lines to `order_added_products_event` (#9286) (db3550f64)
+- Fix flaky order payload serializer test (#9387) (d73bd6f9d)
+
+
+# 3.1.6
+- Fix unhandled GraphQL errors after removing `graphene-django` (#9398) (4090e6f2a)
+
+
+# 3.1.5
+
+- Fix checkout payload (#9333) (61b928e33)
+- Revert "3.1 Add checking if given attributes are variant attributes in ProductVariantCreate mutation (#9134)" (#9334) (dfee09db3)
+
+
+# 3.1.4
 
 - Add `CREATED_AT` and `LAST_MODIFIED_AT` sorting to some GraphQL fields - #9245 by @rafalp
   - Added `LAST_MODIFIED_AT` sort option to `ExportFileSortingInput`
@@ -19,7 +57,24 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated `UPDATED_AT` sort option on `ExportFileSortingInput`
   - Deprecated `LAST_MODIFIED` and `PUBLICATION_DATE` sort options on `ProductOrder` type
   - Deprecated `CREATION_DATE` sort option on `OrderSortingInput` type
-- Drop wishlist models - #9313 by @maarcingebala
+- Fix sending empty emails (#9317) (3e8503d8a)
+- Add checking if given attributes are variant attributes in ProductVariantCreate mutation (#9134) (409ca7d23)
+- Add command to update search indexes (#9315) (fdd81bbfe)
+- Upgrade required Node and NPM versions used by release-it tool (#9293) (3f96a9c30)
+- Update link to community pages (#9291) (2d96f5c60)
+- General cleanup (#9282) (78f59c6a3)
+- Fix `countries` resolver performance (#9318) (dc58ef2c4)
+- Fix multiple refunds in NP Atobarai - #9222
+- Fix dataloaders, filter out productmedia to be removed (#9299) (825ec3cad)
+- Fix migration issue between 3.0 and main (#9323) (fec80cd63)
+- Drop wishlist models (#9313) (7c9576925)
+
+
+# 3.1.3
+
+- Add command to update search indexes (#9315) (6be8461c0)
+- Fix countries resolver performance (#9318) (e177f3957)
+
 
 # 3.1.2
 

@@ -38,12 +38,12 @@ def api_post_request_task(transaction_url, data, config, order_id):
         span.set_tag(opentracing.tags.COMPONENT, "tax")
         span.set_tag("service.name", "avatax")
         response = api_post_request(transaction_url, data, config)
-    msg = f"Order sent to Avatax. Order ID: {order.token}"
+    msg = f"Order sent to Avatax. Order ID: {order.id}"
     if not response or "error" in response:
         avatax_msg = response.get("error", {}).get("message", "")
         msg = f"Unable to send order to Avatax. {avatax_msg}"
         task_logger.warning(
-            "Unable to send order %s to Avatax. Response %s", order.token, response
+            "Unable to send order %s to Avatax. Response %s", order.id, response
         )
 
     external_notification_event(

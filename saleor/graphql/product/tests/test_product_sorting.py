@@ -10,7 +10,7 @@ from ...core.connection import to_global_cursor
 from ...tests.utils import get_graphql_content
 
 COLLECTION_RESORT_QUERY = """
-mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput]!) {
+mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput!]!) {
   collectionReorderProducts(collectionId: $collectionId, moves: $moves) {
     collection {
       id

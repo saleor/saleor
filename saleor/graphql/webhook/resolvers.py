@@ -15,7 +15,7 @@ def resolve_webhooks(info, **_kwargs):
     else:
         user = info.context.user
         if not user.has_perm(AppPermission.MANAGE_APPS):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
         qs = models.Webhook.objects.all()
     return qs
 
