@@ -134,7 +134,7 @@ def test_order_from_checkout(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -308,7 +308,7 @@ def test_order_from_checkout_with_variant_without_sku(
 
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
-    order = Order.objects.get(token=order_token)
+    order = Order.objects.get(pk=order_token)
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
 
@@ -378,11 +378,9 @@ def test_order_from_checkout_requires_confirmation(
     )
     content = get_graphql_content(response)
 
-    order_id = int(
-        graphene.Node.from_global_id(
-            content["data"]["orderCreateFromCheckout"]["order"]["id"]
-        )[1]
-    )
+    order_id = graphene.Node.from_global_id(
+        content["data"]["orderCreateFromCheckout"]["order"]["id"]
+    )[1]
     order = Order.objects.get(pk=order_id)
     assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
@@ -428,7 +426,7 @@ def test_order_from_checkout_with_voucher(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
 
@@ -522,7 +520,7 @@ def test_order_from_checkout_without_inventory_tracking(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -695,7 +693,7 @@ def test_order_from_checkout_own_reservation(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.pk) == order_token
 
     order_line = order.lines.first()
     assert order_line.quantity == quantity_available
@@ -791,7 +789,7 @@ def test_order_from_checkout_0_total_value(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -1050,7 +1048,7 @@ def test_order_from_draft_create_with_preorder_variant(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.total.gross == total.gross
 
     assert order.lines.count() == len(variants_and_quantities)
@@ -1389,7 +1387,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -1446,7 +1444,7 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.token == order_token
+    assert str(order.pk) == order_token
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
