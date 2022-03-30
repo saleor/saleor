@@ -138,7 +138,11 @@ class AppCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new app."
+        auto_permission_message = False
+        description = (
+            "Creates a new app. Requires the following "
+            "permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS."
+        )
         model = models.App
         object_type = App
         permissions = (AppPermission.MANAGE_APPS,)
@@ -355,7 +359,11 @@ class AppInstall(ModelMutation):
         )
 
     class Meta:
-        description = "Install new app by using app manifest."
+        auto_permission_message = False
+        description = (
+            "Install new app by using app manifest. Requires the following "
+            "permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS."
+        )
         model = models.AppInstallation
         object_type = AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
