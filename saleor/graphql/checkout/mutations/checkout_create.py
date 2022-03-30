@@ -15,8 +15,8 @@ from ...channel.utils import clean_channel
 from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
-from ...core.types import CheckoutError, NonNullList
 from ...core.scalars import PositiveDecimal
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
 from ..types import Checkout
