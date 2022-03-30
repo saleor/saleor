@@ -16362,85 +16362,117 @@ type Subscription {
 union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
 
 type OrderCreated {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type OrderUpdated {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type OrderConfirmed {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type OrderFullyPaid {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type OrderCancelled {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type OrderFulfilled {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type DraftOrderCreated {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type DraftOrderUpdated {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type DraftOrderDeleted {
-  """Look up an order."""
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   order: Order
 }
 
 type ProductCreated {
-  """Look up a product."""
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   product(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
 
-  """Look up a category."""
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   category: Category
 }
 
 type ProductUpdated {
-  """Look up a product."""
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   product(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
 
-  """Look up a category."""
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   category: Category
 }
 
 type ProductDeleted {
-  """Look up a product."""
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   product(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
 
-  """Look up a category."""
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   category: Category
 }
 
 type ProductVariantCreated {
-  """Look up a product variant."""
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16448,7 +16480,9 @@ type ProductVariantCreated {
 }
 
 type ProductVariantUpdated {
-  """Look up a product variant."""
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16456,29 +16490,39 @@ type ProductVariantUpdated {
 }
 
 type ProductVariantOutOfStock {
-  """Look up a product variant."""
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 
-  """Look up a warehouse."""
+  """
+  New in Saleor 3.2. Look up a warehouse. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   warehouse: Warehouse
 }
 
 type ProductVariantBackInStock {
-  """Look up a product variant."""
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ProductVariant
 
-  """Look up a warehouse."""
+  """
+  New in Saleor 3.2. Look up a warehouse. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   warehouse: Warehouse
 }
 
 type ProductVariantDeleted {
-  """Look up a product variant."""
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   productVariant(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16486,7 +16530,9 @@ type ProductVariantDeleted {
 }
 
 type SaleCreated {
-  """Look up a sale."""
+  """
+  New in Saleor 3.2. Look up a sale. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16494,7 +16540,9 @@ type SaleCreated {
 }
 
 type SaleUpdated {
-  """Look up a sale."""
+  """
+  New in Saleor 3.2. Look up a sale. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16502,7 +16550,9 @@ type SaleUpdated {
 }
 
 type SaleDeleted {
-  """Look up a sale."""
+  """
+  New in Saleor 3.2. Look up a sale. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   sale(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16510,42 +16560,58 @@ type SaleDeleted {
 }
 
 type InvoiceRequested {
-  """Look up an Invoice."""
+  """
+  New in Saleor 3.2. Look up an Invoice. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   invoice: Invoice
 }
 
 type InvoiceDeleted {
-  """Look up an Invoice."""
+  """
+  New in Saleor 3.2. Look up an Invoice. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   invoice: Invoice
 }
 
 type InvoiceSent {
-  """Look up an Invoice."""
+  """
+  New in Saleor 3.2. Look up an Invoice. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   invoice: Invoice
 }
 
 type FulfillmentCreated {
-  """Look up a Fulfillment."""
+  """
+  New in Saleor 3.2. Look up a Fulfillment. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   fulfillment: Fulfillment
 }
 
 type FulfillmentCanceled {
-  """Look up a Fulfillment."""
+  """
+  New in Saleor 3.2. Look up a Fulfillment. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   fulfillment: Fulfillment
 }
 
 type CustomerCreated {
-  """Look up a user."""
+  """
+  New in Saleor 3.2. Look up a user. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   user: User
 }
 
 type CustomerUpdated {
-  """Look up a user."""
+  """
+  New in Saleor 3.2. Look up a user. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   user: User
 }
 
 type CollectionCreated {
-  """Look up a collection."""
+  """
+  New in Saleor 3.2. Look up a collection. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   collection(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16553,7 +16619,9 @@ type CollectionCreated {
 }
 
 type CollectionUpdated {
-  """Look up a collection."""
+  """
+  New in Saleor 3.2. Look up a collection. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   collection(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16561,7 +16629,9 @@ type CollectionUpdated {
 }
 
 type CollectionDeleted {
-  """Look up a collection."""
+  """
+  New in Saleor 3.2. Look up a collection. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   collection(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -16569,39 +16639,53 @@ type CollectionDeleted {
 }
 
 type CheckoutCreated {
-  """Look up a Checkout."""
+  """
+  New in Saleor 3.2. Look up a Checkout. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   checkout: Checkout
 }
 
 type CheckoutUpdated {
-  """Look up a Checkout."""
+  """
+  New in Saleor 3.2. Look up a Checkout. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   checkout: Checkout
 }
 
 type PageCreated {
-  """Look up a page."""
+  """
+  New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   page: Page
 }
 
 type PageUpdated {
-  """Look up a page."""
+  """
+  New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   page: Page
 }
 
 type PageDeleted {
-  """Look up a page."""
+  """
+  New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   page: Page
 }
 
 type TranslationCreated {
-  """Look up a translation."""
+  """
+  New in Saleor 3.2. Look up a translation. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   translation: TranslationTypes
 }
 
 union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
 
 type TranslationUpdated {
-  """Look up a translation."""
+  """
+  New in Saleor 3.2. Look up a translation. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   translation: TranslationTypes
 }
 

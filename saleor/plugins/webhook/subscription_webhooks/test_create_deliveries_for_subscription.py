@@ -3,9 +3,10 @@ from unittest.mock import patch
 
 import graphene
 
+from saleor.graphql.webhook.subscription_payload import validate_subscription_query
+
 from ....plugins.webhook.tasks import create_deliveries_for_subscriptions, logger
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.subscription_payload import validate_subscription_query
 
 
 def test_product_created(product, subscription_product_created_webhook):
@@ -582,4 +583,32 @@ query{
 def test_validate_invalid_subscription_and_query():
 
     result = validate_subscription_query(TEST_INVALID_MULTIPLE_SUBSCRIPTION_AND_QUERY)
+    assert result is False
+
+
+TEST_INVALID_MULTIPLE_SUBSCRIPTION = """
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+      }
+    }
+  }
+}
+subscription{
+  event{
+    ...on ProductCreated{
+      product{
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_validate_invalid_multiple_subscriptions():
+
+    result = validate_subscription_query(TEST_INVALID_MULTIPLE_SUBSCRIPTION)
     assert result is False

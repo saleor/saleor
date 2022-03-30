@@ -14,6 +14,11 @@ from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
+from saleor.graphql.webhook.subscription_payload import (
+    generate_payload_from_subscription,
+    initialize_context,
+)
+
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
@@ -28,10 +33,6 @@ from ...webhook.event_types import (
 )
 from ...webhook.models import Webhook
 from ...webhook.payloads import generate_meta, generate_requestor
-from ...webhook.subscription_payload import (
-    generate_payload_from_subscription,
-    initialize_context,
-)
 from . import signature_for_payload
 from .utils import (
     attempt_update,

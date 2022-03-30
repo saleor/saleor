@@ -9,13 +9,13 @@ from graphql.error import GraphQLSyntaxError
 from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
-from ..app.models import App
+from saleor.app.models import App
 
 logger = get_task_logger(__name__)
 
 
 def validate_subscription_query(query: str) -> bool:
-    from ..graphql.api import schema
+    from ..api import schema
 
     graphql_backend = get_default_backend()
     try:
@@ -86,7 +86,7 @@ def generate_payload_from_subscription(
     return: A payload ready to send via webhook. None if the function was not able to
     generate a payload
     """
-    from ..graphql.api import schema
+    from ..api import schema
 
     graphql_backend = get_default_backend()
     ast = parse(subscription_query)  # type: ignore

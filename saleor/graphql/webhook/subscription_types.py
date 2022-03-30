@@ -35,7 +35,8 @@ TRANSLATIONS_TYPES_MAP = {
 
 class OrderBase(AbstractType):
     order = graphene.Field(
-        "saleor.graphql.order.types.Order", description="Look up an order."
+        "saleor.graphql.order.types.Order",
+        description=f"{ADDED_IN_32} Look up an order. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -86,11 +87,11 @@ class ProductBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a product.",
+        description=f"{ADDED_IN_32} Look up a product. {PREVIEW_FEATURE}",
     )
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
-        description="Look up a category.",
+        description=f"{ADDED_IN_32} Look up a category. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -122,7 +123,7 @@ class ProductVariantBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a product variant.",
+        description=f"{ADDED_IN_32} Look up a product variant. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -146,7 +147,7 @@ class ProductVariantDeleted(ObjectType, ProductVariantBase):
 class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
-        description="Look up a warehouse.",
+        description=f"{ADDED_IN_32} Look up a warehouse. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -164,7 +165,7 @@ class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
 class ProductVariantBackInStock(ObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
-        description="Look up a warehouse.",
+        description=f"{ADDED_IN_32} Look up a warehouse. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -185,7 +186,7 @@ class SaleBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a sale.",
+        description=f"{ADDED_IN_32} Look up a sale. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -209,7 +210,7 @@ class SaleDeleted(ObjectType, SaleBase):
 class InvoiceBase(AbstractType):
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
-        description="Look up an Invoice.",
+        description=f"{ADDED_IN_32} Look up an Invoice. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -233,7 +234,7 @@ class InvoiceSent(ObjectType, InvoiceBase):
 class FulfillmentBase(AbstractType):
     fulfillment = graphene.Field(
         "saleor.graphql.order.types.Fulfillment",
-        description="Look up a Fulfillment.",
+        description=f"{ADDED_IN_32} Look up a Fulfillment. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -253,7 +254,7 @@ class FulfillmentCanceled(ObjectType, FulfillmentBase):
 class UserBase(AbstractType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
-        description="Look up a user.",
+        description=f"{ADDED_IN_32} Look up a user. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -276,7 +277,7 @@ class CollectionBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a collection.",
+        description=f"{ADDED_IN_32} Look up a collection. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -300,7 +301,7 @@ class CollectionDeleted(ObjectType, CollectionBase):
 class CheckoutBase(AbstractType):
     checkout = graphene.Field(
         "saleor.graphql.checkout.types.Checkout",
-        description="Look up a Checkout.",
+        description=f"{ADDED_IN_32} Look up a Checkout. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -320,7 +321,7 @@ class CheckoutUpdated(ObjectType, CheckoutBase):
 class PageBase(AbstractType):
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
-        description="Look up a page.",
+        description=f"{ADDED_IN_32} Look up a page. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
@@ -357,7 +358,7 @@ class TranslationTypes(Union):
 class TranslationBase(AbstractType):
     translation = graphene.Field(
         TranslationTypes,
-        description="Look up a translation.",
+        description=f"{ADDED_IN_32} Look up a translation. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
