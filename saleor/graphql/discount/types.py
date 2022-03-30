@@ -1,7 +1,11 @@
 import graphene
 from graphene import relay
 
-from ...core.permissions import DiscountPermissions, OrderPermissions
+from ...core.permissions import (
+    CheckoutPermissions,
+    DiscountPermissions,
+    OrderPermissions,
+)
 from ...discount import models
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
@@ -344,35 +348,53 @@ class VoucherCountableConnection(CountableConnection):
         node = Voucher
 
 
-class OrderDiscount(ModelObjectType):
+class BaseObjectDiscount(graphene.Interface):
     id = graphene.GlobalID(required=True)
-    type = OrderDiscountTypeEnum(required=True)
-    name = graphene.String()
-    translated_name = graphene.String()
+    type = OrderDiscountTypeEnum(
+        required=True, description="Type of the discount: manual or voucher"
+    )
+    name = graphene.String(description="Discount name")
+    translated_name = graphene.String(description="Translated discount name")
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
-        description="Type of the discount: fixed or percent",
+        description="Value type of the discount: fixed or percent",
     )
     value = PositiveDecimal(
         required=True,
         description="Value of the discount. Can store fixed value or percent value",
     )
     reason = graphene.String(
-        required=False, description="Explanation for the applied discount."
+        required=False, description="Explanation for the applied discount"
     )
     amount = graphene.Field(
-        Money, description="Returns amount of discount.", required=True
+        Money, description="Returns amount of discount", required=True
     )
 
+
+class OrderDiscount(ModelObjectType):
     class Meta:
         description = (
-            "Contains all details related to the applied discount to the order."
+            "Contains all details related to the applied discount to the order"
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, BaseObjectDiscount]
         model = models.OrderDiscount
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_reason(root: models.OrderDiscount, _info):
+        return root.reason
+
+
+class CheckoutDiscount(ModelObjectType):
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to the checkout"
+        )
+        interface = [relay.Node, BaseObjectDiscount]
+        model = models.CheckoutDiscount
+
+    @staticmethod
+    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_reason(root: models.OrderDiscount, _info):
         return root.reason

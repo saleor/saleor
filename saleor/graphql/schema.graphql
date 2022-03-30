@@ -6422,23 +6422,54 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
-"""Contains all details related to the applied discount to the order."""
-type OrderDiscount implements Node {
+"""Contains all details related to the applied discount to the order"""
+type OrderDiscount implements Node & BaseObjectDiscount {
   id: ID!
+
+  """Type of the discount: manual or voucher"""
   type: OrderDiscountType!
+
+  """Discount name"""
   name: String
+
+  """Translated discount name"""
   translatedName: String
 
-  """Type of the discount: fixed or percent"""
+  """Value type of the discount: fixed or percent"""
   valueType: DiscountValueTypeEnum!
 
   """Value of the discount. Can store fixed value or percent value"""
   value: PositiveDecimal!
 
-  """Explanation for the applied discount."""
+  """Explanation for the applied discount"""
   reason: String
 
-  """Returns amount of discount."""
+  """Returns amount of discount"""
+  amount: Money!
+}
+
+interface BaseObjectDiscount {
+  id: ID!
+
+  """Type of the discount: manual or voucher"""
+  type: OrderDiscountType!
+
+  """Discount name"""
+  name: String
+
+  """Translated discount name"""
+  translatedName: String
+
+  """Value type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """Explanation for the applied discount"""
+  reason: String
+
+  """Returns amount of discount"""
   amount: Money!
 }
 
