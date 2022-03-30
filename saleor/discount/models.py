@@ -351,14 +351,7 @@ class SaleTranslation(Translation):
         return {"name": self.name}
 
 
-class OrderDiscount(models.Model):
-    order = models.ForeignKey(
-        "order.Order",
-        related_name="discounts",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
+class BaseObjectDiscount(models.Model):
     type = models.CharField(
         max_length=10,
         choices=OrderDiscountType.CHOICES,
@@ -390,5 +383,31 @@ class OrderDiscount(models.Model):
     reason = models.TextField(blank=True, null=True)
 
     class Meta:
+        abstract = True
+
+
+class OrderDiscount(BaseObjectDiscount):
+    order = models.ForeignKey(
+        "order.Order",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
         # Orders searching index
         indexes = [GinIndex(fields=["name", "translated_name"])]
+
+
+class CheckoutDiscount(BaseObjectDiscount):
+    checkout = models.ForeignKey(
+        "checkout.Checkout",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        ordering = ("pk",)
