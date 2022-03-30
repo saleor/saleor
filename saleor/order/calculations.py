@@ -102,6 +102,8 @@ def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> No
             else line.total_price
         )
 
+    order.undiscounted_total = order.total
+
     order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
     for order_discount in order_discounts:
         utils.update_order_discount_for_order(

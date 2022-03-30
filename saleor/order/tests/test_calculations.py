@@ -452,6 +452,46 @@ def test_fetch_order_prices_if_expired_webhooks_success(
         assert order_line.tax_rate == tax_line.tax_rate
 
 
+@freeze_time("2020-12-12 12:00:00")
+def test_fetch_order_prices_if_expired_recalculate_all_prices(
+    manager,
+    fetch_kwargs,
+    order_with_lines,
+    tax_data,
+):
+    # given
+    discount_amount = Decimal("3.00")
+    order_with_lines.discounts.create(
+        value=discount_amount,
+        amount_value=discount_amount,
+        currency=order_with_lines.currency,
+    )
+    order_with_lines.total_net_amount = Decimal("0.00")
+    order_with_lines.total_gross_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
+    order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
+    order_with_lines.save()
+    manager.get_taxes_for_order = Mock(return_value=tax_data)
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.shipping_price == get_taxed_money(
+        tax_data, "shipping_price"
+    )
+    assert order_with_lines.shipping_tax_rate == tax_data.shipping_tax_rate
+    assert order_with_lines.total == get_taxed_money(
+        tax_data, "total"
+    ) - create_taxed_money(discount_amount, discount_amount, order_with_lines.currency)
+    assert order_with_lines.undiscounted_total == get_taxed_money(tax_data, "total")
+    for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
+        assert order_line.unit_price == get_taxed_money(tax_line, "unit")
+        assert order_line.total_price == get_taxed_money(tax_line, "total")
+        assert order_line.tax_rate == tax_line.tax_rate
+
+
 def test_fetch_order_prices_if_expired_prefetch(fetch_kwargs, order_lines):
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
