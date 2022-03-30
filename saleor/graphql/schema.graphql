@@ -10620,7 +10620,7 @@ input WebhookCreateInput {
   secretKey: String
 
   """
-  Subscription query used to define a webhook payload. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.2. Subscription query used to define a webhook payload. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   query: String
 }
@@ -10672,7 +10672,9 @@ input WebhookUpdateInput {
   """Use to create a hash signature with each payload."""
   secretKey: String
 
-  """Subscription query used to define a webhook payload."""
+  """
+  New in Saleor 3.2. Subscription query used to define a webhook payload. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   query: String
 }
 
@@ -16351,7 +16353,9 @@ type PermissionGroupDelete {
 }
 
 type Subscription {
-  """Look up subscription event."""
+  """
+  New in Saleor 3.2. Look up subscription event. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   event: Event
 }
 

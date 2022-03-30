@@ -5,7 +5,7 @@ from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
 from ...webhook.subscription_payload import validate_subscription_query
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
 from . import enums
@@ -57,8 +57,8 @@ class WebhookCreateInput(graphene.InputObjectType):
         required=False,
     )
     query = graphene.String(
-        description=f"Subscription query used to define a webhook payload. "
-        f"{PREVIEW_FEATURE}",
+        description=f"{ADDED_IN_32} Subscription query used to define a webhook "
+        f"payload. {PREVIEW_FEATURE}",
         required=False,
     )
 
@@ -172,7 +172,8 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="Use to create a hash signature with each payload.", required=False
     )
     query = graphene.String(
-        description="Subscription query used to define a webhook payload.",
+        description=f"{ADDED_IN_32} Subscription query used to define a webhook "
+        f"payload. {PREVIEW_FEATURE}",
         required=False,
     )
 

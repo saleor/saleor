@@ -15,6 +15,7 @@ from ...product.models import (
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType
 from ..channel import ChannelContext
+from ..core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
 from ..translations import types as translation_types
 
 TRANSLATIONS_TYPES_MAP = {
@@ -469,7 +470,10 @@ class Event(Union):
 
 
 class Subscription(ObjectType):
-    event = graphene.Field(Event, description="Look up subscription event.")
+    event = graphene.Field(
+        Event,
+        description=f"{ADDED_IN_32} Look up subscription event. {PREVIEW_FEATURE}",
+    )
 
     @staticmethod
     def resolve_event(root, info):
