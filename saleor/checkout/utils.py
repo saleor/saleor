@@ -174,35 +174,17 @@ def add_variants_to_checkout(
 
     checkout_lines = checkout.lines.select_related("variant")
     variant_ids_in_lines = {line.variant_id: line for line in checkout_lines}
-    to_create = []
-    to_update = []
-    to_delete = []
+    to_create: List[CheckoutLine] = []
+    to_update: List[CheckoutLine] = []
+    to_delete: List[CheckoutLine] = []
     for variant, line_data in zip(variants, checkout_lines_data):
-        if variant.pk in variant_ids_in_lines:
-            line = variant_ids_in_lines[variant.pk]
-            if line_data.quantity_to_update:
-                quantity = line_data.quantity
-                if quantity > 0:
-                    if replace:
-                        line.quantity = quantity
-                    else:
-                        line.quantity += quantity
-                    to_update.append(line)
-                else:
-                    to_delete.append(line)
-            if line_data.custom_price_to_update:
-                if line not in to_delete:
-                    line.price_override = line_data.custom_price
-                    to_update.append(line)
-        elif line_data.quantity > 0:
-            to_create.append(
-                CheckoutLine(
-                    checkout=checkout,
-                    variant=variant,
-                    quantity=line_data.quantity,
-                    price_override=line_data.custom_price,
-                )
-            )
+        _append_line_to_update(
+            to_update, to_delete, variant, line_data, replace, variant_ids_in_lines
+        )
+        _append_line_to_delete(to_delete, variant, line_data, variant_ids_in_lines)
+        _append_line_to_create(
+            to_create, checkout, variant, line_data, variant_ids_in_lines
+        )
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
     if to_update:
@@ -228,6 +210,51 @@ def add_variants_to_checkout(
         )
 
     return checkout
+
+
+def _append_line_to_update(
+    to_update, to_delete, variant, line_data, replace, variant_ids_in_lines
+):
+    if variant.pk not in variant_ids_in_lines:
+        return
+    line = variant_ids_in_lines[variant.pk]
+    if line_data.quantity_to_update:
+        quantity = line_data.quantity
+        if quantity > 0:
+            if replace:
+                line.quantity = quantity
+            else:
+                line.quantity += quantity
+            to_update.append(line)
+    if line_data.custom_price_to_update:
+        if line not in to_delete:
+            line.price_override = line_data.custom_price
+            to_update.append(line)
+
+
+def _append_line_to_delete(to_delete, variant, line_data, variant_ids_in_lines):
+    if variant.pk not in variant_ids_in_lines:
+        return
+    line = variant_ids_in_lines[variant.pk]
+    quantity = line_data.quantity
+    if line_data.quantity_to_update:
+        if quantity <= 0:
+            to_delete.append(line)
+
+
+def _append_line_to_create(
+    to_create, checkout, variant, line_data, variant_ids_in_lines
+):
+    if variant.pk not in variant_ids_in_lines:
+        if line_data.quantity > 0:
+            to_create.append(
+                CheckoutLine(
+                    checkout=checkout,
+                    variant=variant,
+                    quantity=line_data.quantity,
+                    price_override=line_data.custom_price,
+                )
+            )
 
 
 def _check_new_checkout_address(checkout, address, address_type):

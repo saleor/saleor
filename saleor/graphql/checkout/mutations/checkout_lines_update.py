@@ -3,9 +3,9 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
-from ...core.types import CheckoutError, NonNullList
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.scalars import UUID
+from ...core.types import CheckoutError, NonNullList
 from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .checkout_lines_add import CheckoutLinesAdd
