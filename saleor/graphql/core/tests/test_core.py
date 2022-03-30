@@ -172,7 +172,7 @@ def test_filter_input():
     assert created.type == CreatedEnum
 
 
-class TestPermission(enum.Enum):
+class PermissionEnumForTests(enum.Enum):
     TEST = "test"
 
 
@@ -180,8 +180,8 @@ class TestPermission(enum.Enum):
 @pytest.mark.parametrize(
     "should_fail,permissions_value",
     (
-        (False, (TestPermission.TEST,)),
-        (True, TestPermission.TEST),
+        (False, (PermissionEnumForTests.TEST,)),
+        (True, PermissionEnumForTests.TEST),
         (True, 123),
         (True, ("TEST",)),
     ),
