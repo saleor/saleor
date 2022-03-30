@@ -1,4 +1,15 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
+from uuid import UUID
 
 import graphene
 from django.contrib.sites.models import Site
@@ -812,7 +823,7 @@ def _create_order_lines_from_checkout_lines(
     lines: List[CheckoutLineInfo],
     discounts: List["DiscountInfo"],
     manager: "PluginsManager",
-    order_pk: int,
+    order_pk: Union[str, UUID],
     reservation_enabled: bool,
     taxes_included_in_prices: bool,
 ) -> List[OrderLineInfo]:
