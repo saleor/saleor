@@ -40,6 +40,14 @@ QUERY_APP = """
                     code
                 }
             }
+            metadata{
+                key
+                value
+            }
+            privateMetadata{
+                key
+                value
+            }
         }
     }
     """
@@ -154,14 +162,20 @@ def test_app_without_id_as_staff(
 def test_own_app_without_id(
     app_api_client,
     app,
-    permission_manage_orders,
     order_with_lines,
     webhook,
-    permission_manage_apps,
 ):
+    # given
+    app.store_value_in_metadata({"public": "metadata"})
+    app.store_value_in_private_metadata({"private": "metadata"})
+    app.save()
+
+    # when
     response = app_api_client.post_graphql(
-        QUERY_APP, permissions=[permission_manage_apps]
+        QUERY_APP,
     )
+
+    # then
     content = get_graphql_content(response)
 
     tokens = app.tokens.all()
@@ -181,6 +195,10 @@ def test_own_app_without_id(
     assert app_data["supportUrl"] == app.support_url
     assert app_data["configurationUrl"] == app.configuration_url
     assert app_data["appUrl"] == app.app_url
+    assert app_data["metadata"][0]["key"] == "public"
+    assert app_data["metadata"][0]["value"] == "metadata"
+    assert app_data["privateMetadata"][0]["key"] == "private"
+    assert app_data["privateMetadata"][0]["value"] == "metadata"
 
 
 def test_app_query_without_permission(

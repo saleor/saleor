@@ -60,12 +60,13 @@ def test_app_create_mutation(
     assert default_token == app.tokens.get().auth_token
 
 
-def test_app_create_mutation_for_app(
+def test_app_is_not_allowed_to_call_create_mutation_for_app(
     permission_manage_apps,
     permission_manage_products,
     app_api_client,
     staff_user,
 ):
+    # given
     query = APP_CREATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(permission_manage_apps, permission_manage_products)
@@ -74,15 +75,12 @@ def test_app_create_mutation_for_app(
         "name": "New integration",
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
+
+    # when
     response = app_api_client.post_graphql(query, variables=variables)
-    content = get_graphql_content(response)
-    app_data = content["data"]["appCreate"]["app"]
-    default_token = content["data"]["appCreate"]["authToken"]
-    app = App.objects.exclude(pk=requestor.pk).get()
-    assert app_data["isActive"] == app.is_active
-    assert app_data["name"] == app.name
-    assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+
+    # then
+    assert_no_permission(response)
 
 
 def test_app_create_mutation_out_of_scope_permissions(
@@ -138,33 +136,6 @@ def test_app_create_mutation_superuser_can_create_app_with_any_perms(
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
     assert default_token == app.tokens.get().auth_token
-
-
-def test_app_create_mutation_for_app_out_of_scope_permissions(
-    permission_manage_apps,
-    permission_manage_products,
-    app_api_client,
-    staff_user,
-):
-    query = APP_CREATE_MUTATION
-
-    variables = {
-        "name": "New integration",
-        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
-    }
-    response = app_api_client.post_graphql(
-        query, variables=variables, permissions=(permission_manage_apps,)
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["appCreate"]
-
-    errors = data["errors"]
-    assert not data["app"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["field"] == "permissions"
-    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
 
 
 def test_app_create_mutation_no_permissions(
