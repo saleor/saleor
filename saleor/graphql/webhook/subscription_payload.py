@@ -30,7 +30,7 @@ def validate_subscription_query(query: str) -> bool:
 def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
     """Check if document contains only a single subscription definition.
 
-    # Only fragments and single subscription definition are allowed.
+    Only fragments and single subscription definition are allowed.
     """
     result = True
     subscriptions = []
@@ -52,7 +52,7 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
 def initialize_context() -> HttpRequest:
     """Prepare a request object for webhook subscription.
 
-    # It creates a dummy request object and initialize middleware on it. It is required
+    It creates a dummy request object and initialize middleware on it. It is required
     to process a request in the same way as API logic does.
     return: HttpRequest
     """

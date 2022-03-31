@@ -2,8 +2,8 @@ import json
 
 import graphene
 
-from ....webhook.event_types import WebhookEventAsyncType
-from ..tasks import create_deliveries_for_subscriptions
+from saleor.plugins.webhook.tasks import create_deliveries_for_subscriptions
+from saleor.webhook.event_types import WebhookEventAsyncType
 
 
 def test_translation_created_product(
