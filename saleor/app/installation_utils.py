@@ -62,13 +62,11 @@ def install_app(
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
-    token = app.tokens.create(name="Default token")
+    _, token = app.tokens.create(name="Default token")
 
     try:
-        send_app_token(
-            target_url=manifest_data.get("tokenTargetUrl"), token=token.auth_token
-        )
+        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
     except requests.RequestException as e:
         app.delete()
         raise e
-    return app
+    return app, token

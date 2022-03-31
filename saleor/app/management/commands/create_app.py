@@ -59,9 +59,9 @@ class Command(BaseCommand):
         permissions = clean_permissions(permissions)
         app = App.objects.create(name=name, is_active=is_active)
         app.permissions.set(permissions)
-        token_obj = app.tokens.create()
+        _, auth_token = app.tokens.create()
         data = {
-            "auth_token": token_obj.auth_token,
+            "auth_token": auth_token,
         }
         if target_url:
             self.send_app_data(target_url, data)

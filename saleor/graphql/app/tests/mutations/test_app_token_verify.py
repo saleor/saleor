@@ -10,7 +10,7 @@ mutation AppTokenVerify($token: String!){
 
 
 def test_app_token_verify_valid_token(app, api_client):
-    token = app.tokens.first().auth_token
+    _, token = app.tokens.create()
     query = APP_TOKEN_VERIFY_MUTATION
 
     variables = {"token": token}
@@ -20,7 +20,7 @@ def test_app_token_verify_valid_token(app, api_client):
 
 
 def test_app_token_verify_invalid_token(app, api_client):
-    token = app.tokens.first().auth_token
+    _, token = app.tokens.create()
     token += "incorrect"
     query = APP_TOKEN_VERIFY_MUTATION
 

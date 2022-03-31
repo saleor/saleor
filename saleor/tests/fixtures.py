@@ -5111,14 +5111,20 @@ def other_description_json():
 @pytest.fixture
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
-    app.tokens.create(name="Default")
     return app
 
 
 @pytest.fixture
-def app_with_extensions(app, permission_manage_products):
+def app_with_token(db):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Test")
+    return app
+
+
+@pytest.fixture
+def app_with_extensions(app_with_token, permission_manage_products):
     first_app_extension = AppExtension(
-        app=app,
+        app=app_with_token,
         label="Create product with App",
         url="www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
@@ -5127,7 +5133,7 @@ def app_with_extensions(app, permission_manage_products):
         [
             first_app_extension,
             AppExtension(
-                app=app,
+                app=app_with_token,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
                 mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
@@ -5135,7 +5141,7 @@ def app_with_extensions(app, permission_manage_products):
         ]
     )
     first_app_extension.permissions.add(permission_manage_products)
-    return app, extensions
+    return app_with_token, extensions
 
 
 @pytest.fixture

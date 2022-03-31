@@ -33,7 +33,7 @@ mutation AppUpdate($id: ID!, $permissions: [PermissionEnum!]){
 
 
 def test_app_update_mutation(
-    app,
+    app_with_token,
     permission_manage_apps,
     permission_manage_products,
     permission_manage_users,
@@ -41,6 +41,7 @@ def test_app_update_mutation(
     staff_user,
 ):
     query = APP_UPDATE_MUTATION
+    app = app_with_token
     staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
     id = graphene.Node.to_global_id("App", app.id)
 
@@ -151,7 +152,7 @@ def test_app_update_mutation_out_of_scope_permissions(
 
 
 def test_app_update_mutation_superuser_can_add_any_permissions_to_app(
-    app,
+    app_with_token,
     permission_manage_apps,
     permission_manage_products,
     permission_manage_users,
@@ -159,6 +160,7 @@ def test_app_update_mutation_superuser_can_add_any_permissions_to_app(
 ):
     """Ensure superuser can add any permissions to app."""
     query = APP_UPDATE_MUTATION
+    app = app_with_token
     id = graphene.Node.to_global_id("App", app.id)
 
     variables = {
@@ -265,7 +267,7 @@ def test_app_update_mutation_out_of_scope_app(
 
 
 def test_app_update_mutation_superuser_can_update_any_app(
-    app,
+    app_with_token,
     permission_manage_apps,
     permission_manage_products,
     permission_manage_orders,
@@ -274,6 +276,7 @@ def test_app_update_mutation_superuser_can_update_any_app(
 ):
     """Ensure superuser can manage any app."""
     query = APP_UPDATE_MUTATION
+    app = app_with_token
     app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)
 

@@ -101,12 +101,14 @@ class App(ModelWithMetadata):
 
 
 class AppTokenManager(models.Manager):
-    def create(self, app, name, auth_token=generate_token(), **extra_fields):
+    def create(self, app, name="", auth_token=None, **extra_fields):
         """Create an app token with the given name."""
+        if not auth_token:
+            auth_token = generate_token()
         app_token = self.model(app=app, name=name, **extra_fields)
         app_token.set_auth_token(auth_token)
         app_token.save()
-        return app_token
+        return app_token, auth_token
 
 
 class AppToken(models.Model):
@@ -117,7 +119,7 @@ class AppToken(models.Model):
 
     objects = AppTokenManager()
 
-    def set_auth_token(self, raw_token):
+    def set_auth_token(self, raw_token=None):
         self.auth_token = make_password(raw_token)
         self.token_last_4 = raw_token[-4:]
 

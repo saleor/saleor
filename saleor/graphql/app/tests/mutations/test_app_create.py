@@ -57,7 +57,8 @@ def test_app_create_mutation(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
 
 
 def test_app_is_not_allowed_to_call_create_mutation_for_app(
@@ -135,7 +136,8 @@ def test_app_create_mutation_superuser_can_create_app_with_any_perms(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
 
 
 def test_app_create_mutation_no_permissions(

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
@@ -16,10 +17,15 @@ def get_context_value(request):
     return request
 
 
-def get_app(auth_token) -> Optional[App]:
-    tokens = AppToken.objects.filter(auth_token=auth_token).values("pk")
+def get_app(raw_auth_token) -> Optional[App]:
+    tokens = AppToken.objects.filter(token_last_4=raw_auth_token[-4:]).values_list(
+        "id", "auth_token"
+    )
+    token_ids = [
+        id for id, auth_token in tokens if check_password(raw_auth_token, auth_token)
+    ]
     return App.objects.filter(
-        Exists(tokens.filter(app_id=OuterRef("pk"))), is_active=True
+        Exists(tokens.filter(id__in=token_ids, app_id=OuterRef("pk"))), is_active=True
     ).first()
 
 
