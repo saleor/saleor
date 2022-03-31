@@ -32,7 +32,6 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
 
     Only fragments and single subscription definition are allowed.
     """
-    result = True
     subscriptions = []
     for definition in document.document_ast.definitions:
         if isinstance(definition, FragmentDefinition):
@@ -44,9 +43,7 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
                 return False
         else:
             return False
-    if len(subscriptions) != 1:
-        result = False
-    return result
+    return len(subscriptions) == 1
 
 
 def initialize_context() -> HttpRequest:
