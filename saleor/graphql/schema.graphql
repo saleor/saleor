@@ -9903,6 +9903,19 @@ type Mutation {
   ): CheckoutLanguageCodeUpdate
 
   """
+  New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_CHECKOUTS.
+  """
+  orderCreateFromCheckout(
+    """ID of a checkout that will be converted to an order."""
+    id: ID!
+
+    """
+    Determines if checkout should be removed after creating an order. Default true.
+    """
+    removeCheckout: Boolean = true
+  ): OrderCreateFromCheckout
+
+  """
   Creates new channel. Requires one of the following permissions: MANAGE_CHANNELS.
   """
   channelCreate(
@@ -15031,6 +15044,52 @@ type CheckoutLanguageCodeUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+"""
+New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_CHECKOUTS.
+"""
+type OrderCreateFromCheckout {
+  """Placed order."""
+  order: Order
+  errors: [OrderCreateFromCheckoutError!]!
+}
+
+type OrderCreateFromCheckoutError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderCreateFromCheckoutErrorCode!
+
+  """List of variant IDs which causes the error."""
+  variants: [ID!]
+
+  """List of line Ids which cause the error."""
+  lines: [ID!]
+}
+
+"""An enumeration."""
+enum OrderCreateFromCheckoutErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  CHANNEL_INACTIVE
+  INSUFFICIENT_STOCK
+  VOUCHER_NOT_APPLICABLE
+  GIFT_CARD_NOT_APPLICABLE
+  TAX_ERROR
+  SHIPPING_METHOD_NOT_SET
+  BILLING_ADDRESS_NOT_SET
+  SHIPPING_ADDRESS_NOT_SET
+  INVALID_SHIPPING_METHOD
+  NO_LINES
+  EMAIL_NOT_SET
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 """

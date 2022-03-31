@@ -79,6 +79,7 @@ ORDER_FIELDS = (
     "shipping_price_gross_amount",
     "shipping_tax_rate",
     "weight",
+    "language_code",
     "private_metadata",
     "metadata",
     "total_net_amount",
@@ -428,6 +429,7 @@ def generate_checkout_payload(
         "currency",
         "discount_amount",
         "discount_name",
+        "language_code",
         "private_metadata",
         "metadata",
     )
@@ -490,6 +492,7 @@ def generate_customer_payload(
             "last_name",
             "is_active",
             "date_joined",
+            "language_code",
             "private_metadata",
             "metadata",
         ],
