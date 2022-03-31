@@ -10068,7 +10068,7 @@ type Mutation {
   ): AttributeReorderValues
 
   """
-  Creates a new app. Requires one of the following permissions: MANAGE_APPS.
+  Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
   """
   appCreate(
     """Fields required to create a new app."""
@@ -10117,7 +10117,7 @@ type Mutation {
   ): AppTokenVerify
 
   """
-  Install new app by using app manifest. Requires one of the following permissions: MANAGE_APPS.
+  Install new app by using app manifest. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
   """
   appInstall(
     """Fields required to install a new app."""
@@ -15476,7 +15476,7 @@ type AttributeReorderValues {
 }
 
 """
-Creates a new app. Requires one of the following permissions: MANAGE_APPS.
+Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 """
 type AppCreate {
   """The newly created authentication token."""
@@ -15582,7 +15582,7 @@ type AppTokenVerify {
 }
 
 """
-Install new app by using app manifest. Requires one of the following permissions: MANAGE_APPS.
+Install new app by using app manifest. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 """
 type AppInstall {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
