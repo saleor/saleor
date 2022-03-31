@@ -9,7 +9,7 @@ from graphql.error import GraphQLSyntaxError
 from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
-from saleor.app.models import App
+from ...app.models import App
 
 logger = get_task_logger(__name__)
 

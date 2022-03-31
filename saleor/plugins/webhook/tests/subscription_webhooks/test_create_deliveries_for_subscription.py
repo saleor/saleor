@@ -3,9 +3,9 @@ from unittest.mock import patch
 
 import graphene
 
-from saleor.graphql.webhook.subscription_payload import validate_subscription_query
-from saleor.plugins.webhook.tasks import create_deliveries_for_subscriptions, logger
-from saleor.webhook.event_types import WebhookEventAsyncType
+from .....graphql.webhook.subscription_payload import validate_subscription_query
+from .....webhook.event_types import WebhookEventAsyncType
+from ...tasks import create_deliveries_for_subscriptions, logger
 
 
 def test_product_created(product, subscription_product_created_webhook):

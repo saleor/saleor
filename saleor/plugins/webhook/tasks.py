@@ -14,15 +14,14 @@ from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
-from saleor.graphql.webhook.subscription_payload import (
-    generate_payload_from_subscription,
-    initialize_context,
-)
-
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
+from ...graphql.webhook.subscription_payload import (
+    generate_payload_from_subscription,
+    initialize_context,
+)
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site

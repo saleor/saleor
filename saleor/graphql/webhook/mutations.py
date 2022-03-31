@@ -1,8 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.webhook.subscription_payload import validate_subscription_query
-
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
@@ -10,6 +8,7 @@ from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEA
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
 from . import enums
+from .subscription_payload import validate_subscription_query
 from .types import EventDelivery, Webhook
 
 

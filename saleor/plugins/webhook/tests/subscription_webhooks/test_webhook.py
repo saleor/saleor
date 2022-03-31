@@ -3,10 +3,10 @@ from unittest import mock
 
 from freezegun import freeze_time
 
-from saleor.plugins.webhook.tasks import trigger_webhooks_async
-from saleor.webhook.event_types import WebhookEventAsyncType
-from saleor.webhook.models import Webhook
-from saleor.webhook.payloads import generate_meta, generate_requestor
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.models import Webhook
+from .....webhook.payloads import generate_meta, generate_requestor
+from ...tasks import trigger_webhooks_async
 
 TEST_ID = "test_id"
 
