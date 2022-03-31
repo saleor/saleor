@@ -9,25 +9,21 @@ from django.core.handlers.wsgi import WSGIRequest
 from jwt import ExpiredSignatureError, InvalidTokenError
 from requests import HTTPError, PreparedRequest
 
-from saleor.account.models import User
-from saleor.core.auth import get_token_from_request
-from saleor.core.jwt import (
+from ...account.models import User
+from ...core.auth import get_token_from_request
+from ...core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     PERMISSIONS_FIELD,
     get_user_from_access_payload,
     get_user_from_payload,
     jwt_decode,
 )
-from saleor.core.permissions import get_permissions_codename, get_permissions_from_names
-from saleor.plugins.base_plugin import (
-    BasePlugin,
-    ConfigurationTypeField,
-    ExternalAccessTokens,
-)
-from saleor.plugins.error_codes import PluginErrorCode
-from saleor.plugins.models import PluginConfiguration
-
+from ...core.permissions import get_permissions_codename, get_permissions_from_names
+from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
+from ..error_codes import PluginErrorCode
+from ..models import PluginConfiguration
 from . import PLUGIN_ID
+from .const import SALEOR_STAFF_PERMISSION
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
@@ -199,7 +195,7 @@ class OpenIDConnectPlugin(BasePlugin):
         scope = "openid profile email"
         if self.config.use_scope_permissions:
             permissions = [f"saleor:{perm}" for perm in get_permissions_codename()]
-            permissions.append("saleor:staff")
+            permissions.append(SALEOR_STAFF_PERMISSION)
             scope_permissions = " ".join(permissions)
             scope += f" {scope_permissions}"
         if self.config.enable_refresh_token:
@@ -272,11 +268,13 @@ class OpenIDConnectPlugin(BasePlugin):
         if self.config.use_scope_permissions:
             scope = token_data.get("scope")
             user_permissions = self._use_scope_permissions(user, scope)
-            if not user.is_staff and bool("saleor:staff" in scope or user_permissions):
+            if not user.is_staff and bool(
+                SALEOR_STAFF_PERMISSION in scope or user_permissions
+            ):
                 user.is_staff = True
                 user.save(update_fields=["is_staff"])
             elif user.is_staff and not bool(
-                "saleor:staff" in scope or user_permissions
+                SALEOR_STAFF_PERMISSION in scope or user_permissions
             ):
                 user.is_staff = False
                 user.save(update_fields=["is_staff"])

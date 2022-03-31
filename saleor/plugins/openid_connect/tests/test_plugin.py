@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
-from saleor.core.jwt import (
+from ....core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     PERMISSIONS_FIELD,
@@ -16,9 +16,8 @@ from saleor.core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from saleor.plugins.base_plugin import ExternalAccessTokens
-from saleor.plugins.models import PluginConfiguration
-
+from ...base_plugin import ExternalAccessTokens
+from ...models import PluginConfiguration
 from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
@@ -353,7 +352,7 @@ def test_external_obtain_access_tokens(
     mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     plugin = openid_plugin(use_oauth_scope_permissions=True)
@@ -411,7 +410,7 @@ def test_external_obtain_access_tokens_with_permissions(
     mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     plugin = openid_plugin(use_oauth_scope_permissions=True)

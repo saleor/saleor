@@ -1,8 +1,7 @@
 import jwt
 import pytest
 
-from saleor.plugins.manager import get_plugins_manager
-
+from ...manager import get_plugins_manager
 from ..plugin import OpenIDConnectPlugin
 
 

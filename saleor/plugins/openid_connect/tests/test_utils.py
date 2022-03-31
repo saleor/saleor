@@ -13,15 +13,14 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 from requests import Response
 
-from saleor.account.models import User
-from saleor.core.jwt import (
+from ....account.models import User
+from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
     jwt_decode,
     jwt_encode,
     jwt_user_payload,
 )
-
 from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,

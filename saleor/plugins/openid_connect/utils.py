@@ -17,8 +17,8 @@ from django.middleware.csrf import _get_new_csrf_token
 from django.utils.timezone import make_aware
 from jwt import PyJWTError
 
-from saleor.account.models import User
-from saleor.core.jwt import (
+from ...account.models import User
+from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_OWNER_FIELD,
     JWT_REFRESH_TYPE,
@@ -27,12 +27,11 @@ from saleor.core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from saleor.core.permissions import get_permission_names, get_permissions_from_codenames
-from saleor.core.utils.url import validate_storefront_url
-from saleor.plugins.error_codes import PluginErrorCode
-from saleor.plugins.models import PluginConfiguration
-
+from ...core.permissions import get_permission_names, get_permissions_from_codenames
+from ..error_codes import PluginErrorCode
+from ..models import PluginConfiguration
 from . import PLUGIN_ID
+from .const import SALEOR_STAFF_PERMISSION
 from .exceptions import AuthenticationError
 
 JWKS_KEY = "oauth_jwks"
@@ -47,23 +46,6 @@ CSRF_FIELD = "csrf_token"
 
 
 logger = logging.getLogger(__name__)
-
-
-def validate_storefront_redirect_url(storefront_redirect_url: Optional[str]):
-    if not storefront_redirect_url:
-        raise ValidationError(
-            {
-                "redirectUrl": ValidationError(
-                    "Missing redirect url.", code=PluginErrorCode.NOT_FOUND.value
-                )
-            }
-        )
-    try:
-        validate_storefront_url(storefront_redirect_url)
-    except ValidationError as error:
-        raise ValidationError(
-            {"redirectUrl": error}, code=PluginErrorCode.INVALID.value
-        )
 
 
 def fetch_jwks(jwks_url) -> Optional[dict]:
@@ -212,7 +194,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     else:
         audience_in_token = audience == aud
 
-    is_staff_id = "saleor:staff"
+    is_staff_id = SALEOR_STAFF_PERMISSION
 
     if use_scope_permissions and audience_in_token:
         permissions = get_saleor_permissions_qs_from_scope(scope)
@@ -560,8 +542,8 @@ def get_saleor_permissions_qs_from_scope(scope: str) -> QuerySet[Permission]:
 
 def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
     saleor_permissions_str = [s for s in permissions if s.startswith("saleor:")]
-    if "saleor:staff" in saleor_permissions_str:
-        saleor_permissions_str.remove("saleor:staff")
+    if SALEOR_STAFF_PERMISSION in saleor_permissions_str:
+        saleor_permissions_str.remove(SALEOR_STAFF_PERMISSION)
     if not saleor_permissions_str:
         return Permission.objects.none()
 
