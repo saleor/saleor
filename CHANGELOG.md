@@ -16,7 +16,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
-- Add handling Webhook payload via graphql subscriptions (#9394)  @jakubkuc
+- Add new mutation `orderCreateFromCheckout` - #9343 by @korycins
+- Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
+- Add handling webhook payload via GraphQL subscriptions (#9394)  @jakubkuc
 
 # 3.1.7
 

@@ -220,11 +220,3 @@ def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
         variant_quantity_map[variant_id] += quantity
 
     return list(variant_quantity_map.values())
-
-
-def validate_checkout_email(checkout: models.Checkout):
-    if not checkout.email:
-        raise ValidationError(
-            "Checkout email must be set.",
-            code=CheckoutErrorCode.EMAIL_NOT_SET.value,
-        )

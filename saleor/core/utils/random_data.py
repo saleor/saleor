@@ -87,6 +87,7 @@ from ...product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
+from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -470,7 +471,9 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
-    update_products_search_document(Product.objects.all())
+    all_products_qs = Product.objects.all()
+    update_products_search_document(all_products_qs)
+    update_products_discounted_prices(all_products_qs)
 
 
 class SaleorProvider(BaseProvider):
