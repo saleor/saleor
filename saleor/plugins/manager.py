@@ -504,17 +504,11 @@ class PluginsManager(PaymentInterface):
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
-    def get_taxes_for_checkout(self, checkout: "Checkout") -> Optional[TaxData]:
-        return self.__run_tax_method(
-            "get_taxes_for_checkout",
-            checkout,
-        )
+    def get_taxes_for_checkout(self, checkout_info, lines) -> Optional[TaxData]:
+        return self.__run_tax_method("get_taxes_for_checkout", checkout_info, lines)
 
     def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
-        return self.__run_tax_method(
-            "get_taxes_for_order",
-            order,
-        )
+        return self.__run_tax_method("get_taxes_for_order", order)
 
     def apply_taxes_to_product(
         self, product: "Product", price: Money, country: Country, channel_slug: str
@@ -940,11 +934,12 @@ class PluginsManager(PaymentInterface):
 
     def list_shipping_methods_for_checkout(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["ShippingMethodData"]:
-        channel_slug = checkout.channel.slug if checkout else channel_slug
+        channel_slug = channel_slug or checkout_info.channel.slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         shipping_plugins = [
             plugin
@@ -956,25 +951,26 @@ class PluginsManager(PaymentInterface):
         for plugin in shipping_plugins:
             shipping_methods.extend(
                 # https://github.com/python/mypy/issues/9975
-                getattr(plugin, "get_shipping_methods_for_checkout")(checkout, None)
+                getattr(plugin, "get_shipping_methods_for_checkout")(
+                    checkout_info, lines, None
+                )
             )
         return shipping_methods
 
     def get_shipping_method(
         self,
         shipping_method_id: str,
-        checkout: Optional["Checkout"] = None,
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         channel_slug: Optional[str] = None,
     ):
-        if checkout:
-            methods = {
-                method.id: method
-                for method in self.list_shipping_methods_for_checkout(
-                    checkout=checkout, channel_slug=channel_slug
-                )
-            }
-            return methods.get(shipping_method_id)
-        return None
+        methods = {
+            method.id: method
+            for method in self.list_shipping_methods_for_checkout(
+                checkout_info, lines, channel_slug
+            )
+        }
+        return methods.get(shipping_method_id)
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"
@@ -1014,12 +1010,12 @@ class PluginsManager(PaymentInterface):
     def __run_tax_method(
         self,
         method_name: str,
-        taxable_object: Union["Order", "Checkout"],
+        *args,
     ) -> Optional[TaxData]:
         plugins = self.get_plugins()
         for plugin in plugins:
             result = self.__run_method_on_single_plugin(
-                plugin, method_name, None, taxable_object
+                plugin, method_name, None, *args
             )
             if isinstance(result, TaxData):
                 return result
@@ -1242,13 +1238,15 @@ class PluginsManager(PaymentInterface):
 
     def excluded_shipping_methods_for_checkout(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         available_shipping_methods: List["ShippingMethodData"],
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],
-            checkout,
+            checkout_info,
+            lines,
             available_shipping_methods,
         )
 

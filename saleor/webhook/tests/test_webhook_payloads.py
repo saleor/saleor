@@ -15,6 +15,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ... import __version__
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import include_taxes_in_prices
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -1361,8 +1362,11 @@ def test_generate_checkout_payload_without_taxes(
     mocked_serialize.return_value = serialized_checkout_lines
 
     # when
+    lines, _ = fetch_checkout_lines(checkout_with_prices)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, [], manager)
     payload = json.loads(
-        generate_checkout_payload_without_taxes(checkout, customer_user)
+        generate_checkout_payload_without_taxes(checkout_info, lines, customer_user)
     )[0]
 
     # then
@@ -1596,9 +1600,12 @@ def test_generate_excluded_shipping_methods_for_checkout(mocked_fetch, checkout)
         maximum_delivery_days=10,
         minimum_delivery_days=2,
     )
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     response = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout, [shipping_method]
+            checkout_info, lines, [shipping_method]
         )
     )
 

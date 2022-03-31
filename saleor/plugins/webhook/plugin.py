@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 from django.core.cache import cache
 
@@ -63,6 +63,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ...account.models import User
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...discount.models import Sale
     from ...graphql.discount.mutations import NodeCatalogueInfo
@@ -616,11 +617,15 @@ class WebhookPlugin(BasePlugin):
         )
 
     def get_taxes_for_checkout(
-        self, checkout: "Checkout", previous_value
+        self, checkout_info, lines, previous_value
     ) -> Optional["TaxData"]:
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            lambda: generate_checkout_payload_without_taxes(checkout, self.requestor),
+            lambda: generate_checkout_payload_without_taxes(
+                checkout_info,
+                lines,
+                self.requestor,
+            ),
             parse_tax_data,
         )
 
@@ -634,14 +639,19 @@ class WebhookPlugin(BasePlugin):
         )
 
     def get_shipping_methods_for_checkout(
-        self, checkout: "Checkout", previous_value: Any
+        self,
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
+        previous_value: Any,
     ) -> List["ShippingMethodData"]:
         methods = []
         apps = App.objects.for_event_type(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
-            payload = generate_checkout_payload_without_taxes(checkout, self.requestor)
+            payload = generate_checkout_payload_without_taxes(
+                checkout_info, lines, self.requestor
+            )
             for app in apps:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
@@ -772,16 +782,17 @@ class WebhookPlugin(BasePlugin):
 
     def excluded_shipping_methods_for_checkout(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         available_shipping_methods: List["ShippingMethodData"],
         previous_value: List[ExcludedShippingMethod],
     ) -> List[ExcludedShippingMethod]:
-        generate_function = generate_excluded_shipping_methods_for_checkout_payload
-        payload_function = lambda: generate_function(  # noqa: E731
-            checkout,
-            available_shipping_methods,
-        )
-        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout.token)
+        def payload_function():
+            return generate_excluded_shipping_methods_for_checkout_payload(
+                checkout_info, lines, available_shipping_methods
+            )
+
+        cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_info.checkout.token)
         return get_excluded_shipping_data(
             event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
             previous_value=previous_value,

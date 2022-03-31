@@ -548,8 +548,11 @@ def test_manager_get_taxes_for_checkout(
     plugins,
     expected_tax_data,
 ):
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
-        checkout
+        checkout_info, lines
     ) == expected_tax_data(checkout)
 
 
