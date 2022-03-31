@@ -19,3 +19,19 @@ class PaymentErrorCode(Enum):
     CHECKOUT_EMAIL_NOT_SET = "checkout_email_not_set"
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     NO_CHECKOUT_LINES = "no_checkout_lines"
+
+
+class PaymentCreateErrorCode(Enum):
+    INVALID = "invalid"
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    INCORRECT_CURRENCY = "incorrect_currency"
+    METADATA_KEY_REQUIRED = "metadata_key_required"
+
+
+class PaymentUpdateErrorCode(Enum):
+    INVALID = "invalid"
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    INCORRECT_CURRENCY = "incorrect_currency"
+    METADATA_KEY_REQUIRED = "metadata_key_required"

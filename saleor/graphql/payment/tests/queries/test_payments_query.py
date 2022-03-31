@@ -3,8 +3,10 @@ from decimal import Decimal
 
 import graphene
 
+from .....payment import PaymentAction
+from .....payment.models import Payment
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
-from ...enums import OrderAction, PaymentChargeStatusEnum
+from ...enums import PaymentActionEnum, PaymentChargeStatusEnum
 
 PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
     payments(first: 20, filter: $filter) {
@@ -12,10 +14,6 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
             node {
                 id
                 gateway
-                capturedAmount {
-                    amount
-                    currency
-                }
                 total {
                     amount
                     currency
@@ -29,6 +27,26 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
                         currency
                         amount
                     }
+                }
+                actions
+                reference
+                type
+                status
+                authorizedAmount{
+                        amount
+                        currency
+                }
+                voidedAmount{
+                    currency
+                    amount
+                }
+                capturedAmount{
+                    currency
+                    amount
+                }
+                refundedAmount{
+                    currency
+                    amount
                 }
             }
         }
@@ -48,13 +66,13 @@ def test_payments_query(
     pay = payment_txn_captured
     assert data["gateway"] == pay.gateway
     amount = str(data["capturedAmount"]["amount"])
-    assert Decimal(amount) == pay.captured_amount
+    assert Decimal(amount) == pay.captured_value
     assert data["capturedAmount"]["currency"] == pay.currency
     total = str(data["total"]["amount"])
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    assert data["actions"] == [OrderAction.REFUND.name]
+    assert data["actions"] == [PaymentActionEnum.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [
         {
@@ -63,6 +81,49 @@ def test_payments_query(
             "gatewayResponse": "{}",
         }
     ]
+
+
+def test_payments_from_payment_create_mutation(
+    order, permission_manage_orders, staff_api_client
+):
+    # given
+    authorized_value = Decimal("15")
+    captured_value = Decimal("3")
+    voided_value = Decimal("1")
+    refunded_value = Decimal("2")
+
+    Payment.objects.create(
+        order_id=order.id,
+        status="Authorized card",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=authorized_value,
+        captured_value=captured_value,
+        voided_value=voided_value,
+        refunded_value=refunded_value,
+        available_actions=[PaymentAction.CAPTURE, PaymentAction.VOID],
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAYMENT_QUERY, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["payments"]["edges"][0]["node"]
+
+    # then
+    assert data["actions"] == [
+        PaymentActionEnum.CAPTURE.name,
+        PaymentActionEnum.VOID.name,
+    ]
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["capturedAmount"]["amount"] == captured_value
+    assert data["voidedAmount"]["amount"] == voided_value
+    assert data["refundedAmount"]["amount"] == refunded_value
+    assert data["reference"] == "123"
+    assert data["type"] == "Credit card"
+    assert data["status"] == "Authorized card"
 
 
 def test_query_payments(payment_dummy, permission_manage_orders, staff_api_client):

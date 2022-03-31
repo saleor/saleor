@@ -5834,7 +5834,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine!]!
 
   """
-  List of actions that can be performed in the current state of an order.
+  This field will be removed in Saleor 4.0. Use actions on order.payments. List of actions that can be performed in the current state of an order.
   """
   actions: [OrderAction!]!
 
@@ -6172,41 +6172,70 @@ type Payment implements Node & ObjectWithMetadata {
 
   """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
-  gateway: String!
-  isActive: Boolean!
-  created: DateTime!
-  modified: DateTime!
-  token: String!
   checkout: Checkout
   order: Order
-  paymentMethodType: String!
-  customerIpAddress: String
-
-  """Internal payment status."""
-  chargeStatus: PaymentChargeStatusEnum!
 
   """
   List of actions that can be performed in the current state of a payment.
   """
-  actions: [OrderAction!]!
+  actions: [PaymentActionEnum!]!
 
   """Total amount of the payment."""
   total: Money
 
+  """Total amount authorized for this payment."""
+  authorizedAmount: Money!
+
+  """Total amount refunded for this payment."""
+  refundedAmount: Money!
+
+  """Total amount voided for this payment."""
+  voidedAmount: Money!
+
   """Total amount captured for this payment."""
-  capturedAmount: Money
+  capturedAmount: Money!
+  gateway: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  isActive: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  created: DateTime!
+  modified: DateTime!
+  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  paymentMethodType: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  customerIpAddress: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+
+  """Internal payment status."""
+  chargeStatus: PaymentChargeStatusEnum! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
 
   """List of all transactions within this payment."""
-  transactions: [Transaction!]
+  transactions: [Transaction!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
 
   """Maximum amount of money that can be captured."""
-  availableCaptureAmount: Money
+  availableCaptureAmount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
 
   """Maximum amount of money that can be refunded."""
-  availableRefundAmount: Money
+  availableRefundAmount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
 
   """The details of the card used for this payment."""
-  creditCard: CreditCard
+  creditCard: CreditCard @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  status: String!
+  type: String!
+  reference: String!
+}
+
+"""
+Represents possible actions on payment.
+
+    The following actions are possible:
+    CAPTURE - Represents the capture action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+    MARK_AS_PAID - This field will be removed in Saleor 4.0. Represents a mark-as-paid
+    action.
+"""
+enum PaymentActionEnum {
+  CAPTURE
+  REFUND
+  VOID
+  MARK_AS_PAID
 }
 
 """An object representing a single payment."""
@@ -6324,6 +6353,12 @@ type OrderEvent implements Node {
 
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
+
+  """The status of payment's transaction."""
+  status: TransactionStatus
+
+  """The reference of payment's transaction."""
+  reference: String
 }
 
 """An enumeration."""
@@ -6420,6 +6455,13 @@ type OrderEventDiscountObject {
 
   """Returns amount of discount."""
   oldAmount: Money
+}
+
+"""An enumeration."""
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
 }
 
 """Contains all details related to the applied discount to the order."""
@@ -8670,6 +8712,34 @@ type Mutation {
     """Fields required to check payment balance."""
     input: PaymentCheckBalanceInput!
   ): PaymentCheckBalance
+
+  """
+  Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  paymentCreate(
+    """The ID of the checkout or order."""
+    id: ID!
+
+    """Input data required to create a new payment object."""
+    payment: PaymentCreateInput!
+
+    """Data that defines a payment transaction."""
+    transaction: TransactionInput
+  ): PaymentCreate
+
+  """
+  Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  paymentUpdate(
+    """The ID of the payment."""
+    id: ID!
+
+    """Input data required to create a new payment object."""
+    payment: PaymentUpdateInput
+
+    """Data that defines a payment transaction."""
+    transaction: TransactionInput
+  ): PaymentUpdate
 
   """
   Creates a new page. Requires one of the following permissions: MANAGE_PAGES.
@@ -12751,6 +12821,149 @@ input MoneyInput {
 }
 
 """
+Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+"""
+type PaymentCreate {
+  payment: Payment
+  errors: [PaymentCreateError!]!
+}
+
+type PaymentCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentCreateErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentCreateErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_CURRENCY
+  METADATA_KEY_REQUIRED
+}
+
+input PaymentCreateInput {
+  """Status of the payment."""
+  status: String!
+
+  """Payment type used for this payment."""
+  type: String!
+
+  """Reference of the payment."""
+  reference: String
+
+  """List of all possible actions for the payment"""
+  availableActions: [PaymentActionEnum!]
+
+  """Amount authorized by this payment."""
+  amountAuthorized: MoneyInput
+
+  """Amount captured by this payment."""
+  amountCaptured: MoneyInput
+
+  """Amount refunded by this payment."""
+  amountRefunded: MoneyInput
+
+  """Amount voided by this payment."""
+  amountVoided: MoneyInput
+
+  """Payment public metadata."""
+  metadata: [MetadataInput!]
+
+  """Payment private metadata."""
+  privateMetadata: [MetadataInput!]
+}
+
+input MetadataInput {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String!
+}
+
+input TransactionInput {
+  """Current status of the payment transaction."""
+  status: TransactionStatus!
+
+  """Reference of the transaction."""
+  reference: String
+
+  """Name of the transaction."""
+  name: String
+}
+
+"""
+Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+"""
+type PaymentUpdate {
+  payment: Payment
+  errors: [PaymentUpdateError!]!
+}
+
+type PaymentUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentUpdateErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_CURRENCY
+  METADATA_KEY_REQUIRED
+}
+
+input PaymentUpdateInput {
+  """Status of the payment."""
+  status: String
+
+  """Payment type used for this payment."""
+  type: String
+
+  """Reference of the payment."""
+  reference: String
+
+  """List of all possible actions for the payment"""
+  availableActions: [PaymentActionEnum!]
+
+  """Amount authorized by this payment."""
+  amountAuthorized: MoneyInput
+
+  """Amount captured by this payment."""
+  amountCaptured: MoneyInput
+
+  """Amount refunded by this payment."""
+  amountRefunded: MoneyInput
+
+  """Amount voided by this payment."""
+  amountVoided: MoneyInput
+
+  """Payment public metadata."""
+  metadata: [MetadataInput!]
+
+  """Payment private metadata."""
+  privateMetadata: [MetadataInput!]
+}
+
+"""
 Creates a new page. Requires one of the following permissions: MANAGE_PAGES.
 """
 type PageCreate {
@@ -13609,14 +13822,6 @@ type UpdateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
   item: ObjectWithMetadata
-}
-
-input MetadataInput {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String!
 }
 
 """

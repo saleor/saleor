@@ -2,20 +2,20 @@ import graphene
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import OrderPermissions
+from ...core.permissions import OrderPermissions, PaymentPermissions
 from ...core.tracing import traced_resolver
-from ...payment import models
+from ...payment import PaymentAction, models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.fields import JSONString
 from ..core.types import ModelObjectType, Money, NonNullList
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
-from .enums import OrderAction, PaymentChargeStatusEnum, TransactionKindEnum
+from .enums import PaymentActionEnum, PaymentChargeStatusEnum, TransactionKindEnum
 
 
 class Transaction(ModelObjectType):
@@ -81,41 +81,81 @@ class PaymentSource(graphene.ObjectType):
 
 class Payment(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    gateway = graphene.String(required=True)
-    is_active = graphene.Boolean(required=True)
-    created = graphene.DateTime(required=True)
-    modified = graphene.DateTime(required=True)
-    token = graphene.String(required=True)
     checkout = graphene.Field("saleor.graphql.checkout.types.Checkout")
     order = graphene.Field("saleor.graphql.order.types.Order")
-    payment_method_type = graphene.String(required=True)
-    customer_ip_address = graphene.String()
-    charge_status = PaymentChargeStatusEnum(
-        description="Internal payment status.", required=True
-    )
-    actions = NonNullList(
-        OrderAction,
+    actions = graphene.List(
+        graphene.NonNull(PaymentActionEnum),
         description=(
             "List of actions that can be performed in the current state of a payment."
         ),
         required=True,
     )
     total = graphene.Field(Money, description="Total amount of the payment.")
+    authorized_amount = graphene.Field(
+        Money, required=True, description="Total amount authorized for this payment."
+    )
+    refunded_amount = graphene.Field(
+        Money, required=True, description="Total amount refunded for this payment."
+    )
+    voided_amount = graphene.Field(
+        Money, required=True, description="Total amount voided for this payment."
+    )
     captured_amount = graphene.Field(
-        Money, description="Total amount captured for this payment."
+        Money, description="Total amount captured for this payment.", required=True
+    )
+
+    gateway = graphene.String(
+        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
+    )
+    is_active = graphene.Boolean(
+        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
+    )
+    created = graphene.DateTime(
+        required=True,
+    )
+    modified = graphene.DateTime(required=True)
+    token = graphene.String(
+        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
+    )
+    payment_method_type = graphene.String(
+        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
+    )
+    customer_ip_address = graphene.String(
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow."
+    )
+    charge_status = PaymentChargeStatusEnum(
+        description="Internal payment status.",
+        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
     )
     transactions = NonNullList(
-        Transaction, description="List of all transactions within this payment."
+        Transaction,
+        description="List of all transactions within this payment.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
     )
     available_capture_amount = graphene.Field(
-        Money, description="Maximum amount of money that can be captured."
+        Money,
+        description="Maximum amount of money that can be captured.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
     )
     available_refund_amount = graphene.Field(
-        Money, description="Maximum amount of money that can be refunded."
+        Money,
+        description="Maximum amount of money that can be refunded.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
     )
     credit_card = graphene.Field(
-        CreditCard, description="The details of the card used for this payment."
+        CreditCard,
+        description="The details of the card used for this payment.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use new checkout flow.",
     )
+
+    status = graphene.String(required=True)
+    type = graphene.String(required=True)
+    reference = graphene.String(required=True)
 
     class Meta:
         description = "Represents a payment of a given type."
@@ -128,16 +168,20 @@ class Payment(ModelObjectType):
         return root.customer_ip_address
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_actions(root: models.Payment, _info):
-        actions = []
-        if root.can_capture():
-            actions.append(OrderAction.CAPTURE)
-        if root.can_refund():
-            actions.append(OrderAction.REFUND)
-        if root.can_void():
-            actions.append(OrderAction.VOID)
-        return actions
+        if root.gateway:
+            actions = []
+            if root.can_capture():
+                actions.append(PaymentAction.CAPTURE)
+            if root.can_refund():
+                actions.append(PaymentAction.REFUND)
+            if root.can_void():
+                actions.append(PaymentAction.VOID)
+            return actions
+        return root.available_actions
 
     @staticmethod
     @traced_resolver
@@ -145,23 +189,25 @@ class Payment(ModelObjectType):
         return root.get_total()
 
     @staticmethod
-    def resolve_captured_amount(root: models.Payment, _info):
-        return root.get_captured_amount()
-
-    @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_available_refund_amount(root: models.Payment, _info):
         if not root.can_refund():
             return None
         return root.get_captured_amount()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_available_capture_amount(root: models.Payment, _info):
         if not root.can_capture():
             return None
@@ -188,10 +234,27 @@ class Payment(ModelObjectType):
             raise PermissionDenied(permissions=permissions)
         return resolve_metadata(root.metadata)
 
+    @staticmethod
     def resolve_checkout(root: models.Payment, info):
         if not root.checkout_id:
             return None
         return CheckoutByTokenLoader(info.context).load(root.checkout_id)
+
+    @staticmethod
+    def resolve_captured_amount(root: models.Payment, _info):
+        return root.amount_captured
+
+    @staticmethod
+    def resolve_authorized_amount(root: models.Payment, _info):
+        return root.amount_authorized
+
+    @staticmethod
+    def resolve_voided_amount(root: models.Payment, _info):
+        return root.amount_voided
+
+    @staticmethod
+    def resolve_refunded_amount(root: models.Payment, _info):
+        return root.amount_refunded
 
 
 class PaymentCountableConnection(CountableConnection):
