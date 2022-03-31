@@ -1,12 +1,11 @@
 import graphene
 
-from ...core.permissions import AppPermission
+from ...core.permissions import AppPermission, AuthorizationFilters
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
-from ..core.fields import FilterConnectionField
+from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType, NonNullList
 from ..core.utils import from_global_id_or_error
-from ..decorators import permission_required, staff_member_or_app_required
 from .dataloaders import AppByIdLoader, AppExtensionByIdLoader
 from .filters import AppExtensionFilter, AppFilter
 from .mutations import (
@@ -50,16 +49,22 @@ class AppExtensionFilterInput(FilterInputObjectType):
 
 
 class AppQueries(graphene.ObjectType):
-    apps_installations = NonNullList(
-        AppInstallation,
+    apps_installations = PermissionsField(
+        NonNullList(AppInstallation),
         description="List of all apps installations",
         required=True,
+        permissions=[
+            AppPermission.MANAGE_APPS,
+        ],
     )
     apps = FilterConnectionField(
         AppCountableConnection,
         filter=AppFilterInput(description="Filtering options for apps."),
         sort_by=AppSortingInput(description="Sort apps."),
         description="List of the apps.",
+        permissions=[
+            AppPermission.MANAGE_APPS,
+        ],
     )
     app = graphene.Field(
         App,
@@ -69,27 +74,32 @@ class AppQueries(graphene.ObjectType):
             "If ID is not provided, return the currently authenticated app."
         ),
     )
-
     app_extensions = FilterConnectionField(
         AppExtensionCountableConnection,
         filter=AppExtensionFilterInput(
             description="Filtering options for apps extensions."
         ),
         description=f"{ADDED_IN_31} List of all extensions. {PREVIEW_FEATURE}",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
-    app_extension = graphene.Field(
+    app_extension = PermissionsField(
         AppExtension,
         id=graphene.Argument(
             graphene.ID, description="ID of the app extension.", required=True
         ),
         description=f"{ADDED_IN_31} Look up an app extension by ID. {PREVIEW_FEATURE}",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
 
-    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_apps_installations(self, info, **kwargs):
         return resolve_apps_installations(info, **kwargs)
 
-    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_apps(self, info, **kwargs):
         qs = resolve_apps(info, **kwargs)
         qs = filter_connection_queryset(qs, kwargs)
@@ -101,7 +111,6 @@ class AppQueries(graphene.ObjectType):
             return app
         return resolve_app(info, id)
 
-    @staff_member_or_app_required
     def resolve_app_extensions(self, info, **kwargs):
         qs = resolve_app_extensions(info)
         qs = filter_connection_queryset(qs, kwargs)
@@ -109,7 +118,6 @@ class AppQueries(graphene.ObjectType):
             qs, info, kwargs, AppExtensionCountableConnection
         )
 
-    @staff_member_or_app_required
     def resolve_app_extension(self, info, id):
         def app_is_active(app_extension):
             def is_active(app):

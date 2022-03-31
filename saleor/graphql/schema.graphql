@@ -862,10 +862,14 @@ type Query {
     slug: String
   ): Attribute
 
-  """List of all apps installations"""
+  """
+  List of all apps installations Requires one of the following permissions: MANAGE_APPS.
+  """
   appsInstallations: [AppInstallation!]!
 
-  """List of the apps."""
+  """
+  List of the apps. Requires one of the following permissions: MANAGE_APPS.
+  """
   apps(
     """Filtering options for apps."""
     filter: AppFilterInput
@@ -895,7 +899,7 @@ type Query {
   ): App
 
   """
-  New in Saleor 3.1. List of all extensions. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. List of all extensions. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   appExtensions(
     """Filtering options for apps extensions."""
@@ -915,7 +919,7 @@ type Query {
   ): AppExtensionCountableConnection
 
   """
-  New in Saleor 3.1. Look up an app extension by ID. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Look up an app extension by ID. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   appExtension(
     """ID of the app extension."""
