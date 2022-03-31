@@ -1,3 +1,5 @@
+from typing import List
+
 from celery.utils.log import get_task_logger
 
 from ..account.models import User
@@ -13,94 +15,105 @@ from ..product.search import (
 
 task_logger = get_task_logger(__name__)
 
-BATCH_SIZE = 10000
+BATCH_SIZE = 1000
 
 
 @app.task
-def set_user_search_document_values(total_count, updated_count):
-    qs = User.objects.filter(search_document="").prefetch_related("addresses")[
-        :BATCH_SIZE
-    ]
-    if not qs:
+def set_user_search_document_values(updated_count: int = 0) -> None:
+    users = list(
+        User.objects.filter(search_document="")
+        .prefetch_related("addresses")[:BATCH_SIZE]
+        .iterator()
+    )
+
+    if not users:
         task_logger.info("No users to update.")
         return
 
-    updated_count = set_search_document_values(
-        qs, total_count, updated_count, prepare_user_search_document_value
+    updated_count += set_search_document_values(
+        users, prepare_user_search_document_value
     )
 
-    if updated_count == total_count:
+    task_logger.info("Updated %d users", updated_count)
+
+    if len(users) < BATCH_SIZE:
         task_logger.info("Setting user search document values finished.")
         return
 
-    return set_user_search_document_values.delay(total_count, updated_count)
+    del users
+
+    set_user_search_document_values.delay(updated_count)
 
 
 @app.task
-def set_order_search_document_values(total_count, updated_count):
-    qs = Order.objects.filter(search_document="").prefetch_related(
-        "user",
-        "billing_address",
-        "shipping_address",
-        "payments",
-        "discounts",
-        "lines",
-    )[:BATCH_SIZE]
-    if not qs:
+def set_order_search_document_values(updated_count: int = 0) -> None:
+    orders = list(
+        Order.objects.filter(search_document="")
+        .prefetch_related(
+            "user",
+            "billing_address",
+            "shipping_address",
+            "payments",
+            "discounts",
+            "lines",
+        )[:BATCH_SIZE]
+        .iterator()
+    )
+
+    if not orders:
         task_logger.info("No orders to update.")
         return
 
-    updated_count = set_search_document_values(
-        qs, total_count, updated_count, prepare_order_search_document_value
+    updated_count += set_search_document_values(
+        orders, prepare_order_search_document_value
     )
 
-    if updated_count == total_count:
+    task_logger.info("Updated %d orders", updated_count)
+
+    if len(orders) < BATCH_SIZE:
         task_logger.info("Setting order search document values finished.")
         return
 
-    return set_order_search_document_values.delay(total_count, updated_count)
+    del orders
+
+    set_order_search_document_values.delay(updated_count)
 
 
 @app.task
-def set_product_search_document_values(total_count, updated_count):
-    # set lower batch size as it was crashing for products with
-    # lots of attributes because out of memory issues
-    batch_size = 500
-    qs = Product.objects.filter(search_document="").prefetch_related(
-        *PRODUCT_FIELDS_TO_PREFETCH
-    )[:batch_size]
-    if not qs:
+def set_product_search_document_values(updated_count: int = 0) -> None:
+    products = list(
+        Product.objects.filter(search_document="")
+        .prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)[:BATCH_SIZE]
+        .iterator()
+    )
+
+    if not products:
         task_logger.info("No products to update.")
         return
 
-    updated_count = set_search_document_values(
-        qs, total_count, updated_count, prepare_product_search_document_value
+    updated_count += set_search_document_values(
+        products, prepare_product_search_document_value
     )
 
-    if updated_count == total_count:
+    task_logger.info("Updated %d products", updated_count)
+
+    if len(products) < BATCH_SIZE:
         task_logger.info("Setting product search document values finished.")
         return
 
-    return set_product_search_document_values.delay(total_count, updated_count)
+    del products
+
+    set_product_search_document_values.delay(updated_count)
 
 
-def set_search_document_values(
-    qs, total_count, updated_count, prepare_search_document_func
-):
-    Model = qs.model
-    instances = []
-    for instance in qs:
+def set_search_document_values(instances: List, prepare_search_document_func):
+    if not instances:
+        return 0
+    Model = instances[0]._meta.Model
+    for instance in instances:
         instance.search_document = prepare_search_document_func(
             instance, already_prefetched=True
         )
-        instances.append(instance)
     Model.objects.bulk_update(instances, ["search_document"])
 
-    updated_count += len(instances)
-    progress = round((updated_count / total_count) * 100, 2)
-
-    task_logger.info(
-        f"Updated {updated_count} from {total_count} {Model.__name__.lower()}s - "
-        f"{progress}% done."
-    )
-    return updated_count
+    return len(instances)
