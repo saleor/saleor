@@ -263,7 +263,10 @@ def fetch_checkout_prices_if_expired(
         checkout, manager, checkout_info, lines, address, discounts
     )
 
-    tax_data = manager.get_taxes_for_checkout(checkout)
+    tax_data = manager.get_taxes_for_checkout(
+        checkout_info,
+        lines,
+    )
     if tax_data:
         _apply_tax_data(checkout, lines, tax_data)
 

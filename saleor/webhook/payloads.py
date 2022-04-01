@@ -1148,10 +1148,13 @@ def generate_excluded_shipping_methods_for_order_payload(
 
 @traced_payload_generator
 def generate_excluded_shipping_methods_for_checkout_payload(
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     available_shipping_methods: List[ShippingMethodData],
 ):
-    checkout_data = json.loads(generate_checkout_payload_without_taxes(checkout))[0]
+    checkout_data = json.loads(
+        generate_checkout_payload_without_taxes(checkout_info, lines)
+    )[0]
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
@@ -1314,10 +1317,11 @@ def generate_checkout_payload(
 
 
 def generate_checkout_payload_without_taxes(
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     requestor: Optional["RequestorOrLazyObject"] = None,
 ):
-    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    checkout = checkout_info.checkout
     included_taxes_in_prices = include_taxes_in_prices()
 
     return _generate_checkout_payload(

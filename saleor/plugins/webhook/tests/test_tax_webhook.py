@@ -4,6 +4,7 @@ from unittest.mock import Mock, sentinel
 import pytest
 from freezegun import freeze_time
 
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventPayload
 from ....core.taxes import TaxType
@@ -12,6 +13,7 @@ from ....webhook.payloads import (
     generate_checkout_payload_without_taxes,
     generate_order_payload_without_taxes,
 )
+from ...manager import get_plugins_manager
 from ..utils import (
     DEFAULT_TAX_CODE,
     DEFAULT_TAX_DESCRIPTION,
@@ -36,13 +38,18 @@ def test_get_taxes_for_checkout(
     # given
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(checkout, None)
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, None)
 
     # then
     payload = EventPayload.objects.get()
-    assert payload.payload == generate_checkout_payload_without_taxes(checkout)
+    assert payload.payload == generate_checkout_payload_without_taxes(
+        checkout_info, lines
+    )
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
@@ -61,9 +68,11 @@ def test_get_taxes_for_checkout_no_permission(
 ):
     # given
     plugin = webhook_plugin()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugin)
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(checkout, None)
+    tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, None)
 
     # then
     assert mock_request.call_count == 0

@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
 from ....webhook.event_types import WebhookEventSyncType
@@ -12,6 +13,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ...base_plugin import ExcludedShippingMethod
+from ...manager import get_plugins_manager
 from ..const import (
     CACHE_EXCLUDED_SHIPPING_KEY,
     CACHE_EXCLUDED_SHIPPING_TIME,
@@ -447,8 +449,11 @@ def test_excluded_shipping_methods_for_checkout(
         ExcludedShippingMethod(id="2", reason=other_reason),
     ]
     # when
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], plugin)
     excluded_methods = plugin.excluded_shipping_methods_for_checkout(
-        checkout=checkout_with_items,
+        checkout_info,
+        lines,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
@@ -524,10 +529,14 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
     plugin = webhook_plugin()
     available_shipping_methods = available_shipping_methods_factory(num_methods=2)
     previous_value = []
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
 
     # when
     excluded_methods = plugin.excluded_shipping_methods_for_checkout(
-        checkout=checkout_with_items,
+        checkout_info,
+        lines,
         available_shipping_methods=available_shipping_methods,
         previous_value=previous_value,
     )
@@ -601,10 +610,14 @@ def test_generate_excluded_shipping_methods_for_checkout_payload(
 ):
     # given
     methods = available_shipping_methods_factory(num_methods=3)
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+
     # when
     json_payload = json.loads(
         generate_excluded_shipping_methods_for_checkout_payload(
-            checkout=checkout_with_items, available_shipping_methods=methods
+            checkout_info, lines, available_shipping_methods=methods
         )
     )
     # then

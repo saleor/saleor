@@ -340,7 +340,10 @@ class BasePlugin:
         Any,
     ]
 
-    get_taxes_for_checkout: Callable[["Checkout", Any], Optional["TaxData"]]
+    get_taxes_for_checkout: Callable[
+        ["CheckoutInfo", Iterable["CheckoutLineInfo"], Any],
+        Optional["TaxData"],
+    ]
 
     get_taxes_for_order: Callable[["Order", Any], Optional["TaxData"]]
 
@@ -355,7 +358,8 @@ class BasePlugin:
     get_payment_config: Callable[[Any], Any]
 
     get_shipping_methods_for_checkout: Callable[
-        ["Checkout", Any], List["ShippingMethodData"]
+        ["CheckoutInfo", Iterable["CheckoutLineInfo"], Any],
+        List["ShippingMethodData"],
     ]
 
     get_supported_currencies: Callable[[Any], Any]

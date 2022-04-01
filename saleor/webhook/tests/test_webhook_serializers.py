@@ -6,6 +6,7 @@ import pytest
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
+from ...discount.utils import fetch_active_discounts
 from ...plugins.manager import get_plugins_manager
 from ..serializers import (
     get_base_price,
@@ -90,11 +91,12 @@ def test_serialize_checkout_lines_with_taxes(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
+    discounts = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     checkout_lines_data = serialize_checkout_lines_with_taxes(
-        checkout_info, manager, lines, []
+        checkout_info, manager, lines, discounts
     )
 
     # then
