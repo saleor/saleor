@@ -19,6 +19,7 @@ from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
     InitializedPaymentResponse,
+    PaymentActionData,
     PaymentData,
     PaymentGateway,
 )
@@ -470,6 +471,8 @@ class BasePlugin:
     ]
 
     process_payment: Callable[["PaymentData", Any], Any]
+
+    payment_action_request: Callable[["PaymentActionData", None], None]
 
     #  Trigger when product is created.
     #

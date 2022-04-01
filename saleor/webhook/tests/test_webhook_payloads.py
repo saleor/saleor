@@ -7,6 +7,7 @@ from unittest import mock
 from unittest.mock import ANY
 
 import graphene
+import pytest
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from freezegun import freeze_time
@@ -22,6 +23,9 @@ from ...order import OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
+from ...payment import PaymentAction
+from ...payment.interface import PaymentActionData
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
@@ -40,6 +44,7 @@ from ..payloads import (
     generate_list_gateways_payload,
     generate_meta,
     generate_order_payload,
+    generate_payment_action_request_payload,
     generate_payment_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
@@ -1229,4 +1234,154 @@ def test_generate_meta(app, rf):
         "issuing_principal": {"id": "Sample app objects", "type": "app"},
         "issued_at": timestamp,
         "version": __version__,
+    }
+
+
+@pytest.mark.parametrize(
+    "action_requested, action_value",
+    [
+        (PaymentAction.CAPTURE, Decimal("5.000")),
+        (PaymentAction.REFUND, Decimal("9.000")),
+        (PaymentAction.VOID, None),
+    ],
+)
+@freeze_time("1914-06-28 10:50")
+def test_generate_payment_action_request_payload_for_order(
+    action_requested, action_value, order, app, rf
+):
+    # given
+    request = rf.request()
+    request.app = app
+    request.user = None
+    requestor = get_user_or_app_from_context(request)
+
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    # when
+    payload = json.loads(
+        generate_payment_action_request_payload(
+            payment_data=PaymentActionData(
+                payment=payment,
+                action_requested=action_requested,
+                action_value=action_value,
+            ),
+            requestor=requestor,
+        )
+    )
+
+    # then
+    currency = payment.currency
+    action_value = str(quantize_price(action_value, currency)) if action_value else None
+    assert payload == {
+        "action": {
+            "type": action_requested,
+            "value": action_value,
+            "currency": currency,
+        },
+        "payment": {
+            "status": payment.status,
+            "type": payment.type,
+            "reference": payment.reference,
+            "available_actions": payment.available_actions,
+            "currency": currency,
+            "captured_value": str(quantize_price(payment.captured_value, currency)),
+            "authorized_value": str(quantize_price(payment.authorized_value, currency)),
+            "refunded_value": str(quantize_price(payment.refunded_value, currency)),
+            "voided_value": str(quantize_price(payment.voided_value, currency)),
+            "order_id": graphene.Node.to_global_id("Order", order.pk),
+            "checkout_id": None,
+            "charge_status": payment.charge_status,
+            "created": parse_django_datetime(payment.created),
+            "modified": parse_django_datetime(payment.modified),
+        },
+        "meta": {
+            "issuing_principal": {"id": "Sample app objects", "type": "app"},
+            "issued_at": timezone.make_aware(
+                datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+            ).isoformat(),
+            "version": __version__,
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "action_requested, action_value",
+    [
+        (PaymentAction.CAPTURE, Decimal("5.000")),
+        (PaymentAction.REFUND, Decimal("9.000")),
+        (PaymentAction.VOID, None),
+    ],
+)
+@freeze_time("1914-06-28 10:50")
+def test_generate_payment_action_request_payload_for_checkout(
+    action_requested, action_value, checkout, app, rf
+):
+    # given
+    request = rf.request()
+    request.app = app
+    request.user = None
+    requestor = get_user_or_app_from_context(request)
+
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        checkout_id=checkout.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    # when
+    payload = json.loads(
+        generate_payment_action_request_payload(
+            payment_data=PaymentActionData(
+                payment=payment,
+                action_requested=action_requested,
+                action_value=action_value,
+            ),
+            requestor=requestor,
+        )
+    )
+
+    # then
+    currency = payment.currency
+    action_value = str(quantize_price(action_value, currency)) if action_value else None
+    assert payload == {
+        "action": {
+            "type": action_requested,
+            "value": action_value,
+            "currency": currency,
+        },
+        "payment": {
+            "status": payment.status,
+            "type": payment.type,
+            "reference": payment.reference,
+            "available_actions": payment.available_actions,
+            "currency": currency,
+            "captured_value": str(quantize_price(payment.captured_value, currency)),
+            "authorized_value": str(quantize_price(payment.authorized_value, currency)),
+            "refunded_value": str(quantize_price(payment.refunded_value, currency)),
+            "voided_value": str(quantize_price(payment.voided_value, currency)),
+            "order_id": None,
+            "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
+            "charge_status": payment.charge_status,
+            "created": parse_django_datetime(payment.created),
+            "modified": parse_django_datetime(payment.modified),
+        },
+        "meta": {
+            "issuing_principal": {"id": "Sample app objects", "type": "app"},
+            "issued_at": timezone.make_aware(
+                datetime.strptime("1914-06-28 10:50", "%Y-%m-%d %H:%M"), timezone.utc
+            ).isoformat(),
+            "version": __version__,
+        },
     }

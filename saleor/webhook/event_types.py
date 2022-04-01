@@ -62,6 +62,8 @@ class WebhookEventAsyncType:
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
 
+    PAYMENT_ACTION_REQUEST = "payment_action_request"
+
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
@@ -103,6 +105,7 @@ class WebhookEventAsyncType:
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
         PAGE_DELETED: "Page Deleted",
+        PAYMENT_ACTION_REQUEST: "Payment action request",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
@@ -145,6 +148,7 @@ class WebhookEventAsyncType:
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
+        (PAYMENT_ACTION_REQUEST, DISPLAY_LABELS[PAYMENT_ACTION_REQUEST]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
@@ -188,6 +192,7 @@ class WebhookEventAsyncType:
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
+        PAYMENT_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }
