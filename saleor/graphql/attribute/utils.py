@@ -146,6 +146,9 @@ class AttributeAssignmentMixin:
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
 
+        if not attr_values.values:
+            return tuple()
+
         return tuple(
             get_or_create(
                 attribute=attribute,
@@ -176,6 +179,8 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
+        if not attr_values.rich_text:
+            return tuple()
         defaults = {
             "rich_text": attr_values.rich_text,
             "name": truncatechars(
@@ -191,6 +196,8 @@ class AttributeAssignmentMixin:
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
+        if attr_values.boolean is None:
+            return tuple()
         get_or_create = attribute.values.get_or_create
         boolean = bool(attr_values.boolean)
         value, _ = get_or_create(
@@ -212,6 +219,9 @@ class AttributeAssignmentMixin:
     ):
         is_date_attr = attribute.input_type == AttributeInputType.DATE
         value = attr_values.date if is_date_attr else attr_values.date_time
+
+        if value is None:
+            return tuple()
 
         tz = timezone.get_current_timezone()
         date_time = (
@@ -253,6 +263,9 @@ class AttributeAssignmentMixin:
 
         Slug value is generated based on instance and reference entity id.
         """
+        if not attr_values.references:
+            return tuple()
+
         field_name = cls.REFERENCE_VALUE_NAME_MAPPING[
             attribute.entity_type  # type: ignore
         ]
