@@ -655,14 +655,18 @@ def test_get_shipping_methods_for_checkout_uses_untaxed_payload_serializer(
     shipping_app,
     permission_manage_shipping,
 ):
+    # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    manager.list_shipping_methods_for_checkout(checkout_info, lines)
-    expected_data = generate_checkout_payload_without_taxes(checkout_info, lines)
 
+    # when
+    manager.list_shipping_methods_for_checkout(checkout_info, lines)
+
+    # then
+    expected_data = generate_checkout_payload_without_taxes(checkout_info, lines)
     mocked_webhook_trigger.assert_called_once_with(
         event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
         data=expected_data,
