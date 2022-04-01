@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add new mutation `orderCreateFromCheckout` - #9343 by @korycins
 - Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
 - Fix access to own resources by App - #9425 by @korycins
+- Refactor app tokens - #9438 by @IKarbowiak
+  - Store app tokens hashes instead of plain text.
 
 
 # 3.1.7
