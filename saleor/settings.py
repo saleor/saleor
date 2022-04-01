@@ -356,6 +356,7 @@ LOGGING = {
             "propagate": False,
         },
         "graphql.execution.utils": {"propagate": False, "handlers": ["null"]},
+        "graphql.execution.executor": {"propagate": False, "handlers": ["null"]},
     },
 }
 
