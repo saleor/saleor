@@ -4,6 +4,7 @@ aniso8601==7.0.0
 anyio==3.5.0; python_version >= "3.7" and python_full_version >= "3.6.2"
 asgiref==3.5.0; python_version >= "3.7"
 async-timeout==4.0.2; python_version >= "3.7"
+authlib==1.0.0
 authorizenet==1.1.4
 babel==2.9.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 beautifulsoup4==4.7.1
