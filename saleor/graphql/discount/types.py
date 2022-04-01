@@ -351,31 +351,31 @@ class VoucherCountableConnection(CountableConnection):
 class BaseObjectDiscount(graphene.Interface):
     id = graphene.GlobalID(required=True)
     type = OrderDiscountTypeEnum(
-        required=True, description="Type of the discount: manual or voucher"
+        required=True, description="Type of the discount: manual or voucher."
     )
     name = graphene.String(description="Discount name")
-    translated_name = graphene.String(description="Translated discount name")
+    translated_name = graphene.String(description="Translated discount name.")
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
-        description="Value type of the discount: fixed or percent",
+        description="Value type of the discount: fixed or percent.",
     )
     value = PositiveDecimal(
         required=True,
-        description="Value of the discount. Can store fixed value or percent value",
+        description="Value of the discount. Can store fixed value or percent value.",
     )
     reason = graphene.String(
-        required=False, description="Explanation for the applied discount"
+        required=False, description="Explanation for the applied discount."
     )
     amount = graphene.Field(
-        Money, description="Returns amount of discount", required=True
+        Money, description="Returns amount of discount.", required=True
     )
 
 
 class OrderDiscount(ModelObjectType):
     class Meta:
         description = (
-            "Contains all details related to the applied discount to the order"
+            "Contains all details related to the applied discount to the order."
         )
         interfaces = [relay.Node, BaseObjectDiscount]
         model = models.OrderDiscount
@@ -389,12 +389,12 @@ class OrderDiscount(ModelObjectType):
 class CheckoutDiscount(ModelObjectType):
     class Meta:
         description = (
-            "Contains all details related to the applied discount to the checkout"
+            "Contains all details related to the applied discount to the checkout."
         )
-        interface = [relay.Node, BaseObjectDiscount]
+        interfaces = [relay.Node, BaseObjectDiscount]
         model = models.CheckoutDiscount
 
     @staticmethod
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    def resolve_reason(root: models.OrderDiscount, _info):
+    def resolve_reason(root: models.CheckoutDiscount, _info):
         return root.reason

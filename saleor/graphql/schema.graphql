@@ -5513,6 +5513,9 @@ type Checkout implements Node & ObjectWithMetadata {
   translatedDiscountName: String
   voucherCode: String
 
+  """List of discounts associated with this checkout."""
+  discounts: [CheckoutDiscount!]
+
   """Shipping methods that can be used with this checkout."""
   availableShippingMethods: [ShippingMethod!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
 
@@ -5574,6 +5577,70 @@ type Checkout implements Node & ObjectWithMetadata {
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
 }
+
+"""Contains all details related to the applied discount to the checkout."""
+type CheckoutDiscount implements Node & BaseObjectDiscount {
+  id: ID!
+
+  """Type of the discount: manual or voucher."""
+  type: OrderDiscountType!
+
+  """Discount name"""
+  name: String
+
+  """Translated discount name."""
+  translatedName: String
+
+  """Value type of the discount: fixed or percent."""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value."""
+  value: PositiveDecimal!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Returns amount of discount."""
+  amount: Money!
+}
+
+interface BaseObjectDiscount {
+  id: ID!
+
+  """Type of the discount: manual or voucher."""
+  type: OrderDiscountType!
+
+  """Discount name"""
+  name: String
+
+  """Translated discount name."""
+  translatedName: String
+
+  """Value type of the discount: fixed or percent."""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value."""
+  value: PositiveDecimal!
+
+  """Explanation for the applied discount."""
+  reason: String
+
+  """Returns amount of discount."""
+  amount: Money!
+}
+
+"""An enumeration."""
+enum OrderDiscountType {
+  VOUCHER
+  MANUAL
+}
+
+"""
+Positive Decimal scalar implementation.
+
+Should be used in places where value must be positive.
+"""
+scalar PositiveDecimal
 
 """
 A gift card is a prepaid electronic payment card accepted in stores. They can be used during checkout by providing a valid gift card codes.
@@ -6063,13 +6130,6 @@ type OrderLine implements Node {
   unitDiscountType: DiscountValueTypeEnum
 }
 
-"""
-Positive Decimal scalar implementation.
-
-Should be used in places where value must be positive.
-"""
-scalar PositiveDecimal
-
 """Represents allocation."""
 type Allocation implements Node {
   id: ID!
@@ -6422,61 +6482,30 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
-"""Contains all details related to the applied discount to the order"""
+"""Contains all details related to the applied discount to the order."""
 type OrderDiscount implements Node & BaseObjectDiscount {
   id: ID!
 
-  """Type of the discount: manual or voucher"""
+  """Type of the discount: manual or voucher."""
   type: OrderDiscountType!
 
   """Discount name"""
   name: String
 
-  """Translated discount name"""
+  """Translated discount name."""
   translatedName: String
 
-  """Value type of the discount: fixed or percent"""
+  """Value type of the discount: fixed or percent."""
   valueType: DiscountValueTypeEnum!
 
-  """Value of the discount. Can store fixed value or percent value"""
+  """Value of the discount. Can store fixed value or percent value."""
   value: PositiveDecimal!
 
-  """Explanation for the applied discount"""
+  """Explanation for the applied discount."""
   reason: String
 
-  """Returns amount of discount"""
+  """Returns amount of discount."""
   amount: Money!
-}
-
-interface BaseObjectDiscount {
-  id: ID!
-
-  """Type of the discount: manual or voucher"""
-  type: OrderDiscountType!
-
-  """Discount name"""
-  name: String
-
-  """Translated discount name"""
-  translatedName: String
-
-  """Value type of the discount: fixed or percent"""
-  valueType: DiscountValueTypeEnum!
-
-  """Value of the discount. Can store fixed value or percent value"""
-  value: PositiveDecimal!
-
-  """Explanation for the applied discount"""
-  reason: String
-
-  """Returns amount of discount"""
-  amount: Money!
-}
-
-"""An enumeration."""
-enum OrderDiscountType {
-  VOUCHER
-  MANUAL
 }
 
 type OrderError {
@@ -16472,7 +16501,7 @@ enum VolumeUnitsEnum {
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
+union _Entity = App | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | Address | User | Group | PageType
 
 """_Service manifest as defined by Federation spec."""
 type _Service {

@@ -26,7 +26,6 @@ from ....product.utils.availability import (
 )
 from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.reservations import is_reservation_enabled
-from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
@@ -130,7 +129,7 @@ from .channels import (
 from .digital_contents import DigitalContent
 
 destination_address_argument = graphene.Argument(
-    account_types.AddressInput,
+    "saleor.graphql.account.types.AddressInput",
     description=(
         "Destination address used to find warehouses where stock availability "
         "for this product is checked. If address is empty, uses "

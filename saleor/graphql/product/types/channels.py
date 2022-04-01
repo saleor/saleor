@@ -13,7 +13,6 @@ from ....product.utils.costs import (
     get_margin_for_variant_channel_listing,
     get_product_costs_data,
 )
-from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
@@ -52,7 +51,7 @@ class ProductChannelListing(ModelObjectType):
     pricing = graphene.Field(
         "saleor.graphql.product.types.products.ProductPricingInfo",
         address=graphene.Argument(
-            account_types.AddressInput,
+            "saleor.graphql.account.types.AddressInput",
             description=(
                 "Destination address used to find warehouses where stock availability "
                 "for this product is checked. If address is empty, uses "

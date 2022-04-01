@@ -145,6 +145,8 @@ def test_user_checkout_details(user_api_client, customer_checkout, count_queries
 
 
 @patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_user_checkout_details_with_external_shipping_method(
     mock_send_request,
     user_api_client,

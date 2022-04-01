@@ -4,6 +4,7 @@ from django.db.models import F
 
 from ...discount import DiscountInfo
 from ...discount.models import (
+    CheckoutDiscount,
     OrderDiscount,
     Sale,
     SaleChannelListing,
@@ -161,3 +162,16 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
         for discount in discounts:
             discount_map[discount.order_id].append(discount)
         return [discount_map.get(order_id, []) for order_id in keys]
+
+
+class CheckoutDiscountsByCheckoutTokenLoader(DataLoader):
+    context_key = "checkoutdiscounts_by_checkout_token"
+
+    def batch_load(self, keys):
+        checkout_discounts = CheckoutDiscount.objects.using(
+            self.database_connection_name
+        ).filter(checkout_id__in=keys)
+        discount_map = defaultdict(list)
+        for discount in checkout_discounts:
+            discount_map[discount.checkout_id].append(discount)
+        return [discount_map.get(checkout_id) for checkout_id in keys]

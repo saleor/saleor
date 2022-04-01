@@ -1,8 +1,10 @@
 import pytest
+from prices import Money
 
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from .....discount import DiscountValueType
 from .....payment import ChargeStatus, TransactionKind
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
@@ -13,6 +15,18 @@ def customer_checkout(customer_user, checkout_with_voucher_percentage_and_shippi
     checkout_with_voucher_percentage_and_shipping.user = customer_user
     checkout_with_voucher_percentage_and_shipping.save()
     return checkout_with_voucher_percentage_and_shipping
+
+
+@pytest.fixture
+def checkout_with_discounts(customer_checkout):
+    for i in range(10):
+        customer_checkout.discounts.create(
+            value_type=DiscountValueType.FIXED,
+            value=i,
+            reason=f"Discount_{i} reason",
+            amount=Money(i, customer_checkout.currency),
+        )
+    return customer_checkout
 
 
 @pytest.fixture()

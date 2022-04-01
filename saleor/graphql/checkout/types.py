@@ -20,7 +20,11 @@ from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
-from ..discount.dataloaders import DiscountsByDateTimeLoader
+from ..discount.dataloaders import (
+    CheckoutDiscountsByCheckoutTokenLoader,
+    DiscountsByDateTimeLoader,
+)
+from ..discount.types import CheckoutDiscount
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import (
@@ -196,6 +200,11 @@ class Checkout(ModelObjectType):
     discount_name = graphene.String()
     translated_discount_name = graphene.String()
     voucher_code = graphene.String()
+    discounts = NonNullList(
+        CheckoutDiscount,
+        description="List of discounts associated with this checkout.",
+        required=False,
+    )
     available_shipping_methods = NonNullList(
         ShippingMethod,
         required=True,
@@ -483,6 +492,10 @@ class Checkout(ModelObjectType):
         return info.context.plugins.list_payment_gateways(
             currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
+
+    @staticmethod
+    def resolve_discounts(root: models.Checkout, info):
+        return CheckoutDiscountsByCheckoutTokenLoader(info.context).load(root.token)
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):
