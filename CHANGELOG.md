@@ -22,6 +22,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
 - Add handling webhook payload via GraphQL subscriptions (#9394)  @jakubkuc
 - Fix access to own resources by App - #9425 by @korycins
+- Introduce custom prices - #9393 by @IKarbowiak
+  - Add `HANDLE_CHECKOUTS` permission (only for apps)
+
 
 # 3.1.7
 
