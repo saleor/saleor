@@ -3978,8 +3978,12 @@ def order_with_preorder_lines(
 
 @pytest.fixture
 def order_events(order):
-    for event_type, _ in OrderEvents.CHOICES:
-        OrderEvent.objects.create(type=event_type, order=order)
+    order_events = [
+        OrderEvent(type=event_type, order=order)
+        for event_type, _ in OrderEvents.CHOICES
+    ]
+    OrderEvent.objects.bulk_create(order_events)
+    return order_events
 
 
 @pytest.fixture

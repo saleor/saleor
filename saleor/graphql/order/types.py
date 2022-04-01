@@ -289,8 +289,15 @@ class OrderEvent(ModelObjectType):
         return root.parameters.get("oversold_items", None)
 
     @staticmethod
-    def resolve_order_number(root: models.OrderEvent, _info):
-        return root.order_id
+    def resolve_order_number(root: models.OrderEvent, info):
+        def _resolve_order_number(order: models.Order):
+            return order.number
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_order_number)
+        )
 
     @staticmethod
     def resolve_invoice_number(root: models.OrderEvent, _info):
