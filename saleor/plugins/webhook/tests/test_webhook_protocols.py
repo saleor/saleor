@@ -204,6 +204,7 @@ def test_trigger_webhooks_with_http(
         text="{response: body}",
         headers={"response": "header"},
         elapsed=timedelta(seconds=2),
+        status_code=200,
         ok=True,
     )
     webhook.app.permissions.add(permission_manage_orders)
@@ -243,6 +244,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
         text="{response: body}",
         headers={"response": "header"},
         elapsed=timedelta(seconds=2),
+        status_code=200,
         ok=True,
     )
     webhook.app.permissions.add(permission_manage_orders)
