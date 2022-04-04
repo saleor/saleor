@@ -33,6 +33,8 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....payment.gateway import request_refund_action, request_void_action, \
+    request_capture_action
 from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ....shipping.interface import ShippingMethodData
@@ -570,29 +572,43 @@ class OrderCapture(BaseMutation):
         payment = order_info.payment
         clean_order_capture(payment)
 
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.capture,
-            payment,
-            info.context.plugins,
-            amount=amount,
-            channel_slug=order.channel.slug,
-        )
-        order_info.payment.refresh_from_db()
-        # Confirm that we changed the status to capture. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.CAPTURE:
-            order_captured(
-                order_info,
+        # This is temporary solution to discover a payment that uses a new checkout
+        # flow.
+        if not payment.gateway:
+            try:
+                request_capture_action(
+                    payment, info.context.plugins, action_value=amount,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(str(e),
+                                      code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK)
+        else:
+            transaction = try_payment_action(
+                order,
                 info.context.user,
                 info.context.app,
-                amount,
+                payment,
+                gateway.capture,
                 payment,
                 info.context.plugins,
+                amount=amount,
+                channel_slug=order.channel.slug,
             )
+            order_info.payment.refresh_from_db()
+            # Confirm that we changed the status to capture. Some payment can receive
+            # asynchronous webhook with update status
+            if transaction.kind == TransactionKind.CAPTURE:
+                order_captured(
+                    order_info,
+                    info.context.user,
+                    info.context.app,
+                    amount,
+                    payment,
+                    info.context.plugins,
+                )
         return OrderCapture(order=order)
 
 
@@ -614,26 +630,40 @@ class OrderVoid(BaseMutation):
         payment = order.get_last_payment()
         clean_void_payment(payment)
 
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.void,
-            payment,
-            info.context.plugins,
-            channel_slug=order.channel.slug,
-        )
-        # Confirm that we changed the status to void. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.VOID:
-            order_voided(
+        # This is temporary solution to discover a payment that uses a new checkout
+        # flow.
+        if not payment.gateway:
+            try:
+                request_void_action(
+                    payment, info.context.plugins,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(str(e),
+                                      code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK)
+        else:
+            transaction = try_payment_action(
                 order,
                 info.context.user,
                 info.context.app,
                 payment,
+                gateway.void,
+                payment,
                 info.context.plugins,
+                channel_slug=order.channel.slug,
             )
+            # Confirm that we changed the status to void. Some payment can receive
+            # asynchronous webhook with update status
+            if transaction.kind == TransactionKind.VOID:
+                order_voided(
+                    order,
+                    info.context.user,
+                    info.context.app,
+                    payment,
+                    info.context.plugins,
+                )
         return OrderVoid(order=order)
 
 
@@ -670,32 +700,45 @@ class OrderRefund(BaseMutation):
         payment = order.get_last_payment()
         clean_refund_payment(payment)
 
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.refund,
-            payment,
-            info.context.plugins,
-            amount=amount,
-            channel_slug=order.channel.slug,
-        )
-        order.fulfillments.create(
-            status=FulfillmentStatus.REFUNDED, total_refund_amount=amount
-        )
-
-        # Confirm that we changed the status to refund. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.REFUND:
-            order_refunded(
+        # This is temporary solution to discover a payment that uses a new checkout
+        # flow.
+        if not payment.gateway:
+            try:
+                request_refund_action(
+                    payment, info.context.plugins, action_value=amount,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK)
+        else:
+            transaction = try_payment_action(
                 order,
                 info.context.user,
                 info.context.app,
-                amount,
+                payment,
+                gateway.refund,
                 payment,
                 info.context.plugins,
+                amount=amount,
+                channel_slug=order.channel.slug,
             )
+            # Confirm that we changed the status to refund. Some payment can receive
+            # asynchronous webhook with update status
+            if transaction.kind == TransactionKind.REFUND:
+                order_refunded(
+                    order,
+                    info.context.user,
+                    info.context.app,
+                    amount,
+                    payment,
+                    info.context.plugins,
+                )
+
+        order.fulfillments.create(
+            status=FulfillmentStatus.REFUNDED, total_refund_amount=amount
+        )
         return OrderRefund(order=order)
 
 

@@ -207,7 +207,9 @@ class OrderEvent(ModelObjectType):
         description="Type of an email sent to the customer."
     )
     amount = graphene.Float(description="Amount of money.")
-    payment_id = graphene.String(description="The payment ID from the payment gateway.")
+    payment_id = graphene.String(
+        description="The payment reference from the payment provider."
+    )
     payment_gateway = graphene.String(description="The payment gateway of the payment.")
     quantity = graphene.Int(description="Number of items.")
     composed_id = graphene.String(description="Composed ID of the Fulfillment.")
