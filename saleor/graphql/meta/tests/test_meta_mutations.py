@@ -665,6 +665,48 @@ def test_add_public_metadata_for_app(staff_api_client, permission_manage_apps, a
     )
 
 
+def test_add_public_metadata_for_app_by_different_app(
+    app_api_client, permission_manage_apps, app, payment_app
+):
+    # given
+    app_id = graphene.Node.to_global_id("App", payment_app.pk)
+    app_api_client.app = app
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        app_api_client,
+        permission_manage_apps,
+        app_id,
+        "App",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], payment_app, app_id
+    )
+
+
+def test_add_public_metadata_for_app_that_is_owner(
+    app_api_client, permission_manage_apps, app
+):
+    # given
+    app_id = graphene.Node.to_global_id("App", app.pk)
+    app_api_client.app = app
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        app_api_client,
+        None,
+        app_id,
+        "App",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], app, app_id
+    )
+
+
 def test_add_public_metadata_for_page(staff_api_client, permission_manage_pages, page):
     # given
     page_id = graphene.Node.to_global_id("Page", page.pk)
@@ -2279,6 +2321,52 @@ def test_add_private_metadata_for_app(staff_api_client, permission_manage_apps, 
     response = execute_update_private_metadata_for_item(
         staff_api_client,
         permission_manage_apps,
+        app_id,
+        "App",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        app,
+        app_id,
+    )
+
+
+def test_add_private_metadata_for_app_by_different_app(
+    app_api_client, permission_manage_apps, app, payment_app
+):
+    # given
+    app_id = graphene.Node.to_global_id("App", payment_app.pk)
+    app_api_client.app = app
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        app_api_client,
+        permission_manage_apps,
+        app_id,
+        "App",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        payment_app,
+        app_id,
+    )
+
+
+def test_add_private_metadata_by_app_that_is_owner(
+    app_api_client, permission_manage_apps, app
+):
+    # given
+    app_id = graphene.Node.to_global_id("App", app.pk)
+    app_api_client.app = app
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        app_api_client,
+        None,
         app_id,
         "App",
     )

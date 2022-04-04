@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # Unreleased
 
 ### Breaking changes
+- Convert IDs from DB to Graphql format in all notification payloads (email plugins and webhook.NOTIFY)- #9388 by @L3str4nge
 
 - Migrate order id from int to UUID - #9324 by @IKarbowiak
   - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
@@ -16,7 +17,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
+- Add OpenID Connect Plugin - #9406 by @korycins
 - Add new mutation `orderCreateFromCheckout` - #9343 by @korycins
+- Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
+- Add handling webhook payload via GraphQL subscriptions (#9394)  @jakubkuc
+- Fix access to own resources by App - #9425 by @korycins
 
 # 3.1.7
 
