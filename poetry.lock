@@ -446,6 +446,17 @@ category = "main"
 optional = false
 python-versions = ">=3.6"
 
+[package.dependencies]
+cffi = ">=1.12"
+
+[package.extras]
+docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
+docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
+pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
+sdist = ["setuptools_rust (>=0.11.4)"]
+ssh = ["bcrypt (>=3.1.5)"]
+test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
+
 [[package]]
 name = "cssselect2"
 version = "0.5.0"
@@ -1632,7 +1643,7 @@ xpath = ["lxml (>=4.4.0)"]
 
 [[package]]
 name = "phonenumberslite"
-version = "8.12.45"
+version = "8.12.46"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 category = "main"
 optional = false
@@ -2758,8 +2769,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "53747db702797aa20bd234dd6e5138bc4492e8d47a7375fd6739b7da72149b39"
+python-versions = "~3.9"
+content-hash = "1fb8535fa8b9eade1fe7a750f9389e7a526f91bd558881b7975d1b1f7525c0b9"
 
 [metadata.files]
 adyen = [
@@ -3809,8 +3820,8 @@ petl = [
     {file = "petl-1.7.8.tar.gz", hash = "sha256:f6b0100d6a42ca8f5fc84ea7b312fe922b7027cd8d2f7f22144eee0c4dd34a52"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.45-py2.py3-none-any.whl", hash = "sha256:ebfe83dd6c3eb8c2487cc135ebff2c246ee3888069ca0a83ab4dac63a24df077"},
-    {file = "phonenumberslite-8.12.45.tar.gz", hash = "sha256:1e7a2659d0ecd5017c4d0edd18d75dbe307909646a800ecda26865ad08bf2f00"},
+    {file = "phonenumberslite-8.12.46-py2.py3-none-any.whl", hash = "sha256:752555fb0cb9e442054c93fd23ab2ac1b741aea30e6e990be560ef75cac55c21"},
+    {file = "phonenumberslite-8.12.46.tar.gz", hash = "sha256:93aa86c9e9e4b15dda89c4b0e7b9a3b6b854e009441a941a29d3b0202fa575bd"},
 ]
 pillow = [
     {file = "Pillow-9.0.1-1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:a5d24e1d674dd9d72c66ad3ea9131322819ff86250b30dc5821cbafcfa0b96b4"},
