@@ -16,15 +16,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Update products
         products_total_count = Product.objects.filter(search_document="").count()
-        set_product_search_document_values.delay(products_total_count, 0)
         self.stdout.write(f"Updating products: {products_total_count}")
+        set_product_search_document_values.delay()
 
         # Update orders
         orders_total_count = Order.objects.filter(search_document="").count()
-        set_order_search_document_values.delay(orders_total_count, 0)
         self.stdout.write(f"Updating orders: {orders_total_count}")
+        set_order_search_document_values.delay()
 
         # Update users
         users_total_count = User.objects.filter(search_document="").count()
-        set_user_search_document_values.delay(users_total_count, 0)
         self.stdout.write(f"Updating users: {users_total_count}")
+        set_user_search_document_values.delay()
