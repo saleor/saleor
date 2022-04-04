@@ -15,7 +15,10 @@ from .utils import check_lines_quantity
 class CheckoutLineUpdateInput(CheckoutLineInput):
     quantity = graphene.Int(
         required=False,
-        description="The number of items purchased. Required for not app requestor.",
+        description=(
+            "The number of items purchased. "
+            "Optional for apps, required for any other users."
+        ),
     )
 
 

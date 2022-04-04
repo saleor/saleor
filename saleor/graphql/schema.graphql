@@ -14958,7 +14958,9 @@ type CheckoutLinesUpdate {
 }
 
 input CheckoutLineUpdateInput {
-  """The number of items purchased. Required for not app requestor."""
+  """
+  The number of items purchased. Optional for apps, required for any other users.
+  """
   quantity: Int
 
   """ID of the product variant."""
