@@ -80,6 +80,7 @@ class EventDeliveryAttempt(ModelObjectType):
     duration = graphene.Float()
     response = graphene.String()
     response_headers = graphene.String()
+    response_status_code = graphene.Int()
     request_headers = graphene.String()
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True

@@ -61,6 +61,7 @@ class WebhookResponse:
     content: str
     request_headers: Optional[Dict] = None
     response_headers: Optional[Dict] = None
+    response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
 
@@ -239,6 +240,7 @@ def send_webhook_using_http(
         content=response.text,
         request_headers=headers,
         response_headers=dict(response.headers),
+        response_status_code=response.status_code,
         duration=response.elapsed.total_seconds(),
         status=(
             EventDeliveryStatus.SUCCESS if response.ok else EventDeliveryStatus.FAILED
@@ -450,6 +452,7 @@ def send_webhook_request_sync(
         if e.response:
             response.content = e.response.text
             response.response_headers = dict(e.response.headers)
+            response.response_status_code = e.response.status_code
 
     except JSONDecodeError as e:
         logger.warning(
