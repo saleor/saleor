@@ -71,7 +71,7 @@ documentation = "https://docs.saleor.io/"
   Authlib = "^1.0.0"
 
     [tool.poetry.dependencies.celery]
-    version = ">=4.4.5,<6.0.0"
+    version = "5.2.4"
     extras = [ "redis" ]
 
     [tool.poetry.dependencies.django-storages]
