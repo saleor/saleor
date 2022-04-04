@@ -4165,6 +4165,53 @@ def test_create_product_with_rich_text_attribute(
     )
 
 
+def test_create_product_no_value_for_rich_text_attribute(
+    staff_api_client,
+    product_type,
+    rich_text_attribute,
+    permission_manage_products,
+):
+    """Ensure mutation not fail when as attributes input only rich text attribute id
+    is provided."""
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(rich_text_attribute)
+    rich_text_attribute_id = graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute.id
+    )
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": rich_text_attribute_id,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    expected_attributes_data = {
+        "attribute": {"slug": rich_text_attribute.slug},
+        "values": [],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
 def test_create_product_with_date_time_attribute(
     staff_api_client,
@@ -4297,6 +4344,51 @@ def test_create_product_with_date_attribute(
     assert str(value).lower() in product.search_document
 
 
+def test_create_product_no_value_for_date_attribute(
+    staff_api_client,
+    product_type,
+    date_attribute,
+    permission_manage_products,
+):
+    """Ensure mutation not fail when as attributes input only date attribute id
+    is provided."""
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(date_attribute)
+    date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": date_attribute_id,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    expected_attributes_data = {
+        "attribute": {"slug": date_attribute.slug},
+        "values": [],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
 def test_create_product_with_boolean_attribute(
     staff_api_client,
     product_type,
@@ -4352,6 +4444,51 @@ def test_create_product_with_boolean_attribute(
                 "file": None,
             }
         ],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
+def test_create_product_no_value_for_boolean_attribute(
+    staff_api_client,
+    product_type,
+    boolean_attribute,
+    permission_manage_products,
+):
+    """Ensure mutation not fail when as attributes input only boolean attribute id
+    is provided."""
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(boolean_attribute)
+    boolean_attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": boolean_attribute_id,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    expected_attributes_data = {
+        "attribute": {"slug": boolean_attribute.slug},
+        "values": [],
     }
     assert expected_attributes_data in data["product"]["attributes"]
 
@@ -6663,6 +6800,98 @@ def test_update_product_clear_attribute_values(
         product_attr.refresh_from_db()
 
     updated_webhook_mock.assert_called_once_with(product)
+
+
+def test_update_product_clean_boolean_attribute_value(
+    staff_api_client,
+    product,
+    product_type,
+    boolean_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.pk)
+
+    product_type.product_attributes.add(boolean_attribute)
+    associate_attribute_values_to_instance(
+        product, boolean_attribute, boolean_attribute.values.first()
+    )
+
+    product_attr = product.attributes.get(assignment__attribute_id=boolean_attribute.id)
+    assert product_attr.values.count() == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": boolean_attribute.name},
+        "values": [],
+    }
+    assert expected_att_data in attributes
+    assert product_attr.values.count() == 0
+
+
+def test_update_product_clean_file_attribute_value(
+    staff_api_client,
+    product,
+    product_type,
+    file_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+
+    product_type.product_attributes.add(file_attribute)
+    associate_attribute_values_to_instance(
+        product, file_attribute, file_attribute.values.first()
+    )
+
+    product_attr = product.attributes.get(assignment__attribute_id=file_attribute.id)
+    assert product_attr.values.count() == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [],
+    }
+    assert expected_att_data in attributes
+    assert product_attr.values.count() == 0
 
 
 @freeze_time("2020-03-18 12:00:00")
