@@ -56,7 +56,8 @@ def initialize_context() -> HttpRequest:
     handler = BaseHandler()
     context = RequestFactory().request()
     handler.load_middleware()
-    handler.get_response(context)
+    response = handler.get_response(context)
+    assert response.status_code == 200
     return context
 
 
