@@ -72,13 +72,13 @@ ORDER_FIELDS = (
     "created",
     "status",
     "origin",
-    "user_email",
     "shipping_method_name",
     "collection_point_name",
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
     "shipping_tax_rate",
     "weight",
+    "language_code",
     "private_metadata",
     "metadata",
     "total_net_amount",
@@ -282,6 +282,7 @@ def generate_order_payload(
     extra_dict_data = {
         "id": graphene.Node.to_global_id("Order", order.id),
         "token": str(order.id),
+        "user_email": order.get_customer_email(),
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
@@ -408,7 +409,8 @@ def _generate_order_payload_for_invoice(order: "Order"):
         [order],
         fields=ORDER_FIELDS,
         extra_dict_data={
-            "token": lambda o: o.id,
+            "token": order.id,
+            "user_email": order.get_customer_email(),
         },
     )
     return payload
@@ -428,6 +430,7 @@ def generate_checkout_payload(
         "currency",
         "discount_amount",
         "discount_name",
+        "language_code",
         "private_metadata",
         "metadata",
     )
@@ -490,6 +493,7 @@ def generate_customer_payload(
             "last_name",
             "is_active",
             "date_joined",
+            "language_code",
             "private_metadata",
             "metadata",
         ],

@@ -6,11 +6,11 @@ from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
+from ..account.utils import requestor_has_access
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
@@ -21,6 +21,14 @@ from .resolvers import (
     resolve_access_token_for_app_extension,
     resolve_app_extension_url,
 )
+
+
+def has_required_permission(app: models.App, context):
+    requester = get_user_or_app_from_context(context)
+    if not requestor_has_access(requester, app, AppPermission.MANAGE_APPS):
+        raise PermissionDenied(
+            permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+        )
 
 
 class AppManifestExtension(graphene.ObjectType):
@@ -217,18 +225,18 @@ class App(ModelObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @permission_required(AppPermission.MANAGE_APPS)
-    def resolve_tokens(root: models.App, _info, **_kwargs):
-        return root.tokens.all()  # type: ignore
+    def resolve_tokens(root: models.App, info, **_kwargs):
+        has_required_permission(root, info.context)
+        return root.tokens.all()
 
     @staticmethod
-    @permission_required(AppPermission.MANAGE_APPS)
-    def resolve_webhooks(root: models.App, _info):
+    def resolve_webhooks(root: models.App, info):
+        has_required_permission(root, info.context)
         return root.webhooks.all()
 
     @staticmethod
-    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_access_token(root: models.App, info):
+        has_required_permission(root, info.context)
         return resolve_access_token_for_app(info, root)
 
     @staticmethod

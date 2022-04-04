@@ -1,0 +1,84 @@
+interactions:
+- request:
+    body: grant_type=refresh_token&refresh_token=refresh&scope=openid+profile+email+offline_access
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '88'
+      Content-Type:
+      - application/x-www-form-urlencoded;charset=UTF-8
+      User-Agent:
+      - python-requests/2.24.0
+    method: POST
+    uri: https://saleor.io/oauth/token
+  response:
+    body:
+      string: '{"error":"access_denied","error_description":"Unauthorized"}'
+    headers:
+      CF-Cache-Status:
+      - DYNAMIC
+      CF-Ray:
+      - 5d7b53640c8cf2a0-WAW
+      Cache-Control:
+      - private, no-store, no-cache, must-revalidate, post-check=0, pre-check=0, no-transform
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '60'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 24 Sep 2020 09:02:18 GMT
+      Expect-CT:
+      - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cfduid=dda572364d1d8477fb4d0b180ed6a27231600938138; expires=Sat, 24-Oct-20
+        09:02:18 GMT; path=/; domain=.eu.auth0.com; HttpOnly; SameSite=Lax; Secure
+      - did=s%3Av0%3Aa5eaa130-fe44-11ea-88fd-69241534caf5.UhSNGlnYpEgd9Z%2BFw81Pm%2BMSa%2BCpFh1inxuK93XDc7k;
+        Max-Age=31557600; Path=/; Expires=Fri, 24 Sep 2021 15:02:18 GMT; HttpOnly;
+        Secure; SameSite=None
+      - did_compat=s%3Av0%3Aa5eaa130-fe44-11ea-88fd-69241534caf5.UhSNGlnYpEgd9Z%2BFw81Pm%2BMSa%2BCpFh1inxuK93XDc7k;
+        Max-Age=31557600; Path=/; Expires=Fri, 24 Sep 2021 15:02:18 GMT; HttpOnly;
+        Secure
+      - __cf_bm=1d7ae185306bf91d9341a5428e946fa6f7791a4b-1600938138-1800-Ae0o0+RxpBzmlWEI79FgL7ObfCZSXDqYPMCKJwffgaK2swmQcWyHb/qtREJRU0aFAZUXR23/3ykt1NTVNisGmps=;
+        path=/; expires=Thu, 24-Sep-20 09:32:18 GMT; domain=.eu.auth0.com; HttpOnly;
+        Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - Accept-Encoding
+      X-Auth0-RequestId:
+      - b1042397b9c8d5c739bd
+      X-Content-Type-Options:
+      - nosniff
+      X-RateLimit-Limit:
+      - '30'
+      X-RateLimit-Remaining:
+      - '29'
+      X-RateLimit-Reset:
+      - '1600938139'
+      alt-svc:
+      - h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400
+      cf-request-id:
+      - 0560f272880000f2a0d421c200000001
+      ot-baggage-auth0-request-id:
+      - 5d7b53640c8cf2a0
+      ot-tracer-sampled:
+      - 'true'
+      ot-tracer-spanid:
+      - 48c2f8fa6f549fb7
+      ot-tracer-traceid:
+      - 0eb00c3945b70d62
+    status:
+      code: 401
+      message: Unauthorized
+version: 1

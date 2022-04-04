@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils import build_absolute_uri
+from ..graphql.core.utils import to_global_id_or_none
 from ..plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
@@ -10,14 +11,14 @@ if TYPE_CHECKING:
 
 
 def get_default_export_payload(export_file: "ExportFile") -> dict:
-    user_id = export_file.user.id if export_file.user else None
+    user_id = to_global_id_or_none(export_file.user) if export_file.user else None
     user_email = export_file.user.email if export_file.user else None
-    app_id = export_file.app.id if export_file.app else None
+    app_id = to_global_id_or_none(export_file.app) if export_file.app else None
     return {
         "user_id": user_id,
         "user_email": user_email,
         "app_id": app_id,
-        "id": export_file.id,
+        "id": to_global_id_or_none(export_file),
         "status": export_file.status,
         "message": export_file.message,
         "created_at": export_file.created_at,

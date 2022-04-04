@@ -2,6 +2,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....attribute.models import AttributeValue
@@ -64,7 +65,11 @@ def test_page_delete_trigger_webhook(
         page.refresh_from_db()
     expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_DELETED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PAGE_DELETED,
+        [any_webhook],
+        page,
+        SimpleLazyObject(lambda: staff_api_client.user),
     )
 
 

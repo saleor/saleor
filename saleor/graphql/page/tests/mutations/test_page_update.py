@@ -3,6 +3,7 @@ from unittest import mock
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
 
@@ -167,7 +168,11 @@ def test_update_page_trigger_webhook(
     page.publication_date = date(2020, 3, 18)
     expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_UPDATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PAGE_UPDATED,
+        [any_webhook],
+        page,
+        SimpleLazyObject(lambda: staff_api_client.user),
     )
 
 
