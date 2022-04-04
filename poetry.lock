@@ -267,7 +267,7 @@ python-versions = "~=3.7"
 
 [[package]]
 name = "celery"
-version = "5.2.3"
+version = "5.2.5"
 description = "Distributed Task Queue."
 category = "main"
 optional = false
@@ -445,6 +445,17 @@ description = "cryptography is a package which provides cryptographic recipes an
 category = "main"
 optional = false
 python-versions = ">=3.6"
+
+[package.dependencies]
+cffi = ">=1.12"
+
+[package.extras]
+docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
+docstest = ["pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
+pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
+sdist = ["setuptools_rust (>=0.11.4)"]
+ssh = ["bcrypt (>=3.1.5)"]
+test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
 
 [[package]]
 name = "cssselect2"
@@ -2758,7 +2769,7 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
+python-versions = "~3.9"
 content-hash = "53747db702797aa20bd234dd6e5138bc4492e8d47a7375fd6739b7da72149b39"
 
 [metadata.files]
@@ -2962,8 +2973,8 @@ cachetools = [
     {file = "cachetools-5.0.0.tar.gz", hash = "sha256:486471dfa8799eb7ec503a8059e263db000cdda20075ce5e48903087f79d5fd6"},
 ]
 celery = [
-    {file = "celery-5.2.3-py3-none-any.whl", hash = "sha256:8aacd02fc23a02760686d63dde1eb0daa9f594e735e73ea8fb15c2ff15cb608c"},
-    {file = "celery-5.2.3.tar.gz", hash = "sha256:e2cd41667ad97d4f6a2f4672d1c6a6ebada194c619253058b5f23704aaadaa82"},
+    {file = "celery-5.2.5-py3-none-any.whl", hash = "sha256:1f31c196e61dde344e322f9c0d33d1bb88c0dbaccbab5019fbb519a43d44706d"},
+    {file = "celery-5.2.5.tar.gz", hash = "sha256:19247ba189b72f82cf387fe5130f8d972f1c41255f87002f3198452849bf3a97"},
 ]
 certifi = [
     {file = "certifi-2021.10.8-py2.py3-none-any.whl", hash = "sha256:d62a0163eb4c2344ac042ab2bdf75399a71a2d8c7d47eac2e2ee91b9d6339569"},
