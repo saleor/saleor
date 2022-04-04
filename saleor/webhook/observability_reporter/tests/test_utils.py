@@ -6,12 +6,7 @@ import pytz
 from celery.exceptions import Retry
 from freezegun import freeze_time
 
-from ..utils import (
-    CustomJsonEncoder,
-    JsonTruncText,
-    hide_sensitive_headers,
-    task_next_retry_date,
-)
+from ..utils import CustomJsonEncoder, JsonTruncText, task_next_retry_date
 
 
 def test_custom_json_encoder_dumps_json_trunc_text():
@@ -58,27 +53,3 @@ def test_json_truncate_text_to_byte_limit(
 @freeze_time("1914-06-28 10:50")
 def test_task_next_retry_date(retry, next_retry_date):
     assert task_next_retry_date(retry) == next_retry_date
-
-
-@pytest.mark.parametrize(
-    "headers,sensitive,expected",
-    [
-        (
-            {"header1": "text", "header2": "text"},
-            ("AUTHORIZATION", "AUTHORIZATION_BEARER"),
-            {"header1": "text", "header2": "text"},
-        ),
-        (
-            {"header1": "text", "authorization": "secret"},
-            ("AUTHORIZATION", "AUTHORIZATION_BEARER"),
-            {"header1": "text", "authorization": "***"},
-        ),
-        (
-            {"HEADER1": "text", "authorization-bearer": "secret"},
-            ("AUTHORIZATION", "AUTHORIZATION_BEARER"),
-            {"HEADER1": "text", "authorization-bearer": "***"},
-        ),
-    ],
-)
-def test_hide_sensitive_headers(headers, sensitive, expected):
-    assert hide_sensitive_headers(headers, sensitive_headers=sensitive) == expected

@@ -1,19 +1,15 @@
 from datetime import datetime, timedelta
 from json.encoder import ESCAPE_ASCII, ESCAPE_DCT  # type: ignore
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
-from ...core.auth import DEFAULT_AUTH_HEADER, SALEOR_AUTH_HEADER
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..models import Webhook
 
 if TYPE_CHECKING:
     from celery.exceptions import Retry
-
-SENSITIVE_ENV_KEYS = (SALEOR_AUTH_HEADER, DEFAULT_AUTH_HEADER)
-SENSITIVE_HEADERS = tuple(x[5:] for x in SENSITIVE_ENV_KEYS if x.startswith("HTTP_"))
 
 
 class CustomJsonEncoder(DjangoJSONEncoder):
@@ -46,15 +42,6 @@ def webhooks_for_event_exists(event_type, webhooks=None) -> bool:
         "app__permissions__content_type"
     )
     return webhooks.exists()
-
-
-def hide_sensitive_headers(
-    headers: Dict[str, str], sensitive_headers: Tuple[str, ...] = SENSITIVE_HEADERS
-) -> Dict[str, str]:
-    return {
-        key: val if key.upper().replace("-", "_") not in sensitive_headers else "***"
-        for key, val in headers.items()
-    }
 
 
 def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:

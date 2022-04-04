@@ -10,7 +10,8 @@ from django.utils import timezone
 from graphql import get_operation_ast
 
 from .. import traced_payload_generator
-from .utils import CustomJsonEncoder, JsonTruncText, hide_sensitive_headers
+from .obfuscation import hide_sensitive_headers
+from .utils import CustomJsonEncoder, JsonTruncText
 
 if TYPE_CHECKING:
     from ...core.models import EventDeliveryAttempt
