@@ -36,6 +36,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
+from prices import Money
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..channel.models import Channel
@@ -61,8 +62,9 @@ from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from decimal import Decimal
+
     from django.db.models import OrderBy
-    from prices import Money
 
     from ..account.models import User
     from ..app.models import App
@@ -612,11 +614,16 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         channel: Channel,
         channel_listing: "ProductVariantChannelListing",
         discounts: Optional[Iterable[DiscountInfo]] = None,
+        price_override: Optional["Decimal"] = None,
     ) -> "Money":
-
+        price = (
+            channel_listing.price
+            if price_override is None
+            else Money(price_override, channel_listing.currency)
+        )
         return calculate_discounted_price(
             product=product,
-            price=channel_listing.price,
+            price=price,
             discounts=discounts,
             collections=collections,
             channel=channel,
