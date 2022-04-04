@@ -6802,6 +6802,98 @@ def test_update_product_clear_attribute_values(
     updated_webhook_mock.assert_called_once_with(product)
 
 
+def test_update_product_clean_boolean_attribute_value(
+    staff_api_client,
+    product,
+    product_type,
+    boolean_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.pk)
+
+    product_type.product_attributes.add(boolean_attribute)
+    associate_attribute_values_to_instance(
+        product, boolean_attribute, boolean_attribute.values.first()
+    )
+
+    product_attr = product.attributes.get(assignment__attribute_id=boolean_attribute.id)
+    assert product_attr.values.count() == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": boolean_attribute.name},
+        "values": [],
+    }
+    assert expected_att_data in attributes
+    assert product_attr.values.count() == 0
+
+
+def test_update_product_clean_file_attribute_value(
+    staff_api_client,
+    product,
+    product_type,
+    file_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+
+    product_type.product_attributes.add(file_attribute)
+    associate_attribute_values_to_instance(
+        product, file_attribute, file_attribute.values.first()
+    )
+
+    product_attr = product.attributes.get(assignment__attribute_id=file_attribute.id)
+    assert product_attr.values.count() == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [],
+    }
+    assert expected_att_data in attributes
+    assert product_attr.values.count() == 0
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
     staff_api_client,
