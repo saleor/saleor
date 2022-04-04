@@ -1,7 +1,8 @@
 import base64
+import json
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
 
 from django.core.cache import cache
 from django.db.models import QuerySet
@@ -51,6 +52,27 @@ def parse_list_shipping_methods_response(
     return shipping_methods
 
 
+def _compare_payloads(
+    payload: str, cached_payload: str, excluded_keys: Optional[Iterable[str]] = None
+) -> bool:
+    """Compare two string payloads.
+
+    If payloads are order payloads, compare them without provided excluded_keys.
+    """
+    if excluded_keys is None:
+        excluded_keys = []
+    if payload == cached_payload:
+        return True
+    try:
+        order_payload = json.loads(payload)["order"]
+        cached_order_payload = json.loads(cached_payload)["order"]
+    except:  # noqa
+        return False
+    return {k: v for k, v in order_payload.items() if k not in excluded_keys} == {
+        k: v for k, v in cached_order_payload.items() if k not in excluded_keys
+    }
+
+
 def get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet, event_type: str, payload: str, cache_key: str
 ) -> Dict[str, List[ExcludedShippingMethod]]:
@@ -62,7 +84,7 @@ def get_excluded_shipping_methods_or_fetch(
     cached_data = cache.get(cache_key)
     if cached_data:
         cached_payload, excluded_shipping_methods = cached_data
-        if payload == cached_payload:
+        if _compare_payloads(payload, cached_payload, excluded_keys=["weight", "meta"]):
             return parse_excluded_shipping_methods(excluded_shipping_methods)
 
     excluded_methods = []
