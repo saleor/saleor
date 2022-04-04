@@ -161,6 +161,20 @@ def test_fetch_taxes_data(
     )
 
 
+@mock.patch("saleor.plugins.webhook.plugin.cache")
+def test_fetch_taxes_data_no_tax_app(mocked_cache, webhook_plugin):
+    # given
+    plugin = webhook_plugin()
+    previous_value = sentinel.PREVIOUS_VALUE
+
+    # when
+    fetched = plugin.fetch_taxes_data(previous_value)
+
+    # then
+    assert fetched == previous_value
+    mocked_cache.get.assert_not_called()
+
+
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch("saleor.plugins.webhook.plugin.cache")
 def test_get_tax_rate_type_choices(
@@ -183,6 +197,20 @@ def test_get_tax_rate_type_choices(
         TaxType(code=tax_code["code"], description=tax_code["description"])
         for tax_code in tax_codes_response
     ]
+
+
+@mock.patch("saleor.plugins.webhook.plugin.cache")
+def test_get_tax_rate_type_choices_no_tax_app(mocked_cache, webhook_plugin):
+    # given
+    plugin = webhook_plugin()
+    previous_value = sentinel.PREVIOUS_VALUE
+
+    # when
+    tax_types = plugin.get_tax_rate_type_choices(previous_value)
+
+    # then
+    assert tax_types == previous_value
+    mocked_cache.get.assert_not_called()
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

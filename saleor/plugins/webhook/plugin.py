@@ -686,12 +686,18 @@ class WebhookPlugin(BasePlugin):
         return {}
 
     def get_tax_rate_type_choices(self, previous_value) -> List["TaxType"]:
+        if not get_current_tax_app():
+            return previous_value
+
         return [
             TaxType(code=tax_code, description=desc)
             for tax_code, desc in self.__get_cached_tax_codes_or_fetch().items()
         ]
 
     def fetch_taxes_data(self, previous_value) -> bool:
+        if not get_current_tax_app():
+            return previous_value
+
         self.__get_cached_tax_codes_or_fetch()
         return True
 
