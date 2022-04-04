@@ -1,8 +1,8 @@
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
-import requests
 from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
 from kombu.asynchronous.aws.sqs.connection import AsyncSQSConnection
@@ -27,6 +27,7 @@ def test_trigger_webhooks_with_aws_sqs(
     monkeypatch,
 ):
     mocked_client = MagicMock(spec=AsyncSQSConnection)
+    mocked_client.send_message.return_value = {"example": "response"}
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
@@ -77,6 +78,7 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     monkeypatch,
 ):
     mocked_client = MagicMock(spec=AsyncSQSConnection)
+    mocked_client.send_message.return_value = {"example": "response"}
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
@@ -131,6 +133,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     monkeypatch,
 ):
     mocked_publisher = MagicMock(spec=PublisherClient)
+    mocked_publisher.publish.return_value.result.return_value = "message_id"
     monkeypatch.setattr(
         "saleor.plugins.webhook.tasks.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
@@ -161,6 +164,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     monkeypatch,
 ):
     mocked_publisher = MagicMock(spec=PublisherClient)
+    mocked_publisher.publish.return_value.result.return_value = "message_id"
     monkeypatch.setattr(
         "saleor.plugins.webhook.tasks.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
@@ -187,8 +191,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     )
 
 
-@pytest.mark.vcr
-@patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
+@patch("saleor.plugins.webhook.tasks.requests.post")
 def test_trigger_webhooks_with_http(
     mock_request,
     webhook,
@@ -197,6 +200,13 @@ def test_trigger_webhooks_with_http(
     permission_manage_users,
     permission_manage_products,
 ):
+    mock_request.return_value = MagicMock(
+        text="{response: body}",
+        headers={"response": "header"},
+        elapsed=timedelta(seconds=2),
+        status_code=200,
+        ok=True,
+    )
     webhook.app.permissions.add(permission_manage_orders)
     webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
     webhook.save()
@@ -226,11 +236,17 @@ def test_trigger_webhooks_with_http(
     )
 
 
-@pytest.mark.vcr
-@patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
+@patch("saleor.plugins.webhook.tasks.requests.post")
 def test_trigger_webhooks_with_http_and_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
+    mock_request.return_value = MagicMock(
+        text="{response: body}",
+        headers={"response": "header"},
+        elapsed=timedelta(seconds=2),
+        status_code=200,
+        ok=True,
+    )
     webhook.app.permissions.add(permission_manage_orders)
     webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
     webhook.secret_key = "secret_key"

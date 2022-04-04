@@ -1569,6 +1569,7 @@ type EventDeliveryAttempt implements Node {
   duration: Float
   response: String
   responseHeaders: String
+  responseStatusCode: Int
   requestHeaders: String
 
   """Event delivery status."""
