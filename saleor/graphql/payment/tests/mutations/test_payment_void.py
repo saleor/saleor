@@ -1,6 +1,13 @@
-import graphene
+from decimal import Decimal
 
-from .....payment import ChargeStatus, TransactionKind
+import graphene
+from mock import patch
+
+from .....order import OrderEvents
+from .....payment import ChargeStatus, PaymentAction, TransactionKind
+from .....payment.interface import PaymentActionData
+from .....payment.models import Payment
+from ....core.enums import PaymentErrorCode
 from ....tests.utils import get_graphql_content
 
 VOID_QUERY = """
@@ -13,10 +20,144 @@ VOID_QUERY = """
             errors {
                 field
                 message
+                code
             }
         }
     }
 """
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_payment_void_with_payment_action_request(
+    mocked_payment_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    mocked_is_active.return_value = True
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {"paymentId": payment_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOID_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentVoid"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_VOID_REQUESTED
+    assert event.parameters["payment_id"] == payment.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_payment_void_with_payment_action_request_for_checkout(
+    mocked_payment_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    checkout,
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        checkout_id=checkout.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    mocked_is_active.return_value = True
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {
+        "paymentId": payment_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOID_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentVoid"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=checkout.channel.slug,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_payment_void_with_payment_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10.0"),
+    )
+    mocked_is_active.return_value = False
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {"paymentId": payment_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOID_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentVoid"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == (
+        "No app or plugin is configured to handle payment action requests."
+    )
+    assert data["errors"][0]["code"] == (
+        PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
 
 
 def test_payment_void_success(

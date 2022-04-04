@@ -1,9 +1,22 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytest
+from django.contrib.auth.models import AnonymousUser
+
+from ...order import OrderEvents
 from ...plugins.manager import get_plugins_manager
-from .. import ChargeStatus, CustomPaymentChoices, TransactionKind, gateway
-from ..interface import GatewayResponse
+from .. import (
+    ChargeStatus,
+    CustomPaymentChoices,
+    PaymentAction,
+    PaymentError,
+    TransactionKind,
+    gateway,
+)
+from ..gateway import request_capture_action, request_refund_action, request_void_action
+from ..interface import GatewayResponse, PaymentActionData
+from ..models import Payment
 from ..utils import create_payment_information
 
 RAW_RESPONSE = {"test": "abcdefgheijklmn"}
@@ -313,3 +326,476 @@ def test_list_gateways(fake_payment_interface):
     lst = gateway.list_gateways(fake_payment_interface)
     fake_payment_interface.list_payment_gateways.assert_called_once()
     assert lst == gateways
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_request_capture_action_missing_active_event(
+    mocked_is_active, order, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = False
+    action_value = Decimal("5.00")
+
+    # when & then
+    with pytest.raises(PaymentError):
+        request_capture_action(
+            payment=payment,
+            manager=get_plugins_manager(),
+            capture_value=action_value,
+            channel_slug=order.channel.slug,
+            user=staff_user,
+            app=None,
+        )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_capture_action_on_order(
+    mocked_payment_action_request, mocked_is_active, order, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+    action_value = Decimal("5.00")
+
+    # when
+    request_capture_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        capture_value=action_value,
+        channel_slug=order.channel.slug,
+        user=staff_user,
+        app=None,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.CAPTURE,
+            action_value=action_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
+    assert Decimal(event.parameters["amount"]) == action_value
+    assert event.parameters["payment_id"] == payment.reference
+    assert event.user == staff_user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_capture_action_by_app(
+    mocked_payment_action_request, mocked_is_active, order, app
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+    action_value = Decimal("5.00")
+
+    # when
+    request_capture_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        capture_value=action_value,
+        channel_slug=order.channel.slug,
+        user=AnonymousUser(),  # type: ignore
+        app=app,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.CAPTURE,
+            action_value=action_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
+    assert Decimal(event.parameters["amount"]) == action_value
+    assert event.parameters["payment_id"] == payment.reference
+    assert event.app == app
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_capture_action_on_checkout(
+    mocked_payment_action_request, mocked_is_active, checkout, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        checkout_id=checkout.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+    action_value = Decimal("5.00")
+
+    # when
+    request_capture_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        capture_value=action_value,
+        channel_slug=checkout.channel.slug,
+        user=staff_user,
+        app=None,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.CAPTURE,
+            action_value=action_value,
+        ),
+        channel_slug=checkout.channel.slug,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_request_refund_action_missing_active_event(
+    mocked_is_active, order, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        captured_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = False
+    action_value = Decimal("5.00")
+
+    # when & then
+    with pytest.raises(PaymentError):
+        request_refund_action(
+            payment=payment,
+            manager=get_plugins_manager(),
+            refund_value=action_value,
+            channel_slug=order.channel.slug,
+            user=staff_user,
+            app=None,
+        )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_refund_action_on_order(
+    mocked_payment_action_request, mocked_is_active, order, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        captured_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+    action_value = Decimal("5.00")
+
+    # when
+    request_refund_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        refund_value=action_value,
+        channel_slug=order.channel.slug,
+        user=staff_user,
+        app=None,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.REFUND,
+            action_value=action_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_REFUND_REQUESTED
+    assert Decimal(event.parameters["amount"]) == action_value
+    assert event.parameters["payment_id"] == payment.reference
+    assert event.user == staff_user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_refund_action_by_app(
+    mocked_payment_action_request, mocked_is_active, order, app
+):
+    # given
+    payment = Payment.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        captured_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+    action_value = Decimal("5.00")
+
+    # when
+    request_refund_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        refund_value=action_value,
+        channel_slug=order.channel.slug,
+        user=AnonymousUser(),  # type: ignore
+        app=app,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.REFUND,
+            action_value=action_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_REFUND_REQUESTED
+    assert Decimal(event.parameters["amount"]) == action_value
+    assert event.parameters["payment_id"] == payment.reference
+    assert event.app == app
+    assert not event.user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_refund_action_on_checkout(
+    mocked_payment_action_request, mocked_is_active, checkout, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        checkout_id=checkout.pk,
+        captured_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+    action_value = Decimal("5.00")
+
+    # when
+    request_refund_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        refund_value=action_value,
+        channel_slug=checkout.channel.slug,
+        user=staff_user,
+        app=None,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.REFUND,
+            action_value=action_value,
+        ),
+        channel_slug=checkout.channel.slug,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_request_void_action_missing_active_event(mocked_is_active, order, staff_user):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = False
+
+    # when & then
+    with pytest.raises(PaymentError):
+        request_void_action(
+            payment=payment,
+            manager=get_plugins_manager(),
+            channel_slug=order.channel.slug,
+            user=staff_user,
+            app=None,
+        )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_void_action_on_order(
+    mocked_payment_action_request, mocked_is_active, order, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+
+    # when
+    request_void_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        channel_slug=order.channel.slug,
+        user=staff_user,
+        app=None,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_VOID_REQUESTED
+    assert event.parameters["payment_id"] == payment.reference
+    assert event.user == staff_user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_void_action_by_app(
+    mocked_payment_action_request, mocked_is_active, order, app
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+
+    # when
+    request_void_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        channel_slug=order.channel.slug,
+        user=AnonymousUser(),  # type:ignore
+        app=app,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_VOID_REQUESTED
+    assert event.parameters["payment_id"] == payment.reference
+    assert event.app == app
+    assert not event.user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_request_void_action_on_checkout(
+    mocked_payment_action_request, mocked_is_active, checkout, staff_user
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        checkout_id=checkout.pk,
+        authorized_value=Decimal("10"),
+    )
+    mocked_is_active.return_value = True
+
+    # when
+    request_void_action(
+        payment=payment,
+        manager=get_plugins_manager(),
+        channel_slug=checkout.channel.slug,
+        user=staff_user,
+        app=None,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_requested=PaymentAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=checkout.channel.slug,
+    )

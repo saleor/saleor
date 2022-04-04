@@ -22,6 +22,11 @@ from ...payment.error_codes import (
     PaymentErrorCode,
     PaymentUpdateErrorCode,
 )
+from ...payment.gateway import (
+    request_capture_action,
+    request_refund_action,
+    request_void_action,
+)
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
@@ -333,12 +338,29 @@ class PaymentCapture(BaseMutation):
             else payment.checkout.channel.slug
         )
         try:
-            gateway.capture(
-                payment, info.context.plugins, amount=amount, channel_slug=channel_slug
-            )
+            # This is temporary solution to discover a payment that uses a new checkout
+            # flow.
+            if not payment.gateway:
+                code = PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                request_capture_action(
+                    payment,
+                    info.context.plugins,
+                    capture_value=amount,
+                    channel_slug=channel_slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            else:
+                code = PaymentErrorCode.PAYMENT_ERROR
+                gateway.capture(
+                    payment,
+                    info.context.plugins,
+                    amount=amount,
+                    channel_slug=channel_slug,
+                )
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=code)
         return PaymentCapture(payment=payment)
 
 
@@ -360,12 +382,29 @@ class PaymentRefund(PaymentCapture):
             else payment.checkout.channel.slug
         )
         try:
-            gateway.refund(
-                payment, info.context.plugins, amount=amount, channel_slug=channel_slug
-            )
+            # This is temporary solution to discover a payment that uses a new checkout
+            # flow.
+            if not payment.gateway:
+                code = PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                request_refund_action(
+                    payment,
+                    info.context.plugins,
+                    refund_value=amount,
+                    channel_slug=channel_slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            else:
+                code = PaymentErrorCode.PAYMENT_ERROR
+                gateway.refund(
+                    payment,
+                    info.context.plugins,
+                    amount=amount,
+                    channel_slug=channel_slug,
+                )
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=code)
         return PaymentRefund(payment=payment)
 
 
@@ -392,10 +431,23 @@ class PaymentVoid(BaseMutation):
             else payment.checkout.channel.slug
         )
         try:
-            gateway.void(payment, info.context.plugins, channel_slug=channel_slug)
+            # This is temporary solution to discover a payment that uses a new checkout
+            # flow.
+            if not payment.gateway:
+                code = PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                request_void_action(
+                    payment,
+                    info.context.plugins,
+                    channel_slug=channel_slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            else:
+                code = PaymentErrorCode.PAYMENT_ERROR
+                gateway.void(payment, info.context.plugins, channel_slug=channel_slug)
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=code)
         return PaymentVoid(payment=payment)
 
 

@@ -1,9 +1,25 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union
 
+from django.contrib.auth.models import AnonymousUser
+
+from ..account.models import User
+from ..app.models import App
+from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
-from . import GatewayError, PaymentError, TransactionKind
+from ..order.events import (
+    event_payment_capture_requested,
+    event_payment_refund_requested,
+    event_payment_void_requested,
+)
+from ..payment.interface import (
+    CustomerSource,
+    PaymentActionData,
+    PaymentGateway,
+    RefundData,
+)
+from . import GatewayError, PaymentAction, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
     clean_authorize,
@@ -18,9 +34,10 @@ from .utils import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..payment.interface import CustomerSource, PaymentGateway, RefundData
     from ..plugins.manager import PluginsManager
 
+UserType = Optional[User]
+AppType = Optional[App]
 
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
@@ -64,6 +81,103 @@ def with_locked_payment(fn: Callable) -> Callable:
             return fn(payment, *args, **kwargs)
 
     return wrapped
+
+
+def request_capture_action(
+    payment: Payment,
+    manager: "PluginsManager",
+    capture_value: Optional[Decimal],
+    channel_slug: str,
+    user: UserType,
+    app: AppType,
+):
+
+    if capture_value is None:
+        capture_value = payment.authorized_value
+
+    _request_payment_action(
+        payment=payment,
+        manager=manager,
+        action=PaymentAction.CAPTURE,
+        action_value=capture_value,
+        channel_slug=channel_slug,
+    )
+    if order_id := payment.order_id:
+        event_payment_capture_requested(
+            order_id=order_id,
+            reference=payment.reference,
+            amount=quantize_price(capture_value, payment.currency),
+            user=user,
+            app=app,
+        )
+
+
+def request_refund_action(
+    payment: Payment,
+    manager: "PluginsManager",
+    refund_value: Optional[Decimal],
+    channel_slug: str,
+    user: UserType,
+    app: AppType,
+):
+    if refund_value is None:
+        refund_value = payment.captured_value
+
+    _request_payment_action(
+        payment=payment,
+        manager=manager,
+        action=PaymentAction.REFUND,
+        action_value=refund_value,
+        channel_slug=channel_slug,
+    )
+    if order_id := payment.order_id:
+        event_payment_refund_requested(
+            order_id=order_id,
+            reference=payment.reference,
+            amount=quantize_price(refund_value, payment.currency),
+            user=user,
+            app=app,
+        )
+
+
+def request_void_action(
+    payment: Payment,
+    manager: "PluginsManager",
+    channel_slug: str,
+    user: UserType,
+    app: AppType,
+):
+    _request_payment_action(
+        payment=payment,
+        manager=manager,
+        action=PaymentAction.VOID,
+        action_value=None,
+        channel_slug=channel_slug,
+    )
+    if order_id := payment.order_id:
+        event_payment_void_requested(
+            order_id=order_id, reference=payment.reference, user=user, app=app
+        )
+
+
+def _request_payment_action(
+    payment: Payment,
+    manager: "PluginsManager",
+    action: str,
+    action_value: Optional[Decimal],
+    channel_slug: str,
+):
+    payment_data = PaymentActionData(
+        payment=payment, action_requested=action, action_value=action_value
+    )
+    event_active = manager.is_event_active_for_any_plugin(
+        "payment_action_request", channel_slug=channel_slug
+    )
+    if not event_active:
+        raise PaymentError(
+            "No app or plugin is configured to handle payment action requests."
+        )
+    manager.payment_action_request(payment_data, channel_slug=channel_slug)
 
 
 @raise_payment_error
