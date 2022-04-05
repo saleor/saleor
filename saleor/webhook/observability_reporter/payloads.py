@@ -10,7 +10,8 @@ from django.utils import timezone
 from graphql import get_operation_ast
 
 from .. import traced_payload_generator
-from .obfuscation import hide_sensitive_headers
+from .obfuscation import anonymize_gql_operation_response, hide_sensitive_headers
+from .sensitive_data import SENSITIVE_GQL_FIELDS
 from .utils import CustomJsonEncoder, JsonTruncText
 
 if TYPE_CHECKING:
@@ -135,6 +136,7 @@ def serialize_gql_operation_result(
     bytes_limit -= GQL_OPERATION_PLACEHOLDER_SIZE
     if bytes_limit < 0:
         raise ValueError()
+    anonymize_gql_operation_response(operation, SENSITIVE_GQL_FIELDS)
     name: Optional[JsonTruncText] = None
     operation_type: Optional[str] = None
     query: Optional[JsonTruncText] = None

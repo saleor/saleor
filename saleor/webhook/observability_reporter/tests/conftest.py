@@ -11,9 +11,7 @@ from ..buffer import ObservabilityBuffer
 
 TESTS_TIMEOUT = 0.1
 backend = get_default_backend()
-GqlOperationFactoryType = Callable[
-    [str, Optional[str], Optional[Dict], Optional[Dict]], GraphQLOperationResponse
-]
+GqlOperationFactoryType = Callable[[...], GraphQLOperationResponse]
 
 
 def fill_buffer(
