@@ -16,7 +16,7 @@ from prices import Money
 from ... import __version__
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...discount import DiscountValueType, OrderDiscountType
+from ...discount import DiscountType, DiscountValueType
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderOrigin
 from ...order.actions import fulfill_order_lines
@@ -89,14 +89,14 @@ def test_generate_order_payload(
     order.save(update_fields=["origin", "original"])
 
     discount_1 = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("20"),
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
     discount_2 = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("10"),
         amount_value=Decimal("16.5"),

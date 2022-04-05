@@ -20,7 +20,7 @@ from ...core.permissions import (
     has_one_of_permissions,
 )
 from ...core.tracing import traced_resolver
-from ...discount import OrderDiscountType
+from ...discount import DiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
@@ -817,7 +817,7 @@ class Order(ModelObjectType):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return Money(amount=discount.value, currency=discount.currency)
             return None
 
@@ -834,7 +834,7 @@ class Order(ModelObjectType):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return discount.name
             return None
 
@@ -851,7 +851,7 @@ class Order(ModelObjectType):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return discount.translated_name
             return None
 

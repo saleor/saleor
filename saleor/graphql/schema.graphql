@@ -5583,7 +5583,7 @@ type CheckoutDiscount implements Node & BaseObjectDiscount {
   id: ID!
 
   """Type of the discount: manual or voucher."""
-  type: OrderDiscountType!
+  type: DiscountType!
 
   """Discount name"""
   name: String
@@ -5608,7 +5608,7 @@ interface BaseObjectDiscount {
   id: ID!
 
   """Type of the discount: manual or voucher."""
-  type: OrderDiscountType!
+  type: DiscountType!
 
   """Discount name"""
   name: String
@@ -5630,7 +5630,7 @@ interface BaseObjectDiscount {
 }
 
 """An enumeration."""
-enum OrderDiscountType {
+enum DiscountType {
   VOUCHER
   MANUAL
 }
@@ -6487,7 +6487,7 @@ type OrderDiscount implements Node & BaseObjectDiscount {
   id: ID!
 
   """Type of the discount: manual or voucher."""
-  type: OrderDiscountType!
+  type: DiscountType!
 
   """Discount name"""
   name: String

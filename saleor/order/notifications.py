@@ -9,7 +9,7 @@ from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import prepare_url
-from ..discount import OrderDiscountType
+from ..discount import DiscountType
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
@@ -181,7 +181,7 @@ def get_discounts_payload(order):
             "reason": order_discount.reason,
         }
         all_discounts.append(dicount_obj)
-        if order_discount.type == OrderDiscountType.VOUCHER:
+        if order_discount.type == DiscountType.VOUCHER:
             voucher_discount = dicount_obj
         discount_amount += order_discount.amount_value
 

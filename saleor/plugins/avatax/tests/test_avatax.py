@@ -19,7 +19,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
-from ....discount import DiscountValueType, OrderDiscountType, VoucherType
+from ....discount import DiscountType, DiscountValueType, VoucherType
 from ....order import OrderStatus
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
@@ -2914,7 +2914,7 @@ def test_get_order_request_data_confirmed_order_with_voucher(
     line.save()
 
     order_with_lines.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
         name=voucher.code,
@@ -3007,7 +3007,7 @@ def test_get_order_request_data_draft_order_with_voucher(
     line.save()
 
     order_with_lines.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
         name=voucher.code,

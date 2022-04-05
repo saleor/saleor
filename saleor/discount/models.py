@@ -17,7 +17,7 @@ from ..core.models import ModelWithMetadata
 from ..core.permissions import DiscountPermissions
 from ..core.taxes import display_gross_prices
 from ..core.utils.translations import Translation, TranslationProxy
-from . import DiscountValueType, OrderDiscountType, VoucherType
+from . import DiscountType, DiscountValueType, VoucherType
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -354,8 +354,8 @@ class SaleTranslation(Translation):
 class BaseObjectDiscount(models.Model):
     type = models.CharField(
         max_length=10,
-        choices=OrderDiscountType.CHOICES,
-        default=OrderDiscountType.MANUAL,
+        choices=DiscountType.CHOICES,
+        default=DiscountType.MANUAL,
     )
     value_type = models.CharField(
         max_length=10,

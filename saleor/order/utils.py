@@ -12,7 +12,7 @@ from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
-from ..discount import DiscountValueType, OrderDiscountType
+from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import (
     get_products_voucher_discount,
@@ -95,7 +95,7 @@ def update_voucher_discount(func):
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
-    return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+    return order.discounts.filter(type=DiscountType.VOUCHER).first()
 
 
 def recalculate_order_discounts(
@@ -108,7 +108,7 @@ def recalculate_order_discounts(
     """
 
     changed_order_discounts = []
-    order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
+    order_discounts = order.discounts.filter(type=DiscountType.MANUAL)
     for order_discount in order_discounts:
         previous_order_discount = copy.deepcopy(order_discount)
         current_total = order.total.gross.amount
@@ -807,7 +807,7 @@ def get_total_order_discount(order: Order) -> Money:
 
 def get_order_discounts(order: Order) -> List[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
-    return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
+    return list(order.discounts.filter(type=DiscountType.MANUAL))
 
 
 def apply_discount_to_value(
