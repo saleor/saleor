@@ -30,7 +30,7 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..discount.models import Voucher
+    from ..discount.models import CheckoutDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -64,6 +64,7 @@ class CheckoutInfo:
     delivery_method_info: "DeliveryMethodBase"
     all_shipping_methods: List["ShippingMethodData"]
     valid_pick_up_points: List["Warehouse"]
+    discounts: Optional[List["CheckoutDiscount"]] = None
     voucher: Optional["Voucher"] = None
 
     @property
@@ -370,6 +371,7 @@ def fetch_checkout_info(
         checkout=checkout,
         user=checkout.user,
         channel=channel,
+        discounts=list(checkout.discounts.all()),
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,

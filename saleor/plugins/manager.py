@@ -208,6 +208,14 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
+        discount = None
+        if checkout_info.discounts:
+            # When we want to implement multiple discounts
+            # we should sum discount amounts here.
+            discount = checkout_info.discounts[0].amount
+        else:
+            discount = checkout_info.checkout.discount
+
         default_value = base_calculations.base_checkout_total(
             subtotal=self.calculate_checkout_subtotal(
                 checkout_info, lines, address, discounts
@@ -215,7 +223,7 @@ class PluginsManager(PaymentInterface):
             shipping_price=self.calculate_checkout_shipping(
                 checkout_info, lines, address, discounts
             ),
-            discount=checkout_info.checkout.discount,
+            discount=discount,
             currency=currency,
         )
 

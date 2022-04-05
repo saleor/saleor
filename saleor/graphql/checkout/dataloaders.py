@@ -12,7 +12,10 @@ from ...checkout.fetch import (
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
-from ..discount.dataloaders import VoucherByCodeLoader
+from ..discount.dataloaders import (
+    CheckoutDiscountsByCheckoutTokenLoader,
+    VoucherByCodeLoader,
+)
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -203,6 +206,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     if checkout.voucher_code
                 }
                 vouchers = VoucherByCodeLoader(self.context).load_many(voucher_codes)
+                checkout_discounts = CheckoutDiscountsByCheckoutTokenLoader(
+                    self.context
+                ).load_many(keys)
 
                 def with_checkout_info(results):
                     (
@@ -212,6 +218,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         listings_for_channels,
                         collection_points,
                         vouchers,
+                        checkout_discounts_for_checkouts,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -226,8 +233,18 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     voucher_map = {voucher.code: voucher for voucher in vouchers}
 
                     checkout_info_map = {}
-                    for key, checkout, channel, checkout_lines in zip(
-                        keys, checkouts, channels, checkout_line_infos
+                    for (
+                        key,
+                        checkout,
+                        channel,
+                        checkout_lines,
+                        checkout_discounts,
+                    ) in zip(
+                        keys,
+                        checkouts,
+                        channels,
+                        checkout_line_infos,
+                        checkout_discounts_for_checkouts,
                     ):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
@@ -240,6 +257,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             None, shipping_address
                         )
                         voucher = voucher_map.get(checkout.voucher_code)
+
                         checkout_info = CheckoutInfo(
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
@@ -254,6 +272,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             valid_pick_up_points=[],
                             all_shipping_methods=[],
                             voucher=voucher,
+                            discounts=checkout_discounts,
                         )
 
                         manager = self.context.plugins
@@ -286,6 +305,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         shipping_method_channel_listings,
                         collection_points,
                         vouchers,
+                        checkout_discounts,
                     ]
                 ).then(with_checkout_info)
 
