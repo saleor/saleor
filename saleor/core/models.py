@@ -154,6 +154,7 @@ class EventDeliveryAttempt(models.Model):
     duration = models.FloatField(null=True)
     response = models.TextField(null=True)
     response_headers = models.TextField(null=True)
+    response_status_code = models.PositiveSmallIntegerField(null=True)
     request_headers = models.TextField(null=True)
     status = models.CharField(
         max_length=255,

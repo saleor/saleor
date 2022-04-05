@@ -15,6 +15,7 @@ from ...discount.models import (
     VoucherType,
 )
 from ...discount.utils import validate_voucher_in_order
+from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.tests.utils import get_graphql_content
 from ...order.interface import OrderTaxedPricesData
 from ...payment import ChargeStatus
@@ -1069,7 +1070,7 @@ def test_send_fulfillment_order_lines_mails_by_user(
         order=order, fulfillment=fulfillment, user=staff_user, app=None, manager=manager
     )
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
-    expected_payload["requester_user_id"] = staff_user.id
+    expected_payload["requester_user_id"] = to_global_id_or_none(staff_user)
     expected_payload["requester_app_id"] = None
     mocked_notify.assert_called_once_with(
         "order_fulfillment_confirmation",
@@ -1114,7 +1115,7 @@ def test_send_fulfillment_order_lines_mails_by_app(
     )
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
     expected_payload["requester_user_id"] = None
-    expected_payload["requester_app_id"] = app.id
+    expected_payload["requester_app_id"] = to_global_id_or_none(app)
     mocked_notify.assert_called_once_with(
         "order_fulfillment_confirmation",
         payload=expected_payload,

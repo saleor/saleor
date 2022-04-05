@@ -13,6 +13,7 @@ from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductVariant, ProductVariantChannelListing
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
+from ...mutations.utils import CheckoutLineData
 
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
@@ -579,7 +580,7 @@ def test_add_billing_address_to_checkout(
 MUTATION_CHECKOUT_LINES_UPDATE = (
     FRAGMENT_CHECKOUT_LINE
     + """
-        mutation updateCheckoutLine($token: UUID, $lines: [CheckoutLineInput!]!){
+        mutation updateCheckoutLine($token: UUID, $lines: [CheckoutLineUpdateInput!]!){
           checkoutLinesUpdate(token: $token, lines: $lines) {
             checkout {
               id
@@ -700,7 +701,15 @@ def test_update_checkout_lines_with_reservations(
     add_variants_to_checkout(
         checkout,
         variants,
-        [2] * 10,
+        [
+            CheckoutLineData(
+                quantity=2,
+                quantity_to_update=True,
+                custom_price=None,
+                custom_price_to_update=False,
+            )
+        ]
+        * 10,
         channel_USD.slug,
         replace_reservations=True,
         reservation_length=5,

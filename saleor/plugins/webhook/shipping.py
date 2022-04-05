@@ -1,4 +1,5 @@
 import base64
+import json
 import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
@@ -51,6 +52,22 @@ def parse_list_shipping_methods_response(
     return shipping_methods
 
 
+def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
+    """Compare two string of order payloads.
+
+    Compare them while ignoring excluded_keys.
+    """
+    EXCLUDED_KEYS = ["weight", "meta"]
+    try:
+        order_payload = json.loads(payload)["order"]
+        cached_order_payload = json.loads(cached_payload)["order"]
+    except:  # noqa
+        return False
+    return {k: v for k, v in order_payload.items() if k not in EXCLUDED_KEYS} == {
+        k: v for k, v in cached_order_payload.items() if k not in EXCLUDED_KEYS
+    }
+
+
 def get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet, event_type: str, payload: str, cache_key: str
 ) -> Dict[str, List[ExcludedShippingMethod]]:
@@ -62,7 +79,9 @@ def get_excluded_shipping_methods_or_fetch(
     cached_data = cache.get(cache_key)
     if cached_data:
         cached_payload, excluded_shipping_methods = cached_data
-        if payload == cached_payload:
+        if (payload == cached_payload) or _compare_order_payloads(
+            payload, cached_payload
+        ):
             return parse_excluded_shipping_methods(excluded_shipping_methods)
 
     excluded_methods = []

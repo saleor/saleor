@@ -771,6 +771,23 @@ def test_generate_checkout_lines_payload(checkout_with_single_item):
     assert line["variant_id"] == variant.get_global_id()
 
 
+def test_generate_checkout_lines_payload_custom_price(checkout_with_single_item):
+    line = checkout_with_single_item.lines.first()
+    price_override = Decimal("11.11")
+    line.price_override = price_override
+    line.save(update_fields=["price_override"])
+
+    payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
+    assert payload.get("lines")
+
+    variant = line.variant
+
+    line_data = payload["lines"][0]
+    assert line_data["sku"] == variant.sku
+    assert line_data["variant_id"] == variant.get_global_id()
+    assert line_data["base_price"] == str(price_override)
+
+
 def test_generate_product_translation_payload(product_translation_fr):
     payload = generate_translation_payload(product_translation_fr)
     data = json.loads(payload)
