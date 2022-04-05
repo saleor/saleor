@@ -14,7 +14,7 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 @dataclass
 class PaymentActionData:
-    action_requested: str
+    action_type: str
     payment: Payment
     action_value: Optional[Decimal] = None
 

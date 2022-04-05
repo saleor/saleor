@@ -137,7 +137,6 @@ def create_event_delivery_list_for_webhooks(
     event_payload: "EventPayload",
     event_type: str,
 ) -> List[EventDelivery]:
-
     event_deliveries = EventDelivery.objects.bulk_create(
         [
             EventDelivery(

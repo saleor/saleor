@@ -93,7 +93,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -101,7 +103,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_CONFIRMED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -109,7 +113,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_FULLY_PAID
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -117,7 +123,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def sale_created(
         self, sale: "Sale", current_catalogue: "NodeCatalogueInfo", previous_value: Any
@@ -132,7 +140,9 @@ class WebhookPlugin(BasePlugin):
                 current_catalogue=current_catalogue,
                 requestor=self.requestor,
             )
-            trigger_webhooks_async(sale_data, event_type, webhooks)
+            trigger_webhooks_async(
+                sale_data, event_type, webhooks, sale, self.requestor
+            )
 
     def sale_updated(
         self,
@@ -148,7 +158,9 @@ class WebhookPlugin(BasePlugin):
             sale_data = generate_sale_payload(
                 sale, previous_catalogue, current_catalogue, self.requestor
             )
-            trigger_webhooks_async(sale_data, event_type, webhooks)
+            trigger_webhooks_async(
+                sale_data, event_type, webhooks, sale, self.requestor
+            )
 
     def sale_deleted(
         self, sale: "Sale", previous_catalogue: "NodeCatalogueInfo", previous_value: Any
@@ -160,7 +172,9 @@ class WebhookPlugin(BasePlugin):
             sale_data = generate_sale_payload(
                 sale, previous_catalogue=previous_catalogue, requestor=self.requestor
             )
-            trigger_webhooks_async(sale_data, event_type, webhooks)
+            trigger_webhooks_async(
+                sale_data, event_type, webhooks, sale, self.requestor
+            )
 
     def invoice_request(
         self,
@@ -174,7 +188,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.INVOICE_REQUESTED
         if webhooks := _get_webhooks_for_event(event_type):
             invoice_data = generate_invoice_payload(invoice, self.requestor)
-            trigger_webhooks_async(invoice_data, event_type, webhooks)
+            trigger_webhooks_async(
+                invoice_data, event_type, webhooks, invoice, self.requestor
+            )
 
     def invoice_delete(self, invoice: "Invoice", previous_value: Any):
         if not self.active:
@@ -182,7 +198,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.INVOICE_DELETED
         if webhooks := _get_webhooks_for_event(event_type):
             invoice_data = generate_invoice_payload(invoice, self.requestor)
-            trigger_webhooks_async(invoice_data, event_type, webhooks)
+            trigger_webhooks_async(
+                invoice_data, event_type, webhooks, invoice, self.requestor
+            )
 
     def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any) -> Any:
         if not self.active:
@@ -190,7 +208,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.INVOICE_SENT
         if webhooks := _get_webhooks_for_event(event_type):
             invoice_data = generate_invoice_payload(invoice, self.requestor)
-            trigger_webhooks_async(invoice_data, event_type, webhooks)
+            trigger_webhooks_async(
+                invoice_data, event_type, webhooks, invoice, self.requestor
+            )
 
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -198,7 +218,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_CANCELLED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -206,7 +228,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.ORDER_FULFILLED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -214,7 +238,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.DRAFT_ORDER_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def draft_order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -222,7 +248,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.DRAFT_ORDER_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def draft_order_deleted(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -230,7 +258,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
         if webhooks := _get_webhooks_for_event(event_type):
             order_data = generate_order_payload(order, self.requestor)
-            trigger_webhooks_async(order_data, event_type, webhooks)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
 
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
@@ -238,7 +268,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
-            trigger_webhooks_async(fulfillment_data, event_type, webhooks)
+            trigger_webhooks_async(
+                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+            )
 
     def fulfillment_canceled(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
@@ -246,7 +278,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.FULFILLMENT_CANCELED
         if webhooks := _get_webhooks_for_event(event_type):
             fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
-            trigger_webhooks_async(fulfillment_data, event_type, webhooks)
+            trigger_webhooks_async(
+                fulfillment_data, event_type, webhooks, fulfillment, self.requestor
+            )
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
@@ -254,7 +288,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.CUSTOMER_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             customer_data = generate_customer_payload(customer, self.requestor)
-            trigger_webhooks_async(customer_data, event_type, webhooks)
+            trigger_webhooks_async(
+                customer_data, event_type, webhooks, customer, self.requestor
+            )
 
     def customer_updated(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
@@ -262,7 +298,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.CUSTOMER_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             customer_data = generate_customer_payload(customer, self.requestor)
-            trigger_webhooks_async(customer_data, event_type, webhooks)
+            trigger_webhooks_async(
+                customer_data, event_type, webhooks, customer, self.requestor
+            )
 
     def collection_created(self, collection: "Collection", previous_value: Any) -> Any:
         if not self.active:
@@ -270,7 +308,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.COLLECTION_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             collection_data = generate_collection_payload(collection, self.requestor)
-            trigger_webhooks_async(collection_data, event_type, webhooks)
+            trigger_webhooks_async(
+                collection_data, event_type, webhooks, collection, self.requestor
+            )
 
     def collection_updated(self, collection: "Collection", previous_value: Any) -> Any:
         if not self.active:
@@ -278,7 +318,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.COLLECTION_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             collection_data = generate_collection_payload(collection, self.requestor)
-            trigger_webhooks_async(collection_data, event_type, webhooks)
+            trigger_webhooks_async(
+                collection_data, event_type, webhooks, collection, self.requestor
+            )
 
     def collection_deleted(self, collection: "Collection", previous_value: Any) -> Any:
         if not self.active:
@@ -286,7 +328,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.COLLECTION_DELETED
         if webhooks := _get_webhooks_for_event(event_type):
             collection_data = generate_collection_payload(collection, self.requestor)
-            trigger_webhooks_async(collection_data, event_type, webhooks)
+            trigger_webhooks_async(
+                collection_data, event_type, webhooks, collection, self.requestor
+            )
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
@@ -294,7 +338,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PRODUCT_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             product_data = generate_product_payload(product, self.requestor)
-            trigger_webhooks_async(product_data, event_type, webhooks)
+            trigger_webhooks_async(
+                product_data, event_type, webhooks, product, self.requestor
+            )
 
     def product_updated(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
@@ -302,7 +348,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PRODUCT_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             product_data = generate_product_payload(product, self.requestor)
-            trigger_webhooks_async(product_data, event_type, webhooks)
+            trigger_webhooks_async(
+                product_data, event_type, webhooks, product, self.requestor
+            )
 
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
@@ -318,6 +366,8 @@ class WebhookPlugin(BasePlugin):
                 product_data,
                 event_type,
                 webhooks,
+                product,
+                self.requestor,
             )
 
     def product_variant_created(
@@ -334,6 +384,8 @@ class WebhookPlugin(BasePlugin):
                 product_variant_data,
                 event_type,
                 webhooks,
+                product_variant,
+                self.requestor,
             )
 
     def product_variant_updated(
@@ -350,6 +402,8 @@ class WebhookPlugin(BasePlugin):
                 product_variant_data,
                 event_type,
                 webhooks,
+                product_variant,
+                self.requestor,
             )
 
     def product_variant_deleted(
@@ -366,6 +420,8 @@ class WebhookPlugin(BasePlugin):
                 product_variant_data,
                 event_type,
                 webhooks,
+                product_variant,
+                self.requestor,
             )
 
     def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
@@ -374,7 +430,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         if webhooks := _get_webhooks_for_event(event_type):
             product_variant_data = generate_product_variant_with_stock_payload([stock])
-            trigger_webhooks_async(product_variant_data, event_type, webhooks)
+            trigger_webhooks_async(
+                product_variant_data, event_type, webhooks, stock, self.requestor
+            )
 
     def product_variant_back_in_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
@@ -384,7 +442,9 @@ class WebhookPlugin(BasePlugin):
             product_variant_data = generate_product_variant_with_stock_payload(
                 [stock], self.requestor
             )
-            trigger_webhooks_async(product_variant_data, event_type, webhooks)
+            trigger_webhooks_async(
+                product_variant_data, event_type, webhooks, stock, self.requestor
+            )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
@@ -392,7 +452,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.CHECKOUT_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             checkout_data = generate_checkout_payload(checkout, self.requestor)
-            trigger_webhooks_async(checkout_data, event_type, webhooks)
+            trigger_webhooks_async(
+                checkout_data, event_type, webhooks, checkout, self.requestor
+            )
 
     def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
@@ -400,7 +462,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             checkout_data = generate_checkout_payload(checkout, self.requestor)
-            trigger_webhooks_async(checkout_data, event_type, webhooks)
+            trigger_webhooks_async(
+                checkout_data, event_type, webhooks, checkout, self.requestor
+            )
 
     def notify(
         self, event: Union[NotifyEventType, str], payload: dict, previous_value
@@ -428,7 +492,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PAGE_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             page_data = generate_page_payload(page, self.requestor)
-            trigger_webhooks_async(page_data, event_type, webhooks)
+            trigger_webhooks_async(
+                page_data, event_type, webhooks, page, self.requestor
+            )
 
     def page_updated(self, page: "Page", previous_value: Any) -> Any:
         if not self.active:
@@ -436,7 +502,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PAGE_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             page_data = generate_page_payload(page, self.requestor)
-            trigger_webhooks_async(page_data, event_type, webhooks)
+            trigger_webhooks_async(
+                page_data, event_type, webhooks, page, self.requestor
+            )
 
     def page_deleted(self, page: "Page", previous_value: Any) -> Any:
         if not self.active:
@@ -444,7 +512,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.PAGE_DELETED
         if webhooks := _get_webhooks_for_event(event_type):
             page_data = generate_page_payload(page, self.requestor)
-            trigger_webhooks_async(page_data, event_type, webhooks)
+            trigger_webhooks_async(
+                page_data, event_type, webhooks, page, self.requestor
+            )
 
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:
@@ -452,7 +522,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.TRANSLATION_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             translation_data = generate_translation_payload(translation, self.requestor)
-            trigger_webhooks_async(translation_data, event_type, webhooks)
+            trigger_webhooks_async(
+                translation_data, event_type, webhooks, translation, self.requestor
+            )
 
     def translation_updated(self, translation: "Translation", previous_value: Any):
         if not self.active:
@@ -460,7 +532,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             translation_data = generate_translation_payload(translation, self.requestor)
-            trigger_webhooks_async(translation_data, event_type, webhooks)
+            trigger_webhooks_async(
+                translation_data, event_type, webhooks, translation, self.requestor
+            )
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
         if not self.active:

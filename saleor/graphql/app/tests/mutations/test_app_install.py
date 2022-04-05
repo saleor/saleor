@@ -5,7 +5,7 @@ import graphene
 from .....app.models import AppInstallation
 from .....core import JobStatus
 from ....core.enums import AppErrorCode, PermissionEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 INSTALL_APP_MUTATION = """
     mutation AppInstall(
@@ -62,13 +62,10 @@ def test_install_app_mutation(
     mocked_task.assert_called_with(app_installation.pk, True)
 
 
-def test_install_app_mutation_by_app(
+def test_app_is_not_allowed_to_install_app(
     permission_manage_apps, permission_manage_orders, app_api_client, monkeypatch
 ):
-    mocked_task = Mock()
-    monkeypatch.setattr(
-        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
-    )
+    # given
     query = INSTALL_APP_MUTATION
     app_api_client.app.permissions.set(
         [permission_manage_apps, permission_manage_orders]
@@ -78,18 +75,15 @@ def test_install_app_mutation_by_app(
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
+
+    # when
     response = app_api_client.post_graphql(
         query,
         variables=variables,
     )
-    content = get_graphql_content(response)
-    app_installation = AppInstallation.objects.get()
-    app_installation_data = content["data"]["appInstall"]["appInstallation"]
-    _, app_id = graphene.Node.from_global_id(app_installation_data["id"])
-    assert int(app_id) == app_installation.id
-    assert app_installation_data["status"] == JobStatus.PENDING.upper()
-    assert app_installation_data["manifestUrl"] == app_installation.manifest_url
-    mocked_task.assert_called_with(app_installation.pk, True)
+
+    # then
+    assert_no_permission(response)
 
 
 def test_app_install_mutation_out_of_scope_permissions(
@@ -106,33 +100,6 @@ def test_app_install_mutation_out_of_scope_permissions(
         query,
         variables=variables,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["appInstall"]
-
-    errors = data["errors"]
-    assert not data["appInstallation"]
-    assert len(errors) == 1
-    error = errors[0]
-    assert error["field"] == "permissions"
-    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_ORDERS.name]
-
-
-def test_install_app_mutation_by_app_out_of_scope_permissions(
-    permission_manage_apps, app_api_client
-):
-    query = INSTALL_APP_MUTATION
-    app_api_client.app.permissions.set([permission_manage_apps])
-    variables = {
-        "app_name": "New external integration",
-        "manifest_url": "http://localhost:3000/manifest",
-        "permissions": [PermissionEnum.MANAGE_ORDERS.name],
-    }
-    response = app_api_client.post_graphql(
-        query,
-        variables=variables,
-    )
-
     content = get_graphql_content(response)
     data = content["data"]["appInstall"]
 

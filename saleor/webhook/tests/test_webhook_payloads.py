@@ -73,6 +73,7 @@ def test_generate_order_payload(
     payment_txn_captured,
     customer_user,
 ):
+    # given
     fulfillment_lines = '"fulfillment_lines"'
     mocked_fulfillment_lines.return_value = fulfillment_lines
     order_lines = '"order_lines"'
@@ -115,8 +116,10 @@ def test_generate_order_payload(
 
     fulfillment = order.fulfillments.first()
 
+    # when
     payload = json.loads(generate_order_payload(order, customer_user))[0]
 
+    # then
     currency = order.currency
     assert payload == {
         "id": graphene.Node.to_global_id("Order", order.id),
@@ -129,6 +132,7 @@ def test_generate_order_payload(
         "shipping_method_name": order.shipping_method_name,
         "collection_point_name": None,
         "weight": f"{order.weight.value}:{order.weight.unit}",
+        "language_code": order.language_code,
         "metadata": order.metadata,
         "private_metadata": order.private_metadata,
         "channel": {
@@ -265,6 +269,41 @@ def test_generate_order_payload(
     )
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
+
+
+@freeze_time()
+@mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
+@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
+def test_generate_order_payload_no_user_email_but_user_set(
+    mocked_fulfillment_lines,
+    mocked_order_lines,
+    fulfilled_order,
+    customer_user,
+):
+    """Ensure that the assigned user's email is returned in `user_email` payload field
+    when the user_email order value is empty."""
+    # given
+    fulfillment_lines = '"fulfillment_lines"'
+    mocked_fulfillment_lines.return_value = fulfillment_lines
+    order_lines = '"order_lines"'
+    mocked_order_lines.return_value = order_lines
+
+    order = fulfilled_order
+
+    order.user_email = ""
+    order.save(update_fields=["user_email"])
+
+    line_without_sku = order.lines.last()
+    line_without_sku.product_sku = None
+    line_without_sku.save()
+
+    assert order.fulfillments.count() == 1
+
+    # when
+    payload = json.loads(generate_order_payload(order, customer_user))[0]
+
+    # then
+    assert payload["user_email"] == order.user.email
 
 
 def test_generate_fulfillment_lines_payload(order_with_lines):
@@ -676,6 +715,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "type": "Order",
             "token": str(invoice.order.id),
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
+            "language_code": "en",
             "private_metadata": {},
             "metadata": {},
             "created": ANY,
@@ -932,6 +972,7 @@ def test_generate_customer_payload(customer_user, address_other_country, address
                 "phone": customer.default_shipping_address.phone,
             }
         ],
+        "language_code": customer.language_code,
         "private_metadata": customer.private_metadata,
         "metadata": customer.metadata,
         "email": customer.email,
@@ -1077,6 +1118,7 @@ def test_generate_checkout_payload(
             quantize_price(checkout.discount_amount, checkout.currency)
         ),
         "discount_name": checkout.discount_name,
+        "language_code": checkout.language_code,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
         "channel": {
@@ -1238,7 +1280,7 @@ def test_generate_meta(app, rf):
 
 
 @pytest.mark.parametrize(
-    "action_requested, action_value",
+    "action_type, action_value",
     [
         (PaymentAction.CAPTURE, Decimal("5.000")),
         (PaymentAction.REFUND, Decimal("9.000")),
@@ -1247,7 +1289,7 @@ def test_generate_meta(app, rf):
 )
 @freeze_time("1914-06-28 10:50")
 def test_generate_payment_action_request_payload_for_order(
-    action_requested, action_value, order, app, rf
+    action_type, action_value, order, app, rf
 ):
     # given
     request = rf.request()
@@ -1270,7 +1312,7 @@ def test_generate_payment_action_request_payload_for_order(
         generate_payment_action_request_payload(
             payment_data=PaymentActionData(
                 payment=payment,
-                action_requested=action_requested,
+                action_type=action_type,
                 action_value=action_value,
             ),
             requestor=requestor,
@@ -1282,7 +1324,7 @@ def test_generate_payment_action_request_payload_for_order(
     action_value = str(quantize_price(action_value, currency)) if action_value else None
     assert payload == {
         "action": {
-            "type": action_requested,
+            "type": action_type,
             "value": action_value,
             "currency": currency,
         },
@@ -1313,7 +1355,7 @@ def test_generate_payment_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_requested, action_value",
+    "action_type, action_value",
     [
         (PaymentAction.CAPTURE, Decimal("5.000")),
         (PaymentAction.REFUND, Decimal("9.000")),
@@ -1322,7 +1364,7 @@ def test_generate_payment_action_request_payload_for_order(
 )
 @freeze_time("1914-06-28 10:50")
 def test_generate_payment_action_request_payload_for_checkout(
-    action_requested, action_value, checkout, app, rf
+    action_type, action_value, checkout, app, rf
 ):
     # given
     request = rf.request()
@@ -1345,7 +1387,7 @@ def test_generate_payment_action_request_payload_for_checkout(
         generate_payment_action_request_payload(
             payment_data=PaymentActionData(
                 payment=payment,
-                action_requested=action_requested,
+                action_type=action_type,
                 action_value=action_value,
             ),
             requestor=requestor,
@@ -1357,7 +1399,7 @@ def test_generate_payment_action_request_payload_for_checkout(
     action_value = str(quantize_price(action_value, currency)) if action_value else None
     assert payload == {
         "action": {
-            "type": action_requested,
+            "type": action_type,
             "value": action_value,
             "currency": currency,
         },
