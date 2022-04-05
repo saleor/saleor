@@ -1102,7 +1102,7 @@ def test_payment_action_request(
     action_value = Decimal("5.00")
     payment_action_data = PaymentActionData(
         payment=payment,
-        action_requested=PaymentAction.CAPTURE,
+        action_type=PaymentAction.CAPTURE,
         action_value=action_value,
     )
 

@@ -1280,7 +1280,7 @@ def test_generate_meta(app, rf):
 
 
 @pytest.mark.parametrize(
-    "action_requested, action_value",
+    "action_type, action_value",
     [
         (PaymentAction.CAPTURE, Decimal("5.000")),
         (PaymentAction.REFUND, Decimal("9.000")),
@@ -1289,7 +1289,7 @@ def test_generate_meta(app, rf):
 )
 @freeze_time("1914-06-28 10:50")
 def test_generate_payment_action_request_payload_for_order(
-    action_requested, action_value, order, app, rf
+    action_type, action_value, order, app, rf
 ):
     # given
     request = rf.request()
@@ -1312,7 +1312,7 @@ def test_generate_payment_action_request_payload_for_order(
         generate_payment_action_request_payload(
             payment_data=PaymentActionData(
                 payment=payment,
-                action_requested=action_requested,
+                action_type=action_type,
                 action_value=action_value,
             ),
             requestor=requestor,
@@ -1324,7 +1324,7 @@ def test_generate_payment_action_request_payload_for_order(
     action_value = str(quantize_price(action_value, currency)) if action_value else None
     assert payload == {
         "action": {
-            "type": action_requested,
+            "type": action_type,
             "value": action_value,
             "currency": currency,
         },
@@ -1355,7 +1355,7 @@ def test_generate_payment_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_requested, action_value",
+    "action_type, action_value",
     [
         (PaymentAction.CAPTURE, Decimal("5.000")),
         (PaymentAction.REFUND, Decimal("9.000")),
@@ -1364,7 +1364,7 @@ def test_generate_payment_action_request_payload_for_order(
 )
 @freeze_time("1914-06-28 10:50")
 def test_generate_payment_action_request_payload_for_checkout(
-    action_requested, action_value, checkout, app, rf
+    action_type, action_value, checkout, app, rf
 ):
     # given
     request = rf.request()
@@ -1387,7 +1387,7 @@ def test_generate_payment_action_request_payload_for_checkout(
         generate_payment_action_request_payload(
             payment_data=PaymentActionData(
                 payment=payment,
-                action_requested=action_requested,
+                action_type=action_type,
                 action_value=action_value,
             ),
             requestor=requestor,
@@ -1399,7 +1399,7 @@ def test_generate_payment_action_request_payload_for_checkout(
     action_value = str(quantize_price(action_value, currency)) if action_value else None
     assert payload == {
         "action": {
-            "type": action_requested,
+            "type": action_type,
             "value": action_value,
             "currency": currency,
         },

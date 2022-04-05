@@ -1100,7 +1100,7 @@ def generate_payment_action_request_payload(
 
     payload = {
         "action": {
-            "type": payment_data.action_requested,
+            "type": payment_data.action_type,
             "value": action_value,
             "currency": payment.currency,
         },
