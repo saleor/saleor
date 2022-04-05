@@ -65,7 +65,7 @@ def test_payment_void_with_payment_action_request(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.VOID,
+            action_type=PaymentAction.VOID,
             action_value=None,
         ),
         channel_slug=order.channel.slug,
@@ -116,7 +116,7 @@ def test_payment_void_with_payment_action_request_for_checkout(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.VOID,
+            action_type=PaymentAction.VOID,
             action_value=None,
         ),
         channel_slug=checkout.channel.slug,

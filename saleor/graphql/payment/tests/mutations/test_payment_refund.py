@@ -65,7 +65,7 @@ def test_payment_refund_with_payment_action_request(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.REFUND,
+            action_type=PaymentAction.REFUND,
             action_value=refund_value,
         ),
         channel_slug=order.channel.slug,
@@ -115,7 +115,7 @@ def test_payment_refund_with_payment_action_request_for_checkout(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.REFUND,
+            action_type=PaymentAction.REFUND,
             action_value=refund_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -160,7 +160,7 @@ def test_payment_refund_with_payment_action_request_without_amount(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.REFUND,
+            action_type=PaymentAction.REFUND,
             action_value=captured_value,
         ),
         channel_slug=order.channel.slug,

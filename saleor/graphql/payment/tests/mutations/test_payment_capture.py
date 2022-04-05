@@ -69,7 +69,7 @@ def test_payment_capture_with_payment_action_request(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.CAPTURE,
+            action_type=PaymentAction.CAPTURE,
             action_value=capture_value,
         ),
         channel_slug=order.channel.slug,
@@ -119,7 +119,7 @@ def test_payment_capture_with_payment_action_request_for_checkout(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.CAPTURE,
+            action_type=PaymentAction.CAPTURE,
             action_value=capture_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -164,7 +164,7 @@ def test_payment_capture_with_payment_action_request_without_amount(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.CAPTURE,
+            action_type=PaymentAction.CAPTURE,
             action_value=authorization_value,
         ),
         channel_slug=order.channel.slug,

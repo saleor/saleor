@@ -98,7 +98,7 @@ def request_capture_action(
     _request_payment_action(
         payment=payment,
         manager=manager,
-        action=PaymentAction.CAPTURE,
+        action_type=PaymentAction.CAPTURE,
         action_value=capture_value,
         channel_slug=channel_slug,
     )
@@ -126,7 +126,7 @@ def request_refund_action(
     _request_payment_action(
         payment=payment,
         manager=manager,
-        action=PaymentAction.REFUND,
+        action_type=PaymentAction.REFUND,
         action_value=refund_value,
         channel_slug=channel_slug,
     )
@@ -150,7 +150,7 @@ def request_void_action(
     _request_payment_action(
         payment=payment,
         manager=manager,
-        action=PaymentAction.VOID,
+        action_type=PaymentAction.VOID,
         action_value=None,
         channel_slug=channel_slug,
     )
@@ -163,12 +163,12 @@ def request_void_action(
 def _request_payment_action(
     payment: Payment,
     manager: "PluginsManager",
-    action: str,
+    action_type: str,
     action_value: Optional[Decimal],
     channel_slug: str,
 ):
     payment_data = PaymentActionData(
-        payment=payment, action_requested=action, action_value=action_value
+        payment=payment, action_type=action_type, action_value=action_value
     )
     event_active = manager.is_event_active_for_any_plugin(
         "payment_action_request", channel_slug=channel_slug

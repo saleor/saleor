@@ -390,7 +390,7 @@ def test_request_capture_action_on_order(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.CAPTURE,
+            action_type=PaymentAction.CAPTURE,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
@@ -436,7 +436,7 @@ def test_request_capture_action_by_app(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.CAPTURE,
+            action_type=PaymentAction.CAPTURE,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
@@ -482,7 +482,7 @@ def test_request_capture_action_on_checkout(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.CAPTURE,
+            action_type=PaymentAction.CAPTURE,
             action_value=action_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -551,7 +551,7 @@ def test_request_refund_action_on_order(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.REFUND,
+            action_type=PaymentAction.REFUND,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
@@ -597,7 +597,7 @@ def test_request_refund_action_by_app(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.REFUND,
+            action_type=PaymentAction.REFUND,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
@@ -644,7 +644,7 @@ def test_request_refund_action_on_checkout(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.REFUND,
+            action_type=PaymentAction.REFUND,
             action_value=action_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -707,7 +707,7 @@ def test_request_void_action_on_order(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.VOID,
+            action_type=PaymentAction.VOID,
             action_value=None,
         ),
         channel_slug=order.channel.slug,
@@ -750,7 +750,7 @@ def test_request_void_action_by_app(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.VOID,
+            action_type=PaymentAction.VOID,
             action_value=None,
         ),
         channel_slug=order.channel.slug,
@@ -794,7 +794,7 @@ def test_request_void_action_on_checkout(
     mocked_payment_action_request.assert_called_once_with(
         PaymentActionData(
             payment=payment,
-            action_requested=PaymentAction.VOID,
+            action_type=PaymentAction.VOID,
             action_value=None,
         ),
         channel_slug=checkout.channel.slug,
