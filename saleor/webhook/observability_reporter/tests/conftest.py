@@ -1,5 +1,5 @@
 import json
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import pytest
 from graphql import get_default_backend
@@ -11,7 +11,6 @@ from ..buffer import ObservabilityBuffer
 
 TESTS_TIMEOUT = 0.1
 backend = get_default_backend()
-GqlOperationFactoryType = Callable[[...], GraphQLOperationResponse]
 
 
 def fill_buffer(
@@ -38,7 +37,7 @@ def memory_broker(memory_broker_url: str):
 
 
 @pytest.fixture
-def gql_operation_factory() -> GqlOperationFactoryType:
+def gql_operation_factory():
     def factory(
         query_string: str,
         operation_name: Optional[str] = None,

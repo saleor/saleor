@@ -20,17 +20,17 @@ if TYPE_CHECKING:
 
 
 class ObservabilityEventTypes(str, Enum):
-    ApiCall = "observability_api_call"
-    EventDeliveryAttempt = "observability_event_delivery_attempt"
+    API_CALL = "observability_api_call"
+    EVENT_DELIVERY_ATTEMPT = "observability_event_delivery_attempt"
 
 
 class ObservabilityEventPayload(TypedDict):
-    eventType: ObservabilityEventTypes
+    event_type: ObservabilityEventTypes
 
 
 class GraphQLOperationPayload(TypedDict):
     name: Optional[JsonTruncText]
-    operationType: Optional[str]
+    operation_type: Optional[str]
     query: Optional[JsonTruncText]
     result: Optional[JsonTruncText]
 
@@ -41,14 +41,13 @@ class RequestPayload(TypedDict):
     url: str
     time: float
     headers: Dict[str, str]
-    contentLength: int
+    content_length: int
 
 
 class ResponsePayload(TypedDict):
     headers: Dict[str, str]
-    statusCode: int
-    reasonPhrase: str
-    contentLength: int
+    status_code: Optional[int]
+    content_length: int
 
 
 class AppPayload(TypedDict):
@@ -69,21 +68,21 @@ class ApiCallPayload(ObservabilityEventPayload):
 
 
 class EventDeliveryDataPayload(TypedDict):
-    contentLength: int
+    content_length: int
     body: JsonTruncText
 
 
 class EventDeliveryPayload(TypedDict):
     id: str
     status: str
-    eventType: str
+    event_type: str
     payload: EventDeliveryDataPayload
 
 
 class WebhookPayload(TypedDict):
     id: str
     name: str
-    targetUrl: str
+    target_url: str
 
 
 class AttemptPayload(TypedDict):
@@ -91,7 +90,7 @@ class AttemptPayload(TypedDict):
     time: datetime
     duration: Optional[float]
     status: str
-    nextRetry: Optional[datetime]
+    next_retry: Optional[datetime]
 
 
 class RequestHeadersPayload(TypedDict):
@@ -103,12 +102,12 @@ class ResponseWithBodyPayload(ResponsePayload):
 
 
 class EventDeliveryAttemptPayload(ObservabilityEventPayload):
-    eventDeliveryAttempt: AttemptPayload
+    event_delivery_attempt: AttemptPayload
     request: RequestHeadersPayload
     response: ResponseWithBodyPayload
-    eventDelivery: Optional[EventDeliveryPayload]
-    webhook: Optional[WebhookPayload]
-    app: Optional[AppPayload]
+    event_delivery: EventDeliveryPayload
+    webhook: WebhookPayload
+    app: AppPayload
 
 
 def _json_serialize(obj: Any, pretty=False):
@@ -123,7 +122,7 @@ EMPTY_TRUNC = JsonTruncText(truncated=True)
 
 GQL_OPERATION_PLACEHOLDER = GraphQLOperationPayload(
     name=TRUNC_PLACEHOLDER,
-    operationType="subscription",
+    operation_type="subscription",
     query=TRUNC_PLACEHOLDER,
     result=TRUNC_PLACEHOLDER,
 )
@@ -162,7 +161,7 @@ def serialize_gql_operation_result(
     return (
         GraphQLOperationPayload(
             name=name,
-            operationType=operation_type,
+            operation_type=operation_type,
             query=query,
             result=result,
         ),
@@ -191,41 +190,37 @@ def generate_api_call_payload(
     gql_operations: List["GraphQLOperationResponse"],
     bytes_limit: int,
 ) -> str:
-    request_payload = RequestPayload(
-        id=str(uuid.uuid4()),
-        method=request.method or "",
-        url=request.build_absolute_uri(request.get_full_path()),
-        time=getattr(request, "request_time", timezone.now()).timestamp(),
-        headers=hide_sensitive_headers(dict(request.headers)),
-        contentLength=int(request.headers.get("Content-Length") or 0),
-    )
-    response_payload = ResponsePayload(
-        headers=hide_sensitive_headers(dict(response.headers)),
-        statusCode=response.status_code,
-        reasonPhrase=response.reason_phrase,
-        contentLength=len(response.content),
-    )
-    app_payload: Optional[AppPayload] = None
-    if app := getattr(request, "app", None):
-        app_payload = AppPayload(
-            id=graphene.Node.to_global_id("App", app.id), name=app.name
-        )
-    operations_payload = GraphQLOperationsPayload(
-        count=len(gql_operations), operations=[]
-    )
     payload = ApiCallPayload(
-        eventType=ObservabilityEventTypes.ApiCall,
-        request=request_payload,
-        response=response_payload,
-        app=app_payload,
-        gql_operations=operations_payload,
+        event_type=ObservabilityEventTypes.API_CALL,
+        request=RequestPayload(
+            id=str(uuid.uuid4()),
+            method=request.method or "",
+            url=request.build_absolute_uri(request.get_full_path()),
+            time=getattr(request, "request_time", timezone.now()).timestamp(),
+            headers=hide_sensitive_headers(dict(request.headers)),
+            content_length=int(request.headers.get("Content-Length") or 0),
+        ),
+        response=ResponsePayload(
+            headers=hide_sensitive_headers(dict(response.headers)),
+            status_code=response.status_code,
+            content_length=len(response.content),
+        ),
+        app=None,
+        gql_operations=GraphQLOperationsPayload(
+            count=len(gql_operations), operations=[]
+        ),
     )
-    base_dump = _json_serialize(payload)
-    remaining_bytes = bytes_limit - len(base_dump)
+    if app := getattr(request, "app", None):
+        payload["app"] = AppPayload(
+            id=graphene.Node.to_global_id("App", app.id),
+            name=app.name,
+        )
+    initial_dump = _json_serialize(payload)
+    remaining_bytes = bytes_limit - len(initial_dump)
     if remaining_bytes < 0:
         raise ValueError(f"Payload too big. Can't truncate to {bytes_limit}")
     try:
-        operations_payload["operations"] = serialize_gql_operation_results(
+        payload["gql_operations"]["operations"] = serialize_gql_operation_results(
             gql_operations, remaining_bytes
         )
     except ValueError:
@@ -239,63 +234,62 @@ def generate_event_delivery_attempt_payload(
     next_retry: Optional["datetime"],
     bytes_limit: int,
 ) -> str:
-    delivery_data: Optional[EventDeliveryPayload] = None
-    webhook_data: Optional[WebhookPayload] = None
-    app_data: Optional[AppPayload] = None
-    payload = None
-    if delivery := attempt.delivery:
-        if delivery.payload:
-            payload = delivery.payload.payload
-        delivery_data = EventDeliveryPayload(
-            id=graphene.Node.to_global_id("EventDelivery", delivery.pk),
-            status=delivery.status,
-            eventType=delivery.event_type,
-            payload=EventDeliveryDataPayload(
-                contentLength=len(payload or ""), body=TRUNC_PLACEHOLDER
-            ),
+    if not attempt.delivery:
+        raise ValueError(
+            f"EventDeliveryAttempt {attempt.id} is not assigned to delivery."
+            "Can't generate payload."
         )
-        if webhook := delivery.webhook:
-            app_data = AppPayload(
-                id=graphene.Node.to_global_id("App", webhook.app.pk),
-                name=webhook.app.name,
-            )
-            webhook_data = WebhookPayload(
-                id=graphene.Node.to_global_id("Webhook", webhook.pk),
-                name=webhook.name or "",
-                targetUrl=webhook.target_url,
-            )
+    if not attempt.delivery.payload or not attempt.delivery.webhook:
+        raise ValueError(
+            f"EventDelivery {attempt.delivery.id} do not have "
+            "payload or webhook set. Can't generate payload."
+        )
     response_body = attempt.response or ""
     data = EventDeliveryAttemptPayload(
-        eventType=ObservabilityEventTypes.EventDeliveryAttempt,
-        eventDeliveryAttempt=AttemptPayload(
+        event_type=ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
+        event_delivery_attempt=AttemptPayload(
             id=graphene.Node.to_global_id("EventDeliveryAttempt", attempt.pk),
             time=attempt.created_at,
             duration=attempt.duration,
             status=attempt.status,
-            nextRetry=next_retry,
+            next_retry=next_retry,
         ),
         request=RequestHeadersPayload(
             headers=json.loads(attempt.request_headers or "{}")
         ),
         response=ResponseWithBodyPayload(
             headers=json.loads(attempt.response_headers or "{}"),
-            contentLength=len(response_body.encode("utf-8")),
+            content_length=len(response_body.encode("utf-8")),
             body=TRUNC_PLACEHOLDER,
-            statusCode=200,
-            reasonPhrase="OK",
+            status_code=attempt.response_status_code,
         ),
-        eventDelivery=delivery_data,
-        webhook=webhook_data,
-        app=app_data,
+        event_delivery=EventDeliveryPayload(
+            id=graphene.Node.to_global_id("EventDelivery", attempt.delivery.pk),
+            status=attempt.delivery.status,
+            event_type=attempt.delivery.event_type,
+            payload=EventDeliveryDataPayload(
+                content_length=len(attempt.delivery.payload.payload),
+                body=TRUNC_PLACEHOLDER,
+            ),
+        ),
+        webhook=WebhookPayload(
+            id=graphene.Node.to_global_id("Webhook", attempt.delivery.webhook.pk),
+            name=attempt.delivery.webhook.name or "",
+            target_url=attempt.delivery.webhook.target_url,
+        ),
+        app=AppPayload(
+            id=graphene.Node.to_global_id("App", attempt.delivery.webhook.app.pk),
+            name=attempt.delivery.webhook.app.name,
+        ),
     )
     initial_dump = _json_serialize(data)
     remaining_bytes = bytes_limit - len(initial_dump)
     if remaining_bytes < 0:
         raise ValueError(f"Payload too big. Can't truncate to {bytes_limit}")
     trunc_resp_body = JsonTruncText.truncate(response_body, remaining_bytes // 2)
+    trunc_payload = JsonTruncText.truncate(
+        attempt.delivery.payload.payload, remaining_bytes - trunc_resp_body.byte_size
+    )
     data["response"]["body"] = trunc_resp_body
-    if delivery_data and payload:
-        delivery_data["payload"]["body"] = JsonTruncText.truncate(
-            payload, remaining_bytes - trunc_resp_body.byte_size
-        )
+    data["event_delivery"]["payload"]["body"] = trunc_payload
     return _json_serialize(data)

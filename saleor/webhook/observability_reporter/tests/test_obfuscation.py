@@ -7,7 +7,7 @@ from ..obfuscation import (
     hide_sensitive_headers,
     validate_sensitive_fields_map,
 )
-from .conftest import GqlOperationFactoryType, schema
+from .conftest import schema
 
 
 @pytest.mark.parametrize(
@@ -34,9 +34,7 @@ def test_hide_sensitive_headers(headers, sensitive, expected):
     assert hide_sensitive_headers(headers, sensitive_headers=sensitive) == expected
 
 
-def test_anonymize_gql_operation_response(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_anonymize_gql_operation_response(gql_operation_factory):
     query = "query FirstQuery { shop { name } }"
     result = {"data": "result"}
     sensitive_fields = {"Shop": {"name"}}
@@ -47,9 +45,7 @@ def test_anonymize_gql_operation_response(
     assert operation_result.result["data"] == MASK
 
 
-def test_anonymize_gql_operation_with_mutation_in_query(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_anonymize_gql_operation_with_mutation_in_query(gql_operation_factory):
     query = """
     mutation tokenRefresh($token: String){
         tokenRefresh(refreshToken: $token){
@@ -65,9 +61,7 @@ def test_anonymize_gql_operation_with_mutation_in_query(
     assert operation_result.result["data"] == MASK
 
 
-def test_anonymize_gql_operation_with_subscription_in_query(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_anonymize_gql_operation_with_subscription_in_query(gql_operation_factory):
     query = """
     subscription{
       event{
@@ -90,7 +84,7 @@ def test_anonymize_gql_operation_with_subscription_in_query(
 
 
 def test_anonymize_gql_operation_response_with_empty_sensitive_fields_map(
-    gql_operation_factory: GqlOperationFactoryType,
+    gql_operation_factory,
 ):
     query = "query FirstQuery { shop { name } }"
     result = {"data": "result"}
@@ -101,9 +95,7 @@ def test_anonymize_gql_operation_response_with_empty_sensitive_fields_map(
     assert operation_result.result == result
 
 
-def test_anonymize_gql_operation_response_with_fragment_spread(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_anonymize_gql_operation_response_with_fragment_spread(gql_operation_factory):
     query = """
     fragment ProductFragment on Product {
       id

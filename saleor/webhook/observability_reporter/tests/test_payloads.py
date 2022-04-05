@@ -19,19 +19,16 @@ from ..payloads import (
     serialize_gql_operation_results,
 )
 from ..utils import JsonTruncText
-from .conftest import GqlOperationFactoryType
 
 
-def test_serialize_gql_operation_result(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_serialize_gql_operation_result(gql_operation_factory):
     query = "query FirstQuery { shop { name } }"
     result = {"data": "result"}
     operation_result = gql_operation_factory(query, "FirstQuery", None, result)
     payload, _ = serialize_gql_operation_result(operation_result, 1024)
     assert payload == {
         "name": JsonTruncText("FirstQuery", False),
-        "operationType": "query",
+        "operation_type": "query",
         "query": JsonTruncText(query, False),
         "result": JsonTruncText(_json_serialize(result, pretty=True), False),
     }
@@ -42,7 +39,7 @@ def test_serialize_gql_operation_result_when_no_operation_data():
     payload, _ = serialize_gql_operation_result(result, 1024)
     assert payload == {
         "name": None,
-        "operationType": None,
+        "operation_type": None,
         "query": None,
         "result": None,
     }
@@ -54,9 +51,7 @@ def test_serialize_gql_operation_result_when_too_low_bytes_limit():
         serialize_gql_operation_result(result, GQL_OPERATION_PLACEHOLDER_SIZE - 1)
 
 
-def test_serialize_gql_operation_result_when_minimal_bytes_limit(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_serialize_gql_operation_result_when_minimal_bytes_limit(gql_operation_factory):
     query = "query FirstQuery { shop { name } }"
     operation_result = gql_operation_factory(
         query, "FirstQuery", None, {"data": "result"}
@@ -67,7 +62,7 @@ def test_serialize_gql_operation_result_when_minimal_bytes_limit(
     serialized = _json_serialize(payload)
     assert payload == {
         "name": JsonTruncText("", True),
-        "operationType": "query",
+        "operation_type": "query",
         "query": JsonTruncText("", True),
         "result": JsonTruncText("", True),
     }
@@ -75,9 +70,7 @@ def test_serialize_gql_operation_result_when_minimal_bytes_limit(
     assert len(serialized) <= GQL_OPERATION_PLACEHOLDER_SIZE
 
 
-def test_serialize_gql_operation_result_when_truncated(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_serialize_gql_operation_result_when_truncated(gql_operation_factory):
     query = "query FirstQuery { shop { name } }"
     operation_result = gql_operation_factory(
         query, "FirstQuery", None, {"data": "result"}
@@ -87,17 +80,15 @@ def test_serialize_gql_operation_result_when_truncated(
     serialized = _json_serialize(payload)
     assert payload == {
         "name": JsonTruncText("FirstQuery", False),
-        "operationType": "query",
-        "query": JsonTruncText("query FirstQue", True),
+        "operation_type": "query",
+        "query": JsonTruncText("query FirstQu", True),
         "result": JsonTruncText('{\n  "data": ', True),
     }
     assert left_bytes == 0
     assert len(serialized) <= bytes_limit
 
 
-def test_serialize_gql_operation_results(
-    gql_operation_factory: GqlOperationFactoryType,
-):
+def test_serialize_gql_operation_results(gql_operation_factory):
     query = "query FirstQuery { shop { name } } query SecondQuery { shop { name } }"
     result = {"data": "result"}
     first_result = gql_operation_factory(query, "FirstQuery", None, result)
@@ -106,13 +97,13 @@ def test_serialize_gql_operation_results(
     assert payloads == [
         {
             "name": JsonTruncText("FirstQuery", False),
-            "operationType": "query",
+            "operation_type": "query",
             "query": JsonTruncText(query, False),
             "result": JsonTruncText(_json_serialize(result, pretty=True), False),
         },
         {
             "name": JsonTruncText("SecondQuery", False),
-            "operationType": "query",
+            "operation_type": "query",
             "query": JsonTruncText(query, False),
             "result": JsonTruncText(_json_serialize(result, pretty=True), False),
         },
@@ -120,7 +111,7 @@ def test_serialize_gql_operation_results(
 
 
 def test_serialize_gql_operation_results_when_minimal_bytes_limit(
-    gql_operation_factory: GqlOperationFactoryType,
+    gql_operation_factory,
 ):
     query = "query FirstQuery { shop { name } } query SecondQuery { shop { name } }"
     result = {"data": "result"}
@@ -133,13 +124,13 @@ def test_serialize_gql_operation_results_when_minimal_bytes_limit(
     assert payloads == [
         {
             "name": JsonTruncText("", True),
-            "operationType": "query",
+            "operation_type": "query",
             "query": JsonTruncText("", True),
             "result": JsonTruncText("", True),
         },
         {
             "name": JsonTruncText("", True),
-            "operationType": "query",
+            "operation_type": "query",
             "query": JsonTruncText("", True),
             "result": JsonTruncText("", True),
         },
@@ -148,7 +139,7 @@ def test_serialize_gql_operation_results_when_minimal_bytes_limit(
 
 
 def test_serialize_gql_operation_results_when_too_low_bytes_limit(
-    gql_operation_factory: GqlOperationFactoryType,
+    gql_operation_factory,
 ):
     query = "query FirstQuery { shop { name } } query SecondQuery { shop { name } }"
     result = {"data": "result"}
@@ -182,7 +173,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
 
     assert UUID(payload["request"].pop("id"), version=4)
     assert payload == {
-        "eventType": "observability_api_call",
+        "event_type": "observability_api_call",
         "request": {
             "method": "POST",
             "url": "http://testserver/graphql",
@@ -192,13 +183,12 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
                 "Content-Type": "application/json",
                 "Cookie": "",
             },
-            "contentLength": 19,
+            "content_length": 19,
         },
         "response": {
             "headers": {"Content-Type": "application/json"},
-            "contentLength": 20,
-            "statusCode": 200,
-            "reasonPhrase": "OK",
+            "content_length": 20,
+            "status_code": 200,
         },
         "app": {
             "id": graphene.Node.to_global_id("App", app.pk),
@@ -209,7 +199,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
             "operations": [
                 {
                     "name": {"text": "FirstQuery", "truncated": False},
-                    "operationType": "query",
+                    "operation_type": "query",
                     "query": {"text": query_a, "truncated": False},
                     "result": {
                         "text": _json_serialize(result_a, pretty=True),
@@ -218,7 +208,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
                 },
                 {
                     "name": {"text": "SecondQuery", "truncated": False},
-                    "operationType": "query",
+                    "operation_type": "query",
                     "query": {"text": query_b, "truncated": False},
                     "result": {
                         "text": _json_serialize(result_b, pretty=True),
@@ -295,38 +285,37 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
     )
 
     assert payload == {
-        "eventType": "observability_event_delivery_attempt",
-        "eventDeliveryAttempt": {
+        "event_type": "observability_event_delivery_attempt",
+        "event_delivery_attempt": {
             "id": graphene.Node.to_global_id("EventDeliveryAttempt", event_attempt.pk),
             "time": "1914-06-28T10:50:00Z",
             "duration": None,
             "status": EventDeliveryStatus.PENDING,
-            "nextRetry": None,
+            "next_retry": None,
         },
         "request": {"headers": {}},
         "response": {
             "headers": {},
-            "contentLength": 16,
-            "reasonPhrase": "OK",
-            "statusCode": 200,
+            "content_length": 16,
+            "status_code": None,
             "body": {"text": "example_response", "truncated": False},
         },
-        "eventDelivery": {
+        "event_delivery": {
             "id": graphene.Node.to_global_id("EventDelivery", delivery.pk),
             "payload": {
                 "body": {
                     "text": '{"payload_key": "payload_value"}',
                     "truncated": False,
                 },
-                "contentLength": 32,
+                "content_length": 32,
             },
             "status": EventDeliveryStatus.PENDING,
-            "eventType": WebhookEventAsyncType.ANY,
+            "event_type": WebhookEventAsyncType.ANY,
         },
         "webhook": {
             "id": graphene.Node.to_global_id("Webhook", webhook.pk),
             "name": "Simple webhook",
-            "targetUrl": "http://www.example.com/test",
+            "target_url": "http://www.example.com/test",
         },
         "app": {
             "id": graphene.Node.to_global_id("App", app.pk),
@@ -350,7 +339,7 @@ def test_generate_event_delivery_attempt_payload_with_next_retry_date(
     payload = json.loads(
         generate_event_delivery_attempt_payload(event_attempt, next_retry_date, 1024)
     )
-    assert payload["eventDeliveryAttempt"]["nextRetry"] == "1914-06-28T10:50:00Z"
+    assert payload["event_delivery_attempt"]["next_retry"] == "1914-06-28T10:50:00Z"
 
 
 def test_generate_event_delivery_attempt_payload_with_empty_headers(

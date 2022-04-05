@@ -63,6 +63,9 @@ class JsonTruncText:
             return False
         return (self.text, self.truncated) == (other.text, other.truncated)
 
+    def __repr__(self):
+        return f'JsonTruncText(text="{self.text}", truncated={self.truncated})'
+
     @property
     def byte_size(self) -> int:
         return len(self.text) + self._added_bytes
