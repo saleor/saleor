@@ -121,7 +121,7 @@ class Payment(ModelWithMetadata):
     captured_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0"),
     )
     amount_authorized = MoneyField(
         amount_field="authorized_value", currency_field="currency"
@@ -129,7 +129,7 @@ class Payment(ModelWithMetadata):
     authorized_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0"),
     )
     amount_refunded = MoneyField(
         amount_field="refunded_value", currency_field="currency"
@@ -137,13 +137,13 @@ class Payment(ModelWithMetadata):
     refunded_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0"),
     )
     amount_voided = MoneyField(amount_field="voided_value", currency_field="currency")
     voided_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal("0"),
     )
 
     class Meta:

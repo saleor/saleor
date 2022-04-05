@@ -50,6 +50,7 @@ if TYPE_CHECKING:
         CustomerSource,
         GatewayResponse,
         InitializedPaymentResponse,
+        PaymentActionData,
         PaymentData,
         PaymentGateway,
         TokenConfig,
@@ -780,6 +781,17 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
 
+    def payment_action_request(
+        self, payment_data: "PaymentActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "payment_action_request",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str
     ) -> Optional["InitializedPaymentResponse"]:
@@ -1232,6 +1244,16 @@ class PluginsManager(PaymentInterface):
             info=info,
             data=data,
         )
+
+    def is_event_active_for_any_plugin(
+        self, event: str, channel_slug: Optional[str] = None
+    ) -> bool:
+        """Check if any plugin supports defined event."""
+        plugins = (
+            self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins
+        )
+        only_active_plugins = [plugin for plugin in plugins if plugin.active]
+        return any([plugin.is_event_active(event) for plugin in only_active_plugins])
 
 
 def get_plugins_manager(
