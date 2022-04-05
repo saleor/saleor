@@ -33,8 +33,11 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
-from ....payment.gateway import request_refund_action, request_void_action, \
-    request_capture_action
+from ....payment.gateway import (
+    request_capture_action,
+    request_refund_action,
+    request_void_action,
+)
 from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ....shipping.interface import ShippingMethodData
@@ -577,14 +580,17 @@ class OrderCapture(BaseMutation):
         if not payment.gateway:
             try:
                 request_capture_action(
-                    payment, info.context.plugins, action_value=amount,
+                    payment,
+                    info.context.plugins,
+                    capture_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
                     app=info.context.app,
                 )
             except PaymentError as e:
-                raise ValidationError(str(e),
-                                      code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK)
+                raise ValidationError(
+                    str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                )
         else:
             transaction = try_payment_action(
                 order,
@@ -635,14 +641,16 @@ class OrderVoid(BaseMutation):
         if not payment.gateway:
             try:
                 request_void_action(
-                    payment, info.context.plugins,
+                    payment,
+                    info.context.plugins,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
                     app=info.context.app,
                 )
             except PaymentError as e:
-                raise ValidationError(str(e),
-                                      code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK)
+                raise ValidationError(
+                    str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                )
         else:
             transaction = try_payment_action(
                 order,
@@ -698,21 +706,25 @@ class OrderRefund(BaseMutation):
         clean_order_refund(order)
 
         payment = order.get_last_payment()
-        clean_refund_payment(payment)
-
+        clean_payment(payment)
         # This is temporary solution to discover a payment that uses a new checkout
         # flow.
         if not payment.gateway:
             try:
                 request_refund_action(
-                    payment, info.context.plugins, action_value=amount,
+                    payment,
+                    info.context.plugins,
+                    refund_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
                     app=info.context.app,
                 )
             except PaymentError as e:
-                raise ValidationError(str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK)
+                raise ValidationError(
+                    str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                )
         else:
+            clean_refund_payment(payment)
             transaction = try_payment_action(
                 order,
                 info.context.user,

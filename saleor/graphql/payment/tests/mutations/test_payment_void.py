@@ -132,7 +132,7 @@ def test_payment_void_with_payment_action_request_missing_event(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["refund"],
+        available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10.0"),

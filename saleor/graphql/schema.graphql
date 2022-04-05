@@ -6316,7 +6316,7 @@ type OrderEvent implements Node {
   """Amount of money."""
   amount: Float
 
-  """The payment ID from the payment gateway."""
+  """The payment reference from the payment provider."""
   paymentId: String
 
   """The payment gateway of the payment."""
@@ -6555,6 +6555,7 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
 }
 
 """An enumeration."""
