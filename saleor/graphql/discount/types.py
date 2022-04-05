@@ -366,6 +366,10 @@ class BaseObjectDiscount(graphene.Interface):
         Money, description="Returns amount of discount.", required=True
     )
 
+    @staticmethod
+    def resolve_type(root, _info):
+        return root.type
+
 
 class OrderDiscount(ModelObjectType):
     class Meta:

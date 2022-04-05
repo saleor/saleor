@@ -1,6 +1,168 @@
-from ...tests.utils import get_graphql_content
+from ....discount import DiscountType, DiscountValueType
+from ...tests.utils import assert_no_permission, get_graphql_content
 
-CHECKOUT_DISCOUNTS_QUERY = """
+CHECKOUT_DISCOUNTS_FOR_CUSTOMERS_QUERY = """
+query getCheckout($token: UUID) {
+  checkout(token: $token) {
+    discounts {
+      type
+      name
+      translatedName
+      valueType
+      value
+      amount {
+        amount
+      }
+    }
+  }
+}
+"""
+
+
+def test_checkout_fixed_discount_as_customer(api_client, checkout_with_fixed_discount):
+    # given
+    checkout = checkout_with_fixed_discount
+    discount = checkout.discounts.get()
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(
+        CHECKOUT_DISCOUNTS_FOR_CUSTOMERS_QUERY, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    checkout_data = content["data"]["checkout"]
+    discount_data = checkout_data["discounts"][0]
+
+    assert discount_data["type"] == DiscountType.MANUAL.upper()
+    assert discount_data["name"] == discount.name
+    assert discount_data["translatedName"] == discount.translated_name
+    assert discount_data["valueType"] == DiscountValueType.FIXED.upper()
+    assert discount_data["value"] == discount.value
+    assert discount_data["amount"]["amount"] == discount.amount.amount
+    assert "reason" not in discount_data
+
+
+def test_checkout_percentage_discount_as_customer(
+    api_client, checkout_with_percentage_discount
+):
+    # given
+    checkout = checkout_with_percentage_discount
+    discount = checkout.discounts.get()
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(
+        CHECKOUT_DISCOUNTS_FOR_CUSTOMERS_QUERY, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    checkout_data = content["data"]["checkout"]
+    discount_data = checkout_data["discounts"][0]
+
+    assert discount_data["type"] == DiscountType.MANUAL.upper()
+    assert discount_data["name"] == discount.name
+    assert discount_data["translatedName"] == discount.translated_name
+    assert discount_data["valueType"] == DiscountValueType.PERCENTAGE.upper()
+    assert discount_data["value"] == discount.value
+    assert discount_data["amount"]["amount"] == discount.amount.amount
+    assert "reason" not in discount_data
+
+
+CHECKOUT_DISCOUNTS_FOR_ADMINS_QUERY = """
+query getCheckout($token: UUID) {
+  checkout(token: $token) {
+    discounts {
+      type
+      name
+      translatedName
+      valueType
+      value
+      reason
+      amount {
+        amount
+      }
+    }
+  }
+}
+"""
+
+
+def test_checkout_fixed_discount_with_reason_as_customer(
+    api_client, checkout_with_fixed_discount
+):
+    # given
+    checkout = checkout_with_fixed_discount
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_FOR_ADMINS_QUERY, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_fixed_discount_as_staff(
+    staff_api_client, checkout_with_fixed_discount, permission_manage_checkouts
+):
+    # given
+    checkout = checkout_with_fixed_discount
+    discount = checkout.discounts.get()
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_DISCOUNTS_FOR_ADMINS_QUERY,
+        variables,
+        permissions=(permission_manage_checkouts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    checkout_data = content["data"]["checkout"]
+    discount_data = checkout_data["discounts"][0]
+
+    assert discount_data["type"] == DiscountType.MANUAL.upper()
+    assert discount_data["name"] == discount.name
+    assert discount_data["translatedName"] == discount.translated_name
+    assert discount_data["valueType"] == DiscountValueType.FIXED.upper()
+    assert discount_data["value"] == discount.value
+    assert discount_data["amount"]["amount"] == discount.amount.amount
+    assert discount_data["reason"] == discount.reason
+
+
+def test_checkout_percentage_discount_as_staff(
+    staff_api_client, checkout_with_percentage_discount, permission_manage_checkouts
+):
+    # given
+    checkout = checkout_with_percentage_discount
+    discount = checkout.discounts.get()
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_DISCOUNTS_FOR_ADMINS_QUERY,
+        variables,
+        permissions=(permission_manage_checkouts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    checkout_data = content["data"]["checkout"]
+    discount_data = checkout_data["discounts"][0]
+
+    assert discount_data["type"] == DiscountType.MANUAL.upper()
+    assert discount_data["name"] == discount.name
+    assert discount_data["translatedName"] == discount.translated_name
+    assert discount_data["valueType"] == DiscountValueType.PERCENTAGE.upper()
+    assert discount_data["value"] == discount.value
+    assert discount_data["amount"]["amount"] == discount.amount.amount
+    assert discount_data["reason"] == discount.reason
+
+
+CHECKOUT_DISCOUNTS_CALCULATIONS_QUERY = """
 query getCheckout($token: UUID) {
   checkout(token: $token) {
     lines {
@@ -47,7 +209,7 @@ def test_checkout_pricing_with_fixed_discount(
     variables = {"token": str(checkout.token)}
 
     # when
-    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_QUERY, variables)
+    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_CALCULATIONS_QUERY, variables)
     content = get_graphql_content(response)
 
     # then
@@ -74,7 +236,7 @@ def test_checkout_pricing_with_fixed_discount_for_more_then_total(
     variables = {"token": str(checkout.token)}
 
     # when
-    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_QUERY, variables)
+    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_CALCULATIONS_QUERY, variables)
     content = get_graphql_content(response)
 
     # then
@@ -101,7 +263,7 @@ def test_checkout_pricing_with_percentage_discount(
     variables = {"token": str(checkout.token)}
 
     # when
-    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_QUERY, variables)
+    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_CALCULATIONS_QUERY, variables)
     content = get_graphql_content(response)
 
     # then
@@ -131,7 +293,7 @@ def test_checkout_pricing_with_percentage_discount_for_whole_checkout(
     variables = {"token": str(checkout.token)}
 
     # when
-    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_QUERY, variables)
+    response = api_client.post_graphql(CHECKOUT_DISCOUNTS_CALCULATIONS_QUERY, variables)
     content = get_graphql_content(response)
 
     # then

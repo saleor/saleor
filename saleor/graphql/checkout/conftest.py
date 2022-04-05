@@ -6,7 +6,7 @@ from prices import Money, fixed_discount, percentage_discount
 
 from ...checkout import calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...discount import DiscountValueType
+from ...discount import DiscountType, DiscountValueType
 from ...plugins.manager import get_plugins_manager
 
 
@@ -30,6 +30,7 @@ def checkout_with_fixed_discount(checkout_with_items_and_shipping, discount_info
     post_discount_total = discount(pre_discount_total)
 
     checkout.discounts.create(
+        type=DiscountType.MANUAL,
         value=value,
         value_type=DiscountValueType.FIXED,
         amount=(pre_discount_total - post_discount_total),
@@ -92,6 +93,7 @@ def checkout_with_percentage_discount(checkout_with_items_and_shipping, discount
     post_discount_total = discount(pre_discount_total)
 
     checkout.discounts.create(
+        type=DiscountType.MANUAL,
         value=value,
         value_type=DiscountValueType.PERCENTAGE,
         amount=(pre_discount_total - post_discount_total),
