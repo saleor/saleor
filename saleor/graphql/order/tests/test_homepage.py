@@ -2,6 +2,8 @@ from datetime import date, timedelta
 
 from prices import Money
 
+from ....order import OrderEvents
+from ....order.models import OrderEvent
 from ...core.enums import ReportingPeriod
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -14,6 +16,7 @@ def test_homepage_events(order_events, staff_api_client, permission_manage_order
                 node {
                     date
                     type
+                    orderNumber
                 }
             }
         }
@@ -26,6 +29,16 @@ def test_homepage_events(order_events, staff_api_client, permission_manage_order
     edges = content["data"]["homepageEvents"]["edges"]
     only_types = {"PLACED", "PLACED_FROM_DRAFT", "ORDER_FULLY_PAID"}
     assert {edge["node"]["type"] for edge in edges} == only_types
+    expected_numbers = set(
+        OrderEvent.objects.filter(
+            type__in=[
+                OrderEvents.PLACED,
+                OrderEvents.PLACED_FROM_DRAFT,
+                OrderEvents.ORDER_FULLY_PAID,
+            ]
+        ).values_list("order__number", flat=True)
+    )
+    assert {int(edge["node"]["orderNumber"]) for edge in edges} == expected_numbers
 
 
 QUERY_ORDER_TOTAL = """
