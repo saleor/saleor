@@ -492,10 +492,11 @@ def test_category_create_trigger_webhook(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
+    category = Category.objects.first()
 
+    assert category
     assert data["errors"] == []
 
-    category = Category.objects.first()
     mocked_webhook_trigger.assert_called_once_with(
         None,
         WebhookEventAsyncType.CATEGORY_CREATED,
@@ -1010,8 +1011,8 @@ def test_category_delete_trigger_webhook(
     content = get_graphql_content(response)
     data = content["data"]["categoryDelete"]
     assert data["category"]["name"] == category.name
-    with pytest.raises(category._meta.model.DoesNotExist):
-        category.refresh_from_db()
+
+    assert not Category.objects.first()
 
     delete_versatile_image_mock.assert_not_called()
     mocked_webhook_trigger.assert_called_once_with(
