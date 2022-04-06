@@ -254,6 +254,8 @@ def list_client_sources(
     get_customer_profile.customerProfileId = customer_id
     get_customer_profile.unmaskExpirationDate = True
     controller = getCustomerProfileController(get_customer_profile)
+    if config.connection_params.get("use_sandbox") is False:
+        controller.setenvironment(constants.PRODUCTION)
     controller.execute()
 
     response = controller.getresponse()
