@@ -283,7 +283,6 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
     payload = json.loads(
         generate_event_delivery_attempt_payload(event_attempt, None, 1024)
     )
-
     assert payload == {
         "event_type": "observability_event_delivery_attempt",
         "event_delivery_attempt": {
@@ -304,7 +303,7 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
             "id": graphene.Node.to_global_id("EventDelivery", delivery.pk),
             "payload": {
                 "body": {
-                    "text": '{"payload_key": "payload_value"}',
+                    "text": _json_serialize(json.loads(delivery.payload.payload), True),
                     "truncated": False,
                 },
                 "content_length": 32,
@@ -316,6 +315,7 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
             "id": graphene.Node.to_global_id("Webhook", webhook.pk),
             "name": "Simple webhook",
             "target_url": "http://www.example.com/test",
+            "subscription_query": None,
         },
         "app": {
             "id": graphene.Node.to_global_id("App", app.pk),

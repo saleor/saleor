@@ -5,6 +5,7 @@ from graphql import (
     GraphQLInterfaceType,
     GraphQLObjectType,
     GraphQLSchema,
+    get_default_backend,
     get_named_type,
 )
 from graphql.language.ast import (
@@ -19,9 +20,12 @@ from graphql.validation import validate
 from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
+from ...graphql.api import schema
 from .sensitive_data import SENSITIVE_HEADERS, SensitiveFieldsMap
 
 if TYPE_CHECKING:
+    from graphql import GraphQLDocument
+
     from . import GraphQLOperationResponse
 
 GraphQLNode = Union[
@@ -152,15 +156,38 @@ def validate_sensitive_fields_map(
                 )
 
 
+def _contain_sensitive_field(
+    document: "GraphQLDocument", sensitive_fields: SensitiveFieldsMap
+):
+    validator = cast(
+        Type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
+    )
+    try:
+        validate(document.schema, document.document_ast, [validator])
+    except SensitiveFieldError:
+        return True
+    return False
+
+
 def anonymize_gql_operation_response(
     operation: "GraphQLOperationResponse", sensitive_fields: SensitiveFieldsMap
 ):
     if not operation.query or not operation.result:
         return
-    validator = cast(
-        Type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
-    )
-    try:
-        validate(operation.query.schema, operation.query.document_ast, [validator])
-    except SensitiveFieldError:
+    if _contain_sensitive_field(operation.query, sensitive_fields):
         operation.result["data"] = MASK
+
+
+def anonymize_event_payload(
+    subscription_query: Optional[str],
+    event_type: str,  # pylint: disable=unused-argument
+    payload: List,
+    sensitive_fields: SensitiveFieldsMap,
+) -> List:
+    if not subscription_query:
+        return payload
+    graphql_backend = get_default_backend()
+    document = graphql_backend.document_from_string(schema, subscription_query)
+    if _contain_sensitive_field(document, sensitive_fields):
+        return [MASK]
+    return payload

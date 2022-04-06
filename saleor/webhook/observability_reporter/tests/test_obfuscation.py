@@ -3,6 +3,7 @@ from graphql import GraphQLError
 
 from ..obfuscation import (
     MASK,
+    anonymize_event_payload,
     anonymize_gql_operation_response,
     hide_sensitive_headers,
     validate_sensitive_fields_map,
@@ -133,3 +134,33 @@ def test_anonymize_gql_operation_response_with_fragment_spread(gql_operation_fac
 def test_validate_sensitive_fields_map(sensitive_fields):
     with pytest.raises(GraphQLError):
         validate_sensitive_fields_map(sensitive_fields, schema)
+
+
+def test_anonymize_event_payload():
+    query = """
+        subscription{
+          event{
+            ...on ProductUpdated{
+              product{
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+    payload = [{"sensitive": "data"}]
+    sensitive_fields = {"Product": {"name"}}
+
+    anonymized = anonymize_event_payload(query, "any_type", payload, sensitive_fields)
+
+    assert anonymized == [MASK]
+
+
+def test_anonymize_event_delivery_payload_when_empty_subscription_query():
+    payload = [{"sensitive": "data"}]
+    sensitive_fields = {"Product": {"name"}}
+
+    anonymized = anonymize_event_payload(None, "any_type", payload, sensitive_fields)
+
+    assert anonymized == payload

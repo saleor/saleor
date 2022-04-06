@@ -10,7 +10,11 @@ from django.utils import timezone
 from graphql import get_operation_ast
 
 from .. import traced_payload_generator
-from .obfuscation import anonymize_gql_operation_response, hide_sensitive_headers
+from .obfuscation import (
+    anonymize_event_payload,
+    anonymize_gql_operation_response,
+    hide_sensitive_headers,
+)
 from .sensitive_data import SENSITIVE_GQL_FIELDS
 from .utils import CustomJsonEncoder, JsonTruncText
 
@@ -83,6 +87,7 @@ class WebhookPayload(TypedDict):
     id: str
     name: str
     target_url: str
+    subscription_query: Optional[JsonTruncText]
 
 
 class AttemptPayload(TypedDict):
@@ -276,6 +281,7 @@ def generate_event_delivery_attempt_payload(
             id=graphene.Node.to_global_id("Webhook", attempt.delivery.webhook.pk),
             name=attempt.delivery.webhook.name or "",
             target_url=attempt.delivery.webhook.target_url,
+            subscription_query=TRUNC_PLACEHOLDER,
         ),
         app=AppPayload(
             id=graphene.Node.to_global_id("App", attempt.delivery.webhook.app.pk),
@@ -286,10 +292,27 @@ def generate_event_delivery_attempt_payload(
     remaining_bytes = bytes_limit - len(initial_dump)
     if remaining_bytes < 0:
         raise ValueError(f"Payload too big. Can't truncate to {bytes_limit}")
-    trunc_resp_body = JsonTruncText.truncate(response_body, remaining_bytes // 2)
-    trunc_payload = JsonTruncText.truncate(
-        attempt.delivery.payload.payload, remaining_bytes - trunc_resp_body.byte_size
-    )
+    trunc_resp_body = JsonTruncText.truncate(response_body, remaining_bytes // 3)
+    remaining_bytes -= trunc_resp_body.byte_size
     data["response"]["body"] = trunc_resp_body
+
+    subscription_query = attempt.delivery.webhook.subscription_query
+    data["webhook"]["subscription_query"] = None
+    if subscription_query:
+        trunc_subscription_query = JsonTruncText.truncate(
+            subscription_query, remaining_bytes // 2
+        )
+        remaining_bytes -= trunc_subscription_query.byte_size
+        data["webhook"]["subscription_query"] = trunc_subscription_query
+
+    payload = anonymize_event_payload(
+        subscription_query,
+        attempt.delivery.event_type,
+        cast(List, json.loads(attempt.delivery.payload.payload)),
+        SENSITIVE_GQL_FIELDS,
+    )
+    trunc_payload = JsonTruncText.truncate(
+        _json_serialize(payload, True), remaining_bytes
+    )
     data["event_delivery"]["payload"]["body"] = trunc_payload
     return _json_serialize(data)
