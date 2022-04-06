@@ -100,9 +100,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_DELETED
 
-        print(event_type)
         if webhooks := _get_webhooks_for_event(event_type):
-            print(webhooks)
             trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:

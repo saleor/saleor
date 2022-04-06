@@ -16527,21 +16527,21 @@ union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated
 
 type CategoryCreated {
   """
-  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   category: Category
 }
 
 type CategoryUpdated {
   """
-  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   category: Category
 }
 
 type CategoryDeleted {
   """
-  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   category: Category
 }

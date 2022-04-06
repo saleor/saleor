@@ -36,7 +36,7 @@ TRANSLATIONS_TYPES_MAP = {
 class CategoryBase(AbstractType):
     category = graphene.Field(
         "saleor.graphql.product.types.Category",
-        description=f"{ADDED_IN_32} Look up a product. {PREVIEW_FEATURE}",
+        description=f"{ADDED_IN_32} Look up a category. {PREVIEW_FEATURE}",
     )
 
     @staticmethod
