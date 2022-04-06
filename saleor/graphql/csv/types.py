@@ -3,7 +3,7 @@ import graphene
 from ...core.permissions import AccountPermissions, AppPermission
 from ...csv import models
 from ..account.types import User
-from ..account.utils import check_requestor_access
+from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..core.connection import CountableConnection
@@ -37,13 +37,17 @@ class ExportEvent(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AccountPermissions.MANAGE_STAFF)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AccountPermissions.MANAGE_STAFF
+        )
         return root.user
 
     @staticmethod
     def resolve_app(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AppPermission.MANAGE_APPS)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AppPermission.MANAGE_APPS
+        )
         return root.app
 
     @staticmethod
@@ -76,13 +80,17 @@ class ExportFile(ModelObjectType):
     @staticmethod
     def resolve_user(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AccountPermissions.MANAGE_STAFF)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AccountPermissions.MANAGE_STAFF
+        )
         return root.user
 
     @staticmethod
     def resolve_app(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AppPermission.MANAGE_APPS)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AppPermission.MANAGE_APPS
+        )
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod

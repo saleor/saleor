@@ -46,7 +46,10 @@ from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
-from ..account.utils import check_requestor_access, requestor_has_access
+from ..account.utils import (
+    check_is_owner_or_has_one_of_perms,
+    is_owner_or_has_one_of_perms,
+)
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
@@ -242,7 +245,7 @@ class OrderEvent(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.OrderEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(
+        check_is_owner_or_has_one_of_perms(
             requestor,
             root.user,
             AppPermission.MANAGE_APPS,
@@ -887,7 +890,9 @@ class Order(ModelObjectType):
                 user, address = data
 
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+            if is_owner_or_has_one_of_perms(
+                requester, user, OrderPermissions.MANAGE_ORDERS
+            ):
                 return address
             return obfuscate_address(address)
 
@@ -914,7 +919,9 @@ class Order(ModelObjectType):
             else:
                 user, address = data
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+            if is_owner_or_has_one_of_perms(
+                requester, user, OrderPermissions.MANAGE_ORDERS
+            ):
                 return address
             return obfuscate_address(address)
 
@@ -1077,7 +1084,9 @@ class Order(ModelObjectType):
     def resolve_user_email(root: models.Order, info):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+            if is_owner_or_has_one_of_perms(
+                requester, user, OrderPermissions.MANAGE_ORDERS
+            ):
                 return user.email if user else root.user_email
             return obfuscate_email(user.email if user else root.user_email)
 
@@ -1094,7 +1103,7 @@ class Order(ModelObjectType):
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
-            check_requestor_access(
+            check_is_owner_or_has_one_of_perms(
                 requester,
                 user,
                 AccountPermissions.MANAGE_USERS,
@@ -1197,7 +1206,9 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
-        check_requestor_access(requester, root.user, OrderPermissions.MANAGE_ORDERS)
+        check_is_owner_or_has_one_of_perms(
+            requester, root.user, OrderPermissions.MANAGE_ORDERS
+        )
         return root.invoices.all()
 
     @staticmethod

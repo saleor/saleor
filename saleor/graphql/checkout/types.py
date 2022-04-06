@@ -10,7 +10,7 @@ from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
-from ..account.utils import check_requestor_access
+from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
@@ -305,7 +305,9 @@ class Checkout(ModelObjectType):
         if not root.user_id:
             return None
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AccountPermissions.MANAGE_USERS)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AccountPermissions.MANAGE_USERS
+        )
         return root.user
 
     @staticmethod
