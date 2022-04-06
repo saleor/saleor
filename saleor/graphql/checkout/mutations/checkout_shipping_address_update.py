@@ -13,7 +13,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import (
     change_shipping_address_in_checkout,
     is_shipping_required,
-    recalculate_checkout_discount,
+    recalculate_checkout_discounts,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
@@ -162,7 +162,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 manager,
                 shipping_channel_listings,
             )
-        recalculate_checkout_discount(manager, checkout_info, lines, discounts)
+        recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
 
         manager.checkout_updated(checkout)
         return CheckoutShippingAddressUpdate(checkout=checkout)

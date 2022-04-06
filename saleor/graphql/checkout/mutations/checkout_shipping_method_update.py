@@ -8,7 +8,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     delete_external_shipping_id,
     is_shipping_required,
-    recalculate_checkout_discount,
+    recalculate_checkout_discounts,
     set_external_shipping_id,
 )
 from ....plugins.webhook.utils import APP_ID_PREFIX
@@ -176,7 +176,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             update_fields=["private_metadata", "shipping_method", "last_change"]
         )
 
-        recalculate_checkout_discount(
+        recalculate_checkout_discounts(
             manager, checkout_info, lines, info.context.discounts
         )
         manager.checkout_updated(checkout)
@@ -202,7 +202,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             update_fields=["private_metadata", "shipping_method", "last_change"]
         )
 
-        recalculate_checkout_discount(
+        recalculate_checkout_discounts(
             manager, checkout_info, lines, info.context.discounts
         )
         manager.checkout_updated(checkout)

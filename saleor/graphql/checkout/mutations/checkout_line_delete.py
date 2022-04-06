@@ -2,7 +2,7 @@ import graphene
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import recalculate_checkout_discount
+from ....checkout.utils import recalculate_checkout_discounts
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -58,7 +58,7 @@ class CheckoutLineDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        recalculate_checkout_discount(
+        recalculate_checkout_discounts(
             manager, checkout_info, lines, info.context.discounts
         )
         manager.checkout_updated(checkout)

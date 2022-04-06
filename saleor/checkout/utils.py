@@ -471,7 +471,37 @@ def get_voucher_for_checkout_info(
     )
 
 
-def recalculate_checkout_discount(
+def recalculate_checkout_discounts(
+    manager: PluginsManager,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
+):
+    """Recalculate checkout discounts.
+
+    Recalculate `discounts` from sync webhook or `discount` created from voucher
+    assigned to checkout.
+    """
+    if checkout_info.discounts:
+        _recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
+    else:
+        _recalculate_checkout_discount(manager, checkout_info, lines, discounts)
+
+
+def _recalculate_checkout_discounts(
+    manager: PluginsManager,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
+):
+    """Recalculate `checkout.discounts`.
+
+    Update amount for all discounts assigned to checkout.
+    """
+    pass
+
+
+def _recalculate_checkout_discount(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],

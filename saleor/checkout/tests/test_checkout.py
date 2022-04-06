@@ -29,6 +29,7 @@ from ..fetch import (
 from ..models import Checkout
 from ..utils import (
     PRIVATE_META_APP_SHIPPING_ID,
+    _recalculate_checkout_discount,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
     cancel_active_payments,
@@ -40,7 +41,6 @@ from ..utils import (
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout_info,
     is_fully_paid,
-    recalculate_checkout_discount,
     remove_voucher_from_checkout,
     set_external_shipping_id,
 )
@@ -790,7 +790,7 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
-def test_recalculate_checkout_discount(
+def test__recalculate_checkout_discount(
     checkout_with_voucher, voucher, voucher_translation_fr, settings, channel_USD
 ):
     settings.LANGUAGE_CODE = "fr"
@@ -800,14 +800,14 @@ def test_recalculate_checkout_discount(
     lines, _ = fetch_checkout_lines(checkout_with_voucher)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
 
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    _recalculate_checkout_discount(manager, checkout_info, lines, None)
     assert (
         checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
     )  # noqa
     assert checkout_with_voucher.discount == Money("10.00", "USD")
 
 
-def test_recalculate_checkout_discount_with_sale(
+def test__recalculate_checkout_discount_with_sale(
     checkout_with_voucher_percentage, discount_info
 ):
     checkout = checkout_with_voucher_percentage
@@ -815,7 +815,7 @@ def test_recalculate_checkout_discount_with_sale(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
-    recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
+    _recalculate_checkout_discount(manager, checkout_info, lines, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
     assert calculations.checkout_total(
         manager=manager,
@@ -826,7 +826,7 @@ def test_recalculate_checkout_discount_with_sale(
     ).gross == Money("13.50", "USD")
 
 
-def test_recalculate_checkout_discount_voucher_not_applicable(
+def test__recalculate_checkout_discount_voucher_not_applicable(
     checkout_with_voucher, voucher, channel_USD
 ):
     checkout = checkout_with_voucher
@@ -835,14 +835,14 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    _recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
-def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
+def test__recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
     checkout = checkout_with_voucher
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
@@ -851,14 +851,14 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    _recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
-def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping(
+def test__recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping(
     checkout_with_voucher_percentage_and_shipping,
     voucher_free_shipping,
     shipping_method,
@@ -878,7 +878,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     channel_listing.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    _recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -897,7 +897,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     assert checkout_total == checkout_subtotal
 
 
-def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shipping(
+def test__recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shipping(
     checkout_with_voucher_percentage_and_shipping,
     voucher_free_shipping,
     shipping_method,
@@ -917,7 +917,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     channel_listing.save()
 
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    _recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
@@ -936,14 +936,14 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     assert checkout_total == checkout_subtotal
 
 
-def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(
+def test__recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(
     checkout_with_voucher_percentage, voucher_free_shipping
 ):
     checkout = checkout_with_voucher_percentage
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    recalculate_checkout_discount(manager, checkout_info, lines, None)
+    _recalculate_checkout_discount(manager, checkout_info, lines, None)
 
     assert not checkout.discount_name
     assert not checkout.voucher_code
