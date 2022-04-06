@@ -145,6 +145,10 @@ class CategoryCreate(ModelMutation):
         if cleaned_input.get("background_image"):
             create_category_background_image_thumbnails.delay(instance.pk)
 
+    @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.category_created(instance)
+
 
 class CategoryUpdate(CategoryCreate):
     class Arguments:
@@ -160,6 +164,10 @@ class CategoryUpdate(CategoryCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.category_updated(instance)
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -184,6 +192,7 @@ class CategoryDelete(ModelDeleteMutation):
         delete_categories([db_id], manager=info.context.plugins)
 
         instance.id = db_id
+        info.context.plugins.category_deleted(instance)
         return cls.success_response(instance)
 
 

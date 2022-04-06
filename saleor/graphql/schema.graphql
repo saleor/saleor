@@ -1084,12 +1084,38 @@ type WebhookEvent {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeEnum {
+  """All the events."""
   ANY_EVENTS
+
+  """A new category created."""
+  CATEGORY_CREATED
+
+  """A category is updated."""
+  CATEGORY_UPDATED
+
+  """A category is deleted."""
+  CATEGORY_DELETED
+
+  """A new order is placed."""
   ORDER_CREATED
+
+  """
+  An order is confirmed (status change unconfirmed -> unfulfilled) by a staff user using the OrderConfirm mutation. It also triggers when the user completes the checkout and the shop setting `automatically_confirm_all_new_orders` is enabled.
+  """
   ORDER_CONFIRMED
+
+  """Payment is made and an order is fully paid."""
   ORDER_FULLY_PAID
+
+  """
+  An order is updated; triggered for all changes related to an order; covers all other order webhooks, except for ORDER_CREATED.
+  """
   ORDER_UPDATED
+
+  """An order is cancelled."""
   ORDER_CANCELLED
+
+  """An order is fulfilled."""
   ORDER_FULFILLED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
@@ -1097,29 +1123,75 @@ enum WebhookEventTypeEnum {
   SALE_CREATED
   SALE_UPDATED
   SALE_DELETED
+
+  """An invoice for order requested."""
   INVOICE_REQUESTED
+
+  """An invoice is deleted."""
   INVOICE_DELETED
+
+  """Invoice has been sent."""
   INVOICE_SENT
+
+  """A new customer account is created."""
   CUSTOMER_CREATED
+
+  """A customer account is updated."""
   CUSTOMER_UPDATED
+
+  """A new collection is created."""
   COLLECTION_CREATED
+
+  """A collection is updated."""
   COLLECTION_UPDATED
+
+  """A collection is deleted."""
   COLLECTION_DELETED
+
+  """A new product is created."""
   PRODUCT_CREATED
+
+  """A product is updated."""
   PRODUCT_UPDATED
+
+  """A product is deleted."""
   PRODUCT_DELETED
+
+  """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
+
+  """A product variant is updated."""
   PRODUCT_VARIANT_UPDATED
+
+  """A product variant is deleted."""
   PRODUCT_VARIANT_DELETED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
+
+  """A new checkout is created."""
   CHECKOUT_CREATED
+
+  """
+  A checkout is updated. It also triggers all updates related to the checkout.
+  """
   CHECKOUT_UPDATED
+
+  """A new fulfillment is created."""
   FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
   FULFILLMENT_CANCELED
+
+  """User notification triggered."""
   NOTIFY_USER
+
+  """A new page is created."""
   PAGE_CREATED
+
+  """A page is updated."""
   PAGE_UPDATED
+
+  """A page is deleted."""
   PAGE_DELETED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -1171,6 +1243,15 @@ type WebhookEventAsync {
 enum WebhookEventTypeAsyncEnum {
   """All the events."""
   ANY_EVENTS
+
+  """A new category created."""
+  CATEGORY_CREATED
+
+  """A category is updated."""
+  CATEGORY_UPDATED
+
+  """A category is deleted."""
+  CATEGORY_DELETED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1619,6 +1700,9 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum {
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -16439,7 +16523,28 @@ type Subscription {
   event: Event
 }
 
-union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
+
+type CategoryCreated {
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type CategoryUpdated {
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type CategoryDeleted {
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
 
 type OrderCreated {
   """

@@ -8,6 +8,42 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 
 
+def test_category_created(category, subscription_category_created_webhook):
+    webhooks = [subscription_category_created_webhook]
+    event_type = WebhookEventAsyncType.CATEGORY_CREATED
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, category, webhooks)
+    expected_payload = json.dumps([{"category": {"id": category_id}, "meta": None}])
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_category_updated(category, subscription_category_updated_webhook):
+    webhooks = [subscription_category_updated_webhook]
+    event_type = WebhookEventAsyncType.CATEGORY_UPDATED
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, category, webhooks)
+    expected_payload = json.dumps([{"category": {"id": category_id}, "meta": None}])
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_category_deleted(category, subscription_category_deleted_webhook):
+    webhooks = [subscription_category_deleted_webhook]
+    event_type = WebhookEventAsyncType.CATEGORY_DELETED
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, category, webhooks)
+    expected_payload = json.dumps([{"category": {"id": category_id}, "meta": None}])
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_product_created(product, subscription_product_created_webhook):
     webhooks = [subscription_product_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_CREATED

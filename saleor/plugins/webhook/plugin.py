@@ -55,7 +55,7 @@ if TYPE_CHECKING:
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
-    from ...product.models import Collection, Product, ProductVariant
+    from ...product.models import Category, Collection, Product, ProductVariant
     from ...shipping.interface import ShippingMethodData
     from ...translation.models import Translation
     from ...warehouse.models import Stock
@@ -80,6 +80,30 @@ class WebhookPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.active = True
+
+    def category_created(self, category: "Category", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CATEGORY_CREATED
+        if webhooks := _get_webhooks_for_event(event_type):
+            trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
+
+    def category_updated(self, category: "Category", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CATEGORY_UPDATED
+        if webhooks := _get_webhooks_for_event(event_type):
+            trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
+
+    def category_deleted(self, category: "Category", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CATEGORY_DELETED
+
+        print(event_type)
+        if webhooks := _get_webhooks_for_event(event_type):
+            print(webhooks)
+            trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
