@@ -3,9 +3,13 @@ from unittest.mock import patch
 
 import graphene
 
-from .....graphql.webhook.subscription_payload import validate_subscription_query
+from .....graphql.webhook.subscription_payload import (
+    logger,
+    validate_subscription_query,
+)
 from .....webhook.event_types import WebhookEventAsyncType
-from ...tasks import create_deliveries_for_subscriptions, logger
+from ...tasks import create_deliveries_for_subscriptions
+from ...tasks import logger as task_logger
 
 
 def test_product_created(product, subscription_product_created_webhook):
@@ -479,6 +483,27 @@ def test_create_deliveries_for_subscriptions_unsubscribable_event(
 
     mocked_logger.assert_called_with(
         "Skipping subscription webhook. Event %s is not subscribable.", event_type
+    )
+    assert len(deliveries) == 0
+
+
+@patch("saleor.graphql.webhook.subscription_payload.get_default_backend")
+@patch.object(task_logger, "warning")
+def test_create_deliveries_for_subscriptions_document_executed_with_error(
+    mocked_task_logger,
+    mocked_backend,
+    product,
+    subscription_product_updated_webhook,
+):
+    # given
+    webhooks = [subscription_product_updated_webhook]
+    event_type = WebhookEventAsyncType.ORDER_CREATED
+    mocked_backend.document_from_string.execute.errors = "errors"
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
+    # then
+    mocked_task_logger.assert_called_with(
+        f"No payload was generated with subscription for event: {event_type}"
     )
     assert len(deliveries) == 0
 

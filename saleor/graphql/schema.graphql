@@ -1065,6 +1065,7 @@ type Webhook implements Node {
   targetUrl: String!
   isActive: Boolean!
   secretKey: String
+  subscriptionQuery: String
 }
 
 """An object with an ID"""

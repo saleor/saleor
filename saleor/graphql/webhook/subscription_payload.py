@@ -20,6 +20,7 @@ def validate_subscription_query(query: str) -> bool:
     graphql_backend = get_default_backend()
     try:
         document = graphql_backend.document_from_string(schema, query)
+        print(document.document_ast.definitions)
     except (ValueError, GraphQLSyntaxError):
         return False
     if not check_document_is_single_subscription(document):

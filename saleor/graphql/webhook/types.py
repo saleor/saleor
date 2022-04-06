@@ -167,6 +167,7 @@ class Webhook(ModelObjectType):
     target_url = graphene.String(required=True)
     is_active = graphene.Boolean(required=True)
     secret_key = graphene.String()
+    subscription_query = graphene.String()
 
     class Meta:
         description = "Webhook."

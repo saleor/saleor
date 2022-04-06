@@ -15,6 +15,7 @@ from ..enums import (
     WebhookEventTypeSyncEnum,
     WebhookSampleEventTypeEnum,
 )
+from ..subscription_payload import generate_payload_from_subscription
 
 WEBHOOK_CREATE = """
     mutation webhookCreate($input: WebhookCreateInput!){
@@ -166,6 +167,33 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
     assert Webhook.objects.count() == 0
+
+
+def test_webhook_create_by_staff_invalid_query(
+    app_api_client, permission_manage_orders
+):
+    query = WEBHOOK_CREATE
+    variables = {
+        "input": {
+            "name": "New integration",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [
+                WebhookEventTypeAsyncEnum.ORDER_CREATED.name,
+            ],
+            "query": "invalid_query",
+        }
+    }
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    expected_errors = [{"field": "query", "message": "Subscription query is not valid"}]
+    content = content["data"]["webhookCreate"]
+    assert not content["webhook"]
+    assert content["errors"] == expected_errors
 
 
 WEBHOOK_DELETE_BY_APP = """
@@ -552,3 +580,7 @@ def test_sample_payload_query_by_staff(
     else:
         get_graphql_content(response)
         mock_generate_sample_payload.assert_called_with(event_type.value)
+
+
+def test_generate_payload_from_subscription():
+    generate_payload_from_subscription()
