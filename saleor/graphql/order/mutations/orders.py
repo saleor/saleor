@@ -233,11 +233,7 @@ class OrderUpdate(DraftOrderCreate):
     def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
         return any(
             cleaned_input.get(field) is not None
-            for field in [
-                "shipping_address",
-                "billing_address",
-                "shipping_method",
-            ]
+            for field in ["shipping_address", "billing_address"]
         )
 
     @classmethod
