@@ -25,6 +25,7 @@ from .mutations import (
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
     CheckoutShippingMethodUpdate,
+    OrderCreateFromCheckout,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .sorters import CheckoutSortingInput
@@ -101,3 +102,5 @@ class CheckoutMutations(graphene.ObjectType):
     )
     checkout_delivery_method_update = CheckoutDeliveryMethodUpdate.Field()
     checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()
+
+    order_create_from_checkout = OrderCreateFromCheckout.Field()

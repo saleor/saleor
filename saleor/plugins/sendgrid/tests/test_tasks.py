@@ -8,6 +8,7 @@ from ....account.models import CustomerEvent
 from ....account.notifications import get_default_user_payload
 from ....giftcard import GiftCardEvents
 from ....giftcard.models import GiftCardEvent
+from ....graphql.core.utils import to_global_id_or_none
 from ....invoice import InvoiceEvents
 from ....invoice.models import Invoice, InvoiceEvent
 from ....order import OrderEvents, OrderEventsEmails
@@ -428,7 +429,7 @@ def test_send_fulfillment_confirmation_email_task_by_user(
     template_id = "ABC1"
 
     payload = get_default_fulfillment_payload(order, fulfillment)
-    payload["requester_user_id"] = staff_user.pk
+    payload["requester_user_id"] = to_global_id_or_none(staff_user)
     payload["requester_app_id"] = None
 
     plugin = sendgrid_email_plugin(
@@ -464,7 +465,7 @@ def test_send_fulfillment_confirmation_email_task_by_app(
 
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = None
-    payload["requester_app_id"] = app.pk
+    payload["requester_app_id"] = to_global_id_or_none(app)
 
     plugin = sendgrid_email_plugin(
         api_key="A12",
@@ -572,7 +573,7 @@ def test_send_order_canceled_email_task_by_user(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": staff_user.pk,
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -614,7 +615,7 @@ def test_send_order_canceled_email_task_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": app.pk,
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     plugin = sendgrid_email_plugin(
@@ -656,7 +657,7 @@ def test_send_order_refund_email_task_by_user(
         "currency": order.currency,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": staff_user.pk,
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -700,7 +701,7 @@ def test_send_order_refund_email_task_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": app.pk,
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     plugin = sendgrid_email_plugin(
@@ -737,13 +738,12 @@ def test_send_gift_card_email_task_by_user(
 
     payload = {
         "user": get_default_user_payload(staff_user),
-        "requester_user_id": staff_user.id,
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "recipient_email": recipient_email,
         "resending": False,
-        "recipient_email": recipient_email,
         "gift_card": {
-            "id": gift_card.id,
+            "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
@@ -783,13 +783,12 @@ def test_send_gift_card_email_task_by_user_resending(
 
     payload = {
         "user": get_default_user_payload(staff_user),
-        "requester_user_id": staff_user.id,
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
         "recipient_email": recipient_email,
         "resending": True,
-        "recipient_email": recipient_email,
         "gift_card": {
-            "id": gift_card.id,
+            "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
@@ -830,17 +829,15 @@ def test_send_gift_card_email_task_by_app(
     payload = {
         "user": None,
         "requester_user_id": None,
-        "requester_app_id": app.id,
+        "requester_app_id": to_global_id_or_none(app),
         "recipient_email": recipient_email,
         "resending": False,
-        "recipient_email": recipient_email,
         "gift_card": {
-            "id": gift_card.id,
+            "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
         },
-        "recipient_email": recipient_email,
     }
 
     plugin = sendgrid_email_plugin(
@@ -881,7 +878,7 @@ def test_send_order_confirmed_email_task_by_user(
         "currency": order.currency,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": staff_user.pk,
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -925,7 +922,7 @@ def test_send_order_confirmed_email_task_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": app.pk,
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     plugin = sendgrid_email_plugin(

@@ -45,6 +45,7 @@ from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
+from ...core.utils import to_global_id_or_none
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -1037,7 +1038,7 @@ def test_order_confirm(
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
-        "requester_user_id": staff_api_client.user.id,
+        "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
@@ -1095,7 +1096,7 @@ def test_order_confirm_without_sku(
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
-        "requester_user_id": staff_api_client.user.id,
+        "requester_user_id": to_global_id_or_none(staff_api_client.user),
         "requester_app_id": None,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
@@ -1321,7 +1322,7 @@ def test_nested_order_events_query(
     assert data["user"]["email"] == staff_user.email
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
-    assert data["orderNumber"] == str(fulfilled_order.pk)
+    assert data["orderNumber"] == str(fulfilled_order.number)
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
@@ -1381,7 +1382,7 @@ def test_nested_order_events_query_for_app(
     assert data["app"]["name"] == app.name
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
-    assert data["orderNumber"] == str(fulfilled_order.pk)
+    assert data["orderNumber"] == str(fulfilled_order.number)
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
@@ -1580,7 +1581,7 @@ def test_payment_information_order_events_query(
     assert data["user"]["email"] == staff_user.email
     assert data["app"] is None
     assert data["type"] == "PAYMENT_CAPTURED"
-    assert data["orderNumber"] == str(order.pk)
+    assert data["orderNumber"] == str(order.number)
     assert data["paymentId"] == payment_dummy.token
     assert data["paymentGateway"] == payment_dummy.gateway
 
@@ -1616,7 +1617,7 @@ def test_payment_information_order_events_query_for_app(
     assert data["lines"] is None
     assert data["app"]["name"] == app.name
     assert data["type"] == "PAYMENT_CAPTURED"
-    assert data["orderNumber"] == str(order.pk)
+    assert data["orderNumber"] == str(order.number)
     assert data["paymentId"] == payment_dummy.token
     assert data["paymentGateway"] == payment_dummy.gateway
 

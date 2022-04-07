@@ -29,3 +29,20 @@ class CheckoutErrorCode(Enum):
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     EMAIL_NOT_SET = "email_not_set"
     NO_LINES = "no_lines"
+
+
+class OrderCreateFromCheckoutErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
+    INSUFFICIENT_STOCK = "insufficient_stock"
+    VOUCHER_NOT_APPLICABLE = "voucher_not_applicable"
+    GIFT_CARD_NOT_APPLICABLE = "gift_card_not_applicable"
+    TAX_ERROR = "tax_error"
+    SHIPPING_METHOD_NOT_SET = "shipping_method_not_set"
+    BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
+    SHIPPING_ADDRESS_NOT_SET = "shipping_address_not_set"
+    INVALID_SHIPPING_METHOD = "invalid_shipping_method"
+    NO_LINES = "no_lines"
+    EMAIL_NOT_SET = "email_not_set"
+    UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"

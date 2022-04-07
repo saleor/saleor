@@ -87,11 +87,13 @@ def test_send_webhook_request_sync_failed_attempt(mock_post, app, event_delivery
     expected_data = {
         "content": '{"key": "response_text"}',
         "headers": {"header_key": "header_val"},
+        "status_code": 500,
         "duration": datetime.timedelta(seconds=2),
     }
     mock_post().ok = False
     mock_post().text = expected_data["content"]
     mock_post().headers = expected_data["headers"]
+    mock_post().status_code = expected_data["status_code"]
     mock_post().elapsed = expected_data["duration"]
     # when
     response_data = send_webhook_request_sync(app.name, event_delivery)
@@ -103,6 +105,7 @@ def test_send_webhook_request_sync_failed_attempt(mock_post, app, event_delivery
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["content"]
     assert attempt.response_headers == json.dumps(expected_data["headers"])
+    assert attempt.response_status_code == expected_data["status_code"]
     assert response_data is None
 
 
@@ -115,11 +118,13 @@ def test_send_webhook_request_sync_successful_attempt(
     expected_data = {
         "content": '{"key": "response_text"}',
         "headers": {"header_key": "header_val"},
+        "status_code": 200,
         "duration": datetime.timedelta(seconds=2),
     }
     mock_post().ok = True
     mock_post().text = expected_data["content"]
     mock_post().headers = expected_data["headers"]
+    mock_post().status_code = expected_data["status_code"]
     mock_post().elapsed = expected_data["duration"]
     # when
     response_data = send_webhook_request_sync(app.name, event_delivery)
@@ -133,6 +138,7 @@ def test_send_webhook_request_sync_successful_attempt(
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["content"]
     assert attempt.response_headers == json.dumps(expected_data["headers"])
+    assert attempt.response_status_code == expected_data["status_code"]
     assert response_data == json.loads(expected_data["content"])
 
 
@@ -148,6 +154,7 @@ def test_send_webhook_request_sync_request_exception(mock_post, app, event_deliv
     assert attempt.duration == 0.0
     assert attempt.response == ""
     assert attempt.response_headers == "null"
+    assert attempt.response_status_code is None
     assert attempt.request_headers == "null"
     assert response_data is None
 
@@ -159,6 +166,7 @@ def test_send_webhook_request_sync_when_exception_with_response(
     mock_response = mock.Mock()
     mock_response.text = "response_content"
     mock_response.headers = {"response": "headers"}
+    mock_response.status_code = 302
     mock_post.side_effect = TooManyRedirects(response=mock_response)
     # when
     send_webhook_request_sync(app.name, event_delivery)
@@ -167,6 +175,7 @@ def test_send_webhook_request_sync_when_exception_with_response(
     # then
     assert attempt.response == "response_content"
     assert attempt.response_headers == '{"response": "headers"}'
+    assert attempt.response_status_code == 302
 
 
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
@@ -176,10 +185,12 @@ def test_send_webhook_request_sync_json_parsing_error(mock_post, app, event_deli
         "incorrect_content": "{key: response}",
         "response_headers": {"header_key": "header_val"},
         "duration": datetime.timedelta(seconds=2),
+        "status_code": 200,
     }
     mock_post().text = expected_data["incorrect_content"]
     mock_post().headers = expected_data["response_headers"]
     mock_post().elapsed = expected_data["duration"]
+    mock_post().status_code = expected_data["status_code"]
 
     # when
     response_data = send_webhook_request_sync(app.name, event_delivery)
@@ -191,6 +202,7 @@ def test_send_webhook_request_sync_json_parsing_error(mock_post, app, event_deli
     assert attempt.duration == expected_data["duration"].total_seconds()
     assert attempt.response == expected_data["incorrect_content"]
     assert attempt.response_headers == json.dumps(expected_data["response_headers"])
+    assert attempt.response_status_code == expected_data["status_code"]
     assert response_data is None
 
 
@@ -199,6 +211,7 @@ def test_send_webhook_request_with_proper_timeout(mock_post, event_delivery, app
     mock_post().text = '{"key": "response_text"}'
     mock_post().headers = {"header_key": "header_val"}
     mock_post().elapsed = datetime.timedelta(seconds=1)
+    mock_post().status_code = 200
     send_webhook_request_sync(app.name, event_delivery)
     assert mock_post.call_args.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 

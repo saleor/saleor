@@ -59,8 +59,31 @@ def parse_django_datetime(date):
     return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
 
 
+# <<<<<<< HEAD
 @pytest.fixture
 def order_for_payload(fulfilled_order):
+    # =======
+    # def sort_by_id(dicts):
+    #     return sorted(dicts, key=lambda d: d["id"])
+    #
+    #
+    # @freeze_time()
+    # @mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
+    # @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
+    # def test_generate_order_payload(
+    #     mocked_fulfillment_lines,
+    #     mocked_order_lines,
+    #     fulfilled_order,
+    #     payment_txn_captured,
+    #     customer_user,
+    # ):
+    #     # given
+    #     fulfillment_lines = '"fulfillment_lines"'
+    #     mocked_fulfillment_lines.return_value = fulfillment_lines
+    #     order_lines = '"order_lines"'
+    #     mocked_order_lines.return_value = order_lines
+    #
+    # >>>>>>> main
     order = fulfilled_order
 
     new_order = Order.objects.create(
@@ -97,6 +120,7 @@ def sort_by_id(dicts):
     return sorted(dicts, key=lambda d: d["id"])
 
 
+# <<<<<<< HEAD
 @pytest.fixture
 def payment_for_payload(payment_txn_captured):
     payment_txn_captured.psp_reference = "123"
@@ -131,12 +155,10 @@ def test_generate_order_payload(
     fulfillment = order.fulfillments.first()
     discount_1, discount_2 = list(order.discounts.all())
 
-    payload = json.loads(
-        generate_order_payload(
-            order,
-            customer_user,
-        )
-    )[0]
+    # when
+    payload = json.loads(generate_order_payload(order, customer_user))[0]
+
+    # then
     currency = order.currency
 
     assert payload == {
@@ -150,6 +172,7 @@ def test_generate_order_payload(
         "shipping_method_name": order.shipping_method_name,
         "collection_point_name": None,
         "weight": f"{order.weight.value}:{order.weight.unit}",
+        "language_code": order.language_code,
         "metadata": order.metadata,
         "private_metadata": order.private_metadata,
         "channel": {
@@ -337,6 +360,7 @@ def test_generate_order_payload_without_taxes(
         "shipping_method_name": order.shipping_method_name,
         "collection_point_name": None,
         "weight": f"{order.weight.value}:{order.weight.unit}",
+        "language_code": order.language_code,
         "metadata": order.metadata,
         "private_metadata": order.private_metadata,
         "channel": {
@@ -474,6 +498,41 @@ def test_generate_order_payload_without_taxes(
     mocked_fulfillment_lines.assert_called_with(fulfillment)
     mocked_order_lines.assert_called_once_with(order, ANY, ANY)
     mocked_fetch_order.assert_not_called()
+
+
+@freeze_time()
+@mock.patch("saleor.webhook.payloads._generate_order_lines_payload_with_taxes")
+@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
+def test_generate_order_payload_no_user_email_but_user_set(
+    mocked_fulfillment_lines,
+    mocked_order_lines,
+    fulfilled_order,
+    customer_user,
+):
+    """Ensure that the assigned user's email is returned in `user_email` payload field
+    when the user_email order value is empty."""
+    # given
+    fulfillment_lines = '"fulfillment_lines"'
+    mocked_fulfillment_lines.return_value = fulfillment_lines
+    order_lines = '"order_lines"'
+    mocked_order_lines.return_value = order_lines
+
+    order = fulfilled_order
+
+    order.user_email = ""
+    order.save(update_fields=["user_email"])
+
+    line_without_sku = order.lines.last()
+    line_without_sku.product_sku = None
+    line_without_sku.save()
+
+    assert order.fulfillments.count() == 1
+
+    # when
+    payload = json.loads(generate_order_payload(order, customer_user))[0]
+
+    # then
+    assert payload["user_email"] == order.user.email
 
 
 def test_generate_fulfillment_lines_payload(order_with_lines):
@@ -973,6 +1032,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "type": "Order",
             "token": str(invoice.order.id),
             "id": graphene.Node.to_global_id("Order", invoice.order.id),
+            "language_code": "en",
             "private_metadata": {},
             "metadata": {},
             "created": ANY,
@@ -1031,6 +1091,23 @@ def test_generate_checkout_lines_payload(checkout_with_single_item):
     line = payload["lines"][0]
     assert line["sku"] == variant.sku
     assert line["variant_id"] == variant.get_global_id()
+
+
+def test_generate_checkout_lines_payload_custom_price(checkout_with_single_item):
+    line = checkout_with_single_item.lines.first()
+    price_override = Decimal("11.11")
+    line.price_override = price_override
+    line.save(update_fields=["price_override"])
+
+    payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
+    assert payload.get("lines")
+
+    variant = line.variant
+
+    line_data = payload["lines"][0]
+    assert line_data["sku"] == variant.sku
+    assert line_data["variant_id"] == variant.get_global_id()
+    assert line_data["base_price"] == str(price_override)
 
 
 def test_generate_product_translation_payload(product_translation_fr):
@@ -1228,6 +1305,7 @@ def test_generate_customer_payload(customer_user, address_other_country, address
                 "phone": customer.default_shipping_address.phone,
             }
         ],
+        "language_code": customer.language_code,
         "private_metadata": customer.private_metadata,
         "metadata": customer.metadata,
         "email": customer.email,
@@ -1381,6 +1459,7 @@ def test_generate_checkout_payload_without_taxes(
             quantize_price(checkout.discount_amount, checkout.currency)
         ),
         "discount_name": checkout.discount_name,
+        "language_code": checkout.language_code,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
         "channel": {
@@ -1485,6 +1564,7 @@ def test_generate_checkout_payload(
             quantize_price(checkout.discount_amount, checkout.currency)
         ),
         "discount_name": checkout.discount_name,
+        "language_code": checkout.language_code,
         "private_metadata": checkout.private_metadata,
         "metadata": checkout.metadata,
         "channel": {

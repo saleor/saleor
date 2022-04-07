@@ -128,6 +128,7 @@ def test_serialize_checkout_lines_with_taxes(
             "price_with_discounts_gross_amount": str(
                 quantize_price(line.unit_price_with_discounts_gross_amount, currency)
             ),
+            "price_override": line.price_override,
             "currency": checkout.channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,
@@ -195,6 +196,7 @@ def test_serialize_checkout_lines_without_taxes(
             "base_price_with_discounts": str(
                 quantize_price(base_price_with_discounts, currency)
             ),
+            "price_override": line.price_override,
             "currency": checkout.channel.currency_code,
             "full_name": variant.display_product(),
             "product_name": product.name,

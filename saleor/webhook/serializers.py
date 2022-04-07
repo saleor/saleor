@@ -38,10 +38,10 @@ def _get_checkout_line_payload_data(
     channel_listing = line_info.channel_listing
     collections = line_info.collections
     product = variant.product
+    price_override = line_info.line.price_override
     base_price = variant.get_price(
-        product, collections, channel, channel_listing, discounts
+        product, collections, channel, channel_listing, discounts, price_override
     )
-
     return {
         "id": line_id,
         "sku": variant.sku,
@@ -56,6 +56,7 @@ def _get_checkout_line_payload_data(
         "attributes": serialize_product_or_variant_attributes(variant),
         "product_metadata": line_info.product.metadata,
         "product_type_metadata": line_info.product_type.metadata,
+        "price_override": price_override,
     }
 
 

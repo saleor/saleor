@@ -1,7 +1,9 @@
 import datetime
 import uuid
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Union
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Any, Dict, Iterable, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -15,7 +17,8 @@ from ....checkout.utils import (
     clear_delivery_method,
     is_shipping_required,
 )
-from ....core.exceptions import InsufficientStock
+from ....core.exceptions import InsufficientStock, PermissionDenied
+from ....core.permissions import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing
 from ....shipping import interface as shipping_interface
@@ -23,6 +26,14 @@ from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
+
+
+@dataclass
+class CheckoutLineData:
+    quantity: int = 0
+    quantity_to_update: bool = False
+    custom_price: Optional[Decimal] = None
+    custom_price_to_update: bool = False
 
 
 def clean_delivery_method(
@@ -213,18 +224,33 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
     return checkout
 
 
-def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
-    variant_quantity_map: Dict[str, int] = defaultdict(int)
+def group_quantity_and_custom_prices_by_variants(
+    lines: List[Dict[str, Any]]
+) -> List[CheckoutLineData]:
+    variant_checkout_line_data_map: Dict[str, CheckoutLineData] = defaultdict(
+        CheckoutLineData
+    )
 
-    for quantity, variant_id in (line.values() for line in lines):
-        variant_quantity_map[variant_id] += quantity
+    for line in lines:
+        variant_id = cast(str, line.get("variant_id"))
+        line_data = variant_checkout_line_data_map[variant_id]
+        if (quantity := line.get("quantity")) is not None:
+            line_data.quantity += quantity
+            line_data.quantity_to_update = True
+        if "price" in line:
+            line_data.custom_price = line["price"]
+            line_data.custom_price_to_update = True
 
-    return list(variant_quantity_map.values())
+    return list(variant_checkout_line_data_map.values())
 
 
-def validate_checkout_email(checkout: models.Checkout):
-    if not checkout.email:
-        raise ValidationError(
-            "Checkout email must be set.",
-            code=CheckoutErrorCode.EMAIL_NOT_SET.value,
-        )
+def check_permissions_for_custom_prices(app, lines):
+    """Raise PermissionDenied when custom price is changed by user or app without perm.
+
+    Checkout line custom price can be changed only by app with
+    handle checkout permission.
+    """
+    if any(["price" in line for line in lines]) and (
+        not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
+    ):
+        raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])

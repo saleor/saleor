@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0133_alter_order_options"),
+        ("order", "0135_alter_order_options"),
         ("giftcard", "0012_auto_20211007_0655"),
     ]
 

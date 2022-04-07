@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     fetch_checkout_info,
@@ -14,11 +15,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
-from .utils import (
-    get_checkout_by_token,
-    update_checkout_shipping_method_if_invalid,
-    validate_checkout_email,
-)
+from .utils import get_checkout_by_token, update_checkout_shipping_method_if_invalid
 
 
 class CheckoutAddPromoCode(BaseMutation):

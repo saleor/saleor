@@ -464,7 +464,7 @@ def look_for_permission_in_users_with_manage_staff(
 
 
 def requestor_has_access(
-    requestor: Union["User", "App"], owner: Optional["User"], *perms
+    requestor: Union["User", "App"], owner: Optional[Union["User", "App"]], *perms
 ) -> bool:
     """Check if requestor can access data.
 

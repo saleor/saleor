@@ -2,6 +2,7 @@ import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
+from ....checkout.checkout_cleaner import validate_checkout_email
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -18,7 +19,7 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...order.types import Order
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
-from .utils import get_checkout_by_token, validate_checkout_email
+from .utils import get_checkout_by_token
 
 
 class CheckoutComplete(BaseMutation):

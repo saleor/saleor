@@ -1,6 +1,7 @@
 schema {
   query: Query
   mutation: Mutation
+  subscription: Subscription
 }
 
 type Query {
@@ -1575,6 +1576,7 @@ type EventDeliveryAttempt implements Node {
   duration: Float
   response: String
   responseHeaders: String
+  responseStatusCode: Int
   requestHeaders: String
 
   """Event delivery status."""
@@ -9808,7 +9810,7 @@ type Mutation {
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
-    lines: [CheckoutLineInput!]!
+    lines: [CheckoutLineUpdateInput!]!
 
     """Checkout token."""
     token: UUID
@@ -9907,6 +9909,19 @@ type Mutation {
     """Checkout token."""
     token: UUID
   ): CheckoutLanguageCodeUpdate
+
+  """
+  New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_CHECKOUTS.
+  """
+  orderCreateFromCheckout(
+    """ID of a checkout that will be converted to an order."""
+    id: ID!
+
+    """
+    Determines if checkout should be removed after creating an order. Default true.
+    """
+    removeCheckout: Boolean = true
+  ): OrderCreateFromCheckout
 
   """
   Creates new channel. Requires one of the following permissions: MANAGE_CHANNELS.
@@ -10061,7 +10076,7 @@ type Mutation {
   ): AttributeReorderValues
 
   """
-  Creates a new app. Requires one of the following permissions: MANAGE_APPS.
+  Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
   """
   appCreate(
     """Fields required to create a new app."""
@@ -10110,7 +10125,7 @@ type Mutation {
   ): AppTokenVerify
 
   """
-  Install new app by using app manifest. Requires one of the following permissions: MANAGE_APPS.
+  Install new app by using app manifest. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
   """
   appInstall(
     """Fields required to install a new app."""
@@ -10624,6 +10639,11 @@ input WebhookCreateInput {
 
   """The secret key used to create a hash signature with each payload."""
   secretKey: String
+
+  """
+  New in Saleor 3.2. Subscription query used to define a webhook payload. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  query: String
 }
 
 """
@@ -10672,6 +10692,11 @@ input WebhookUpdateInput {
 
   """Use to create a hash signature with each payload."""
   secretKey: String
+
+  """
+  New in Saleor 3.2. Subscription query used to define a webhook payload. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  query: String
 }
 
 """
@@ -14872,6 +14897,11 @@ input CheckoutLineInput {
 
   """ID of the product variant."""
   variantId: ID!
+
+  """
+  New in Saleor 3.1. Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  price: PositiveDecimal
 }
 
 """
@@ -14933,6 +14963,21 @@ type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+input CheckoutLineUpdateInput {
+  """
+  The number of items purchased. Optional for apps, required for any other users.
+  """
+  quantity: Int
+
+  """ID of the product variant."""
+  variantId: ID!
+
+  """
+  New in Saleor 3.1. Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  price: PositiveDecimal
 }
 
 """Remove a gift card or a voucher from a checkout."""
@@ -15027,6 +15072,52 @@ type CheckoutLanguageCodeUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+"""
+New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_CHECKOUTS.
+"""
+type OrderCreateFromCheckout {
+  """Placed order."""
+  order: Order
+  errors: [OrderCreateFromCheckoutError!]!
+}
+
+type OrderCreateFromCheckoutError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderCreateFromCheckoutErrorCode!
+
+  """List of variant IDs which causes the error."""
+  variants: [ID!]
+
+  """List of line Ids which cause the error."""
+  lines: [ID!]
+}
+
+"""An enumeration."""
+enum OrderCreateFromCheckoutErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  CHANNEL_INACTIVE
+  INSUFFICIENT_STOCK
+  VOUCHER_NOT_APPLICABLE
+  GIFT_CARD_NOT_APPLICABLE
+  TAX_ERROR
+  SHIPPING_METHOD_NOT_SET
+  BILLING_ADDRESS_NOT_SET
+  SHIPPING_ADDRESS_NOT_SET
+  INVALID_SHIPPING_METHOD
+  NO_LINES
+  EMAIL_NOT_SET
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 """
@@ -15413,7 +15504,7 @@ type AttributeReorderValues {
 }
 
 """
-Creates a new app. Requires one of the following permissions: MANAGE_APPS.
+Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 """
 type AppCreate {
   """The newly created authentication token."""
@@ -15519,7 +15610,7 @@ type AppTokenVerify {
 }
 
 """
-Install new app by using app manifest. Requires one of the following permissions: MANAGE_APPS.
+Install new app by using app manifest. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 """
 type AppInstall {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -16346,6 +16437,343 @@ type PermissionGroupDelete {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
   group: Group
+}
+
+type Subscription {
+  """
+  New in Saleor 3.2. Look up subscription event. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  event: Event
+}
+
+union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
+
+type OrderCreated {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type OrderUpdated {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type OrderConfirmed {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type OrderFullyPaid {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type OrderCancelled {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type OrderFulfilled {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type DraftOrderCreated {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type DraftOrderUpdated {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type DraftOrderDeleted {
+  """
+  New in Saleor 3.2. Look up an order. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  order: Order
+}
+
+type ProductCreated {
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type ProductUpdated {
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type ProductDeleted {
+  """
+  New in Saleor 3.2. Look up a product. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type ProductVariantCreated {
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+}
+
+type ProductVariantUpdated {
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+}
+
+type ProductVariantOutOfStock {
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+
+  """
+  New in Saleor 3.2. Look up a warehouse. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  warehouse: Warehouse
+}
+
+type ProductVariantBackInStock {
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+
+  """
+  New in Saleor 3.2. Look up a warehouse. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  warehouse: Warehouse
+}
+
+type ProductVariantDeleted {
+  """
+  New in Saleor 3.2. Look up a product variant. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+}
+
+type SaleCreated {
+  """
+  New in Saleor 3.2. Look up a sale. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  sale(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Sale
+}
+
+type SaleUpdated {
+  """
+  New in Saleor 3.2. Look up a sale. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  sale(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Sale
+}
+
+type SaleDeleted {
+  """
+  New in Saleor 3.2. Look up a sale. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  sale(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Sale
+}
+
+type InvoiceRequested {
+  """
+  New in Saleor 3.2. Look up an Invoice. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  invoice: Invoice
+}
+
+type InvoiceDeleted {
+  """
+  New in Saleor 3.2. Look up an Invoice. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  invoice: Invoice
+}
+
+type InvoiceSent {
+  """
+  New in Saleor 3.2. Look up an Invoice. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  invoice: Invoice
+}
+
+type FulfillmentCreated {
+  """
+  New in Saleor 3.2. Look up a Fulfillment. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  fulfillment: Fulfillment
+}
+
+type FulfillmentCanceled {
+  """
+  New in Saleor 3.2. Look up a Fulfillment. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  fulfillment: Fulfillment
+}
+
+type CustomerCreated {
+  """
+  New in Saleor 3.2. Look up a user. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  user: User
+}
+
+type CustomerUpdated {
+  """
+  New in Saleor 3.2. Look up a user. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  user: User
+}
+
+type CollectionCreated {
+  """
+  New in Saleor 3.2. Look up a collection. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  collection(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Collection
+}
+
+type CollectionUpdated {
+  """
+  New in Saleor 3.2. Look up a collection. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  collection(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Collection
+}
+
+type CollectionDeleted {
+  """
+  New in Saleor 3.2. Look up a collection. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  collection(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Collection
+}
+
+type CheckoutCreated {
+  """
+  New in Saleor 3.2. Look up a Checkout. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  checkout: Checkout
+}
+
+type CheckoutUpdated {
+  """
+  New in Saleor 3.2. Look up a Checkout. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  checkout: Checkout
+}
+
+type PageCreated {
+  """
+  New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  page: Page
+}
+
+type PageUpdated {
+  """
+  New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  page: Page
+}
+
+type PageDeleted {
+  """
+  New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  page: Page
+}
+
+type TranslationCreated {
+  """
+  New in Saleor 3.2. Look up a translation. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  translation: TranslationTypes
+}
+
+union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
+
+type TranslationUpdated {
+  """
+  New in Saleor 3.2. Look up a translation. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  translation: TranslationTypes
 }
 
 """An enumeration."""

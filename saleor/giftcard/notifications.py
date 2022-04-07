@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from ..account.notifications import get_default_user_payload
 from ..core.notification.utils import get_site_context
 from ..core.notify_events import NotifyEventType
+from ..graphql.core.utils import to_global_id_or_none
 
 if TYPE_CHECKING:
     from .models import GiftCard
@@ -23,8 +24,10 @@ def send_gift_card_notification(
     payload = {
         "gift_card": get_default_gift_card_payload(gift_card),
         "user": get_default_user_payload(customer_user) if customer_user else None,
-        "requester_user_id": requester_user.id if requester_user else None,
-        "requester_app_id": app.id if app else None,
+        "requester_user_id": to_global_id_or_none(requester_user)
+        if requester_user
+        else None,
+        "requester_app_id": to_global_id_or_none(app) if app else None,
         "recipient_email": email,
         "resending": resending,
         **get_site_context(),
@@ -36,7 +39,7 @@ def send_gift_card_notification(
 
 def get_default_gift_card_payload(gift_card: "GiftCard"):
     return {
-        "id": gift_card.id,
+        "id": to_global_id_or_none(gift_card),
         "code": gift_card.code,
         "balance": gift_card.current_balance_amount,
         "currency": gift_card.currency,

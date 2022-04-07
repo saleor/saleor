@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from ...core import TimePeriodType
+from ...core.exceptions import GiftCardNotApplicable
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
@@ -621,7 +621,7 @@ def test_fulfill_gift_card_lines_lack_of_stock(
     )
 
     # when
-    with pytest.raises(ValidationError):
+    with pytest.raises(GiftCardNotApplicable):
         fulfill_gift_card_lines(lines, staff_user, None, order, site_settings, manager)
 
 

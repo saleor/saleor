@@ -41,7 +41,7 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus, TimePeriodType
+from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.taxes import zero_money
@@ -1806,6 +1806,11 @@ def permission_manage_orders():
 @pytest.fixture
 def permission_manage_checkouts():
     return Permission.objects.get(codename="manage_checkouts")
+
+
+@pytest.fixture
+def permission_handle_checkouts():
+    return Permission.objects.get(codename="handle_checkouts")
 
 
 @pytest.fixture
@@ -4074,8 +4079,12 @@ def order_with_preorder_lines(
 
 @pytest.fixture
 def order_events(order):
-    for event_type, _ in OrderEvents.CHOICES:
-        OrderEvent.objects.create(type=event_type, order=order)
+    order_events = [
+        OrderEvent(type=event_type, order=order)
+        for event_type, _ in OrderEvents.CHOICES
+    ]
+    OrderEvent.objects.bulk_create(order_events)
+    return order_events
 
 
 @pytest.fixture
@@ -5849,7 +5858,24 @@ def event_attempt(event_delivery):
 @pytest.fixture
 def webhook_response():
     return WebhookResponse(
+        content="test_content",
+        request_headers={"headers": "test_request"},
+        response_headers={"headers": "test_response"},
+        response_status_code=200,
+        duration=2.0,
+        status=EventDeliveryStatus.SUCCESS,
+    )
+
+
+@pytest.fixture
+def webhook_response_failed():
+    return WebhookResponse(
         content="example_content_response",
+        request_headers={"headers": "test_request"},
+        response_headers={"headers": "test_response"},
+        response_status_code=500,
+        duration=2.0,
+        status=EventDeliveryStatus.FAILED,
     )
 
 

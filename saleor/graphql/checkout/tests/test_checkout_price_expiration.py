@@ -59,7 +59,7 @@ def test_checkout_lines_add_invalidate_prices(
 
 
 UPDATE_CHECKOUT_LINES = """
-mutation updateCheckoutLines($token: UUID!, $line: CheckoutLineInput!) {
+mutation updateCheckoutLines($token: UUID!, $line: CheckoutLineUpdateInput!) {
   checkoutLinesUpdate(token: $token, lines: [$line]) {
     errors {
       field
