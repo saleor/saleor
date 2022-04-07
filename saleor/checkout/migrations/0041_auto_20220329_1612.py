@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 import django.utils.timezone
+from django.core.management.sql import emit_post_migrate_signal
 from django.db import migrations, models
 
 
@@ -14,6 +15,34 @@ def set_default_checkout_line_currency(apps, schema_editor):
         line.currency = line.checkout.currency
 
     CheckoutLine.objects.bulk_update(lines, ["currency"])
+
+
+def assign_permission(apps, schema_editor):
+    # force post signal as permissions are created in post migrate signals
+    # related Django issue https://code.djangoproject.com/ticket/23422
+    emit_post_migrate_signal(2, False, "default")
+    Permission = apps.get_model("auth", "Permission")
+    App = apps.get_model("app", "App")
+    Group = apps.get_model("auth", "Group")
+
+    handle_taxes = Permission.objects.filter(
+        codename="handle_taxes", content_type__app_label="checkout"
+    ).first()
+    manage_checkouts = Permission.objects.filter(
+        codename="manage_checkouts", content_type__app_label="checkout"
+    ).first()
+
+    apps = App.objects.filter(
+        permissions=manage_checkouts,
+    )
+    for app in apps.iterator():
+        app.permissions.add(handle_taxes)
+
+    groups = Group.objects.filter(
+        permissions=manage_checkouts,
+    )
+    for group in groups.iterator():
+        group.permissions.add(handle_taxes)
 
 
 class Migration(migrations.Migration):
@@ -34,6 +63,7 @@ class Migration(migrations.Migration):
                 ),
             },
         ),
+        migrations.RunPython(assign_permission),
         migrations.AddField(
             model_name="checkout",
             name="price_expiration",
