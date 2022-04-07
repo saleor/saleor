@@ -4,10 +4,10 @@ from functools import partial
 import pytest
 from prices import Money, fixed_discount, percentage_discount
 
-from ...checkout import calculations
-from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...discount import DiscountType, DiscountValueType
-from ...plugins.manager import get_plugins_manager
+from ....checkout import calculations
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....discount import DiscountType, DiscountValueType
+from ....plugins.manager import get_plugins_manager
 
 
 @pytest.fixture

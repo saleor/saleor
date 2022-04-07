@@ -1,5 +1,7 @@
 import datetime
 from collections import defaultdict
+from decimal import Decimal
+from functools import partial
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -11,17 +13,18 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    Union,
     cast,
 )
 
 from django.db.models import F
 from django.utils import timezone
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..checkout import calculations
 from ..core.taxes import zero_money
-from . import DiscountInfo
+from . import DiscountInfo, DiscountValueType
 from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
@@ -362,3 +365,23 @@ def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
         )
 
     return catalogue_info
+
+
+def apply_discount_to_value(
+    value: Decimal,
+    value_type: str,
+    currency: str,
+    price_to_discount: Union[Money, TaxedMoney],
+):
+    """Calculate the price based on the provided values."""
+    if value_type == DiscountValueType.FIXED:
+        discount_method = fixed_discount
+        discount_kwargs = {"discount": Money(value, currency)}
+    else:
+        discount_method = percentage_discount
+        discount_kwargs = {"percentage": value}
+    discount = partial(
+        discount_method,
+        **discount_kwargs,
+    )
+    return discount(price_to_discount)

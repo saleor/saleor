@@ -17,6 +17,7 @@ from ..core.utils.promo_code import (
 from ..discount import DiscountInfo, VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
+    apply_discount_to_value,
     get_products_voucher_discount,
     validate_voucher_for_checkout,
 )
@@ -481,6 +482,7 @@ def recalculate_checkout_discounts(
 
     Recalculate `discounts` from sync webhook or `discount` created from voucher
     assigned to checkout.
+    If discounts are assigned to checkout we skiping Saleor voucher calculations.
     """
     if checkout_info.discounts:
         _recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
@@ -498,6 +500,7 @@ def _recalculate_checkout_discounts(
 
     Update amount for all discounts assigned to checkout.
     """
+    # TODO: recalculate discounts after merge sync tax
     pass
 
 

@@ -1,12 +1,12 @@
 import copy
 from decimal import Decimal
-from functools import partial, wraps
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
+from functools import wraps
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
 from django.conf import settings
 from django.utils import timezone
-from prices import Money, TaxedMoney, fixed_discount, percentage_discount
+from prices import Money, TaxedMoney
 
 from ..account.models import User
 from ..core.taxes import zero_money
@@ -15,6 +15,7 @@ from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import (
+    apply_discount_to_value,
     get_products_voucher_discount,
     get_sale_id_applied_as_a_discount,
     validate_voucher_in_order,
@@ -808,26 +809,6 @@ def get_total_order_discount(order: Order) -> Money:
 def get_order_discounts(order: Order) -> List[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
     return list(order.discounts.filter(type=DiscountType.MANUAL))
-
-
-def apply_discount_to_value(
-    value: Decimal,
-    value_type: str,
-    currency: str,
-    price_to_discount: Union[Money, TaxedMoney],
-):
-    """Calculate the price based on the provided values."""
-    if value_type == DiscountValueType.FIXED:
-        discount_method = fixed_discount
-        discount_kwargs = {"discount": Money(value, currency)}
-    else:
-        discount_method = percentage_discount
-        discount_kwargs = {"percentage": value}
-    discount = partial(
-        discount_method,
-        **discount_kwargs,
-    )
-    return discount(price_to_discount)
 
 
 def create_order_discount_for_order(
