@@ -43,10 +43,15 @@ def gql_operation_factory():
         operation_name: Optional[str] = None,
         variables: Optional[Dict] = None,
         result: Optional[Dict] = None,
+        result_invalid=False,
     ) -> GraphQLOperationResponse:
         query = backend.document_from_string(schema, query_string)
         return GraphQLOperationResponse(
-            name=operation_name, query=query, variables=variables, result=result
+            name=operation_name,
+            query=query,
+            variables=variables,
+            result=result,
+            result_invalid=result_invalid,
         )
 
     return factory

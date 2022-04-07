@@ -31,6 +31,7 @@ def test_serialize_gql_operation_result(gql_operation_factory):
         "operation_type": "query",
         "query": JsonTruncText(query, False),
         "result": JsonTruncText(_json_serialize(result, pretty=True), False),
+        "result_invalid": False,
     }
 
 
@@ -42,6 +43,7 @@ def test_serialize_gql_operation_result_when_no_operation_data():
         "operation_type": None,
         "query": None,
         "result": None,
+        "result_invalid": False,
     }
 
 
@@ -65,6 +67,7 @@ def test_serialize_gql_operation_result_when_minimal_bytes_limit(gql_operation_f
         "operation_type": "query",
         "query": JsonTruncText("", True),
         "result": JsonTruncText("", True),
+        "result_invalid": False,
     }
     assert left_bytes == 0
     assert len(serialized) <= GQL_OPERATION_PLACEHOLDER_SIZE
@@ -75,7 +78,7 @@ def test_serialize_gql_operation_result_when_truncated(gql_operation_factory):
     operation_result = gql_operation_factory(
         query, "FirstQuery", None, {"data": "result"}
     )
-    bytes_limit = 200
+    bytes_limit = 225
     payload, left_bytes = serialize_gql_operation_result(operation_result, bytes_limit)
     serialized = _json_serialize(payload)
     assert payload == {
@@ -83,6 +86,7 @@ def test_serialize_gql_operation_result_when_truncated(gql_operation_factory):
         "operation_type": "query",
         "query": JsonTruncText("query FirstQu", True),
         "result": JsonTruncText('{\n  "data": ', True),
+        "result_invalid": False,
     }
     assert left_bytes == 0
     assert len(serialized) <= bytes_limit
@@ -100,12 +104,14 @@ def test_serialize_gql_operation_results(gql_operation_factory):
             "operation_type": "query",
             "query": JsonTruncText(query, False),
             "result": JsonTruncText(_json_serialize(result, pretty=True), False),
+            "result_invalid": False,
         },
         {
             "name": JsonTruncText("SecondQuery", False),
             "operation_type": "query",
             "query": JsonTruncText(query, False),
             "result": JsonTruncText(_json_serialize(result, pretty=True), False),
+            "result_invalid": False,
         },
     ]
 
@@ -127,12 +133,14 @@ def test_serialize_gql_operation_results_when_minimal_bytes_limit(
             "operation_type": "query",
             "query": JsonTruncText("", True),
             "result": JsonTruncText("", True),
+            "result_invalid": False,
         },
         {
             "name": JsonTruncText("", True),
             "operation_type": "query",
             "query": JsonTruncText("", True),
             "result": JsonTruncText("", True),
+            "result_invalid": False,
         },
     ]
     assert len(serialized) <= 2 * GQL_OPERATION_PLACEHOLDER_SIZE
@@ -205,6 +213,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
                         "text": _json_serialize(result_a, pretty=True),
                         "truncated": False,
                     },
+                    "result_invalid": False,
                 },
                 {
                     "name": {"text": "SecondQuery", "truncated": False},
@@ -214,6 +223,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
                         "text": _json_serialize(result_b, pretty=True),
                         "truncated": False,
                     },
+                    "result_invalid": False,
                 },
             ],
         },
@@ -310,6 +320,7 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
             },
             "status": EventDeliveryStatus.PENDING,
             "event_type": WebhookEventAsyncType.ANY,
+            "event_sync": False,
         },
         "webhook": {
             "id": graphene.Node.to_global_id("Webhook", webhook.pk),

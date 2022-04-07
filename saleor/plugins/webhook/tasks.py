@@ -494,47 +494,65 @@ def send_webhook_request_sync(
 def observability_send_events():
     events = buffer.get_events()
     if not events:
-        return 0
+        return
     domain = Site.objects.get_current().domain
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in _get_webhooks_for_event(event_type):
         scheme = urlparse(webhook.target_url).scheme.lower()
-        response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
-        if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
-            for event in events:
+        try:
+            if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
+                for event_num, event in enumerate(events):
+                    response = send_webhook_using_scheme_method(
+                        webhook.target_url,
+                        domain,
+                        webhook.secret_key,
+                        event_type,
+                        json.dumps(event),
+                    )
+                    if response.status == EventDeliveryStatus.FAILED:
+                        task_logger.warning(
+                            "Observability webhook ID: %r failed request to %r "
+                            "(%s/%s events delivered): %r.",
+                            webhook.id,
+                            webhook.target_url,
+                            event_num,
+                            len(events),
+                            response.content,
+                        )
+                        break
+                else:
+                    logger.debug(
+                        "Observability successful delivered %s events to %r.",
+                        len(events),
+                        webhook.target_url,
+                    )
+            else:
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
                     domain,
                     webhook.secret_key,
                     event_type,
-                    json.dumps(event),
+                    json.dumps(events),
                 )
-                if response.status == EventDeliveryStatus.FAILED:
-                    break
-        else:
-            response = send_webhook_using_scheme_method(
-                webhook.target_url,
-                domain,
-                webhook.secret_key,
-                event_type,
-                json.dumps(events),
-            )
-        if response.status == EventDeliveryStatus.SUCCESS:
-            logger.debug(
-                "Observability successful delivered %s of type %r to %r.",
-                len(events),
-                event_type,
-                webhook.target_url,
-            )
-        else:
-            task_logger.info(
-                "Observability webhook ID: %r failed request to %r: %r for event: %r.",
+                if response.status == EventDeliveryStatus.SUCCESS:
+                    logger.debug(
+                        "Observability successful delivered %s events to %r.",
+                        len(events),
+                        webhook.target_url,
+                    )
+                else:
+                    task_logger.warning(
+                        "Observability webhook ID: %r failed request to %r: %r.",
+                        webhook.id,
+                        webhook.target_url,
+                        response.content,
+                    )
+        except ValueError:
+            logger.error(
+                "Observability webhook ID: %r unknown webhook scheme: %r",
                 webhook.id,
-                webhook.target_url,
-                response.content,
-                event_type,
+                scheme,
             )
-    return len(events)
 
 
 @app.task

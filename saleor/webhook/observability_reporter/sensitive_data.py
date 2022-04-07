@@ -33,4 +33,8 @@ SENSITIVE_GQL_FIELDS: SensitiveFieldsMap = {
     },
     "AppTokenCreate": {"authToken"},
     "AppToken": {"authToken"},
+    "App": {"accessToken"},
+    "Order": {"userEmail"},
+    "Payment": {"creditCard"},
+    "Checkout": {"email"},
 }

@@ -10,6 +10,7 @@ from django.utils import timezone
 from graphql import get_operation_ast
 
 from .. import traced_payload_generator
+from ..event_types import WebhookEventSyncType
 from .obfuscation import (
     anonymize_event_payload,
     anonymize_gql_operation_response,
@@ -37,6 +38,7 @@ class GraphQLOperationPayload(TypedDict):
     operation_type: Optional[str]
     query: Optional[JsonTruncText]
     result: Optional[JsonTruncText]
+    result_invalid: bool
 
 
 class RequestPayload(TypedDict):
@@ -80,6 +82,7 @@ class EventDeliveryPayload(TypedDict):
     id: str
     status: str
     event_type: str
+    event_sync: bool
     payload: EventDeliveryDataPayload
 
 
@@ -130,6 +133,7 @@ GQL_OPERATION_PLACEHOLDER = GraphQLOperationPayload(
     operation_type="subscription",
     query=TRUNC_PLACEHOLDER,
     result=TRUNC_PLACEHOLDER,
+    result_invalid=False,
 )
 GQL_OPERATION_PLACEHOLDER_SIZE = len(_json_serialize(GQL_OPERATION_PLACEHOLDER))
 
@@ -141,37 +145,31 @@ def serialize_gql_operation_result(
     if bytes_limit < 0:
         raise ValueError()
     anonymize_gql_operation_response(operation, SENSITIVE_GQL_FIELDS)
-    name: Optional[JsonTruncText] = None
-    operation_type: Optional[str] = None
-    query: Optional[JsonTruncText] = None
-    result: Optional[JsonTruncText] = None
+    payload = GraphQLOperationPayload(
+        name=None,
+        operation_type=None,
+        query=None,
+        result=None,
+        result_invalid=operation.result_invalid,
+    )
     if operation.name:
-        name = JsonTruncText.truncate(operation.name, bytes_limit // 3)
-        bytes_limit -= cast(JsonTruncText, name).byte_size
+        payload["name"] = JsonTruncText.truncate(operation.name, bytes_limit // 3)
+        bytes_limit -= cast(JsonTruncText, payload["name"]).byte_size
     if operation.query:
-        query = JsonTruncText.truncate(
+        payload["query"] = JsonTruncText.truncate(
             operation.query.document_string, bytes_limit // 2
         )
-        bytes_limit -= cast(JsonTruncText, query).byte_size
+        bytes_limit -= cast(JsonTruncText, payload["query"]).byte_size
         if definition := get_operation_ast(
             operation.query.document_ast, operation.name
         ):
-            operation_type = definition.operation
+            payload["operation_type"] = definition.operation
     if operation.result:
-        result = JsonTruncText.truncate(
+        payload["result"] = JsonTruncText.truncate(
             _json_serialize(operation.result, pretty=True), bytes_limit
         )
-        bytes_limit -= cast(JsonTruncText, result).byte_size
-    bytes_limit = max(0, bytes_limit)
-    return (
-        GraphQLOperationPayload(
-            name=name,
-            operation_type=operation_type,
-            query=query,
-            result=result,
-        ),
-        bytes_limit,
-    )
+        bytes_limit -= cast(JsonTruncText, payload["result"]).byte_size
+    return payload, max(0, bytes_limit)
 
 
 def serialize_gql_operation_results(
@@ -272,6 +270,7 @@ def generate_event_delivery_attempt_payload(
             id=graphene.Node.to_global_id("EventDelivery", attempt.delivery.pk),
             status=attempt.delivery.status,
             event_type=attempt.delivery.event_type,
+            event_sync=attempt.delivery.event_type in WebhookEventSyncType.ALL,
             payload=EventDeliveryDataPayload(
                 content_length=len(attempt.delivery.payload.payload),
                 body=TRUNC_PLACEHOLDER,

@@ -31,7 +31,7 @@ class GraphQLOperationResponse:
     query: Optional[GraphQLDocument] = None
     variables: Optional[Dict] = None
     result: Optional[Dict] = None
-    status_code: int = 200
+    result_invalid: bool = False
 
 
 class ApiCallResponse:

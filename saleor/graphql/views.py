@@ -226,7 +226,8 @@ class GraphQLView(View):
                 result: Optional[Dict[str, List[Any]]] = response
             else:
                 result = None
-            operation.result, operation.status_code = result, status_code
+            operation.result = result
+            operation.result_invalid = execution_result.invalid
         return result, status_code
 
     def get_root_value(self):
