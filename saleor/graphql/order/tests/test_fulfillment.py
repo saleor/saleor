@@ -1817,11 +1817,23 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     errors = content["data"]["orderFulfillmentApprove"]["errors"]
 
     assert len(errors) == 2
-    assert errors[0]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[0]["message"] == "Insufficient product stock: Test product (SKU_AA)"
+    error_field_and_code = {
+        "field": "stocks",
+        "code": "INSUFFICIENT_STOCK",
+    }
+    expected_errors = [
+        {
+            **error_field_and_code,
+            "message": "Insufficient product stock: Test product (SKU_AA)",
+        },
+        {
+            **error_field_and_code,
+            "message": "Insufficient product stock: Test product 2 (SKU_B)",
+        },
+    ]
 
-    assert errors[1]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[1]["message"] == "Insufficient product stock: Test product 2 (SKU_B)"
+    for expected_error in expected_errors:
+        assert expected_error in errors
 
     fulfillment.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
@@ -1972,11 +1984,18 @@ def test_fulfillment_approve_when_stock_is_exceeded_and_flag_disabled(
     errors = content["data"]["orderFulfillmentApprove"]["errors"]
 
     assert len(errors) == 2
-    assert errors[0]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[0]["message"] == "Insufficient product stock: SKU_AA"
 
-    assert errors[1]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[1]["message"] == "Insufficient product stock: SKU_B"
+    error_field_and_code = {
+        "field": "stocks",
+        "code": "INSUFFICIENT_STOCK",
+    }
+    expected_errors = [
+        {**error_field_and_code, "message": "Insufficient product stock: SKU_AA"},
+        {**error_field_and_code, "message": "Insufficient product stock: SKU_B"},
+    ]
+
+    for expected_error in expected_errors:
+        assert expected_error in errors
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
