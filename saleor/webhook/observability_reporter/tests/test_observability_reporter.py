@@ -35,6 +35,21 @@ def test_api_call_response_report(
     mock_put_event.assert_called_once()
 
 
+@pytest.mark.count_queries(autouse=False)
+@patch("saleor.webhook.observability_reporter.put_event")
+def test_api_call_response_report_count_queries(
+    _, settings, app, test_request, django_assert_max_num_queries, count_queries
+):
+    settings.OBSERVABILITY_ACTIVE = True
+    test_request.app = app
+    response = HttpResponse({"response": "data"})
+    api_call = ApiCallResponse(request=test_request)
+    api_call.response = response
+
+    with django_assert_max_num_queries(1):
+        api_call.report()
+
+
 @patch("saleor.webhook.observability_reporter.put_event")
 def test_api_call_response_report_when_observability_not_active(
     mock_put_event, settings, test_request
