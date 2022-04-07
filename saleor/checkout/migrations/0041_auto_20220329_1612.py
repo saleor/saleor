@@ -72,12 +72,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="checkout",
             name="shipping_price_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkout",
             name="shipping_price_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkout",
@@ -89,22 +93,30 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="checkout",
             name="subtotal_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkout",
             name="subtotal_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkout",
             name="total_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkout",
             name="total_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
@@ -127,61 +139,85 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="checkoutline",
             name="total_price_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="total_price_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="total_price_with_discounts_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="total_price_with_discounts_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="undiscounted_total_price_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="undiscounted_total_price_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="undiscounted_unit_price_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="undiscounted_unit_price_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="unit_price_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="unit_price_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="unit_price_with_discounts_gross_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
         migrations.AddField(
             model_name="checkoutline",
             name="unit_price_with_discounts_net_amount",
-            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+            field=models.DecimalField(
+                decimal_places=3, default=Decimal(0), max_digits=12
+            ),
         ),
     ]

@@ -93,12 +93,12 @@ class Checkout(ModelWithMetadata):
     total_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     total_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     total = TaxedMoneyField(
         net_amount_field="total_net_amount",
@@ -108,12 +108,12 @@ class Checkout(ModelWithMetadata):
     subtotal_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     subtotal_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     subtotal = TaxedMoneyField(
         net_amount_field="subtotal_net_amount",
@@ -123,12 +123,12 @@ class Checkout(ModelWithMetadata):
     shipping_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     shipping_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     shipping_price = TaxedMoneyField(
         net_amount_field="shipping_price_net_amount",
@@ -252,12 +252,12 @@ class CheckoutLine(models.Model):
     undiscounted_unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     undiscounted_unit_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     undiscounted_unit_price = TaxedMoneyField(
         net_amount_field="undiscounted_unit_price_net_amount",
@@ -266,12 +266,12 @@ class CheckoutLine(models.Model):
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     unit_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     unit_price = TaxedMoneyField(
         net_amount_field="unit_price_net_amount",
@@ -280,12 +280,12 @@ class CheckoutLine(models.Model):
     unit_price_with_discounts_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     unit_price_with_discounts_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     unit_price_with_discounts = TaxedMoneyField(
         net_amount_field="unit_price_with_discounts_net_amount",
@@ -295,12 +295,12 @@ class CheckoutLine(models.Model):
     undiscounted_total_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     undiscounted_total_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     undiscounted_total_price = TaxedMoneyField(
         net_amount_field="undiscounted_total_price_net_amount",
@@ -309,12 +309,12 @@ class CheckoutLine(models.Model):
     total_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     total_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     total_price = TaxedMoneyField(
         net_amount_field="total_price_net_amount",
@@ -323,12 +323,12 @@ class CheckoutLine(models.Model):
     total_price_with_discounts_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     total_price_with_discounts_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
+        default=Decimal(0),
     )
     total_price_with_discounts = TaxedMoneyField(
         net_amount_field="total_price_with_discounts_net_amount",
