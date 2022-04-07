@@ -66,6 +66,7 @@ documentation = "https://docs.saleor.io/"
   posuto = "^2022.3.0"
   cryptography = "^36.0.0"
   graphene = "<3.0"
+  before_after = "^1.0.1"
 
     [tool.poetry.dependencies.uvicorn]
     extras = [ "standard" ]
@@ -84,7 +85,7 @@ documentation = "https://docs.saleor.io/"
     platform = "win32"
 
   [tool.poetry.dev-dependencies]
-  black = "22.1.0"
+  black = "22.3.0"
   codecov = "^2.1.11"
   coverage = "^6.3"
   django-debug-toolbar = "^3.2"
