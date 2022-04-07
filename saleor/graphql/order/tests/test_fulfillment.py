@@ -188,10 +188,10 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
 
     errors = data["errors"]
     assert errors[0]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[0]["message"] == "Insufficient product stock: SKU_AA"
+    assert errors[0]["message"] == f"Insufficient product stock: {order_line}"
 
     assert errors[1]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[1]["message"] == "Insufficient product stock: SKU_B"
+    assert errors[1]["message"] == f"Insufficient product stock: {order_line2}"
 
 
 def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
@@ -1817,6 +1817,7 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     errors = content["data"]["orderFulfillmentApprove"]["errors"]
 
     assert len(errors) == 2
+
     error_field_and_code = {
         "field": "stocks",
         "code": "INSUFFICIENT_STOCK",
@@ -1824,12 +1825,9 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     expected_errors = [
         {
             **error_field_and_code,
-            "message": "Insufficient product stock: Test product (SKU_AA)",
-        },
-        {
-            **error_field_and_code,
-            "message": "Insufficient product stock: Test product 2 (SKU_B)",
-        },
+            "message": f"Insufficient product stock: {line.order_line}",
+        }
+        for line in fulfillment.lines.all()
     ]
 
     for expected_error in expected_errors:
@@ -1989,9 +1987,13 @@ def test_fulfillment_approve_when_stock_is_exceeded_and_flag_disabled(
         "field": "stocks",
         "code": "INSUFFICIENT_STOCK",
     }
+
     expected_errors = [
-        {**error_field_and_code, "message": "Insufficient product stock: SKU_AA"},
-        {**error_field_and_code, "message": "Insufficient product stock: SKU_B"},
+        {
+            **error_field_and_code,
+            "message": f"Insufficient product stock: {line.order_line}",
+        }
+        for line in fulfillment.lines.all()
     ]
 
     for expected_error in expected_errors:
