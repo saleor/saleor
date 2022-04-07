@@ -123,7 +123,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Don't run plugins when calculating checkout's total price for available shipping methods resolution - #9121 by @rafalp
   - Use either net or gross price depending on store configuration.
-- Update webhook payload for `list_shipping_methods_for_checkout`
+- Update webhook payload for `list_shipping_methods_for_checkout` - #9263 by @mateuszgrzyb
   - added fields:
     - `subtotal_base_amount`
     - `total_base_amount`
@@ -131,7 +131,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `lines.base_price_with_discounts`
     - `lines.product_metadata`
     - `lines.product_type_metadata`
-- Update checkout payload serializer
+- Update checkout payload serializer - #9263 by @mateuszgrzyb
   - added fields:
     - `subtotal_net_amount`
     - `subtotal_gross_amount`
@@ -144,7 +144,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `lines.price_with_discounts_gross_amount`
     - `lines.product_metadata`
     - `lines.product_type_metadata`
-- Update order payload serializer
+- Update order payload serializer - #9263 by @mateuszgrzyb
   - added fields:
     - `included_taxes_in_prices`
     - `lines.charge_taxes`
@@ -193,13 +193,6 @@ All notable, unreleased changes to this project will be documented in this file.
   `CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
   unavailable - #8978 by @IKarbowiak
 - Add `withChoices` flag for Attribute type - #7733 by @dexon44
-`CheckoutAddPromoCode`, `CheckoutPaymentCreate` will raise a ValidationError when product in the checkout is
-unavailable - #8978 by @IKarbowiak
-- Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
-- Add support for providing shipping methods by Saleor Apps - #7975 by @bogdal:
-  - Add `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook
-- Fix crash when Avalara plugin was used together with Webhooks plugin for shipping methods - #9121 by @rafalp
-- Allow fetching unpublished pages by app with manage pages permission - #9181 by @IKarbowiak
 - Update required permissions for attribute options - #9204 by @IKarbowiak
   - Product attribute options can be fetched by requestors with manage product types and attributes permission.
   - Page attribute options can be fetched by requestors with manage page types and attributes permission.
