@@ -201,7 +201,7 @@ def queryset_in_batches(queryset):
     start_pk = 0
 
     while True:
-        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
         pks = list(qs.values_list("pk", flat=True))
 
         if not pks:
