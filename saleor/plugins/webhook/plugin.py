@@ -81,21 +81,21 @@ class WebhookPlugin(BasePlugin):
         super().__init__(*args, **kwargs)
         self.active = True
 
-    def category_created(self, category: "Category", previous_value: Any) -> Any:
+    def category_created(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
             trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
 
-    def category_updated(self, category: "Category", previous_value: Any) -> Any:
+    def category_updated(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
             trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
 
-    def category_deleted(self, category: "Category", previous_value: Any) -> Any:
+    def category_deleted(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_DELETED

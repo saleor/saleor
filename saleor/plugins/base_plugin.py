@@ -238,19 +238,19 @@ class BasePlugin:
     #
     #  Overwrite this method if you need to trigger specific logic after a category is
     #  created.
-    category_created: Callable[["Category", Any], Any]
+    category_created: Callable[["Category", None], None]
 
     #  Trigger when category is deleted.
     #
     #  Overwrite this method if you need to trigger specific logic after a category is
     #  deleted.
-    category_deleted: Callable[["Category", Any], Any]
+    category_deleted: Callable[["Category", None], None]
 
     #  Trigger when category is updated.
     #
     #  Overwrite this method if you need to trigger specific logic after a category is
     #  updated.
-    category_updated: Callable[["Category", Any], Any]
+    category_updated: Callable[["Category", None], None]
 
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
