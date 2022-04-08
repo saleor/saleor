@@ -91,6 +91,16 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_method_id=shipping_method_id,
         )
 
+        if delivery_method is None and shipping_method_id:
+            raise ValidationError(
+                {
+                    "delivery_method_id": ValidationError(
+                        f"Couldn't resolve to a node: ${shipping_method_id}",
+                        code=CheckoutErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
         cls._check_delivery_method(
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
