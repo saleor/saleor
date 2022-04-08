@@ -111,6 +111,10 @@ class OrderEvents:
     PAYMENT_FAILED = "payment_failed"
     PAYMENT_EVENT = "payment_event"
 
+    PAYMENT_CAPTURE_REQUESTED = "payment_capture_requested"
+    PAYMENT_REFUND_REQUESTED = "payment_refund_requested"
+    PAYMENT_VOID_REQUESTED = "payment_void_requested"
+
     EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
     INVOICE_REQUESTED = "invoice_requested"
@@ -163,6 +167,9 @@ class OrderEvents:
         (PAYMENT_REFUNDED, "The payment was refunded"),
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),
+        (PAYMENT_CAPTURE_REQUESTED, "The capture on payment requested"),
+        (PAYMENT_REFUND_REQUESTED, "The refund on payment requested"),
+        (PAYMENT_VOID_REQUESTED, "The void on payment requested"),
         (INVOICE_REQUESTED, "An invoice was requested"),
         (INVOICE_GENERATED, "An invoice was generated"),
         (INVOICE_UPDATED, "An invoice was updated"),

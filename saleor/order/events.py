@@ -40,6 +40,56 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
     }
 
 
+def event_payment_capture_requested(
+    order_id: "UUID", reference: str, amount: Decimal, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.PAYMENT_CAPTURE_REQUESTED,
+        user=user,
+        app=app,
+        parameters={
+            "amount": amount,
+            "payment_id": reference,
+        },
+    )
+
+
+def event_payment_refund_requested(
+    order_id: "UUID", reference: str, amount: Decimal, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.PAYMENT_REFUND_REQUESTED,
+        user=user,
+        app=app,
+        parameters={
+            "amount": amount,
+            "payment_id": reference,
+        },
+    )
+
+
+def event_payment_void_requested(
+    order_id: "UUID", reference: str, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.PAYMENT_VOID_REQUESTED,
+        user=user,
+        app=app,
+        parameters={
+            "payment_id": reference,
+        },
+    )
+
+
 def event_order_refunded_notification(
     order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
