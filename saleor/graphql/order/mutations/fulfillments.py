@@ -531,10 +531,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_order_payment(cls, payment, cleaned_input):
-        if payment:
-            if not payment.gateway or payment.can_refund():
-                cleaned_input["payment"] = payment
-                return
+        if payment and (not payment.gateway or payment.can_refund()):
+            cleaned_input["payment"] = payment
+            return
 
         raise ValidationError(
             {
