@@ -15,7 +15,6 @@ from ..enums import (
     WebhookEventTypeSyncEnum,
     WebhookSampleEventTypeEnum,
 )
-from ..subscription_payload import generate_payload_from_subscription
 
 WEBHOOK_CREATE = """
     mutation webhookCreate($input: WebhookCreateInput!){
@@ -580,7 +579,3 @@ def test_sample_payload_query_by_staff(
     else:
         get_graphql_content(response)
         mock_generate_sample_payload.assert_called_with(event_type.value)
-
-
-def test_generate_payload_from_subscription():
-    generate_payload_from_subscription()
