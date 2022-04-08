@@ -173,7 +173,7 @@ def test_payment_refund_with_payment_action_request_without_amount(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-def test_payment_capture_with_payment_action_request_missing_event(
+def test_payment_refund_with_payment_action_request_missing_event(
     mocked_is_active, staff_api_client, permission_manage_orders, order
 ):
     # given

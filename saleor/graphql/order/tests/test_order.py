@@ -24,7 +24,7 @@ from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
-from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -35,6 +35,7 @@ from ....order.search import (
     update_order_search_document,
 )
 from ....payment import ChargeStatus, PaymentAction, PaymentError
+from ....payment.interface import PaymentActionData
 from ....payment.models import Payment
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
@@ -5456,17 +5457,7 @@ def test_order_cancel_with_bought_gift_cards(
     assert gift_card.events.filter(type=GiftCardEvents.DEACTIVATED)
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_order_capture(
-    mocked_notify,
-    channel_USD,
-    staff_api_client,
-    permission_manage_orders,
-    payment_txn_preauth,
-    staff_user,
-):
-    order = payment_txn_preauth.order
-    query = """
+ORDER_CAPTURE_MUTATION = """
         mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
             orderCapture(id: $id, amount: $amount) {
                 order {
@@ -5477,14 +5468,31 @@ def test_order_capture(
                         amount
                     }
                 }
+                errors{
+                    field
+                    message
+                    code
+                }
             }
         }
-    """
+"""
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_order_capture(
+    mocked_notify,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+    staff_user,
+):
+    order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_preauth.total)
     variables = {"id": order_id, "amount": amount}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
@@ -5529,6 +5537,97 @@ def test_order_capture(
         expected_payment_payload,
         channel_slug=order.channel.slug,
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_order_capture_with_payment_action_request(
+    mocked_payment_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    capture_value = Decimal(5.0)
+    mocked_is_active.return_value = True
+    order_id = to_global_id_or_none(order)
+
+    variables = {"id": order_id, "amount": capture_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCapture"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_type=PaymentAction.CAPTURE,
+            action_value=capture_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
+    assert Decimal(event.parameters["amount"]) == capture_value
+    assert event.parameters["payment_id"] == payment.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_order_capture_with_payment_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    authorization_value = Decimal("10")
+    Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=authorization_value,
+    )
+    mocked_is_active.return_value = False
+
+    order_id = to_global_id_or_none(order)
+
+    variables = {"id": order_id, "amount": authorization_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCapture"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == (
+        "No app or plugin is configured to handle payment action requests."
+    )
+    assert data["errors"][0]["code"] == (
+        OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
 
 
 MUTATION_MARK_ORDER_AS_PAID = """
@@ -5707,6 +5806,95 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_order_void_with_payment_action_request(
+    mocked_payment_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    payment = Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    mocked_is_active.return_value = True
+
+    order_id = to_global_id_or_none(order)
+
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_VOID, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderVoid"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_type=PaymentAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_VOID_REQUESTED
+    assert event.parameters["payment_id"] == payment.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_order_void_with_payment_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10.0"),
+    )
+    mocked_is_active.return_value = False
+
+    order_id = to_global_id_or_none(order)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_VOID, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderVoid"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == (
+        "No app or plugin is configured to handle payment action requests."
+    )
+    assert data["errors"][0]["code"] == (
+        OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
+
+
 ORDER_REFUND_MUTATION = """
     mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
         orderRefund(id: $id, amount: $amount) {
@@ -5773,6 +5961,93 @@ def test_order_refund_with_gift_card_lines(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
     assert data["errors"][0]["field"] == "id"
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+def test_order_refund_with_payment_action_request(
+    mocked_payment_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    payment = Payment.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    refund_value = Decimal(5.0)
+    mocked_is_active.return_value = True
+
+    order_id = to_global_id_or_none(order)
+    variables = {"id": order_id, "amount": refund_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        PaymentActionData(
+            payment=payment,
+            action_type=PaymentAction.REFUND,
+            action_value=refund_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.PAYMENT_REFUND_REQUESTED
+    assert Decimal(event.parameters["amount"]) == refund_value
+    assert event.parameters["payment_id"] == payment.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_order_refund_with_payment_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    captured_value = Decimal("10")
+    Payment.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=captured_value,
+    )
+    mocked_is_active.return_value = False
+
+    order_id = to_global_id_or_none(order)
+    variables = {"id": order_id, "amount": captured_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == (
+        OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
 
 
 @pytest.mark.parametrize(
