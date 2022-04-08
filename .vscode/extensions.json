@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "ms-python.vscode-pylance",
+        "ms-python.pylint",
+        "ms-python.python",
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker"
+    ]
+}
