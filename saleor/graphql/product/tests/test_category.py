@@ -498,7 +498,7 @@ def test_category_create_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        None,
+        {"id": graphene.Node.to_global_id("Category", category.id)},
         WebhookEventAsyncType.CATEGORY_CREATED,
         [any_webhook],
         category,
@@ -718,7 +718,7 @@ def test_category_update_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        None,
+        {"id": variables["id"]},
         WebhookEventAsyncType.CATEGORY_UPDATED,
         [any_webhook],
         category,
@@ -1016,7 +1016,7 @@ def test_category_delete_trigger_webhook(
 
     delete_versatile_image_mock.assert_not_called()
     mocked_webhook_trigger.assert_called_once_with(
-        None,
+        {"id": variables["id"]},
         WebhookEventAsyncType.CATEGORY_DELETED,
         [any_webhook],
         category,

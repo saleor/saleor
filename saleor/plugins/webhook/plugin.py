@@ -2,6 +2,8 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
+import graphene
+
 from ...app.models import App
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
@@ -86,22 +88,30 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_CREATED
         if webhooks := _get_webhooks_for_event(event_type):
-            trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
+            payload = {"id": graphene.Node.to_global_id("Category", category.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, category, self.requestor
+            )
 
     def category_updated(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_UPDATED
         if webhooks := _get_webhooks_for_event(event_type):
-            trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
+            payload = {"id": graphene.Node.to_global_id("Category", category.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, category, self.requestor
+            )
 
     def category_deleted(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_DELETED
-
         if webhooks := _get_webhooks_for_event(event_type):
-            trigger_webhooks_async(None, event_type, webhooks, category, self.requestor)
+            payload = {"id": graphene.Node.to_global_id("Category", category.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, category, self.requestor
+            )
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
