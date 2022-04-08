@@ -531,16 +531,18 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_order_payment(cls, payment, cleaned_input):
-        if not payment or not payment.can_refund():
-            raise ValidationError(
-                {
-                    "order": ValidationError(
-                        "Order cannot be refunded.",
-                        code=OrderErrorCode.CANNOT_REFUND.value,
-                    )
-                }
-            )
-        cleaned_input["payment"] = payment
+        if payment and (not payment.gateway or payment.can_refund()):
+            cleaned_input["payment"] = payment
+            return
+
+        raise ValidationError(
+            {
+                "order": ValidationError(
+                    "Order cannot be refunded.",
+                    code=OrderErrorCode.CANNOT_REFUND.value,
+                )
+            }
+        )
 
     @classmethod
     def clean_amount_to_refund(cls, order, amount_to_refund, payment, cleaned_input):
@@ -557,7 +559,11 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                         )
                     }
                 )
-            if amount_to_refund > payment.captured_amount:
+            # FIXME this will be cleaned up with cleaning up Payment model
+            captured_value = (
+                payment.captured_amount if payment.gateway else payment.captured_value
+            )
+            if amount_to_refund > captured_value:
                 raise ValidationError(
                     {
                         "amount_to_refund": ValidationError(

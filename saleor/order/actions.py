@@ -21,6 +21,7 @@ from ..payment import (
     TransactionKind,
     gateway,
 )
+from ..payment.gateway import request_refund_action
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
@@ -1462,19 +1463,36 @@ def _process_refund(
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
     if amount:
-        amount = min(payment.captured_amount, amount)
+        msg = "The refund operation is not available yet."
+        code = OrderErrorCode.CANNOT_REFUND.value
         try:
-            gateway.refund(
-                payment,
-                manager,
-                amount=amount,
-                channel_slug=order.channel.slug,
-                refund_data=refund_data,
-            )
+            if not payment.gateway:
+                code = OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.value
+                msg = (
+                    "No app or plugin is configured to handle payment action requests."
+                )
+                amount = min(payment.captured_value, amount)
+                request_refund_action(
+                    payment,
+                    manager,
+                    refund_value=amount,
+                    channel_slug=order.channel.slug,
+                    user=user,
+                    app=app,
+                )
+            else:
+                amount = min(payment.captured_amount, amount)
+                gateway.refund(
+                    payment,
+                    manager,
+                    amount=amount,
+                    channel_slug=order.channel.slug,
+                    refund_data=refund_data,
+                )
         except PaymentError:
             raise ValidationError(
-                "The refund operation is not available yet.",
-                code=OrderErrorCode.CANNOT_REFUND.value,
+                msg,
+                code=code,
             )
         transaction.on_commit(
             lambda: events.payment_refunded_event(
