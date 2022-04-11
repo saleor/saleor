@@ -127,7 +127,7 @@ def create_deliveries_for_subscriptions(
             )
             continue
 
-        event_payload = EventPayload(payload=json.dumps([{**data, "meta": meta}]))
+        event_payload = EventPayload(payload=json.dumps({**data, "meta": meta}))
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -167,7 +167,9 @@ def trigger_webhooks_async(
     if subscription_webhooks:
         meta = {}
         if requestor:
-            meta = generate_meta(requestor_data=generate_requestor(requestor))
+            meta = generate_meta(
+                requestor_data=generate_requestor(requestor), camel_case=True
+            )
         deliveries.extend(
             create_deliveries_for_subscriptions(
                 event_type=event_type,
