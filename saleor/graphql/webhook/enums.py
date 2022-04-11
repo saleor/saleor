@@ -3,80 +3,65 @@ import graphene
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.utils import str_to_enum
 
+checkout_updated_event_enum_description = (
+    "A checkout is updated. It also triggers all updates related to the checkout."
+)
+
+order_confirmed_event_enum_description = (
+    "An order is confirmed (status change unconfirmed -> unfulfilled) "
+    "by a staff user using the OrderConfirm mutation. "
+    "It also triggers when the user completes the checkout and the shop "
+    "setting `automatically_confirm_all_new_orders` is enabled."
+)
+
+order_fully_paid_event_enum_description = "Payment is made and an order is fully paid."
+
+order_updated_event_enum_description = (
+    "An order is updated; triggered for all changes related to an order; "
+    "covers all other order webhooks, except for ORDER_CREATED."
+)
+
+
+WEBHOOK_EVENT_DESCRIPTION = {
+    WebhookEventAsyncType.CATEGORY_CREATED: "A new category created.",
+    WebhookEventAsyncType.CATEGORY_UPDATED: "A category is updated.",
+    WebhookEventAsyncType.CATEGORY_DELETED: "A category is deleted.",
+    WebhookEventAsyncType.CHECKOUT_CREATED: "A new checkout is created.",
+    WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
+    WebhookEventAsyncType.COLLECTION_CREATED: "A new collection is created.",
+    WebhookEventAsyncType.COLLECTION_UPDATED: "A collection is updated.",
+    WebhookEventAsyncType.COLLECTION_DELETED: "A collection is deleted.",
+    WebhookEventAsyncType.CUSTOMER_CREATED: "A new customer account is created.",
+    WebhookEventAsyncType.CUSTOMER_UPDATED: "A customer account is updated.",
+    WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
+    WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
+    WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,
+    WebhookEventAsyncType.ORDER_FULLY_PAID: order_fully_paid_event_enum_description,
+    WebhookEventAsyncType.ORDER_UPDATED: order_updated_event_enum_description,
+    WebhookEventAsyncType.ORDER_CANCELLED: "An order is cancelled.",
+    WebhookEventAsyncType.ORDER_FULFILLED: "An order is fulfilled.",
+    WebhookEventAsyncType.FULFILLMENT_CREATED: "A new fulfillment is created.",
+    WebhookEventAsyncType.FULFILLMENT_CANCELED: "A fulfillment is cancelled.",
+    WebhookEventAsyncType.PAGE_CREATED: "A new page is created.",
+    WebhookEventAsyncType.PAGE_UPDATED: "A page is updated.",
+    WebhookEventAsyncType.PAGE_DELETED: "A page is deleted.",
+    WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
+    WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
+    WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
+    WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: "A new product variant is created.",
+    WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: "A product variant is updated.",
+    WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: "A product variant is deleted.",
+    WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
+    WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
+    WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
+    WebhookEventAsyncType.ANY: "All the events.",
+}
+
 
 def description(enum):
-    if enum is None:
-        return "Enum determining type of webhook."
-    elif enum == WebhookEventTypeAsyncEnum.CHECKOUT_CREATED:
-        return "A new checkout is created."
-    elif enum == WebhookEventTypeAsyncEnum.CHECKOUT_UPDATED:
-        return (
-            "A checkout is updated. "
-            "It also triggers all updates related to the checkout."
-        )
-    elif enum == WebhookEventTypeAsyncEnum.COLLECTION_CREATED:
-        return "A new collection is created."
-    elif enum == WebhookEventTypeAsyncEnum.COLLECTION_UPDATED:
-        return "A collection is updated."
-    elif enum == WebhookEventTypeAsyncEnum.COLLECTION_DELETED:
-        return "A collection is deleted."
-    elif enum == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED:
-        return "A new customer account is created."
-    elif enum == WebhookEventTypeAsyncEnum.CUSTOMER_UPDATED:
-        return "A customer account is updated."
-    elif enum == WebhookEventTypeAsyncEnum.NOTIFY_USER:
-        return "User notification triggered."
-    elif enum == WebhookEventTypeAsyncEnum.ORDER_CREATED:
-        return "A new order is placed."
-    elif enum == WebhookEventTypeAsyncEnum.ORDER_CONFIRMED:
-        return (
-            "An order is confirmed (status change unconfirmed -> unfulfilled) "
-            "by a staff user using the OrderConfirm mutation. "
-            "It also triggers when the user completes the checkout and the shop "
-            "setting `automatically_confirm_all_new_orders` is enabled."
-        )
-    elif enum == WebhookEventTypeAsyncEnum.ORDER_FULLY_PAID:
-        return "Payment is made and an order is fully paid."
-    elif enum == WebhookEventTypeAsyncEnum.ORDER_UPDATED:
-        return (
-            "An order is updated; triggered for all changes related to an order; "
-            "covers all other order webhooks, except for ORDER_CREATED."
-        )
-    elif enum == WebhookEventTypeAsyncEnum.ORDER_CANCELLED:
-        return "An order is cancelled."
-    elif enum == WebhookEventTypeAsyncEnum.ORDER_FULFILLED:
-        return "An order is fulfilled."
-    elif enum == WebhookEventTypeAsyncEnum.FULFILLMENT_CREATED:
-        return "A new fulfillment is created."
-    elif enum == WebhookEventTypeAsyncEnum.FULFILLMENT_CANCELED:
-        return "A fulfillment is cancelled."
-    elif enum == WebhookEventTypeAsyncEnum.PAGE_CREATED:
-        return "A new page is created."
-    elif enum == WebhookEventTypeAsyncEnum.PAGE_UPDATED:
-        return "A page is updated."
-    elif enum == WebhookEventTypeAsyncEnum.PAGE_DELETED:
-        return "A page is deleted."
-    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_CREATED:
-        return "A new product is created."
-    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_UPDATED:
-        return "A product is updated."
-    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_DELETED:
-        return "A product is deleted."
-    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_VARIANT_CREATED:
-        return "A new product variant is created."
-    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_VARIANT_UPDATED:
-        return "A product variant is updated."
-    elif enum == WebhookEventTypeAsyncEnum.PRODUCT_VARIANT_DELETED:
-        return "A product variant is deleted."
-    elif enum == WebhookEventTypeAsyncEnum.INVOICE_REQUESTED:
-        return "An invoice for order requested."
-    elif enum == WebhookEventTypeAsyncEnum.INVOICE_DELETED:
-        return "An invoice is deleted."
-    elif enum == WebhookEventTypeAsyncEnum.INVOICE_SENT:
-        return "Invoice has been sent."
-    elif enum == WebhookEventTypeAsyncEnum.ANY_EVENTS:
-        return "All the events."
-    return None
+    if enum:
+        return WEBHOOK_EVENT_DESCRIPTION.get(enum.value)
+    return "Enum determining type of webhook."
 
 
 WebhookEventTypeEnum = graphene.Enum(

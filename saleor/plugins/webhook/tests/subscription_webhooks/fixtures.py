@@ -19,6 +19,66 @@ def subscription_webhook(app):
     return fun
 
 
+CATEGORY_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on CategoryCreated{
+          category{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_category_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        CATEGORY_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CATEGORY_CREATED
+    )
+
+
+CATEGORY_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on CategoryUpdated{
+          category{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_category_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        CATEGORY_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CATEGORY_UPDATED
+    )
+
+
+CATEGORY_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on CategoryDeleted{
+          category{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_category_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        CATEGORY_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CATEGORY_DELETED
+    )
+
+
 PRODUCT_UPDATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{

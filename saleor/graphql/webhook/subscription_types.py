@@ -33,6 +33,30 @@ TRANSLATIONS_TYPES_MAP = {
 }
 
 
+class CategoryBase(AbstractType):
+    category = graphene.Field(
+        "saleor.graphql.product.types.Category",
+        description=f"{ADDED_IN_32} Look up a category. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_category(root, info):
+        _, category = root
+        return category
+
+
+class CategoryCreated(ObjectType, CategoryBase):
+    ...
+
+
+class CategoryUpdated(ObjectType, CategoryBase):
+    ...
+
+
+class CategoryDeleted(ObjectType, CategoryBase):
+    ...
+
+
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
@@ -378,6 +402,9 @@ class TranslationUpdated(ObjectType, TranslationBase):
 class Event(Union):
     class Meta:
         types = (
+            CategoryCreated,
+            CategoryUpdated,
+            CategoryDeleted,
             OrderCreated,
             OrderUpdated,
             OrderConfirmed,
@@ -420,6 +447,9 @@ class Event(Union):
     @classmethod
     def get_type(cls, object_type: str):
         types = {
+            WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
+            WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
+            WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
             WebhookEventAsyncType.ORDER_CREATED: OrderCreated,
             WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
             WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
