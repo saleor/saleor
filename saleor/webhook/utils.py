@@ -27,11 +27,11 @@ def get_webhooks_for_event(
     event_types = [event_type]
     if event_type in WebhookEventAsyncType.ALL:
         event_types.append(WebhookEventAsyncType.ANY)
-    event_type_webhooks = Webhook.objects.filter(
-        is_active=True, events__event_type__in=event_types
-    )
     webhooks = (
-        webhooks.filter(id__in=event_type_webhooks, app__in=apps)
+        webhooks.filter(
+            is_active=True, events__event_type__in=event_types, app__in=apps
+        )
+        .distinct()
         .select_related("app")
         .prefetch_related("app__permissions__content_type")
     )
