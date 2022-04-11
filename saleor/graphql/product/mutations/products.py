@@ -1812,7 +1812,16 @@ class VariantMediaAssign(BaseMutation):
             # check if the given image and variant can be matched together
             media_belongs_to_product = variant.product.media.filter(pk=media.pk).first()
             if media_belongs_to_product:
-                media.variant_media.create(variant=variant)
+                _, created = media.variant_media.get_or_create(variant=variant)
+                if not created:
+                    raise ValidationError(
+                        {
+                            "media_id": ValidationError(
+                                "This media is already assigned",
+                                code=ProductErrorCode.MEDIA_ALREADY_ASSIGNED,
+                            )
+                        }
+                    )
             else:
                 raise ValidationError(
                     {

@@ -7,13 +7,13 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 - Convert IDs from DB to Graphql format in all notification payloads (email plugins and webhook.NOTIFY)- #9388 by @L3str4nge
-
 - Migrate order id from int to UUID - #9324 by @IKarbowiak
   - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
   for old orders.
   - Deprecated the `order.token` field, the `order.id` should be used instead.
   - Deprecated the `token` field in order payload, the `id` field should be used
   instead.
+- Enable JWT expiration by default - #9483 by @maarcingebala
 
 ### Other changes
 - Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak

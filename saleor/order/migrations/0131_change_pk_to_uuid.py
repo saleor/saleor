@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0128_save_order_token_in_relation_models"),
+        ("order", "0130_save_order_token_in_relation_models"),
         ("account", "0063_save_customerevent_order_token"),
         ("discount", "0036_save_discocunt_order_token"),
         ("invoice", "0007_save_invoice_order_token"),
