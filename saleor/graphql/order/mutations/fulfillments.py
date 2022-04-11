@@ -466,15 +466,21 @@ class FulfillmentApprove(BaseMutation):
         cls.clean_input(info, fulfillment)
 
         order = fulfillment.order
-        fulfillment = approve_fulfillment(
-            fulfillment,
-            info.context.user,
-            info.context.app,
-            info.context.plugins,
-            info.context.site.settings,
-            notify_customer=data["notify_customer"],
-            allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
-        )
+
+        try:
+            fulfillment = approve_fulfillment(
+                fulfillment,
+                info.context.user,
+                info.context.app,
+                info.context.plugins,
+                info.context.site.settings,
+                notify_customer=data["notify_customer"],
+                allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
+            )
+        except InsufficientStock as exc:
+            errors = prepare_insufficient_stock_order_validation_errors(exc)
+            raise ValidationError({"stocks": errors})
+
         order.refresh_from_db(fields=["status"])
         return FulfillmentApprove(fulfillment=fulfillment, order=order)
 

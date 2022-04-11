@@ -188,10 +188,10 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
 
     errors = data["errors"]
     assert errors[0]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[0]["message"] == "Insufficient product stock: SKU_AA"
+    assert errors[0]["message"] == f"Insufficient product stock: {order_line}"
 
     assert errors[1]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[1]["message"] == "Insufficient product stock: SKU_B"
+    assert errors[1]["message"] == f"Insufficient product stock: {order_line2}"
 
 
 def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
@@ -1714,6 +1714,7 @@ APPROVE_FULFILLMENT_MUTATION = """
             errors {
                 field
                 code
+                message
             }
         }
     }
@@ -1811,13 +1812,26 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
-    content = get_graphql_content(response, ignore_errors=True)
-    errors = content["errors"]
-    assert len(errors) == 1
-    assert (
-        errors[0]["message"]
-        == "Insufficient stock for Test product (SKU_AA), Test product 2 (SKU_B)"
-    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["orderFulfillmentApprove"]["errors"]
+
+    assert len(errors) == 2
+
+    error_field_and_code = {
+        "field": "stocks",
+        "code": "INSUFFICIENT_STOCK",
+    }
+    expected_errors = [
+        {
+            **error_field_and_code,
+            "message": f"Insufficient product stock: {line.order_line}",
+        }
+        for line in fulfillment.lines.all()
+    ]
+
+    for expected_error in expected_errors:
+        assert expected_error in errors
 
     fulfillment.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
@@ -1965,8 +1979,25 @@ def test_fulfillment_approve_when_stock_is_exceeded_and_flag_disabled(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response, ignore_errors=True)
-    assert content["errors"]
-    assert content["errors"][0]["message"] == "Insufficient stock for SKU_AA, SKU_B"
+    errors = content["data"]["orderFulfillmentApprove"]["errors"]
+
+    assert len(errors) == 2
+
+    error_field_and_code = {
+        "field": "stocks",
+        "code": "INSUFFICIENT_STOCK",
+    }
+
+    expected_errors = [
+        {
+            **error_field_and_code,
+            "message": f"Insufficient product stock: {line.order_line}",
+        }
+        for line in fulfillment.lines.all()
+    ]
+
+    for expected_error in expected_errors:
+        assert expected_error in errors
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
