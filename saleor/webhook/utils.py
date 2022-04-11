@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
+from ..app.models import App
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .models import Webhook
 
@@ -17,18 +18,17 @@ def get_webhooks_for_event(
     )
     if required_permission:
         app_label, codename = required_permission.value.split(".")
-        permissions["app__permissions__content_type__app_label"] = app_label
-        permissions["app__permissions__codename"] = codename
+        permissions["permissions__content_type__app_label"] = app_label
+        permissions["permissions__codename"] = codename
 
     if webhooks is None:
         webhooks = Webhook.objects.all()
+    apps = App.objects.filter(is_active=True, **permissions)
+    event_type_webhooks = Webhook.objects.filter(
+        events__event_type__in=[event_type, WebhookEventAsyncType.ANY]
+    )
     webhooks = (
-        webhooks.filter(
-            is_active=True,
-            app__is_active=True,
-            events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
-            **permissions,
-        )
+        webhooks.filter(is_active=True, app__in=apps, id__in=event_type_webhooks)
         .select_related("app")
         .prefetch_related("app__permissions__content_type")
     )

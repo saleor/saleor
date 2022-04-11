@@ -28,3 +28,12 @@ def test_get_webhooks_for_event_when_app_has_no_permissions(app, webhook):
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED)
 
     assert webhooks.exists() is False
+
+
+def test_get_webhook_for_event_no_duplicates(app, webhook, permission_manage_orders):
+    app.permissions.add(permission_manage_orders)
+    webhook.events.create(event_type=WebhookEventAsyncType.ANY)
+
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED)
+
+    assert webhooks.count() == 1
