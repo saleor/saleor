@@ -1,50 +1,108 @@
+import pytest
+
+from ...app.models import App
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..models import Webhook
 from ..utils import get_webhooks_for_event
 
 
-def test_get_webhooks_for_event(app, webhook, any_webhook, permission_manage_orders):
-    app.permissions.add(permission_manage_orders)
-
-    webhooks = get_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED)
-
-    assert set(webhooks) == {webhook, any_webhook}
+@pytest.fixture
+def sync_type():
+    return WebhookEventSyncType.PAYMENT_AUTHORIZE
 
 
-def test_get_webhooks_for_event_when_webhooks_provided(
-    app, webhook, any_webhook, permission_manage_orders
+@pytest.fixture
+def async_type():
+    return WebhookEventAsyncType.ORDER_CREATED
+
+
+@pytest.fixture
+def sync_webhook(db, permission_manage_payments, sync_type):
+    app = App.objects.create(name="Sync App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(name="sync-webhook", app=app)
+    webhook.events.create(event_type=sync_type, webhook=webhook)
+    return webhook
+
+
+@pytest.fixture
+def async_app_factory(db, permission_manage_orders, async_type):
+    def create_app(active_app=True, active_webhook=True, any_webhook=False):
+        app = App.objects.create(name="Async App", is_active=active_app)
+        app.tokens.create(name="Default")
+        app.permissions.add(permission_manage_orders)
+        webhook = Webhook.objects.create(
+            name="async-webhook", app=app, is_active=active_webhook
+        )
+        event_type = WebhookEventAsyncType.ANY if any_webhook else async_type
+        webhook.events.create(event_type=event_type, webhook=webhook)
+        return app, webhook
+
+    return create_app
+
+
+def test_get_webhooks_for_event(sync_webhook, async_app_factory, async_type):
+    _, async_webhook = async_app_factory()
+    _, any_webhook = async_app_factory(any_webhook=True)
+
+    webhooks = get_webhooks_for_event(async_type)
+
+    assert set(webhooks) == {async_webhook, any_webhook}
+
+
+def test_get_webhooks_for_event_when_app_webhook_inactive(
+    sync_webhook, async_app_factory, async_type
 ):
-    app.permissions.add(permission_manage_orders)
+    async_app_factory(active_app=False, active_webhook=True)
+    async_app_factory(active_app=True, active_webhook=False)
+    _, any_webhook = async_app_factory()
+
+    webhooks = get_webhooks_for_event(async_type)
+
+    assert set(webhooks) == {any_webhook}
+
+
+def test_get_webhooks_for_event_when_webhooks_provided(async_app_factory, async_type):
+    _, async_webhook_a = async_app_factory()
+    _, async_webhook_b = async_app_factory(any_webhook=True)
+    _, _ = async_app_factory()
+    webhooks_ids = [async_webhook_a.id, async_webhook_b.id]
 
     webhooks = get_webhooks_for_event(
-        WebhookEventAsyncType.ORDER_CREATED, Webhook.objects.filter(id=webhook.id)
+        async_type, Webhook.objects.filter(id__in=webhooks_ids)
     )
 
-    assert webhooks.count() == 1
-    assert webhooks.first() == webhook
+    assert set(webhooks) == {async_webhook_a, async_webhook_b}
 
 
-def test_get_webhooks_for_event_when_app_has_no_permissions(app, webhook):
-    webhooks = get_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED)
+def test_get_webhooks_for_event_when_app_has_no_permissions(
+    async_app_factory, async_type
+):
+    _, async_webhook_a = async_app_factory()
+    app, _ = async_app_factory(any_webhook=True)
+    app.permissions.clear()
 
-    assert webhooks.exists() is False
+    webhooks = get_webhooks_for_event(async_type)
+
+    assert set(webhooks) == {async_webhook_a}
 
 
-def test_get_webhook_for_event_no_duplicates(app, webhook, permission_manage_orders):
-    app.permissions.add(permission_manage_orders)
-    webhook.events.create(event_type=WebhookEventAsyncType.ANY)
+def test_get_webhook_for_event_no_duplicates(async_app_factory, async_type):
+    _, async_webhook = async_app_factory()
+    async_webhook.events.create(event_type=WebhookEventAsyncType.ANY)
 
-    webhooks = get_webhooks_for_event(WebhookEventAsyncType.ORDER_CREATED)
+    webhooks = get_webhooks_for_event(async_type)
 
     assert webhooks.count() == 1
 
 
 def test_get_webhook_for_event_not_returning_any_webhook_for_sync_event_types(
-    app, any_webhook, payment_app, permission_manage_payments
+    sync_webhook, async_app_factory, sync_type, permission_manage_payments
 ):
-    app.permissions.add(permission_manage_payments)
+    any_app, _ = async_app_factory(any_webhook=True)
+    any_app.permissions.add(permission_manage_payments)
 
-    webhooks = get_webhooks_for_event(WebhookEventSyncType.PAYMENT_AUTHORIZE)
+    webhooks = get_webhooks_for_event(sync_type)
 
-    assert webhooks.count() == 1
-    assert webhooks[0] != any_webhook
+    assert set(webhooks) == {sync_webhook}

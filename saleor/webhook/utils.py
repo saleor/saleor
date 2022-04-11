@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING, Optional
 
+from django.db.models import Q
+from django.db.models.expressions import Exists, OuterRef
+
 from ..app.models import App
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .models import Webhook
+from .models import Webhook, WebhookEvent
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -27,12 +30,12 @@ def get_webhooks_for_event(
     event_types = [event_type]
     if event_type in WebhookEventAsyncType.ALL:
         event_types.append(WebhookEventAsyncType.ANY)
-    webhooks = (
+    webhook_events = WebhookEvent.objects.filter(event_type__in=event_types)
+    return (
         webhooks.filter(
-            is_active=True, events__event_type__in=event_types, app__in=apps
+            Q(is_active=True, app__in=apps)
+            & Q(Exists(webhook_events.filter(webhook_id=OuterRef("id"))))
         )
-        .distinct()
         .select_related("app")
         .prefetch_related("app__permissions__content_type")
     )
-    return webhooks
