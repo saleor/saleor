@@ -915,7 +915,7 @@ pyflakes = ">=2.4.0,<2.5.0"
 
 [[package]]
 name = "fonttools"
-version = "4.31.2"
+version = "4.32.0"
 description = "Tools to manipulate font files"
 category = "main"
 optional = false
@@ -1007,7 +1007,7 @@ grpc = ["grpcio (>=1.8.2,<2.0dev)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.11.0"
+version = "2.12.0"
 description = "Google Cloud Pub/Sub API client library"
 category = "main"
 optional = false
@@ -3276,8 +3276,8 @@ flake8 = [
     {file = "flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
 ]
 fonttools = [
-    {file = "fonttools-4.31.2-py3-none-any.whl", hash = "sha256:2df636a3f402ef14593c6811dac0609563b8c374bd7850e76919eb51ea205426"},
-    {file = "fonttools-4.31.2.zip", hash = "sha256:236b29aee6b113e8f7bee28779c1230a86ad2aac9a74a31b0aedf57e7dfb62a4"},
+    {file = "fonttools-4.32.0-py3-none-any.whl", hash = "sha256:b038d1a0dee0079de7ade57071e2e2aced6e35bd697de244ac62938b2b1628c1"},
+    {file = "fonttools-4.32.0.zip", hash = "sha256:59a90de72149893167e3d552ae2402c6874e006b9adc3feaf5f6d706fe20d392"},
 ]
 freezegun = [
     {file = "freezegun-1.2.1-py3-none-any.whl", hash = "sha256:15103a67dfa868ad809a8f508146e396be2995172d25f927e48ce51c0bf5cb09"},
@@ -3296,8 +3296,8 @@ google-cloud-core = [
     {file = "google_cloud_core-2.2.3-py2.py3-none-any.whl", hash = "sha256:a423852f4c36622376c8f0be509b67533690e061062368b763b92694c4ee06a7"},
 ]
 google-cloud-pubsub = [
-    {file = "google-cloud-pubsub-2.11.0.tar.gz", hash = "sha256:6ed3c9d97f88d1ff02dd80c1f5b6703efec75a7aacabd9285ac4fe0b22b50203"},
-    {file = "google_cloud_pubsub-2.11.0-py2.py3-none-any.whl", hash = "sha256:4cef16ef78b533f5177aaafc85c9ceac29a61afdbd2efad017999859c7ea5ed4"},
+    {file = "google-cloud-pubsub-2.12.0.tar.gz", hash = "sha256:e51a08a72566ff2dbeea93789893d61db554c311fac9623fbc8b8254d254d9ac"},
+    {file = "google_cloud_pubsub-2.12.0-py2.py3-none-any.whl", hash = "sha256:d8c2e06ee2a3d8917b53224ce7f7cb26fa9bbc8b261eebf169f954093804f731"},
 ]
 google-cloud-storage = [
     {file = "google-cloud-storage-2.2.1.tar.gz", hash = "sha256:0244f4612710cb5ec445fc6774387564e23f9823363fb408b28724e2102401b7"},
