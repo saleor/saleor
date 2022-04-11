@@ -168,7 +168,7 @@ class AppToken(graphene.ObjectType):
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
-        return root.auth_token[-4:]
+        return root.token_last_4
 
 
 @federated_entity("id")

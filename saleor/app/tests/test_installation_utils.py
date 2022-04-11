@@ -23,7 +23,7 @@ def test_install_app_created_app(
     app_installation.permissions.set([permission_manage_products])
 
     # when
-    app = install_app(app_installation, activate=True)
+    app, _ = install_app(app_installation, activate=True)
 
     # then
     assert App.objects.get().id == app.id
@@ -60,7 +60,7 @@ def test_install_app_with_extension(
     )
 
     # when
-    app = install_app(app_installation, activate=True)
+    app, _ = install_app(app_installation, activate=True)
 
     # then
     assert App.objects.get().id == app.id
