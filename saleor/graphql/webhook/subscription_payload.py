@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
+from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
@@ -95,6 +96,7 @@ def generate_payload_from_subscription(
     app_id = app.pk if app else None
 
     context.app = app  # type: ignore
+    context.user = AnonymousUser()
 
     results = document.execute(
         allow_subscriptions=True,
