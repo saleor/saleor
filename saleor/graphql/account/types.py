@@ -25,11 +25,10 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import ConnectionField
+from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
-from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
@@ -254,10 +253,17 @@ class User(ModelObjectType):
         "saleor.graphql.giftcard.types.GiftCardCountableConnection",
         description="List of the user gift cards.",
     )
-    note = graphene.String(description="A note about the customer.")
+    note = PermissionsField(
+        graphene.String,
+        description="A note about the customer.",
+        permissions=[AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF],
+    )
     orders = ConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
-        description="List of user's orders.",
+        description=(
+            "List of user's orders. Requires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_STAFF}, {AuthorizationFilters.OWNER}"
+        ),
     )
     user_permissions = NonNullList(
         UserPermission, description="List of user's permissions."
@@ -271,8 +277,10 @@ class User(ModelObjectType):
         description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
-    events = NonNullList(
-        CustomerEvent, description="List of events associated with the user."
+    events = PermissionsField(
+        NonNullList(CustomerEvent),
+        description="List of events associated with the user.",
+        permissions=[AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF],
     )
     stored_payment_sources = NonNullList(
         "saleor.graphql.payment.types.PaymentSource",
@@ -355,16 +363,10 @@ class User(ModelObjectType):
         return get_groups_which_user_can_manage(root)
 
     @staticmethod
-    @one_of_permissions_required(
-        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
-    )
     def resolve_note(root: models.User, info):
         return root.note
 
     @staticmethod
-    @one_of_permissions_required(
-        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
-    )
     def resolve_events(root: models.User, info):
         return CustomerEventsByUserLoader(info.context).load(root.id)
 
@@ -522,7 +524,13 @@ class StaffNotificationRecipient(graphene.ObjectType):
 class Group(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
-    users = NonNullList(User, description="List of group users")
+    users = PermissionsField(
+        NonNullList(User),
+        description="List of group users",
+        permissions=[
+            AccountPermissions.MANAGE_STAFF,
+        ],
+    )
     permissions = NonNullList(Permission, description="List of group permissions")
     user_can_manage = graphene.Boolean(
         required=True,
@@ -537,7 +545,6 @@ class Group(ModelObjectType):
         model = auth_models.Group
 
     @staticmethod
-    @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_users(root: auth_models.Group, _info):
         return root.user_set.all()
 

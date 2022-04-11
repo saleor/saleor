@@ -21,10 +21,10 @@ from graphql.error import GraphQLError
 from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
+    AuthorizationFilters,
     message_one_of_permissions_required,
     one_of_permissions_or_auth_filter_required,
 )
-from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import File, NonNullList, Upload, UploadError
@@ -744,9 +744,12 @@ class FileUpload(BaseMutation):
         )
         error_type_class = UploadError
         error_type_field = "upload_errors"
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        )
 
     @classmethod
-    @staff_member_or_app_required
     def perform_mutation(cls, _root, info, **data):
         file_data = info.context.FILES.get(data["file"])
 

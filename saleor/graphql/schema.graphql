@@ -5,13 +5,17 @@ schema {
 }
 
 type Query {
-  """Look up a webhook by ID."""
+  """
+  Look up a webhook by ID. Requires one of the following permissions: AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER
+  """
   webhook(
     """ID of the webhook."""
     id: ID!
   ): Webhook
 
-  """List of all available webhook events."""
+  """
+  List of all available webhook events. Requires one of the following permissions: MANAGE_APPS.
+  """
   webhookEvents: [WebhookEvent!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
 
   """
@@ -22,13 +26,17 @@ type Query {
     eventType: WebhookSampleEventTypeEnum!
   ): JSONString
 
-  """Look up a warehouse by ID."""
+  """
+  Look up a warehouse by ID. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS, MANAGE_SHIPPING.
+  """
   warehouse(
     """ID of an warehouse"""
     id: ID!
   ): Warehouse
 
-  """List of warehouses."""
+  """
+  List of warehouses. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS, MANAGE_SHIPPING.
+  """
   warehouses(
     filter: WarehouseFilterInput
     sortBy: WarehouseSortingInput
@@ -46,7 +54,9 @@ type Query {
     last: Int
   ): WarehouseCountableConnection
 
-  """Returns a list of all translatable items of a given kind."""
+  """
+  Returns a list of all translatable items of a given kind. Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
   translations(
     """Kind of objects to retrieve."""
     kind: TranslatableKinds!
@@ -63,6 +73,8 @@ type Query {
     """Return the last n elements from the list."""
     last: Int
   ): TranslatableItemConnection
+
+  """ Requires one of the following permissions: MANAGE_TRANSLATIONS."""
   translation(
     """ID of the object to retrieve."""
     id: ID!
@@ -71,13 +83,17 @@ type Query {
     kind: TranslatableKinds!
   ): TranslatableItem
 
-  """Look up a stock by ID"""
+  """
+  Look up a stock by ID Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   stock(
     """ID of an warehouse"""
     id: ID!
   ): Stock
 
-  """List of stocks."""
+  """
+  List of stocks. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   stocks(
     filter: StockFilterInput
 
@@ -97,13 +113,19 @@ type Query {
   """Return information about the shop."""
   shop: Shop!
 
-  """Order related settings from site settings."""
+  """
+  Order related settings from site settings. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orderSettings: OrderSettings
 
-  """Gift card related settings from site settings."""
+  """
+  Gift card related settings from site settings. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCardSettings: GiftCardSettings!
 
-  """Look up a shipping zone by ID."""
+  """
+  Look up a shipping zone by ID. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingZone(
     """ID of the shipping zone."""
     id: ID!
@@ -112,7 +134,9 @@ type Query {
     channel: String
   ): ShippingZone
 
-  """List of the shop's shipping zones."""
+  """
+  List of the shop's shipping zones. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   shippingZones(
     """Filtering options for shipping zones."""
     filter: ShippingZoneFilterInput
@@ -133,13 +157,17 @@ type Query {
     last: Int
   ): ShippingZoneCountableConnection
 
-  """Look up digital content by ID."""
+  """
+  Look up digital content by ID. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   digitalContent(
     """ID of the digital content."""
     id: ID!
   ): DigitalContent
 
-  """List of digital content."""
+  """
+  List of digital content. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   digitalContents(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -187,7 +215,9 @@ type Query {
     slug: String
   ): Category
 
-  """Look up a collection by ID."""
+  """
+  Look up a collection by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   collection(
     """ID of the collection."""
     id: ID
@@ -199,7 +229,9 @@ type Query {
     channel: String
   ): Collection
 
-  """List of the shop's collections."""
+  """
+  List of the shop's collections. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   collections(
     """Filtering options for collections."""
     filter: CollectionFilterInput
@@ -223,7 +255,9 @@ type Query {
     last: Int
   ): CollectionCountableConnection
 
-  """Look up a product by ID."""
+  """
+  Look up a product by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   product(
     """ID of the product."""
     id: ID
@@ -235,7 +269,9 @@ type Query {
     channel: String
   ): Product
 
-  """List of the shop's products."""
+  """
+  List of the shop's products. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   products(
     """Filtering options for products."""
     filter: ProductFilterInput
@@ -286,7 +322,9 @@ type Query {
     last: Int
   ): ProductTypeCountableConnection
 
-  """Look up a product variant by ID or SKU."""
+  """
+  Look up a product variant by ID or SKU. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   productVariant(
     """ID of the product variant."""
     id: ID
@@ -298,7 +336,9 @@ type Query {
     channel: String
   ): ProductVariant
 
-  """List of product variants."""
+  """
+  List of product variants. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   productVariants(
     """Filter product variants by given IDs."""
     ids: [ID!]
@@ -325,7 +365,9 @@ type Query {
     last: Int
   ): ProductVariantCountableConnection
 
-  """List of top selling products."""
+  """
+  List of top selling products. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   reportProductSales(
     """Span of time."""
     period: ReportingPeriod!
@@ -346,13 +388,17 @@ type Query {
     last: Int
   ): ProductVariantCountableConnection
 
-  """Look up a payment by ID."""
+  """
+  Look up a payment by ID. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   payment(
     """ID of the payment."""
     id: ID!
   ): Payment
 
-  """List of payments."""
+  """
+  List of payments. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   payments(
     """Filtering options for payments."""
     filter: PaymentFilterInput
@@ -428,7 +474,7 @@ type Query {
   ): PageTypeCountableConnection
 
   """
-  List of activity events to display on homepage (at the moment it only contains order-events).
+  List of activity events to display on homepage (at the moment it only contains order-events). Requires one of the following permissions: MANAGE_ORDERS.
   """
   homepageEvents(
     """Return the elements in the list that come before the specified cursor."""
@@ -444,13 +490,17 @@ type Query {
     last: Int
   ): OrderEventCountableConnection
 
-  """Look up an order by ID."""
+  """
+  Look up an order by ID. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   order(
     """ID of an order."""
     id: ID!
   ): Order
 
-  """List of orders."""
+  """
+  List of orders. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   orders(
     """Sort orders."""
     sortBy: OrderSortingInput
@@ -474,7 +524,9 @@ type Query {
     last: Int
   ): OrderCountableConnection
 
-  """List of draft orders."""
+  """
+  List of draft orders. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   draftOrders(
     """Sort draft orders."""
     sortBy: OrderSortingInput
@@ -495,7 +547,9 @@ type Query {
     last: Int
   ): OrderCountableConnection
 
-  """Return the total sales amount from a specific period."""
+  """
+  Return the total sales amount from a specific period. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   ordersTotal(
     """A period of time."""
     period: ReportingPeriod
@@ -582,13 +636,17 @@ type Query {
     last: Int
   ): MenuItemCountableConnection
 
-  """Look up a gift card by ID."""
+  """
+  Look up a gift card by ID. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCard(
     """ID of the gift card."""
     id: ID!
   ): GiftCard
 
-  """List of gift cards."""
+  """
+  List of gift cards. Requires one of the following permissions: MANAGE_GIFT_CARD.
+  """
   giftCards(
     """
     New in Saleor 3.1. Sort gift cards. Note: this feature is in a preview state and can be subject to changes at later point.
@@ -614,12 +672,12 @@ type Query {
   ): GiftCardCountableConnection
 
   """
-  New in Saleor 3.1. List of gift card currencies. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. List of gift card currencies. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardCurrencies: [String!]!
 
   """
-  New in Saleor 3.1. List of gift card tags. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. List of gift card tags. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardTags(
     """Filtering options for gift card tags."""
@@ -638,13 +696,17 @@ type Query {
     last: Int
   ): GiftCardTagCountableConnection
 
-  """Look up a plugin by ID."""
+  """
+  Look up a plugin by ID. Requires one of the following permissions: MANAGE_PLUGINS.
+  """
   plugin(
     """ID of the plugin."""
     id: ID!
   ): Plugin
 
-  """List of plugins."""
+  """
+  List of plugins. Requires one of the following permissions: MANAGE_PLUGINS.
+  """
   plugins(
     """Filtering options for plugins."""
     filter: PluginFilterInput
@@ -665,7 +727,9 @@ type Query {
     last: Int
   ): PluginCountableConnection
 
-  """Look up a sale by ID."""
+  """
+  Look up a sale by ID. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   sale(
     """ID of the sale."""
     id: ID!
@@ -674,7 +738,9 @@ type Query {
     channel: String
   ): Sale
 
-  """List of the shop's sales."""
+  """
+  List of the shop's sales. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   sales(
     """Filtering options for sales."""
     filter: SaleFilterInput
@@ -705,7 +771,9 @@ type Query {
     last: Int
   ): SaleCountableConnection
 
-  """Look up a voucher by ID."""
+  """
+  Look up a voucher by ID. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   voucher(
     """ID of the voucher."""
     id: ID!
@@ -714,7 +782,9 @@ type Query {
     channel: String
   ): Voucher
 
-  """List of the shop's vouchers."""
+  """
+  List of the shop's vouchers. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   vouchers(
     """Filtering options for vouchers."""
     filter: VoucherFilterInput
@@ -745,13 +815,17 @@ type Query {
     last: Int
   ): VoucherCountableConnection
 
-  """Look up a export file by ID."""
+  """
+  Look up a export file by ID. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   exportFile(
     """ID of the export file job."""
     id: ID!
   ): ExportFile
 
-  """List of export files."""
+  """
+  List of export files. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   exportFiles(
     """Filtering options for export files."""
     filter: ExportFileFilterInput
@@ -781,7 +855,9 @@ type Query {
     token: UUID
   ): Checkout
 
-  """List of checkouts."""
+  """
+  List of checkouts. Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
   checkouts(
     """New in Saleor 3.1. Sort checkouts."""
     sortBy: CheckoutSortingInput
@@ -805,7 +881,9 @@ type Query {
     last: Int
   ): CheckoutCountableConnection
 
-  """List of checkout lines."""
+  """
+  List of checkout lines. Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
   checkoutLines(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -820,13 +898,17 @@ type Query {
     last: Int
   ): CheckoutLineCountableConnection
 
-  """Look up a channel by ID."""
+  """
+  Look up a channel by ID. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
   channel(
     """ID of the channel."""
     id: ID
   ): Channel
 
-  """List of all channels."""
+  """
+  List of all channels. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
   channels: [Channel!]
 
   """List of the shop's attributes."""
@@ -891,7 +973,7 @@ type Query {
   ): AppCountableConnection
 
   """
-  Look up an app by ID. If ID is not provided, return the currently authenticated app.
+  Look up an app by ID. If ID is not provided, return the currently authenticated app. Requires one of the following permissions: AuthorizationFilters.OWNER, AppPermission.MANAGE_APPS.
   """
   app(
     """ID of the app."""
@@ -2052,7 +2134,9 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
     languageCode: LanguageCodeEnum!
   ): ShippingMethodTranslation
 
-  """List of channels available for the method."""
+  """
+  List of channels available for the method. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   channelListings: [ShippingMethodChannelListing!]
 
   """The price of the cheapest variant (including discounts)."""
@@ -2066,7 +2150,9 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   """
   postalCodeRules: [ShippingMethodPostalCodeRule!]
 
-  """List of excluded products for the shipping method."""
+  """
+  List of excluded products for the shipping method. Requires one of the following permissions: MANAGE_SHIPPING.
+  """
   excludedProducts(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -2917,7 +3003,9 @@ type Channel implements Node {
   currencyCode: String!
   slug: String!
 
-  """Whether a channel has associated orders."""
+  """
+  Whether a channel has associated orders. Requires one of the following permissions: MANAGE_CHANNELS.
+  """
   hasOrders: Boolean!
 
   """
@@ -3027,7 +3115,9 @@ type Product implements Node & ObjectWithMetadata {
   """List of attributes assigned to this product."""
   attributes: [SelectedAttribute!]!
 
-  """List of availability in channels for the product."""
+  """
+  List of availability in channels for the product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   channelListings: [ProductChannelListing!]
 
   """Get a single product media by ID."""
@@ -3042,7 +3132,9 @@ type Product implements Node & ObjectWithMetadata {
     id: ID
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
-  """List of variants for the product."""
+  """
+  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   variants: [ProductVariant!]
 
   """List of media for the product."""
@@ -3051,7 +3143,9 @@ type Product implements Node & ObjectWithMetadata {
   """List of images for the product."""
   images: [ProductImage!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
 
-  """List of collections for the product."""
+  """
+  List of collections for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   collections: [Collection!]
 
   """Returns translated product fields for the given language code."""
@@ -3127,6 +3221,10 @@ type ProductType implements Node & ObjectWithMetadata {
 
   """Product attributes of that product type."""
   productAttributes: [Attribute!]
+
+  """
+  List of attributes which can be assigned to this product type. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   availableAttributes(
     filter: AttributeFilterInput
 
@@ -3581,7 +3679,9 @@ type Category implements Node & ObjectWithMetadata {
     last: Int
   ): CategoryCountableConnection
 
-  """List of products in the category."""
+  """
+  List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   products(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -3688,7 +3788,9 @@ type ProductVariant implements Node & ObjectWithMetadata {
   """
   channel: String
 
-  """List of price information in channels for the product."""
+  """
+  List of price information in channels for the product. Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
   channelListings: [ProductVariantChannelListing!]
 
   """
@@ -3710,11 +3812,13 @@ type ProductVariant implements Node & ObjectWithMetadata {
   """Gross margin percentage value."""
   margin: Int
 
-  """Total quantity ordered."""
+  """
+  Total quantity ordered. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   quantityOrdered: Int
 
   """
-  Total revenue generated by a variant in given period of time. Note: this field should be queried using `reportProductSales` query as it uses optimizations suitable for such calculations.
+  Total revenue generated by a variant in given period of time. Note: this field should be queried using `reportProductSales` query as it uses optimizations suitable for such calculations. Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   revenue(period: ReportingPeriod): TaxedMoney
 
@@ -3730,10 +3834,14 @@ type ProductVariant implements Node & ObjectWithMetadata {
     languageCode: LanguageCodeEnum!
   ): ProductVariantTranslation
 
-  """Digital content for the product variant."""
+  """
+  Digital content for the product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   digitalContent: DigitalContent
 
-  """Stocks for the product variant."""
+  """
+  Stocks for the product variant. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
   stocks(
     """
     Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
@@ -3782,7 +3890,9 @@ type ProductVariantChannelListing implements Node {
   """Cost price of the variant."""
   costPrice: Money
 
-  """Gross margin percentage value."""
+  """
+  Gross margin percentage value. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   margin: Int
 
   """
@@ -4235,23 +4345,31 @@ type Stock implements Node {
   productVariant: ProductVariant!
 
   """
-  Quantity of a product in the warehouse's possession, including the allocated stock that is waiting for shipment.
+  Quantity of a product in the warehouse's possession, including the allocated stock that is waiting for shipment. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
   """
   quantity: Int!
 
-  """Quantity allocated for orders"""
+  """
+  Quantity allocated for orders. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
   quantityAllocated: Int!
 
-  """Quantity reserved for checkouts"""
+  """
+  Quantity reserved for checkouts. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
   quantityReserved: Int!
 }
 
 """Represents preorder settings for product variant."""
 type PreorderData {
-  """The global preorder threshold for product variant."""
+  """
+  The global preorder threshold for product variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   globalThreshold: Int
 
-  """Total number of sold product variant during preorder."""
+  """
+  Total number of sold product variant during preorder. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   globalSoldUnits: Int!
 
   """Preorder end date."""
@@ -4302,10 +4420,14 @@ type ProductChannelListing implements Node {
   """The price of the cheapest variant (including discounts)."""
   discountedPrice: Money
 
-  """Purchase cost of product."""
+  """
+  Purchase cost of product. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   purchaseCost: MoneyRange
 
-  """Range of margin percentage value."""
+  """
+  Range of margin percentage value. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   margin: Margin
 
   """Whether the product is available for purchase."""
@@ -4383,7 +4505,9 @@ type Collection implements Node & ObjectWithMetadata {
     languageCode: LanguageCodeEnum!
   ): CollectionTranslation
 
-  """List of channels in which the collection is available."""
+  """
+  List of channels in which the collection is available. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   channelListings: [CollectionChannelListing!]
 }
 
@@ -4838,7 +4962,9 @@ type PageType implements Node & ObjectWithMetadata {
   """Page attributes of that page type."""
   attributes: [Attribute!]
 
-  """Attributes that can be assigned to the page type."""
+  """
+  Attributes that can be assigned to the page type. Requires one of the following permissions: MANAGE_PAGES.
+  """
   availableAttributes(
     filter: AttributeFilterInput
 
@@ -4855,7 +4981,9 @@ type PageType implements Node & ObjectWithMetadata {
     last: Int
   ): AttributeCountableConnection
 
-  """Whether page type has pages assigned."""
+  """
+  Whether page type has pages assigned. Requires one of the following permissions: MANAGE_PAGES.
+  """
   hasPages: Boolean
 }
 
@@ -4871,7 +4999,7 @@ type ShippingMethodTranslatableContent implements Node {
   ): ShippingMethodTranslation
 
   """
-  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
+  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers. Requires one of the following permissions: MANAGE_SHIPPING.
   """
   shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
@@ -4887,7 +5015,7 @@ type SaleTranslatableContent implements Node {
   ): SaleTranslation
 
   """
-  Sales allow creating discounts for categories, collections or products and are visible to all the customers.
+  Sales allow creating discounts for categories, collections or products and are visible to all the customers. Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
@@ -4935,7 +5063,9 @@ type Sale implements Node & ObjectWithMetadata {
     last: Int
   ): CategoryCountableConnection
 
-  """List of collections this sale applies to."""
+  """
+  List of collections this sale applies to. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   collections(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -4950,7 +5080,9 @@ type Sale implements Node & ObjectWithMetadata {
     last: Int
   ): CollectionCountableConnection
 
-  """List of products this sale applies to."""
+  """
+  List of products this sale applies to. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   products(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -4965,7 +5097,9 @@ type Sale implements Node & ObjectWithMetadata {
     last: Int
   ): ProductCountableConnection
 
-  """New in Saleor 3.1. List of product variants this sale applies to."""
+  """
+  New in Saleor 3.1. List of product variants this sale applies to. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   variants(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -4986,7 +5120,9 @@ type Sale implements Node & ObjectWithMetadata {
     languageCode: LanguageCodeEnum!
   ): SaleTranslation
 
-  """List of channels available for the sale."""
+  """
+  List of channels available for the sale. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   channelListings: [SaleChannelListing!]
 
   """Sale value."""
@@ -5054,7 +5190,7 @@ type VoucherTranslatableContent implements Node {
   ): VoucherTranslation
 
   """
-  Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
+  Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes. Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
@@ -5106,7 +5242,9 @@ type Voucher implements Node & ObjectWithMetadata {
     last: Int
   ): CategoryCountableConnection
 
-  """List of collections this voucher applies to."""
+  """
+  List of collections this voucher applies to. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   collections(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5121,7 +5259,9 @@ type Voucher implements Node & ObjectWithMetadata {
     last: Int
   ): CollectionCountableConnection
 
-  """List of products this voucher applies to."""
+  """
+  List of products this voucher applies to. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   products(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5136,7 +5276,9 @@ type Voucher implements Node & ObjectWithMetadata {
     last: Int
   ): ProductCountableConnection
 
-  """New in Saleor 3.1. List of product variants this voucher applies to."""
+  """
+  New in Saleor 3.1. List of product variants this voucher applies to. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   variants(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5175,7 +5317,9 @@ type Voucher implements Node & ObjectWithMetadata {
   """Determines a type of voucher."""
   type: VoucherTypeEnum!
 
-  """List of availability in channels for the voucher."""
+  """
+  List of availability in channels for the voucher. Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
   channelListings: [VoucherChannelListing!]
 }
 
@@ -5240,7 +5384,15 @@ type MenuItem implements Node & ObjectWithMetadata {
   menu: Menu!
   parent: MenuItem
   category: Category
+
+  """
+  A collection associated with this menu item. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
   collection: Collection
+
+  """
+  A page associated with this menu item. Requires one of the following permissions to include unpublished items: PagePermissions.MANAGE_PAGES.
+  """
   page: Page
   level: Int!
   children: [MenuItem!]
@@ -5340,7 +5492,7 @@ type Shop {
   ): [ShippingMethod!]
 
   """
-  New in Saleor 3.1. List of all currencies supported by shop's channels.
+  New in Saleor 3.1. List of all currencies supported by shop's channels. Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   channelCurrencies: [String!]!
 
@@ -5360,10 +5512,14 @@ type Shop {
   """Shop's default country."""
   defaultCountry: CountryDisplay
 
-  """Default shop's email sender's name."""
+  """
+  Default shop's email sender's name. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   defaultMailSenderName: String
 
-  """Default shop's email sender's address."""
+  """
+  Default shop's email sender's address. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   defaultMailSenderAddress: String
 
   """Shop's description."""
@@ -5414,28 +5570,34 @@ type Shop {
     languageCode: LanguageCodeEnum!
   ): ShopTranslation
 
-  """Enable automatic fulfillment for all digital products."""
+  """
+  Enable automatic fulfillment for all digital products. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   automaticFulfillmentDigitalProducts: Boolean
 
   """
-  New in Saleor 3.1. Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled.
+  New in Saleor 3.1. Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled. Requires one of the following permissions: MANAGE_SETTINGS.
   """
   reserveStockDurationAnonymousUser: Int
 
   """
-  New in Saleor 3.1. Default number of minutes stock will be reserved for authenticated checkout or null when stock reservation is disabled.
+  New in Saleor 3.1. Default number of minutes stock will be reserved for authenticated checkout or null when stock reservation is disabled. Requires one of the following permissions: MANAGE_SETTINGS.
   """
   reserveStockDurationAuthenticatedUser: Int
 
   """
-  New in Saleor 3.1. Default number of maximum line quantity in single checkout (per single checkout line). Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Default number of maximum line quantity in single checkout (per single checkout line). Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_SETTINGS.
   """
   limitQuantityPerCheckout: Int
 
-  """Default number of max downloads per digital content URL."""
+  """
+  Default number of max downloads per digital content URL. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   defaultDigitalMaxDownloads: Int
 
-  """Default number of days which digital content URL will be valid."""
+  """
+  Default number of days which digital content URL will be valid. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   defaultDigitalUrlValidDays: Int
 
   """Company address."""
@@ -5444,13 +5606,19 @@ type Shop {
   """URL of a view where customers can set their password."""
   customerSetPasswordUrl: String
 
-  """List of staff notification recipients."""
+  """
+  List of staff notification recipients. Requires one of the following permissions: MANAGE_SETTINGS.
+  """
   staffNotificationRecipients: [StaffNotificationRecipient!]
 
-  """Resource limitations and current usage if any set for a shop"""
+  """
+  Resource limitations and current usage if any set for a shop Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
   limits: LimitInfo!
 
-  """Saleor API version."""
+  """
+  Saleor API version. Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
   version: String!
 }
 
@@ -5634,10 +5802,14 @@ type User implements Node & ObjectWithMetadata {
     last: Int
   ): GiftCardCountableConnection
 
-  """A note about the customer."""
+  """
+  A note about the customer. Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
+  """
   note: String
 
-  """List of user's orders."""
+  """
+  List of user's orders. Requires one of the following permissions: AccountPermissions.MANAGE_STAFF, AuthorizationFilters.OWNER
+  """
   orders(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5665,7 +5837,9 @@ type User implements Node & ObjectWithMetadata {
     size: Int
   ): Image
 
-  """List of events associated with the user."""
+  """
+  List of events associated with the user. Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
+  """
   events: [CustomerEvent!]
 
   """List of stored payment sources."""
@@ -5789,7 +5963,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   last4CodeChars: String!
 
   """
-  Gift card code. Can be fetched by staff member with manage gift card permission when gift card wasn't used yet and by the gift card owner.
+  Gift card code. Can be fetched by a staff member with GiftcardPermissions.MANAGE_GIFT_CARD when gift card wasn't yet used and by the gift card owner.
   """
   code: String!
   created: DateTime!
@@ -5805,7 +5979,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   usedBy: User
 
   """
-  New in Saleor 3.1. Email address of the user who bought or issued gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. Email address of the user who bought or issued gift card. Requires one of the following permissions: AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   createdByEmail: String
 
@@ -5817,7 +5991,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   expiryDate: Date
 
   """
-  New in Saleor 3.1. App which created the gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. App which created the gift card. Requires one of the following permissions: AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   app: App
 
@@ -5827,7 +6001,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   product: Product
 
   """
-  New in Saleor 3.1. List of events associated with the gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. List of events associated with the gift card. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   events(
     """Filtering options for gift card events."""
@@ -5835,7 +6009,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   ): [GiftCardEvent!]!
 
   """
-  New in Saleor 3.1. The gift card tag. Note: this feature is in a preview state and can be subject to changes at later point.
+  New in Saleor 3.1. The gift card tag. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   tags: [GiftCardTag!]!
 
@@ -5869,10 +6043,14 @@ type GiftCardEvent implements Node {
   """Gift card event type."""
   type: GiftCardEventsEnum
 
-  """User who performed the action."""
+  """
+  User who performed the action. Requires one of the following permissions: AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF, AuthorizationFilters.OWNER.
+  """
   user: User
 
-  """App that performed the action."""
+  """
+  App that performed the action. Requires one of the following permissions: AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER.
+  """
   app: App
 
   """Content of the event."""
@@ -6012,9 +6190,21 @@ type Order implements Node & ObjectWithMetadata {
   created: DateTime!
   updatedAt: DateTime!
   status: OrderStatus!
+
+  """
+  User who placed the order. This field is set only for orders placed by authenticated users. Requires one of the following permissions: AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  """
   user: User
   trackingClientId: String!
+
+  """
+  Billing address. Requires one of the following permissions to view the full data: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  """
   billingAddress: Address
+
+  """
+  Shipping address. Requires one of the following permissions to view the full data: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  """
   shippingAddress: Address
   shippingMethodName: String
   collectionPointName: String
@@ -6042,7 +6232,9 @@ type Order implements Node & ObjectWithMetadata {
   """
   availableCollectionPoints: [Warehouse!]!
 
-  """List of order invoices."""
+  """
+  List of order invoices. Requires one of the following permissions: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  """
   invoices: [Invoice!]
 
   """User-friendly number of an order."""
@@ -6105,13 +6297,17 @@ type Order implements Node & ObjectWithMetadata {
   """Amount captured by payment."""
   totalCaptured: Money!
 
-  """List of events associated with the order."""
+  """
+  List of events associated with the order. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   events: [OrderEvent!]
 
   """The difference between the paid and the order total amount."""
   totalBalance: Money!
 
-  """Email address of the customer."""
+  """
+  Email address of the customer. Requires the following permissions to access the full data: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER
+  """
   userEmail: String
 
   """Returns True, if order requires shipping."""
@@ -6236,7 +6432,7 @@ type OrderLine implements Node {
   totalPrice: TaxedMoney!
 
   """
-  A purchased product variant. Note: this field may be null if the variant has been removed from stock at all.
+  A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   variant: ProductVariant
 
@@ -6246,7 +6442,9 @@ type OrderLine implements Node {
   """Variant name in the customer's language"""
   translatedVariantName: String!
 
-  """List of allocations across warehouses."""
+  """
+  List of allocations across warehouses. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
   allocations: [Allocation!]
 
   """New in Saleor 3.1. A quantity of items remaining to be fulfilled."""
@@ -6267,10 +6465,14 @@ scalar PositiveDecimal
 type Allocation implements Node {
   id: ID!
 
-  """Quantity allocated for orders."""
+  """
+  Quantity allocated for orders. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
   quantity: Int!
 
-  """The warehouse were items were allocated."""
+  """
+  The warehouse were items were allocated. Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
   warehouse: Warehouse!
 }
 
@@ -6373,13 +6575,17 @@ type Payment implements Node & ObjectWithMetadata {
   checkout: Checkout
   order: Order
   paymentMethodType: String!
+
+  """
+  IP address of the user who created the payment. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   customerIpAddress: String
 
   """Internal payment status."""
   chargeStatus: PaymentChargeStatusEnum!
 
   """
-  List of actions that can be performed in the current state of a payment.
+  List of actions that can be performed in the current state of a payment. Requires one of the following permissions: MANAGE_ORDERS.
   """
   actions: [OrderAction!]!
 
@@ -6389,13 +6595,19 @@ type Payment implements Node & ObjectWithMetadata {
   """Total amount captured for this payment."""
   capturedAmount: Money
 
-  """List of all transactions within this payment."""
+  """
+  List of all transactions within this payment. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   transactions: [Transaction!]
 
-  """Maximum amount of money that can be captured."""
+  """
+  Maximum amount of money that can be captured. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   availableCaptureAmount: Money
 
-  """Maximum amount of money that can be refunded."""
+  """
+  Maximum amount of money that can be refunded. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   availableRefundAmount: Money
 
   """The details of the card used for this payment."""
@@ -6461,7 +6673,9 @@ type OrderEvent implements Node {
   """User who performed the action."""
   user: User
 
-  """App that performed the action."""
+  """
+  App that performed the action. Requires of of the following permissions: AppPermission.MANAGE_APPS, OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  """
   app: App
 
   """Content of the event."""
@@ -6628,7 +6842,9 @@ type OrderDiscount implements Node {
   """Value of the discount. Can store fixed value or percent value"""
   value: PositiveDecimal!
 
-  """Explanation for the applied discount."""
+  """
+  Explanation for the applied discount. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   reason: String
 
   """Returns amount of discount."""
@@ -6726,7 +6942,9 @@ type Group implements Node {
   id: ID!
   name: String!
 
-  """List of group users"""
+  """
+  List of group users Requires one of the following permissions: MANAGE_STAFF.
+  """
   users: [User!]
 
   """List of group permissions"""
@@ -7622,10 +7840,14 @@ type ExportEvent implements Node {
   """Export event type."""
   type: ExportEventsEnum!
 
-  """User who performed the action."""
+  """
+  User who performed the action. Requires one of the following permissions: AuthorizationFilters.OWNER, AccountPermissions.MANAGE_STAFF.
+  """
   user: User
 
-  """App which performed the action."""
+  """
+  App which performed the action. Requires one of the following permissions: AuthorizationFilters.OWNER, AppPermission.MANAGE_APPS.
+  """
   app: App
 
   """Content of the event."""
@@ -8628,7 +8850,7 @@ type Mutation {
   ): ProductReorderAttributeValues
 
   """
-  Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+  Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   digitalContentCreate(
     """Fields required to create a digital content."""
@@ -8638,13 +8860,17 @@ type Mutation {
     variantId: ID!
   ): DigitalContentCreate
 
-  """Remove digital content assigned to given variant."""
+  """
+  Remove digital content assigned to given variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   digitalContentDelete(
     """ID of a product variant with digital content to remove."""
     variantId: ID!
   ): DigitalContentDelete
 
-  """Update digital content."""
+  """
+  Update digital content. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   digitalContentUpdate(
     """Fields required to update a digital content."""
     input: DigitalContentInput!
@@ -8653,7 +8879,9 @@ type Mutation {
     variantId: ID!
   ): DigitalContentUpdate
 
-  """Generate new URL to digital content."""
+  """
+  Generate new URL to digital content. Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
   digitalContentUrlCreate(
     """Fields required to create a new url."""
     input: DigitalContentUrlCreateInput!
@@ -9811,7 +10039,7 @@ type Mutation {
   ): ExportGiftCards
 
   """
-  Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+  Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   fileUpload(
     """Represents a file in a multipart request."""
@@ -10715,14 +10943,16 @@ type Mutation {
   ): StaffBulkDelete
 
   """
-  Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+  Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
   userAvatarUpdate(
     """Represents an image file in a multipart request."""
     image: Upload!
   ): UserAvatarUpdate
 
-  """Deletes a user avatar. Only for staff members."""
+  """
+  Deletes a user avatar. Only for staff members. Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
   userAvatarDelete: UserAvatarDelete
 
   """
@@ -12387,7 +12617,7 @@ type ProductReorderAttributeValues {
 }
 
 """
-Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+Create new digital content. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: MANAGE_PRODUCTS.
 """
 type DigitalContentCreate {
   variant: ProductVariant
@@ -12417,14 +12647,18 @@ input DigitalContentUploadInput {
   contentFile: Upload!
 }
 
-"""Remove digital content assigned to given variant."""
+"""
+Remove digital content assigned to given variant. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type DigitalContentDelete {
   variant: ProductVariant
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
 }
 
-"""Update digital content."""
+"""
+Update digital content. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type DigitalContentUpdate {
   variant: ProductVariant
   content: DigitalContent
@@ -12450,7 +12684,9 @@ input DigitalContentInput {
   automaticFulfillment: Boolean
 }
 
-"""Generate new URL to digital content."""
+"""
+Generate new URL to digital content. Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
 type DigitalContentUrlCreate {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
@@ -14928,7 +15164,7 @@ input ExportGiftCardsInput {
 }
 
 """
-Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
 """
 type FileUpload {
   uploadedFile: File
@@ -16511,7 +16747,7 @@ type StaffBulkDelete {
 }
 
 """
-Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
 """
 type UserAvatarUpdate {
   """An updated user instance."""
@@ -16520,7 +16756,9 @@ type UserAvatarUpdate {
   errors: [AccountError!]!
 }
 
-"""Deletes a user avatar. Only for staff members."""
+"""
+Deletes a user avatar. Only for staff members. Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
 type UserAvatarDelete {
   """An updated user instance."""
   user: User

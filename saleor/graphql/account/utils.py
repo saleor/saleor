@@ -12,7 +12,11 @@ from graphene.utils.str_converters import to_camel_case
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, has_one_of_permissions
+from ...core.permissions import (
+    AccountPermissions,
+    AuthorizationFilters,
+    has_one_of_permissions,
+)
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -493,4 +497,4 @@ def check_is_owner_or_has_one_of_perms(
     :raises PermissionDenied: if requestor cannot access data
     """
     if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
-        raise PermissionDenied(permissions=perms)
+        raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])

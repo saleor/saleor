@@ -69,8 +69,21 @@ class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
     menu = graphene.Field(Menu, required=True)
     parent = graphene.Field(lambda: MenuItem)
     category = graphene.Field(Category)
-    collection = graphene.Field(Collection)
-    page = graphene.Field(Page)
+    collection = graphene.Field(
+        Collection,
+        description=(
+            "A collection associated with this menu item. Requires one of the "
+            "following permissions to include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+        ),
+    )
+    page = graphene.Field(
+        Page,
+        description=(
+            "A page associated with this menu item. Requires one of the following "
+            f"permissions to include unpublished items: {PagePermissions.MANAGE_PAGES}."
+        ),
+    )
     level = graphene.Int(required=True)
     children = NonNullList(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")

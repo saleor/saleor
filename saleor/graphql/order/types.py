@@ -15,6 +15,7 @@ from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.permissions import (
     AccountPermissions,
     AppPermission,
+    AuthorizationFilters,
     OrderPermissions,
     ProductPermissions,
     has_one_of_permissions,
@@ -58,6 +59,7 @@ from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
 from ..core.types import (
@@ -70,7 +72,6 @@ from ..core.types import (
     Weight,
 )
 from ..core.utils import str_to_enum
-from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
@@ -182,7 +183,14 @@ class OrderEvent(ModelObjectType):
     )
     type = OrderEventsEnum(description="Order event type.")
     user = graphene.Field(User, description="User who performed the action.")
-    app = graphene.Field(App, description="App that performed the action.")
+    app = graphene.Field(
+        App,
+        description=(
+            "App that performed the action. Requires of of the following permissions: "
+            f"{AppPermission.MANAGE_APPS}, {OrderPermissions.MANAGE_ORDERS}, "
+            f"{AuthorizationFilters.OWNER}."
+        ),
+    )
     message = graphene.String(description="Content of the event.")
     email = graphene.String(description="Email of the customer.")
     email_type = OrderEventsEmailsEnum(
@@ -489,7 +497,9 @@ class OrderLine(ModelObjectType):
         required=False,
         description=(
             "A purchased product variant. Note: this field may be null if the variant "
-            "has been removed from stock at all."
+            "has been removed from stock at all. Requires one of the following "
+            "permissions to include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
     )
     translated_product_name = graphene.String(
@@ -498,9 +508,13 @@ class OrderLine(ModelObjectType):
     translated_variant_name = graphene.String(
         required=True, description="Variant name in the customer's language"
     )
-    allocations = NonNullList(
-        Allocation,
+    allocations = PermissionsField(
+        NonNullList(Allocation),
         description="List of allocations across warehouses.",
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     quantity_to_fulfill = graphene.Int(
         required=True,
@@ -630,9 +644,6 @@ class OrderLine(ModelObjectType):
         return Promise.all([variant, channel]).then(requestor_has_access_to_variant)
 
     @staticmethod
-    @one_of_permissions_required(
-        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
-    )
     def resolve_allocations(root: models.OrderLine, info):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
@@ -642,10 +653,32 @@ class Order(ModelObjectType):
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
     status = OrderStatusEnum(required=True)
-    user = graphene.Field(User)
+    user = graphene.Field(
+        User,
+        description=(
+            "User who placed the order. This field is set only for orders placed by "
+            "authenticated users. Requires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS}, {OrderPermissions.MANAGE_ORDERS}, "
+            f"{AuthorizationFilters.OWNER}."
+        ),
+    )
     tracking_client_id = graphene.String(required=True)
-    billing_address = graphene.Field("saleor.graphql.account.types.Address")
-    shipping_address = graphene.Field("saleor.graphql.account.types.Address")
+    billing_address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        description=(
+            "Billing address. Requires one of the following permissions to view the "
+            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
+            f"{AuthorizationFilters.OWNER}."
+        ),
+    )
+    shipping_address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        description=(
+            "Shipping address. Requires one of the following permissions to view the "
+            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
+            f"{AuthorizationFilters.OWNER}."
+        ),
+    )
     shipping_method_name = graphene.String()
     collection_point_name = graphene.String()
     channel = graphene.Field(Channel, required=True)
@@ -680,7 +713,12 @@ class Order(ModelObjectType):
         ),
     )
     invoices = NonNullList(
-        Invoice, required=False, description="List of order invoices."
+        Invoice,
+        required=False,
+        description=(
+            "List of order invoices. Requires one of the following permissions: "
+            f"{OrderPermissions.MANAGE_ORDERS}, {AuthorizationFilters.OWNER}."
+        ),
     )
     number = graphene.String(description="User-friendly number of an order.")
     original = graphene.ID(
@@ -747,8 +785,10 @@ class Order(ModelObjectType):
     total_captured = graphene.Field(
         Money, description="Amount captured by payment.", required=True
     )
-    events = NonNullList(
-        OrderEvent, description="List of events associated with the order."
+    events = PermissionsField(
+        NonNullList(OrderEvent),
+        description="List of events associated with the order.",
+        permissions=[OrderPermissions.MANAGE_ORDERS],
     )
     total_balance = graphene.Field(
         Money,
@@ -756,7 +796,12 @@ class Order(ModelObjectType):
         required=True,
     )
     user_email = graphene.String(
-        required=False, description="Email address of the customer."
+        required=False,
+        description=(
+            "Email address of the customer. Requires the following permissions to "
+            f"access the full data: {OrderPermissions.MANAGE_ORDERS}, "
+            f"{AuthorizationFilters.OWNER}"
+        ),
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
@@ -1022,7 +1067,6 @@ class Order(ModelObjectType):
         return OrderLinesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_events(root: models.Order, _info):
         return OrderEventsByOrderIdLoader(_info.context).load(root.id)
 

@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import AccountPermissions, AppPermission
+from ...core.permissions import AccountPermissions, AppPermission, AuthorizationFilters
 from ...csv import models
 from ..account.types import User
 from ..account.utils import check_is_owner_or_has_one_of_perms
@@ -19,10 +19,21 @@ class ExportEvent(ModelObjectType):
     )
     type = ExportEventEnum(description="Export event type.", required=True)
     user = graphene.Field(
-        User, description="User who performed the action.", required=False
+        User,
+        description=(
+            "User who performed the action. Requires one of the following "
+            f"permissions: {AuthorizationFilters.OWNER}, "
+            f"{AccountPermissions.MANAGE_STAFF}."
+        ),
+        required=False,
     )
     app = graphene.Field(
-        App, description="App which performed the action.", required=False
+        App,
+        description=(
+            "App which performed the action. Requires one of the following "
+            f"permissions: {AuthorizationFilters.OWNER}, {AppPermission.MANAGE_APPS}."
+        ),
+        required=False,
     )
     message = graphene.String(
         description="Content of the event.",
