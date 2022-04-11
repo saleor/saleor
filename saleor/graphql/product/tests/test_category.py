@@ -446,7 +446,7 @@ def test_category_create_mutation(
     assert data["category"]["parent"]["id"] == parent_id
 
 
-@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_create_trigger_webhook(
     mocked_webhook_trigger,
@@ -667,7 +667,7 @@ def test_category_update_mutation(
     assert data["category"]["backgroundImage"]["alt"] == image_alt
 
 
-@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_update_trigger_webhook(
     mocked_webhook_trigger,
@@ -989,7 +989,7 @@ def test_category_delete_mutation(
 
 
 @patch("saleor.product.signals.delete_versatile_image")
-@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_delete_trigger_webhook(
     mocked_webhook_trigger,

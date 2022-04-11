@@ -88,7 +88,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_CREATED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {"id": graphene.Node.to_global_id("Category", category.id)}
             trigger_webhooks_async(
                 payload, event_type, webhooks, category, self.requestor
@@ -98,7 +98,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_UPDATED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {"id": graphene.Node.to_global_id("Category", category.id)}
             trigger_webhooks_async(
                 payload, event_type, webhooks, category, self.requestor
@@ -108,7 +108,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CATEGORY_DELETED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {"id": graphene.Node.to_global_id("Category", category.id)}
             trigger_webhooks_async(
                 payload, event_type, webhooks, category, self.requestor
