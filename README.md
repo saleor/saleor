@@ -18,11 +18,15 @@
   Join our active, engaged community: <br>
   <a href="https://saleor.io/">Website</a>
   <span> | </span>
-  <a href="https://medium.com/saleor">Blog</a>
-  <span> | </span>
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
   <a href="https://github.com/saleor/saleor/discussions">GitHub Discussions</a>
+</div>
+
+<div align="center">
+   <a href="https://saleor.io/blog/">Blog</a>
+  <span> | </span>
+  <a href="https://saleor.typeform.com/to/JTJK0Nou">Subscribe to newsletter</a>
 </div>
 
 <br>
