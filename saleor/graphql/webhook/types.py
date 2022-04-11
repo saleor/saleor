@@ -76,12 +76,18 @@ class EventDeliveryAttempt(ModelObjectType):
     created_at = graphene.DateTime(
         description="Event delivery creation date and time.", required=True
     )
-    task_id = graphene.String()
-    duration = graphene.Float()
-    response = graphene.String()
-    response_headers = graphene.String()
-    response_status_code = graphene.Int()
-    request_headers = graphene.String()
+    task_id = graphene.String(description="Task id for delivery attempt.")
+    duration = graphene.Float(description="Delivery attempt duration.")
+    response = graphene.String(description="Delivery attempt response content.")
+    response_headers = graphene.String(
+        description="Response headers for delivery attempt."
+    )
+    response_status_code = graphene.Int(
+        description="Delivery attempt response status code."
+    )
+    request_headers = graphene.String(
+        description="Request headers for delivery attempt."
+    )
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
     )
@@ -164,9 +170,16 @@ class Webhook(ModelObjectType):
         filter=EventDeliveryFilterInput(description="Event delivery filter options."),
         description="Event deliveries.",
     )
-    target_url = graphene.String(required=True)
-    is_active = graphene.Boolean(required=True)
-    secret_key = graphene.String()
+    target_url = graphene.String(required=True, description="Target URL for webhook.")
+    is_active = graphene.Boolean(
+        required=True, description="Informs if webhook is activated."
+    )
+    secret_key = graphene.String(
+        description="Used to create a hash signature with each payload."
+    )
+    subscription_query = graphene.String(
+        description="Used to define payloads for specific events."
+    )
 
     class Meta:
         description = "Webhook."
