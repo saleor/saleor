@@ -1062,9 +1062,18 @@ type Webhook implements Node {
     """Return the last n elements from the list."""
     last: Int
   ): EventDeliveryCountableConnection
+
+  """Target URL for webhook."""
   targetUrl: String!
+
+  """Informs if webhook is activated."""
   isActive: Boolean!
+
+  """Used to create a hash signature with each payload."""
   secretKey: String
+
+  """Used to define payloads for specific events."""
+  subscriptionQuery: String
 }
 
 """An object with an ID"""
@@ -1565,11 +1574,23 @@ type EventDeliveryAttempt implements Node {
 
   """Event delivery creation date and time."""
   createdAt: DateTime!
+
+  """Task id for delivery attempt."""
   taskId: String
+
+  """Delivery attempt duration."""
   duration: Float
+
+  """Delivery attempt response content."""
   response: String
+
+  """Response headers for delivery attempt."""
   responseHeaders: String
+
+  """Delivery attempt response status code."""
   responseStatusCode: Int
+
+  """Request headers for delivery attempt."""
   requestHeaders: String
 
   """Event delivery status."""
