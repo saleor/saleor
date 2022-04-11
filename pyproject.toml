@@ -68,7 +68,7 @@ documentation = "https://docs.saleor.io/"
   cryptography = "^36.0.0"
   graphene = "<3.0"
   uvicorn = {extras = ["standard"], version = "^0.17.5"}
-  Authlib = "^1.0.0"
+  Authlib = "^1.0.1"
 
     [tool.poetry.dependencies.celery]
     version = "5.2.4"
