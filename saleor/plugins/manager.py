@@ -54,7 +54,13 @@ if TYPE_CHECKING:
         PaymentGateway,
         TokenConfig,
     )
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ..shipping.interface import ShippingMethodData
     from ..translation.models import Translation
     from ..warehouse.models import Stock
@@ -779,6 +785,18 @@ class PluginsManager(PaymentInterface):
     def page_deleted(self, page: "Page"):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
+
+    def category_created(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_created", default_value, category)
+
+    def category_updated(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_updated", default_value, category)
+
+    def category_deleted(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_deleted", default_value, category)
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str

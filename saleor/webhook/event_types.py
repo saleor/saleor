@@ -13,6 +13,11 @@ from ..core.permissions import (
 
 class WebhookEventAsyncType:
     ANY = "any_events"
+
+    CATEGORY_CREATED = "category_created"
+    CATEGORY_UPDATED = "category_updated"
+    CATEGORY_DELETED = "category_deleted"
+
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
     ORDER_FULLY_PAID = "order_fully_paid"
@@ -67,6 +72,9 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        CATEGORY_CREATED: "Category created",
+        CATEGORY_UPDATED: "Category updated",
+        CATEGORY_DELETED: "Category deleted",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
         ORDER_FULLY_PAID: "Order paid",
@@ -109,6 +117,9 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
+        (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
+        (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
@@ -152,6 +163,9 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
@@ -265,6 +279,9 @@ class WebhookEventSyncType:
 
 
 SUBSCRIBABLE_EVENTS = [
+    WebhookEventAsyncType.CATEGORY_CREATED,
+    WebhookEventAsyncType.CATEGORY_UPDATED,
+    WebhookEventAsyncType.CATEGORY_DELETED,
     WebhookEventAsyncType.ORDER_CREATED,
     WebhookEventAsyncType.ORDER_UPDATED,
     WebhookEventAsyncType.ORDER_CONFIRMED,

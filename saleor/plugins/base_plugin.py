@@ -39,7 +39,13 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ..shipping.interface import ShippingMethodData
 
 PluginConfigurationType = List[dict]
@@ -227,6 +233,24 @@ class BasePlugin:
     calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
 
     capture_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when category is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a category is
+    #  created.
+    category_created: Callable[["Category", None], None]
+
+    #  Trigger when category is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a category is
+    #  deleted.
+    category_deleted: Callable[["Category", None], None]
+
+    #  Trigger when category is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a category is
+    #  updated.
+    category_updated: Callable[["Category", None], None]
 
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"

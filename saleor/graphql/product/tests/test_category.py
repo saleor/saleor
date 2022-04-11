@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 
@@ -10,6 +11,7 @@ from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
+from ....webhook.event_types import WebhookEventAsyncType
 from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
@@ -444,6 +446,66 @@ def test_category_create_mutation(
     assert data["category"]["parent"]["id"] == parent_id
 
 
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_category_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    monkeypatch,
+    staff_api_client,
+    permission_manage_products,
+    media_root,
+    settings,
+):
+    query = CATEGORY_CREATE_MUTATION
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        (
+            "saleor.product.thumbnails."
+            "create_category_background_image_thumbnails.delay"
+        ),
+        mock_create_thumbnails,
+    )
+
+    category_name = "Test category"
+    description = "description"
+    category_slug = slugify(category_name)
+    category_description = dummy_editorjs(description, True)
+    image_file, image_name = create_image()
+    image_alt = "Alt text for an image."
+
+    # test creating root category
+    variables = {
+        "name": category_name,
+        "description": category_description,
+        "backgroundImage": image_name,
+        "backgroundImageAlt": image_alt,
+        "slug": category_slug,
+    }
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryCreate"]
+    category = Category.objects.first()
+
+    assert category
+    assert data["errors"] == []
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": graphene.Node.to_global_id("Category", category.id)},
+        WebhookEventAsyncType.CATEGORY_CREATED,
+        [any_webhook],
+        category,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
 @pytest.mark.parametrize(
     "input_slug, expected_slug",
     (
@@ -603,6 +665,65 @@ def test_category_update_mutation(
     assert category.background_image.file
     mock_create_thumbnails.assert_called_once_with(category.pk)
     assert data["category"]["backgroundImage"]["alt"] == image_alt
+
+
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_category_update_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    monkeypatch,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    media_root,
+    settings,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        (
+            "saleor.product.thumbnails."
+            "create_category_background_image_thumbnails.delay"
+        ),
+        mock_create_thumbnails,
+    )
+
+    category_name = "Updated name"
+    description = "description"
+    category_slug = slugify(category_name)
+    category_description = dummy_editorjs(description, True)
+
+    image_file, image_name = create_image()
+    image_alt = "Alt text for an image."
+
+    variables = {
+        "name": category_name,
+        "description": category_description,
+        "backgroundImage": image_name,
+        "backgroundImageAlt": image_alt,
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "slug": category_slug,
+    }
+    body = get_multipart_request_body(
+        MUTATION_CATEGORY_UPDATE_MUTATION, variables, image_file, image_name
+    )
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+    assert data["errors"] == []
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": variables["id"]},
+        WebhookEventAsyncType.CATEGORY_UPDATED,
+        [any_webhook],
+        category,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_category_update_mutation_invalid_background_image(
@@ -865,6 +986,42 @@ def test_category_delete_mutation(
         category.refresh_from_db()
 
     delete_versatile_image_mock.assert_not_called()
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_category_delete_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    delete_versatile_image_mock,
+    any_webhook,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    settings,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {"id": graphene.Node.to_global_id("Category", category.id)}
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_DELETE, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryDelete"]
+    assert data["category"]["name"] == category.name
+
+    assert not Category.objects.first()
+
+    delete_versatile_image_mock.assert_not_called()
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": variables["id"]},
+        WebhookEventAsyncType.CATEGORY_DELETED,
+        [any_webhook],
+        category,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 @patch("saleor.product.signals.delete_versatile_image")
