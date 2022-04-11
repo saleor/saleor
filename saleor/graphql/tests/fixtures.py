@@ -38,8 +38,8 @@ class ApiClient(Client):
         if not user.is_anonymous:
             self.token = create_access_token(user)
         elif app:
-            token = app.tokens.first()
-            self.app_token = token.auth_token if token else None
+            _, auth_token = app.tokens.create(name="Default")
+            self.app_token = auth_token
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):

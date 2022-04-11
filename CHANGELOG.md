@@ -24,6 +24,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix access to own resources by App - #9425 by @korycins
 - Introduce custom prices - #9393 by @IKarbowiak
   - Add `HANDLE_CHECKOUTS` permission (only for apps)
+- Refactor app tokens - #9438 by @IKarbowiak
+  - Store app tokens hashes instead of plain text.
 
 
 # 3.1.7
