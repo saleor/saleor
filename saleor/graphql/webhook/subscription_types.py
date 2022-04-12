@@ -369,10 +369,16 @@ class PageDeleted(ObjectType, PageBase):
 class ShippingPriceBase(AbstractType):
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethodType",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description=f"{ADDED_IN_32} Look up a shipping method. {PREVIEW_FEATURE}",
     )
     shipping_zone = graphene.Field(
         "saleor.graphql.shipping.types.ShippingZone",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description=f"{ADDED_IN_32} Look up a shipping zone. {PREVIEW_FEATURE}",
     )
 
@@ -402,6 +408,9 @@ class ShippingPriceDeleted(ObjectType, ShippingPriceBase):
 class ShippingZoneBase(AbstractType):
     shipping_zone = graphene.Field(
         "saleor.graphql.shipping.types.ShippingZone",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description=f"{ADDED_IN_32} Look up a shipping zone. {PREVIEW_FEATURE}",
     )
 

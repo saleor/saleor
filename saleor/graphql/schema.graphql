@@ -16926,57 +16926,84 @@ type ShippingPriceCreated {
   """
   New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingMethod: ShippingMethodType
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
 
   """
   New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingZone: ShippingZone
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type ShippingPriceUpdated {
   """
   New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingMethod: ShippingMethodType
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
 
   """
   New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingZone: ShippingZone
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type ShippingPriceDeleted {
   """
   New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingMethod: ShippingMethodType
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
 
   """
   New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingZone: ShippingZone
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type ShippingZoneCreated {
   """
   New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingZone: ShippingZone
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type ShippingZoneUpdated {
   """
   New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingZone: ShippingZone
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type ShippingZoneDeleted {
   """
   New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
   """
-  shippingZone: ShippingZone
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type TranslationCreated {
