@@ -58,7 +58,9 @@ def test_trigger_webhooks_async_with_meta(
         event_type=webhook_type,
         subscribable_object=order,
         webhooks=[webhook],
-        meta=generate_meta(requestor_data=generate_requestor(staff_user)),
+        meta=generate_meta(
+            requestor_data=generate_requestor(staff_user), camel_case=True
+        ),
     )
     mocked_send_webhook_request.assert_called_once_with(TEST_ID)
 

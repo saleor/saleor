@@ -8,6 +8,7 @@ import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
+from graphene.utils.str_converters import to_camel_case
 
 from .. import __version__
 from ..account.models import User
@@ -105,7 +106,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
     return {"id": requestor.name, "type": "app"}  # type: ignore
 
 
-def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
+def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs):
     meta_result = {
         "issued_at": timezone.now().isoformat(),
         "version": __version__,
@@ -114,7 +115,14 @@ def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
 
     meta_result.update(kwargs)
 
-    return meta_result
+    if camel_case:
+        meta = {}
+        for key, value in meta_result.items():
+            meta[to_camel_case(key)] = value
+    else:
+        meta = meta_result
+
+    return meta
 
 
 def prepare_order_lines_allocations_payload(line):
