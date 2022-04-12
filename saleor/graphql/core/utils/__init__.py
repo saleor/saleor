@@ -46,12 +46,14 @@ def str_to_enum(name):
     return name.replace(" ", "_").replace("-", "_").upper()
 
 
-def is_image_mimetype(mimetype: str):
+def is_image_mimetype(mimetype: str) -> bool:
     """Check if mimetype is image."""
+    if mimetype is None:
+        return False
     return mimetype.startswith("image/")
 
 
-def is_image_url(url: str):
+def is_image_url(url: str) -> bool:
     """Check if file URL seems to be an image."""
     if url.endswith(".webp"):
         # webp is not recognized by mimetypes as image
@@ -61,7 +63,7 @@ def is_image_url(url: str):
     return filetype is not None and is_image_mimetype(filetype)
 
 
-def validate_image_url(url: str, field_name: str, error_class: Enum):
+def validate_image_url(url: str, field_name: str, error_code: str) -> None:
     """Check if remote file has content type of image.
 
     Instead of the whole file, only the headers are fetched.
@@ -69,17 +71,13 @@ def validate_image_url(url: str, field_name: str, error_class: Enum):
     head = requests.head(url)
     header = head.headers
     content_type = header.get("content-type")
-    if not is_image_mimetype(content_type):
+    if content_type is None or not is_image_mimetype(content_type):
         raise ValidationError(
-            {
-                field_name: ValidationError(
-                    "Invalid file type.", code=error_class.INVALID
-                )
-            }
+            {field_name: ValidationError("Invalid file type.", code=error_code)}
         )
 
 
-def get_filename_from_url(url: str):
+def get_filename_from_url(url: str) -> str:
     """Prepare unique filename for file from URL to avoid overwritting."""
     file_name = os.path.basename(url)
     name, format = os.path.splitext(file_name)
@@ -87,7 +85,7 @@ def get_filename_from_url(url: str):
     return f"{name}_{hash}{format}"
 
 
-def validate_image_file(file, field_name, error_class):
+def validate_image_file(file, field_name, error_class) -> None:
     """Validate if the file is an image."""
     if not file:
         raise ValidationError(
