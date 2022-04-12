@@ -79,6 +79,132 @@ def subscription_category_deleted_webhook(subscription_webhook):
     )
 
 
+SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingPriceCreated{
+          shippingMethod{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_price_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_PRICE_CREATED,
+    )
+
+
+SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingPriceUpdated{
+          shippingMethod{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_price_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
+    )
+
+
+SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingPriceDeleted{
+          shippingMethod{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_price_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_PRICE_DELETED,
+    )
+
+
+SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingZoneCreated{
+          shippingZone{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_zone_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
+    )
+
+
+SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingZoneUpdated{
+          shippingZone{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_zone_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
+    )
+
+
+SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingZoneDeleted{
+          shippingZone{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_zone_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_ZONE_DELETED,
+    )
+
+
 PRODUCT_UPDATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{

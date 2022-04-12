@@ -65,6 +65,146 @@ def test_category_deleted(category, subscription_category_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_shipping_price_created(
+    shipping_method, subscription_shipping_price_created_webhook
+):
+    # given
+    webhooks = [subscription_shipping_price_created_webhook]
+    event_type = WebhookEventAsyncType.SHIPPING_PRICE_CREATED
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethodType", shipping_method.id
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_method, webhooks
+    )
+
+    # then
+    expected_payload = json.dumps(
+        [{"shippingMethod": {"id": shipping_method_id}, "meta": None}]
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shipping_price_updated(
+    shipping_method, subscription_shipping_price_updated_webhook
+):
+    # given
+    webhooks = [subscription_shipping_price_updated_webhook]
+    event_type = WebhookEventAsyncType.SHIPPING_PRICE_UPDATED
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethodType", shipping_method.id
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_method, webhooks
+    )
+
+    # then
+    expected_payload = json.dumps(
+        [{"shippingMethod": {"id": shipping_method_id}, "meta": None}]
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shipping_price_deleted(
+    shipping_method, subscription_shipping_price_deleted_webhook
+):
+    # given
+    webhooks = [subscription_shipping_price_deleted_webhook]
+    event_type = WebhookEventAsyncType.SHIPPING_PRICE_DELETED
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethodType", shipping_method.id
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_method, webhooks
+    )
+
+    # then
+    expected_payload = json.dumps(
+        [{"shippingMethod": {"id": shipping_method_id}, "meta": None}]
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shipping_zone_created(
+    shipping_zone, subscription_shipping_zone_created_webhook
+):
+    # given
+    webhooks = [subscription_shipping_zone_created_webhook]
+    event_type = WebhookEventAsyncType.SHIPPING_ZONE_CREATED
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_zone, webhooks
+    )
+
+    # then
+    expected_payload = json.dumps(
+        [{"shippingZone": {"id": shipping_zone_id}, "meta": None}]
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shipping_zone_updated(
+    shipping_zone, subscription_shipping_zone_updated_webhook
+):
+    # given
+    webhooks = [subscription_shipping_zone_updated_webhook]
+    event_type = WebhookEventAsyncType.SHIPPING_ZONE_UPDATED
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_zone, webhooks
+    )
+
+    # then
+    expected_payload = json.dumps(
+        [{"shippingZone": {"id": shipping_zone_id}, "meta": None}]
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_shipping_zone_deleted(
+    shipping_zone, subscription_shipping_zone_deleted_webhook
+):
+    # given
+    webhooks = [subscription_shipping_zone_deleted_webhook]
+    event_type = WebhookEventAsyncType.SHIPPING_ZONE_DELETED
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, shipping_zone, webhooks
+    )
+
+    # then
+    expected_payload = json.dumps(
+        [{"shippingZone": {"id": shipping_zone_id}, "meta": None}]
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_product_created(product, subscription_product_created_webhook):
     webhooks = [subscription_product_created_webhook]
     event_type = WebhookEventAsyncType.PRODUCT_CREATED
