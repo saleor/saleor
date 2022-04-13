@@ -49,6 +49,7 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
+
     line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
@@ -86,7 +87,7 @@ def test_change_quantity_generates_proper_event(
     assert new_event.user == staff_user
     assert new_event.parameters == {
         "lines": [
-            {"quantity": expected_quantity, "line_pk": line.pk, "item": str(line)}
+            {"quantity": expected_quantity, "line_pk": str(line.pk), "item": str(line)}
         ]
     }
 

@@ -3,6 +3,7 @@ from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
+from uuid import UUID
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -73,7 +74,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-OrderLineIDType = int
+OrderLineIDType = UUID
 QuantityType = int
 
 
@@ -827,7 +828,7 @@ def _get_fulfillment_line_if_exists(
 def _get_fulfillment_line(
     target_fulfillment: Fulfillment,
     lines_in_target_fulfillment: List[FulfillmentLine],
-    order_line_id: int,
+    order_line_id: OrderLineIDType,
     stock_id: Optional[int] = None,
 ) -> Tuple[FulfillmentLine, bool]:
     """Get fulfillment line if extists or create new fulfillment line object."""

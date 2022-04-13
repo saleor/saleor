@@ -1,3 +1,4 @@
+import uuid
 from typing import List
 
 import graphene
@@ -197,7 +198,7 @@ class CustomerEvent(ModelObjectType):
     def resolve_order_line(root: models.CustomerEvent, info):
         if "order_line_pk" in root.parameters:
             return OrderLineByIdLoader(info.context).load(
-                root.parameters["order_line_pk"]
+                uuid.UUID(root.parameters["order_line_pk"])
             )
         return None
 
