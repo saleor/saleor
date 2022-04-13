@@ -5119,6 +5119,13 @@ def app(db):
 
 
 @pytest.fixture
+def webhook_app(db, permission_manage_shipping):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.permissions.add(permission_manage_shipping)
+    return app
+
+
+@pytest.fixture
 def app_with_token(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
     app.tokens.create(name="Test")

@@ -5,11 +5,11 @@ from .....webhook.models import Webhook
 
 
 @pytest.fixture
-def subscription_webhook(app):
+def subscription_webhook(webhook_app):
     def fun(query, event_type, name="Subscription"):
         webhook = Webhook.objects.create(
             name=name,
-            app=app,
+            app=webhook_app,
             target_url="http://www.example.com/any",
             subscription_query=query,
         )
@@ -85,6 +85,16 @@ SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
         ...on ShippingPriceCreated{
           shippingMethod{
             id
+            name
+            channelListings {
+              channel {
+                name
+              }
+            }
+          }
+          shippingZone{
+            id
+            name
           }
         }
       }
@@ -106,6 +116,16 @@ SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
         ...on ShippingPriceUpdated{
           shippingMethod{
             id
+            name
+            channelListings {
+              channel {
+                name
+              }
+            }
+          }
+          shippingZone{
+            id
+            name
           }
         }
       }
@@ -127,6 +147,7 @@ SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY = """
         ...on ShippingPriceDeleted{
           shippingMethod{
             id
+            name
           }
         }
       }
@@ -148,6 +169,13 @@ SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY = """
         ...on ShippingZoneCreated{
           shippingZone{
             id
+            name
+            countries {
+                code
+            }
+            channels {
+                name
+            }
           }
         }
       }
@@ -169,6 +197,13 @@ SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
         ...on ShippingZoneUpdated{
           shippingZone{
             id
+            name
+            countries {
+                code
+            }
+            channels {
+                name
+            }
           }
         }
       }
@@ -190,6 +225,7 @@ SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY = """
         ...on ShippingZoneDeleted{
           shippingZone{
             id
+            name
           }
         }
       }

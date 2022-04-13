@@ -389,8 +389,8 @@ class ShippingPriceBase(AbstractType):
 
     @staticmethod
     def resolve_shipping_zone(root, _info, channel=None):
-        _, shipping_zone = root
-        return ChannelContext(node=shipping_zone, channel_slug=channel)
+        _, shipping_method = root
+        return ChannelContext(node=shipping_method.shipping_zone, channel_slug=channel)
 
 
 class ShippingPriceCreated(ObjectType, ShippingPriceBase):
