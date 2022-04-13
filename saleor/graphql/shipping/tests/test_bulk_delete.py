@@ -1,3 +1,5 @@
+from unittest import mock
+
 import graphene
 import pytest
 
@@ -19,6 +21,15 @@ def shipping_method_list(shipping_zone):
     return shipping_method_1, shipping_method_2, shipping_method_3
 
 
+BULK_DELETE_SHIPPING_PRICE_MUTATION = """
+    mutation shippingPriceBulkDelete($ids: [ID!]!) {
+        shippingPriceBulkDelete(ids: $ids) {
+            count
+        }
+    }
+"""
+
+
 @pytest.fixture
 def shipping_zone_list():
     shipping_zone_1 = ShippingZone.objects.create(name="Europe")
@@ -30,14 +41,6 @@ def shipping_zone_list():
 def test_delete_shipping_methods(
     staff_api_client, shipping_method_list, permission_manage_shipping
 ):
-    query = """
-    mutation shippingPriceBulkDelete($ids: [ID!]!) {
-        shippingPriceBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
-
     variables = {
         "ids": [
             graphene.Node.to_global_id("ShippingMethodType", method.id)
@@ -45,7 +48,9 @@ def test_delete_shipping_methods(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        BULK_DELETE_SHIPPING_PRICE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
 
@@ -55,25 +60,64 @@ def test_delete_shipping_methods(
     ).exists()
 
 
-def test_delete_shipping_zones(
-    staff_api_client, shipping_zone_list, permission_manage_shipping
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_shipping_methods_trigger_multiple_webhook_events(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    shipping_method_list,
+    permission_manage_shipping,
+    settings,
 ):
-    query = """
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ShippingMethodType", method.id)
+            for method in shipping_method_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        BULK_DELETE_SHIPPING_PRICE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["shippingPriceBulkDelete"]["count"] == 3
+    assert mocked_webhook_trigger.call_count == len(shipping_method_list)
+
+
+BULK_DELETE_SHIPPING_ZONE_MUTATION = """
     mutation shippingZoneBulkDelete($ids: [ID!]!) {
         shippingZoneBulkDelete(ids: $ids) {
             count
         }
     }
-    """
+"""
 
+
+def test_delete_shipping_zones(
+    staff_api_client, shipping_zone_list, permission_manage_shipping
+):
     variables = {
         "ids": [
             graphene.Node.to_global_id("ShippingZone", zone.id)
             for zone in shipping_zone_list
         ]
     }
+
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        BULK_DELETE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
 
@@ -81,3 +125,38 @@ def test_delete_shipping_zones(
     assert not ShippingZone.objects.filter(
         id__in=[zone.id for zone in shipping_zone_list]
     ).exists()
+
+
+@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_shipping_zones_trigger_multiple_webhook_events(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    shipping_zone_list,
+    permission_manage_shipping,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ShippingZone", zone.id)
+            for zone in shipping_zone_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        BULK_DELETE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["shippingZoneBulkDelete"]["count"] == 3
+    assert mocked_webhook_trigger.call_count == len(shipping_zone_list)
