@@ -163,14 +163,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         payment_gateway = manager.get_plugin(gateway_id, checkout.channel.slug)
 
         if not payment_gateway or not payment_gateway.active:
-            cls.raise_not_available_gateway_error(gateway_id)
+            cls.raise_not_supported_gateway_error(gateway_id)
 
         if not payment_gateway.CONFIGURATION_PER_CHANNEL:
             if not is_currency_supported(checkout.currency, gateway_id, manager):
-                cls.raise_not_available_gateway_error(gateway_id)
+                cls.raise_not_supported_gateway_error(gateway_id)
 
     @classmethod
-    def raise_not_available_gateway_error(cls, gateway_id: str):
+    def raise_not_supported_gateway_error(cls, gateway_id: str):
         raise ValidationError(
             {
                 "gateway": ValidationError(
