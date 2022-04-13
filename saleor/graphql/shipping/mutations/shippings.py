@@ -606,6 +606,9 @@ class ShippingPriceExcludeProducts(BaseMutation):
         shipping_method.excluded_products.set(
             (current_excluded_products | product_to_exclude).distinct()
         )
+
+        info.context.plugins.shipping_price_updated(shipping_method)
+
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )
@@ -645,6 +648,9 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
             shipping_method.excluded_products.set(
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)
             )
+
+        info.context.plugins.shipping_price_updated(shipping_method)
+
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )

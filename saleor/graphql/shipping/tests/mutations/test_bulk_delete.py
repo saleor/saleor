@@ -3,8 +3,8 @@ from unittest import mock
 import graphene
 import pytest
 
-from ....shipping.models import ShippingMethod, ShippingZone
-from ...tests.utils import get_graphql_content
+from .....shipping.models import ShippingMethod, ShippingZone
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
