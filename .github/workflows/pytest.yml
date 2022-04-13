@@ -3,6 +3,12 @@ name: Pytest
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - "**.py"
+      - Dockerfile
+      - requirements_dev.txt
+      - "saleor/**"
+      - ".github/workflows/pytest.yml"
   push:
     branches:
       - main
