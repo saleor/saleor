@@ -333,6 +333,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.ProductVariant
 
     @staticmethod
+    def resolve_created(root: models.ProductVariant, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], info):
         return root.channel_slug
 
@@ -825,6 +829,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
+
+    @staticmethod
+    def resolve_created(root: models.Product, _info):
+        return root.created_at
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], info):

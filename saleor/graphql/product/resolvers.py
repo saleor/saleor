@@ -157,7 +157,7 @@ def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
     qs = models.ProductVariant.objects.all()
 
     # filter by period
-    qs = filter_by_period(qs, period, "order_lines__order__created")
+    qs = filter_by_period(qs, period, "order_lines__order__created_at")
 
     # annotate quantity
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))

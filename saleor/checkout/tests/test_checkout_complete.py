@@ -130,8 +130,8 @@ def test_create_order_captured_payment_creates_expected_events(
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "payment": {
-            "created": payment_txn_captured.created,
-            "modified": payment_txn_captured.modified,
+            "created": payment_txn_captured.created_at,
+            "modified": payment_txn_captured.modified_at,
             "charge_status": payment_txn_captured.charge_status,
             "total": payment_txn_captured.total,
             "captured_amount": payment_txn_captured.captured_amount,
@@ -280,8 +280,8 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "payment": {
-            "created": payment_txn_captured.created,
-            "modified": payment_txn_captured.modified,
+            "created": payment_txn_captured.created_at,
+            "modified": payment_txn_captured.modified_at,
             "charge_status": payment_txn_captured.charge_status,
             "total": payment_txn_captured.total,
             "captured_amount": payment_txn_captured.captured_amount,

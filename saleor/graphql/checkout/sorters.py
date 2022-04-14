@@ -6,7 +6,7 @@ from ..core.types import SortInputObjectType
 
 
 class CheckoutSortField(graphene.Enum):
-    CREATION_DATE = ["created", "pk"]
+    CREATION_DATE = ["created_at", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "pk"]
 

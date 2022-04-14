@@ -31,7 +31,7 @@ class AppQueryset(models.QuerySet):
 
 class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
