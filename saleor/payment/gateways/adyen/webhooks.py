@@ -44,6 +44,7 @@ from ....order.actions import (
 from ....order.events import external_notification_event
 from ....order.fetch import fetch_order_info
 from ....payment.models import Payment, Transaction
+from ....payment.utils import update_payment_charge_status
 from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind, gateway
 from ...gateway import payment_refund_or_void
@@ -123,6 +124,25 @@ def get_transaction(
     kind: str,
 ) -> Optional[Transaction]:
     transaction = payment.transactions.filter(kind=kind, token=transaction_id).last()
+    return transaction
+
+
+def _get_or_create_transaction(
+    payment: "Payment",
+    transaction_id: Optional[str],
+    allowed_kinds: Iterable[str],
+    kind: str,
+    notification,
+):
+    transaction = payment.transactions.filter(
+        token=transaction_id,
+        action_required=False,
+        is_success=True,
+        kind__in=allowed_kinds,
+    ).last()
+    if not transaction:
+        transaction = create_new_transaction(notification, payment, kind)
+        update_payment_charge_status(payment, transaction)
     return transaction
 
 
@@ -296,7 +316,15 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         return
 
     if not payment.is_active:
-        transaction = create_new_transaction(notification, payment, kind)
+        # the `CAPTURE`` transaction should be created only when `AUTH` or `CAPTURE`
+        # transaction does not exist yet
+        transaction = _get_or_create_transaction(
+            payment,
+            transaction_id,
+            [TransactionKind.AUTH, TransactionKind.CAPTURE],
+            kind,
+            notification,
+        )
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return
 
@@ -406,8 +434,14 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     manager = get_plugins_manager()
 
     if not payment.is_active:
-        transaction = create_new_transaction(
-            notification, payment, TransactionKind.CAPTURE
+        # the `CAPTURE`` transaction should be created only when `CAPTURE`
+        # transaction does not exist yet
+        transaction = _get_or_create_transaction(
+            payment,
+            transaction_id,
+            [TransactionKind.CAPTURE],
+            TransactionKind.CAPTURE,
+            notification,
         )
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return

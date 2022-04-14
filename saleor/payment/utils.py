@@ -594,10 +594,14 @@ def try_void_or_refund_inactive_payment(
     webhook when we have order already paid.
     """
     if transaction.is_success:
-        update_payment_charge_status(payment, transaction)
         channel_slug = get_channel_slug_from_payment(payment)
         try:
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            gateway.payment_refund_or_void(
+                payment,
+                manager,
+                channel_slug=channel_slug,
+                transaction_id=transaction.token,
+            )
         except PaymentError:
             logger.exception(
                 "Unable to void/refund an inactive payment %s, %s.",
