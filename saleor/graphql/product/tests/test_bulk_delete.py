@@ -80,6 +80,41 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
+@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_categories_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    category_list,
+    permission_manage_products,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.id)
+            for category in category_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["categoryBulkDelete"]["count"] == 3
+    mocked_webhook_trigger.call_count = len(category_list)
+
+
 @patch("saleor.product.signals.delete_versatile_image")
 def test_delete_categories_with_images(
     delete_versatile_image_mock,
