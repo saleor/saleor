@@ -76,7 +76,7 @@ from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
-from ..payment.types import Payment, PaymentChargeStatusEnum
+from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -100,6 +100,7 @@ from .dataloaders import (
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
+    TransactionItemsByOrderIDLoader,
 )
 from .enums import (
     FulfillmentStatusEnum,
@@ -134,13 +135,13 @@ def get_order_discount_event(discount_obj: dict):
     )
 
 
-def get_payment_status_for_order(order, payments):
+def get_payment_status_for_order(order, transactions):
     status = ChargeStatus.NOT_CHARGED
     captured_money = prices.Money(Decimal(0), order.currency)
     refunded_money = prices.Money(Decimal(0), order.currency)
-    for payment in payments:
-        captured_money += payment.amount_captured
-        refunded_money += payment.amount_refunded
+    for transaction in transactions:
+        captured_money += transaction.amount_captured
+        refunded_money += transaction.amount_refunded
 
     if captured_money >= order.total.gross:
         status = ChargeStatus.FULLY_CHARGED
@@ -679,8 +680,8 @@ class Order(ModelObjectType):
     actions = NonNullList(
         OrderAction,
         description=(
-            f"{DEPRECATED_IN_3X_FIELD} Use actions on order.payments. List of actions "
-            f"that can be performed in the current state of an order."
+            f"{DEPRECATED_IN_3X_FIELD} Use actions on order.transactions. List of "
+            "actions that can be performed in the current state of an order."
         ),
         required=True,
     )
@@ -719,6 +720,9 @@ class Order(ModelObjectType):
         description="User-friendly payment status.", required=True
     )
     payments = NonNullList(Payment, description="List of payments for the order.")
+    transactions = NonNullList(
+        TransactionItem, description="List of transactions for the order."
+    )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
     )
@@ -997,57 +1001,49 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_total_authorized(root: models.Order, info):
-        def _resolve_total_get_total_authorized(payments):
-            last_payment = get_last_payment(payments)
-            # FIXME this condition will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
-            if last_payment and last_payment.gateway:
-                return get_total_authorized(payments, root.currency)
-            authorized_money = prices.Money(Decimal(0), root.currency)
-            for payment in payments:
-                authorized_money += payment.amount_authorized
-            return quantize_price(authorized_money, root.currency)
+        def _resolve_total_get_total_authorized(data):
+            transactions, payments = data
+            if transactions:
+                authorized_money = prices.Money(Decimal(0), root.currency)
+                for transaction in transactions:
+                    authorized_money += transaction.amount_authorized
+                return quantize_price(authorized_money, root.currency)
+            return get_total_authorized(payments, root.currency)
 
-        return (
-            PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_total_get_total_authorized)
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments]).then(
+            _resolve_total_get_total_authorized
         )
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):
-        def _resolve_total_captured(payments):
-            payment = get_last_payment(payments)
-            # FIXME this condition will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
-            if not payment or payment.gateway:
-                return root.total_paid
-            captured_money = prices.Money(Decimal(0), root.currency)
-            for payment in payments:
-                captured_money += payment.amount_captured
-            return quantize_price(captured_money, root.currency)
+        def _resolve_total_captured(transactions):
+            if transactions:
+                captured_money = prices.Money(Decimal(0), root.currency)
+                for transaction in transactions:
+                    captured_money += transaction.amount_captured
+                return quantize_price(captured_money, root.currency)
+            return root.total_paid
 
         return (
-            PaymentsByOrderIdLoader(info.context)
+            TransactionItemsByOrderIDLoader(info.context)
             .load(root.id)
             .then(_resolve_total_captured)
         )
 
     @staticmethod
     def resolve_total_balance(root: models.Order, info):
-        def _resolve_total_balance(payments):
-            payment = get_last_payment(payments)
-            # FIXME this condition will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
-            if not payment or payment.gateway:
-                return root.total_balance
-            captured_money = prices.Money(Decimal(0), root.currency)
-            for payment in payments:
-                captured_money += payment.amount_captured
-            return quantize_price(captured_money - root.total.gross, root.currency)
+        def _resolve_total_balance(transactions):
+            if transactions:
+                captured_money = prices.Money(Decimal(0), root.currency)
+                for transaction in transactions:
+                    captured_money += transaction.amount_captured
+                return quantize_price(captured_money - root.total.gross, root.currency)
+            return root.total_balance
 
         return (
-            PaymentsByOrderIdLoader(info.context)
+            TransactionItemsByOrderIDLoader(info.context)
             .load(root.id)
             .then(_resolve_total_balance)
         )
@@ -1080,19 +1076,18 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_is_paid(root: models.Order, info):
-        def _resolve_is_paid(payments):
-            payment = get_last_payment(payments)
-            # FIXME this condition will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
-            if not payment or payment.gateway:
-                return root.is_fully_paid()
-            captured_money = prices.Money(Decimal(0), root.currency)
-            for payment in payments:
-                captured_money += payment.amount_captured
-            return captured_money >= root.total.gross
+        def _resolve_is_paid(transactions):
+            if transactions:
+                captured_money = prices.Money(Decimal(0), root.currency)
+                for transaction in transactions:
+                    captured_money += transaction.amount_captured
+                return captured_money >= root.total.gross
+            return root.is_fully_paid()
 
         return (
-            PaymentsByOrderIdLoader(info.context).load(root.id).then(_resolve_is_paid)
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_is_paid)
         )
 
     @staticmethod
@@ -1102,45 +1097,42 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
-        def _resolve_payment_status(payments):
+        def _resolve_payment_status(data):
+            transactions, payments = data
+            if transactions:
+                return get_payment_status_for_order(root, transactions)
             last_payment = get_last_payment(payments)
-            # FIXME these conditions will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
             if not last_payment:
                 return ChargeStatus.NOT_CHARGED
-            if last_payment.gateway:
-                return last_payment.charge_status
-            return get_payment_status_for_order(root, payments)
+            return last_payment.charge_status
 
-        return (
-            PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_payment_status)
-        )
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments]).then(_resolve_payment_status)
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
-        def _resolve_payment_status(payments):
+        def _resolve_payment_status(data):
+            transactions, payments = data
+            if transactions:
+                status = get_payment_status_for_order(root, transactions)
+                return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
-            # FIXME these conditions will be changed in separate PR after converting
-            #  current payment model into LegacyPayment object
             if not last_payment:
                 return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
-            if last_payment.gateway:
-                return last_payment.get_charge_status_display()
+            return last_payment.get_charge_status_display()
 
-            status = get_payment_status_for_order(root, payments)
-            return dict(ChargeStatus.CHOICES).get(status)
-
-        return (
-            PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_payment_status)
-        )
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments]).then(_resolve_payment_status)
 
     @staticmethod
     def resolve_payments(root: models.Order, _info):
         return root.payments.all()
+
+    @staticmethod
+    def resolve_transactions(root: models.Order, info):
+        return TransactionItemsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_status_display(root: models.Order, _info):

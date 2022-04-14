@@ -6,16 +6,16 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
-from ..payment.models import Payment
+from ..payment.models import TransactionItem
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
-class PaymentActionData:
+class TransactionActionData:
     action_type: str
-    payment: Payment
+    transaction: TransactionItem
     action_value: Optional[Decimal] = None
 
 

@@ -4,19 +4,23 @@ import graphene
 import pytest
 
 from .....order import OrderEvents
-from .....payment.error_codes import PaymentUpdateErrorCode
-from .....payment.models import Payment
+from .....payment.error_codes import TransactionUpdateErrorCode
+from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import PaymentActionEnum
+from ...enums import TransactionActionEnum
 
-MUTATION_PAYMENT_UPDATE = """
-mutation PaymentUpdate(
+MUTATION_TRANSACTION_UPDATE = """
+mutation TransactionUpdate(
     $id: ID!,
-    $transaction: TransactionInput,
-    $payment: PaymentUpdateInput
+    $transaction_event: TransactionEventInput,
+    $transaction: TransactionUpdateInput
     ){
-    paymentUpdate(id: $id, transaction: $transaction, payment: $payment){
-        payment{
+    transactionUpdate(
+            id: $id,
+            transactionEvent: $transaction_event,
+            transaction: $transaction
+        ){
+        transaction{
                 id
                 actions
                 reference
@@ -52,8 +56,8 @@ mutation PaymentUpdate(
 
 
 @pytest.fixture
-def payment(order_with_lines):
-    return Payment.objects.create(
+def transaction(order_with_lines):
+    return TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -64,102 +68,108 @@ def payment(order_with_lines):
     )
 
 
-def test_payment_update_status(payment, permission_manage_payments, app_api_client):
+def test_transaction_update_status(
+    transaction, permission_manage_payments, app_api_client
+):
     # given
     status = "Captured for 10$"
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             "status": status,
         },
     }
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment.refresh_from_db()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]["payment"]
+    data = content["data"]["transactionUpdate"]["transaction"]
     assert data["status"] == status
-    assert payment.status == status
+    assert transaction.status == status
 
 
-def test_payment_update_type(payment, permission_manage_payments, app_api_client):
+def test_transaction_update_type(
+    transaction, permission_manage_payments, app_api_client
+):
     # given
     type = "New credit card"
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             "type": type,
         },
     }
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment.refresh_from_db()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]["payment"]
+    data = content["data"]["transactionUpdate"]["transaction"]
     assert data["type"] == type
-    assert payment.type == type
+    assert transaction.type == type
 
 
-def test_payment_update_reference(payment, permission_manage_payments, app_api_client):
+def test_transaction_update_reference(
+    transaction, permission_manage_payments, app_api_client
+):
     # given
     reference = "PSP:123AAA"
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             "reference": reference,
         },
     }
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment.refresh_from_db()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]["payment"]
+    data = content["data"]["transactionUpdate"]["transaction"]
     assert data["reference"] == reference
-    assert payment.reference == reference
+    assert transaction.reference == reference
 
 
-def test_payment_update_available_actions(
-    payment, permission_manage_payments, app_api_client
+def test_transaction_update_available_actions(
+    transaction, permission_manage_payments, app_api_client
 ):
     # given
-    available_actions = [PaymentActionEnum.REFUND.name]
+    available_actions = [TransactionActionEnum.REFUND.name]
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             "availableActions": available_actions,
         },
     }
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment.refresh_from_db()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]["payment"]
+    data = content["data"]["transactionUpdate"]["transaction"]
     assert data["actions"] == available_actions
-    assert payment.available_actions == ["refund"]
+    assert transaction.available_actions == ["refund"]
 
 
 @pytest.mark.parametrize(
@@ -171,37 +181,37 @@ def test_payment_update_available_actions(
         ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
     ],
 )
-def test_payment_update_amounts(
+def test_transaction_update_amounts(
     field_name,
     response_field,
     db_field_name,
     value,
-    payment,
+    transaction,
     permission_manage_payments,
     app_api_client,
 ):
     # given
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {field_name: {"amount": value, "currency": "USD"}},
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {field_name: {"amount": value, "currency": "USD"}},
     }
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment.refresh_from_db()
+    transaction.refresh_from_db()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]["payment"]
+    data = content["data"]["transactionUpdate"]["transaction"]
     assert data[response_field]["amount"] == value
-    assert getattr(payment, db_field_name) == value
+    assert getattr(transaction, db_field_name) == value
 
 
-def test_payment_update_multiple_amounts_provided(
-    payment, permission_manage_payments, app_api_client
+def test_transaction_update_multiple_amounts_provided(
+    transaction, permission_manage_payments, app_api_client
 ):
     # given
     authorized_value = Decimal("10")
@@ -210,8 +220,8 @@ def test_payment_update_multiple_amounts_provided(
     voided_value = Decimal("13")
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
                 "currency": "USD",
@@ -233,39 +243,41 @@ def test_payment_update_multiple_amounts_provided(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment = Payment.objects.first()
+    transaction = TransactionItem.objects.first()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]["payment"]
+    data = content["data"]["transactionUpdate"]["transaction"]
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["capturedAmount"]["amount"] == captured_value
     assert data["refundedAmount"]["amount"] == refunded_value
     assert data["voidedAmount"]["amount"] == voided_value
 
-    assert payment.authorized_value == authorized_value
-    assert payment.captured_value == captured_value
-    assert payment.voided_value == voided_value
-    assert payment.refunded_value == refunded_value
+    assert transaction.authorized_value == authorized_value
+    assert transaction.captured_value == captured_value
+    assert transaction.voided_value == voided_value
+    assert transaction.refunded_value == refunded_value
 
 
-def test_payment_create_for_order_missing_app_permission(payment, app_api_client):
+def test_transaction_update_for_order_missing_app_permission(
+    transaction, app_api_client
+):
     # given
     status = "Authorized for 10$"
     type = "Credit Card"
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             "status": status,
             "type": type,
         },
     }
 
     # when
-    response = app_api_client.post_graphql(MUTATION_PAYMENT_UPDATE, variables)
+    response = app_api_client.post_graphql(MUTATION_TRANSACTION_UPDATE, variables)
 
     # then
     assert_no_permission(response)
@@ -280,10 +292,10 @@ def test_payment_create_for_order_missing_app_permission(payment, app_api_client
         ("amountRefunded", "refunded_value"),
     ],
 )
-def test_payment_create_incorrect_currency(
+def test_transaction_update_incorrect_currency(
     amount_field_name,
     amount_db_field,
-    payment,
+    transaction,
     permission_manage_payments,
     app_api_client,
 ):
@@ -291,8 +303,8 @@ def test_payment_create_incorrect_currency(
     expected_value = Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "payment": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
             amount_field_name: {
                 "amount": expected_value,
                 "currency": "PLN",
@@ -302,18 +314,20 @@ def test_payment_create_incorrect_currency(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]
+    data = content["data"]["transactionUpdate"]
     assert data["errors"][0]["field"] == amount_field_name
-    assert data["errors"][0]["code"] == PaymentUpdateErrorCode.INCORRECT_CURRENCY.name
+    assert (
+        data["errors"][0]["code"] == TransactionUpdateErrorCode.INCORRECT_CURRENCY.name
+    )
 
 
-def test_payment_update_adds_payment_event_to_order(
-    payment, order_with_lines, permission_manage_payments, app_api_client
+def test_transaction_update_adds_transaction_event_to_order(
+    transaction, order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
     transaction_status = "PENDING"
@@ -321,8 +335,8 @@ def test_payment_update_adds_payment_event_to_order(
     transaction_name = "Processing transaction"
 
     variables = {
-        "id": graphene.Node.to_global_id("Payment", payment.pk),
-        "transaction": {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_event": {
             "status": transaction_status,
             "reference": transaction_reference,
             "name": transaction_name,
@@ -331,15 +345,15 @@ def test_payment_update_adds_payment_event_to_order(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_UPDATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
     )
     # then
     event = order_with_lines.events.first()
     content = get_graphql_content(response)
-    data = content["data"]["paymentUpdate"]
+    data = content["data"]["transactionUpdate"]
 
     assert not data["errors"]
-    assert event.type == OrderEvents.PAYMENT_EVENT
+    assert event.type == OrderEvents.TRANSACTION_EVENT
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,

@@ -15,12 +15,12 @@ from ..order.events import (
 )
 from ..payment.interface import (
     CustomerSource,
-    PaymentActionData,
     PaymentGateway,
     RefundData,
+    TransactionActionData,
 )
-from . import GatewayError, PaymentAction, PaymentError, TransactionKind
-from .models import Payment, Transaction
+from . import GatewayError, PaymentError, TransactionAction, TransactionKind
+from .models import Payment, Transaction, TransactionItem
 from .utils import (
     clean_authorize,
     clean_capture,
@@ -84,7 +84,7 @@ def with_locked_payment(fn: Callable) -> Callable:
 
 
 def request_capture_action(
-    payment: Payment,
+    transaction: TransactionItem,
     manager: "PluginsManager",
     capture_value: Optional[Decimal],
     channel_slug: str,
@@ -93,27 +93,27 @@ def request_capture_action(
 ):
 
     if capture_value is None:
-        capture_value = payment.authorized_value
+        capture_value = transaction.authorized_value
 
     _request_payment_action(
-        payment=payment,
+        transaction=transaction,
         manager=manager,
-        action_type=PaymentAction.CAPTURE,
+        action_type=TransactionAction.CAPTURE,
         action_value=capture_value,
         channel_slug=channel_slug,
     )
-    if order_id := payment.order_id:
+    if order_id := transaction.order_id:
         event_payment_capture_requested(
             order_id=order_id,
-            reference=payment.reference,
-            amount=quantize_price(capture_value, payment.currency),
+            reference=transaction.reference,
+            amount=quantize_price(capture_value, transaction.currency),
             user=user,
             app=app,
         )
 
 
 def request_refund_action(
-    payment: Payment,
+    transaction: TransactionItem,
     manager: "PluginsManager",
     refund_value: Optional[Decimal],
     channel_slug: str,
@@ -121,63 +121,63 @@ def request_refund_action(
     app: AppType,
 ):
     if refund_value is None:
-        refund_value = payment.captured_value
+        refund_value = transaction.captured_value
 
     _request_payment_action(
-        payment=payment,
+        transaction=transaction,
         manager=manager,
-        action_type=PaymentAction.REFUND,
+        action_type=TransactionAction.REFUND,
         action_value=refund_value,
         channel_slug=channel_slug,
     )
-    if order_id := payment.order_id:
+    if order_id := transaction.order_id:
         event_payment_refund_requested(
             order_id=order_id,
-            reference=payment.reference,
-            amount=quantize_price(refund_value, payment.currency),
+            reference=transaction.reference,
+            amount=quantize_price(refund_value, transaction.currency),
             user=user,
             app=app,
         )
 
 
 def request_void_action(
-    payment: Payment,
+    transaction: TransactionItem,
     manager: "PluginsManager",
     channel_slug: str,
     user: UserType,
     app: AppType,
 ):
     _request_payment_action(
-        payment=payment,
+        transaction=transaction,
         manager=manager,
-        action_type=PaymentAction.VOID,
+        action_type=TransactionAction.VOID,
         action_value=None,
         channel_slug=channel_slug,
     )
-    if order_id := payment.order_id:
+    if order_id := transaction.order_id:
         event_payment_void_requested(
-            order_id=order_id, reference=payment.reference, user=user, app=app
+            order_id=order_id, reference=transaction.reference, user=user, app=app
         )
 
 
 def _request_payment_action(
-    payment: Payment,
+    transaction: TransactionItem,
     manager: "PluginsManager",
     action_type: str,
     action_value: Optional[Decimal],
     channel_slug: str,
 ):
-    payment_data = PaymentActionData(
-        payment=payment, action_type=action_type, action_value=action_value
+    payment_data = TransactionActionData(
+        transaction=transaction, action_type=action_type, action_value=action_value
     )
     event_active = manager.is_event_active_for_any_plugin(
-        "payment_action_request", channel_slug=channel_slug
+        "transaction_action_request", channel_slug=channel_slug
     )
     if not event_active:
         raise PaymentError(
             "No app or plugin is configured to handle payment action requests."
         )
-    manager.payment_action_request(payment_data, channel_slug=channel_slug)
+    manager.transaction_action_request(payment_data, channel_slug=channel_slug)
 
 
 @raise_payment_error

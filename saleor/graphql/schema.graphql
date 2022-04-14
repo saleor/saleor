@@ -1121,7 +1121,7 @@ enum WebhookEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
-  PAYMENT_ACTION_REQUEST
+  TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
   PAYMENT_AUTHORIZE
@@ -1270,7 +1270,7 @@ enum WebhookEventTypeAsyncEnum {
 
   """A page is deleted."""
   PAGE_DELETED
-  PAYMENT_ACTION_REQUEST
+  TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -1656,7 +1656,7 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
-  PAYMENT_ACTION_REQUEST
+  TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -5838,7 +5838,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine!]!
 
   """
-  This field will be removed in Saleor 4.0. Use actions on order.payments. List of actions that can be performed in the current state of an order.
+  This field will be removed in Saleor 4.0. Use actions on order.transactions. List of actions that can be performed in the current state of an order.
   """
   actions: [OrderAction!]!
 
@@ -5876,6 +5876,9 @@ type Order implements Node & ObjectWithMetadata {
 
   """List of payments for the order."""
   payments: [Payment!]
+
+  """List of transactions for the order."""
+  transactions: [TransactionItem!]
 
   """Total amount of the order."""
   total: TaxedMoney!
@@ -6176,70 +6179,41 @@ type Payment implements Node & ObjectWithMetadata {
 
   """List of public metadata items. Can be accessed without permissions."""
   metadata: [MetadataItem!]!
+  gateway: String!
+  isActive: Boolean!
+  created: DateTime!
+  modified: DateTime!
+  token: String!
   checkout: Checkout
   order: Order
+  paymentMethodType: String!
+  customerIpAddress: String
+
+  """Internal payment status."""
+  chargeStatus: PaymentChargeStatusEnum!
 
   """
   List of actions that can be performed in the current state of a payment.
   """
-  actions: [PaymentActionEnum!]!
+  actions: [OrderAction!]!
 
   """Total amount of the payment."""
   total: Money
 
-  """Total amount authorized for this payment."""
-  authorizedAmount: Money!
-
-  """Total amount refunded for this payment."""
-  refundedAmount: Money!
-
-  """Total amount voided for this payment."""
-  voidedAmount: Money!
-
   """Total amount captured for this payment."""
-  capturedAmount: Money!
-  gateway: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
-  isActive: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
-  created: DateTime!
-  modified: DateTime!
-  token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
-  paymentMethodType: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
-  customerIpAddress: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
-
-  """Internal payment status."""
-  chargeStatus: PaymentChargeStatusEnum! @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  capturedAmount: Money
 
   """List of all transactions within this payment."""
-  transactions: [Transaction!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  transactions: [Transaction!]
 
   """Maximum amount of money that can be captured."""
-  availableCaptureAmount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  availableCaptureAmount: Money
 
   """Maximum amount of money that can be refunded."""
-  availableRefundAmount: Money @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
+  availableRefundAmount: Money
 
   """The details of the card used for this payment."""
-  creditCard: CreditCard @deprecated(reason: "This field will be removed in Saleor 4.0. Use new checkout flow.")
-  status: String!
-  type: String!
-  reference: String!
-}
-
-"""
-Represents possible actions on payment.
-
-    The following actions are possible:
-    CAPTURE - Represents the capture action.
-    REFUND - Represents a refund action.
-    VOID - Represents a void action.
-    MARK_AS_PAID - This field will be removed in Saleor 4.0. Represents a mark-as-paid
-    action.
-"""
-enum PaymentActionEnum {
-  CAPTURE
-  REFUND
-  VOID
-  MARK_AS_PAID
+  creditCard: CreditCard
 }
 
 """An object representing a single payment."""
@@ -6286,6 +6260,64 @@ type CreditCard {
 
   """Four-digit number representing the card’s expiration year."""
   expYear: Int
+}
+
+"""Represents a payment transaction."""
+type TransactionItem implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """
+  List of private metadata items.Requires proper staff permissions to access.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+  created: DateTime!
+  modified: DateTime!
+  checkout: Checkout
+  order: Order
+
+  """
+  List of actions that can be performed in the current state of a payment.
+  """
+  actions: [PaymentActionEnum!]!
+
+  """Total amount authorized for this payment."""
+  authorizedAmount: Money!
+
+  """Total amount refunded for this payment."""
+  refundedAmount: Money!
+
+  """Total amount voided for this payment."""
+  voidedAmount: Money!
+
+  """Total amount captured for this payment."""
+  capturedAmount: Money!
+
+  """Status of transaction."""
+  status: String!
+
+  """Type of transaction."""
+  type: String!
+
+  """Reference of transaction."""
+  reference: String!
+}
+
+"""
+Represents possible actions on payment transaction.
+
+    The following actions are possible:
+    CAPTURE - Represents the capture action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+"""
+enum PaymentActionEnum {
+  CAPTURE
+  REFUND
+  VOID
 }
 
 """History log of the order."""
@@ -6395,9 +6427,9 @@ enum OrderEventsEnum {
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
   PAYMENT_FAILED
-  PAYMENT_CAPTURE_REQUESTED
-  PAYMENT_REFUND_REQUESTED
-  PAYMENT_VOID_REQUESTED
+  TRANSACTION_CAPTURE_REQUESTED
+  TRANSACTION_REFUND_REQUESTED
+  TRANSACTION_VOID_REQUESTED
   INVOICE_REQUESTED
   INVOICE_GENERATED
   INVOICE_UPDATED
@@ -6555,7 +6587,7 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
-  MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
 }
 
 """An enumeration."""
@@ -8674,7 +8706,7 @@ type Mutation {
   ): VariantMediaUnassign
 
   """
-  Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  This mutation will be removed in Saleor 4.0 Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
   """
   paymentCapture(
     """Transaction amount."""
@@ -8685,7 +8717,7 @@ type Mutation {
   ): PaymentCapture
 
   """
-  Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  This mutation will be removed in Saleor 4.0 Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
   """
   paymentRefund(
     """Transaction amount."""
@@ -8696,7 +8728,7 @@ type Mutation {
   ): PaymentRefund
 
   """
-  Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+  This mutation will be removed in Saleor 4.0 Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
   """
   paymentVoid(
     """Payment ID."""
@@ -8722,32 +8754,32 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
-  Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+  Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
   """
-  paymentCreate(
+  transactionCreate(
     """The ID of the checkout or order."""
     id: ID!
 
-    """Input data required to create a new payment object."""
-    payment: PaymentCreateInput!
+    """Input data required to create a new transaction object."""
+    transaction: TransactionCreateInput!
 
-    """Data that defines a payment transaction."""
-    transaction: TransactionInput
-  ): PaymentCreate
+    """Data that defines a transaction event."""
+    transactionEvent: TransactionEventInput
+  ): TransactionCreate
 
   """
-  Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+  Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
   """
-  paymentUpdate(
-    """The ID of the payment."""
+  transactionUpdate(
+    """The ID of the transaction."""
     id: ID!
 
-    """Input data required to create a new payment object."""
-    payment: PaymentUpdateInput
+    """Input data required to create a new transaction object."""
+    transaction: TransactionUpdateInput
 
-    """Data that defines a payment transaction."""
-    transaction: TransactionInput
-  ): PaymentUpdate
+    """Data that defines a transaction transaction."""
+    transactionEvent: TransactionEventInput
+  ): TransactionUpdate
 
   """
   Creates a new page. Requires one of the following permissions: MANAGE_PAGES.
@@ -12708,7 +12740,7 @@ type VariantMediaUnassign {
 }
 
 """
-Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+This mutation will be removed in Saleor 4.0 Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type PaymentCapture {
   """Updated payment."""
@@ -12752,11 +12784,10 @@ enum PaymentErrorCode {
   CHECKOUT_EMAIL_NOT_SET
   UNAVAILABLE_VARIANT_IN_CHANNEL
   NO_CHECKOUT_LINES
-  MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
 }
 
 """
-Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+This mutation will be removed in Saleor 4.0 Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type PaymentRefund {
   """Updated payment."""
@@ -12766,7 +12797,7 @@ type PaymentRefund {
 }
 
 """
-Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+This mutation will be removed in Saleor 4.0 Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type PaymentVoid {
   """Updated payment."""
@@ -12840,14 +12871,14 @@ input MoneyInput {
 }
 
 """
-Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
 """
-type PaymentCreate {
-  payment: Payment
-  errors: [PaymentCreateError!]!
+type TransactionCreate {
+  transaction: TransactionItem
+  errors: [TransactionCreateError!]!
 }
 
-type PaymentCreateError {
+type TransactionCreateError {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -12857,11 +12888,11 @@ type PaymentCreateError {
   message: String
 
   """The error code."""
-  code: PaymentCreateErrorCode!
+  code: TransactionCreateErrorCode!
 }
 
 """An enumeration."""
-enum PaymentCreateErrorCode {
+enum TransactionCreateErrorCode {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
@@ -12869,29 +12900,29 @@ enum PaymentCreateErrorCode {
   METADATA_KEY_REQUIRED
 }
 
-input PaymentCreateInput {
-  """Status of the payment."""
+input TransactionCreateInput {
+  """Status of the transaction."""
   status: String!
 
-  """Payment type used for this payment."""
+  """Payment type used for this transaction."""
   type: String!
 
-  """Reference of the payment."""
+  """Reference of the transaction."""
   reference: String
 
-  """List of all possible actions for the payment"""
+  """List of all possible actions for the transaction"""
   availableActions: [PaymentActionEnum!]
 
-  """Amount authorized by this payment."""
+  """Amount authorized by this transaction."""
   amountAuthorized: MoneyInput
 
-  """Amount captured by this payment."""
+  """Amount captured by this transaction."""
   amountCaptured: MoneyInput
 
-  """Amount refunded by this payment."""
+  """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """Amount voided by this payment."""
+  """Amount voided by this transaction."""
   amountVoided: MoneyInput
 
   """Payment public metadata."""
@@ -12909,7 +12940,7 @@ input MetadataInput {
   value: String!
 }
 
-input TransactionInput {
+input TransactionEventInput {
   """Current status of the payment transaction."""
   status: TransactionStatus!
 
@@ -12921,14 +12952,14 @@ input TransactionInput {
 }
 
 """
-Note: this feature is in a preview state and can be subject to changes at later point. Create payment for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
 """
-type PaymentUpdate {
-  payment: Payment
-  errors: [PaymentUpdateError!]!
+type TransactionUpdate {
+  transaction: TransactionItem
+  errors: [TransactionUpdateError!]!
 }
 
-type PaymentUpdateError {
+type TransactionUpdateError {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -12938,11 +12969,11 @@ type PaymentUpdateError {
   message: String
 
   """The error code."""
-  code: PaymentUpdateErrorCode!
+  code: TransactionUpdateErrorCode!
 }
 
 """An enumeration."""
-enum PaymentUpdateErrorCode {
+enum TransactionUpdateErrorCode {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
@@ -12950,29 +12981,29 @@ enum PaymentUpdateErrorCode {
   METADATA_KEY_REQUIRED
 }
 
-input PaymentUpdateInput {
-  """Status of the payment."""
+input TransactionUpdateInput {
+  """Status of the transaction."""
   status: String
 
-  """Payment type used for this payment."""
+  """Payment type used for this transaction."""
   type: String
 
-  """Reference of the payment."""
+  """Reference of the transaction."""
   reference: String
 
-  """List of all possible actions for the payment"""
+  """List of all possible actions for the transaction"""
   availableActions: [PaymentActionEnum!]
 
-  """Amount authorized by this payment."""
+  """Amount authorized by this transaction."""
   amountAuthorized: MoneyInput
 
-  """Amount captured by this payment."""
+  """Amount captured by this transaction."""
   amountCaptured: MoneyInput
 
-  """Amount refunded by this payment."""
+  """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """Amount voided by this payment."""
+  """Amount voided by this transaction."""
   amountVoided: MoneyInput
 
   """Payment public metadata."""

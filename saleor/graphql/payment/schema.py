@@ -9,11 +9,11 @@ from .filters import PaymentFilterInput
 from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
-    PaymentCreate,
     PaymentInitialize,
     PaymentRefund,
-    PaymentUpdate,
     PaymentVoid,
+    TransactionCreate,
+    TransactionUpdate,
 )
 from .resolvers import resolve_payment_by_id, resolve_payments
 from .types import Payment, PaymentCountableConnection
@@ -52,5 +52,5 @@ class PaymentMutations(graphene.ObjectType):
     payment_initialize = PaymentInitialize.Field()
     payment_check_balance = PaymentCheckBalance.Field()
 
-    payment_create = PaymentCreate.Field()
-    payment_update = PaymentUpdate.Field()
+    transaction_create = TransactionCreate.Field()
+    transaction_update = TransactionUpdate.Field()

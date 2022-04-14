@@ -18,10 +18,76 @@ from ..core.taxes import zero_money
 from . import (
     ChargeStatus,
     CustomPaymentChoices,
-    PaymentAction,
     StorePaymentMethod,
+    TransactionAction,
     TransactionKind,
 )
+
+
+class TransactionItem(ModelWithMetadata):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=512, blank=True, default="")
+    type = models.CharField(max_length=512, blank=True, default="")
+    reference = models.CharField(max_length=512, blank=True, default="")
+    available_actions = ArrayField(
+        models.CharField(max_length=128, choices=TransactionAction.CHOICES),
+        default=list,
+    )
+
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+
+    amount_captured = MoneyField(
+        amount_field="captured_value", currency_field="currency"
+    )
+    captured_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_authorized = MoneyField(
+        amount_field="authorized_value", currency_field="currency"
+    )
+    authorized_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_refunded = MoneyField(
+        amount_field="refunded_value", currency_field="currency"
+    )
+    refunded_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount_voided = MoneyField(amount_field="voided_value", currency_field="currency")
+    voided_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+
+    checkout = models.ForeignKey(
+        Checkout,
+        null=True,
+        related_name="payment_transactions",
+        on_delete=models.SET_NULL,
+    )
+    order = models.ForeignKey(
+        "order.Order",
+        related_name="payment_transactions",
+        null=True,
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        ordering = ("pk",)
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            # Orders filtering by status index
+            GinIndex(fields=["order_id", "status"]),
+        ]
 
 
 class Payment(ModelWithMetadata):
@@ -107,43 +173,6 @@ class Payment(ModelWithMetadata):
     return_url = models.URLField(blank=True, null=True)
     psp_reference = models.CharField(
         max_length=512, null=True, blank=True, db_index=True
-    )
-
-    status = models.CharField(max_length=512, blank=True, default="")
-    type = models.CharField(max_length=512, blank=True, default="")
-    reference = models.CharField(max_length=512, blank=True, default="")
-    available_actions = ArrayField(
-        models.CharField(max_length=128, choices=PaymentAction.CHOICES), default=list
-    )
-    amount_captured = MoneyField(
-        amount_field="captured_value", currency_field="currency"
-    )
-    captured_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
-    )
-    amount_authorized = MoneyField(
-        amount_field="authorized_value", currency_field="currency"
-    )
-    authorized_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
-    )
-    amount_refunded = MoneyField(
-        amount_field="refunded_value", currency_field="currency"
-    )
-    refunded_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
-    )
-    amount_voided = MoneyField(amount_field="voided_value", currency_field="currency")
-    voided_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
     )
 
     class Meta:

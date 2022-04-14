@@ -9,9 +9,9 @@ from ....order import FulfillmentLineData, OrderEvents
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
 from ....order.models import FulfillmentLine, FulfillmentStatus
-from ....payment import ChargeStatus, PaymentAction, PaymentError
-from ....payment.interface import PaymentActionData, RefundData
-from ....payment.models import Payment
+from ....payment import ChargeStatus, PaymentError, TransactionAction
+from ....payment.interface import RefundData, TransactionActionData
+from ....payment.models import TransactionItem
 from ....warehouse.models import Allocation, Stock
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
@@ -48,9 +48,9 @@ mutation OrderFulfillmentRefundProducts(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
-def test_fulfillment_refund_products_with_payment_action_request(
-    mocked_payment_action_request,
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
+def test_fulfillment_refund_products_with_transaction_action_request(
+    mocked_transaction_action_request,
     mocked_is_active,
     staff_api_client,
     permission_manage_orders,
@@ -60,7 +60,7 @@ def test_fulfillment_refund_products_with_payment_action_request(
     mocked_is_active.return_value = True
 
     captured_value = Decimal("20.0")
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
         reference="PSP ref",
@@ -87,18 +87,18 @@ def test_fulfillment_refund_products_with_payment_action_request(
     errors = data["errors"]
     assert not errors
 
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.REFUND,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
             action_value=amount_to_refund,
         ),
         channel_slug=fulfilled_order.channel.slug,
     )
     event = fulfilled_order.events.first()
-    assert event.type == OrderEvents.PAYMENT_REFUND_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == amount_to_refund
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.parameters["payment_id"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -112,7 +112,7 @@ def test_fulfillment_refund_products_with_missing_payment_action_hook(
     mocked_is_active.return_value = False
 
     captured_value = Decimal("20.0")
-    Payment.objects.create(
+    TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
         reference="PSP ref",
@@ -138,7 +138,7 @@ def test_fulfillment_refund_products_with_missing_payment_action_hook(
     data = content["data"]["orderFulfillmentRefundProducts"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == (
-        OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.name
+        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
     )
     assert mocked_is_active.called
 

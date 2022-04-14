@@ -125,11 +125,14 @@ InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
 PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
 
-PaymentCreateErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentCreateErrorCode
+TransactionCreateErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionCreateErrorCode
 )
-PaymentUpdateErrorCode = graphene.Enum.from_enum(
-    payment_error_codes.PaymentUpdateErrorCode
+TransactionUpdateErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionUpdateErrorCode
+)
+TransactionRequestActionErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionRequestActionErrorCode
 )
 
 PermissionGroupErrorCode = graphene.Enum.from_enum(

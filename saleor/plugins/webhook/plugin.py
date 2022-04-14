@@ -21,7 +21,6 @@ from ...webhook.payloads import (
     generate_meta,
     generate_order_payload,
     generate_page_payload,
-    generate_payment_action_request_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
     generate_product_payload,
@@ -29,6 +28,7 @@ from ...webhook.payloads import (
     generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
+    generate_transaction_action_request_payload,
     generate_translation_payload,
 )
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
@@ -57,9 +57,9 @@ if TYPE_CHECKING:
     from ...page.models import Page
     from ...payment.interface import (
         GatewayResponse,
-        PaymentActionData,
         PaymentData,
         PaymentGateway,
+        TransactionActionData,
     )
     from ...product.models import Collection, Product, ProductVariant
     from ...shipping.interface import ShippingMethodData
@@ -542,15 +542,15 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
-    def payment_action_request(
-        self, payment_data: "PaymentActionData", previous_value: None
+    def transaction_action_request(
+        self, transaction_data: "TransactionActionData", previous_value: None
     ) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.PAYMENT_ACTION_REQUEST
+        event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
         if webhooks := _get_webhooks_for_event(event_type):
-            payload = generate_payment_action_request_payload(
-                payment_data, self.requestor
+            payload = generate_transaction_action_request_payload(
+                transaction_data, self.requestor
             )
             trigger_webhooks_async(payload, event_type, webhooks)
 
