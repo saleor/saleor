@@ -44,7 +44,7 @@ from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_document_value
-from ..payment import PaymentError, gateway
+from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
@@ -755,7 +755,7 @@ def complete_checkout(
             )
 
     order = None
-    if not action_required:
+    if not action_required and not _is_refund_ongoing(payment):
         try:
             order = _create_order(
                 checkout_info=checkout_info,
@@ -787,6 +787,17 @@ def complete_checkout(
             mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
+
+
+def _is_refund_ongoing(payment):
+    """Return True if refund is ongoing for given payment."""
+    return (
+        payment.transactions.filter(
+            kind=TransactionKind.REFUND_ONGOING, is_success=True
+        ).exists()
+        if payment
+        else False
+    )
 
 
 def _get_order_total(

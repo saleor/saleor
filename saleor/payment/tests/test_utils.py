@@ -201,13 +201,11 @@ def test_try_void_or_refund_inactive_payment_failed_transaction(
     assert not refund_or_void_mock.called
 
 
-@patch("saleor.payment.utils.update_payment_charge_status")
 @patch("saleor.payment.utils.get_channel_slug_from_payment")
 @patch("saleor.payment.gateway.payment_refund_or_void")
 def test_try_void_or_refund_inactive_payment_transaction_success(
     refund_or_void_mock,
     get_channel_slug_from_payment_mock,
-    update_payment_charge_status_mock,
     payment_txn_captured,
 ):
     transaction = payment_txn_captured.transactions.first()
@@ -215,6 +213,5 @@ def test_try_void_or_refund_inactive_payment_transaction_success(
     assert not try_void_or_refund_inactive_payment(
         payment_txn_captured, transaction, None
     )
-    assert update_payment_charge_status_mock.called
     assert get_channel_slug_from_payment_mock.called
     assert refund_or_void_mock.called
