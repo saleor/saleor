@@ -775,7 +775,9 @@ class ProductDelete(ModelDeleteMutation):
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
             recalculate_orders_task.delay(list(order_pks))
-        info.context.plugins.product_deleted(instance, variants_id)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_deleted(instance, variants_id)
+        )
 
         return response
 
