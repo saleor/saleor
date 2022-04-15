@@ -87,14 +87,12 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
 def permission_required(requestor, perms):
     User = get_user_model()
     if isinstance(requestor, User):
-        if requestor.has_perms(perms):
-            return True
+        return requestor.has_perms(perms)
     else:
         # for now MANAGE_STAFF permission for app is not supported
         if AccountPermissions.MANAGE_STAFF in perms:
             return False
         return requestor.has_perms(perms)
-    return False
 
 
 def has_one_of_permissions(requestor, permissions=None):
