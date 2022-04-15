@@ -1124,8 +1124,8 @@ def generate_transaction_action_request_payload(
             ),
             "order_id": graphql_order_id,
             "checkout_id": graphql_checkout_id,
-            "created": transaction.created,
-            "modified": transaction.modified,
+            "created_at": transaction.created_at,
+            "modified_at": transaction.modified_at,
         },
         "meta": generate_meta(requestor_data=generate_requestor(requestor)),
     }

@@ -1342,8 +1342,8 @@ def test_generate_transaction_action_request_payload_for_order(
             "voided_value": str(quantize_price(transaction.voided_value, currency)),
             "order_id": graphene.Node.to_global_id("Order", order.pk),
             "checkout_id": None,
-            "created": parse_django_datetime(transaction.created),
-            "modified": parse_django_datetime(transaction.modified),
+            "created_at": parse_django_datetime(transaction.created_at),
+            "modified_at": parse_django_datetime(transaction.modified_at),
         },
         "meta": {
             "issuing_principal": {"id": "Sample app objects", "type": "app"},
@@ -1418,8 +1418,8 @@ def test_generate_transaction_action_request_payload_for_checkout(
             "voided_value": str(quantize_price(transaction.voided_value, currency)),
             "order_id": None,
             "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
-            "created": parse_django_datetime(transaction.created),
-            "modified": parse_django_datetime(transaction.modified),
+            "created_at": parse_django_datetime(transaction.created_at),
+            "modified_at": parse_django_datetime(transaction.modified_at),
         },
         "meta": {
             "issuing_principal": {"id": "Sample app objects", "type": "app"},

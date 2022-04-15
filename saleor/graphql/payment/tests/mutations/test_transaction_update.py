@@ -26,8 +26,8 @@ mutation TransactionUpdate(
                 reference
                 type
                 status
-                modified
-                created
+                modifiedAt
+                createdAt
                 authorizedAmount{
                     amount
                     currency

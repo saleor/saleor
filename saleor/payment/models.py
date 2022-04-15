@@ -25,8 +25,8 @@ from . import (
 
 
 class TransactionItem(ModelWithMetadata):
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, default="")
     type = models.CharField(max_length=512, blank=True, default="")
     reference = models.CharField(max_length=512, blank=True, default="")

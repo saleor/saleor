@@ -218,8 +218,8 @@ class PaymentInitialized(graphene.ObjectType):
 
 
 class TransactionItem(ModelObjectType):
-    created = graphene.DateTime(required=True)
-    modified = graphene.DateTime(required=True)
+    created_at = graphene.DateTime(required=True)
+    modified_at = graphene.DateTime(required=True)
     checkout = graphene.Field("saleor.graphql.checkout.types.Checkout")
     order = graphene.Field("saleor.graphql.order.types.Order")
     actions = graphene.List(
