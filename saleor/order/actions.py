@@ -497,7 +497,7 @@ def mark_order_as_paid(
     )
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
-    payment.save(update_fields=["captured_amount", "charge_status", "modified"])
+    payment.save(update_fields=["captured_amount", "charge_status", "modified_at"])
 
     Transaction.objects.create(
         payment=payment,

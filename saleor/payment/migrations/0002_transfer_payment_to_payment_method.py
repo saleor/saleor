@@ -64,7 +64,7 @@ def create_transactions(method, payment):
         return
 
     # Other payments needed to be authorized first
-    created = payment.created
+    created = payment.created_at
     create_transaction(
         method=method,
         kind=TransactionKind.AUTH,
@@ -130,7 +130,7 @@ def transfer_payments_to_payment_methods(apps, schema_editor):
         payment_method = PaymentMethod.objects.create(
             order=pay.order,
             gateway=pay.variant,
-            created=pay.created,
+            created=pay.created_at,
             modified=pay.modified,
             billing_first_name=pay.billing_first_name,
             billing_last_name=pay.billing_last_name,

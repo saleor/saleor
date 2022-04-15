@@ -246,7 +246,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "token": order.id,  # DEPRECATED: will be removed in Saleor 4.0.
             "number": order.id,
             "channel_slug": order.channel.slug,
-            "created": str(order.created),
+            "created": str(order.created_at),
             "shipping_price_net_amount": order.shipping_price_net_amount,
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
             "order_details_url": order_details_url,
@@ -370,8 +370,8 @@ def send_payment_confirmation(order_info, manager):
         "order": get_default_order_payload(order_info.order),
         "recipient_email": order_info.customer_email,
         "payment": {
-            "created": payment.created,
-            "modified": payment.modified,
+            "created": payment.created_at,
+            "modified": payment.modified_at,
             "charge_status": payment.charge_status,
             "total": quantize_price(payment.total, payment_currency),
             "captured_amount": quantize_price(

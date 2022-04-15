@@ -404,7 +404,7 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         blank=True,
     )
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
@@ -584,7 +584,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     quantity_limit_per_customer = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
     )
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     weight = MeasurementField(
@@ -766,7 +766,7 @@ class DigitalContentUrl(models.Model):
     content = models.ForeignKey(
         DigitalContent, related_name="urls", on_delete=models.CASCADE
     )
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
     line = models.OneToOneField(
         "order.OrderLine",

@@ -5,7 +5,7 @@ from ..core.types import SortInputObjectType
 
 class AppSortField(graphene.Enum):
     NAME = ["name", "pk"]
-    CREATION_DATE = ["created", "name", "pk"]
+    CREATION_DATE = ["created_at", "name", "pk"]
 
     @property
     def description(self):

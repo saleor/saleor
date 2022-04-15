@@ -5392,8 +5392,8 @@ def test_order_capture(
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "payment": {
-            "created": payment.created,
-            "modified": payment.modified,
+            "created": payment.created_at,
+            "modified": payment.modified_at,
             "charge_status": payment.charge_status,
             "total": payment.total,
             "captured_amount": payment.captured_amount,

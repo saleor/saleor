@@ -436,14 +436,14 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-        changed_fields += ["charge_status", "captured_amount", "modified"]
+        changed_fields += ["charge_status", "captured_amount", "modified_at"]
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["is_active", "modified_at"]
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields += ["captured_amount", "modified"]
+        changed_fields += ["captured_amount", "modified_at"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
@@ -467,7 +467,7 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
             payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
-            changed_fields += ["charge_status", "captured_amount", "modified"]
+            changed_fields += ["charge_status", "captured_amount", "modified_at"]
     if changed_fields:
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
