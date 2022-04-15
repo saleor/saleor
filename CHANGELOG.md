@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `HANDLE_CHECKOUTS` permission (only for apps)
 - Refactor app tokens - #9438 by @IKarbowiak
   - Store app tokens hashes instead of plain text.
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
 
 
 # 3.1.7
