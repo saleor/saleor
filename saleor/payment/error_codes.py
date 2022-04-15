@@ -41,6 +41,6 @@ class TransactionRequestActionErrorCode(Enum):
     INVALID = "invalid"
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
-    MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK = (
+    MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
         "missing_transaction_action_request_webhook"
     )

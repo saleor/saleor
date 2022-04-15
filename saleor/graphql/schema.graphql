@@ -6282,7 +6282,7 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   List of actions that can be performed in the current state of a payment.
   """
-  actions: [PaymentActionEnum!]!
+  actions: [TransactionActionEnum!]!
 
   """Total amount authorized for this payment."""
   authorizedAmount: Money!
@@ -6314,7 +6314,7 @@ Represents possible actions on payment transaction.
     REFUND - Represents a refund action.
     VOID - Represents a void action.
 """
-enum PaymentActionEnum {
+enum TransactionActionEnum {
   CAPTURE
   REFUND
   VOID
@@ -8780,6 +8780,22 @@ type Mutation {
     """Data that defines a transaction transaction."""
     transactionEvent: TransactionEventInput
   ): TransactionUpdate
+
+  """
+  Note: this feature is in a preview state and can be subject to changes at later point. Request an action for payment transaction. Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  """
+  transactionRequestAction(
+    """Determines the action type."""
+    actionType: TransactionActionEnum!
+
+    """
+    Transaction request amount. If empty for refund or capture, maximal possible amount will be used.
+    """
+    amount: PositiveDecimal
+
+    """The ID of the transaction."""
+    id: ID!
+  ): TransactionRequestAction
 
   """
   Creates a new page. Requires one of the following permissions: MANAGE_PAGES.
@@ -12911,7 +12927,7 @@ input TransactionCreateInput {
   reference: String
 
   """List of all possible actions for the transaction"""
-  availableActions: [PaymentActionEnum!]
+  availableActions: [TransactionActionEnum!]
 
   """Amount authorized by this transaction."""
   amountAuthorized: MoneyInput
@@ -12992,7 +13008,7 @@ input TransactionUpdateInput {
   reference: String
 
   """List of all possible actions for the transaction"""
-  availableActions: [PaymentActionEnum!]
+  availableActions: [TransactionActionEnum!]
 
   """Amount authorized by this transaction."""
   amountAuthorized: MoneyInput
@@ -13011,6 +13027,35 @@ input TransactionUpdateInput {
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
+}
+
+"""
+Note: this feature is in a preview state and can be subject to changes at later point. Request an action for payment transaction. Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+"""
+type TransactionRequestAction {
+  transaction: TransactionItem
+  errors: [TransactionRequestActionError!]!
+}
+
+type TransactionRequestActionError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionRequestActionErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionRequestActionErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
 }
 
 """
