@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
@@ -160,7 +161,7 @@ class PageDelete(ModelDeleteMutation):
         page = cls.get_instance(info, **data)
         cls.delete_assigned_attribute_values(page)
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.page_deleted(page)
+        transaction.on_commit(lambda: info.context.plugins.page_deleted(page))
         return response
 
     @staticmethod
