@@ -85,9 +85,6 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info, queryset):
         delete_categories(queryset.values_list("pk", flat=True), info.context.plugins)
 
-        for instance in queryset:
-            info.context.plugins.category_deleted(instance)
-
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):
     class Arguments:

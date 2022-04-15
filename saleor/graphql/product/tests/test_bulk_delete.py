@@ -112,7 +112,7 @@ def test_delete_categories_trigger_webhook(
 
     # then
     assert content["data"]["categoryBulkDelete"]["count"] == 3
-    mocked_webhook_trigger.call_count = len(category_list)
+    assert mocked_webhook_trigger.call_count == len(category_list)
 
 
 @patch("saleor.product.signals.delete_versatile_image")
