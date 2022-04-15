@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -23,6 +24,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
 from ....order.notifications import send_fulfillment_update
 from ....payment import PaymentError
+from ....payment.models import TransactionItem
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -593,6 +595,19 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         )
 
     @classmethod
+    def raise_error_for_payment_error(cls, transactions: Optional[TransactionItem]):
+        if transactions:
+            code = OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
+            msg = "No app or plugin is configured to handle payment action requests."
+        else:
+            msg = "The refund operation is not available yet."
+            code = OrderErrorCode.CANNOT_REFUND.value
+        raise ValidationError(
+            msg,
+            code=code,
+        )
+
+    @classmethod
     def clean_fulfillment_lines(
         cls, fulfillment_lines_data, cleaned_input, whitelisted_statuses
     ):
@@ -793,18 +808,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
                 cleaned_input["include_shipping_costs"],
             )
         except PaymentError:
-            if cleaned_input.get("transactions"):
-                code = OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
-                msg = (
-                    "No app or plugin is configured to handle payment action requests."
-                )
-            else:
-                msg = "The refund operation is not available yet."
-                code = OrderErrorCode.CANNOT_REFUND.value
-            raise ValidationError(
-                msg,
-                code=code,
-            )
+            cls.raise_error_for_payment_error(cleaned_input.get("transactions"))
         return cls(order=order, fulfillment=refund_fulfillment)
 
 
@@ -964,18 +968,8 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                 cleaned_input["include_shipping_costs"],
             )
         except PaymentError:
-            if cleaned_input.get("transactions"):
-                code = OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
-                msg = (
-                    "No app or plugin is configured to handle payment action requests."
-                )
-            else:
-                msg = "The refund operation is not available yet."
-                code = OrderErrorCode.CANNOT_REFUND.value
-            raise ValidationError(
-                msg,
-                code=code,
-            )
+            cls.raise_error_for_payment_error(cleaned_input.get("transactions"))
+
         return_fulfillment, replace_fulfillment, replace_order = response
         return cls(
             order=order,

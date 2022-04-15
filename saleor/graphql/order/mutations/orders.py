@@ -806,8 +806,6 @@ class OrderConfirm(ModelMutation):
         payment = order_info.payment
         manager = info.context.plugins
         if payment_transactions := list(order.payment_transactions.all()):
-            # We use the last transaction as we don't have a possibility to
-            # provide way of handling multiple transaction here
             try:
                 # We use the last transaction as we don't have a possibility to
                 # provide way of handling multiple transaction here
