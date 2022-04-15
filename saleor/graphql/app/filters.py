@@ -3,13 +3,12 @@ import django_filters
 from ...app import models
 from ...app.types import AppExtensionTarget, AppType
 from ..core.filters import EnumFilter, ListObjectTypeFilter
-from ..utils.filters import filter_by_query_param
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 
 
 def filter_app_search(qs, _, value):
     if value:
-        qs = filter_by_query_param(qs, value, ("name",))
+        qs = qs.filter(name__ilike=value)
     return qs
 
 
