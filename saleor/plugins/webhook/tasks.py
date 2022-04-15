@@ -196,6 +196,8 @@ def trigger_webhook_sync(
     """Send a synchronous webhook request."""
     webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
+    if not webhook:
+        raise PaymentError(f"No payment webhook found for event: {event_type}.")
     event_payload = EventPayload.objects.create(payload=data)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
@@ -203,9 +205,6 @@ def trigger_webhook_sync(
         payload=event_payload,
         webhook=webhook,
     )
-    if not webhooks:
-        raise PaymentError(f"No payment webhook found for event: {event_type}.")
-
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
