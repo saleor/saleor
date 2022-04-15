@@ -27,7 +27,7 @@ def calculate_revenue_for_variant(
     revenue = zero_taxed_money(currency_code)
     for order_line in order_lines:
         order = orders_dict[order_line.order_id]
-        if order.created >= start_date:
+        if order.created_at >= start_date:
             revenue += order_line.total_price
     return revenue
 

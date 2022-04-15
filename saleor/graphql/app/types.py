@@ -218,6 +218,10 @@ class App(ModelObjectType):
         model = models.App
 
     @staticmethod
+    def resolve_created(root: models.App, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_permissions(root: models.App, _info, **_kwargs):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"

@@ -37,7 +37,7 @@ def get_default_country():
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

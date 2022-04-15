@@ -3992,7 +3992,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=pytz.utc),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
