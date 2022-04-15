@@ -8706,7 +8706,7 @@ type Mutation {
   ): VariantMediaUnassign
 
   """
-  This mutation will be removed in Saleor 4.0 Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  This mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
   """
   paymentCapture(
     """Transaction amount."""
@@ -8717,7 +8717,7 @@ type Mutation {
   ): PaymentCapture
 
   """
-  This mutation will be removed in Saleor 4.0 Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  This mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
   """
   paymentRefund(
     """Transaction amount."""
@@ -8728,7 +8728,7 @@ type Mutation {
   ): PaymentRefund
 
   """
-  This mutation will be removed in Saleor 4.0 Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+  This mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
   """
   paymentVoid(
     """Payment ID."""
@@ -12740,7 +12740,7 @@ type VariantMediaUnassign {
 }
 
 """
-This mutation will be removed in Saleor 4.0 Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+This mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type PaymentCapture {
   """Updated payment."""
@@ -12787,7 +12787,7 @@ enum PaymentErrorCode {
 }
 
 """
-This mutation will be removed in Saleor 4.0 Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+This mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type PaymentRefund {
   """Updated payment."""
@@ -12797,7 +12797,7 @@ type PaymentRefund {
 }
 
 """
-This mutation will be removed in Saleor 4.0 Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+This mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
 """
 type PaymentVoid {
   """Updated payment."""
