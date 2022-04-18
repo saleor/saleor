@@ -2540,7 +2540,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-python-dateutil"
-version = "2.8.10"
+version = "2.8.11"
 description = "Typing stubs for python-dateutil"
 category = "dev"
 optional = false
@@ -2772,8 +2772,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "849498097e2eaaa08da962efe6abaca13631033f2b5ba9ab9d153558fd64d609"
+python-versions = "~3.9"
+content-hash = "7f2570898681eb9721512d560807fd4c2bbb73095f885b7ce9278e91ee16295a"
 
 [metadata.files]
 adyen = [
@@ -4280,8 +4280,8 @@ types-pkg-resources = [
     {file = "types_pkg_resources-0.1.3-py2.py3-none-any.whl", hash = "sha256:0cb9972cee992249f93fff1a491bf2dc3ce674e5a1926e27d4f0866f7d9b6d9c"},
 ]
 types-python-dateutil = [
-    {file = "types-python-dateutil-2.8.10.tar.gz", hash = "sha256:6bcf3aae7242e5793bafd7b2bcfb4e255eb7b2b3144acd0df0e182dce58ccad3"},
-    {file = "types_python_dateutil-2.8.10-py3-none-any.whl", hash = "sha256:1f6d2305513d54da353a9dde7ed8a9ef46e8987377291612a0e2b9aac2d2b875"},
+    {file = "types-python-dateutil-2.8.11.tar.gz", hash = "sha256:edc05d0b93201928ab0b5ff2b314413dd3d2b24eb12c470297ef929de77c93ef"},
+    {file = "types_python_dateutil-2.8.11-py3-none-any.whl", hash = "sha256:61222fa5518b14601a4e95ad4f17feea4ada904947610560336cf8921a7544a8"},
 ]
 types-pytz = [
     {file = "types-pytz-2021.3.6.tar.gz", hash = "sha256:74547fd90d8d8ab4f1eedf3a344a7d186d97486973895f81221a712e1e2cd993"},
