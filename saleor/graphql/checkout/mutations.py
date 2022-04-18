@@ -252,6 +252,9 @@ class CheckoutCreateInput(graphene.InputObjectType):
     channel = graphene.String(
         description="Slug of a channel in which to create a checkout."
     )
+    alternative_channel = graphene.String(
+        description="Slug of a alternative channel in which to create a checkout."
+    )
     lines = graphene.List(
         CheckoutLineInput,
         description=(

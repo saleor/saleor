@@ -422,12 +422,16 @@ def _create_order(
         if site_settings.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
+    channel = checkout_info.channel
+    if alternative_channel := checkout_info.alternative_channel:
+        channel = alternative_channel
+
     order = Order.objects.create(
         **order_data,
         checkout_token=checkout.token,
         status=status,
         origin=OrderOrigin.CHECKOUT,
-        channel=checkout_info.channel,
+        channel=channel,
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
@@ -571,43 +575,6 @@ def _get_order_data(
     return order_data
 
 
-def _process_payment(
-    payment: Payment,
-    customer_id: Optional[str],
-    store_source: bool,
-    payment_data: Optional[dict],
-    order_data: dict,
-    manager: "PluginsManager",
-    channel_slug: str,
-) -> Transaction:
-    """Process the payment assigned to checkout."""
-    try:
-        if payment.to_confirm:
-            txn = gateway.confirm(
-                payment,
-                manager,
-                additional_data=payment_data,
-                channel_slug=channel_slug,
-            )
-        else:
-            txn = gateway.process_payment(
-                payment=payment,
-                token=payment.token,
-                manager=manager,
-                customer_id=customer_id,
-                store_source=store_source,
-                additional_data=payment_data,
-                channel_slug=channel_slug,
-            )
-        payment.refresh_from_db()
-        if not txn.is_success:
-            raise PaymentError(txn.error)
-    except PaymentError as e:
-        release_voucher_usage(order_data)
-        raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
-    return txn
-
-
 def complete_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
@@ -702,3 +669,40 @@ def complete_checkout(
             mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
+
+
+def _process_payment(
+    payment: Payment,
+    customer_id: Optional[str],
+    store_source: bool,
+    payment_data: Optional[dict],
+    order_data: dict,
+    manager: "PluginsManager",
+    channel_slug: str,
+) -> Transaction:
+    """Process the payment assigned to checkout."""
+    try:
+        if payment.to_confirm:
+            txn = gateway.confirm(
+                payment,
+                manager,
+                additional_data=payment_data,
+                channel_slug=channel_slug,
+            )
+        else:
+            txn = gateway.process_payment(
+                payment=payment,
+                token=payment.token,
+                manager=manager,
+                customer_id=customer_id,
+                store_source=store_source,
+                additional_data=payment_data,
+                channel_slug=channel_slug,
+            )
+        payment.refresh_from_db()
+        if not txn.is_success:
+            raise PaymentError(txn.error)
+    except PaymentError as e:
+        release_voucher_usage(order_data)
+        raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
+    return txn

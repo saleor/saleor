@@ -220,8 +220,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     voucher_map = {voucher.code: voucher for voucher in vouchers}
 
                     checkout_info_map = {}
-                    for key, checkout, channel, checkout_lines in zip(
-                        keys, checkouts, channels, checkout_line_infos
+                    for key, checkout, channel, alternative_channel, checkout_lines in zip(
+                        keys, checkouts, channels, channels, checkout_line_infos
                     ):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
@@ -245,6 +245,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             checkout=checkout,
                             user=user_map.get(checkout.user_id),
                             channel=channel,
+                            alternative_channel=alternative_channel,
                             billing_address=address_map.get(
                                 checkout.billing_address_id
                             ),

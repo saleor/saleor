@@ -44,6 +44,7 @@ class CheckoutInfo:
     checkout: "Checkout"
     user: Optional["User"]
     channel: "Channel"
+    alternative_channel: "Channel"
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     delivery_method_info: "DeliveryMethodBase"
@@ -255,6 +256,7 @@ def fetch_checkout_info(
     from .utils import get_voucher_for_checkout
 
     channel = checkout.channel
+    alternative_channel = checkout.alternative_channel
     shipping_address = checkout.shipping_address
     shipping_method = checkout.shipping_method
     shipping_method_channel_listing = None
@@ -281,6 +283,7 @@ def fetch_checkout_info(
         checkout=checkout,
         user=checkout.user,
         channel=channel,
+        alternative_channel=alternative_channel,
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         delivery_method_info=delivery_method_info,
