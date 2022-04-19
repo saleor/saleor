@@ -550,7 +550,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventAsyncType.SHIPPING_PRICE_CREATED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id(
                     "ShippingMethodType", shipping_method.id
@@ -567,7 +567,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventAsyncType.SHIPPING_PRICE_UPDATED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id(
                     "ShippingMethodType", shipping_method.id
@@ -584,7 +584,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventAsyncType.SHIPPING_PRICE_DELETED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id(
                     "ShippingMethodType", shipping_method.id
@@ -601,7 +601,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventAsyncType.SHIPPING_ZONE_CREATED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
             }
@@ -616,7 +616,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventAsyncType.SHIPPING_ZONE_UPDATED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
             }
@@ -631,7 +631,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         event_type = WebhookEventAsyncType.SHIPPING_ZONE_DELETED
-        if webhooks := _get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
             }

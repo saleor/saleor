@@ -81,7 +81,7 @@ def test_update_shipping_zone(
     assert data["description"] == description
 
 
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_shipping_zone_trigger_webhook(
     mocked_webhook_trigger,

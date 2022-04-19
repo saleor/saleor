@@ -115,7 +115,7 @@ def test_create_shipping_method(
     assert data["shippingMethod"]["postalCodeRules"] == postal_code_rules
 
 
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_shipping_method_trigger_webhook(
     mocked_webhook_trigger,
