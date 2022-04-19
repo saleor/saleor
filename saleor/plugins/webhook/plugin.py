@@ -59,6 +59,7 @@ if TYPE_CHECKING:
     from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Category, Collection, Product, ProductVariant
     from ...shipping.interface import ShippingMethodData
+    from ...shipping.models import ShippingMethod, ShippingZone
     from ...translation.models import Translation
     from ...warehouse.models import Stock
 
@@ -540,6 +541,102 @@ class WebhookPlugin(BasePlugin):
             page_data = generate_page_payload(page, self.requestor)
             trigger_webhooks_async(
                 page_data, event_type, webhooks, page, self.requestor
+            )
+
+    def shipping_price_created(
+        self, shipping_method: "ShippingMethod", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.SHIPPING_PRICE_CREATED
+        if webhooks := _get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id(
+                    "ShippingMethodType", shipping_method.id
+                )
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_method, self.requestor
+            )
+
+    def shipping_price_updated(
+        self, shipping_method: "ShippingMethod", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.SHIPPING_PRICE_UPDATED
+        if webhooks := _get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id(
+                    "ShippingMethodType", shipping_method.id
+                )
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_method, self.requestor
+            )
+
+    def shipping_price_deleted(
+        self, shipping_method: "ShippingMethod", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.SHIPPING_PRICE_DELETED
+        if webhooks := _get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id(
+                    "ShippingMethodType", shipping_method.id
+                )
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_method, self.requestor
+            )
+
+    def shipping_zone_created(
+        self, shipping_zone: "ShippingZone", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.SHIPPING_ZONE_CREATED
+        if webhooks := _get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_zone, self.requestor
+            )
+
+    def shipping_zone_updated(
+        self, shipping_zone: "ShippingZone", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.SHIPPING_ZONE_UPDATED
+        if webhooks := _get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_zone, self.requestor
+            )
+
+    def shipping_zone_deleted(
+        self, shipping_zone: "ShippingZone", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.SHIPPING_ZONE_DELETED
+        if webhooks := _get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_zone, self.requestor
             )
 
     def translation_created(self, translation: "Translation", previous_value: Any):

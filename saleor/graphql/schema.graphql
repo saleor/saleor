@@ -1202,6 +1202,24 @@ enum WebhookEventTypeEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new shipping price is created."""
+  SHIPPING_PRICE_CREATED
+
+  """A shipping price is updated."""
+  SHIPPING_PRICE_UPDATED
+
+  """A shipping price is deleted."""
+  SHIPPING_PRICE_DELETED
+
+  """A new shipping zone is created."""
+  SHIPPING_ZONE_CREATED
+
+  """A shipping zone is updated."""
+  SHIPPING_ZONE_UPDATED
+
+  """A shipping zone is deleted."""
+  SHIPPING_ZONE_DELETED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
   PAYMENT_AUTHORIZE
@@ -1359,6 +1377,24 @@ enum WebhookEventTypeAsyncEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new shipping price is created."""
+  SHIPPING_PRICE_CREATED
+
+  """A shipping price is updated."""
+  SHIPPING_PRICE_UPDATED
+
+  """A shipping price is deleted."""
+  SHIPPING_PRICE_DELETED
+
+  """A new shipping zone is created."""
+  SHIPPING_ZONE_CREATED
+
+  """A shipping zone is updated."""
+  SHIPPING_ZONE_UPDATED
+
+  """A shipping zone is deleted."""
+  SHIPPING_ZONE_DELETED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -1760,6 +1796,12 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  SHIPPING_PRICE_CREATED
+  SHIPPING_PRICE_UPDATED
+  SHIPPING_PRICE_DELETED
+  SHIPPING_ZONE_CREATED
+  SHIPPING_ZONE_UPDATED
+  SHIPPING_ZONE_DELETED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
 }
@@ -16545,7 +16587,7 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
 
 type CategoryCreated {
   """
@@ -16878,6 +16920,90 @@ type PageDeleted {
   New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   page: Page
+}
+
+type ShippingPriceCreated {
+  """
+  New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
+
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingPriceUpdated {
+  """
+  New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
+
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingPriceDeleted {
+  """
+  New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
+
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingZoneCreated {
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingZoneUpdated {
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingZoneDeleted {
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type TranslationCreated {
