@@ -1280,7 +1280,7 @@ type App implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -1343,7 +1343,7 @@ type App implements Node & ObjectWithMetadata {
 
 interface ObjectWithMetadata {
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -1666,7 +1666,7 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -1787,7 +1787,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -1843,7 +1843,7 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -2782,7 +2782,7 @@ type Product implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -2887,7 +2887,7 @@ type ProductType implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -2997,7 +2997,7 @@ type Attribute implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -3362,7 +3362,7 @@ type Category implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -3483,7 +3483,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -4007,7 +4007,7 @@ type DigitalContent implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -4145,7 +4145,7 @@ type Collection implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -4599,7 +4599,7 @@ type Page implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -4637,7 +4637,7 @@ type PageType implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -4718,7 +4718,7 @@ type Sale implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -4885,7 +4885,7 @@ type Voucher implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5041,7 +5041,7 @@ type MenuItem implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5073,7 +5073,7 @@ type Menu implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5307,7 +5307,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5406,7 +5406,7 @@ type User implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5499,7 +5499,7 @@ type Checkout implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5586,7 +5586,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5814,7 +5814,7 @@ type Order implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -5973,7 +5973,7 @@ type Fulfillment implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -6105,7 +6105,7 @@ enum OrderAction {
 """Represents an Invoice."""
 type Invoice implements ObjectWithMetadata & Job & Node {
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -6173,7 +6173,7 @@ type Payment implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
@@ -6268,7 +6268,7 @@ type TransactionItem implements Node & ObjectWithMetadata {
   id: ID!
 
   """
-  List of private metadata items.Requires proper staff permissions to access.
+  List of private metadata items. Requires proper staff permissions to access.
   """
   privateMetadata: [MetadataItem!]!
 
