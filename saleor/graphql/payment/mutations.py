@@ -758,6 +758,18 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
+    def create_transaction_event(
+        cls, transaction_event_input: dict, transaction: payment_models.TransactionItem
+    ) -> payment_models.TransactionEvent:
+        # return payment_models.TransactionEvent.objects.create(
+        return transaction.events.create(
+            status=transaction_event_input["status"],
+            reference=transaction_event_input.get("reference", ""),
+            name=transaction_event_input.get("name", ""),
+            transaction=transaction,
+        )
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
@@ -765,20 +777,23 @@ class TransactionCreate(BaseMutation):
         cls.validate_input(order_or_checkout_instance, data)
         transaction_data = {**data["transaction"]}
         transaction_data["currency"] = order_or_checkout_instance.currency
+        transaction_event_data = data.get("transaction_event")
         if isinstance(order_or_checkout_instance, checkout_models.Checkout):
             transaction_data["checkout_id"] = order_or_checkout_instance.pk
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
-            if transaction_event_data := data.get("transaction_event"):
+            if transaction_event_data:
                 transaction_event(
                     order=order_or_checkout_instance,
                     user=info.context.user,
                     app=info.context.app,
                     reference=transaction_event_data.get("reference", ""),
-                    status=transaction_event_data.get("status", ""),
+                    status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
                 )
         transaction = cls.create_transaction(transaction_data)
+        if transaction_event_data:
+            cls.create_transaction_event(transaction_event_data, transaction)
         return TransactionCreate(transaction=transaction)
 
 
@@ -837,15 +852,17 @@ class TransactionUpdate(TransactionCreate):
             instance.save()
 
         transaction_event_data = data.get("transaction_event")
-        if instance.order_id and transaction_event_data:
-            transaction_event(
-                order=instance.order,
-                user=info.context.user,
-                app=info.context.app,
-                reference=transaction_event_data.get("reference", ""),
-                status=transaction_event_data.get("status", ""),
-                name=transaction_event_data.get("name", ""),
-            )
+        if transaction_event_data:
+            cls.create_transaction_event(transaction_event_data, instance)
+            if instance.order_id:
+                transaction_event(
+                    order=instance.order,
+                    user=info.context.user,
+                    app=info.context.app,
+                    reference=transaction_event_data.get("reference", ""),
+                    status=transaction_event_data["status"],
+                    name=transaction_event_data.get("name", ""),
+                )
         return TransactionUpdate(transaction=instance)
 
 

@@ -34,9 +34,9 @@ from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
 )
-from ....payment import ChargeStatus, PaymentError, TransactionAction
+from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
 from ....payment.interface import TransactionActionData
-from ....payment.models import Payment, TransactionItem
+from ....payment.models import Payment, TransactionEvent, TransactionItem
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
@@ -50,6 +50,7 @@ from ...order.mutations.orders import (
     clean_refund_payment,
     try_payment_action,
 )
+from ...payment.enums import TransactionStatusEnum
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
     assert_no_permission,
@@ -365,6 +366,12 @@ query OrdersQuery {
                         currency
                         amount
                     }
+                    events{
+                       status
+                       reference
+                       name
+                       createdAt
+                    }
                 }
                 subtotal {
                     net {
@@ -589,7 +596,7 @@ def test_order_query_with_transactions_details(
     order.shipping_method.store_value_in_private_metadata({"test": private_value})
     order.shipping_method.save()
     order.save()
-    TransactionItem.objects.bulk_create(
+    transactions = TransactionItem.objects.bulk_create(
         [
             TransactionItem(
                 order_id=order.id,
@@ -621,6 +628,21 @@ def test_order_query_with_transactions_details(
         ]
     )
 
+    event_status = TransactionStatus.FAILURE
+    event_reference = "PSP-ref"
+    event_name = "Failed authorization"
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                name=event_name,
+                status=event_status,
+                reference=event_reference,
+                transaction=transaction,
+            )
+            for transaction in transactions
+        ]
+    )
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
@@ -644,6 +666,13 @@ def test_order_query_with_transactions_details(
     assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal("15")
 
     assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
+
+    for transaction in order_data["transactions"]:
+        assert len(transaction["events"]) == 1
+        event = transaction["events"][0]
+        assert event["name"] == event_name
+        assert event["status"] == TransactionStatusEnum.FAILURE.name
+        assert event["reference"] == event_reference
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(

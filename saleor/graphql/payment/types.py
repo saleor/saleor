@@ -15,11 +15,13 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
+from .dataloaders import TransactionEventByTransactionIdLoader
 from .enums import (
     OrderAction,
     PaymentChargeStatusEnum,
     TransactionActionEnum,
     TransactionKindEnum,
+    TransactionStatusEnum,
 )
 
 
@@ -217,6 +219,24 @@ class PaymentInitialized(graphene.ObjectType):
     data = JSONString(description="Initialized data by gateway.", required=False)
 
 
+class TransactionEvent(ModelObjectType):
+    created_at = graphene.DateTime(required=True)
+    status = graphene.Field(
+        TransactionStatusEnum,
+        description="Status of transaction's event.",
+        required=True,
+    )
+    reference = graphene.String(
+        description="Reference of transaction's event.", required=True
+    )
+    name = graphene.String(description="Name of the transaction's event.")
+
+    class Meta:
+        description = "Represents transaction's event."
+        interfaces = [relay.Node]
+        model = models.TransactionEvent
+
+
 class TransactionItem(ModelObjectType):
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
@@ -244,6 +264,9 @@ class TransactionItem(ModelObjectType):
     status = graphene.String(description="Status of transaction.", required=True)
     type = graphene.String(description="Type of transaction.", required=True)
     reference = graphene.String(description="Reference of transaction.", required=True)
+    events = NonNullList(
+        TransactionEvent, required=True, description="List of all transaction's events."
+    )
 
     class Meta:
         description = "Represents a payment transaction."
@@ -269,3 +292,7 @@ class TransactionItem(ModelObjectType):
     @staticmethod
     def resolve_refunded_amount(root: models.TransactionItem, _info):
         return root.amount_refunded
+
+    @staticmethod
+    def resolve_events(root: models.TransactionItem, info):
+        return TransactionEventByTransactionIdLoader(info.context).load(root.id)

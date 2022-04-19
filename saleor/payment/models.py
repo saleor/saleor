@@ -21,6 +21,7 @@ from . import (
     StorePaymentMethod,
     TransactionAction,
     TransactionKind,
+    TransactionStatus,
 )
 
 
@@ -88,6 +89,24 @@ class TransactionItem(ModelWithMetadata):
             # Orders filtering by status index
             GinIndex(fields=["order_id", "status"]),
         ]
+
+
+class TransactionEvent(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=128,
+        choices=TransactionStatus.CHOICES,
+        default=TransactionStatus.SUCCESS,
+    )
+    reference = models.CharField(max_length=512, blank=True, default="")
+    name = models.CharField(max_length=512, blank=True, default="")
+
+    transaction = models.ForeignKey(
+        TransactionItem, related_name="events", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ("pk",)
 
 
 class Payment(ModelWithMetadata):
