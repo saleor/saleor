@@ -1,6 +1,7 @@
 import datetime
 
 import graphene
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.error_codes import CollectionErrorCode
@@ -176,7 +177,7 @@ def test_collection_channel_listing_update_as_staff_user(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = timezone.now()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -231,7 +232,7 @@ def test_collection_channel_listing_update_as_app(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = timezone.now()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -325,7 +326,7 @@ def test_collection_channel_listing_update_add_channel(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = timezone.now()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -408,7 +409,7 @@ def test_collection_channel_listing_update_update_publication_date(
     staff_api_client, collection, permission_manage_products, channel_USD
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = timezone.now()
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {

@@ -1,4 +1,3 @@
-import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
@@ -193,7 +192,7 @@ class ProductType(ModelWithMetadata):
 
 class ProductsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = datetime.date.today()
+        today = timezone.now()
         channels = Channel.objects.filter(
             slug=str(channel_slug), is_active=True
         ).values("id")
@@ -205,7 +204,7 @@ class ProductsQueryset(models.QuerySet):
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel_slug: str):
-        today = datetime.date.today()
+        today = timezone.now()
         return self.annotate_publication_info(channel_slug).filter(
             Q(publication_date__gt=today) & Q(is_published=True)
             | Q(is_published=False)
@@ -547,7 +546,7 @@ class ProductChannelListing(PublishableModel):
         on_delete=models.CASCADE,
     )
     visible_in_listings = models.BooleanField(default=False)
-    available_for_purchase = models.DateField(blank=True, null=True)
+    available_for_purchase = models.DateTimeField(blank=True, null=True)
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -570,7 +569,7 @@ class ProductChannelListing(PublishableModel):
     def is_available_for_purchase(self):
         return (
             self.available_for_purchase is not None
-            and datetime.date.today() >= self.available_for_purchase
+            and timezone.now() >= self.available_for_purchase
         )
 
 
@@ -847,7 +846,7 @@ class CollectionProduct(SortableModel):
 
 class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = datetime.date.today()
+        today = timezone.now()
         return self.filter(
             Q(channel_listings__publication_date__lte=today)
             | Q(channel_listings__publication_date__isnull=True),

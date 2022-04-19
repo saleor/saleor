@@ -5,6 +5,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
+from django.utils import timezone
 
 from . import EventDeliveryStatus, JobStatus
 from .utils.json_serializer import CustomJsonEncoder
@@ -51,7 +52,7 @@ class PublishedQuerySet(models.QuerySet):
 
 
 class PublishableModel(models.Model):
-    publication_date = models.DateField(blank=True, null=True)
+    publication_date = models.DateTimeField(blank=True, null=True)
     is_published = models.BooleanField(default=False)
 
     objects = models.Manager.from_queryset(PublishedQuerySet)()
@@ -62,8 +63,7 @@ class PublishableModel(models.Model):
     @property
     def is_visible(self):
         return self.is_published and (
-            self.publication_date is None
-            or self.publication_date <= datetime.date.today()
+            self.publication_date is None or self.publication_date <= timezone.now()
         )
 
 

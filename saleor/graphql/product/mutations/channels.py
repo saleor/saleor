@@ -1,4 +1,3 @@
-import datetime
 from collections import defaultdict
 from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
@@ -6,6 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.utils import IntegrityError
+from django.utils import timezone
 
 from ....checkout.models import CheckoutLine
 from ....core.permissions import ProductPermissions
@@ -179,7 +179,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                     is_available_for_purchase is True
                     and not available_for_purchase_date
                 ):
-                    defaults["available_for_purchase"] = datetime.date.today()
+                    defaults["available_for_purchase"] = timezone.now()
                 else:
                     defaults["available_for_purchase"] = available_for_purchase_date
             product_channel_listing, _ = ProductChannelListing.objects.update_or_create(

@@ -1,8 +1,9 @@
 import random
-from datetime import date, timedelta
+from datetime import timedelta
 
 import graphene
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import CollectionProduct, Product, ProductChannelListing
@@ -168,7 +169,7 @@ def test_sort_products_by_publication_date(
     product_channel_listings = []
     for iter_value, product in enumerate(product_list):
         product_channel_listing = product.channel_listings.get(channel=channel_USD)
-        product_channel_listing.publication_date = date.today() - timedelta(
+        product_channel_listing.publication_date = timezone.now() - timedelta(
             days=iter_value
         )
         product_channel_listings.append(product_channel_listing)
