@@ -192,7 +192,6 @@ class CategoryDelete(ModelDeleteMutation):
         delete_categories([db_id], manager=info.context.plugins)
 
         instance.id = db_id
-        info.context.plugins.category_deleted(instance)
         return cls.success_response(instance)
 
 

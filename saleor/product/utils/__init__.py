@@ -53,12 +53,18 @@ def delete_categories(categories_ids: List[str], manager):
     )
     products = list(products)
 
+    category_instances = [cat for cat in categories]
     categories.delete()
-    product_ids = [product.id for product in products]
+
+    for category in category_instances:
+        manager.category_deleted(category)
+
     for product in products:
         manager.product_updated(product)
 
-    update_products_discounted_prices_task.delay(product_ids=product_ids)
+    update_products_discounted_prices_task.delay(
+        product_ids=[product.id for product in products]
+    )
 
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
