@@ -20,7 +20,7 @@ class ObjectWithMetadata(graphene.Interface):
         MetadataItem,
         required=True,
         description=(
-            "List of private metadata items."
+            "List of private metadata items. "
             "Requires proper staff permissions to access."
         ),
     )
