@@ -8768,7 +8768,7 @@ type Mutation {
   ): TransactionCreate
 
   """
-  Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+  New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionUpdate(
     """The ID of the transaction."""
@@ -12968,7 +12968,7 @@ input TransactionEventInput {
 }
 
 """
-Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionUpdate {
   transaction: TransactionItem

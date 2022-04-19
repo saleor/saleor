@@ -36,6 +36,7 @@ from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_32,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_IN_3X_MUTATION,
     PREVIEW_FEATURE,
@@ -798,7 +799,9 @@ class TransactionUpdate(TransactionCreate):
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Create transaction for checkout or order."
+        description = (
+            f"{ADDED_IN_32} Create transaction for checkout or order. {PREVIEW_FEATURE}"
+        )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = TransactionItem
@@ -883,7 +886,7 @@ class TransactionRequestAction(BaseMutation):
         requestor = get_user_or_app_from_context(context)
         for required_permission in required_permissions:
             # We want to allow to call this mutation for requestor with one of following
-            # permission: manage_orders, manager_payments
+            # permission: manage_orders, handle_payments
             if requestor.has_perm(required_permission):
                 return True
         return False
