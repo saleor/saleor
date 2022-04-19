@@ -761,7 +761,6 @@ class TransactionCreate(BaseMutation):
     def create_transaction_event(
         cls, transaction_event_input: dict, transaction: payment_models.TransactionItem
     ) -> payment_models.TransactionEvent:
-        # return payment_models.TransactionEvent.objects.create(
         return transaction.events.create(
             status=transaction_event_input["status"],
             reference=transaction_event_input.get("reference", ""),
