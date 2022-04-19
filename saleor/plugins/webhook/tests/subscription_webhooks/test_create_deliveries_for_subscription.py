@@ -5,6 +5,7 @@ import graphene
 
 from .....graphql.webhook.subscription_payload import validate_subscription_query
 from .....product.models import Category
+from .....shipping.models import ShippingMethod, ShippingZone
 from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 
@@ -156,13 +157,18 @@ def test_shipping_price_deleted(
     # given
     webhooks = [subscription_shipping_price_deleted_webhook]
     event_type = WebhookEventAsyncType.SHIPPING_PRICE_DELETED
+
+    shipping_methods_query = ShippingMethod.objects.filter(pk=shipping_method.id)
+    method_instances = [method for method in shipping_methods_query]
+    shipping_methods_query.delete()
+
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethodType", shipping_method.id
+        "ShippingMethodType", method_instances[0].id
     )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, shipping_method, webhooks
+        event_type, method_instances[0], webhooks
     )
 
     # then
@@ -172,6 +178,7 @@ def test_shipping_price_deleted(
             "meta": None,
         }
     )
+    assert method_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -244,11 +251,16 @@ def test_shipping_zone_deleted(
     # given
     webhooks = [subscription_shipping_zone_deleted_webhook]
     event_type = WebhookEventAsyncType.SHIPPING_ZONE_DELETED
-    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+
+    shipping_zones_query = ShippingZone.objects.filter(pk=shipping_zone.id)
+    zones_instances = [zone for zone in shipping_zones_query]
+    shipping_zones_query.delete()
+
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", zones_instances[0].id)
 
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, shipping_zone, webhooks
+        event_type, zones_instances[0], webhooks
     )
 
     # then
@@ -258,6 +270,7 @@ def test_shipping_zone_deleted(
             "meta": None,
         }
     )
+    assert zones_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
