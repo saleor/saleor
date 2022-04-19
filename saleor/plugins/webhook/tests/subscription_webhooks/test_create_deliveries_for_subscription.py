@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 
 from .....graphql.webhook.subscription_payload import validate_subscription_query
+from .....product.models import Category
 from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 
@@ -43,14 +44,22 @@ def test_category_updated(category, subscription_category_updated_webhook):
 def test_category_deleted(category, subscription_category_deleted_webhook):
     # given
     webhooks = [subscription_category_deleted_webhook]
+
+    category_query = Category.objects.filter(pk=category.id)
+    category_instances = [cat for cat in category_query]
+    category_query.delete()
+
     event_type = WebhookEventAsyncType.CATEGORY_DELETED
-    category_id = graphene.Node.to_global_id("Category", category.id)
+    category_id = graphene.Node.to_global_id("Category", category_instances[0].id)
 
     # when
-    deliveries = create_deliveries_for_subscriptions(event_type, category, webhooks)
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, category_instances[0], webhooks
+    )
 
     # then
     expected_payload = json.dumps({"category": {"id": category_id}, "meta": None})
+    assert category_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
