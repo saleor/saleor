@@ -8782,7 +8782,7 @@ type Mutation {
   ): TransactionUpdate
 
   """
-  Note: this feature is in a preview state and can be subject to changes at later point. Request an action for payment transaction. Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  New in Saleor 3.2. Request an action for payment transaction. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
   """
   transactionRequestAction(
     """Determines the action type."""
@@ -13030,7 +13030,7 @@ input TransactionUpdateInput {
 }
 
 """
-Note: this feature is in a preview state and can be subject to changes at later point. Request an action for payment transaction. Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+New in Saleor 3.2. Request an action for payment transaction. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
 """
 type TransactionRequestAction {
   transaction: TransactionItem

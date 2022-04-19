@@ -873,7 +873,10 @@ class TransactionRequestAction(BaseMutation):
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Request an action for payment transaction."
+        description = (
+            f"{ADDED_IN_32} Request an action for payment transaction. "
+            f"{PREVIEW_FEATURE}"
+        )
         error_type_class = common_types.TransactionRequestActionError
         permissions = (
             PaymentPermissions.HANDLE_PAYMENTS,
