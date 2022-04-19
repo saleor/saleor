@@ -54,6 +54,7 @@ def resolve_object_with_metadata_type(instance):
             page_models.Page: page_types.Page,
             page_models.PageType: page_types.PageType,
             payment_models.Payment: payment_types.Payment,
+            payment_models.TransactionItem: payment_types.TransactionItem,
             product_models.Product: product_types.Product,
             product_models.ProductType: product_types.ProductType,
             product_models.ProductVariant: product_types.ProductVariant,

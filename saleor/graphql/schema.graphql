@@ -6276,8 +6276,6 @@ type TransactionItem implements Node & ObjectWithMetadata {
   metadata: [MetadataItem!]!
   createdAt: DateTime!
   modifiedAt: DateTime!
-  checkout: Checkout
-  order: Order
 
   """
   List of actions that can be performed in the current state of a payment.
