@@ -288,8 +288,14 @@ def _create_lines_for_order(
         for variant_translation in variants_translation
     }
 
+    channel_slug = checkout_info.channel.slug
+    alternative_channel = checkout_info.checkout.metadata.\
+        get('alternative_channel', False)
+    channel_slug = channel_slug if not alternative_channel \
+        else checkout_info.alternative_channel.slug
+
     check_stock_quantity_bulk(
-        variants, country_code, quantities, checkout_info.channel.slug
+        variants, country_code, quantities, channel_slug
     )
 
     return [
@@ -422,9 +428,11 @@ def _create_order(
         if site_settings.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
-    channel = checkout_info.channel
-    if alternative_channel := checkout_info.alternative_channel:
-        channel = alternative_channel
+    use_alternative_channel = checkout_info.checkout.metadata.\
+        get('alternative_channel', False)
+
+    channel = checkout_info.channel if not use_alternative_channel \
+        else checkout_info.alternative_channel
 
     order = Order.objects.create(
         **order_data,
@@ -464,7 +472,11 @@ def _create_order(
     OrderLine.objects.bulk_create(order_lines)
 
     country_code = checkout_info.get_country()
-    allocate_stocks(order_lines_info, country_code, checkout_info.channel.slug)
+
+    channel_slugs = channel.slug if not use_alternative_channel \
+        else checkout_info.alternative_channel
+
+    allocate_stocks(order_lines_info, country_code, channel_slugs)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():
@@ -627,6 +639,8 @@ def complete_checkout(
     action_required = False
     action_data: Dict[str, str] = {}
     if payment:
+        # if checkout.metadata.get('alternative_channel', False):
+        #     channel_slug = checkout_info.alternative_channel.slug
         txn = _process_payment(
             payment=payment,  # type: ignore
             customer_id=customer_id,

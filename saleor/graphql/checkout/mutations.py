@@ -348,9 +348,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         user = info.context.user
         channel = data.pop("channel")
+        alternative_channel = data.pop("alternative_channel", None)
         cleaned_input = super().clean_input(info, instance, data)
 
         cleaned_input["channel"] = channel
+        cleaned_input["alternative_channel"] = alternative_channel
         cleaned_input["currency"] = channel.currency_code
 
         shipping_address = cls.retrieve_shipping_address(user, data)
@@ -364,10 +366,22 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
         if lines:
-            (
-                cleaned_input["variants"],
-                cleaned_input["quantities"],
-            ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"])
+            try:
+                (
+                    cleaned_input["variants"],
+                    cleaned_input["quantities"],
+                ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"])
+            except ValidationError as e:
+                if e.error_dict.get('quantity', None):
+                    (
+                        cleaned_input["variants"],
+                        cleaned_input["quantities"],
+                    ) = cls.clean_checkout_lines(lines,
+                                                 country,
+                                                 cleaned_input["alternative_channel"])
+                    instance.metadata['alternative_channel'] = True
+                else:
+                    raise e
 
         # Use authenticated user's email as default email
         if user.is_authenticated:
@@ -422,9 +436,15 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         channel_input = data.get("input", {}).get("channel")
+        alternative_channel_input = data.get("input", {}).get("alternative_channel")
         channel = clean_channel(channel_input, error_class=CheckoutErrorCode)
+        if alternative_channel_input:
+            alternative_channel = clean_channel(alternative_channel_input,
+                                                error_class=CheckoutErrorCode)
         if channel:
             data["input"]["channel"] = channel
+        if 'alternative_channel' in locals():
+            data['input']['alternative_channel'] = alternative_channel
         response = super().perform_mutation(_root, info, **data)
         info.context.plugins.checkout_created(response.checkout)
         response.created = True
