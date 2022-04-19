@@ -59,7 +59,7 @@ def test_category_deleted(category, subscription_category_deleted_webhook):
 
     # then
     expected_payload = json.dumps({"category": {"id": category_id}, "meta": None})
-    assert graphene.Node.from_global_id(category_id)[1] != "None"
+    assert category_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
