@@ -3,7 +3,9 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import graphene
+import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files import File
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
@@ -52,7 +54,10 @@ from ...core.utils import (
     add_hash_to_file_name,
     clean_seo_fields,
     get_duplicated_values,
+    get_filename_from_url,
+    is_image_url,
     validate_image_file,
+    validate_image_url,
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
@@ -1520,14 +1525,29 @@ class ProductMediaCreate(BaseMutation):
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
             create_product_thumbnails.delay(media.pk)
-        else:
-            oembed_data, media_type = get_oembed_data(media_url, "media_url")
-            media = product.media.create(
-                external_url=oembed_data["url"],
-                alt=oembed_data.get("title", alt),
-                type=media_type,
-                oembed_data=oembed_data,
-            )
+        if media_url:
+            # Remote URLs can point to the images or oembed data.
+            # In case of images, file is downloaded. Otherwise we keep only
+            # URL to remote media.
+            if is_image_url(media_url):
+                validate_image_url(media_url, "media_url", ProductErrorCode.INVALID)
+                filename = get_filename_from_url(media_url)
+                image_data = requests.get(media_url, stream=True)
+                image_file = File(image_data.raw, filename)
+                media = product.media.create(
+                    image=image_file,
+                    alt=alt,
+                    type=ProductMediaTypes.IMAGE,
+                )
+                create_product_thumbnails.delay(media.pk)
+            else:
+                oembed_data, media_type = get_oembed_data(media_url, "media_url")
+                media = product.media.create(
+                    external_url=oembed_data["url"],
+                    alt=oembed_data.get("title", alt),
+                    type=media_type,
+                    oembed_data=oembed_data,
+                )
 
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
