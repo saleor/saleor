@@ -5,7 +5,6 @@ from ..channel.types import Channel
 from ..core.filters import GlobalIDMultipleChoiceFilter
 from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_fields_containing_value
 
 
 def filter_channels(qs, _, values):
@@ -15,8 +14,12 @@ def filter_channels(qs, _, values):
     return qs
 
 
+def filter_shipping_zones_search(qs, _, value):
+    return qs.filter(name__ilike=value)
+
+
 class ShippingZoneFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method=filter_fields_containing_value("name"))
+    search = django_filters.CharFilter(method=filter_shipping_zones_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
 
     class Meta:
