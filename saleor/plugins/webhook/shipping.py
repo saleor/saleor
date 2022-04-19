@@ -12,9 +12,10 @@ from prices import Money
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...shipping.interface import ShippingMethodData
+from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
-from .tasks import _get_webhooks_for_event, trigger_webhook_sync
+from .tasks import trigger_webhook_sync
 from .utils import APP_ID_PREFIX
 
 if TYPE_CHECKING:
@@ -120,7 +121,7 @@ def get_excluded_shipping_data(
     """
 
     excluded_methods_map: Dict[str, List[ExcludedShippingMethod]] = defaultdict(list)
-    webhooks = _get_webhooks_for_event(event_type)
+    webhooks = get_webhooks_for_event(event_type)
     if webhooks:
         payload = payload_fun()
 

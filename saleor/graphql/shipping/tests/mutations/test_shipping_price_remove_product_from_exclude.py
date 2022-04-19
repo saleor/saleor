@@ -110,7 +110,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
 
 
 @pytest.mark.parametrize("requestor", ["staff", "app"])
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_remove_products_from_excluded_products_for_shipping_method_trigger_webhook(
     mocked_webhook_trigger,

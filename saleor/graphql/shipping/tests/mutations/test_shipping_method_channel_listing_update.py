@@ -103,7 +103,7 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     )
 
 
-@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_shipping_method_channel_listing_create_trigger_webhook(
     mocked_webhook_trigger,
