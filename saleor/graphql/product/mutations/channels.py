@@ -1,15 +1,17 @@
 from collections import defaultdict
+from datetime import datetime
 from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.utils import IntegrityError
-from django.utils import timezone
 
 from ....checkout.models import CheckoutLine
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.date_time import convert_to_utc_date_time
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import CollectionChannelListing
 from ....product.models import Product as ProductModel
@@ -167,7 +169,10 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             defaults = {"currency": channel.currency_code}
             for field in ["is_published", "publication_date", "visible_in_listings"]:
                 if field in update_channel.keys():
-                    defaults[field] = update_channel.get(field, None)
+                    value = update_channel[field]
+                    if field == "publication_date" and value:
+                        value = convert_to_utc_date_time(value)
+                    defaults[field] = value
             is_available_for_purchase = update_channel.get("is_available_for_purchase")
             available_for_purchase_date = update_channel.get(
                 "available_for_purchase_date"
@@ -179,9 +184,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                     is_available_for_purchase is True
                     and not available_for_purchase_date
                 ):
-                    defaults["available_for_purchase"] = timezone.now()
+                    defaults["available_for_purchase"] = datetime.now(pytz.UTC)
                 else:
-                    defaults["available_for_purchase"] = available_for_purchase_date
+                    defaults["available_for_purchase"] = convert_to_utc_date_time(
+                        available_for_purchase_date
+                    )
             product_channel_listing, _ = ProductChannelListing.objects.update_or_create(
                 product=product, channel=channel, defaults=defaults
             )
@@ -509,7 +516,10 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
             defaults = {}
             for field in ["is_published", "publication_date"]:
                 if field in add_channel.keys():
-                    defaults[field] = add_channel.get(field, None)
+                    value = add_channel[field]
+                    if field == "publication_date" and value:
+                        value = convert_to_utc_date_time(value)
+                    defaults[field] = value
             CollectionChannelListing.objects.update_or_create(
                 collection=collection, channel=add_channel["channel"], defaults=defaults
             )

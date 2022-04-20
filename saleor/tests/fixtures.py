@@ -1698,7 +1698,7 @@ def categories_tree_with_published_products(
             ProductChannelListing(
                 product=product,
                 channel=channel_USD,
-                publication_date=timezone.now(),
+                publication_date=datetime.datetime.now(pytz.UTC),
                 is_published=True,
             )
         )
@@ -1706,7 +1706,7 @@ def categories_tree_with_published_products(
             ProductChannelListing(
                 product=product,
                 channel=channel_PLN,
-                publication_date=timezone.now(),
+                publication_date=datetime.datetime.now(pytz.UTC),
                 is_published=True,
             )
         )
@@ -1840,7 +1840,7 @@ def product(product_type, category, warehouse, channel_USD):
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -1882,7 +1882,7 @@ def shippable_gift_card_product(
         discounted_price_amount="100.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -1919,7 +1919,7 @@ def product_price_0(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_C")
     ProductVariantChannelListing.objects.create(
@@ -1942,7 +1942,7 @@ def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
         discounted_price_amount="1200",
         currency=channel_JPY.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = product.variants.get()
     ProductVariantChannelListing.objects.create(
@@ -1975,7 +1975,7 @@ def non_shippable_gift_card_product(
         discounted_price_amount="200.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -2013,7 +2013,7 @@ def product_with_rich_text_attribute(
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -2074,7 +2074,7 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_SINGLE_VARIANT")
     ProductVariantChannelListing.objects.create(
@@ -2102,7 +2102,7 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variants = [
@@ -2166,7 +2166,7 @@ def product_with_variant_with_two_attributes(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -2227,7 +2227,7 @@ def product_with_variant_with_external_media(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -2275,7 +2275,7 @@ def product_with_variant_with_file_attribute(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -2336,7 +2336,7 @@ def product_with_default_variant(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True
@@ -2371,7 +2371,7 @@ def variant_without_inventory_tracking(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.datetime.today(),
+        available_for_purchase=datetime.datetime.now(pytz.UTC),
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -2620,7 +2620,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     ProductVariantChannelListing.objects.create(
@@ -2683,9 +2683,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=10,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
-                available_for_purchase=timezone.make_aware(
-                    datetime.datetime(1999, 1, 1)
-                ),
+                available_for_purchase=(datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)),
             ),
             ProductChannelListing(
                 product=products[1],
@@ -2694,9 +2692,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=20,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
-                available_for_purchase=timezone.make_aware(
-                    datetime.datetime(1999, 1, 1)
-                ),
+                available_for_purchase=(datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)),
             ),
             ProductChannelListing(
                 product=products[2],
@@ -2705,9 +2701,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=30,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
-                available_for_purchase=timezone.make_aware(
-                    datetime.datetime(1999, 1, 1)
-                ),
+                available_for_purchase=(datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)),
             ),
         ]
     )
@@ -3534,7 +3528,7 @@ def order_with_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.datetime.today(),
+        available_for_purchase=datetime.datetime.now(pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3582,7 +3576,7 @@ def order_with_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.datetime.today(),
+        available_for_purchase=timezone.now(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3769,7 +3763,7 @@ def order_with_lines_channel_PLN(
         channel=channel_PLN,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.datetime.today(),
+        available_for_purchase=timezone.now(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_A_PLN")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3817,7 +3811,7 @@ def order_with_lines_channel_PLN(
         channel=channel_PLN,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.datetime.today(),
+        available_for_purchase=timezone.now(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B_PLN")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3925,7 +3919,7 @@ def order_with_preorder_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.datetime.today(),
+        available_for_purchase=timezone.now(),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_AA_P", is_preorder=True
@@ -4945,7 +4939,7 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=timezone.make_aware(datetime.datetime(1999, 1, 1)),
+        available_for_purchase=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     product_variant = ProductVariant.objects.create(product=product, sku="SKU_554")
     ProductVariantChannelListing.objects.create(

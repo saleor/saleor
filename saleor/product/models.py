@@ -1,7 +1,9 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
+import pytz
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
@@ -569,7 +571,7 @@ class ProductChannelListing(PublishableModel):
     def is_available_for_purchase(self):
         return (
             self.available_for_purchase is not None
-            and timezone.now() >= self.available_for_purchase
+            and datetime.datetime.now(pytz.UTC) >= self.available_for_purchase
         )
 
 

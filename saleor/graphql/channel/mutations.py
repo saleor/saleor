@@ -2,6 +2,7 @@ import datetime
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
@@ -354,7 +355,7 @@ class BaseChannelListingMutation(BaseMutation):
             is_published = add_channel.get("is_published")
             publication_date = add_channel.get("publication_date")
             if is_published and not publication_date:
-                add_channel["publication_date"] = datetime.date.today()
+                add_channel["publication_date"] = datetime.datetime.now(pytz.UTC)
 
 
 class ChannelActivate(BaseMutation):

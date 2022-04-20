@@ -1,11 +1,12 @@
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
 import pytest
+import pytz
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -2418,7 +2419,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
-    next_day = date.today() + timedelta(days=1)
+    next_day = datetime.now(pytz.UTC) + timedelta(days=1)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
@@ -3127,7 +3128,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     line = order.lines.first()
     product = line.variant.product
     product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=1)
+        available_for_purchase=datetime.now(pytz.UTC) + timedelta(days=1)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -3234,7 +3235,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line = order.lines.first()
     variant = line.variant
     variant.product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=2)
+        available_for_purchase=datetime.now(pytz.UTC) + timedelta(days=2)
     )
     line.refresh_from_db()
 
@@ -3856,7 +3857,7 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     product = order.lines.first().variant.product
     product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=5)
+        available_for_purchase=datetime.now(pytz.UTC) + timedelta(days=5)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)

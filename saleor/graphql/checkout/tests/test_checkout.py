@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+import pytz
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.test import override_settings
@@ -1642,7 +1643,8 @@ def test_checkout_create_available_for_purchase_from_tomorrow_product(
     product = variant.product
 
     product.channel_listings.update(
-        available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
+        available_for_purchase=datetime.datetime.now(pytz.UTC)
+        + datetime.timedelta(days=1)
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)

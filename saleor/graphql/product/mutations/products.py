@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import graphene
+import pytz
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
@@ -16,6 +17,7 @@ from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.date_time import convert_to_utc_date_time
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
@@ -252,7 +254,11 @@ class CollectionCreate(ModelMutation):
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = datetime.date.today()
+            cleaned_input["publication_date"] = datetime.datetime.now(pytz.UTC)
+        elif publication_date:
+            cleaned_input["publication_date"] = convert_to_utc_date_time(
+                publication_date
+            )
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

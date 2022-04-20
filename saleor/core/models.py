@@ -1,11 +1,11 @@
 import datetime
 from typing import Any
 
+import pytz
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
-from django.utils import timezone
 
 from . import EventDeliveryStatus, JobStatus
 from .utils.json_serializer import CustomJsonEncoder
@@ -44,7 +44,7 @@ class SortableModel(models.Model):
 
 class PublishedQuerySet(models.QuerySet):
     def published(self):
-        today = datetime.date.today()
+        today = datetime.datetime.now(pytz.UTC)
         return self.filter(
             Q(publication_date__lte=today) | Q(publication_date__isnull=True),
             is_published=True,
@@ -63,7 +63,8 @@ class PublishableModel(models.Model):
     @property
     def is_visible(self):
         return self.is_published and (
-            self.publication_date is None or self.publication_date <= timezone.now()
+            self.publication_date is None
+            or self.publication_date <= datetime.datetime.now(pytz.UTC)
         )
 
 

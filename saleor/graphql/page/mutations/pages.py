@@ -1,8 +1,9 @@
 from collections import defaultdict
-from datetime import date
+from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -10,6 +11,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.permissions import PagePermissions, PageTypePermissions
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.date_time import convert_to_utc_date_time
 from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.types import AttributeValueInput
@@ -81,7 +83,11 @@ class PageCreate(ModelMutation):
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = date.today()
+            cleaned_input["publication_date"] = datetime.now(pytz.UTC)
+        elif publication_date:
+            cleaned_input["publication_date"] = convert_to_utc_date_time(
+                publication_date
+            )
 
         attributes = cleaned_input.get("attributes")
         page_type = (

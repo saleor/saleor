@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import patch
 
 import graphene
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ....checkout.fetch import fetch_checkout_info
@@ -504,7 +505,7 @@ def test_product_channel_listing_update_unpublished(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listings.update(publication_date=datetime.date.today())
+    product.channel_listings.update(publication_date=timezone.now())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -577,7 +578,7 @@ def test_product_channel_listing_update_remove_publication_date(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listings.update(publication_date=datetime.date.today())
+    product.channel_listings.update(publication_date=timezone.now())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {

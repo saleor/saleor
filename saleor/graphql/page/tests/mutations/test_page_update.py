@@ -1,8 +1,8 @@
-from datetime import date
 from unittest import mock
 
 import graphene
 import pytest
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -165,7 +165,7 @@ def test_update_page_trigger_webhook(
     assert not data["errors"]
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
-    page.publication_date = date(2020, 3, 18)
+    page.publication_date = timezone.now()
     expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,

@@ -1,10 +1,11 @@
 import uuid
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+import pytz
 from django.contrib.auth.models import AnonymousUser
 from django.db.models.aggregates import Sum
 from django.utils import timezone
@@ -2284,7 +2285,7 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
 
 
 @pytest.mark.parametrize(
-    "available_for_purchase", [None, date.today() + timedelta(days=1)]
+    "available_for_purchase", [None, datetime.now(pytz.UTC) + timedelta(days=1)]
 )
 def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     user_api_client,
