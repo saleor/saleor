@@ -3363,11 +3363,36 @@ QUERY_CHECKOUT_USER_ID = """
     """
 
 
-def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
+def test_anonymous_client_can_fetch_anonymoues_checkout_user(api_client, checkout):
+    # given
     query = QUERY_CHECKOUT_USER_ID
     variables = {"token": str(checkout.token)}
+
+    # when
     response = api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+
+    # then
+
+    content = get_graphql_content(response)
+    assert not content["data"]["checkout"]["user"]
+
+
+def test_anonymous_client_cant_fetch_checkout_with_attached_user(
+    api_client, checkout, customer_user
+):
+    # given
+    checkout.user = customer_user
+    checkout.save()
+
+    query = QUERY_CHECKOUT_USER_ID
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkout"]
 
 
 def test_authorized_access_to_checkout_user_as_customer(
