@@ -1,7 +1,9 @@
 import requests
 from django.contrib.sites.models import Site
+from django.db import transaction
 
 from ..core.permissions import get_permission_names
+from ..webhook.models import Webhook, WebhookEvent
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
@@ -61,6 +63,25 @@ def install_app(
             target=extension_data.get("target", AppExtensionTarget.POPUP),
         )
         extension.permissions.set(extension_data.get("permissions", []))
+
+    for webhook_data in manifest_data.get("webhooks", []):
+        with transaction.atomic():
+            webhook = Webhook(
+                app=app,
+                name=webhook_data["name"],
+                target_url=webhook_data["targetUrl"],
+                is_active=webhook_data["isActive"],
+                subscription_query=webhook_data["query"],
+            )
+            webhook.full_clean()
+            webhook.save()
+            WebhookEvent.objects.bulk_create(
+                [
+                    WebhookEvent(webhook=webhook, event_type=event)
+                    for event in webhook_data["events"]
+                ]
+            )
+
 
     _, token = app.tokens.create(name="Default token")
 
