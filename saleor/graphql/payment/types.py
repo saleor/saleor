@@ -240,8 +240,8 @@ class TransactionEvent(ModelObjectType):
 class TransactionItem(ModelObjectType):
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
-    actions = graphene.List(
-        graphene.NonNull(TransactionActionEnum),
+    actions = NonNullList(
+        TransactionActionEnum,
         description=(
             "List of actions that can be performed in the current state of a payment."
         ),

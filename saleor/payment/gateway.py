@@ -9,9 +9,9 @@ from ..app.models import App
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..order.events import (
-    event_payment_capture_requested,
-    event_payment_refund_requested,
-    event_payment_void_requested,
+    event_transaction_capture_requested,
+    event_transaction_refund_requested,
+    event_transaction_void_requested,
 )
 from ..payment.interface import (
     CustomerSource,
@@ -103,7 +103,7 @@ def request_capture_action(
         channel_slug=channel_slug,
     )
     if order_id := transaction.order_id:
-        event_payment_capture_requested(
+        event_transaction_capture_requested(
             order_id=order_id,
             reference=transaction.reference,
             amount=quantize_price(capture_value, transaction.currency),
@@ -131,7 +131,7 @@ def request_refund_action(
         channel_slug=channel_slug,
     )
     if order_id := transaction.order_id:
-        event_payment_refund_requested(
+        event_transaction_refund_requested(
             order_id=order_id,
             reference=transaction.reference,
             amount=quantize_price(refund_value, transaction.currency),
@@ -155,7 +155,7 @@ def request_void_action(
         channel_slug=channel_slug,
     )
     if order_id := transaction.order_id:
-        event_payment_void_requested(
+        event_transaction_void_requested(
             order_id=order_id, reference=transaction.reference, user=user, app=app
         )
 

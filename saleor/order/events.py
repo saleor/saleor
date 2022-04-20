@@ -40,7 +40,7 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
     }
 
 
-def event_payment_capture_requested(
+def event_transaction_capture_requested(
     order_id: "UUID", reference: str, amount: Decimal, user: UserType, app: AppType
 ):
     if not user_is_valid(user):
@@ -57,7 +57,7 @@ def event_payment_capture_requested(
     )
 
 
-def event_payment_refund_requested(
+def event_transaction_refund_requested(
     order_id: "UUID", reference: str, amount: Decimal, user: UserType, app: AppType
 ):
     if not user_is_valid(user):
@@ -74,7 +74,7 @@ def event_payment_refund_requested(
     )
 
 
-def event_payment_void_requested(
+def event_transaction_void_requested(
     order_id: "UUID", reference: str, user: UserType, app: AppType
 ):
     if not user_is_valid(user):
