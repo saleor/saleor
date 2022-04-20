@@ -12099,7 +12099,11 @@ input CollectionCreateInput {
   """Search engine optimization fields."""
   seo: SeoInput
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   publicationDate: Date
 
   """List of products to be added to the collection."""
@@ -12186,7 +12190,11 @@ input CollectionInput {
   """Search engine optimization fields."""
   seo: SeoInput
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   publicationDate: Date
 }
 
@@ -13283,8 +13291,15 @@ input PageCreateInput {
   """Determines if page is visible in the storefront."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use publishedAt instead.
+  """
   publicationDate: String
+
+  """New in Saleor 3.2. Publication date. ISO 8601 standard."""
+  publishedAt: DateTime
 
   """Search engine optimization fields."""
   seo: SeoInput
@@ -13347,8 +13362,15 @@ input PageInput {
   """Determines if page is visible in the storefront."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use publishedAt instead.
+  """
   publicationDate: String
+
+  """New in Saleor 3.2. Publication date. ISO 8601 standard."""
+  publishedAt: DateTime
 
   """Search engine optimization fields."""
   seo: SeoInput

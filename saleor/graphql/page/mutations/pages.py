@@ -11,11 +11,11 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.permissions import PagePermissions, PageTypePermissions
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.date_time import convert_to_utc_date_time
 from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
+from ...core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
@@ -36,7 +36,13 @@ class PageInput(graphene.InputObjectType):
         description="Determines if page is visible in the storefront."
     )
     publication_date = graphene.String(
-        description="Publication date. ISO 8601 standard."
+        description=(
+            f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
+            "Use publishedAt instead."
+        )
+    )
+    published_at = graphene.DateTime(
+        description=f"{ADDED_IN_32} Publication date. ISO 8601 standard."
     )
     seo = SeoInput(description="Search engine optimization fields.")
 
@@ -80,14 +86,25 @@ class PageCreate(ModelMutation):
             error.code = PageErrorCode.REQUIRED
             raise ValidationError({"slug": error})
 
+        publication_date = cleaned_input.pop("publication_date", None)
+        published_at = cleaned_input.get("published_at", None)
+        if publication_date and published_at:
+            raise ValidationError(
+                {
+                    "publication_date": ValidationError(
+                        "Only one of argument: publicationDate or publishedAt "
+                        "must be specified.",
+                        code=PageErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         is_published = cleaned_input.get("is_published")
-        publication_date = cleaned_input.get("publication_date")
+        publication_date = publication_date or published_at
         if is_published and not publication_date:
             cleaned_input["publication_date"] = datetime.now(pytz.UTC)
         elif publication_date:
-            cleaned_input["publication_date"] = convert_to_utc_date_time(
-                publication_date
-            )
+            cleaned_input["publication_date"] = publication_date
 
         attributes = cleaned_input.get("attributes")
         page_type = (

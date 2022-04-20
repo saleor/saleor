@@ -46,7 +46,7 @@ from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -212,7 +212,9 @@ class CollectionInput(graphene.InputObjectType):
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
-    publication_date = graphene.Date(description="Publication date. ISO 8601 standard.")
+    publication_date = graphene.Date(
+        description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
+    )
 
 
 class CollectionCreateInput(CollectionInput):

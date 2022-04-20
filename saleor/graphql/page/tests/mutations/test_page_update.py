@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
 from unittest import mock
 
 import graphene
 import pytest
+import pytz
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
@@ -627,6 +629,32 @@ def test_public_page_sets_publication_date(
     assert not data["errors"]
     assert data["page"]["isPublished"] is True
     assert data["page"]["publicationDate"] == "2020-03-18"
+
+
+def test_update_page_publication_date(
+    staff_api_client, permission_manage_pages, page_type
+):
+    data = {
+        "slug": "test-url",
+        "title": "Test page",
+        "page_type": page_type,
+    }
+    page = Page.objects.create(**data)
+    published_at = datetime.now(pytz.utc) + timedelta(days=5)
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    variables = {
+        "id": page_id,
+        "input": {"isPublished": True, "slug": page.slug, "publishedAt": published_at},
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["errors"]
+    assert data["page"]["isPublished"] is True
+    assert data["page"]["publicationDate"] == published_at.date().isoformat()
 
 
 @pytest.mark.parametrize("slug_value", [None, ""])
