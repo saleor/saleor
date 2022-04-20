@@ -94,7 +94,7 @@ class Order(ModelWithMetadata):
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)
 
-    created = models.DateTimeField(default=now, editable=False)
+    created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
@@ -608,7 +608,7 @@ class Fulfillment(ModelWithMetadata):
         choices=FulfillmentStatus.CHOICES,
     )
     tracking_number = models.CharField(max_length=255, default="", blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     shipping_refund_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

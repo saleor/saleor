@@ -421,6 +421,10 @@ class Fulfillment(ModelObjectType):
         model = models.Fulfillment
 
     @staticmethod
+    def resolve_created(root: models.Fulfillment, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_lines(root: models.Fulfillment, _info):
         return root.lines.all()
 
@@ -808,6 +812,10 @@ class Order(ModelObjectType):
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Order
+
+    @staticmethod
+    def resolve_created(root: models.Order, _info):
+        return root.created_at
 
     @staticmethod
     def resolve_token(root: models.Order, info):

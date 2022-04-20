@@ -344,11 +344,47 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
 
 
 def payment_refund_or_void(
-    payment: Optional[Payment], manager: "PluginsManager", channel_slug: Optional[str]
+    payment: Optional[Payment],
+    manager: "PluginsManager",
+    channel_slug: Optional[str],
+    transaction_id: Optional[str] = None,
 ):
     if payment is None:
         return
     if payment.can_refund():
-        refund(payment, manager, channel_slug=channel_slug)
+        refund_transaction = _get_success_transaction(
+            TransactionKind.REFUND_ONGOING, payment, transaction_id
+        )
+        # The refund should be called only if the refund process is not already started
+        # with amount equal payment captured amount.
+        # There is no need for summing the amount of all refund transactions,
+        # because we always called refund with the full amount that was captured.
+        # So if the refund wasn't called with current captured amount we should
+        # call refund again.
+        if (
+            not refund_transaction
+            or refund_transaction.amount < payment.captured_amount
+        ):
+            refund(payment, manager, channel_slug=channel_slug)
     elif payment.can_void():
-        void(payment, manager, channel_slug=channel_slug)
+        void_transaction = _get_success_transaction(
+            TransactionKind.VOID, payment, transaction_id
+        )
+        if not void_transaction:
+            void(payment, manager, channel_slug=channel_slug)
+
+
+def _get_success_transaction(
+    kind: str, payment: Payment, transaction_id: Optional[str]
+):
+    if not transaction_id:
+        try:
+            transaction_id = _get_past_transaction_token(payment, kind)
+        except PaymentError:
+            return
+    return payment.transactions.filter(
+        token=transaction_id,
+        action_required=False,
+        is_success=True,
+        kind=kind,
+    ).last()

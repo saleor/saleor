@@ -33,7 +33,7 @@ def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
 
     if url_valid_days is not None:
         valid_days = timedelta(days=url_valid_days)
-        valid_until = content_url.created + valid_days
+        valid_until = content_url.created_at + valid_days
         if now() > valid_until:
             return False
 

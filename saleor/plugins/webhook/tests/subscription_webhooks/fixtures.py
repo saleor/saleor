@@ -5,11 +5,11 @@ from .....webhook.models import Webhook
 
 
 @pytest.fixture
-def subscription_webhook(app):
+def subscription_webhook(webhook_app):
     def fun(query, event_type, name="Subscription"):
         webhook = Webhook.objects.create(
             name=name,
-            app=app,
+            app=webhook_app,
             target_url="http://www.example.com/any",
             subscription_query=query,
         )
@@ -76,6 +76,168 @@ CATEGORY_DELETED_SUBSCRIPTION_QUERY = """
 def subscription_category_deleted_webhook(subscription_webhook):
     return subscription_webhook(
         CATEGORY_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CATEGORY_DELETED
+    )
+
+
+SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingPriceCreated{
+          shippingMethod{
+            id
+            name
+            channelListings {
+              channel {
+                name
+              }
+            }
+          }
+          shippingZone{
+            id
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_price_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_PRICE_CREATED,
+    )
+
+
+SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingPriceUpdated{
+          shippingMethod{
+            id
+            name
+            channelListings {
+              channel {
+                name
+              }
+            }
+          }
+          shippingZone{
+            id
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_price_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
+    )
+
+
+SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingPriceDeleted{
+          shippingMethod{
+            id
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_price_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_PRICE_DELETED,
+    )
+
+
+SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingZoneCreated{
+          shippingZone{
+            id
+            name
+            countries {
+                code
+            }
+            channels {
+                name
+            }
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_zone_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
+    )
+
+
+SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingZoneUpdated{
+          shippingZone{
+            id
+            name
+            countries {
+                code
+            }
+            channels {
+                name
+            }
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_zone_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
+    )
+
+
+SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ShippingZoneDeleted{
+          shippingZone{
+            id
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_shipping_zone_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.SHIPPING_ZONE_DELETED,
     )
 
 

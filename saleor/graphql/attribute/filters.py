@@ -16,7 +16,6 @@ from ..core.filters import (
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
-from ..utils.filters import filter_fields_containing_value
 
 
 def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
@@ -77,10 +76,7 @@ class AttributeValueFilter(django_filters.FilterSet):
 
 
 class AttributeFilter(MetadataFilterBase):
-    # Search by attribute name and slug
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name")
-    )
+    search = django_filters.CharFilter(method="filter_attribute_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
     type = EnumFilter(input_class=AttributeTypeEnum, method=filter_attribute_type)
 
@@ -98,18 +94,21 @@ class AttributeFilter(MetadataFilterBase):
             "available_in_grid",
         ]
 
-    def filter_in_collection(self, queryset, name, value):
+    def filter_attribute_search(self, qs, _, value):
+        return qs.filter(Q(slug__ilike=value) | Q(name__ilike=value))
+
+    def filter_in_collection(self, qs, name, value):
         requestor = get_user_or_app_from_context(self.request)
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_attributes_by_product_types(
-            queryset, name, value, requestor, channel_slug
+            qs, name, value, requestor, channel_slug
         )
 
-    def filter_in_category(self, queryset, name, value):
+    def filter_in_category(self, qs, name, value):
         requestor = get_user_or_app_from_context(self.request)
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_attributes_by_product_types(
-            queryset, name, value, requestor, channel_slug
+            qs, name, value, requestor, channel_slug
         )
 
 

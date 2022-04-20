@@ -23,6 +23,10 @@ class DigitalContentUrl(ModelObjectType):
         interfaces = (relay.Node,)
 
     @staticmethod
+    def resolve_created(root: models.DigitalContentUrl, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_url(root: models.DigitalContentUrl, *_args):
         return root.get_absolute_url()
 

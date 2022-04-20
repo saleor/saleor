@@ -157,7 +157,7 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_checkout_create_triggers_webhooks(
     mocked_webhook_trigger,
@@ -4047,6 +4047,41 @@ def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_er
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+    assert checkout.shipping_method is None
+    assert checkout.collection_point is None
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_with_nonexistant_id_results_not_found(
+    mock_clean_delivery,
+    api_client,
+    warehouse_for_cc,
+    checkout_with_item,
+    address,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    nonexistant_id = "YXBwOjEyMzQ6c29tZS1pZA=="
+    response = api_client.post_graphql(
+        query,
+        {
+            "token": checkout.token,
+            "deliveryMethodId": nonexistant_id,
+        },
+    )
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    assert not data["checkout"]
+    assert data["errors"][0]["field"] == "deliveryMethodId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
     assert checkout.shipping_method is None
     assert checkout.collection_point is None
 

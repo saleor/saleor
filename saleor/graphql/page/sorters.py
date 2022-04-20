@@ -7,7 +7,7 @@ class PageSortField(graphene.Enum):
     TITLE = ["title", "slug"]
     SLUG = ["slug"]
     VISIBILITY = ["is_published", "title", "slug"]
-    CREATION_DATE = ["created", "title", "slug"]
+    CREATION_DATE = ["created_at", "title", "slug"]
     PUBLICATION_DATE = ["publication_date", "title", "slug"]
 
     @property

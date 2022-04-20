@@ -102,6 +102,10 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Sale
 
     @staticmethod
+    def resolve_created(root: models.Sale, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_categories(root: ChannelContext[models.Sale], info, *_args, **kwargs):
         qs = root.node.categories.all()
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)

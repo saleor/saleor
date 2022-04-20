@@ -436,14 +436,14 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-        changed_fields += ["charge_status", "captured_amount", "modified"]
+        changed_fields += ["charge_status", "captured_amount", "modified_at"]
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["is_active", "modified_at"]
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields += ["captured_amount", "modified"]
+        changed_fields += ["captured_amount", "modified_at"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
@@ -467,7 +467,7 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
             payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
-            changed_fields += ["charge_status", "captured_amount", "modified"]
+            changed_fields += ["charge_status", "captured_amount", "modified_at"]
     if changed_fields:
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
@@ -594,10 +594,14 @@ def try_void_or_refund_inactive_payment(
     webhook when we have order already paid.
     """
     if transaction.is_success:
-        update_payment_charge_status(payment, transaction)
         channel_slug = get_channel_slug_from_payment(payment)
         try:
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            gateway.payment_refund_or_void(
+                payment,
+                manager,
+                channel_slug=channel_slug,
+                transaction_id=transaction.token,
+            )
         except PaymentError:
             logger.exception(
                 "Unable to void/refund an inactive payment %s, %s.",

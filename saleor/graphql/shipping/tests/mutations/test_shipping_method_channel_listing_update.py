@@ -2,10 +2,12 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 
-from ....shipping.error_codes import ShippingErrorCode
-from ....shipping.models import ShippingMethodChannelListing
-from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
+from .....shipping.error_codes import ShippingErrorCode
+from .....shipping.models import ShippingMethodChannelListing
+from .....webhook.event_types import WebhookEventAsyncType
+from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateShippingMethodChannelListing(
@@ -98,6 +100,67 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     assert (
         shipping_method_data["channelListings"][1]["channel"]["slug"]
         == channel_PLN.slug
+    )
+
+
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_shipping_method_channel_listing_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    shipping_method.shipping_zone.channels.add(channel_PLN)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethodType", shipping_method.pk
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = 1
+    min_value = 2
+    max_value = 3
+
+    variables = {
+        "id": shipping_method_id,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": channel_id,
+                    "price": price,
+                    "minimumOrderPrice": min_value,
+                    "maximumOrderPrice": max_value,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_shipping,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shippingMethodChannelListingUpdate"]
+    assert not data["errors"]
+    assert data["shippingMethod"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": shipping_method_id},
+        WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
+        [any_webhook],
+        shipping_method,
+        SimpleLazyObject(lambda: staff_api_client.user),
     )
 
 

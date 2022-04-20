@@ -47,6 +47,7 @@ if TYPE_CHECKING:
         ProductVariant,
     )
     from ..shipping.interface import ShippingMethodData
+    from ..shipping.models import ShippingMethod, ShippingZone
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
@@ -556,6 +557,42 @@ class BasePlugin:
     #
     #  Overwrite this method if you need to trigger specific logic after sale is updated.
     sale_updated: Callable[["Sale", "NodeCatalogueInfo", "NodeCatalogueInfo", Any], Any]
+
+    #  Trigger when shipping price is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping
+    #  price is created.
+    shipping_price_created: Callable[["ShippingMethod", None], None]
+
+    #  Trigger when shipping price is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping
+    #  price is deleted.
+    shipping_price_deleted: Callable[["ShippingMethod", None], None]
+
+    #  Trigger when shipping price is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping
+    #  price is updated.
+    shipping_price_updated: Callable[["ShippingMethod", None], None]
+
+    #  Trigger when shipping zone is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  is created.
+    shipping_zone_created: Callable[["ShippingZone", None], None]
+
+    #  Trigger when shipping zone is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  is deleted.
+    shipping_zone_deleted: Callable[["ShippingZone", None], None]
+
+    #  Trigger when shipping zone is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  is updated.
+    shipping_zone_updated: Callable[["ShippingZone", None], None]
 
     #  Define if storefront should add info about taxes to the price.
     #

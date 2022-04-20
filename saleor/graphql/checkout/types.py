@@ -281,6 +281,10 @@ class Checkout(ModelObjectType):
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
+    def resolve_created(root: models.Checkout, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_id(root: models.Checkout, _):
         return graphene.Node.to_global_id("Checkout", root.pk)
 

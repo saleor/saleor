@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from ...plugins.manager import get_plugins_manager
 from .. import ChargeStatus, CustomPaymentChoices, TransactionKind, gateway
@@ -313,3 +313,166 @@ def test_list_gateways(fake_payment_interface):
     lst = gateway.list_gateways(fake_payment_interface)
     fake_payment_interface.list_payment_gateways.assert_called_once()
     assert lst == gateways
+
+
+@patch("saleor.payment.gateway.void")
+@patch("saleor.payment.gateway.refund")
+def test_payment_refund_or_void_no_payment(refund_mock, void_mock):
+    """Ensure that either refund or void method is not called when
+    there is no payment object."""
+    # when
+    gateway.payment_refund_or_void(None, get_plugins_manager(), None)
+
+    # then
+    refund_mock.assert_not_called()
+    void_mock.assert_not_called()
+
+
+@patch("saleor.payment.gateway.refund")
+def test_payment_refund_or_void_refund_called(refund_mock, payment):
+    """Ensure that the refund method is called when payment can be refunded
+    and there is no refund transaction."""
+    # given
+    payment.transactions.count() == 0
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save(update_fields=["charge_status"])
+
+    # when
+    gateway.payment_refund_or_void(payment, get_plugins_manager(), None)
+
+    # then
+    assert refund_mock.called_once()
+
+
+@patch("saleor.payment.gateway.refund")
+def test_payment_refund_or_void_refund_not_called_refund_already_started(
+    refund_mock, payment
+):
+    """Ensure that the refund method is not called when the refund process
+    is already ongoing -  there is a `REFUND_ONGOING` transaction with
+    the given transaction_id."""
+    # given
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save(update_fields=["charge_status"])
+
+    assert payment.can_refund() is True
+
+    payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.REFUND_ONGOING,
+        amount=payment.total,
+        currency=payment.currency,
+        token="test",
+        gateway_response={},
+    )
+
+    # when
+    gateway.payment_refund_or_void(payment, get_plugins_manager(), None)
+
+    # then
+    refund_mock.assert_not_called()
+
+
+@patch("saleor.payment.gateway.refund")
+def test_payment_refund_or_void_refund_called_txn_exist(refund_mock, payment):
+    """Ensure that the refund method is called when the refund process
+    is already ongoing but not covered full payment captured amount."""
+    # given
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save(update_fields=["charge_status"])
+    assert payment.can_refund() is True
+    payment.captured_amount = payment.total
+    payment.save(update_fields=["captured_amount"])
+    txn = payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.REFUND_ONGOING,
+        amount=payment.captured_amount / 2,
+        currency=payment.currency,
+        token="test",
+        gateway_response={},
+    )
+
+    # when
+    gateway.payment_refund_or_void(
+        payment, get_plugins_manager(), None, transaction_id=txn.token
+    )
+
+    # then
+    assert refund_mock.called_once()
+
+
+@patch("saleor.payment.gateway.refund")
+def test_payment_refund_or_void_refund_called_no_txn_with_given_transaction_id(
+    refund_mock, payment
+):
+    """Ensure that the refund method is called when payment has the refund ongoing
+    transaction but with different transaction_id that was provided."""
+    # given
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save(update_fields=["charge_status"])
+    assert payment.can_refund() is True
+    payment.captured_amount = payment.total
+    payment.save(update_fields=["captured_amount"])
+    payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.REFUND_ONGOING,
+        amount=payment.captured_amount,
+        currency=payment.currency,
+        token="test",
+        gateway_response={},
+    )
+
+    # when
+    gateway.payment_refund_or_void(
+        payment, get_plugins_manager(), None, transaction_id="another value"
+    )
+
+    # then
+    assert refund_mock.called_once()
+
+
+@patch("saleor.payment.gateway.void")
+def test_payment_refund_or_void_void_called(void_mock, payment):
+    """Ensure that the refund method is called when payment can be voided
+    and there is no void transaction for given payment."""
+    # given
+    payment.can_void = Mock(return_value=True)
+    assert payment.can_void() is True
+    payment.transactions.count() == 0
+
+    # when
+    gateway.payment_refund_or_void(payment, get_plugins_manager(), None)
+
+    # then
+    assert void_mock.called_once()
+
+
+@patch("saleor.payment.gateway.void")
+def test_payment_refund_or_void_void_not_called_txn_exist(void_mock, payment):
+    """Ensure that void method is not called when VOID transaction already exists with
+    given transaction_id."""
+    # given
+    payment.can_void = Mock(return_value=True)
+    assert payment.can_refund() is False
+    assert payment.can_void() is True
+
+    txn = payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.VOID,
+        amount=payment.total,
+        currency=payment.currency,
+        token="test",
+        gateway_response={},
+    )
+
+    # when
+    gateway.payment_refund_or_void(
+        payment, get_plugins_manager(), None, transaction_id=txn.token
+    )
+
+    # then
+    void_mock.assert_not_called()

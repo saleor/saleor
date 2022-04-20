@@ -459,8 +459,8 @@ def test_send_payment_confirmation(
         "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
         "recipient_email": "user@example.com",
         "payment": {
-            "created": payment_dummy.created,
-            "modified": payment_dummy.modified,
+            "created": payment_dummy.created_at,
+            "modified": payment_dummy.modified_at,
             "charge_status": payment_dummy.charge_status,
             "total": payment_dummy.total,
             "captured_amount": payment_dummy.captured_amount,
@@ -488,8 +488,8 @@ def test_send_payment_confirmation_empty_template(
         "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
         "recipient_email": "user@example.com",
         "payment": {
-            "created": payment_dummy.created,
-            "modified": payment_dummy.modified,
+            "created": payment_dummy.created_at,
+            "modified": payment_dummy.modified_at,
             "charge_status": payment_dummy.charge_status,
             "total": payment_dummy.total,
             "captured_amount": payment_dummy.captured_amount,
