@@ -5838,7 +5838,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine!]!
 
   """
-  This field will be removed in Saleor 4.0. Use actions on order.transactions. List of actions that can be performed in the current state of an order.
+  This field will be removed in Saleor 4.0. Use actions on `order.transactions`. List of actions that can be performed in the current state of an order.
   """
   actions: [OrderAction!]!
 
@@ -8705,9 +8705,7 @@ type Mutation {
     variantId: ID!
   ): VariantMediaUnassign
 
-  """
-  This mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
-  """
+  "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS."
   paymentCapture(
     """Transaction amount."""
     amount: PositiveDecimal
@@ -8716,9 +8714,7 @@ type Mutation {
     paymentId: ID!
   ): PaymentCapture
 
-  """
-  This mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
-  """
+  "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS."
   paymentRefund(
     """Transaction amount."""
     amount: PositiveDecimal
@@ -8727,9 +8723,7 @@ type Mutation {
     paymentId: ID!
   ): PaymentRefund
 
-  """
-  This mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
-  """
+  "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS."
   paymentVoid(
     """Payment ID."""
     paymentId: ID!
@@ -12739,9 +12733,7 @@ type VariantMediaUnassign {
   errors: [ProductError!]!
 }
 
-"""
-This mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
-"""
+"\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS."
 type PaymentCapture {
   """Updated payment."""
   payment: Payment
@@ -12786,9 +12778,7 @@ enum PaymentErrorCode {
   NO_CHECKOUT_LINES
 }
 
-"""
-This mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
-"""
+"\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS."
 type PaymentRefund {
   """Updated payment."""
   payment: Payment
@@ -12796,9 +12786,7 @@ type PaymentRefund {
   errors: [PaymentError!]!
 }
 
-"""
-This mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
-"""
+"\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS."
 type PaymentVoid {
   """Updated payment."""
   payment: Payment

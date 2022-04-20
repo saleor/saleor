@@ -680,7 +680,7 @@ class Order(ModelObjectType):
     actions = NonNullList(
         OrderAction,
         description=(
-            f"{DEPRECATED_IN_3X_FIELD} Use actions on order.transactions. List of "
+            f"{DEPRECATED_IN_3X_FIELD} Use actions on `order.transactions`. List of "
             "actions that can be performed in the current state of an order."
         ),
         required=True,
