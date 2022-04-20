@@ -119,6 +119,10 @@ class Page(ModelObjectType):
         model = models.Page
 
     @staticmethod
+    def resolve_created(root: models.Page, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_page_type(root: models.Page, info):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 

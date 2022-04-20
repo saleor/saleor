@@ -139,7 +139,7 @@ class EventDelivery(models.Model):
     payload = models.ForeignKey(
         EventPayload, related_name="deliveries", null=True, on_delete=models.CASCADE
     )
-    webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
+    webhook = models.ForeignKey("webhook.Webhook", on_delete=models.CASCADE)
 
     class Meta:
         ordering = ("-created_at",)

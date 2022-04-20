@@ -29,7 +29,7 @@ def filter_number_of_orders(qs, _, value):
 
 
 def filter_placed_orders(qs, _, value):
-    return filter_range_field(qs, "orders__created__date", value)
+    return filter_range_field(qs, "orders__created_at__date", value)
 
 
 def filter_staff_status(qs, _, value):

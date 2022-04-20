@@ -272,7 +272,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
         cls.update_channels(product, cleaned_input.get("update_channels", []))
         cls.remove_channels(product, cleaned_input.get("remove_channels", []))
-        info.context.plugins.product_updated(product)
+        transaction.on_commit(lambda: info.context.plugins.product_updated(product))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):

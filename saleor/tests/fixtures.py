@@ -3992,7 +3992,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=pytz.utc),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -5115,6 +5115,13 @@ def other_description_json():
 @pytest.fixture
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
+    return app
+
+
+@pytest.fixture
+def webhook_app(db, permission_manage_shipping):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.permissions.add(permission_manage_shipping)
     return app
 
 

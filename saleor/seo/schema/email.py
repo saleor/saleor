@@ -60,7 +60,7 @@ def get_order_confirmation_markup(order: "Order") -> str:
         "price": order.total.gross.amount,
         "acceptedOffer": [],
         "orderStatus": "http://schema.org/OrderProcessing",
-        "orderDate": order.created,
+        "orderDate": order.created_at,
     }
 
     for line in order.lines.all():

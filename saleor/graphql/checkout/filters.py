@@ -42,7 +42,7 @@ def filter_checkout_by_payment(qs, payment_id):
 
 
 def filter_created_range(qs, _, value):
-    return filter_range_field(qs, "created__date", value)
+    return filter_range_field(qs, "created_at__date", value)
 
 
 def filter_customer(qs, _, value):
