@@ -850,8 +850,7 @@ class TransactionUpdate(TransactionCreate):
             instance = cls.construct_instance(instance, transaction_data)
             instance.save()
 
-        transaction_event_data = data.get("transaction_event")
-        if transaction_event_data:
+        if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
                 transaction_event(
