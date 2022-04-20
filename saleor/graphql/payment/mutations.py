@@ -38,7 +38,6 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_32,
     DEPRECATED_IN_3X_INPUT,
-    DEPRECATED_IN_3X_MUTATION,
     PREVIEW_FEATURE,
 )
 from ..core.enums import to_enum
@@ -331,9 +330,7 @@ class PaymentCapture(BaseMutation):
         amount = PositiveDecimal(description="Transaction amount.")
 
     class Meta:
-        description = (
-            f"{DEPRECATED_IN_3X_MUTATION} Captures the authorized payment amount."
-        )
+        description = "Captures the authorized payment amount."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -363,9 +360,7 @@ class PaymentCapture(BaseMutation):
 
 class PaymentRefund(PaymentCapture):
     class Meta:
-        description = (
-            f"{DEPRECATED_IN_3X_MUTATION} Refunds the captured payment amount."
-        )
+        description = "Refunds the captured payment amount."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -400,7 +395,7 @@ class PaymentVoid(BaseMutation):
         payment_id = graphene.ID(required=True, description="Payment ID.")
 
     class Meta:
-        description = f"{DEPRECATED_IN_3X_MUTATION} Voids the authorized payment."
+        description = "Voids the authorized payment."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -644,7 +639,9 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Create transaction for checkout or order."
+        description = (
+            f"{ADDED_IN_32} Create transaction for checkout or order. {PREVIEW_FEATURE}"
+        )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
