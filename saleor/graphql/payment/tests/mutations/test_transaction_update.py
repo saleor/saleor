@@ -4,10 +4,11 @@ import graphene
 import pytest
 
 from .....order import OrderEvents
+from .....payment import TransactionStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum
+from ...enums import TransactionActionEnum, TransactionStatusEnum
 
 MUTATION_TRANSACTION_UPDATE = """
 mutation TransactionUpdate(
@@ -43,6 +44,12 @@ mutation TransactionUpdate(
                 refundedAmount{
                     currency
                     amount
+                }
+                events{
+                   status
+                   reference
+                   name
+                   createdAt
                 }
         }
         errors{
@@ -359,3 +366,43 @@ def test_transaction_update_adds_transaction_event_to_order(
         "reference": transaction_reference,
         "status": transaction_status.lower(),
     }
+
+
+def test_creates_transaction_event_for_order(
+    transaction, order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = order_with_lines.payment_transactions.first()
+    event_status = TransactionStatus.FAILURE
+    event_reference = "PSP-ref"
+    event_name = "Failed authorization"
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_event": {
+            "status": TransactionStatusEnum.FAILURE.name,
+            "reference": event_reference,
+            "name": event_name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+
+    events_data = data["events"]
+    assert len(events_data) == 1
+    event_data = events_data[0]
+    assert event_data["name"] == event_name
+    assert event_data["status"] == TransactionStatusEnum.FAILURE.name
+    assert event_data["reference"] == event_reference
+
+    assert transaction.events.count() == 1
+    event = transaction.events.first()
+    assert event.name == event_name
+    assert event.status == event_status
+    assert event.reference == event_reference

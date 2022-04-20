@@ -6304,6 +6304,9 @@ type TransactionItem implements Node & ObjectWithMetadata {
 
   """Reference of transaction."""
   reference: String!
+
+  """List of all transaction's events."""
+  events: [TransactionEvent!]!
 }
 
 """
@@ -6318,6 +6321,29 @@ enum TransactionActionEnum {
   CAPTURE
   REFUND
   VOID
+}
+
+"""Represents transaction's event."""
+type TransactionEvent implements Node {
+  """The ID of the object."""
+  id: ID!
+  createdAt: DateTime!
+
+  """Status of transaction's event."""
+  status: TransactionStatus!
+
+  """Reference of transaction's event."""
+  reference: String!
+
+  """Name of the transaction's event."""
+  name: String
+}
+
+"""An enumeration."""
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
 }
 
 """History log of the order."""
@@ -6494,13 +6520,6 @@ type OrderEventDiscountObject {
 
   """Returns amount of discount."""
   oldAmount: Money
-}
-
-"""An enumeration."""
-enum TransactionStatus {
-  PENDING
-  SUCCESS
-  FAILURE
 }
 
 """Contains all details related to the applied discount to the order."""

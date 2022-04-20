@@ -4,10 +4,11 @@ import graphene
 import pytest
 
 from .....order import OrderEvents
+from .....payment import TransactionStatus
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum
+from ...enums import TransactionActionEnum, TransactionStatusEnum
 
 MUTATION_TRANSACTION_CREATE = """
 mutation TransactionCreate(
@@ -43,6 +44,12 @@ mutation TransactionCreate(
                 refundedAmount{
                     currency
                     amount
+                }
+                events{
+                   status
+                   reference
+                   name
+                   createdAt
                 }
         }
         errors{
@@ -413,3 +420,127 @@ def test_transaction_create_incorrect_currency(
     assert (
         data["errors"][0]["code"] == TransactionCreateErrorCode.INCORRECT_CURRENCY.name
     )
+
+
+def test_creates_transaction_event_for_order(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    status = "Failed authorized for 10$"
+    type = "Credit Card"
+    reference = "PSP reference - 123"
+    available_actions = []
+    authorized_value = Decimal("0")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    event_status = TransactionStatus.FAILURE
+    event_reference = "PSP-ref"
+    event_name = "Failed authorization"
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "reference": reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+        "transaction_event": {
+            "status": TransactionStatusEnum.FAILURE.name,
+            "reference": event_reference,
+            "name": event_name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+
+    events_data = data["events"]
+    assert len(events_data) == 1
+    event_data = events_data[0]
+    assert event_data["name"] == event_name
+    assert event_data["status"] == TransactionStatusEnum.FAILURE.name
+    assert event_data["reference"] == event_reference
+
+    assert transaction.events.count() == 1
+    event = transaction.events.first()
+    assert event.name == event_name
+    assert event.status == event_status
+    assert event.reference == event_reference
+
+
+def test_creates_transaction_event_for_checkout(
+    checkout_with_items, permission_manage_payments, app_api_client
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+    reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    event_status = TransactionStatus.FAILURE
+    event_reference = "PSP-ref"
+    event_name = "Failed authorization"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "reference": reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+        "transaction_event": {
+            "status": TransactionStatusEnum.FAILURE.name,
+            "reference": event_reference,
+            "name": event_name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = checkout_with_items.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+
+    events_data = data["events"]
+    assert len(events_data) == 1
+    event_data = events_data[0]
+    assert event_data["name"] == event_name
+    assert event_data["status"] == TransactionStatusEnum.FAILURE.name
+    assert event_data["reference"] == event_reference
+
+    assert transaction.events.count() == 1
+    event = transaction.events.first()
+    assert event.name == event_name
+    assert event.status == event_status
+    assert event.reference == event_reference
