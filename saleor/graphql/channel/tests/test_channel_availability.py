@@ -80,7 +80,7 @@ def test_channel_activate_mutation_trigger_webhook(
     # then
     assert not content["data"]["channelActivate"]["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": variables["id"], "status": "ACTIVE"},
+        {"id": variables["id"], "is_active": True},
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
         [any_webhook],
         channel_USD,
@@ -178,7 +178,7 @@ def test_channel_deactivate_mutation_trigger_webhook(
     # then
     assert not content["data"]["channelDeactivate"]["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": variables["id"], "status": "INACTIVE"},
+        {"id": variables["id"], "is_active": False},
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
         [any_webhook],
         channel_USD,
@@ -193,8 +193,8 @@ def test_channel_deactivate_mutation_on_deactivated_channel(
     channel_USD.is_active = False
     channel_USD.save()
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-
     variables = {"id": channel_id}
+
     # when
     response = staff_api_client.post_graphql(
         CHANNEL_DEACTIVATE_MUTATION,

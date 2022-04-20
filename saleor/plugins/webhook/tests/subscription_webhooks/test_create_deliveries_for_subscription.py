@@ -124,14 +124,14 @@ def test_channel_deleted(channel_USD, subscription_channel_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-@pytest.mark.parametrize("status", ["ACTIVE", "INACTIVE"])
+@pytest.mark.parametrize("status", [True, False])
 def test_channel_status_changed(
     status, channel_USD, subscription_channel_status_changed_webhook
 ):
     # given
     webhooks = [subscription_channel_status_changed_webhook]
 
-    channel_USD.is_active = True if status == "ACTIVE" else False
+    channel_USD.is_active = status
     channel_USD.save(update_fields=["is_active"])
 
     event_type = WebhookEventAsyncType.CHANNEL_STATUS_CHANGED
@@ -142,7 +142,7 @@ def test_channel_status_changed(
 
     # then
     expected_payload = json.dumps(
-        {"channel": {"id": channel_id}, "status": status, "meta": None}
+        {"channel": {"id": channel_id, "isActive": status}, "meta": None}
     )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)

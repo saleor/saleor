@@ -152,7 +152,7 @@ class WebhookPlugin(BasePlugin):
         if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id("Channel", channel.id),
-                "status": channel.status,
+                "is_active": channel.is_active,
             }
             trigger_webhooks_async(
                 payload, event_type, webhooks, channel, self.requestor

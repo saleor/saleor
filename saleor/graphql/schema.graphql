@@ -16664,9 +16664,6 @@ type ChannelStatusChanged {
   New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   channel: Channel
-
-  """New status of a channel."""
-  status: String
 }
 
 type OrderCreated {

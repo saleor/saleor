@@ -145,8 +145,8 @@ CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY = """
         ...on ChannelStatusChanged{
           channel{
             id
+            isActive
           }
-          status
         }
       }
     }

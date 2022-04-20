@@ -6,10 +6,6 @@ from ..core.permissions import ChannelPermissions
 
 
 class Channel(models.Model):
-    class Status:
-        ACTIVE = "ACTIVE"
-        INACTIVE = "INACTIVE"
-
     name = models.CharField(max_length=250)
     is_active = models.BooleanField(default=False)
     slug = models.SlugField(max_length=255, unique=True)
@@ -28,7 +24,3 @@ class Channel(models.Model):
 
     def __str__(self):
         return self.slug
-
-    @property
-    def status(self):
-        return self.Status.ACTIVE if self.is_active else self.Status.INACTIVE

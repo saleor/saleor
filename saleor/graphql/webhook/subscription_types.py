@@ -82,14 +82,7 @@ class ChannelDeleted(ObjectType, ChannelBase):
 
 
 class ChannelStatusChanged(ObjectType, ChannelBase):
-    status = graphene.String(
-        description="New status of a channel.",
-    )
-
-    @staticmethod
-    def resolve_status(root, info):
-        _, channel = root
-        return channel.status
+    ...
 
 
 class OrderBase(AbstractType):
