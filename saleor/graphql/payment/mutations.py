@@ -1,4 +1,5 @@
-from typing import List, Union
+from decimal import Decimal
+from typing import List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -15,12 +16,18 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
-from ...payment import PaymentError, StorePaymentMethod, gateway
+from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
 from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
     TransactionCreateErrorCode,
+    TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
+)
+from ...payment.gateway import (
+    request_capture_action,
+    request_refund_action,
+    request_void_action,
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -29,6 +36,7 @@ from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.descriptions import (
     ADDED_IN_31,
+    ADDED_IN_32,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_IN_3X_MUTATION,
     PREVIEW_FEATURE,
@@ -40,6 +48,7 @@ from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
+from ..utils import get_user_or_app_from_context
 from .enums import TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
@@ -790,7 +799,9 @@ class TransactionUpdate(TransactionCreate):
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Create transaction for checkout or order."
+        description = (
+            f"{ADDED_IN_32} Create transaction for checkout or order. {PREVIEW_FEATURE}"
+        )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = TransactionItem
@@ -839,3 +850,90 @@ class TransactionUpdate(TransactionCreate):
                 name=transaction_event_data.get("name", ""),
             )
         return TransactionUpdate(transaction=instance)
+
+
+class TransactionRequestAction(BaseMutation):
+    transaction = graphene.Field(TransactionItem)
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the transaction.",
+            required=True,
+        )
+        action_type = graphene.Argument(
+            TransactionActionEnum,
+            required=True,
+            description="Determines the action type.",
+        )
+        amount = PositiveDecimal(
+            description=(
+                "Transaction request amount. If empty for refund or capture, maximal "
+                "possible amount will be used."
+            )
+        )
+
+    class Meta:
+        description = (
+            f"{ADDED_IN_32} Request an action for payment transaction. "
+            f"{PREVIEW_FEATURE}"
+        )
+        error_type_class = common_types.TransactionRequestActionError
+        permissions = (
+            PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
+        )
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        required_permissions = permissions or cls._meta.permissions
+        requestor = get_user_or_app_from_context(context)
+        for required_permission in required_permissions:
+            # We want to allow to call this mutation for requestor with one of following
+            # permission: manage_orders, handle_payments
+            if requestor.has_perm(required_permission):
+                return True
+        return False
+
+    @classmethod
+    def handle_transaction_action(
+        cls, action, action_kwargs, action_value: Optional[Decimal]
+    ):
+        if action == TransactionAction.VOID:
+            request_void_action(**action_kwargs)
+        elif action == TransactionAction.CAPTURE:
+            transaction = action_kwargs["transaction"]
+            action_value = action_value or transaction.authorized_value
+            action_value = min(action_value, transaction.authorized_value)
+            request_capture_action(**action_kwargs, capture_value=action_value)
+        elif action == TransactionAction.REFUND:
+            transaction = action_kwargs["transaction"]
+            action_value = action_value or transaction.captured_value
+            action_value = min(action_value, transaction.captured_value)
+            request_refund_action(**action_kwargs, refund_value=action_value)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        id = data["id"]
+        action_type = data["action_type"]
+        action_value = data.get("amount")
+        transaction = cls.get_node_or_error(info, id, only_type=TransactionItem)
+        channel_slug = (
+            transaction.order.channel.slug
+            if transaction.order_id
+            else transaction.checkout.channel.slug
+        )
+        action_kwargs = {
+            "channel_slug": channel_slug,
+            "user": info.context.user,
+            "app": info.context.app,
+            "transaction": transaction,
+            "manager": info.context.plugins,
+        }
+
+        try:
+            cls.handle_transaction_action(action_type, action_kwargs, action_value)
+        except PaymentError as e:
+            error_enum = TransactionRequestActionErrorCode
+            code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
+            raise ValidationError(str(e), code=code)
+        return TransactionRequestAction(transaction=transaction)

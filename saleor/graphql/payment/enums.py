@@ -12,7 +12,7 @@ TransactionKindEnum = to_enum(TransactionKind, type_name="TransactionKind")
 PaymentChargeStatusEnum = to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
 TransactionActionEnum = to_enum(
     TransactionAction,
-    type_name="PaymentActionEnum",
+    type_name="TransactionActionEnum",
     description=TransactionAction.__doc__,
 )
 TransactionStatusEnum = to_enum(TransactionStatus, type_name="TransactionStatus")
