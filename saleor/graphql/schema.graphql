@@ -1105,6 +1105,18 @@ enum WebhookEventTypeEnum {
   """A category is deleted."""
   CATEGORY_DELETED
 
+  """A new channel created."""
+  CHANNEL_CREATED
+
+  """A channel is updated."""
+  CHANNEL_UPDATED
+
+  """A channel is deleted."""
+  CHANNEL_DELETED
+
+  """A channel status is changed."""
+  CHANNEL_STATUS_CHANGED
+
   """A new order is placed."""
   ORDER_CREATED
 
@@ -1279,6 +1291,18 @@ enum WebhookEventTypeAsyncEnum {
 
   """A category is deleted."""
   CATEGORY_DELETED
+
+  """A new channel created."""
+  CHANNEL_CREATED
+
+  """A channel is updated."""
+  CHANNEL_UPDATED
+
+  """A channel is deleted."""
+  CHANNEL_DELETED
+
+  """A channel status is changed."""
+  CHANNEL_STATUS_CHANGED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1760,6 +1784,10 @@ enum WebhookSampleEventTypeEnum {
   CATEGORY_CREATED
   CATEGORY_UPDATED
   CATEGORY_DELETED
+  CHANNEL_CREATED
+  CHANNEL_UPDATED
+  CHANNEL_DELETED
+  CHANNEL_STATUS_CHANGED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -16587,7 +16615,7 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
 
 type CategoryCreated {
   """
@@ -16608,6 +16636,37 @@ type CategoryDeleted {
   New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   category: Category
+}
+
+type ChannelCreated {
+  """
+  New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  channel: Channel
+}
+
+type ChannelUpdated {
+  """
+  New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  channel: Channel
+}
+
+type ChannelDeleted {
+  """
+  New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  channel: Channel
+}
+
+type ChannelStatusChanged {
+  """
+  New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  channel: Channel
+
+  """New status of a channel."""
+  status: String
 }
 
 type OrderCreated {

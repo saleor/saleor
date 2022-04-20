@@ -253,6 +253,30 @@ class BasePlugin:
     #  updated.
     category_updated: Callable[["Category", None], None]
 
+    #  Trigger when channel is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel is
+    #  created.
+    channel_created: Callable[["Channel", None], None]
+
+    #  Trigger when channel is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel is
+    #  deleted.
+    channel_deleted: Callable[["Channel", None], None]
+
+    #  Trigger when channel is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel is
+    #  updated.
+    channel_updated: Callable[["Channel", None], None]
+
+    #  Trigger when channel status is changed.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel
+    #  status is changed.
+    channel_status_changed: Callable[["Channel", None], None]
+
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
     ]

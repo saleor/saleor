@@ -50,6 +50,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ...account.models import User
+    from ...channel.models import Channel
     from ...checkout.models import Checkout
     from ...discount.models import Sale
     from ...graphql.discount.mutations import NodeCatalogueInfo
@@ -112,6 +113,49 @@ class WebhookPlugin(BasePlugin):
             payload = {"id": graphene.Node.to_global_id("Category", category.id)}
             trigger_webhooks_async(
                 payload, event_type, webhooks, category, self.requestor
+            )
+
+    def channel_created(self, channel: "Channel", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CHANNEL_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {"id": graphene.Node.to_global_id("Channel", channel.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, channel, self.requestor
+            )
+
+    def channel_updated(self, channel: "Channel", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CHANNEL_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {"id": graphene.Node.to_global_id("Channel", channel.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, channel, self.requestor
+            )
+
+    def channel_deleted(self, channel: "Channel", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CHANNEL_DELETED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {"id": graphene.Node.to_global_id("Channel", channel.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, channel, self.requestor
+            )
+
+    def channel_status_changed(self, channel: "Channel", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CHANNEL_STATUS_CHANGED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+                "status": channel.status,
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, channel, self.requestor
             )
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:

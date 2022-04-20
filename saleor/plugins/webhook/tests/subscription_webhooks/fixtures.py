@@ -79,6 +79,88 @@ def subscription_category_deleted_webhook(subscription_webhook):
     )
 
 
+CHANNEL_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelCreated{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_CREATED
+    )
+
+
+CHANNEL_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelUpdated{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_UPDATED
+    )
+
+
+CHANNEL_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelDeleted{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_DELETED
+    )
+
+
+CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelStatusChanged{
+          channel{
+            id
+          }
+          status
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_status_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
+    )
+
+
 SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{

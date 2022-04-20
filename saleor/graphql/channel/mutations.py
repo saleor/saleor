@@ -80,6 +80,10 @@ class ChannelCreate(ModelMutation):
         if shipping_zones:
             instance.shipping_zones.add(*shipping_zones)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.channel_created(instance)
+
 
 class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
@@ -154,6 +158,10 @@ class ChannelUpdate(ModelMutation):
             drop_invalid_shipping_methods_relations_for_given_channels.delay(
                 shipping_method_ids, [instance.id]
             )
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.channel_updated(instance)
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
@@ -239,6 +247,10 @@ class ChannelDelete(ModelDeleteMutation):
                 }
             )
         cls.delete_checkouts(origin_channel.id)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.channel_deleted(instance)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -375,7 +387,7 @@ class ChannelActivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = True
         channel.save(update_fields=["is_active"])
-
+        info.context.plugins.channel_status_changed(channel)
         return ChannelActivate(channel=channel)
 
 
@@ -409,5 +421,5 @@ class ChannelDeactivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = False
         channel.save(update_fields=["is_active"])
-
+        info.context.plugins.channel_status_changed(channel)
         return ChannelDeactivate(channel=channel)
