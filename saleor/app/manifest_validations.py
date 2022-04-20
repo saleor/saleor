@@ -4,8 +4,11 @@ from typing import Dict, Iterable, List
 
 from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db.models import Value
 from django.db.models.functions import Concat
+
+from saleor.graphql.webhook.mutations import validate_query
 
 from ..core.permissions import (
     get_permissions,
@@ -120,6 +123,7 @@ def clean_manifest_data(manifest_data):
 
     if not errors:
         clean_extensions(manifest_data, app_permissions, errors)
+        clean_webhooks(manifest_data, app_permissions, errors)
 
     if errors:
         raise ValidationError(errors)
@@ -178,13 +182,16 @@ def clean_extensions(manifest_data, app_permissions, errors):
         _clean_extension_permissions(extension, app_permissions, errors)
 
 
+def clean_webhooks(manifest_data, app_permissions, errors):
+    webhooks = manifest_data.get("webhooks", [])
+    for webhook in webhooks:
+        validate_query(webhook["query"])
+
+
 def validate_required_fields(manifest_data, errors):
     manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
-    extension_required_fields = {
-        "label",
-        "url",
-        "mount",
-    }
+    extension_required_fields = {"label", "url", "mount"}
+    webhook_required_fields = {"name", "targetUrl", "isActive", "events", "query"}
     manifest_missing_fields = manifest_required_fields.difference(manifest_data)
     if manifest_missing_fields:
         [
@@ -202,6 +209,19 @@ def validate_required_fields(manifest_data, errors):
             errors["extensions"].append(
                 ValidationError(
                     "Missing required fields for app extension: %s."
+                    % ", ".join(missing_fields),
+                    code=AppErrorCode.REQUIRED.value,
+                )
+            )
+
+    webhooks = manifest_data.get("webhooks", [])
+    for webhook in webhooks:
+        webhook_fields = set(webhook.keys())
+        missing_fields = webhook_required_fields.difference(webhook_fields)
+        if missing_fields:
+            errors["webhooks"].append(
+                ValidationError(
+                    "Missing required fields for webhook: %s."
                     % ", ".join(missing_fields),
                     code=AppErrorCode.REQUIRED.value,
                 )
