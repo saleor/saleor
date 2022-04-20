@@ -78,6 +78,13 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
+def test_recalculate_order_keeps_weight_unit(order_with_lines):
+    initial_weight_unit = order_with_lines.weight.unit
+    recalculate_order(order_with_lines)
+    recalculated_weight_unit = order_with_lines.weight.unit
+    assert initial_weight_unit == recalculated_weight_unit
+
+
 def test_add_variant_to_order_adds_line_for_new_variant(
     order_with_lines, product, product_translation_fr, settings, info, site_settings
 ):
