@@ -4,26 +4,30 @@ import graphene
 import pytest
 
 from .....order import OrderEvents
-from .....payment.error_codes import PaymentCreateErrorCode
-from .....payment.models import Payment
+from .....payment.error_codes import TransactionCreateErrorCode
+from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import PaymentActionEnum
+from ...enums import TransactionActionEnum
 
-MUTATION_PAYMENT_CREATE = """
-mutation PaymentCrate(
+MUTATION_TRANSACTION_CREATE = """
+mutation TransactionCreate(
     $id: ID!,
-    $transaction: TransactionInput,
-    $payment: PaymentCreateInput!
+    $transaction_event: TransactionEventInput,
+    $transaction: TransactionCreateInput!
     ){
-    paymentCreate(id: $id, transaction: $transaction, payment: $payment){
-        payment{
+    transactionCreate(
+            id: $id,
+            transactionEvent: $transaction_event,
+            transaction: $transaction
+        ){
+        transaction{
                 id
                 actions
                 reference
                 type
                 status
-                modified
-                created
+                modifiedAt
+                createdAt
                 authorizedAmount{
                     amount
                     currency
@@ -51,21 +55,24 @@ mutation PaymentCrate(
 """
 
 
-def test_payment_create_for_order(
+def test_transaction_create_for_order(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
     status = "Authorized for 10$"
     type = "Credit Card"
     reference = "PSP reference - 123"
-    available_actions = [PaymentActionEnum.CAPTURE.name, PaymentActionEnum.VOID.name]
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -81,43 +88,46 @@ def test_payment_create_for_order(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_CREATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment = order_with_lines.payments.first()
+    transaction = order_with_lines.payment_transactions.first()
     content = get_graphql_content(response)
-    data = content["data"]["paymentCreate"]["payment"]
+    data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
     assert data["status"] == status
     assert data["reference"] == reference
     assert data["authorizedAmount"]["amount"] == authorized_value
 
-    assert available_actions == list(map(str.upper, payment.available_actions))
-    assert status == payment.status
-    assert reference == payment.reference
-    assert authorized_value == payment.authorized_value
-    assert payment.metadata == {metadata["key"]: metadata["value"]}
-    assert payment.private_metadata == {
+    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert status == transaction.status
+    assert reference == transaction.reference
+    assert authorized_value == transaction.authorized_value
+    assert transaction.metadata == {metadata["key"]: metadata["value"]}
+    assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
 
 
-def test_payment_create_for_checkout(
+def test_transaction_create_for_checkout(
     checkout_with_items, permission_manage_payments, app_api_client
 ):
     # given
     status = "Authorized for 10$"
     type = "Credit Card"
     reference = "PSP reference - 123"
-    available_actions = [PaymentActionEnum.CAPTURE.name, PaymentActionEnum.VOID.name]
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -133,24 +143,24 @@ def test_payment_create_for_checkout(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_CREATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment = checkout_with_items.payments.first()
+    transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
-    data = content["data"]["paymentCreate"]["payment"]
+    data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
     assert data["status"] == status
     assert data["reference"] == reference
     assert data["authorizedAmount"]["amount"] == authorized_value
 
-    assert available_actions == list(map(str.upper, payment.available_actions))
-    assert status == payment.status
-    assert reference == payment.reference
-    assert authorized_value == payment.authorized_value
-    assert payment.metadata == {metadata["key"]: metadata["value"]}
-    assert payment.private_metadata == {
+    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert status == transaction.status
+    assert reference == transaction.reference
+    assert authorized_value == transaction.authorized_value
+    assert transaction.metadata == {metadata["key"]: metadata["value"]}
+    assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
 
@@ -164,7 +174,7 @@ def test_payment_create_for_checkout(
         ("amountRefunded", "refunded_value"),
     ],
 )
-def test_payment_create_calculate_amount(
+def test_transaction_create_calculate_amount(
     amount_field_name,
     amount_db_field,
     order_with_lines,
@@ -179,7 +189,7 @@ def test_payment_create_calculate_amount(
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -193,24 +203,27 @@ def test_payment_create_calculate_amount(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_CREATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment = Payment.objects.first()
+    transaction = TransactionItem.objects.first()
     get_graphql_content(response)
 
-    assert getattr(payment, amount_db_field) == expected_value
+    assert getattr(transaction, amount_db_field) == expected_value
 
 
-def test_payment_create_multiple_amounts_provided(
+def test_transaction_create_multiple_amounts_provided(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
     status = "Authorized for 10$"
     type = "Credit Card"
     reference = "PSP reference - 123"
-    available_actions = [PaymentActionEnum.CAPTURE.name, PaymentActionEnum.VOID.name]
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
     authorized_value = Decimal("10")
     captured_value = Decimal("11")
     refunded_value = Decimal("12")
@@ -218,7 +231,7 @@ def test_payment_create_multiple_amounts_provided(
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -244,13 +257,13 @@ def test_payment_create_multiple_amounts_provided(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_CREATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
-    payment = Payment.objects.first()
+    transaction = TransactionItem.objects.first()
     content = get_graphql_content(response)
-    data = content["data"]["paymentCreate"]["payment"]
+    data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
     assert data["status"] == status
     assert data["reference"] == reference
@@ -259,20 +272,23 @@ def test_payment_create_multiple_amounts_provided(
     assert data["refundedAmount"]["amount"] == refunded_value
     assert data["voidedAmount"]["amount"] == voided_value
 
-    assert payment.authorized_value == authorized_value
-    assert payment.captured_value == captured_value
-    assert payment.voided_value == voided_value
-    assert payment.refunded_value == refunded_value
+    assert transaction.authorized_value == authorized_value
+    assert transaction.captured_value == captured_value
+    assert transaction.voided_value == voided_value
+    assert transaction.refunded_value == refunded_value
 
 
-def test_payment_create_create_event_for_order(
+def test_transaction_create_create_event_for_order(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
     status = "Authorized for 10$"
     type = "Credit Card"
     reference = "PSP reference - 123"
-    available_actions = [PaymentActionEnum.CAPTURE.name, PaymentActionEnum.VOID.name]
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
     authorized_value = Decimal("10")
     transaction_status = "PENDING"
     transaction_reference = "transaction reference"
@@ -280,7 +296,7 @@ def test_payment_create_create_event_for_order(
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -290,7 +306,7 @@ def test_payment_create_create_event_for_order(
                 "currency": "USD",
             },
         },
-        "transaction": {
+        "transaction_event": {
             "status": transaction_status,
             "reference": transaction_reference,
             "name": transaction_name,
@@ -299,13 +315,13 @@ def test_payment_create_create_event_for_order(
 
     # when
     app_api_client.post_graphql(
-        MUTATION_PAYMENT_CREATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
     event = order_with_lines.events.first()
 
-    assert event.type == OrderEvents.PAYMENT_EVENT
+    assert event.type == OrderEvents.TRANSACTION_EVENT
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,
@@ -313,19 +329,22 @@ def test_payment_create_create_event_for_order(
     }
 
 
-def test_payment_create_missing_app_permission(order_with_lines, app_api_client):
+def test_transaction_create_missing_app_permission(order_with_lines, app_api_client):
     # given
     status = "Authorized for 10$"
     type = "Credit Card"
     reference = "PSP reference - 123"
-    available_actions = [PaymentActionEnum.CAPTURE.name, PaymentActionEnum.VOID.name]
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -340,7 +359,7 @@ def test_payment_create_missing_app_permission(order_with_lines, app_api_client)
     }
 
     # when
-    response = app_api_client.post_graphql(MUTATION_PAYMENT_CREATE, variables)
+    response = app_api_client.post_graphql(MUTATION_TRANSACTION_CREATE, variables)
 
     # then
     assert_no_permission(response)
@@ -355,7 +374,7 @@ def test_payment_create_missing_app_permission(order_with_lines, app_api_client)
         ("amountRefunded", "refunded_value"),
     ],
 )
-def test_payment_create_incorrect_currency(
+def test_transaction_create_incorrect_currency(
     amount_field_name,
     amount_db_field,
     order_with_lines,
@@ -370,7 +389,7 @@ def test_payment_create_incorrect_currency(
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
-        "payment": {
+        "transaction": {
             "status": status,
             "type": type,
             "reference": reference,
@@ -384,11 +403,13 @@ def test_payment_create_incorrect_currency(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_PAYMENT_CREATE, variables, permissions=[permission_manage_payments]
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["paymentCreate"]
+    data = content["data"]["transactionCreate"]
     assert data["errors"][0]["field"] == amount_field_name
-    assert data["errors"][0]["code"] == PaymentCreateErrorCode.INCORRECT_CURRENCY.name
+    assert (
+        data["errors"][0]["code"] == TransactionCreateErrorCode.INCORRECT_CURRENCY.name
+    )

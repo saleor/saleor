@@ -7,6 +7,10 @@ DEPRECATED_IN_3X_FIELD = "This field will be removed in Saleor 4.0."
 DEPRECATED_IN_3X_INPUT = "\n\nDEPRECATED: this field will be removed in Saleor 4.0."
 
 
+DEPRECATED_IN_3X_MUTATION = (
+    "\n\nDEPRECATED: this mutation will be removed in Saleor 4.0."
+)
+
 ADDED_IN_31 = "New in Saleor 3.1."
 ADDED_IN_32 = "New in Saleor 3.2."
 PREVIEW_FEATURE = (

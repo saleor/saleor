@@ -27,9 +27,9 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
-from ....payment import PaymentAction
-from ....payment.interface import PaymentActionData
-from ....payment.models import Payment
+from ....payment import TransactionAction
+from ....payment.interface import TransactionActionData
+from ....payment.models import TransactionItem
 from ....plugins.webhook.tasks import _get_webhooks_for_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
@@ -39,12 +39,12 @@ from ....webhook.payloads import (
     generate_invoice_payload,
     generate_order_payload,
     generate_page_payload,
-    generate_payment_action_request_payload,
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_sale_payload,
+    generate_transaction_action_request_payload,
 )
 from ...manager import get_plugins_manager
 from ...webhook.tasks import (
@@ -1078,7 +1078,7 @@ def test_send_webhook_request_async(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_payment_action_request(
+def test_transaction_action_request(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     any_webhook,
@@ -1090,7 +1090,7 @@ def test_payment_action_request(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -1100,19 +1100,21 @@ def test_payment_action_request(
         authorized_value=Decimal("10"),
     )
     action_value = Decimal("5.00")
-    payment_action_data = PaymentActionData(
-        payment=payment,
-        action_type=PaymentAction.CAPTURE,
+    transaction_action_data = TransactionActionData(
+        transaction=transaction,
+        action_type=TransactionAction.CAPTURE,
         action_value=action_value,
     )
 
     # when
-    manager.payment_action_request(payment_action_data, channel_slug=channel_USD.slug)
+    manager.transaction_action_request(
+        transaction_action_data, channel_slug=channel_USD.slug
+    )
 
     # then
-    expected_data = generate_payment_action_request_payload(
-        payment_action_data,
+    expected_data = generate_transaction_action_request_payload(
+        transaction_action_data,
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAYMENT_ACTION_REQUEST, [any_webhook]
+        expected_data, WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST, [any_webhook]
     )

@@ -47,7 +47,7 @@ def event_payment_capture_requested(
         user = None
     return OrderEvent.objects.create(
         order_id=order_id,
-        type=OrderEvents.PAYMENT_CAPTURE_REQUESTED,
+        type=OrderEvents.TRANSACTION_CAPTURE_REQUESTED,
         user=user,
         app=app,
         parameters={
@@ -64,7 +64,7 @@ def event_payment_refund_requested(
         user = None
     return OrderEvent.objects.create(
         order_id=order_id,
-        type=OrderEvents.PAYMENT_REFUND_REQUESTED,
+        type=OrderEvents.TRANSACTION_REFUND_REQUESTED,
         user=user,
         app=app,
         parameters={
@@ -81,7 +81,7 @@ def event_payment_void_requested(
         user = None
     return OrderEvent.objects.create(
         order_id=order_id,
-        type=OrderEvents.PAYMENT_VOID_REQUESTED,
+        type=OrderEvents.TRANSACTION_VOID_REQUESTED,
         user=user,
         app=app,
         parameters={
@@ -482,7 +482,7 @@ def payment_failed_event(
     )
 
 
-def payment_event(
+def transaction_event(
     *,
     order: Order,
     user: UserType,
@@ -498,7 +498,7 @@ def payment_event(
     parameters = {"message": name, "reference": reference, "status": status}
     return OrderEvent.objects.create(
         order=order,
-        type=OrderEvents.PAYMENT_EVENT,
+        type=OrderEvents.TRANSACTION_EVENT,
         user=user,
         app=app,
         parameters=parameters,

@@ -50,10 +50,10 @@ if TYPE_CHECKING:
         CustomerSource,
         GatewayResponse,
         InitializedPaymentResponse,
-        PaymentActionData,
         PaymentData,
         PaymentGateway,
         TokenConfig,
+        TransactionActionData,
     )
     from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..shipping.interface import ShippingMethodData
@@ -781,12 +781,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
 
-    def payment_action_request(
-        self, payment_data: "PaymentActionData", channel_slug: str
+    def transaction_action_request(
+        self, payment_data: "TransactionActionData", channel_slug: str
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "payment_action_request",
+            "transaction_action_request",
             default_value,
             payment_data,
             channel_slug=channel_slug,

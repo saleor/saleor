@@ -9,14 +9,14 @@ from ...plugins.manager import get_plugins_manager
 from .. import (
     ChargeStatus,
     CustomPaymentChoices,
-    PaymentAction,
     PaymentError,
+    TransactionAction,
     TransactionKind,
     gateway,
 )
 from ..gateway import request_capture_action, request_refund_action, request_void_action
-from ..interface import GatewayResponse, PaymentActionData
-from ..models import Payment
+from ..interface import GatewayResponse, TransactionActionData
+from ..models import TransactionItem
 from ..utils import create_payment_information
 
 RAW_RESPONSE = {"test": "abcdefgheijklmn"}
@@ -333,7 +333,7 @@ def test_request_capture_action_missing_active_event(
     mocked_is_active, order, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -348,7 +348,7 @@ def test_request_capture_action_missing_active_event(
     # when & then
     with pytest.raises(PaymentError):
         request_capture_action(
-            payment=payment,
+            transaction=transaction,
             manager=get_plugins_manager(),
             capture_value=action_value,
             channel_slug=order.channel.slug,
@@ -358,12 +358,12 @@ def test_request_capture_action_missing_active_event(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_capture_action_on_order(
-    mocked_payment_action_request, mocked_is_active, order, staff_user
+    mocked_transaction_action_request, mocked_is_active, order, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -377,7 +377,7 @@ def test_request_capture_action_on_order(
 
     # when
     request_capture_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         capture_value=action_value,
         channel_slug=order.channel.slug,
@@ -387,29 +387,29 @@ def test_request_capture_action_on_order(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.CAPTURE,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CAPTURE,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.parameters["payment_id"] == transaction.reference
     assert event.user == staff_user
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_capture_action_by_app(
-    mocked_payment_action_request, mocked_is_active, order, app
+    mocked_transaction_action_request, mocked_is_active, order, app
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -423,7 +423,7 @@ def test_request_capture_action_by_app(
 
     # when
     request_capture_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         capture_value=action_value,
         channel_slug=order.channel.slug,
@@ -433,29 +433,29 @@ def test_request_capture_action_by_app(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.CAPTURE,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CAPTURE,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.parameters["payment_id"] == transaction.reference
     assert event.app == app
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_capture_action_on_checkout(
-    mocked_payment_action_request, mocked_is_active, checkout, staff_user
+    mocked_transaction_action_request, mocked_is_active, checkout, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -469,7 +469,7 @@ def test_request_capture_action_on_checkout(
 
     # when
     request_capture_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         capture_value=action_value,
         channel_slug=checkout.channel.slug,
@@ -479,10 +479,10 @@ def test_request_capture_action_on_checkout(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.CAPTURE,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CAPTURE,
             action_value=action_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -494,7 +494,7 @@ def test_request_refund_action_missing_active_event(
     mocked_is_active, order, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
         reference="PSP ref",
@@ -509,7 +509,7 @@ def test_request_refund_action_missing_active_event(
     # when & then
     with pytest.raises(PaymentError):
         request_refund_action(
-            payment=payment,
+            transaction=transaction,
             manager=get_plugins_manager(),
             refund_value=action_value,
             channel_slug=order.channel.slug,
@@ -519,12 +519,12 @@ def test_request_refund_action_missing_active_event(
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_refund_action_on_order(
-    mocked_payment_action_request, mocked_is_active, order, staff_user
+    mocked_transaction_action_request, mocked_is_active, order, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
         reference="PSP ref",
@@ -538,7 +538,7 @@ def test_request_refund_action_on_order(
 
     # when
     request_refund_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         refund_value=action_value,
         channel_slug=order.channel.slug,
@@ -548,29 +548,29 @@ def test_request_refund_action_on_order(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.REFUND,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_REFUND_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.parameters["payment_id"] == transaction.reference
     assert event.user == staff_user
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_refund_action_by_app(
-    mocked_payment_action_request, mocked_is_active, order, app
+    mocked_transaction_action_request, mocked_is_active, order, app
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
         reference="PSP ref",
@@ -584,7 +584,7 @@ def test_request_refund_action_by_app(
 
     # when
     request_refund_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         refund_value=action_value,
         channel_slug=order.channel.slug,
@@ -594,30 +594,30 @@ def test_request_refund_action_by_app(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.REFUND,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_REFUND_REQUESTED
+    assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.parameters["payment_id"] == transaction.reference
     assert event.app == app
     assert not event.user
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_refund_action_on_checkout(
-    mocked_payment_action_request, mocked_is_active, checkout, staff_user
+    mocked_transaction_action_request, mocked_is_active, checkout, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
         reference="PSP ref",
@@ -631,7 +631,7 @@ def test_request_refund_action_on_checkout(
 
     # when
     request_refund_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         refund_value=action_value,
         channel_slug=checkout.channel.slug,
@@ -641,10 +641,10 @@ def test_request_refund_action_on_checkout(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.REFUND,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
             action_value=action_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -654,7 +654,7 @@ def test_request_refund_action_on_checkout(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 def test_request_void_action_missing_active_event(mocked_is_active, order, staff_user):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -668,7 +668,7 @@ def test_request_void_action_missing_active_event(mocked_is_active, order, staff
     # when & then
     with pytest.raises(PaymentError):
         request_void_action(
-            payment=payment,
+            transaction=transaction,
             manager=get_plugins_manager(),
             channel_slug=order.channel.slug,
             user=staff_user,
@@ -677,12 +677,12 @@ def test_request_void_action_missing_active_event(mocked_is_active, order, staff
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_void_action_on_order(
-    mocked_payment_action_request, mocked_is_active, order, staff_user
+    mocked_transaction_action_request, mocked_is_active, order, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -695,7 +695,7 @@ def test_request_void_action_on_order(
 
     # when
     request_void_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         channel_slug=order.channel.slug,
         user=staff_user,
@@ -704,28 +704,28 @@ def test_request_void_action_on_order(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.VOID,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.VOID,
             action_value=None,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_VOID_REQUESTED
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.parameters["payment_id"] == transaction.reference
     assert event.user == staff_user
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_void_action_by_app(
-    mocked_payment_action_request, mocked_is_active, order, app
+    mocked_transaction_action_request, mocked_is_active, order, app
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -738,7 +738,7 @@ def test_request_void_action_by_app(
 
     # when
     request_void_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         channel_slug=order.channel.slug,
         user=AnonymousUser(),  # type:ignore
@@ -747,29 +747,29 @@ def test_request_void_action_by_app(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.VOID,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.VOID,
             action_value=None,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_VOID_REQUESTED
-    assert event.parameters["payment_id"] == payment.reference
+    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.parameters["payment_id"] == transaction.reference
     assert event.app == app
     assert not event.user
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_request_void_action_on_checkout(
-    mocked_payment_action_request, mocked_is_active, checkout, staff_user
+    mocked_transaction_action_request, mocked_is_active, checkout, staff_user
 ):
     # given
-    payment = Payment.objects.create(
+    transaction = TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
@@ -782,7 +782,7 @@ def test_request_void_action_on_checkout(
 
     # when
     request_void_action(
-        payment=payment,
+        transaction=transaction,
         manager=get_plugins_manager(),
         channel_slug=checkout.channel.slug,
         user=staff_user,
@@ -791,10 +791,10 @@ def test_request_void_action_on_checkout(
 
     # then
     assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.VOID,
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.VOID,
             action_value=None,
         ),
         channel_slug=checkout.channel.slug,

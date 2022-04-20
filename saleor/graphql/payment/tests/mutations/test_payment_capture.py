@@ -1,17 +1,13 @@
-from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 
-from .....order import OrderEvents
-from .....payment import PaymentAction, TransactionKind
+from .....payment import TransactionKind
 from .....payment.gateways.dummy_credit_card import (
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
 )
-from .....payment.interface import PaymentActionData
-from .....payment.models import ChargeStatus, Payment
-from ....core.enums import PaymentErrorCode
+from .....payment.models import ChargeStatus
 from ....tests.utils import get_graphql_content
 
 CAPTURE_QUERY = """
@@ -29,189 +25,6 @@ CAPTURE_QUERY = """
         }
     }
 """
-
-
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
-def test_payment_capture_with_payment_action_request(
-    mocked_payment_action_request,
-    mocked_is_active,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-):
-    # given
-    payment = Payment.objects.create(
-        status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=Decimal("10"),
-    )
-    capture_value = Decimal(5.0)
-    mocked_is_active.return_value = True
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id, "amount": capture_value}
-
-    # when
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["paymentCapture"]
-    assert not data["errors"]
-
-    assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.CAPTURE,
-            action_value=capture_value,
-        ),
-        channel_slug=order.channel.slug,
-    )
-
-    event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
-    assert Decimal(event.parameters["amount"]) == capture_value
-    assert event.parameters["payment_id"] == payment.reference
-
-
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
-def test_payment_capture_with_payment_action_request_for_checkout(
-    mocked_payment_action_request,
-    mocked_is_active,
-    staff_api_client,
-    permission_manage_orders,
-    checkout,
-):
-    # given
-    payment = Payment.objects.create(
-        status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        checkout_id=checkout.pk,
-        authorized_value=Decimal("10"),
-    )
-    capture_value = Decimal(5.0)
-    mocked_is_active.return_value = True
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id, "amount": capture_value}
-
-    # when
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["paymentCapture"]
-    assert not data["errors"]
-
-    assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.CAPTURE,
-            action_value=capture_value,
-        ),
-        channel_slug=checkout.channel.slug,
-    )
-
-
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.payment_action_request")
-def test_payment_capture_with_payment_action_request_without_amount(
-    mocked_payment_action_request,
-    mocked_is_active,
-    staff_api_client,
-    permission_manage_orders,
-    order,
-):
-    # given
-    authorization_value = Decimal("10")
-    payment = Payment.objects.create(
-        status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=authorization_value,
-    )
-    mocked_is_active.return_value = True
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id}
-
-    # when
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["paymentCapture"]
-    assert not data["errors"]
-
-    assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        PaymentActionData(
-            payment=payment,
-            action_type=PaymentAction.CAPTURE,
-            action_value=authorization_value,
-        ),
-        channel_slug=order.channel.slug,
-    )
-
-    event = order.events.first()
-    assert event.type == OrderEvents.PAYMENT_CAPTURE_REQUESTED
-    assert Decimal(event.parameters["amount"]) == authorization_value
-    assert event.parameters["payment_id"] == payment.reference
-
-
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-def test_payment_capture_with_payment_action_request_missing_event(
-    mocked_is_active, staff_api_client, permission_manage_orders, order
-):
-    # given
-    authorization_value = Decimal("10")
-    payment = Payment.objects.create(
-        status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["capture", "void"],
-        currency="USD",
-        order_id=order.pk,
-        authorized_value=authorization_value,
-    )
-    mocked_is_active.return_value = False
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id}
-
-    # when
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["paymentCapture"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["message"] == (
-        "No app or plugin is configured to handle payment action requests."
-    )
-    assert data["errors"][0]["code"] == (
-        PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK.name
-    )
-
-    assert mocked_is_active.called
 
 
 def test_payment_capture_success(

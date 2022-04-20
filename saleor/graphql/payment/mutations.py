@@ -14,25 +14,25 @@ from ...core.permissions import OrderPermissions, PaymentPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
-from ...order.events import payment_event
+from ...order.events import transaction_event
 from ...payment import PaymentError, StorePaymentMethod, gateway
 from ...payment import models as payment_models
 from ...payment.error_codes import (
-    PaymentCreateErrorCode,
     PaymentErrorCode,
-    PaymentUpdateErrorCode,
-)
-from ...payment.gateway import (
-    request_capture_action,
-    request_refund_action,
-    request_void_action,
+    TransactionCreateErrorCode,
+    TransactionUpdateErrorCode,
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_IN_3X_MUTATION,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import to_enum
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
@@ -40,8 +40,8 @@ from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
-from .enums import PaymentActionEnum, TransactionStatusEnum
-from .types import Payment, PaymentInitialized
+from .enums import TransactionActionEnum, TransactionStatusEnum
+from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
 
 
@@ -322,7 +322,9 @@ class PaymentCapture(BaseMutation):
         amount = PositiveDecimal(description="Transaction amount.")
 
     class Meta:
-        description = "Captures the authorized payment amount."
+        description = (
+            f"{DEPRECATED_IN_3X_MUTATION} Captures the authorized payment amount."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -338,35 +340,23 @@ class PaymentCapture(BaseMutation):
             else payment.checkout.channel.slug
         )
         try:
-            # This is temporary solution to discover a payment that uses a new checkout
-            # flow.
-            if not payment.gateway:
-                code = PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
-                request_capture_action(
-                    payment,
-                    info.context.plugins,
-                    capture_value=amount,
-                    channel_slug=channel_slug,
-                    user=info.context.user,
-                    app=info.context.app,
-                )
-            else:
-                code = PaymentErrorCode.PAYMENT_ERROR
-                gateway.capture(
-                    payment,
-                    info.context.plugins,
-                    amount=amount,
-                    channel_slug=channel_slug,
-                )
+            gateway.capture(
+                payment,
+                info.context.plugins,
+                amount=amount,
+                channel_slug=channel_slug,
+            )
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=code)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
         return PaymentCapture(payment=payment)
 
 
 class PaymentRefund(PaymentCapture):
     class Meta:
-        description = "Refunds the captured payment amount."
+        description = (
+            f"{DEPRECATED_IN_3X_MUTATION} Refunds the captured payment amount."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -382,29 +372,15 @@ class PaymentRefund(PaymentCapture):
             else payment.checkout.channel.slug
         )
         try:
-            # This is temporary solution to discover a payment that uses a new checkout
-            # flow.
-            if not payment.gateway:
-                code = PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
-                request_refund_action(
-                    payment,
-                    info.context.plugins,
-                    refund_value=amount,
-                    channel_slug=channel_slug,
-                    user=info.context.user,
-                    app=info.context.app,
-                )
-            else:
-                code = PaymentErrorCode.PAYMENT_ERROR
-                gateway.refund(
-                    payment,
-                    info.context.plugins,
-                    amount=amount,
-                    channel_slug=channel_slug,
-                )
+            gateway.refund(
+                payment,
+                info.context.plugins,
+                amount=amount,
+                channel_slug=channel_slug,
+            )
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=code)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
         return PaymentRefund(payment=payment)
 
 
@@ -415,7 +391,7 @@ class PaymentVoid(BaseMutation):
         payment_id = graphene.ID(required=True, description="Payment ID.")
 
     class Meta:
-        description = "Voids the authorized payment."
+        description = f"{DEPRECATED_IN_3X_MUTATION} Voids the authorized payment."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -431,23 +407,10 @@ class PaymentVoid(BaseMutation):
             else payment.checkout.channel.slug
         )
         try:
-            # This is temporary solution to discover a payment that uses a new checkout
-            # flow.
-            if not payment.gateway:
-                code = PaymentErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
-                request_void_action(
-                    payment,
-                    info.context.plugins,
-                    channel_slug=channel_slug,
-                    user=info.context.user,
-                    app=info.context.app,
-                )
-            else:
-                code = PaymentErrorCode.PAYMENT_ERROR
-                gateway.void(payment, info.context.plugins, channel_slug=channel_slug)
+            gateway.void(payment, info.context.plugins, channel_slug=channel_slug)
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=code)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
         return PaymentVoid(payment=payment)
 
 
@@ -609,22 +572,22 @@ class PaymentCheckBalance(BaseMutation):
             )
 
 
-class PaymentUpdateInput(graphene.InputObjectType):
+class TransactionUpdateInput(graphene.InputObjectType):
     status = graphene.String(
-        description="Status of the payment.",
+        description="Status of the transaction.",
     )
     type = graphene.String(
-        description="Payment type used for this payment.",
+        description="Payment type used for this transaction.",
     )
-    reference = graphene.String(description="Reference of the payment.")
+    reference = graphene.String(description="Reference of the transaction.")
     available_actions = graphene.List(
-        graphene.NonNull(PaymentActionEnum),
-        description="List of all possible actions for the payment",
+        graphene.NonNull(TransactionActionEnum),
+        description="List of all possible actions for the transaction",
     )
-    amount_authorized = MoneyInput(description="Amount authorized by this payment.")
-    amount_captured = MoneyInput(description="Amount captured by this payment.")
-    amount_refunded = MoneyInput(description="Amount refunded by this payment.")
-    amount_voided = MoneyInput(description="Amount voided by this payment.")
+    amount_authorized = MoneyInput(description="Amount authorized by this transaction.")
+    amount_captured = MoneyInput(description="Amount captured by this transaction.")
+    amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
+    amount_voided = MoneyInput(description="Amount voided by this transaction.")
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -638,14 +601,14 @@ class PaymentUpdateInput(graphene.InputObjectType):
     )
 
 
-class PaymentCreateInput(PaymentUpdateInput):
-    status = graphene.String(description="Status of the payment.", required=True)
+class TransactionCreateInput(TransactionUpdateInput):
+    status = graphene.String(description="Status of the transaction.", required=True)
     type = graphene.String(
-        description="Payment type used for this payment.", required=True
+        description="Payment type used for this transaction.", required=True
     )
 
 
-class TransactionInput(graphene.InputObjectType):
+class TransactionEventInput(graphene.InputObjectType):
     status = graphene.Field(
         TransactionStatusEnum,
         required=True,
@@ -655,25 +618,25 @@ class TransactionInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the transaction.")
 
 
-class PaymentCreate(BaseMutation):
-    payment = graphene.Field(Payment)
+class TransactionCreate(BaseMutation):
+    transaction = graphene.Field(TransactionItem)
 
     class Arguments:
         id = graphene.ID(
             description="The ID of the checkout or order.",
             required=True,
         )
-        payment = PaymentCreateInput(
+        transaction = TransactionCreateInput(
             required=True,
-            description="Input data required to create a new payment object.",
+            description="Input data required to create a new transaction object.",
         )
-        transaction = TransactionInput(
-            description="Data that defines a payment transaction."
+        transaction_event = TransactionEventInput(
+            description="Data that defines a transaction event."
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Create payment for checkout or order."
-        error_type_class = common_types.PaymentCreateError
+        description = f"{PREVIEW_FEATURE} Create transaction for checkout or order."
+        error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
@@ -681,7 +644,7 @@ class PaymentCreate(BaseMutation):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
-                    "payment": ValidationError(
+                    "transaction": ValidationError(
                         {
                             field_name: ValidationError(
                                 "Metadata key cannot be empty.",
@@ -693,7 +656,7 @@ class PaymentCreate(BaseMutation):
             )
 
     @classmethod
-    def cleanup_payment_money_data(cls, cleaned_data: dict):
+    def cleanup_money_data(cls, cleaned_data: dict):
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
             cleaned_data["authorized_value"] = amount_authorized["amount"]
         if amount_captured := cleaned_data.pop("amount_captured", None):
@@ -722,14 +685,16 @@ class PaymentCreate(BaseMutation):
                 {
                     "id": ValidationError(
                         f"Couldn't resolve to Checkout or Order: {instance_id}",
-                        code=PaymentCreateErrorCode.NOT_FOUND.value,
+                        code=TransactionCreateErrorCode.NOT_FOUND.value,
                     )
                 }
             )
 
     @classmethod
-    def validate_money_input(cls, payment_data: dict, currency: str, error_code: str):
-        if not payment_data:
+    def validate_money_input(
+        cls, transaction_data: dict, currency: str, error_code: str
+    ):
+        if not transaction_data:
             return
         money_input_fields = [
             "amount_authorized",
@@ -739,7 +704,7 @@ class PaymentCreate(BaseMutation):
         ]
         errors = {}
         for money_field_name in money_input_fields:
-            field = payment_data.get(money_field_name)
+            field = transaction_data.get(money_field_name)
             if not field:
                 continue
             if field["currency"] != currency:
@@ -756,30 +721,32 @@ class PaymentCreate(BaseMutation):
     ):
         cls.validate_instance(instance, input_data.get("id"))
         currency = instance.currency
-        payment_data = input_data["payment"]
+        transaction_data = input_data["transaction"]
 
         cls.validate_money_input(
-            input_data["payment"],
+            input_data["transaction"],
             currency,
-            PaymentCreateErrorCode.INCORRECT_CURRENCY.value,
+            TransactionCreateErrorCode.INCORRECT_CURRENCY.value,
         )
         cls.validate_metadata_keys(
-            payment_data.get("metadata", []),
+            transaction_data.get("metadata", []),
             field_name="metadata",
-            error_code=PaymentCreateErrorCode.METADATA_KEY_REQUIRED.value,
+            error_code=TransactionCreateErrorCode.METADATA_KEY_REQUIRED.value,
         )
         cls.validate_metadata_keys(
-            payment_data.get("private_metadata", []),
+            transaction_data.get("private_metadata", []),
             field_name="privateMetadata",
-            error_code=PaymentCreateErrorCode.METADATA_KEY_REQUIRED.value,
+            error_code=TransactionCreateErrorCode.METADATA_KEY_REQUIRED.value,
         )
 
     @classmethod
-    def create_payment(cls, payment_input: dict) -> payment_models.Payment:
-        cls.cleanup_payment_money_data(payment_input)
-        cls.cleanup_metadata_data(payment_input)
-        return payment_models.Payment.objects.create(
-            **payment_input,
+    def create_transaction(
+        cls, transaction_input: dict
+    ) -> payment_models.TransactionItem:
+        cls.cleanup_money_data(transaction_input)
+        cls.cleanup_metadata_data(transaction_input)
+        return payment_models.TransactionItem.objects.create(
+            **transaction_input,
         )
 
     @classmethod
@@ -788,83 +755,87 @@ class PaymentCreate(BaseMutation):
         order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
 
         cls.validate_input(order_or_checkout_instance, data)
-        payment_data = {**data["payment"]}
-        payment_data["currency"] = order_or_checkout_instance.currency
+        transaction_data = {**data["transaction"]}
+        transaction_data["currency"] = order_or_checkout_instance.currency
         if isinstance(order_or_checkout_instance, checkout_models.Checkout):
-            payment_data["checkout_id"] = order_or_checkout_instance.pk
+            transaction_data["checkout_id"] = order_or_checkout_instance.pk
         else:
-            payment_data["order_id"] = order_or_checkout_instance.pk
-            if transaction_data := data.get("transaction"):
-                payment_event(
+            transaction_data["order_id"] = order_or_checkout_instance.pk
+            if transaction_event_data := data.get("transaction_event"):
+                transaction_event(
                     order=order_or_checkout_instance,
                     user=info.context.user,
                     app=info.context.app,
-                    reference=transaction_data.get("reference", ""),
-                    status=transaction_data.get("status", ""),
-                    name=transaction_data.get("name", ""),
+                    reference=transaction_event_data.get("reference", ""),
+                    status=transaction_event_data.get("status", ""),
+                    name=transaction_event_data.get("name", ""),
                 )
-        payment = cls.create_payment(payment_data)
-        return PaymentCreate(payment=payment)
+        transaction = cls.create_transaction(transaction_data)
+        return TransactionCreate(transaction=transaction)
 
 
-class PaymentUpdate(PaymentCreate):
-    payment = graphene.Field(Payment)
+class TransactionUpdate(TransactionCreate):
+    transaction = graphene.Field(TransactionItem)
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the payment.",
+            description="The ID of the transaction.",
             required=True,
         )
-        payment = PaymentUpdateInput(
-            description="Input data required to create a new payment object.",
+        transaction = TransactionUpdateInput(
+            description="Input data required to create a new transaction object.",
         )
-        transaction = TransactionInput(
-            description="Data that defines a payment transaction."
+        transaction_event = TransactionEventInput(
+            description="Data that defines a transaction transaction."
         )
 
     class Meta:
-        description = f"{PREVIEW_FEATURE} Create payment for checkout or order."
-        error_type_class = common_types.PaymentUpdateError
+        description = f"{PREVIEW_FEATURE} Create transaction for checkout or order."
+        error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
-        object_type = Payment
+        object_type = TransactionItem
 
     @classmethod
-    def validate_payment_input(cls, instance: payment_models.Payment, payment_data):
+    def validate_transaction_input(
+        cls, instance: payment_models.TransactionItem, transaction_data
+    ):
         currency = instance.currency
         cls.validate_money_input(
-            payment_data, currency, PaymentUpdateErrorCode.INCORRECT_CURRENCY.value
+            transaction_data,
+            currency,
+            TransactionUpdateErrorCode.INCORRECT_CURRENCY.value,
         )
         cls.validate_metadata_keys(
-            payment_data.get("metadata", []),
+            transaction_data.get("metadata", []),
             field_name="metadata",
-            error_code=PaymentUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+            error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
         )
         cls.validate_metadata_keys(
-            payment_data.get("private_metadata", []),
+            transaction_data.get("private_metadata", []),
             field_name="privateMetadata",
-            error_code=PaymentUpdateErrorCode.METADATA_KEY_REQUIRED.value,
+            error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
         )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
-        instance = cls.get_node_or_error(info, instance_id, only_type=Payment)
-        payment_data = data.get("payment")
-        if payment_data:
-            cls.validate_payment_input(instance, payment_data)
-            cls.cleanup_payment_money_data(payment_data)
-            cls.cleanup_metadata_data(payment_data)
-            instance = cls.construct_instance(instance, payment_data)
+        instance = cls.get_node_or_error(info, instance_id, only_type=TransactionItem)
+        transaction_data = data.get("transaction")
+        if transaction_data:
+            cls.validate_transaction_input(instance, transaction_data)
+            cls.cleanup_money_data(transaction_data)
+            cls.cleanup_metadata_data(transaction_data)
+            instance = cls.construct_instance(instance, transaction_data)
             instance.save()
 
-        transaction_data = data.get("transaction")
-        if instance.order_id and transaction_data:
-            payment_event(
+        transaction_event_data = data.get("transaction_event")
+        if instance.order_id and transaction_event_data:
+            transaction_event(
                 order=instance.order,
                 user=info.context.user,
                 app=info.context.app,
-                reference=transaction_data.get("reference", ""),
-                status=transaction_data.get("status", ""),
-                name=transaction_data.get("name", ""),
+                reference=transaction_event_data.get("reference", ""),
+                status=transaction_event_data.get("status", ""),
+                name=transaction_event_data.get("name", ""),
             )
-        return PaymentUpdate(payment=instance)
+        return TransactionUpdate(transaction=instance)

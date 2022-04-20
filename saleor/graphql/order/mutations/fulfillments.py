@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -22,6 +23,8 @@ from ....order.actions import (
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
 from ....order.notifications import send_fulfillment_update
+from ....payment import PaymentError
+from ....payment.models import TransactionItem
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -531,7 +534,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_order_payment(cls, payment, cleaned_input):
-        if payment and (not payment.gateway or payment.can_refund()):
+        if payment and payment.can_refund():
             cleaned_input["payment"] = payment
             return
 
@@ -545,7 +548,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         )
 
     @classmethod
-    def clean_amount_to_refund(cls, order, amount_to_refund, payment, cleaned_input):
+    def clean_amount_to_refund(
+        cls, order, amount_to_refund, captured_value, cleaned_input
+    ):
         if amount_to_refund is not None:
             if order_has_gift_card_lines(order):
                 raise ValidationError(
@@ -559,10 +564,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                         )
                     }
                 )
-            # FIXME this will be cleaned up with cleaning up Payment model
-            captured_value = (
-                payment.captured_amount if payment.gateway else payment.captured_value
-            )
+
             if amount_to_refund > captured_value:
                 raise ValidationError(
                     {
@@ -590,6 +592,19 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     params={field_name: line_global_id},
                 )
             }
+        )
+
+    @classmethod
+    def raise_error_for_payment_error(cls, transactions: Optional[TransactionItem]):
+        if transactions:
+            code = OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
+            msg = "No app or plugin is configured to handle payment action requests."
+        else:
+            msg = "The refund operation is not available yet."
+            code = OrderErrorCode.CANNOT_REFUND.value
+        raise ValidationError(
+            msg,
+            code=code,
         )
 
     @classmethod
@@ -736,11 +751,25 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             info, order_id, field="order", only_type=Order, qs=qs
         )
         payment = order.get_last_payment()
-        cls.clean_order_payment(payment, cleaned_input)
-        cls.clean_amount_to_refund(order, amount_to_refund, payment, cleaned_input)
+        transactions = list(order.payment_transactions.all())
+        if transactions:
+            # For know we handle refunds only for last transaction. We need to add an
+            # interface to process a refund requests on multiple transactions
+            captured_value = transactions[-1].captured_value
+        else:
+            cls.clean_order_payment(payment, cleaned_input)
+            captured_value = payment.captured_amount
+        cls.clean_amount_to_refund(
+            order, amount_to_refund, captured_value, cleaned_input
+        )
 
         cleaned_input.update(
-            {"include_shipping_costs": include_shipping_costs, "order": order}
+            {
+                "include_shipping_costs": include_shipping_costs,
+                "order": order,
+                "transactions": transactions,
+                "payment": payment,
+            }
         )
 
         order_lines_data = input.get("order_lines", [])
@@ -765,17 +794,21 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
 
-        refund_fulfillment = create_refund_fulfillment(
-            info.context.user,
-            info.context.app,
-            order,
-            cleaned_input["payment"],
-            cleaned_input.get("order_lines", []),
-            cleaned_input.get("fulfillment_lines", []),
-            info.context.plugins,
-            cleaned_input["amount_to_refund"],
-            cleaned_input["include_shipping_costs"],
-        )
+        try:
+            refund_fulfillment = create_refund_fulfillment(
+                info.context.user,
+                info.context.app,
+                order,
+                cleaned_input["payment"],
+                cleaned_input["transactions"],
+                cleaned_input.get("order_lines", []),
+                cleaned_input.get("fulfillment_lines", []),
+                info.context.plugins,
+                cleaned_input["amount_to_refund"],
+                cleaned_input["include_shipping_costs"],
+            )
+        except PaymentError:
+            cls.raise_error_for_payment_error(cleaned_input.get("transactions"))
         return cls(order=order, fulfillment=refund_fulfillment)
 
 
@@ -876,10 +909,20 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         order = cls.get_node_or_error(
             info, order_id, field="order", only_type=Order, qs=qs
         )
-        payment = order.get_last_payment()
         if refund:
-            cls.clean_order_payment(payment, cleaned_input)
-            cls.clean_amount_to_refund(order, amount_to_refund, payment, cleaned_input)
+            payment = order.get_last_payment()
+            transactions = list(order.payment_transactions.all())
+            if transactions:
+                # For know we handle refunds only for last transaction. We need to add
+                # an interface to process a refund requests on multiple transactions
+                captured_value = transactions[-1].captured_value
+            else:
+                cls.clean_order_payment(payment, cleaned_input)
+                captured_value = payment.captured_amount
+            cls.clean_amount_to_refund(
+                order, amount_to_refund, captured_value, cleaned_input
+            )
+            cleaned_input["transactions"] = transactions
 
         cleaned_input.update(
             {
@@ -910,18 +953,23 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
-        response = create_fulfillments_for_returned_products(
-            info.context.user,
-            info.context.app,
-            order,
-            cleaned_input.get("payment"),
-            cleaned_input.get("order_lines", []),
-            cleaned_input.get("fulfillment_lines", []),
-            info.context.plugins,
-            cleaned_input["refund"],
-            cleaned_input.get("amount_to_refund"),
-            cleaned_input["include_shipping_costs"],
-        )
+        try:
+            response = create_fulfillments_for_returned_products(
+                info.context.user,
+                info.context.app,
+                order,
+                cleaned_input.get("payment"),
+                cleaned_input.get("transactions"),
+                cleaned_input.get("order_lines", []),
+                cleaned_input.get("fulfillment_lines", []),
+                info.context.plugins,
+                cleaned_input["refund"],
+                cleaned_input.get("amount_to_refund"),
+                cleaned_input["include_shipping_costs"],
+            )
+        except PaymentError:
+            cls.raise_error_for_payment_error(cleaned_input.get("transactions"))
+
         return_fulfillment, replace_fulfillment, replace_order = response
         return cls(
             order=order,

@@ -26,9 +26,7 @@ from ..enums import (
     OrderErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
-    PaymentCreateErrorCode,
     PaymentErrorCode,
-    PaymentUpdateErrorCode,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
@@ -37,6 +35,9 @@ from ..enums import (
     ShopErrorCode,
     StockErrorCode,
     TimePeriodTypeEnum,
+    TransactionCreateErrorCode,
+    TransactionRequestActionErrorCode,
+    TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
     WarehouseErrorCode,
@@ -333,12 +334,18 @@ class PaymentError(Error):
     )
 
 
-class PaymentCreateError(Error):
-    code = PaymentCreateErrorCode(description="The error code.", required=True)
+class TransactionCreateError(Error):
+    code = TransactionCreateErrorCode(description="The error code.", required=True)
 
 
-class PaymentUpdateError(Error):
-    code = PaymentUpdateErrorCode(description="The error code.", required=True)
+class TransactionUpdateError(Error):
+    code = TransactionUpdateErrorCode(description="The error code.", required=True)
+
+
+class TransactionRequestActionError(Error):
+    code = TransactionRequestActionErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class GiftCardError(Error):

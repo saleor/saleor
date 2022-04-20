@@ -571,17 +571,15 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        order_info = fetch_order_info(order)
-        payment = order_info.payment
-        clean_order_capture(payment)
 
-        # This is temporary solution to discover a payment that uses a new checkout
-        # flow.
-        if not payment.gateway:
+        if payment_transactions := list(order.payment_transactions.all()):
             try:
+                # We use the last transaction as we don't have a possibility to
+                # provide way of handling multiple transaction here
+                payment_transaction = payment_transactions[-1]
                 request_capture_action(
-                    payment,
-                    info.context.plugins,
+                    transaction=payment_transaction,
+                    manager=info.context.plugins,
                     capture_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
@@ -589,9 +587,13 @@ class OrderCapture(BaseMutation):
                 )
             except PaymentError as e:
                 raise ValidationError(
-                    str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
                 )
         else:
+            order_info = fetch_order_info(order)
+            payment = order_info.payment
+            clean_order_capture(payment)
             transaction = try_payment_action(
                 order,
                 info.context.user,
@@ -633,15 +635,13 @@ class OrderVoid(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
-        clean_void_payment(payment)
 
-        # This is temporary solution to discover a payment that uses a new checkout
-        # flow.
-        if not payment.gateway:
+        if payment_transactions := list(order.payment_transactions.all()):
+            # We use the last transaction as we don't have a possibility to
+            # provide way of handling multiple transaction here
             try:
                 request_void_action(
-                    payment,
+                    payment_transactions[-1],
                     info.context.plugins,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
@@ -649,9 +649,12 @@ class OrderVoid(BaseMutation):
                 )
             except PaymentError as e:
                 raise ValidationError(
-                    str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
                 )
         else:
+            payment = order.get_last_payment()
+            clean_void_payment(payment)
             transaction = try_payment_action(
                 order,
                 info.context.user,
@@ -705,14 +708,12 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
 
-        payment = order.get_last_payment()
-        clean_payment(payment)
-        # This is temporary solution to discover a payment that uses a new checkout
-        # flow.
-        if not payment.gateway:
+        if payment_transactions := list(order.payment_transactions.all()):
+            # We use the last transaction as we don't have a possibility to
+            # provide way of handling multiple transaction here
             try:
                 request_refund_action(
-                    payment,
+                    payment_transactions[-1],
                     info.context.plugins,
                     refund_value=amount,
                     channel_slug=order.channel.slug,
@@ -721,9 +722,12 @@ class OrderRefund(BaseMutation):
                 )
             except PaymentError as e:
                 raise ValidationError(
-                    str(e), code=OrderErrorCode.MISSING_PAYMENT_ACTION_REQUEST_WEBHOOK
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
                 )
         else:
+            payment = order.get_last_payment()
+            clean_payment(payment)
             clean_refund_payment(payment)
             transaction = try_payment_action(
                 order,
@@ -801,7 +805,25 @@ class OrderConfirm(ModelMutation):
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = info.context.plugins
-        if payment and payment.is_authorized and payment.can_capture():
+        if payment_transactions := list(order.payment_transactions.all()):
+            try:
+                # We use the last transaction as we don't have a possibility to
+                # provide way of handling multiple transaction here
+                payment_transaction = payment_transactions[-1]
+                request_capture_action(
+                    transaction=payment_transaction,
+                    manager=info.context.plugins,
+                    capture_value=payment_transaction.captured_value,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                )
+        elif payment and payment.is_authorized and payment.can_capture():
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
