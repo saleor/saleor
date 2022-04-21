@@ -24,7 +24,7 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_32,
+    ADDED_IN_33,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -59,7 +59,7 @@ class PublishableChannelListingInput(graphene.InputObjectType):
         )
     )
     published_at = graphene.types.datetime.DateTime(
-        description=f"{ADDED_IN_32} Publication date time. ISO 8601 standard."
+        description=f"{ADDED_IN_33} Publication date time. ISO 8601 standard."
     )
 
 
@@ -83,7 +83,7 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
     )
     available_for_purchase_at = graphene.DateTime(
         description=(
-            f"{ADDED_IN_32} A start date time from which a product will be available "
+            f"{ADDED_IN_33} A start date time from which a product will be available "
             "for purchase. When not set and isAvailable is set to True, "
             "the current day is assumed."
         )

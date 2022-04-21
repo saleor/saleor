@@ -15,7 +15,7 @@ from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
-from ...core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
@@ -42,7 +42,7 @@ class PageInput(graphene.InputObjectType):
         )
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_32} Publication date time. ISO 8601 standard."
+        description=f"{ADDED_IN_33} Publication date time. ISO 8601 standard."
     )
     seo = SeoInput(description="Search engine optimization fields.")
 

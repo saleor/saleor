@@ -4454,14 +4454,14 @@ type ProductChannelListing implements Node {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
-  """New in Saleor 3.2. The product publication date time."""
+  """New in Saleor 3.3. The product publication date time."""
   publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
   visibleInListings: Boolean!
   availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
 
-  """New in Saleor 3.2. The product available for purchase date time."""
+  """New in Saleor 3.3. The product available for purchase date time."""
   availableForPurchaseAt: DateTime
 
   """The price of the cheapest variant (including discounts)."""
@@ -4731,7 +4731,7 @@ type CollectionChannelListing implements Node {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
-  """New in Saleor 3.2. The collection publication date."""
+  """New in Saleor 3.3. The collection publication date."""
   publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
@@ -4976,7 +4976,7 @@ type Page implements Node & ObjectWithMetadata {
   content: JSONString
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
-  """New in Saleor 3.2. The page publication date."""
+  """New in Saleor 3.3. The page publication date."""
   publishedAt: DateTime
   isPublished: Boolean!
   slug: String!
@@ -12276,7 +12276,7 @@ input PublishableChannelListingInput {
   """
   publicationDate: Date
 
-  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 }
 
@@ -12487,7 +12487,7 @@ input ProductChannelListingAddInput {
   """
   publicationDate: Date
 
-  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """
@@ -12506,7 +12506,7 @@ input ProductChannelListingAddInput {
   availableForPurchaseDate: Date
 
   """
-  New in Saleor 3.2. A start date time from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
+  New in Saleor 3.3. A start date time from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
   """
   availableForPurchaseAt: DateTime
 
@@ -13334,7 +13334,7 @@ input PageCreateInput {
   """
   publicationDate: String
 
-  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """Search engine optimization fields."""
@@ -13405,7 +13405,7 @@ input PageInput {
   """
   publicationDate: String
 
-  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """Search engine optimization fields."""

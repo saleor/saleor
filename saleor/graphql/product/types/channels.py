@@ -18,7 +18,7 @@ from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
 from ...core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_32,
+    ADDED_IN_33,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -48,7 +48,7 @@ class ProductChannelListing(ModelObjectType):
         ),
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_32} The product publication date time."
+        description=f"{ADDED_IN_33} The product publication date time."
     )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
@@ -61,7 +61,7 @@ class ProductChannelListing(ModelObjectType):
         ),
     )
     available_for_purchase_at = graphene.DateTime(
-        description=f"{ADDED_IN_32} The product available for purchase date time."
+        description=f"{ADDED_IN_33} The product available for purchase date time."
     )
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
@@ -335,7 +335,7 @@ class CollectionChannelListing(ModelObjectType):
         ),
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_32} The collection publication date."
+        description=f"{ADDED_IN_33} The collection publication date."
     )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)

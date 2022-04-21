@@ -12,7 +12,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
@@ -106,7 +106,7 @@ class Page(ModelObjectType):
         ),
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_32} The page publication date."
+        description=f"{ADDED_IN_33} The page publication date."
     )
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)
