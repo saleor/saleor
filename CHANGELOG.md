@@ -3,7 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 
-# Unreleased
+# 3.2.0
 
 ### Breaking changes
 - Convert IDs from DB to Graphql format in all notification payloads (email plugins and webhook.NOTIFY)- #9388 by @L3str4nge
