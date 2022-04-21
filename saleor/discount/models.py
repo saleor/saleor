@@ -264,7 +264,7 @@ class Sale(ModelWithMetadata):
     variants = models.ManyToManyField("product.ProductVariant", blank=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     objects = models.Manager.from_queryset(SaleQueryset)()
@@ -392,3 +392,4 @@ class OrderDiscount(models.Model):
     class Meta:
         # Orders searching index
         indexes = [GinIndex(fields=["name", "translated_name"])]
+        ordering = ("pk",)

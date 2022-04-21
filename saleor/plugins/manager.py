@@ -55,8 +55,15 @@ if TYPE_CHECKING:
         TokenConfig,
         TransactionActionData,
     )
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ..shipping.interface import ShippingMethodData
+    from ..shipping.models import ShippingMethod, ShippingZone
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
@@ -790,6 +797,54 @@ class PluginsManager(PaymentInterface):
             default_value,
             payment_data,
             channel_slug=channel_slug,
+        )
+
+    def category_created(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_created", default_value, category)
+
+    def category_updated(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_updated", default_value, category)
+
+    def category_deleted(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_deleted", default_value, category)
+
+    def shipping_price_created(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_created", default_value, shipping_method
+        )
+
+    def shipping_price_updated(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_updated", default_value, shipping_method
+        )
+
+    def shipping_price_deleted(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_deleted", default_value, shipping_method
+        )
+
+    def shipping_zone_created(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_created", default_value, shipping_zone
+        )
+
+    def shipping_zone_updated(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_updated", default_value, shipping_zone
+        )
+
+    def shipping_zone_deleted(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_deleted", default_value, shipping_zone
         )
 
     def initialize_payment(

@@ -8,6 +8,7 @@ import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
+from graphene.utils.str_converters import to_camel_case
 
 from .. import __version__
 from ..account.models import User
@@ -50,6 +51,7 @@ if TYPE_CHECKING:
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData, TransactionActionData
+    from ..payment.models import Payment
     from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
 
@@ -69,7 +71,6 @@ ADDRESS_FIELDS = (
 )
 
 ORDER_FIELDS = (
-    "created",
     "status",
     "origin",
     "shipping_method_name",
@@ -105,7 +106,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
     return {"id": requestor.name, "type": "app"}  # type: ignore
 
 
-def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
+def generate_meta(*, requestor_data: Dict[str, Any], camel_case=False, **kwargs):
     meta_result = {
         "issued_at": timezone.now().isoformat(),
         "version": __version__,
@@ -114,7 +115,14 @@ def generate_meta(*, requestor_data: Dict[str, Any], **kwargs):
 
     meta_result.update(kwargs)
 
-    return meta_result
+    if camel_case:
+        meta = {}
+        for key, value in meta_result.items():
+            meta[to_camel_case(key)] = value
+    else:
+        meta = meta_result
+
+    return meta
 
 
 def prepare_order_lines_allocations_payload(line):
@@ -210,36 +218,10 @@ def generate_order_payload(
     fulfillment_fields = (
         "status",
         "tracking_number",
-        "created",
         "shipping_refund_amount",
         "total_refund_amount",
     )
     fulfillment_price_fields = ("shipping_refund_amount", "total_refund_amount")
-    payment_fields = (
-        "gateway",
-        "payment_method_type",
-        "cc_brand",
-        "is_active",
-        "created",
-        "partial",
-        "modified",
-        "charge_status",
-        "psp_reference",
-        "total",
-        "captured_amount",
-        "currency",
-        "billing_email",
-        "billing_first_name",
-        "billing_last_name",
-        "billing_company_name",
-        "billing_address_1",
-        "billing_address_2",
-        "billing_city",
-        "billing_city_area",
-        "billing_postal_code",
-        "billing_country_code",
-        "billing_country_area",
-    )
     payment_price_fields = ("captured_amount", "total")
     discount_fields = (
         "type",
@@ -275,7 +257,8 @@ def generate_order_payload(
         fulfillments,
         fields=fulfillment_fields,
         extra_dict_data={
-            "lines": lambda f: json.loads(generate_fulfillment_lines_payload(f))
+            "lines": lambda f: json.loads(generate_fulfillment_lines_payload(f)),
+            "created": lambda f: f.created_at,
         },
     )
 
@@ -283,6 +266,7 @@ def generate_order_payload(
         "id": graphene.Node.to_global_id("Order", order.id),
         "token": str(order.id),
         "user_email": order.get_customer_email(),
+        "created": order.created_at,
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
@@ -291,6 +275,7 @@ def generate_order_payload(
         )[0]
         if order.collection_point
         else None,
+        "payments": json.loads(_generate_order_payment_payload(payments)),
     }
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
@@ -303,7 +288,6 @@ def generate_order_payload(
         additional_fields={
             "channel": (lambda o: o.channel, channel_fields),
             "shipping_method": (lambda o: o.shipping_method, shipping_method_fields),
-            "payments": (lambda _: payments, payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "discounts": (lambda _: discounts, discount_fields),
@@ -311,6 +295,41 @@ def generate_order_payload(
         extra_dict_data=extra_dict_data,
     )
     return order_data
+
+
+def _generate_order_payment_payload(payments: Iterable["Payment"]):
+    payment_fields = (
+        "gateway",
+        "payment_method_type",
+        "cc_brand",
+        "is_active",
+        "partial",
+        "charge_status",
+        "psp_reference",
+        "total",
+        "captured_amount",
+        "currency",
+        "billing_email",
+        "billing_first_name",
+        "billing_last_name",
+        "billing_company_name",
+        "billing_address_1",
+        "billing_address_2",
+        "billing_city",
+        "billing_city_area",
+        "billing_postal_code",
+        "billing_country_code",
+        "billing_country_area",
+    )
+    serializer = PayloadSerializer()
+    return serializer.serialize(
+        payments,
+        fields=payment_fields,
+        extra_dict_data={
+            "created": lambda p: p.created_at,
+            "modified": lambda p: p.modified_at,
+        },
+    )
 
 
 def _calculate_added(
@@ -411,6 +430,7 @@ def _generate_order_payload_for_invoice(order: "Order"):
         extra_dict_data={
             "token": order.id,
             "user_email": order.get_customer_email(),
+            "created": order.created_at,
         },
     )
     return payload
@@ -422,7 +442,6 @@ def generate_checkout_payload(
 ):
     serializer = PayloadSerializer()
     checkout_fields = (
-        "created",
         "last_change",
         "status",
         "email",
@@ -475,6 +494,7 @@ def generate_checkout_payload(
             if checkout.collection_point
             else None,
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+            "created": checkout.created_at,
         },
     )
     return checkout_data

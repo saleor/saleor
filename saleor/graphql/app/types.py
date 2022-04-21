@@ -168,7 +168,7 @@ class AppToken(graphene.ObjectType):
 
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
-        return root.auth_token[-4:]
+        return root.token_last_4
 
 
 @federated_entity("id")
@@ -216,6 +216,10 @@ class App(ModelObjectType):
         description = "Represents app data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.App
+
+    @staticmethod
+    def resolve_created(root: models.App, _info):
+        return root.created_at
 
     @staticmethod
     def resolve_permissions(root: models.App, _info, **_kwargs):

@@ -1062,9 +1062,18 @@ type Webhook implements Node {
     """Return the last n elements from the list."""
     last: Int
   ): EventDeliveryCountableConnection
+
+  """Target URL for webhook."""
   targetUrl: String!
+
+  """Informs if webhook is activated."""
   isActive: Boolean!
+
+  """Used to create a hash signature with each payload."""
   secretKey: String
+
+  """Used to define payloads for specific events."""
+  subscriptionQuery: String
 }
 
 """An object with an ID"""
@@ -1084,94 +1093,17 @@ type WebhookEvent {
 
 """Enum determining type of webhook."""
 enum WebhookEventTypeEnum {
-  ANY_EVENTS
-  ORDER_CREATED
-  ORDER_CONFIRMED
-  ORDER_FULLY_PAID
-  ORDER_UPDATED
-  ORDER_CANCELLED
-  ORDER_FULFILLED
-  DRAFT_ORDER_CREATED
-  DRAFT_ORDER_UPDATED
-  DRAFT_ORDER_DELETED
-  SALE_CREATED
-  SALE_UPDATED
-  SALE_DELETED
-  INVOICE_REQUESTED
-  INVOICE_DELETED
-  INVOICE_SENT
-  CUSTOMER_CREATED
-  CUSTOMER_UPDATED
-  COLLECTION_CREATED
-  COLLECTION_UPDATED
-  COLLECTION_DELETED
-  PRODUCT_CREATED
-  PRODUCT_UPDATED
-  PRODUCT_DELETED
-  PRODUCT_VARIANT_CREATED
-  PRODUCT_VARIANT_UPDATED
-  PRODUCT_VARIANT_DELETED
-  PRODUCT_VARIANT_OUT_OF_STOCK
-  PRODUCT_VARIANT_BACK_IN_STOCK
-  CHECKOUT_CREATED
-  CHECKOUT_UPDATED
-  FULFILLMENT_CREATED
-  FULFILLMENT_CANCELED
-  NOTIFY_USER
-  PAGE_CREATED
-  PAGE_UPDATED
-  PAGE_DELETED
-  TRANSACTION_ACTION_REQUEST
-  TRANSLATION_CREATED
-  TRANSLATION_UPDATED
-  PAYMENT_AUTHORIZE
-  PAYMENT_CAPTURE
-  PAYMENT_CONFIRM
-  PAYMENT_LIST_GATEWAYS
-  PAYMENT_PROCESS
-  PAYMENT_REFUND
-  PAYMENT_VOID
-  SHIPPING_LIST_METHODS_FOR_CHECKOUT
-  ORDER_FILTER_SHIPPING_METHODS
-  CHECKOUT_FILTER_SHIPPING_METHODS
-}
-
-"""Synchronous webhook event."""
-type WebhookEventSync {
-  """Display name of the event."""
-  name: String!
-
-  """Internal name of the event type."""
-  eventType: WebhookEventTypeSyncEnum!
-}
-
-"""Enum determining type of webhook."""
-enum WebhookEventTypeSyncEnum {
-  PAYMENT_AUTHORIZE
-  PAYMENT_CAPTURE
-  PAYMENT_CONFIRM
-  PAYMENT_LIST_GATEWAYS
-  PAYMENT_PROCESS
-  PAYMENT_REFUND
-  PAYMENT_VOID
-  SHIPPING_LIST_METHODS_FOR_CHECKOUT
-  ORDER_FILTER_SHIPPING_METHODS
-  CHECKOUT_FILTER_SHIPPING_METHODS
-}
-
-"""Asynchronous webhook event."""
-type WebhookEventAsync {
-  """Display name of the event."""
-  name: String!
-
-  """Internal name of the event type."""
-  eventType: WebhookEventTypeAsyncEnum!
-}
-
-"""Enum determining type of webhook."""
-enum WebhookEventTypeAsyncEnum {
   """All the events."""
   ANY_EVENTS
+
+  """A new category created."""
+  CATEGORY_CREATED
+
+  """A category is updated."""
+  CATEGORY_UPDATED
+
+  """A category is deleted."""
+  CATEGORY_DELETED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1270,6 +1202,200 @@ enum WebhookEventTypeAsyncEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new shipping price is created."""
+  SHIPPING_PRICE_CREATED
+
+  """A shipping price is updated."""
+  SHIPPING_PRICE_UPDATED
+
+  """A shipping price is deleted."""
+  SHIPPING_PRICE_DELETED
+
+  """A new shipping zone is created."""
+  SHIPPING_ZONE_CREATED
+
+  """A shipping zone is updated."""
+  SHIPPING_ZONE_UPDATED
+
+  """A shipping zone is deleted."""
+  SHIPPING_ZONE_DELETED
+  TRANSACTION_ACTION_REQUEST
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
+  PAYMENT_AUTHORIZE
+  PAYMENT_CAPTURE
+  PAYMENT_CONFIRM
+  PAYMENT_LIST_GATEWAYS
+  PAYMENT_PROCESS
+  PAYMENT_REFUND
+  PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
+  ORDER_FILTER_SHIPPING_METHODS
+  CHECKOUT_FILTER_SHIPPING_METHODS
+}
+
+"""Synchronous webhook event."""
+type WebhookEventSync {
+  """Display name of the event."""
+  name: String!
+
+  """Internal name of the event type."""
+  eventType: WebhookEventTypeSyncEnum!
+}
+
+"""Enum determining type of webhook."""
+enum WebhookEventTypeSyncEnum {
+  PAYMENT_AUTHORIZE
+  PAYMENT_CAPTURE
+  PAYMENT_CONFIRM
+  PAYMENT_LIST_GATEWAYS
+  PAYMENT_PROCESS
+  PAYMENT_REFUND
+  PAYMENT_VOID
+  SHIPPING_LIST_METHODS_FOR_CHECKOUT
+  ORDER_FILTER_SHIPPING_METHODS
+  CHECKOUT_FILTER_SHIPPING_METHODS
+}
+
+"""Asynchronous webhook event."""
+type WebhookEventAsync {
+  """Display name of the event."""
+  name: String!
+
+  """Internal name of the event type."""
+  eventType: WebhookEventTypeAsyncEnum!
+}
+
+"""Enum determining type of webhook."""
+enum WebhookEventTypeAsyncEnum {
+  """All the events."""
+  ANY_EVENTS
+
+  """A new category created."""
+  CATEGORY_CREATED
+
+  """A category is updated."""
+  CATEGORY_UPDATED
+
+  """A category is deleted."""
+  CATEGORY_DELETED
+
+  """A new order is placed."""
+  ORDER_CREATED
+
+  """
+  An order is confirmed (status change unconfirmed -> unfulfilled) by a staff user using the OrderConfirm mutation. It also triggers when the user completes the checkout and the shop setting `automatically_confirm_all_new_orders` is enabled.
+  """
+  ORDER_CONFIRMED
+
+  """Payment is made and an order is fully paid."""
+  ORDER_FULLY_PAID
+
+  """
+  An order is updated; triggered for all changes related to an order; covers all other order webhooks, except for ORDER_CREATED.
+  """
+  ORDER_UPDATED
+
+  """An order is cancelled."""
+  ORDER_CANCELLED
+
+  """An order is fulfilled."""
+  ORDER_FULFILLED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
+
+  """An invoice for order requested."""
+  INVOICE_REQUESTED
+
+  """An invoice is deleted."""
+  INVOICE_DELETED
+
+  """Invoice has been sent."""
+  INVOICE_SENT
+
+  """A new customer account is created."""
+  CUSTOMER_CREATED
+
+  """A customer account is updated."""
+  CUSTOMER_UPDATED
+
+  """A new collection is created."""
+  COLLECTION_CREATED
+
+  """A collection is updated."""
+  COLLECTION_UPDATED
+
+  """A collection is deleted."""
+  COLLECTION_DELETED
+
+  """A new product is created."""
+  PRODUCT_CREATED
+
+  """A product is updated."""
+  PRODUCT_UPDATED
+
+  """A product is deleted."""
+  PRODUCT_DELETED
+
+  """A new product variant is created."""
+  PRODUCT_VARIANT_CREATED
+
+  """A product variant is updated."""
+  PRODUCT_VARIANT_UPDATED
+
+  """A product variant is deleted."""
+  PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_OUT_OF_STOCK
+  PRODUCT_VARIANT_BACK_IN_STOCK
+
+  """A new checkout is created."""
+  CHECKOUT_CREATED
+
+  """
+  A checkout is updated. It also triggers all updates related to the checkout.
+  """
+  CHECKOUT_UPDATED
+
+  """A new fulfillment is created."""
+  FULFILLMENT_CREATED
+
+  """A fulfillment is cancelled."""
+  FULFILLMENT_CANCELED
+
+  """User notification triggered."""
+  NOTIFY_USER
+
+  """A new page is created."""
+  PAGE_CREATED
+
+  """A page is updated."""
+  PAGE_UPDATED
+
+  """A page is deleted."""
+  PAGE_DELETED
+
+  """A new shipping price is created."""
+  SHIPPING_PRICE_CREATED
+
+  """A shipping price is updated."""
+  SHIPPING_PRICE_UPDATED
+
+  """A shipping price is deleted."""
+  SHIPPING_PRICE_DELETED
+
+  """A new shipping zone is created."""
+  SHIPPING_ZONE_CREATED
+
+  """A shipping zone is updated."""
+  SHIPPING_ZONE_UPDATED
+
+  """A shipping zone is deleted."""
+  SHIPPING_ZONE_DELETED
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -1567,10 +1693,23 @@ type EventDeliveryAttempt implements Node {
 
   """Event delivery creation date and time."""
   createdAt: DateTime!
+
+  """Task id for delivery attempt."""
   taskId: String
+
+  """Delivery attempt duration."""
   duration: Float
+
+  """Delivery attempt response content."""
   response: String
+
+  """Response headers for delivery attempt."""
   responseHeaders: String
+
+  """Delivery attempt response status code."""
+  responseStatusCode: Int
+
+  """Request headers for delivery attempt."""
   requestHeaders: String
 
   """Event delivery status."""
@@ -1620,6 +1759,9 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum {
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -1656,6 +1798,12 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  SHIPPING_PRICE_CREATED
+  SHIPPING_PRICE_UPDATED
+  SHIPPING_PRICE_DELETED
+  SHIPPING_ZONE_CREATED
+  SHIPPING_ZONE_UPDATED
+  SHIPPING_ZONE_DELETED
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -9940,7 +10088,7 @@ type Mutation {
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
-    lines: [CheckoutLineInput!]!
+    lines: [CheckoutLineUpdateInput!]!
 
     """Checkout token."""
     token: UUID
@@ -11558,6 +11706,7 @@ enum ProductErrorCode {
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_VARIANTS_DISABLED
+  MEDIA_ALREADY_ASSIGNED
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
@@ -15185,6 +15334,11 @@ input CheckoutLineInput {
 
   """ID of the product variant."""
   variantId: ID!
+
+  """
+  New in Saleor 3.1. Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  price: PositiveDecimal
 }
 
 """
@@ -15246,6 +15400,21 @@ type CheckoutLinesUpdate {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+input CheckoutLineUpdateInput {
+  """
+  The number of items purchased. Optional for apps, required for any other users.
+  """
+  quantity: Int
+
+  """ID of the product variant."""
+  variantId: ID!
+
+  """
+  New in Saleor 3.1. Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  price: PositiveDecimal
 }
 
 """Remove a gift card or a voucher from a checkout."""
@@ -16714,7 +16883,28 @@ type Subscription {
   event: Event
 }
 
-union Event = OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
+
+type CategoryCreated {
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type CategoryUpdated {
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
+
+type CategoryDeleted {
+  """
+  New in Saleor 3.2. Look up a category. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  category: Category
+}
 
 type OrderCreated {
   """
@@ -17026,6 +17216,90 @@ type PageDeleted {
   New in Saleor 3.2. Look up a page. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   page: Page
+}
+
+type ShippingPriceCreated {
+  """
+  New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
+
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingPriceUpdated {
+  """
+  New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
+
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingPriceDeleted {
+  """
+  New in Saleor 3.2. Look up a shipping method. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingMethod(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingMethodType
+
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingZoneCreated {
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingZoneUpdated {
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+type ShippingZoneDeleted {
+  """
+  New in Saleor 3.2. Look up a shipping zone. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
 }
 
 type TranslationCreated {

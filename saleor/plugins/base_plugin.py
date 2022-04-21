@@ -40,8 +40,15 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ..shipping.interface import ShippingMethodData
+    from ..shipping.models import ShippingMethod, ShippingZone
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
@@ -228,6 +235,24 @@ class BasePlugin:
     calculate_order_shipping: Callable[["Order", TaxedMoney], TaxedMoney]
 
     capture_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when category is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a category is
+    #  created.
+    category_created: Callable[["Category", None], None]
+
+    #  Trigger when category is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a category is
+    #  deleted.
+    category_deleted: Callable[["Category", None], None]
+
+    #  Trigger when category is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a category is
+    #  updated.
+    category_updated: Callable[["Category", None], None]
 
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
@@ -535,6 +560,42 @@ class BasePlugin:
     #
     #  Overwrite this method if you need to trigger specific logic after sale is updated.
     sale_updated: Callable[["Sale", "NodeCatalogueInfo", "NodeCatalogueInfo", Any], Any]
+
+    #  Trigger when shipping price is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping
+    #  price is created.
+    shipping_price_created: Callable[["ShippingMethod", None], None]
+
+    #  Trigger when shipping price is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping
+    #  price is deleted.
+    shipping_price_deleted: Callable[["ShippingMethod", None], None]
+
+    #  Trigger when shipping price is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping
+    #  price is updated.
+    shipping_price_updated: Callable[["ShippingMethod", None], None]
+
+    #  Trigger when shipping zone is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  is created.
+    shipping_zone_created: Callable[["ShippingZone", None], None]
+
+    #  Trigger when shipping zone is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  is deleted.
+    shipping_zone_deleted: Callable[["ShippingZone", None], None]
+
+    #  Trigger when shipping zone is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a shipping zone
+    #  is updated.
+    shipping_zone_updated: Callable[["ShippingZone", None], None]
 
     #  Define if storefront should add info about taxes to the price.
     #

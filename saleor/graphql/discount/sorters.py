@@ -10,7 +10,7 @@ class SaleSortField(graphene.Enum):
     END_DATE = ["end_date", "name", "pk"]
     VALUE = ["value", "name", "pk"]
     TYPE = ["type", "name", "pk"]
-    CREATED_AT = ["created", "name", "pk"]
+    CREATED_AT = ["created_at", "name", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
 
     @property

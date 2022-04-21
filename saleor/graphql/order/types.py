@@ -317,8 +317,15 @@ class OrderEvent(ModelObjectType):
         return root.parameters.get("oversold_items", None)
 
     @staticmethod
-    def resolve_order_number(root: models.OrderEvent, _info):
-        return root.order_id
+    def resolve_order_number(root: models.OrderEvent, info):
+        def _resolve_order_number(order: models.Order):
+            return order.number
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_resolve_order_number)
+        )
 
     @staticmethod
     def resolve_invoice_number(root: models.OrderEvent, _info):
@@ -448,6 +455,10 @@ class Fulfillment(ModelObjectType):
         description = "Represents order fulfillment."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Fulfillment
+
+    @staticmethod
+    def resolve_created(root: models.Fulfillment, _info):
+        return root.created_at
 
     @staticmethod
     def resolve_lines(root: models.Fulfillment, _info):
@@ -841,6 +852,10 @@ class Order(ModelObjectType):
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Order
+
+    @staticmethod
+    def resolve_created(root: models.Order, _info):
+        return root.created_at
 
     @staticmethod
     def resolve_token(root: models.Order, info):

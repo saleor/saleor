@@ -4,7 +4,7 @@ from django.core.management.sql import emit_post_migrate_signal
 from django.db import migrations
 
 
-def assing_permissions(apps, schema_editor):
+def assign_permissions(apps, schema_editor):
     # force post signal as permissions are created in post migrate signals
     # related Django issue https://code.djangoproject.com/ticket/23422
     emit_post_migrate_signal(2, False, "default")
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("product", "0159_auto_20220209_1501"),
-        ("order", "0131_rename_order_token_id"),
+        ("order", "0133_rename_order_token_id"),
         ("checkout", "0039_alter_checkout_email"),
     ]
 
@@ -51,5 +51,5 @@ class Migration(migrations.Migration):
                 ),
             },
         ),
-        migrations.RunPython(assing_permissions, migrations.RunPython.noop),
+        migrations.RunPython(assign_permissions, migrations.RunPython.noop),
     ]

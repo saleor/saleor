@@ -46,6 +46,7 @@ def calculate_base_line_unit_price(
         channel,
         line_info.channel_listing,
         discounts or [],
+        line_info.line.price_override,
     )
 
     if not discounts:
@@ -57,6 +58,7 @@ def calculate_base_line_unit_price(
             channel,
             line_info.channel_listing,
             [],
+            line_info.line.price_override,
         )
 
     if line_info.voucher and not line_info.voucher.apply_once_per_order:

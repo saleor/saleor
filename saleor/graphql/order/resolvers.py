@@ -38,7 +38,7 @@ def resolve_orders_total(_info, period, channel_slug):
         .exclude(status=OrderStatus.CANCELED)
         .filter(channel__slug=str(channel_slug))
     )
-    qs = filter_by_period(qs, period, "created")
+    qs = filter_by_period(qs, period, "created_at")
     return sum_order_totals(qs, channel.currency_code)
 
 

@@ -18,6 +18,7 @@ from ...graphql.checkout.tests.test_checkout_complete import (
 from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
+from ...payment import TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
@@ -130,8 +131,8 @@ def test_create_order_captured_payment_creates_expected_events(
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "payment": {
-            "created": payment_txn_captured.created,
-            "modified": payment_txn_captured.modified,
+            "created": payment_txn_captured.created_at,
+            "modified": payment_txn_captured.modified_at,
             "charge_status": payment_txn_captured.charge_status,
             "total": payment_txn_captured.total,
             "captured_amount": payment_txn_captured.captured_amount,
@@ -280,8 +281,8 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "payment": {
-            "created": payment_txn_captured.created,
-            "modified": payment_txn_captured.modified,
+            "created": payment_txn_captured.created_at,
+            "modified": payment_txn_captured.modified_at,
             "charge_status": payment_txn_captured.charge_status,
             "total": payment_txn_captured.total,
             "captured_amount": payment_txn_captured.captured_amount,
@@ -1253,4 +1254,55 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     assert not order
     assert action_required is True
     assert not voucher_customer.exists()
+    mocked_create_order.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout._create_order")
+def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
+    mocked_create_order,
+    customer_user,
+    checkout,
+    payment_txn_to_confirm,
+):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = False
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.REFUND_ONGOING,
+        amount=payment.total,
+        currency=payment.currency,
+        token="test",
+        gateway_response={},
+    )
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order, _, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+    assert not order
     mocked_create_order.assert_not_called()

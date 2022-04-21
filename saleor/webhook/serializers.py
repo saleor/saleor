@@ -27,8 +27,14 @@ def serialize_checkout_lines(
         channel_listing = line_info.channel_listing
         collections = line_info.collections
         product = variant.product
+        price_override = line_info.line.price_override
         base_price = variant.get_price(
-            product, collections, channel, channel_listing, discounts or []
+            product,
+            collections,
+            channel,
+            channel_listing,
+            discounts or [],
+            price_override,
         )
         data.append(
             {

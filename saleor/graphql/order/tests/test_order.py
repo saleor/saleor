@@ -1468,7 +1468,7 @@ def test_nested_order_events_query(
     assert data["user"]["email"] == staff_user.email
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
-    assert data["orderNumber"] == str(fulfilled_order.pk)
+    assert data["orderNumber"] == str(fulfilled_order.number)
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
@@ -1528,7 +1528,7 @@ def test_nested_order_events_query_for_app(
     assert data["app"]["name"] == app.name
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
-    assert data["orderNumber"] == str(fulfilled_order.pk)
+    assert data["orderNumber"] == str(fulfilled_order.number)
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
@@ -1727,7 +1727,7 @@ def test_payment_information_order_events_query(
     assert data["user"]["email"] == staff_user.email
     assert data["app"] is None
     assert data["type"] == "PAYMENT_CAPTURED"
-    assert data["orderNumber"] == str(order.pk)
+    assert data["orderNumber"] == str(order.number)
     assert data["paymentId"] == payment_dummy.token
     assert data["paymentGateway"] == payment_dummy.gateway
 
@@ -1763,7 +1763,7 @@ def test_payment_information_order_events_query_for_app(
     assert data["lines"] is None
     assert data["app"]["name"] == app.name
     assert data["type"] == "PAYMENT_CAPTURED"
-    assert data["orderNumber"] == str(order.pk)
+    assert data["orderNumber"] == str(order.number)
     assert data["paymentId"] == payment_dummy.token
     assert data["paymentGateway"] == payment_dummy.gateway
 
@@ -5548,8 +5548,8 @@ def test_order_capture(
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "payment": {
-            "created": payment.created,
-            "modified": payment.modified,
+            "created": payment.created_at,
+            "modified": payment.modified_at,
             "charge_status": payment.charge_status,
             "total": payment.total,
             "captured_amount": payment.captured_amount,

@@ -2226,6 +2226,342 @@ def test_products_query_with_filter_swatch_attributes(
     assert products[0]["node"]["name"] == second_product.name
 
 
+def test_products_query_with_filter_date_range_date_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    date_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering  attributes by date range,
+    products with the same date attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.product_attributes.add(date_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_attribute, name="First", slug="first", date_time=date_value
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_attribute, name="Second", slug="second", date_time=date_value
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_attribute,
+        name="Third",
+        slug="third",
+        date_time=date_value - timedelta(days=1),
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0], date_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], date_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2], date_attribute, attr_value_3
+    )
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {
+                    "slug": date_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[:2]
+    }
+
+
+def test_products_query_with_filter_date_range_date_variant_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    date_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date range,
+    variants with the same date attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.variant_attributes.add(date_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_attribute,
+        name="First",
+        slug="first",
+        date_time=date_value - timedelta(days=1),
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_attribute, name="Second", slug="second", date_time=date_value
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_attribute, name="Third", slug="third", date_time=date_value
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0].variants.first(), date_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1].variants.first(), date_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2].variants.first(), date_attribute, attr_value_3
+    )
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {
+                    "slug": date_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[1:]
+    }
+
+
+def test_products_query_with_filter_date_range_date_time_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    date_time_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date time
+    range, products with the same date time attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.product_attributes.add(date_time_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_time_attribute, name="First", slug="first", date_time=date_value
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Second",
+        slug="second",
+        date_time=date_value,
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Third",
+        slug="third",
+        date_time=date_value - timedelta(days=1),
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0], date_time_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], date_time_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2], date_time_attribute, attr_value_3
+    )
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {
+                    "slug": date_time_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[:2]
+    }
+
+
+def test_products_query_with_filter_date_range_date_time_variant_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    date_time_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date time
+    range, variant and product with the same date time attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.variant_attributes.add(date_time_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="First",
+        slug="first",
+        date_time=date_value - timedelta(days=1),
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Second",
+        slug="second",
+        date_time=date_value,
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_time_attribute, name="Third", slug="third", date_time=date_value
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0].variants.first(), date_time_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1].variants.first(), date_time_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2].variants.first(), date_time_attribute, attr_value_3
+    )
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {
+                    "slug": date_time_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[1:]
+    }
+
+
+def test_products_query_with_filter_date_time_range_date_time_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    date_time_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering by  attributes by date range
+    variants with the same date attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.product_attributes.add(date_time_attribute)
+    product_type.variant_attributes.add(date_time_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="First",
+        slug="first",
+        date_time=date_value - timedelta(hours=2),
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Second",
+        slug="second",
+        date_time=date_value + timedelta(hours=3),
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Third",
+        slug="third",
+        date_time=date_value - timedelta(hours=6),
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0], date_time_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1].variants.first(), date_time_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2].variants.first(), date_time_attribute, attr_value_3
+    )
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {
+                    "slug": date_time_attribute.slug,
+                    "dateTime": {
+                        "gte": date_value - timedelta(hours=4),
+                        "lte": date_value + timedelta(hours=4),
+                    },
+                }
+            ],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[:2]
+    }
+
+
 def test_products_query_filter_by_non_existing_attribute(
     query_products_with_filter, api_client, product_list, channel_USD
 ):
@@ -4165,6 +4501,53 @@ def test_create_product_with_rich_text_attribute(
     )
 
 
+def test_create_product_no_value_for_rich_text_attribute(
+    staff_api_client,
+    product_type,
+    rich_text_attribute,
+    permission_manage_products,
+):
+    """Ensure mutation not fail when as attributes input only rich text attribute id
+    is provided."""
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(rich_text_attribute)
+    rich_text_attribute_id = graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute.id
+    )
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": rich_text_attribute_id,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    expected_attributes_data = {
+        "attribute": {"slug": rich_text_attribute.slug},
+        "values": [],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
 def test_create_product_with_date_time_attribute(
     staff_api_client,
@@ -4297,6 +4680,51 @@ def test_create_product_with_date_attribute(
     assert str(value).lower() in product.search_document
 
 
+def test_create_product_no_value_for_date_attribute(
+    staff_api_client,
+    product_type,
+    date_attribute,
+    permission_manage_products,
+):
+    """Ensure mutation not fail when as attributes input only date attribute id
+    is provided."""
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(date_attribute)
+    date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": date_attribute_id,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    expected_attributes_data = {
+        "attribute": {"slug": date_attribute.slug},
+        "values": [],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
 def test_create_product_with_boolean_attribute(
     staff_api_client,
     product_type,
@@ -4352,6 +4780,51 @@ def test_create_product_with_boolean_attribute(
                 "file": None,
             }
         ],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
+
+
+def test_create_product_no_value_for_boolean_attribute(
+    staff_api_client,
+    product_type,
+    boolean_attribute,
+    permission_manage_products,
+):
+    """Ensure mutation not fail when as attributes input only boolean attribute id
+    is provided."""
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(boolean_attribute)
+    boolean_attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": boolean_attribute_id,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["productType"]["name"] == product_type.name
+    expected_attributes_data = {
+        "attribute": {"slug": boolean_attribute.slug},
+        "values": [],
     }
     assert expected_attributes_data in data["product"]["attributes"]
 
@@ -6665,6 +7138,98 @@ def test_update_product_clear_attribute_values(
     updated_webhook_mock.assert_called_once_with(product)
 
 
+def test_update_product_clean_boolean_attribute_value(
+    staff_api_client,
+    product,
+    product_type,
+    boolean_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.pk)
+
+    product_type.product_attributes.add(boolean_attribute)
+    associate_attribute_values_to_instance(
+        product, boolean_attribute, boolean_attribute.values.first()
+    )
+
+    product_attr = product.attributes.get(assignment__attribute_id=boolean_attribute.id)
+    assert product_attr.values.count() == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": boolean_attribute.name},
+        "values": [],
+    }
+    assert expected_att_data in attributes
+    assert product_attr.values.count() == 0
+
+
+def test_update_product_clean_file_attribute_value(
+    staff_api_client,
+    product,
+    product_type,
+    file_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+
+    product_type.product_attributes.add(file_attribute)
+    associate_attribute_values_to_instance(
+        product, file_attribute, file_attribute.values.first()
+    )
+
+    product_attr = product.attributes.get(assignment__attribute_id=file_attribute.id)
+    assert product_attr.values.count() == 1
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [],
+    }
+    assert expected_att_data in attributes
+    assert product_attr.values.count() == 0
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
     staff_api_client,
@@ -7734,7 +8299,7 @@ def test_delete_product_with_image(
 
 
 @freeze_time("1914-06-28 10:50")
-@patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
@@ -9874,6 +10439,7 @@ ASSIGN_VARIANT_QUERY = """
             errors {
                 field
                 message
+                code
             }
             productVariant {
                 id
@@ -9922,12 +10488,11 @@ def test_assign_variant_media_second_time(
     )
 
     # then
-    content = get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)["data"]["variantMediaAssign"]
     assert "errors" in content
-    assert (
-        "duplicate key value violates unique constraint"
-        in content["errors"][0]["message"]
-    )
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.MEDIA_ALREADY_ASSIGNED.name
 
 
 def test_assign_variant_media_from_different_product(

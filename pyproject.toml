@@ -13,7 +13,7 @@ documentation = "https://docs.saleor.io/"
   python = "~3.9"
   babel = ">=2.8,<2.10"
   boto3 = "^1.21"
-  braintree = ">=4.2,<4.15"
+  braintree = ">=4.2,<4.16"
   dj-database-url = "^0"
   dj-email-url = "^1"
   django = "^3.2.4"
@@ -71,7 +71,7 @@ documentation = "https://docs.saleor.io/"
   Authlib = "^1.0.0"
 
     [tool.poetry.dependencies.celery]
-    version = ">=4.4.5,<6.0.0"
+    version = "5.2.4"
     extras = [ "redis" ]
 
     [tool.poetry.dependencies.django-storages]

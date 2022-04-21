@@ -139,7 +139,7 @@ class EventDelivery(models.Model):
     payload = models.ForeignKey(
         EventPayload, related_name="deliveries", null=True, on_delete=models.CASCADE
     )
-    webhook = models.ForeignKey("webhook.Webhook", null=True, on_delete=models.SET_NULL)
+    webhook = models.ForeignKey("webhook.Webhook", on_delete=models.CASCADE)
 
     class Meta:
         ordering = ("-created_at",)
@@ -154,6 +154,7 @@ class EventDeliveryAttempt(models.Model):
     duration = models.FloatField(null=True)
     response = models.TextField(null=True)
     response_headers = models.TextField(null=True)
+    response_status_code = models.PositiveSmallIntegerField(null=True)
     request_headers = models.TextField(null=True)
     status = models.CharField(
         max_length=255,

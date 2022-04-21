@@ -1,5 +1,6 @@
 from typing import Set
 
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.db import models
 from oauthlib.common import generate_token
@@ -30,7 +31,7 @@ class AppQueryset(models.QuerySet):
 
 class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
@@ -99,10 +100,28 @@ class App(ModelWithMetadata):
         return perm_value in self.get_permissions()
 
 
+class AppTokenManager(models.Manager):
+    def create(self, app, name="", auth_token=None, **extra_fields):
+        """Create an app token with the given name."""
+        if not auth_token:
+            auth_token = generate_token()
+        app_token = self.model(app=app, name=name, **extra_fields)
+        app_token.set_auth_token(auth_token)
+        app_token.save()
+        return app_token, auth_token
+
+
 class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
     name = models.CharField(blank=True, default="", max_length=128)
-    auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
+    auth_token = models.CharField(unique=True, max_length=128)
+    token_last_4 = models.CharField(max_length=4)
+
+    objects = AppTokenManager()
+
+    def set_auth_token(self, raw_token=None):
+        self.auth_token = make_password(raw_token)
+        self.token_last_4 = raw_token[-4:]
 
 
 class AppExtension(models.Model):

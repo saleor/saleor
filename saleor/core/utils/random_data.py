@@ -1703,3 +1703,18 @@ def create_checkout_with_preorders():
         )
         add_variant_to_checkout(checkout_info, product_variant, 2)
     yield f"Created checkout with two preorders. Checkout token: {checkout.token}"
+
+
+def create_checkout_with_custom_prices():
+    channel = Channel.objects.get(currency_code="USD")
+    checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
+    checkout.set_country(channel.default_country, commit=True)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    for product_variant in ProductVariant.objects.all()[:2]:
+        add_variant_to_checkout(
+            checkout_info, product_variant, 2, price_override=Decimal("20.0")
+        )
+    yield (
+        "Created checkout with two lines and custom prices. "
+        f"Checkout token: {checkout.token}."
+    )

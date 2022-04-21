@@ -87,7 +87,7 @@ def test_query_gift_card_with_permissions(
     assert data["isActive"] == gift_card.is_active
     assert data["expiryDate"] is None
     assert data["tags"][0]["name"] == gift_card.tags.first().name
-    assert data["created"] == gift_card.created.isoformat()
+    assert data["created"] == gift_card.created_at.isoformat()
     assert data["lastUsedOn"] == gift_card.last_used_on
     assert data["boughtInChannel"] is None
     assert data["initialBalance"]["currency"] == gift_card.initial_balance.currency
@@ -152,7 +152,7 @@ def test_query_gift_card_by_app(
     assert data["isActive"] == gift_card.is_active
     assert data["expiryDate"] is None
     assert data["tags"][0]["name"] == gift_card.tags.first().name
-    assert data["created"] == gift_card.created.isoformat()
+    assert data["created"] == gift_card.created_at.isoformat()
     assert data["lastUsedOn"] == gift_card.last_used_on
     assert data["initialBalance"]["currency"] == gift_card.initial_balance.currency
     assert data["initialBalance"]["amount"] == gift_card.initial_balance.amount

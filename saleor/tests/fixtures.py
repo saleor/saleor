@@ -41,7 +41,7 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus, TimePeriodType
+from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
@@ -3978,8 +3978,12 @@ def order_with_preorder_lines(
 
 @pytest.fixture
 def order_events(order):
-    for event_type, _ in OrderEvents.CHOICES:
-        OrderEvent.objects.create(type=event_type, order=order)
+    order_events = [
+        OrderEvent(type=event_type, order=order)
+        for event_type, _ in OrderEvents.CHOICES
+    ]
+    OrderEvent.objects.bulk_create(order_events)
+    return order_events
 
 
 @pytest.fixture
@@ -3988,7 +3992,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=pytz.utc),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -5113,14 +5117,27 @@ def other_description_json():
 @pytest.fixture
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
-    app.tokens.create(name="Default")
     return app
 
 
 @pytest.fixture
-def app_with_extensions(app, permission_manage_products):
+def webhook_app(db, permission_manage_shipping):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.permissions.add(permission_manage_shipping)
+    return app
+
+
+@pytest.fixture
+def app_with_token(db):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Test")
+    return app
+
+
+@pytest.fixture
+def app_with_extensions(app_with_token, permission_manage_products):
     first_app_extension = AppExtension(
-        app=app,
+        app=app_with_token,
         label="Create product with App",
         url="www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
@@ -5129,7 +5146,7 @@ def app_with_extensions(app, permission_manage_products):
         [
             first_app_extension,
             AppExtension(
-                app=app,
+                app=app_with_token,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
                 mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
@@ -5137,7 +5154,7 @@ def app_with_extensions(app, permission_manage_products):
         ]
     )
     first_app_extension.permissions.add(permission_manage_products)
-    return app, extensions
+    return app_with_token, extensions
 
 
 @pytest.fixture
@@ -5716,7 +5733,24 @@ def event_attempt(event_delivery):
 @pytest.fixture
 def webhook_response():
     return WebhookResponse(
+        content="test_content",
+        request_headers={"headers": "test_request"},
+        response_headers={"headers": "test_response"},
+        response_status_code=200,
+        duration=2.0,
+        status=EventDeliveryStatus.SUCCESS,
+    )
+
+
+@pytest.fixture
+def webhook_response_failed():
+    return WebhookResponse(
         content="example_content_response",
+        request_headers={"headers": "test_request"},
+        response_headers={"headers": "test_response"},
+        response_status_code=500,
+        duration=2.0,
+        status=EventDeliveryStatus.FAILED,
     )
 
 

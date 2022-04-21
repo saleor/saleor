@@ -102,7 +102,7 @@ def test_create_tokens_from_oauth_payload(monkeypatch, id_token, id_payload):
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     permissions_from_scope = [
