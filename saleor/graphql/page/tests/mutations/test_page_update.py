@@ -30,7 +30,7 @@ UPDATE_PAGE_MUTATION = """
                 title
                 slug
                 isPublished
-                publicationDate
+                publishedAt
                 attributes {
                     attribute {
                         slug
@@ -628,7 +628,7 @@ def test_public_page_sets_publication_date(
 
     assert not data["errors"]
     assert data["page"]["isPublished"] is True
-    assert data["page"]["publicationDate"] == "2020-03-18"
+    assert data["page"]["publishedAt"] == datetime.now(pytz.utc).isoformat()
 
 
 def test_update_page_publication_date(
@@ -640,7 +640,7 @@ def test_update_page_publication_date(
         "page_type": page_type,
     }
     page = Page.objects.create(**data)
-    published_at = datetime.now(pytz.utc) + timedelta(days=5)
+    published_at = datetime.now(pytz.utc).replace(microsecond=0) + timedelta(days=5)
     page_id = graphene.Node.to_global_id("Page", page.id)
     variables = {
         "id": page_id,
@@ -654,7 +654,7 @@ def test_update_page_publication_date(
 
     assert not data["errors"]
     assert data["page"]["isPublished"] is True
-    assert data["page"]["publicationDate"] == published_at.date().isoformat()
+    assert data["page"]["publishedAt"] == published_at.isoformat()
 
 
 @pytest.mark.parametrize("slug_value", [None, ""])

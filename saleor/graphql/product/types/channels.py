@@ -16,7 +16,12 @@ from ....product.utils.costs import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_32,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
@@ -42,7 +47,9 @@ class ProductChannelListing(ModelObjectType):
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = graphene.DateTime()
+    published_at = graphene.DateTime(
+        description=f"{ADDED_IN_32} The product publication date time."
+    )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
     visible_in_listings = graphene.Boolean(required=True)
@@ -53,7 +60,9 @@ class ProductChannelListing(ModelObjectType):
             "the available for purchase date."
         ),
     )
-    available_for_purchase_at = graphene.DateTime()
+    available_for_purchase_at = graphene.DateTime(
+        description=f"{ADDED_IN_32} The product available for purchase date time."
+    )
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
@@ -325,7 +334,9 @@ class CollectionChannelListing(ModelObjectType):
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = graphene.DateTime()
+    published_at = graphene.DateTime(
+        description=f"{ADDED_IN_32} The collection publication date."
+    )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
 

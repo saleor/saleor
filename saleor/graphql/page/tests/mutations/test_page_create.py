@@ -25,7 +25,7 @@ CREATE_PAGE_MUTATION = """
                 content
                 slug
                 isPublished
-                publicationDate
+                publishedAt
                 pageType {
                     id
                 }
@@ -100,7 +100,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert data["page"]["content"] == page_content
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
-    assert data["page"]["publicationDate"] == "2020-03-18"
+    assert data["page"]["publishedAt"] == datetime.now(pytz.utc).isoformat()
     assert data["page"]["pageType"]["id"] == page_type_id
     values = (
         data["page"]["attributes"][0]["values"][0]["slug"],
@@ -118,7 +118,7 @@ def test_page_create_mutation_with_published_at_date(
     page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
-    published_at = datetime.now(pytz.utc) + timedelta(days=5)
+    published_at = datetime.now(pytz.utc).replace(microsecond=0) + timedelta(days=5)
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
     # Default attributes defined in product_type fixture
@@ -157,7 +157,7 @@ def test_page_create_mutation_with_published_at_date(
     assert data["page"]["content"] == page_content
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
-    assert data["page"]["publicationDate"] == published_at.date.isoformat()
+    assert data["page"]["publishedAt"] == published_at.isoformat()
     assert data["page"]["pageType"]["id"] == page_type_id
     values = (
         data["page"]["attributes"][0]["values"][0]["slug"],

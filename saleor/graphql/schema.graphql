@@ -4453,11 +4453,15 @@ type TaxedMoneyRange {
 type ProductChannelListing implements Node {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """New in Saleor 3.2. The product publication date time."""
   publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
   visibleInListings: Boolean!
   availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
+
+  """New in Saleor 3.2. The product available for purchase date time."""
   availableForPurchaseAt: DateTime
 
   """The price of the cheapest variant (including discounts)."""
@@ -4726,6 +4730,8 @@ type CollectionTranslation implements Node {
 type CollectionChannelListing implements Node {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """New in Saleor 3.2. The collection publication date."""
   publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
@@ -4968,7 +4974,10 @@ type Page implements Node & ObjectWithMetadata {
 
   """Content of the page (JSON)."""
   content: JSONString
-  publicationDate: Date
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """New in Saleor 3.2. The page publication date."""
+  publishedAt: DateTime
   isPublished: Boolean!
   slug: String!
   pageType: PageType!
