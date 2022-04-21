@@ -336,4 +336,4 @@ class TransactionItemsByCheckoutIDLoader(DataLoader):
         transactions_map = defaultdict(list)
         for transaction in transactions:
             transactions_map[transaction.checkout_id].append(transaction)
-        return [transactions_map.get(checkout_id, []) for checkout_id in keys]
+        return [transactions_map[checkout_id] for checkout_id in keys]
