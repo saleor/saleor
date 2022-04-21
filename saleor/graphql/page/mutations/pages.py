@@ -38,11 +38,11 @@ class PageInput(graphene.InputObjectType):
     publication_date = graphene.String(
         description=(
             f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
-            "Use publishedAt instead."
+            "Use `publishedAt` field instead."
         )
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_32} Publication date. ISO 8601 standard."
+        description=f"{ADDED_IN_32} Publication date time. ISO 8601 standard."
     )
     seo = SeoInput(description="Search engine optimization fields.")
 
@@ -86,9 +86,7 @@ class PageCreate(ModelMutation):
             error.code = PageErrorCode.REQUIRED
             raise ValidationError({"slug": error})
 
-        publication_date = cleaned_input.pop("publication_date", None)
-        published_at = cleaned_input.get("published_at", None)
-        if publication_date and published_at:
+        if "publication_date" in cleaned_input and "published_at" in cleaned_input:
             raise ValidationError(
                 {
                     "publication_date": ValidationError(
@@ -100,10 +98,12 @@ class PageCreate(ModelMutation):
             )
 
         is_published = cleaned_input.get("is_published")
-        publication_date = publication_date or published_at
+        publication_date = cleaned_input.get("published_at") or cleaned_input.get(
+            "publication_date"
+        )
         if is_published and not publication_date:
             cleaned_input["publication_date"] = datetime.now(pytz.UTC)
-        elif publication_date:
+        elif "publication_date" in cleaned_input or "published_at" in cleaned_input:
             cleaned_input["publication_date"] = publication_date
 
         attributes = cleaned_input.get("attributes")

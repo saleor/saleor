@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import patch
 
 import graphene
+import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -202,10 +203,10 @@ def test_product_channel_listing_update_as_staff_user(
     staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_date = datetime.datetime(2007, 1, 1, tzinfo=pytz.utc)
     variables = {
         "id": product_id,
         "input": {
@@ -213,10 +214,10 @@ def test_product_channel_listing_update_as_staff_user(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },
@@ -260,14 +261,14 @@ def test_product_channel_listing_update_as_staff_user(
     assert product_data["channelListings"][1]["isPublished"] is False
     assert (
         product_data["channelListings"][1]["publicationDate"]
-        == publication_date.isoformat()
+        == publication_date.date().isoformat()
     )
     assert product_data["channelListings"][1]["visibleInListings"] is True
     assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
     assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
         product_data["channelListings"][1]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        == available_for_purchase_date.date().isoformat()
     )
 
 
@@ -281,10 +282,10 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_date = datetime.datetime(2007, 1, 1, tzinfo=pytz.utc)
     variables = {
         "id": product_id,
         "input": {
@@ -292,10 +293,10 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },
@@ -317,10 +318,10 @@ def test_product_channel_listing_update_as_app(
     app_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_date = datetime.datetime(2007, 1, 1, tzinfo=pytz.utc)
     variables = {
         "id": product_id,
         "input": {
@@ -328,10 +329,10 @@ def test_product_channel_listing_update_as_app(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },
@@ -362,14 +363,14 @@ def test_product_channel_listing_update_as_app(
     assert product_data["channelListings"][1]["isPublished"] is False
     assert (
         product_data["channelListings"][1]["publicationDate"]
-        == publication_date.isoformat()
+        == publication_date.date().isoformat()
     )
     assert product_data["channelListings"][1]["visibleInListings"] is True
     assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
     assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
         product_data["channelListings"][1]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        == available_for_purchase_date.date().isoformat()
     )
 
 
@@ -415,10 +416,10 @@ def test_product_channel_listing_update_add_channel(
     staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_date = datetime.datetime(2007, 1, 1, tzinfo=pytz.utc)
     variables = {
         "id": product_id,
         "input": {
@@ -426,10 +427,10 @@ def test_product_channel_listing_update_add_channel(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },
@@ -454,14 +455,14 @@ def test_product_channel_listing_update_add_channel(
     assert product_data["channelListings"][1]["isPublished"] is False
     assert (
         product_data["channelListings"][1]["publicationDate"]
-        == publication_date.isoformat()
+        == publication_date.date().isoformat()
     )
     assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
     assert product_data["channelListings"][1]["visibleInListings"] is True
     assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
         product_data["channelListings"][1]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        == available_for_purchase_date.date().isoformat()
     )
 
 
@@ -653,7 +654,7 @@ def test_product_channel_listing_update_update_publication_data(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -663,7 +664,7 @@ def test_product_channel_listing_update_update_publication_data(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                 }
             ]
         },
@@ -685,7 +686,7 @@ def test_product_channel_listing_update_update_publication_data(
     assert product_data["channelListings"][0]["isPublished"] is False
     assert (
         product_data["channelListings"][0]["publicationDate"]
-        == publication_date.isoformat()
+        == publication_date.date().isoformat()
     )
     assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
     assert product_data["channelListings"][0]["visibleInListings"] is True
@@ -777,7 +778,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_past_da
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_date = datetime.datetime(2007, 1, 1, tzinfo=pytz.utc)
     variables = {
         "id": product_id,
         "input": {
@@ -785,7 +786,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_past_da
                 {
                     "channelId": channel_id,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },
@@ -811,7 +812,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_past_da
     assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
         product_data["channelListings"][0]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        == available_for_purchase_date.date().isoformat()
     )
 
 
@@ -821,7 +822,9 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.date.today() + datetime.timedelta(days=1)
+    available_for_purchase_date = datetime.datetime.now(pytz.utc) + datetime.timedelta(
+        days=1
+    )
     variables = {
         "id": product_id,
         "input": {
@@ -829,7 +832,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
                 {
                     "channelId": channel_id,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },
@@ -855,7 +858,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
     assert product_data["channelListings"][0]["isAvailableForPurchase"] is False
     assert (
         product_data["channelListings"][0]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        == available_for_purchase_date.date().isoformat()
     )
 
 
@@ -865,7 +868,9 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.date.today() + datetime.timedelta(days=1)
+    available_for_purchase_date = datetime.datetime.now(pytz.utc) + datetime.timedelta(
+        days=1
+    )
     variables = {
         "id": product_id,
         "input": {
@@ -873,7 +878,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
                 {
                     "channelId": channel_id,
                     "isAvailableForPurchase": False,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_date,
                 }
             ]
         },

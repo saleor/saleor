@@ -12254,8 +12254,15 @@ input PublishableChannelListingInput {
   """Determines if object is visible to customers."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
+  """
   publicationDate: Date
+
+  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
 }
 
 """
@@ -12458,8 +12465,15 @@ input ProductChannelListingAddInput {
   """Determines if object is visible to customers."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
+  """
   publicationDate: Date
+
+  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
 
   """
   Determines if product is visible in product listings (doesn't apply to product collections).
@@ -12470,9 +12484,16 @@ input ProductChannelListingAddInput {
   isAvailableForPurchase: Boolean
 
   """
-  A start date from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
+  A start date from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `availableForPurchaseAt` field instead.
   """
   availableForPurchaseDate: Date
+
+  """
+  New in Saleor 3.2. A start date time from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
+  """
+  availableForPurchaseAt: DateTime
 
   """List of variants to which the channel should be assigned."""
   addVariants: [ID!]
@@ -13294,11 +13315,11 @@ input PageCreateInput {
   """
   Publication date. ISO 8601 standard. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use publishedAt instead.
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
   """
   publicationDate: String
 
-  """New in Saleor 3.2. Publication date. ISO 8601 standard."""
+  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """Search engine optimization fields."""
@@ -13365,11 +13386,11 @@ input PageInput {
   """
   Publication date. ISO 8601 standard. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use publishedAt instead.
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
   """
   publicationDate: String
 
-  """New in Saleor 3.2. Publication date. ISO 8601 standard."""
+  """New in Saleor 3.2. Publication date time. ISO 8601 standard."""
   publishedAt: DateTime
 
   """Search engine optimization fields."""
