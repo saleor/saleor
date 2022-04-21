@@ -27,7 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor app tokens - #9438 by @IKarbowiak
   - Store app tokens hashes instead of plain text.
 - Save images to product media from external URLs - #9329 by @krzysztofwolski
-
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 
 # 3.1.7
 
