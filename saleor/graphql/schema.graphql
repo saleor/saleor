@@ -5577,6 +5577,11 @@ type Checkout implements Node & ObjectWithMetadata {
 
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
+
+  """
+  New in Saleor 3.2. List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  transactions: [TransactionItem!]
 }
 
 """
@@ -5774,6 +5779,90 @@ type CheckoutLine implements Node {
 New in Saleor 3.1. Represents a delivery method chosen for the checkout. `Warehouse` type is used when checkout is marked as "click and collect" and `ShippingMethod` otherwise. Note: this feature is in a preview state and can be subject to changes at later point.
 """
 union DeliveryMethod = Warehouse | ShippingMethod
+
+"""
+New in Saleor 3.2. Represents a payment transaction. Note: this feature is in a preview state and can be subject to changes at later point.
+"""
+type TransactionItem implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """
+  List of private metadata items. Requires proper staff permissions to access.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+
+  """
+  List of actions that can be performed in the current state of a payment.
+  """
+  actions: [TransactionActionEnum!]!
+
+  """Total amount authorized for this payment."""
+  authorizedAmount: Money!
+
+  """Total amount refunded for this payment."""
+  refundedAmount: Money!
+
+  """Total amount voided for this payment."""
+  voidedAmount: Money!
+
+  """Total amount captured for this payment."""
+  capturedAmount: Money!
+
+  """Status of transaction."""
+  status: String!
+
+  """Type of transaction."""
+  type: String!
+
+  """Reference of transaction."""
+  reference: String!
+
+  """List of all transaction's events."""
+  events: [TransactionEvent!]!
+}
+
+"""
+Represents possible actions on payment transaction.
+
+    The following actions are possible:
+    CAPTURE - Represents the capture action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+"""
+enum TransactionActionEnum {
+  CAPTURE
+  REFUND
+  VOID
+}
+
+"""Represents transaction's event."""
+type TransactionEvent implements Node {
+  """The ID of the object."""
+  id: ID!
+  createdAt: DateTime!
+
+  """Status of transaction's event."""
+  status: TransactionStatus!
+
+  """Reference of transaction's event."""
+  reference: String!
+
+  """Name of the transaction's event."""
+  name: String
+}
+
+"""An enumeration."""
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
+}
 
 type GiftCardCountableConnection {
   """Pagination data for this connection."""
@@ -6262,90 +6351,6 @@ type CreditCard {
 
   """Four-digit number representing the card’s expiration year."""
   expYear: Int
-}
-
-"""
-New in Saleor 3.2. Represents a payment transaction. Note: this feature is in a preview state and can be subject to changes at later point.
-"""
-type TransactionItem implements Node & ObjectWithMetadata {
-  """The ID of the object."""
-  id: ID!
-
-  """
-  List of private metadata items. Requires proper staff permissions to access.
-  """
-  privateMetadata: [MetadataItem!]!
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-  createdAt: DateTime!
-  modifiedAt: DateTime!
-
-  """
-  List of actions that can be performed in the current state of a payment.
-  """
-  actions: [TransactionActionEnum!]!
-
-  """Total amount authorized for this payment."""
-  authorizedAmount: Money!
-
-  """Total amount refunded for this payment."""
-  refundedAmount: Money!
-
-  """Total amount voided for this payment."""
-  voidedAmount: Money!
-
-  """Total amount captured for this payment."""
-  capturedAmount: Money!
-
-  """Status of transaction."""
-  status: String!
-
-  """Type of transaction."""
-  type: String!
-
-  """Reference of transaction."""
-  reference: String!
-
-  """List of all transaction's events."""
-  events: [TransactionEvent!]!
-}
-
-"""
-Represents possible actions on payment transaction.
-
-    The following actions are possible:
-    CAPTURE - Represents the capture action.
-    REFUND - Represents a refund action.
-    VOID - Represents a void action.
-"""
-enum TransactionActionEnum {
-  CAPTURE
-  REFUND
-  VOID
-}
-
-"""Represents transaction's event."""
-type TransactionEvent implements Node {
-  """The ID of the object."""
-  id: ID!
-  createdAt: DateTime!
-
-  """Status of transaction's event."""
-  status: TransactionStatus!
-
-  """Reference of transaction's event."""
-  reference: String!
-
-  """Name of the transaction's event."""
-  name: String
-}
-
-"""An enumeration."""
-enum TransactionStatus {
-  PENDING
-  SUCCESS
-  FAILURE
 }
 
 """History log of the order."""
