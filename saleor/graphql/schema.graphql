@@ -3183,7 +3183,10 @@ type Product implements Node & ObjectWithMetadata {
   ): ProductTranslation
 
   """Date when product is available for purchase."""
-  availableForPurchase: Date
+  availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
+
+  """Date when product is available for purchase."""
+  availableForPurchaseAt: DateTime
 
   """Whether the product is available for purchase."""
   isAvailableForPurchase: Boolean
@@ -4449,11 +4452,13 @@ type TaxedMoneyRange {
 """Represents product channel listing."""
 type ProductChannelListing implements Node {
   id: ID!
-  publicationDate: Date
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+  publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
   visibleInListings: Boolean!
-  availableForPurchase: Date
+  availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
+  availableForPurchaseAt: DateTime
 
   """The price of the cheapest variant (including discounts)."""
   discountedPrice: Money
@@ -4720,7 +4725,8 @@ type CollectionTranslation implements Node {
 """Represents collection channel listing."""
 type CollectionChannelListing implements Node {
   id: ID!
-  publicationDate: Date
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+  publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
 }

@@ -841,6 +841,14 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         resolver=ChannelContextType.resolve_translation,
     )
     available_for_purchase = graphene.Date(
+        description="Date when product is available for purchase.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `availableForPurchaseAt` field to fetch "
+            "the available for purchase date."
+        ),
+    )
+    available_for_purchase_at = graphene.DateTime(
         description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(
@@ -1181,6 +1189,24 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
+        if not root.channel_slug:
+            return None
+        channel_slug = str(root.channel_slug)
+
+        def calculate_available_for_purchase(product_channel_listing):
+            if not product_channel_listing:
+                return None
+            return product_channel_listing.available_for_purchase
+
+        return (
+            ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
+            .load((root.node.id, channel_slug))
+            .then(calculate_available_for_purchase)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_available_for_purchase_at(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
         channel_slug = str(root.channel_slug)

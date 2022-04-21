@@ -16,7 +16,7 @@ from ....product.utils.costs import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
@@ -36,11 +36,24 @@ class Margin(graphene.ObjectType):
 
 class ProductChannelListing(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    publication_date = graphene.Date()
+    publication_date = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `publishedAt` field to fetch the publication date."
+        ),
+    )
+    published_at = graphene.DateTime()
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
     visible_in_listings = graphene.Boolean(required=True)
-    available_for_purchase = graphene.Date()
+    available_for_purchase = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `availableForPurchaseAt` field to fetch "
+            "the available for purchase date."
+        ),
+    )
+    available_for_purchase_at = graphene.DateTime()
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
@@ -78,6 +91,16 @@ class ProductChannelListing(ModelObjectType):
         description = "Represents product channel listing."
         model = models.ProductChannelListing
         interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_published_at(root: models.ProductChannelListing, info, **_kwargs):
+        return root.publication_date
+
+    @staticmethod
+    def resolve_available_for_purchase_at(
+        root: models.ProductChannelListing, info, **_kwargs
+    ):
+        return root.available_for_purchase
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
@@ -296,7 +319,13 @@ class ProductVariantChannelListing(ModelObjectType):
 
 class CollectionChannelListing(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    publication_date = graphene.Date()
+    publication_date = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `publishedAt` field to fetch the publication date."
+        ),
+    )
+    published_at = graphene.DateTime()
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
 
@@ -304,6 +333,10 @@ class CollectionChannelListing(ModelObjectType):
         description = "Represents collection channel listing."
         model = models.CollectionChannelListing
         interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_published_at(root: models.ProductChannelListing, info, **_kwargs):
+        return root.publication_date
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
