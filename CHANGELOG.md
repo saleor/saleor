@@ -28,6 +28,16 @@ All notable, unreleased changes to this project will be documented in this file.
   - Store app tokens hashes instead of plain text.
 - Fix filtering product attributes by date range - #9543 by @IKarbowiak
 - Save images to product media from external URLs - #9329 by @krzysztofwolski
+- PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
+  - add fields:
+    - `order.transactions`
+    - `checkout.transactions`
+  - add mutations:
+    - `transactionCreate`
+    - `transactionUpdate`
+    - `transactionRequestAction`
+  - add new webhook event:
+    - `TRANSACTION_ACTION_REQUEST`
 
 
 # 3.1.7
