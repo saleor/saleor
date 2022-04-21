@@ -70,7 +70,11 @@ class OrderCreateFromCheckout(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         checkout_id = data.get("id")
         checkout = cls.get_node_or_error(
-            info, checkout_id, field="id", only_type=Checkout
+            info,
+            checkout_id,
+            field="id",
+            only_type=Checkout,
+            code=OrderCreateFromCheckoutErrorCode.CHECKOUT_NOT_FOUND.value,
         )
         tracking_code = analytics.get_client_id(info.context)
 

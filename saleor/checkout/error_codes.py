@@ -33,7 +33,7 @@ class CheckoutErrorCode(Enum):
 
 class OrderCreateFromCheckoutErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
-    NOT_FOUND = "not_found"
+    CHECKOUT_NOT_FOUND = "checkout_not_found"
     CHANNEL_INACTIVE = "channel_inactive"
     INSUFFICIENT_STOCK = "insufficient_stock"
     VOUCHER_NOT_APPLICABLE = "voucher_not_applicable"

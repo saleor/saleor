@@ -218,7 +218,9 @@ class BaseMutation(graphene.Mutation):
         return pk
 
     @classmethod
-    def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
+    def get_node_or_error(
+        cls, info, node_id, field="id", only_type=None, qs=None, code="not_found"
+    ):
         if not node_id:
             return None
 
@@ -240,7 +242,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id, code="not_found"
+                            "Couldn't resolve to a node: %s" % node_id, code=code
                         )
                     }
                 )
