@@ -5986,7 +5986,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine!]!
 
   """
-  This field will be removed in Saleor 4.0. Use actions on `order.transactions`. List of actions that can be performed in the current state of an order.
+  List of actions that can be performed in the current state of an order.
   """
   actions: [OrderAction!]!
 
@@ -6025,7 +6025,9 @@ type Order implements Node & ObjectWithMetadata {
   """List of payments for the order."""
   payments: [Payment!]
 
-  """List of transactions for the order."""
+  """
+  New in Saleor 3.2. List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
   transactions: [TransactionItem!]
 
   """Total amount of the order."""
@@ -6410,7 +6412,9 @@ type CreditCard {
   expYear: Int
 }
 
-"""Represents a payment transaction."""
+"""
+New in Saleor 3.2. Represents a payment transaction. Note: this feature is in a preview state and can be subject to changes at later point.
+"""
 type TransactionItem implements Node & ObjectWithMetadata {
   """The ID of the object."""
   id: ID!
@@ -6424,8 +6428,6 @@ type TransactionItem implements Node & ObjectWithMetadata {
   metadata: [MetadataItem!]!
   createdAt: DateTime!
   modifiedAt: DateTime!
-  checkout: Checkout
-  order: Order
 
   """
   List of actions that can be performed in the current state of a payment.
@@ -8872,7 +8874,9 @@ type Mutation {
     variantId: ID!
   ): VariantMediaUnassign
 
-  "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS."
+  """
+  Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   paymentCapture(
     """Transaction amount."""
     amount: PositiveDecimal
@@ -8881,7 +8885,9 @@ type Mutation {
     paymentId: ID!
   ): PaymentCapture
 
-  "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS."
+  """
+  Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   paymentRefund(
     """Transaction amount."""
     amount: PositiveDecimal
@@ -8890,7 +8896,9 @@ type Mutation {
     paymentId: ID!
   ): PaymentRefund
 
-  "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS."
+  """
+  Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+  """
   paymentVoid(
     """Payment ID."""
     paymentId: ID!
@@ -8915,7 +8923,7 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
-  Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+  New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionCreate(
     """The ID of the checkout or order."""
@@ -12917,7 +12925,9 @@ type VariantMediaUnassign {
   errors: [ProductError!]!
 }
 
-"\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS."
+"""
+Captures the authorized payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type PaymentCapture {
   """Updated payment."""
   payment: Payment
@@ -12962,7 +12972,9 @@ enum PaymentErrorCode {
   NO_CHECKOUT_LINES
 }
 
-"\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS."
+"""
+Refunds the captured payment amount. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type PaymentRefund {
   """Updated payment."""
   payment: Payment
@@ -12970,7 +12982,9 @@ type PaymentRefund {
   errors: [PaymentError!]!
 }
 
-"\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS."
+"""
+Voids the authorized payment. Requires one of the following permissions: MANAGE_ORDERS.
+"""
 type PaymentVoid {
   """Updated payment."""
   payment: Payment
@@ -13043,7 +13057,7 @@ input MoneyInput {
 }
 
 """
-Note: this feature is in a preview state and can be subject to changes at later point. Create transaction for checkout or order. Requires one of the following permissions: HANDLE_PAYMENTS.
+New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionCreate {
   transaction: TransactionItem

@@ -16,6 +16,7 @@ from ...core.permissions import (
     AccountPermissions,
     AppPermission,
     OrderPermissions,
+    PaymentPermissions,
     ProductPermissions,
     has_one_of_permissions,
 )
@@ -54,7 +55,12 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_32,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
@@ -691,8 +697,7 @@ class Order(ModelObjectType):
     actions = NonNullList(
         OrderAction,
         description=(
-            f"{DEPRECATED_IN_3X_FIELD} Use actions on `order.transactions`. List of "
-            "actions that can be performed in the current state of an order."
+            "List of actions that can be performed in the current state of an order."
         ),
         required=True,
     )
@@ -732,7 +737,11 @@ class Order(ModelObjectType):
     )
     payments = NonNullList(Payment, description="List of payments for the order.")
     transactions = NonNullList(
-        TransactionItem, description="List of transactions for the order."
+        TransactionItem,
+        description=(
+            f"{ADDED_IN_32} List of transactions for the order. Requires one of the "
+            f"following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS. {PREVIEW_FEATURE}"
+        ),
     )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
@@ -1146,6 +1155,9 @@ class Order(ModelObjectType):
         return root.payments.all()
 
     @staticmethod
+    @one_of_permissions_required(
+        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
     def resolve_transactions(root: models.Order, info):
         return TransactionItemsByOrderIDLoader(info.context).load(root.id)
 

@@ -7,7 +7,7 @@ from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_32, PREVIEW_FEATURE
 from ..core.fields import JSONString
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..decorators import permission_required
@@ -252,10 +252,8 @@ class TransactionEvent(ModelObjectType):
 class TransactionItem(ModelObjectType):
     created_at = graphene.DateTime(required=True)
     modified_at = graphene.DateTime(required=True)
-    checkout = graphene.Field("saleor.graphql.checkout.types.Checkout")
-    order = graphene.Field("saleor.graphql.order.types.Order")
-    actions = graphene.List(
-        graphene.NonNull(TransactionActionEnum),
+    actions = NonNullList(
+        TransactionActionEnum,
         description=(
             "List of actions that can be performed in the current state of a payment."
         ),
@@ -281,7 +279,9 @@ class TransactionItem(ModelObjectType):
     )
 
     class Meta:
-        description = "Represents a payment transaction."
+        description = (
+            f"{ADDED_IN_32} Represents a payment transaction. {PREVIEW_FEATURE}"
+        )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.TransactionItem
 
