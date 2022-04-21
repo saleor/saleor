@@ -3,7 +3,11 @@ from promise import Promise
 
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_collection_points_for_checkout
-from ...core.permissions import AccountPermissions
+from ...core.permissions import (
+    AccountPermissions,
+    CheckoutPermissions,
+    PaymentPermissions,
+)
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
@@ -15,14 +19,21 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_32,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
+from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
+from ..payment.types import TransactionItem
 from ..product.dataloaders import (
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
@@ -37,6 +48,7 @@ from .dataloaders import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
+    TransactionItemsByCheckoutIDLoader,
 )
 
 
@@ -273,6 +285,15 @@ class Checkout(ModelObjectType):
     )
     language_code = graphene.Field(
         LanguageCodeEnum, required=True, description="Checkout language code."
+    )
+
+    transactions = NonNullList(
+        TransactionItem,
+        description=(
+            f"{ADDED_IN_32} List of transactions for the checkout. Requires one of the "
+            f"following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS. "
+            f"{PREVIEW_FEATURE}"
+        ),
     )
 
     class Meta:
@@ -533,6 +554,13 @@ class Checkout(ModelObjectType):
             .load(root.token)
             .then(get_oldest_stock_reservation_expiration_date)
         )
+
+    @staticmethod
+    @one_of_permissions_required(
+        [CheckoutPermissions.MANAGE_CHECKOUTS, PaymentPermissions.HANDLE_PAYMENTS]
+    )
+    def resolve_transactions(root: models.Checkout, info):
+        return TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
 
 
 class CheckoutCountableConnection(CountableConnection):
