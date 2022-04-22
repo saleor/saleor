@@ -16,7 +16,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_31
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.types import (
@@ -359,7 +359,7 @@ class AttributeInput(graphene.InputObjectType):
     date = graphene.Field(
         DateRangeInput,
         required=False,
-        description=AttributeValueDescriptions.DATE_RANGE + DEPRECATED_IN_3X_INPUT,
+        description=AttributeValueDescriptions.DATE_RANGE,
     )
     boolean = graphene.Boolean(
         required=False, description=AttributeDescriptions.BOOLEAN

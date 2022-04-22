@@ -4598,9 +4598,7 @@ input AttributeInput {
   dateTime: DateTimeRangeInput
 
   """
-  The date range that the returned values should be in.
-  
-  DEPRECATED: this field will be removed in Saleor 4.0.
+  The date range that the returned values should be in. In case of datetime attributes, the midnight in UTC of the given date is used.
   """
   date: DateRangeInput
 

@@ -43,7 +43,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `PUBLICATION_DATE` in `CollectionSortField`, the `PUBLISHED_AT` should be used instead.
   - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
   - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
-  - Deprecate filtering products attributes by `date` range, `date_time` range should be used instead.
 
 
 ### Other changes
