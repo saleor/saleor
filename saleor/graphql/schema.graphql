@@ -4597,7 +4597,11 @@ input AttributeInput {
   """The date time range that the returned values should be in."""
   dateTime: DateTimeRangeInput
 
-  """The date range that the returned values should be in."""
+  """
+  The date range that the returned values should be in.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   date: DateRangeInput
 
   """The boolean value of the attribute."""
