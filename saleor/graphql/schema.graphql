@@ -683,8 +683,8 @@ type Query {
     sortBy: SaleSortingInput
 
     """
-    Search sales by name, value or type. 
-    
+    Search sales by name, value or type.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use `filter.search` input instead.
     """
     query: String
@@ -723,8 +723,8 @@ type Query {
     sortBy: VoucherSortingInput
 
     """
-    Search vouchers by name or code. 
-    
+    Search vouchers by name or code.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use `filter.search` input instead.
     """
     query: String
@@ -1117,6 +1117,18 @@ enum WebhookEventTypeEnum {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
+  """A new gift card created."""
+  GIFT_CARD_CREATED
+
+  """A gift card is updated."""
+  GIFT_CARD_UPDATED
+
+  """A gift card is deleted."""
+  GIFT_CARD_DELETED
+
+  """A gift card status is changed."""
+  GIFT_STATUS_CHANGED
+
   """A new order is placed."""
   ORDER_CREATED
 
@@ -1303,6 +1315,18 @@ enum WebhookEventTypeAsyncEnum {
 
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
+
+  """A new gift card created."""
+  GIFT_CARD_CREATED
+
+  """A gift card is updated."""
+  GIFT_CARD_UPDATED
+
+  """A gift card is deleted."""
+  GIFT_CARD_DELETED
+
+  """A gift card status is changed."""
+  GIFT_STATUS_CHANGED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1788,6 +1812,10 @@ enum WebhookSampleEventTypeEnum {
   CHANNEL_UPDATED
   CHANNEL_DELETED
   CHANNEL_STATUS_CHANGED
+  GIFT_CARD_CREATED
+  GIFT_CARD_UPDATED
+  GIFT_CARD_DELETED
+  GIFT_STATUS_CHANGED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -3513,8 +3541,8 @@ input AttributeFilterInput {
   inCategory: ID
 
   """
-  Specifies the channel by which the data should be filtered. 
-  
+  Specifies the channel by which the data should be filtered.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -3727,8 +3755,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
     address: AddressInput
 
     """
-    Two-letter ISO 3166-1 country code. 
-    
+    Two-letter ISO 3166-1 country code.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use `address` argument instead.
     """
     countryCode: CountryCode
@@ -3744,8 +3772,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
     address: AddressInput
 
     """
-    Two-letter ISO 3166-1 country code. When provided, the exact quantity from a warehouse operating in shipping zones that contain this country will be returned. Otherwise, it will return the maximum quantity from all shipping zones. 
-    
+    Two-letter ISO 3166-1 country code. When provided, the exact quantity from a warehouse operating in shipping zones that contain this country will be returned. Otherwise, it will return the maximum quantity from all shipping zones.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use `address` argument instead.
     """
     countryCode: CountryCode
@@ -4392,8 +4420,8 @@ input ProductFilterInput {
   hasPreorderedVariants: Boolean
 
   """
-  Specifies the channel by which the data should be filtered. 
-  
+  Specifies the channel by which the data should be filtered.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -4467,7 +4495,7 @@ input ProductOrder {
 
   """
   Specifies the channel in which to sort the data.
-  
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -5303,8 +5331,8 @@ type Shop {
   """List of available payment gateways."""
   availablePaymentGateways(
     """
-    A currency for which gateways will be returned. 
-    
+    A currency for which gateways will be returned.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use `channel` argument instead.
     """
     currency: String
@@ -5333,8 +5361,8 @@ type Shop {
   """List of countries available in the shop."""
   countries(
     """
-    A language code to return the translation for. 
-    
+    A language code to return the translation for.
+
     DEPRECATED: this field will be removed in Saleor 4.0.
     """
     languageCode: LanguageCodeEnum
@@ -6876,7 +6904,7 @@ input CategorySortingInput {
 
   """
   Specifies the channel in which to sort the data.
-  
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -6903,8 +6931,8 @@ input CollectionFilterInput {
   ids: [ID!]
 
   """
-  Specifies the channel by which the data should be filtered. 
-  
+  Specifies the channel by which the data should be filtered.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -6921,7 +6949,7 @@ input CollectionSortingInput {
 
   """
   Specifies the channel in which to sort the data.
-  
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -7140,15 +7168,15 @@ enum OrderSortField {
   NUMBER
 
   """
-  Sort orders by creation date. 
-  
+  Sort orders by creation date.
+
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   CREATION_DATE
 
   """
-  Sort orders by creation date. 
-  
+  Sort orders by creation date.
+
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   CREATED_AT
@@ -7470,7 +7498,7 @@ input SaleSortingInput {
 
   """
   Specifies the channel in which to sort the data.
-  
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -7540,7 +7568,7 @@ input VoucherSortingInput {
 
   """
   Specifies the channel in which to sort the data.
-  
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
   """
   channel: String
@@ -9807,8 +9835,8 @@ type Mutation {
   """Adds a gift card or a voucher to a checkout."""
   checkoutAddPromoCode(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9826,8 +9854,8 @@ type Mutation {
     billingAddress: AddressInput!
 
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9841,8 +9869,8 @@ type Mutation {
   """
   checkoutComplete(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9856,8 +9884,8 @@ type Mutation {
     redirectUrl: String
 
     """
-    Determines whether to store the payment source for future usage. 
-    
+    Determines whether to store the payment source for future usage.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use checkoutPaymentCreate for this action.
     """
     storeSource: Boolean = false
@@ -9877,8 +9905,8 @@ type Mutation {
   """
   checkoutCustomerAttach(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9897,8 +9925,8 @@ type Mutation {
   """
   checkoutCustomerDetach(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9910,8 +9938,8 @@ type Mutation {
   """Updates email address in the existing checkout object."""
   checkoutEmailUpdate(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9926,8 +9954,8 @@ type Mutation {
   """Deletes a CheckoutLine."""
   checkoutLineDelete(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9953,8 +9981,8 @@ type Mutation {
   """
   checkoutLinesAdd(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9971,8 +9999,8 @@ type Mutation {
   """Updates checkout line in the existing checkout."""
   checkoutLinesUpdate(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -9989,8 +10017,8 @@ type Mutation {
   """Remove a gift card or a voucher from a checkout."""
   checkoutRemovePromoCode(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -10008,8 +10036,8 @@ type Mutation {
   """Create a new payment for given checkout."""
   checkoutPaymentCreate(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -10024,8 +10052,8 @@ type Mutation {
   """Update shipping address in the existing checkout."""
   checkoutShippingAddressUpdate(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -10040,8 +10068,8 @@ type Mutation {
   """Updates the shipping method of the checkout."""
   checkoutShippingMethodUpdate(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -10067,8 +10095,8 @@ type Mutation {
   """Update language code in the existing checkout."""
   checkoutLanguageCodeUpdate(
     """
-    The ID of the checkout. 
-    
+    The ID of the checkout.
+
     DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
     """
     checkoutId: ID
@@ -10789,8 +10817,8 @@ input WebhookCreateInput {
   targetUrl: String
 
   """
-  The events that webhook wants to subscribe. 
-  
+  The events that webhook wants to subscribe.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.
   """
   events: [WebhookEventTypeEnum!]
@@ -10842,8 +10870,8 @@ input WebhookUpdateInput {
   targetUrl: String
 
   """
-  The events that webhook wants to subscribe. 
-  
+  The events that webhook wants to subscribe.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.
   """
   events: [WebhookEventTypeEnum!]
@@ -14183,15 +14211,15 @@ input GiftCardCreateInput {
   expiryDate: Date
 
   """
-  Start date of the gift card in ISO 8601 format. 
-  
+  Start date of the gift card in ISO 8601 format.
+
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   startDate: Date
 
   """
-  End date of the gift card in ISO 8601 format. 
-  
+  End date of the gift card in ISO 8601 format.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use `expiryDate` from `expirySettings` instead.
   """
   endDate: Date
@@ -14213,8 +14241,8 @@ input GiftCardCreateInput {
   isActive: Boolean!
 
   """
-  Code to use the gift card. 
-  
+  Code to use the gift card.
+
   DEPRECATED: this field will be removed in Saleor 4.0. The code is now auto generated.
   """
   code: String
@@ -14273,15 +14301,15 @@ input GiftCardUpdateInput {
   expiryDate: Date
 
   """
-  Start date of the gift card in ISO 8601 format. 
-  
+  Start date of the gift card in ISO 8601 format.
+
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   startDate: Date
 
   """
-  End date of the gift card in ISO 8601 format. 
-  
+  End date of the gift card in ISO 8601 format.
+
   DEPRECATED: this field will be removed in Saleor 4.0. Use `expiryDate` from `expirySettings` instead.
   """
   endDate: Date
@@ -16618,6 +16646,7 @@ type Subscription {
 }
 
 union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
 
 type CategoryCreated {
   """
@@ -16666,6 +16695,34 @@ type ChannelStatusChanged {
   New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   channel: Channel
+}
+
+type GiftCardCreated {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
+}
+
+type GiftCardUpdated {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
+}
+
+type GiftCardDeleted {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
+}
+
+type GiftCardStatusChanged {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
 }
 
 type OrderCreated {

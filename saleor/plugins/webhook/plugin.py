@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...checkout.models import Checkout
     from ...discount.models import Sale
+    from ...giftcard.models import GiftCard
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
@@ -156,6 +157,51 @@ class WebhookPlugin(BasePlugin):
             }
             trigger_webhooks_async(
                 payload, event_type, webhooks, channel, self.requestor
+            )
+
+    def gift_card_created(self, gift_card: "GiftCard", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.GIFT_CARD_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, gift_card, self.requestor
+            )
+
+    def gift_card_updated(self, gift_card: "GiftCard", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.GIFT_CARD_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, gift_card, self.requestor
+            )
+
+    def gift_card_deleted(self, gift_card: "GiftCard", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.GIFT_CARD_DELETED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)}
+            trigger_webhooks_async(
+                payload, event_type, webhooks, gift_card, self.requestor
+            )
+
+    def gift_card_status_changed(
+        self, gift_card: "GiftCard", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+                "is_active": gift_card.is_active,
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, gift_card, self.requestor
             )
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
