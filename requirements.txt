@@ -9,7 +9,7 @@ authorizenet==1.1.4
 babel==2.9.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 beautifulsoup4==4.7.1
 billiard==3.6.4.0; python_version >= "3.7"
-boto3==1.21.42; python_version >= "3.6"
+boto3==1.21.45; python_version >= "3.6"
 botocore==1.24.42; python_version >= "3.6"
 braintree==4.15.2
 brotli==1.0.9; platform_python_implementation == "CPython" and python_version >= "3.7"
