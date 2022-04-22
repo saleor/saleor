@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name="publication_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
+        migrations.RenameField(
+            model_name="page",
+            old_name="publication_date",
+            new_name="published_at",
+        ),
     ]
