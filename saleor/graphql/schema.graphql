@@ -2097,7 +2097,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   priceRange: MoneyRange
 
   """List of countries available for the method."""
-  countries: [CountryDisplay!]
+  countries: [CountryDisplay!]!
 
   """
   List of shipping methods available for orders shipped to countries within this shipping zone.
@@ -5936,7 +5936,7 @@ type Checkout implements Node & ObjectWithMetadata {
   email: String
 
   """List of gift cards associated with this checkout."""
-  giftCards: [GiftCard!]
+  giftCards: [GiftCard!]!
 
   """Returns True, if checkout requires shipping."""
   isShippingRequired: Boolean!
@@ -5952,10 +5952,10 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   A list of checkout lines, each containing information about an item in the checkout.
   """
-  lines: [CheckoutLine!]
+  lines: [CheckoutLine!]!
 
   """The price of the shipping, with all the taxes included."""
-  shippingPrice: TaxedMoney
+  shippingPrice: TaxedMoney!
 
   """The shipping method related with checkout."""
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
@@ -5966,7 +5966,7 @@ type Checkout implements Node & ObjectWithMetadata {
   deliveryMethod: DeliveryMethod
 
   """The price of the checkout before shipping, with taxes included."""
-  subtotalPrice: TaxedMoney
+  subtotalPrice: TaxedMoney!
 
   """The checkout's token."""
   token: UUID!
@@ -5974,7 +5974,7 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   The sum of the the checkout line prices, with all the taxes,shipping costs, and discounts included.
   """
-  totalPrice: TaxedMoney
+  totalPrice: TaxedMoney!
 
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
@@ -6169,10 +6169,10 @@ type CheckoutLine implements Node {
   quantity: Int!
 
   """The sum of the checkout line price, taxes and discounts."""
-  totalPrice: TaxedMoney
+  totalPrice: TaxedMoney!
 
   """Indicates whether the item need to be delivered."""
-  requiresShipping: Boolean
+  requiresShipping: Boolean!
 }
 
 """
@@ -6263,7 +6263,7 @@ type Order implements Node & ObjectWithMetadata {
   availableShippingMethods: [ShippingMethod!] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
 
   """Shipping methods related to this order."""
-  shippingMethods: [ShippingMethod!]
+  shippingMethods: [ShippingMethod!]!
 
   """
   New in Saleor 3.1. Collection points that can be used for this order. Note: this feature is in a preview state and can be subject to changes at later point.
@@ -6273,10 +6273,10 @@ type Order implements Node & ObjectWithMetadata {
   """
   List of order invoices. Requires one of the following permissions: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
   """
-  invoices: [Invoice!]
+  invoices: [Invoice!]!
 
   """User-friendly number of an order."""
-  number: String
+  number: String!
 
   """The ID of the order that was the base for this order."""
   original: ID
@@ -6294,7 +6294,7 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatusDisplay: String!
 
   """List of payments for the order."""
-  payments: [Payment!]
+  payments: [Payment!]!
 
   """Total amount of the order."""
   total: TaxedMoney!
@@ -6312,17 +6312,17 @@ type Order implements Node & ObjectWithMetadata {
   voucher: Voucher
 
   """List of user gift cards."""
-  giftCards: [GiftCard!]
+  giftCards: [GiftCard!]!
   displayGrossPrices: Boolean!
   customerNote: String!
-  weight: Weight
+  weight: Weight!
   redirectUrl: String
 
   """The sum of line prices not including shipping."""
   subtotal: TaxedMoney!
 
   """User-friendly order status."""
-  statusDisplay: String
+  statusDisplay: String!
 
   """
   Informs whether a draft order can be finalized(turned into a regular order).
@@ -6338,7 +6338,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   List of events associated with the order. Requires one of the following permissions: MANAGE_ORDERS.
   """
-  events: [OrderEvent!]
+  events: [OrderEvent!]!
 
   """The difference between the paid and the order total amount."""
   totalBalance: Money!
@@ -6370,7 +6370,7 @@ type Order implements Node & ObjectWithMetadata {
   translatedDiscountName: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `discounts` field instead. ")
 
   """List of all discounts assigned to the order."""
-  discounts: [OrderDiscount!]
+  discounts: [OrderDiscount!]!
 
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
@@ -8123,23 +8123,23 @@ input AppExtensionFilterInput {
 }
 
 type AddressValidationData {
-  countryCode: String
-  countryName: String
-  addressFormat: String
-  addressLatinFormat: String
-  allowedFields: [String!]
-  requiredFields: [String!]
-  upperFields: [String!]
-  countryAreaType: String
-  countryAreaChoices: [ChoiceValue!]
-  cityType: String
-  cityChoices: [ChoiceValue!]
-  cityAreaType: String
-  cityAreaChoices: [ChoiceValue!]
-  postalCodeType: String
-  postalCodeMatchers: [String!]
-  postalCodeExamples: [String!]
-  postalCodePrefix: String
+  countryCode: String!
+  countryName: String!
+  addressFormat: String!
+  addressLatinFormat: String!
+  allowedFields: [String!]!
+  requiredFields: [String!]!
+  upperFields: [String!]!
+  countryAreaType: String!
+  countryAreaChoices: [ChoiceValue!]!
+  cityType: String!
+  cityChoices: [ChoiceValue!]!
+  cityAreaType: String!
+  cityAreaChoices: [ChoiceValue!]!
+  postalCodeType: String!
+  postalCodeMatchers: [String!]!
+  postalCodeExamples: [String!]!
+  postalCodePrefix: String!
 }
 
 type ChoiceValue {
