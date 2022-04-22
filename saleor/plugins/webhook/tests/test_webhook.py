@@ -1102,7 +1102,11 @@ def test_transaction_action_request(
         transaction_action_data,
     )
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST,
+        [any_webhook],
+        subscribable_object=transaction_action_data,
+        requestor=ANY,
     )
 
 

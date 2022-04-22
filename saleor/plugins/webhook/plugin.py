@@ -681,7 +681,13 @@ class WebhookPlugin(BasePlugin):
             payload = generate_transaction_action_request_payload(
                 transaction_data, self.requestor
             )
-            trigger_webhooks_async(payload, event_type, webhooks)
+            trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                subscribable_object=transaction_data,
+                requestor=self.requestor,
+            )
 
     def __run_payment_webhook(
         self,
