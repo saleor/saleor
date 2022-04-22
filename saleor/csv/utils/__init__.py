@@ -47,6 +47,7 @@ class ProductExportFields:
         "product_currency_code": "channel_listings__currency",
         "published": "channel_listings__is_published",
         "publication_date": "channel_listings__published_at",
+        "published_at": "channel_listings__published_at",
         "searchable": "channel_listings__visible_in_listings",
         "available for purchase": "channel_listings__available_for_purchase_at",
     }

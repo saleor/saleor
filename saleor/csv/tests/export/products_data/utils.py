@@ -82,6 +82,7 @@ def add_channel_to_expected_product_data(data, product, channel_ids, pk=None):
                 ("currency_code", "product currency code"),
                 ("is_published", "published"),
                 ("published_at", "publication date"),
+                ("published_at", "published at"),
                 ("visible_in_listings", "searchable"),
                 ("available_for_purchase_at", "available for purchase"),
             ]:
