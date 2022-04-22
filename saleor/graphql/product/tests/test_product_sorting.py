@@ -169,12 +169,12 @@ def test_sort_products_by_publication_date(
     product_channel_listings = []
     for iter_value, product in enumerate(product_list):
         product_channel_listing = product.channel_listings.get(channel=channel_USD)
-        product_channel_listing.publication_date = timezone.now() - timedelta(
+        product_channel_listing.published_at = timezone.now() - timedelta(
             days=iter_value
         )
         product_channel_listings.append(product_channel_listing)
     ProductChannelListing.objects.bulk_update(
-        product_channel_listings, ["publication_date"]
+        product_channel_listings, ["published_at"]
     )
 
     variables = {

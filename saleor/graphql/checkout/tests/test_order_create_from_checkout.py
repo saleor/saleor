@@ -1312,8 +1312,8 @@ def test_order_from_draft_create_product_channel_listing_not_available_for_purch
     product_channel_listings = checkout_line_variant.product.channel_listings.get(
         channel__id=checkout.channel_id
     )
-    product_channel_listings.available_for_purchase = available_for_purchase
-    product_channel_listings.save(update_fields=["available_for_purchase"])
+    product_channel_listings.available_for_purchase_at = available_for_purchase
+    product_channel_listings.save(update_fields=["available_for_purchase_at"])
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}

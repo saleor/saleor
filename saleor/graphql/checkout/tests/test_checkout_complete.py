@@ -2309,8 +2309,8 @@ def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     product_channel_listings = checkout_line_variant.product.channel_listings.get(
         channel__id=checkout.channel_id
     )
-    product_channel_listings.available_for_purchase = available_for_purchase
-    product_channel_listings.save(update_fields=["available_for_purchase"])
+    product_channel_listings.available_for_purchase_at = available_for_purchase
+    product_channel_listings.save(update_fields=["available_for_purchase_at"])
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)

@@ -167,7 +167,7 @@ def test_update_page_trigger_webhook(
     assert not data["errors"]
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
-    page.publication_date = timezone.now()
+    page.published_at = timezone.now()
     expected_data = generate_page_payload(page, staff_api_client.user)
     mocked_webhook_trigger.assert_called_once_with(
         expected_data,

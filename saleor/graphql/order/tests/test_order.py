@@ -2424,7 +2424,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
     channel_listing = variant_1.product.channel_listings.get()
-    channel_listing.publication_date = next_day
+    channel_listing.published_at = next_day
     channel_listing.save()
 
     variant_1.quantity = 2
@@ -3097,7 +3097,7 @@ def test_can_finalize_order_product_unavailable_for_purchase(
 
     line = order.lines.first()
     product = line.variant.product
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -3128,7 +3128,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     line = order.lines.first()
     product = line.variant.product
     product.channel_listings.update(
-        available_for_purchase=datetime.now(pytz.UTC) + timedelta(days=1)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=1)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -3216,7 +3216,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listings.update(available_for_purchase=None)
+    variant.product.channel_listings.update(available_for_purchase_at=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -3235,7 +3235,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line = order.lines.first()
     variant = line.variant
     variant.product.channel_listings.update(
-        available_for_purchase=datetime.now(pytz.UTC) + timedelta(days=2)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=2)
     )
     line.refresh_from_db()
 
@@ -3857,7 +3857,7 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     product = order.lines.first().variant.product
     product.channel_listings.update(
-        available_for_purchase=datetime.now(pytz.UTC) + timedelta(days=5)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=5)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)

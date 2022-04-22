@@ -135,7 +135,7 @@ def test_query_pages_with_sort(
             slug="slug_page_1",
             content=dummy_editorjs("p1."),
             is_published=True,
-            publication_date=timezone.now().replace(year=2018, month=12, day=5),
+            published_at=timezone.now().replace(year=2018, month=12, day=5),
             page_type=page_type,
         )
     with freeze_time("2019-05-31 12:00:01"):
@@ -144,7 +144,7 @@ def test_query_pages_with_sort(
             slug="page_2",
             content=dummy_editorjs("p2."),
             is_published=False,
-            publication_date=timezone.now().replace(year=2019, month=12, day=5),
+            published_at=timezone.now().replace(year=2019, month=12, day=5),
             page_type=page_type,
         )
     with freeze_time("2018-05-31 12:00:01"):

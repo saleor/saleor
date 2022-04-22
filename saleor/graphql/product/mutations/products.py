@@ -256,11 +256,9 @@ class CollectionCreate(ModelMutation):
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = datetime.datetime.now(pytz.UTC)
+            cleaned_input["published_at"] = datetime.datetime.now(pytz.UTC)
         elif publication_date:
-            cleaned_input["publication_date"] = convert_to_utc_date_time(
-                publication_date
-            )
+            cleaned_input["published_at"] = convert_to_utc_date_time(publication_date)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

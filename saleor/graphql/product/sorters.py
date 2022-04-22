@@ -73,7 +73,7 @@ class CollectionSortField(graphene.Enum):
     NAME = ["name", "slug"]
     AVAILABILITY = ["is_published", "slug"]
     PRODUCT_COUNT = ["product_count", "slug"]
-    PUBLICATION_DATE = ["publication_date", "slug"]
+    PUBLICATION_DATE = ["published_at", "slug"]
 
     @property
     def description(self):
@@ -108,10 +108,10 @@ class CollectionSortField(graphene.Enum):
         subquery = Subquery(
             CollectionChannelListing.objects.filter(
                 collection_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("publication_date")[:1]
+            ).values_list("published_at")[:1]
         )
         return queryset.annotate(
-            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+            published_at=ExpressionWrapper(subquery, output_field=DateField())
         )
 
 
@@ -130,8 +130,8 @@ class ProductOrderField(graphene.Enum):
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
-    PUBLICATION_DATE = ["publication_date", "name", "slug"]
-    PUBLISHED_AT = ["publication_date", "name", "slug"]
+    PUBLICATION_DATE = ["published_at", "name", "slug"]
+    PUBLISHED_AT = ["published_at", "name", "slug"]
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
     COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
@@ -208,10 +208,10 @@ class ProductOrderField(graphene.Enum):
         subquery = Subquery(
             ProductChannelListing.objects.filter(
                 product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("publication_date")[:1]
+            ).values_list("published_at")[:1]
         )
         return queryset.annotate(
-            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+            published_at=ExpressionWrapper(subquery, output_field=DateField())
         )
 
     @staticmethod

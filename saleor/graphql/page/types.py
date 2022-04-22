@@ -133,8 +133,8 @@ class Page(ModelObjectType):
         model = models.Page
 
     @staticmethod
-    def resolve_published_at(root: models.Page, info, **_kwargs):
-        return root.publication_date
+    def resolve_publication_date(root: models.Page, info, **_kwargs):
+        return root.published_at
 
     @staticmethod
     def resolve_created(root: models.Page, _info):

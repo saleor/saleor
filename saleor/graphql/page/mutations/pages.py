@@ -102,9 +102,9 @@ class PageCreate(ModelMutation):
             "publication_date"
         )
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = datetime.now(pytz.UTC)
+            cleaned_input["published_at"] = datetime.now(pytz.UTC)
         elif "publication_date" in cleaned_input or "published_at" in cleaned_input:
-            cleaned_input["publication_date"] = publication_date
+            cleaned_input["published_at"] = publication_date
 
         attributes = cleaned_input.get("attributes")
         page_type = (

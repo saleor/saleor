@@ -199,7 +199,7 @@ class ProductsQueryset(models.QuerySet):
             slug=str(channel_slug), is_active=True
         ).values("id")
         channel_listings = ProductChannelListing.objects.filter(
-            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
+            Q(published_at__lte=today) | Q(published_at__isnull=True),
             Exists(channels.filter(pk=OuterRef("channel_id"))),
             is_published=True,
         ).values("id")
@@ -208,7 +208,7 @@ class ProductsQueryset(models.QuerySet):
     def not_published(self, channel_slug: str):
         today = timezone.now()
         return self.annotate_publication_info(channel_slug).filter(
-            Q(publication_date__gt=today) & Q(is_published=True)
+            Q(published_at__gt=today) & Q(is_published=True)
             | Q(is_published=False)
             | Q(is_published__isnull=True)
         )
@@ -241,7 +241,7 @@ class ProductsQueryset(models.QuerySet):
         return self.published_with_variants(channel_slug)
 
     def annotate_publication_info(self, channel_slug: str):
-        return self.annotate_is_published(channel_slug).annotate_publication_date(
+        return self.annotate_is_published(channel_slug).annotate_published_at(
             channel_slug
         )
 
@@ -255,14 +255,14 @@ class ProductsQueryset(models.QuerySet):
             is_published=ExpressionWrapper(query, output_field=BooleanField())
         )
 
-    def annotate_publication_date(self, channel_slug: str):
+    def annotate_published_at(self, channel_slug: str):
         query = Subquery(
             ProductChannelListing.objects.filter(
                 product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("publication_date")[:1]
+            ).values_list("published_at")[:1]
         )
         return self.annotate(
-            publication_date=ExpressionWrapper(query, output_field=DateField())
+            published_at=ExpressionWrapper(query, output_field=DateField())
         )
 
     def annotate_visible_in_listings(self, channel_slug):
@@ -548,7 +548,7 @@ class ProductChannelListing(PublishableModel):
         on_delete=models.CASCADE,
     )
     visible_in_listings = models.BooleanField(default=False)
-    available_for_purchase = models.DateTimeField(blank=True, null=True)
+    available_for_purchase_at = models.DateTimeField(blank=True, null=True)
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -564,14 +564,14 @@ class ProductChannelListing(PublishableModel):
         unique_together = [["product", "channel"]]
         ordering = ("pk",)
         indexes = [
-            models.Index(fields=["publication_date"]),
+            models.Index(fields=["published_at"]),
             BTreeIndex(fields=["discounted_price_amount"]),
         ]
 
     def is_available_for_purchase(self):
         return (
-            self.available_for_purchase is not None
-            and datetime.datetime.now(pytz.UTC) >= self.available_for_purchase
+            self.available_for_purchase_at is not None
+            and datetime.datetime.now(pytz.UTC) >= self.available_for_purchase_at
         )
 
 
@@ -850,8 +850,8 @@ class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
         today = timezone.now()
         return self.filter(
-            Q(channel_listings__publication_date__lte=today)
-            | Q(channel_listings__publication_date__isnull=True),
+            Q(channel_listings__published_at__lte=today)
+            | Q(channel_listings__published_at__isnull=True),
             channel_listings__channel__slug=str(channel_slug),
             channel_listings__channel__is_active=True,
             channel_listings__is_published=True,

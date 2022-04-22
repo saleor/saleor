@@ -43,7 +43,7 @@ def test_delete_categories(
         assert not product.category
         for product_channel_listing in product.channel_listings.all():
             assert not product_channel_listing.is_published
-            assert not product_channel_listing.publication_date
+            assert not product_channel_listing.published_at
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

@@ -1124,7 +1124,7 @@ def test_product_query_is_available_for_purchase_true(
 ):
     # given
     available_for_purchase = timezone.now() - timedelta(days=1)
-    product.channel_listings.update(available_for_purchase=available_for_purchase)
+    product.channel_listings.update(available_for_purchase_at=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -1150,7 +1150,7 @@ def test_product_query_is_available_for_purchase_false(
 ):
     # given
     available_for_purchase = timezone.now() + timedelta(days=1)
-    product.channel_listings.update(available_for_purchase=available_for_purchase)
+    product.channel_listings.update(available_for_purchase_at=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -1176,7 +1176,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
     user_api_client, product, channel_USD
 ):
     # given
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),

@@ -207,7 +207,7 @@ def test_collection_channel_listing_update_as_staff_user(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date_usd = collection_channel_listing.publication_date
+    publication_date_usd = collection_channel_listing.published_at
     assert not data["errors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is True
@@ -261,7 +261,7 @@ def test_collection_channel_listing_update_as_app(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date_usd = collection_channel_listing.publication_date
+    publication_date_usd = collection_channel_listing.published_at
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["errors"]
@@ -356,7 +356,7 @@ def test_collection_channel_listing_update_add_channel(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date_usd = collection_channel_listing.publication_date
+    publication_date_usd = collection_channel_listing.published_at
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["errors"]
@@ -394,7 +394,7 @@ def test_collection_channel_listing_update_unpublished(
     )
     content = get_graphql_content(response)
     collection_channel_listing = published_collection.channel_listings.get()
-    publication_date_usd = collection_channel_listing.publication_date
+    publication_date_usd = collection_channel_listing.published_at
 
     # then
     data = content["data"]["collectionChannelListingUpdate"]
@@ -470,7 +470,7 @@ def test_collection_channel_listing_update_remove_not_assigned_channel(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date = collection_channel_listing.publication_date
+    publication_date = collection_channel_listing.published_at
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["errors"]

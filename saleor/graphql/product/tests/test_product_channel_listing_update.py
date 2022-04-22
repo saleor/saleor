@@ -506,7 +506,7 @@ def test_product_channel_listing_update_unpublished(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listings.update(publication_date=timezone.now())
+    product.channel_listings.update(published_at=timezone.now())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -579,7 +579,7 @@ def test_product_channel_listing_update_remove_publication_date(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listings.update(publication_date=timezone.now())
+    product.channel_listings.update(published_at=timezone.now())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {

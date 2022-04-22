@@ -562,7 +562,7 @@ def test_checkout_lines_add_with_unavailable_for_purchase_product(
     # given
     variant = stock.product_variant
     product = stock.product_variant.product
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -589,7 +589,7 @@ def test_checkout_lines_add_with_available_for_purchase_from_tomorrow_product(
     variant = stock.product_variant
     product = stock.product_variant.product
     product.channel_listings.update(
-        available_for_purchase=datetime.datetime.now(pytz.UTC)
+        available_for_purchase_at=datetime.datetime.now(pytz.UTC)
         + datetime.timedelta(days=1)
     )
 

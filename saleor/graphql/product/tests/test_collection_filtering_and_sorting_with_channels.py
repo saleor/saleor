@@ -22,50 +22,50 @@ def collections_for_sorting_with_channels(channel_USD, channel_PLN):
         [
             CollectionChannelListing(
                 collection=collections[0],
-                publication_date=None,
+                published_at=None,
                 is_published=True,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[1],
-                publication_date=None,
+                published_at=None,
                 is_published=False,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[2],
-                publication_date=datetime.datetime(2004, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2004, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[3],
-                publication_date=datetime.datetime(2003, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2003, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_USD,
             ),
             # second channel
             CollectionChannelListing(
                 collection=collections[0],
-                publication_date=None,
+                published_at=None,
                 is_published=False,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[1],
-                publication_date=None,
+                published_at=None,
                 is_published=True,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[2],
-                publication_date=datetime.datetime(2002, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2002, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[4],
-                publication_date=datetime.datetime(2001, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2001, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_PLN,
             ),

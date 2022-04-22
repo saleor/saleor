@@ -368,9 +368,9 @@ class BaseChannelListingMutation(BaseMutation):
             )
             is_published = add_channel.get("is_published")
             if is_published and not publication_date:
-                add_channel["publication_date"] = datetime.datetime.now(pytz.UTC)
+                add_channel["published_at"] = datetime.datetime.now(pytz.UTC)
             elif "publication_date" in add_channel or "published_at" in add_channel:
-                add_channel["publication_date"] = publication_date
+                add_channel["published_at"] = publication_date
         if invalid_channels:
             error_msg = (
                 "Only one of argument: publicationDate or publishedAt "

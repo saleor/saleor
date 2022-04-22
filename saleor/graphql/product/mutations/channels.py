@@ -218,13 +218,13 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             add_variants = update_channel.get("add_variants", None)
             remove_variants = update_channel.get("remove_variants", None)
             defaults = {"currency": channel.currency_code}
-            for field in ["is_published", "publication_date", "visible_in_listings"]:
+            for field in ["is_published", "published_at", "visible_in_listings"]:
                 if field in update_channel.keys():
                     defaults[field] = update_channel[field]
             is_available_for_purchase = update_channel.get("is_available_for_purchase")
             if is_available_for_purchase is not None:
                 defaults[
-                    "available_for_purchase"
+                    "available_for_purchase_at"
                 ] = cls.get_available_for_purchase_date(
                     is_available_for_purchase, update_channel
                 )
@@ -569,7 +569,7 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
     def add_channels(cls, collection: "CollectionModel", add_channels: List[Dict]):
         for add_channel in add_channels:
             defaults = {}
-            for field in ["is_published", "publication_date"]:
+            for field in ["is_published", "published_at"]:
                 if field in add_channel.keys():
                     defaults[field] = add_channel[field]
             CollectionChannelListing.objects.update_or_create(

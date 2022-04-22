@@ -102,14 +102,14 @@ class ProductChannelListing(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_published_at(root: models.ProductChannelListing, info, **_kwargs):
-        return root.publication_date
+    def resolve_publication_date(root: models.ProductChannelListing, info, **_kwargs):
+        return root.published_at
 
     @staticmethod
-    def resolve_available_for_purchase_at(
+    def resolve_available_for_purchase(
         root: models.ProductChannelListing, info, **_kwargs
     ):
-        return root.available_for_purchase
+        return root.available_for_purchase_at
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
@@ -346,8 +346,8 @@ class CollectionChannelListing(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_published_at(root: models.ProductChannelListing, info, **_kwargs):
-        return root.publication_date
+    def resolve_publication_date(root: models.ProductChannelListing, info, **_kwargs):
+        return root.published_at
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
