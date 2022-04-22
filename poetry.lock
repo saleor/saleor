@@ -915,7 +915,7 @@ pyflakes = ">=2.4.0,<2.5.0"
 
 [[package]]
 name = "fonttools"
-version = "4.32.0"
+version = "4.33.1"
 description = "Tools to manipulate font files"
 category = "main"
 optional = false
@@ -927,12 +927,13 @@ brotlicffi = {version = ">=0.8.0", optional = true, markers = "platform_python_i
 zopfli = {version = ">=0.1.4", optional = true, markers = "extra == \"woff\""}
 
 [package.extras]
-all = ["fs (>=2.2.0,<3)", "lxml (>=4.0,<5)", "zopfli (>=0.1.4)", "lz4 (>=1.7.4.2)", "matplotlib", "sympy", "skia-pathops (>=0.5.0)", "brotlicffi (>=0.8.0)", "scipy", "brotli (>=1.0.1)", "munkres", "unicodedata2 (>=14.0.0)", "xattr"]
+all = ["fs (>=2.2.0,<3)", "lxml (>=4.0,<5)", "zopfli (>=0.1.4)", "lz4 (>=1.7.4.2)", "matplotlib", "sympy", "skia-pathops (>=0.5.0)", "uharfbuzz (>=0.23.0)", "brotlicffi (>=0.8.0)", "scipy", "brotli (>=1.0.1)", "munkres", "unicodedata2 (>=14.0.0)", "xattr"]
 graphite = ["lz4 (>=1.7.4.2)"]
 interpolatable = ["scipy", "munkres"]
 lxml = ["lxml (>=4.0,<5)"]
 pathops = ["skia-pathops (>=0.5.0)"]
 plot = ["matplotlib"]
+repacker = ["uharfbuzz (>=0.23.0)"]
 symfont = ["sympy"]
 type1 = ["xattr"]
 ufo = ["fs (>=2.2.0,<3)"]
@@ -2414,7 +2415,7 @@ python-versions = "*"
 
 [[package]]
 name = "stripe"
-version = "2.72.0"
+version = "2.74.0"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -2772,8 +2773,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "b364295d4d8e1097a4ba53b0364c8baf2815ac2137a121594222c02dcf9f833f"
+python-versions = "~3.9"
+content-hash = "2a777d3f64a102fa09a7a4197a889a5a114a6279542a7c869cb0c06e94a86df5"
 
 [metadata.files]
 adyen = [
@@ -3276,8 +3277,8 @@ flake8 = [
     {file = "flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
 ]
 fonttools = [
-    {file = "fonttools-4.32.0-py3-none-any.whl", hash = "sha256:b038d1a0dee0079de7ade57071e2e2aced6e35bd697de244ac62938b2b1628c1"},
-    {file = "fonttools-4.32.0.zip", hash = "sha256:59a90de72149893167e3d552ae2402c6874e006b9adc3feaf5f6d706fe20d392"},
+    {file = "fonttools-4.33.1-py3-none-any.whl", hash = "sha256:50f0c76985321412123a1c32d1017ccad0e4ab1c71c8e64797cd7ffcbb7a379f"},
+    {file = "fonttools-4.33.1.zip", hash = "sha256:66dd757b8a9d7b07d61c22b8d973282990c45343572b88e5fc722b3a8272598e"},
 ]
 freezegun = [
     {file = "freezegun-1.2.1-py3-none-any.whl", hash = "sha256:15103a67dfa868ad809a8f508146e396be2995172d25f927e48ce51c0bf5cb09"},
@@ -4198,8 +4199,8 @@ starkbank-ecdsa = [
     {file = "starkbank-ecdsa-2.0.3.tar.gz", hash = "sha256:73b62b1b3de54bbaa05dedb1a2d951c033432bb074de899e19d4a96a36b21df6"},
 ]
 stripe = [
-    {file = "stripe-2.72.0-py2.py3-none-any.whl", hash = "sha256:e6c7243cb6312d6f239b077f43dc2f3a12021bc12c68232cbe0a8b0a6505e306"},
-    {file = "stripe-2.72.0.tar.gz", hash = "sha256:9ca8e87a337357d2008d274ff56362f219e73671030be2a636748deeb13777fb"},
+    {file = "stripe-2.74.0-py2.py3-none-any.whl", hash = "sha256:f16e577a3f8b25ac912ba9f1c0f84490d37ff01e7749a168deafc7708ce7a866"},
+    {file = "stripe-2.74.0.tar.gz", hash = "sha256:fa8ed2b5c241bfda5e8984d606721f9c352aa1d886dec5502416ca04e00b92d0"},
 ]
 sympy = [
     {file = "sympy-1.10.1-py3-none-any.whl", hash = "sha256:df75d738930f6fe9ebe7034e59d56698f29e85f443f743e51e47df0caccc2130"},
