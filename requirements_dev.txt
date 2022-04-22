@@ -70,7 +70,7 @@ execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or pyt
 faker==13.3.4; python_version >= "3.6"
 filelock==3.6.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 flake8==4.0.1; python_version >= "3.6"
-fonttools==4.32.0; python_version >= "3.7"
+fonttools==4.33.1; python_version >= "3.7"
 freezegun==1.2.1; python_version >= "3.6"
 google-api-core==2.7.2; python_version >= "3.7"
 google-auth==2.6.5; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
