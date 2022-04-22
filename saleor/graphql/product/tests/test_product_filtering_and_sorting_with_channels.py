@@ -244,7 +244,7 @@ QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
         {"field": "PUBLISHED", "direction": "ASC"},
         {"field": "PRICE", "direction": "DESC"},
         {"field": "MINIMAL_PRICE", "direction": "DESC"},
-        {"field": "PUBLICATION_DATE", "direction": "DESC"},
+        {"field": "PUBLISHED_AT", "direction": "DESC"},
     ],
 )
 def test_products_with_sorting_and_without_channel(

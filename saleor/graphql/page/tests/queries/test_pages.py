@@ -117,11 +117,11 @@ QUERY_PAGE_WITH_SORT = """
         ({"field": "CREATION_DATE", "direction": "ASC"}, ["Page1", "About", "Page2"]),
         ({"field": "CREATION_DATE", "direction": "DESC"}, ["Page2", "About", "Page1"]),
         (
-            {"field": "PUBLICATION_DATE", "direction": "ASC"},
+            {"field": "PUBLISHED_AT", "direction": "ASC"},
             ["Page1", "Page2", "About"],
         ),
         (
-            {"field": "PUBLICATION_DATE", "direction": "DESC"},
+            {"field": "PUBLISHED_AT", "direction": "DESC"},
             ["About", "Page2", "Page1"],
         ),
     ],

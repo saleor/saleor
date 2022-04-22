@@ -74,18 +74,16 @@ class CollectionSortField(graphene.Enum):
     AVAILABILITY = ["is_published", "slug"]
     PRODUCT_COUNT = ["product_count", "slug"]
     PUBLICATION_DATE = ["published_at", "slug"]
+    PUBLISHED_AT = ["published_at", "slug"]
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            CollectionSortField.NAME,
-            CollectionSortField.AVAILABILITY,
-            CollectionSortField.PRODUCT_COUNT,
-            CollectionSortField.PUBLICATION_DATE,
-        ]:
+        if self.name in CollectionSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            return f"Sort collections by {sort_name}."
+            description = f"Sort collections by {sort_name}."
+            if self.name == "PUBLICATION_DATE":
+                description += DEPRECATED_IN_3X_INPUT
+            return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
@@ -105,6 +103,10 @@ class CollectionSortField(graphene.Enum):
 
     @staticmethod
     def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        return CollectionSortField.qs_with_published_at(queryset, channel_slug)
+
+    @staticmethod
+    def qs_with_published_at(queryset: QuerySet, channel_slug: str) -> QuerySet:
         subquery = Subquery(
             CollectionChannelListing.objects.filter(
                 collection_id=OuterRef("pk"), channel__slug=str(channel_slug)

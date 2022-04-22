@@ -7225,8 +7225,19 @@ enum CollectionSortField {
   """Sort collections by product count."""
   PRODUCT_COUNT
 
-  """Sort collections by publication date."""
+  """
+  Sort collections by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   PUBLICATION_DATE
+
+  """
+  Sort collections by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  PUBLISHED_AT
 }
 
 input ProductTypeFilterInput {
@@ -7347,8 +7358,19 @@ enum PageSortField {
   """Sort pages by creation date."""
   CREATION_DATE
 
-  """Sort pages by publication date."""
+  """
+  Sort pages by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   PUBLICATION_DATE
+
+  """
+  Sort pages by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  PUBLISHED_AT
 }
 
 input PageFilterInput {
