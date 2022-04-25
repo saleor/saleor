@@ -326,11 +326,11 @@ class OrderEvent(ModelObjectType):
         for entry in raw_lines:
             line_pk = entry.get("line_pk", None)
             if line_pk:
-                line_pks.append(line_pk)
+                line_pks.append(UUID(line_pk))
 
         def _resolve_lines(lines):
             results = []
-            lines_dict = {line.pk: line for line in lines if line}
+            lines_dict = {str(line.pk): line for line in lines if line}
             for raw_line in raw_lines:
                 line_pk = raw_line.get("line_pk")
                 line_object = lines_dict.get(line_pk)

@@ -617,9 +617,6 @@ def change_order_line_quantity(
 
 
 def create_order_event(line, user, app, quantity_diff):
-    import ipdb
-
-    ipdb.set_trace()
     if quantity_diff > 0:
         events.order_removed_products_event(
             order=line.order, user=user, app=app, order_lines=[(quantity_diff, line)]
