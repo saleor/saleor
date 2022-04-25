@@ -12530,7 +12530,7 @@ input ProductChannelListingAddInput {
   availableForPurchaseDate: Date
 
   """
-  New in Saleor 3.3. A start date time from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
+  New in Saleor 3.3. A start date time from which a product will be available for purchase. When not set and `isAvailable` is set to True, the current day is assumed.
   """
   availableForPurchaseAt: DateTime
 

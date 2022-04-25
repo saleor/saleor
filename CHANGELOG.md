@@ -7,6 +7,24 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - PREVIEW_FEATURE: replace error code `NOT_FOUND` with `CHECKOUT_NOT_FOUND` for mutation `OrderCreateFromCheckout` - #9569 by @korycins
+- Precise timestamps for publication dates - #9581 by @IKarbowiak
+  - Change `publicationDate` fields to `publishedAt` date time fields.
+    - Types and inputs where `publicationDate` is deprecated and `publishedAt` field should be used instead:
+      - `Product`
+      - `ProductChannelListing`
+      - `CollectionChannelListing`
+      - `Page`
+      - `PublishableChannelListingInput`
+      - `ProductChannelListingAddInput`
+      - `PageCreateInput`
+      - `PageInput`
+  - Change `availableForPurchaseDate` fields to `availableForPurchaseAt` date time field.
+    - Deprecate `Product.availableForPurchase` field, the `Product.availableForPurchaseAt` should be used instead.
+    - Deprecate `ProductChannelListing.availableForPurchase` field, the `ProductChannelListing.availableForPurchaseAt` should be used instead.
+  - Deprecate `publicationDate` on `CollectionInput` and `CollectionCreateInput`.
+  - Deprecate `PUBLICATION_DATE` in `CollectionSortField`, the `PUBLISHED_AT` should be used instead.
+  - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
+  - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
 
 ### Other changes
 
@@ -25,24 +43,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated the `token` field in order payload, the `id` field should be used
     instead.
 - Enable JWT expiration by default - #9483 by @maarcingebala
-- Add time to dates - #9581 by @IKarbowiak
-  - Change `publicaionDate` fields to `pubishedAt` date time fields.
-    - Types and inputs where `publicationDate` is deprecated and `publishedAt` field should be used instead:
-      - `Product`
-      - `ProductChannelListing`
-      - `CollectionChannelListing`
-      - `Page`
-      - `PublishableChannelListingInput`
-      - `ProductChannelListingAddInput`
-      - `PageCreateInput`
-      - `PageInput`
-  - Change `availableForPurchaseDate` fields to `availableForPurchaseAt` date time field.
-    - Deprecate `Product.availableForPurchase` field, the `Product.availableForPurchaseAt` should be used instead.
-    - Deprecate `ProductChannelListing.availableForPurchase` field, the `ProductChannelListing.availableForPurchaseAt` should be used instead.
-  - Deprecate `publicationDate` on `CollectionInput` and `CollectionCreateInput`.
-  - Deprecate `PUBLICATION_DATE` in `CollectionSortField`, the `PUBLISHED_AT` should be used instead.
-  - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
-  - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
 
 
 ### Other changes

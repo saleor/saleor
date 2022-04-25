@@ -194,7 +194,7 @@ class ProductType(ModelWithMetadata):
 
 class ProductsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = timezone.now()
+        today = datetime.datetime.now(pytz.UTC)
         channels = Channel.objects.filter(
             slug=str(channel_slug), is_active=True
         ).values("id")
@@ -206,7 +206,7 @@ class ProductsQueryset(models.QuerySet):
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel_slug: str):
-        today = timezone.now()
+        today = datetime.datetime.now(pytz.UTC)
         return self.annotate_publication_info(channel_slug).filter(
             Q(published_at__gt=today) & Q(is_published=True)
             | Q(is_published=False)
@@ -848,7 +848,7 @@ class CollectionProduct(SortableModel):
 
 class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = timezone.now()
+        today = datetime.datetime.now(pytz.UTC)
         return self.filter(
             Q(channel_listings__published_at__lte=today)
             | Q(channel_listings__published_at__isnull=True),

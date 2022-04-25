@@ -84,7 +84,7 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
     available_for_purchase_at = graphene.DateTime(
         description=(
             f"{ADDED_IN_33} A start date time from which a product will be available "
-            "for purchase. When not set and isAvailable is set to True, "
+            "for purchase. When not set and `isAvailable` is set to True, "
             "the current day is assumed."
         )
     )
