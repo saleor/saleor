@@ -28,7 +28,7 @@ class WebhookEventAsyncType:
     GIFT_CARD_CREATED = "gift_card_created"
     GIFT_CARD_UPDATED = "gift_card_updated"
     GIFT_CARD_DELETED = "gift_card_deleted"
-    GIFT_CARD_STATUS_CHANGED = "gift_status_changed"
+    GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
 
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"

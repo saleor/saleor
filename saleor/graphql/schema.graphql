@@ -1127,7 +1127,7 @@ enum WebhookEventTypeEnum {
   GIFT_CARD_DELETED
 
   """A gift card status is changed."""
-  GIFT_STATUS_CHANGED
+  GIFT_CARD_STATUS_CHANGED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1326,7 +1326,7 @@ enum WebhookEventTypeAsyncEnum {
   GIFT_CARD_DELETED
 
   """A gift card status is changed."""
-  GIFT_STATUS_CHANGED
+  GIFT_CARD_STATUS_CHANGED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1815,7 +1815,7 @@ enum WebhookSampleEventTypeEnum {
   GIFT_CARD_CREATED
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
-  GIFT_STATUS_CHANGED
+  GIFT_CARD_STATUS_CHANGED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
