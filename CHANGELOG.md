@@ -2,29 +2,38 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-
 # Unreleased
 
 ### Breaking changes
+
 - PREVIEW_FEATURE: replace error code `NOT_FOUND` with `CHECKOUT_NOT_FOUND` for mutation `OrderCreateFromCheckout` - #9569 by @korycins
-- Convert IDs from DB to Graphql format in all notification payloads (email plugins and webhook.NOTIFY)- #9388 by @L3str4nge
+
+### Other changes
+
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+
+# 3.2.0
+
+### Breaking changes
+
+- Convert IDs from DB to GraphQL format in all notification payloads (email plugins and the `NOTIFY` webhook)- #9388 by @L3str4nge
 - Migrate order id from int to UUID - #9324 by @IKarbowiak
   - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
-  for old orders.
+    for old orders.
   - Deprecated the `order.token` field, the `order.id` should be used instead.
   - Deprecated the `token` field in order payload, the `id` field should be used
-  instead.
+    instead.
 - Enable JWT expiration by default - #9483 by @maarcingebala
 
 ### Other changes
-- Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
-- Add OpenID Connect Plugin - #9406 by @korycins
-- Add new mutation `orderCreateFromCheckout` - #9343 by @korycins
-- Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
-- Add handling webhook payload via GraphQL subscriptions (#9394)  @jakubkuc
-- Fix access to own resources by App - #9425 by @korycins
+
+#### Saleor Apps
+
 - Introduce custom prices - #9393 by @IKarbowiak
   - Add `HANDLE_CHECKOUTS` permission (only for apps)
+- Add subscription webhooks (#9394) @jakubkuc
+- Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
 - Refactor app tokens - #9438 by @IKarbowiak
   - Store app tokens hashes instead of plain text.
 - Fix filtering product attributes by date range - #9543 by @IKarbowiak
@@ -41,6 +50,59 @@ All notable, unreleased changes to this project will be documented in this file.
     - `TRANSACTION_ACTION_REQUEST`
 
 - Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Add category webhook events - #9490 by @SzymJ
+- Fix access to own resources by App - #9425 by @korycins
+- Add `handle_checkouts` permission - #9402 by @korycins
+- Return `user_email` or order user's email in order payload `user_email` field (#9419) (c2d248655)
+- Mutation `CategoryBulkDelete` now trigger `category_delete` event - #9533 by @SzymJ
+- Add webhooks `SHIPPING_PRICE_CREATED`, `SHIPPING_PRICE_UPDATED`, `SHIPPING_PRICE_DELETED`, `SHIPPING_ZONE_CREATED`, `SHIPPING_ZONE_UPDATED`, `SHIPPING_ZONE_DELETED` - #9522 by @SzymJ
+
+#### Plugins
+
+- Add OpenID Connect Plugin - #9406 by @korycins
+- Allow plugins to create their custom error code - #9300 by @LeOndaz
+
+#### Other
+
+- Include required permission in mutations' descriptions - #9363 by @maarcingebala
+- Make GraphQL list items non-nullable - #9391 by @maarcingebala
+- Port a better schema printer from GraphQL Core 3.x - #9389 by @patrys
+- Fix failing `checkoutCustomerAttach` mutation - #9401 by @IKarbowiak
+- Add new mutation `orderCreateFromCheckout` - #9343 by @korycins
+- Assign missing user to context - #9520 by @korycins
+- Add default ordering to order discounts - #9517 by @fowczarek
+- Raise formatted error when trying to assign assigned media to variant - #9496 by @L3str4nge
+- Update `orderNumber` field in `OrderEvent` type - #9447 by @IKarbowiak
+- Do not create `AttributeValues` when values are not provided - #9446 @IKarbowiak
+- Add response status code to event delivery attempt - #9456 by @przlada
+- Don't rely on counting objects when reindexing - #9442 by @patrys
+- Allow filtering attribute values by ids - #9399 by @IKarbowiak
+- Fix errors handling for `orderFulfillApprove` mutation - #9491 by @SzymJ
+- Fix shipping methods caching - #9472 by @tomaszszymanski129
+- Fix payment flow - #9504 by @IKarbowiak
+- Fix etting external methods did not throw an error when that method didn't exist - #9498 by @SethThoburn
+- Reduce placeholder image size - #9484 by @jbergstroem
+- Improve menus filtering performance - #9539 by @tomaszszymanski129
+- Remove EventDeliveries without webhooks and make webhook field non-nullable - #9507 by @jakubkuc
+- Improve discount filters performance - #9541 by @tomaszszymanski129
+- Change webhooks to be called on commit in atomic transactions - #9532 by @jakubkuc
+- Drop distinct and icontains in favor of ilike in apps filtering - #9534 by @tomaszszymanski129
+- Refactor csv filters to improve performance - #9535 by @tomaszszymanski129
+- Improve attributes filters performance - #9542 by @tomaszszymanski129
+- Rename models fields from created to created_at - #9537 by @IKarbowiak
+
+# 3.1.10
+
+- Migration dependencies fix - #9590 by @SzymJ
+
+# 3.1.9
+
+- Use ordering by PK in `queryset_in_batches` (#9493) (4e49c52d2)
+
+# 3.1.8
+
+- Fix shipping methods caching (#9472) (0361f40)
+- Fix logging of excessive logger informations (#9441) (d1c5d26)
 
 # 3.1.7
 
@@ -58,16 +120,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Pass correct list of order lines to `order_added_products_event` (#9286) (db3550f64)
 - Fix flaky order payload serializer test (#9387) (d73bd6f9d)
 
-
 # 3.1.6
-- Fix unhandled GraphQL errors after removing `graphene-django` (#9398) (4090e6f2a)
 
+- Fix unhandled GraphQL errors after removing `graphene-django` (#9398) (4090e6f2a)
 
 # 3.1.5
 
 - Fix checkout payload (#9333) (61b928e33)
 - Revert "3.1 Add checking if given attributes are variant attributes in ProductVariantCreate mutation (#9134)" (#9334) (dfee09db3)
-
 
 # 3.1.4
 
@@ -93,21 +153,21 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix migration issue between 3.0 and main (#9323) (fec80cd63)
 - Drop wishlist models (#9313) (7c9576925)
 
-
 # 3.1.3
 
 - Add command to update search indexes (#9315) (6be8461c0)
 - Fix countries resolver performance (#9318) (e177f3957)
 
-
 # 3.1.2
 
 ### Breaking changes
+
 - Require `MANAGE_ORDERS` permission in `User.orders` query (#9128) (521dfd639)
   - only staff with `manage orders` and can fetch customer orders
   - the customer can fetch his own orders, except drafts
 
 ### Other changes
+
 - Fix failing `on_failure` export tasks method (#9160) (efab6db9d)
 - Fix mutations breaks on partially invalid IDs (#9227) (e3b6df2eb)
 - Fix voucher migrations (#9249) (3c565ba0c)
@@ -117,7 +177,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Small schema fixes (#9224) (932e64808)
 - Support Braintree subaccounts (#9191) (035bf705c)
 - Split checkout mutations into separate files (#9266) (1d37b0aa3)
-
 
 # 3.1.1
 
@@ -129,7 +188,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid paths in VCR cassettes (#9236) (f6c268d2e)
 - Fix Razorpay comment to be inline with code (#9238) (de417af24)
 - Remove `graphene-federation` dependency (#9184) (dd43364f7)
-
 
 # 3.1.0
 
@@ -155,9 +213,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow fetching unpublished pages by apps with manage pages permission - #9181 by @IKarbowiak
 
 #### Metadata
+
 - Add ability to use metadata mutations with tokens as an identifier for orders and checkouts - #8426 by @IKarbowiak
 
 #### Attributes
+
 - Introduce swatch attributes - #7261 by @IKarbowiak
 - Add `variant_selection` to `ProductAttributeAssign` operations - #8235 by @kuchichan
 - Refactor attributes validation - #8905 by @IKarbowiak
@@ -165,6 +225,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - in update mutations: do not require providing any attributes; when any attribute is given, validate provided values.
 
 #### Other features and changes
+
 - Add gift cards - #7827 by @IKarbowiak, @tomaszszymanski129
 - Add Click & Collect - #7673 by @kuchichan
 - Add fulfillment confirmation - #7675 by @tomaszszymanski129
@@ -192,11 +253,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix crash when querying external shipping methods `translation` field - #8971 by @rafalp
 - Fix crash when too long translation strings were passed to `translate` mutations - #8942 by @rafalp
 - Raise ValidationError in `CheckoutAddPromoCode`, `CheckoutPaymentCreate` when product in the checkout is
-unavailable - #8978 by @IKarbowiak
+  unavailable - #8978 by @IKarbowiak
 - Remove `graphene-django` dependency - #9170 by @rafalp
 - Fix disabled warehouses appearing as valid click and collect points when checkout contains only preorders - #9052 by @rafalp
 - Fix failing `on_failure` export tasks method - #9160 by @IKarbowiak
-
 
 # 3.0.0
 
@@ -366,6 +426,7 @@ unavailable - #8978 by @IKarbowiak
 - Add generic `FileUpload` mutation - #6470 by @IKarbowiak
 
 #### Metadata
+
 - Allow passing metadata to `accountRegister` mutation - #7152 by @piotrgrundas
 - Copy metadata fields when creating reissue - #7358 by @IKarbowiak
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
@@ -376,6 +437,7 @@ unavailable - #8978 by @IKarbowiak
   - After changes, using the order `id` for changing order metadata is deprecated
 
 #### Attributes
+
 - Add rich text attribute input - #7059 by @piotrgrundas
 - Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
 - Add boolean attributes - #7454 by @piotrgrundas
@@ -389,11 +451,13 @@ unavailable - #8978 by @IKarbowiak
 - Add Page Types - #6261 by @IKarbowiak
 
 #### Plugins
+
 - Add interface for integrating the auth plugins - #6799 by @korycins
 - Add Sendgrid plugin - #6793 by @korycins
 - Trigger `checkout_updated` plugin method for checkout metadata mutations - #7392 by @maarcingebala
 
 #### Saleor Apps
+
 - Add synchronous payment webhooks - #7044 by @maarcingebala
 - Add `CUSTOMER_UPDATED` webhook, add addresses field to customer `CUSTOMER_CREATED` webhook - #6898 by @piotrgrundas
 - Add `PRODUCT_VARIANT_CREATED`, `PRODUCT_VARIANT_UPDATED`, `PRODUCT_VARIANT_DELETED` webhooks, fix attributes field for `PRODUCT_CREATED`, `PRODUCT_UPDATED` webhooks - #6963 by @piotrgrundas
@@ -435,6 +499,7 @@ unavailable - #8978 by @IKarbowiak
   - X-Saleor-HMAC-SHA256 -> Saleor-HMAC-SHA256
 
 #### Other changes
+
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Fix Sentry reporting - #6902 by @fowczarek
@@ -540,6 +605,7 @@ unavailable - #8978 by @IKarbowiak
 - Fix passing incorrect customer email to payment gateways - #7486 by @korycins
 - Add HTTP meta tag for Content-Security-Policy in GraphQL Playground - #7662 by @NyanKiyoshi
 - Add additional validation for `from_global_id_or_error` function - #8780 by @CossackDex
+
 # 2.11.1
 
 - Add support for Apple Pay on the web - #6466 by @korycins
