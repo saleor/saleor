@@ -46,7 +46,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
 - Refactor app tokens - #9438 by @IKarbowiak
   - Store app tokens hashes instead of plain text.
-- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Add category webhook events - #9490 by @SzymJ
 - Fix access to own resources by App - #9425 by @korycins
 - Add `handle_checkouts` permission - #9402 by @korycins
