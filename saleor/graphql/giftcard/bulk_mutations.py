@@ -71,7 +71,9 @@ class GiftCardBulkCreate(BaseMutation):
         if tags:
             cls.assign_gift_card_tags(instances, tags)
 
-        transaction.on_commit(lambda: cls.trigger_webhook_events(instances, info))
+        transaction.on_commit(
+            lambda: cls.call_gift_card_created_on_plugins(instances, info)
+        )
         return cls(count=len(instances), gift_cards=instances)
 
     @staticmethod
@@ -151,7 +153,7 @@ class GiftCardBulkCreate(BaseMutation):
             tag_instance.gift_cards.set(instances)
 
     @staticmethod
-    def trigger_webhook_events(instances, info):
+    def call_gift_card_created_on_plugins(instances, info):
         for instance in instances:
             info.context.plugins.gift_card_created(instance)
 

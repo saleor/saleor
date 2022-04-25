@@ -114,7 +114,7 @@ def test_delete_gift_card_trigger_webhook(
 
     assert data["id"] == id
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": id},
+        {"id": id, "is_active": gift_card.is_active},
         WebhookEventAsyncType.GIFT_CARD_DELETED,
         [any_webhook],
         gift_card,

@@ -150,6 +150,20 @@ def test_channel_status_changed(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def generate_expected_payload_for_gift_card(gift_card, card_global_id):
+    return json.dumps(
+        {
+            "giftCard": {
+                "id": card_global_id,
+                "isActive": gift_card.is_active,
+                "code": gift_card.code,
+                "createdBy": {"email": gift_card.created_by.email},
+            },
+            "meta": None,
+        }
+    )
+
+
 def test_gift_card_created(gift_card, subscription_gift_card_created_webhook):
     # given
     webhooks = [subscription_gift_card_created_webhook]
@@ -160,7 +174,7 @@ def test_gift_card_created(gift_card, subscription_gift_card_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = json.dumps({"giftCard": {"id": gift_card_id}, "meta": None})
+    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -176,7 +190,7 @@ def test_gift_card_updated(gift_card, subscription_gift_card_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = json.dumps({"giftCard": {"id": gift_card_id}, "meta": None})
+    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -199,7 +213,7 @@ def test_gift_card_deleted(gift_card, subscription_gift_card_deleted_webhook):
     )
 
     # then
-    expected_payload = json.dumps({"giftCard": {"id": gift_card_id}, "meta": None})
+    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
     assert gift_card_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -217,15 +231,13 @@ def test_gift_card_status_changed(
     gift_card.save(update_fields=["is_active"])
 
     event_type = WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED
-    channel_id = graphene.Node.to_global_id("GiftCard", gift_card.id)
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.id)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = json.dumps(
-        {"giftCard": {"id": channel_id, "isActive": status}, "meta": None}
-    )
+    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

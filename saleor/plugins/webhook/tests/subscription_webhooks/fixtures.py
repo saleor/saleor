@@ -161,17 +161,31 @@ def subscription_channel_status_changed_webhook(subscription_webhook):
     )
 
 
-GIFT_CARD_CREATED_SUBSCRIPTION_QUERY = """
+GIFT_CARD_DETAILS_FRAGMENT = """
+    fragment GiftCardDetails on GiftCard{
+        id
+        isActive
+        code
+        createdBy {
+            email
+        }
+    }
+"""
+
+GIFT_CARD_CREATED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
     subscription{
       event{
         ...on GiftCardCreated{
           giftCard{
-            id
+            ...GiftCardDetails
           }
         }
       }
     }
 """
+)
 
 
 @pytest.fixture
@@ -181,17 +195,20 @@ def subscription_gift_card_created_webhook(subscription_webhook):
     )
 
 
-GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY = """
+GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
     subscription{
       event{
         ...on GiftCardUpdated{
           giftCard{
-            id
+            ...GiftCardDetails
           }
         }
       }
     }
 """
+)
 
 
 @pytest.fixture
@@ -201,17 +218,20 @@ def subscription_gift_card_updated_webhook(subscription_webhook):
     )
 
 
-GIFT_CARD_DELETED_SUBSCRIPTION_QUERY = """
+GIFT_CARD_DELETED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
     subscription{
       event{
         ...on GiftCardDeleted{
           giftCard{
-            id
+            ...GiftCardDetails
           }
         }
       }
     }
 """
+)
 
 
 @pytest.fixture
@@ -221,18 +241,20 @@ def subscription_gift_card_deleted_webhook(subscription_webhook):
     )
 
 
-GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY = """
+GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
     subscription{
       event{
         ...on GiftCardStatusChanged{
           giftCard{
-            id
-            isActive
+            ...GiftCardDetails
           }
         }
       }
     }
 """
+)
 
 
 @pytest.fixture

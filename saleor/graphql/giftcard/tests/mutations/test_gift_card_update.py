@@ -779,7 +779,10 @@ def test_update_gift_card_trigger_webhook(
     assert data
 
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)},
+        {
+            "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+            "is_active": gift_card.is_active,
+        },
         WebhookEventAsyncType.GIFT_CARD_UPDATED,
         [any_webhook],
         gift_card,
