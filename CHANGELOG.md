@@ -12,6 +12,16 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Fix filtering product attributes by date range - #9543 by @IKarbowiak
 - Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
+  - add fields:
+    - `order.transactions`
+    - `checkout.transactions`
+  - add mutations:
+    - `transactionCreate`
+    - `transactionUpdate`
+    - `transactionRequestAction`
+  - add new webhook event:
+    - `TRANSACTION_ACTION_REQUEST`
 
 # 3.2.0
 
@@ -36,19 +46,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `language_code` field to webhook payload for `Order`, `Checkout` and `Customer` - #9433 by @rafalp
 - Refactor app tokens - #9438 by @IKarbowiak
   - Store app tokens hashes instead of plain text.
-- Fix filtering product attributes by date range - #9543 by @IKarbowiak
-- Save images to product media from external URLs - #9329 by @krzysztofwolski
-- PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
-  - add fields:
-    - `order.transactions`
-    - `checkout.transactions`
-  - add mutations:
-    - `transactionCreate`
-    - `transactionUpdate`
-    - `transactionRequestAction`
-  - add new webhook event:
-    - `TRANSACTION_ACTION_REQUEST`
-
 - Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Add category webhook events - #9490 by @SzymJ
 - Fix access to own resources by App - #9425 by @korycins
