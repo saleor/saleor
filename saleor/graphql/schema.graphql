@@ -16902,7 +16902,7 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated
 
 type CategoryCreated {
   """
@@ -17319,6 +17319,26 @@ type ShippingZoneDeleted {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
+}
+
+type TransactionActionRequest {
+  """
+  New in Saleor 3.2. Look up a transaction. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  transaction: TransactionItem
+
+  """
+  New in Saleor 3.2. Requested action data. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  action: TransactionAction!
+}
+
+type TransactionAction {
+  """Determines the action type."""
+  actionType: TransactionActionEnum!
+
+  """Transaction request amount. Null when action type is VOID."""
+  amount: PositiveDecimal
 }
 
 type TranslationCreated {

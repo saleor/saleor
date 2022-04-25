@@ -354,6 +354,7 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED,
+    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST,
     WebhookEventAsyncType.TRANSLATION_CREATED,
     WebhookEventAsyncType.TRANSLATION_UPDATED,
 ]
