@@ -3541,7 +3541,7 @@ type AttributeValue implements Node {
   """Represents the date value of the attribute value."""
   date: Date
 
-  """Represents the date time value of the attribute value."""
+  """Represents the date/time value of the attribute value."""
   dateTime: DateTime
 }
 
@@ -4594,11 +4594,11 @@ input AttributeInput {
   """The range that the returned values should be in."""
   valuesRange: IntRangeInput
 
-  """The date time range that the returned values should be in."""
+  """The date/time range that the returned values should be in."""
   dateTime: DateTimeRangeInput
 
   """
-  The date range that the returned values should be in. In case of datetime attributes, the midnight in UTC of the given date is used.
+  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used.
   """
   date: DateRangeInput
 
@@ -12378,7 +12378,7 @@ input AttributeValueInput {
   """Represents the date value of the attribute value."""
   date: Date
 
-  """Represents the date time value of the attribute value."""
+  """Represents the date/time value of the attribute value."""
   dateTime: DateTime
 }
 
