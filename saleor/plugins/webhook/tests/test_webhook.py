@@ -1145,3 +1145,24 @@ def test_send_webhook_request_async_when_max_retries_exceeded(
     delivery = EventDelivery.objects.get(id=event_delivery.pk)
     assert attempt.status == EventDeliveryStatus.FAILED
     assert delivery.status == EventDeliveryStatus.FAILED
+
+
+@pytest.mark.parametrize(
+    "event, expected_is_active",
+    (("invoice_request", False), ("transaction_action_request", True)),
+)
+def test_is_event_active(
+    event, expected_is_active, settings, webhook, permission_manage_payments
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    webhook.app.permissions.add(permission_manage_payments)
+    webhook.events.create(event_type=WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST)
+
+    manager = get_plugins_manager()
+
+    # when
+    is_active = manager.is_event_active_for_any_plugin(event)
+
+    # then
+    assert is_active == expected_is_active

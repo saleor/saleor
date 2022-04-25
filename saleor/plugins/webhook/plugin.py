@@ -889,6 +889,11 @@ class WebhookPlugin(BasePlugin):
         )
 
     def is_event_active(self, event: str, channel=Optional[str]):
-        map_event = {"invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED}
+        map_event = {
+            "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
+            "transaction_action_request": (
+                WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
+            ),
+        }
         webhooks = get_webhooks_for_event(event_type=map_event[event])
         return any(webhooks)
