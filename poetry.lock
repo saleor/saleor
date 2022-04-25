@@ -1052,7 +1052,7 @@ testing = ["pytest"]
 
 [[package]]
 name = "google-i18n-address"
-version = "2.5.0"
+version = "2.5.1"
 description = "Address validation helpers for Google's i18n address database"
 category = "main"
 optional = false
@@ -2773,7 +2773,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "849498097e2eaaa08da962efe6abaca13631033f2b5ba9ab9d153558fd64d609"
+content-hash = "b364295d4d8e1097a4ba53b0364c8baf2815ac2137a121594222c02dcf9f833f"
 
 [metadata.files]
 adyen = [
@@ -3349,8 +3349,8 @@ google-crc32c = [
     {file = "google_crc32c-1.3.0-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:7f6fe42536d9dcd3e2ffb9d3053f5d05221ae3bbcefbe472bdf2c71c793e3183"},
 ]
 google-i18n-address = [
-    {file = "google-i18n-address-2.5.0.tar.gz", hash = "sha256:61e3e6e8bc015e68f1c62ad78449ae9d9e444657bb191f2f5561b897ea2eb1d7"},
-    {file = "google_i18n_address-2.5.0-py3-none-any.whl", hash = "sha256:c71b413eb6bea905936d82b45f57ef4e5bc05d7c6986666f66b8ee425f0b6ed7"},
+    {file = "google-i18n-address-2.5.1.tar.gz", hash = "sha256:935242a44e1f54b2ef3322232d442425a6009cc9824e49f1f272eebc4c1dc766"},
+    {file = "google_i18n_address-2.5.1-py2.py3-none-any.whl", hash = "sha256:5d43d10337c336d7324cfa6d02d5c0658924e389435149e0e08c60c09f4b25eb"},
 ]
 google-measurement-protocol = [
     {file = "google-measurement-protocol-1.1.0.tar.gz", hash = "sha256:aba4a80d956a4b47974d26adc578ab48c363f21f61e8097250c6ef560f3b3416"},
