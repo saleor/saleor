@@ -3328,31 +3328,41 @@ type Attribute implements Node & ObjectWithMetadata {
     last: Int
   ): AttributeValueCountableConnection
 
-  """Whether the attribute requires values to be passed or not."""
+  """
+  Whether the attribute requires values to be passed or not. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   valueRequired: Boolean!
 
-  """Whether the attribute should be visible or not in storefront."""
+  """
+  Whether the attribute should be visible or not in storefront. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   visibleInStorefront: Boolean!
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   filterableInStorefront: Boolean!
 
-  """Whether the attribute can be filtered in dashboard."""
+  """
+  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   filterableInDashboard: Boolean!
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
   availableInGrid: Boolean!
+
+  """
+  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  storefrontSearchPosition: Int!
 
   """Returns translated attribute fields for the given language code."""
   translation(
     """A language code to return the translation for attribute."""
     languageCode: LanguageCodeEnum!
   ): AttributeTranslation
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int!
 
   """Flag indicating that attribute has predefined choices."""
   withChoices: Boolean!
