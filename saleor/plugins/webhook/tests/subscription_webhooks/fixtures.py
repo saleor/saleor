@@ -161,6 +161,110 @@ def subscription_channel_status_changed_webhook(subscription_webhook):
     )
 
 
+GIFT_CARD_DETAILS_FRAGMENT = """
+    fragment GiftCardDetails on GiftCard{
+        id
+        isActive
+        code
+        createdBy {
+            email
+        }
+    }
+"""
+
+GIFT_CARD_CREATED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardCreated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_CREATED
+    )
+
+
+GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardUpdated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_UPDATED
+    )
+
+
+GIFT_CARD_DELETED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardDeleted{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_DELETED
+    )
+
+
+GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardStatusChanged{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_status_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
+    )
+
+
 SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{

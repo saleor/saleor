@@ -8,18 +8,6 @@ from ..core.utils import from_global_id_or_error
 from .types import Webhook, WebhookEvent
 
 
-def resolve_webhooks(info, **_kwargs):
-    app = info.context.app
-    if app:
-        qs = models.Webhook.objects.filter(app=app)
-    else:
-        user = info.context.user
-        if not user.has_perm(AppPermission.MANAGE_APPS):
-            raise PermissionDenied(permissions=[AppPermission.MANAGE_APPS])
-        qs = models.Webhook.objects.all()
-    return qs
-
-
 def resolve_webhook(info, id):
     app = info.context.app
     _, id = from_global_id_or_error(id, Webhook)

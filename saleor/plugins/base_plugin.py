@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from ..core.taxes import TaxData, TaxType
     from ..discount import DiscountInfo
     from ..discount.models import Sale
+    from ..giftcard.models import GiftCard
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -441,6 +442,30 @@ class BasePlugin:
     #  calculate taxes for products.
     #  Overwrite this method in case your plugin provides a list of tax categories.
     get_tax_rate_type_choices: Callable[[List["TaxType"]], List["TaxType"]]
+
+    #  Trigger when gift card is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card is
+    #  created.
+    gift_card_created: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card is
+    #  deleted.
+    gift_card_deleted: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card is
+    #  updated.
+    gift_card_updated: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card status is changed.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card
+    #  status is changed.
+    gift_card_status_changed: Callable[["GiftCard", None], None]
 
     initialize_payment: Callable[[dict], InitializedPaymentResponse]
 

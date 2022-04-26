@@ -1,7 +1,7 @@
 import graphene
 
 from ...core.permissions import GiftcardPermissions, OrderPermissions
-from ..decorators import permission_required
+from ..core.fields import PermissionsField
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
@@ -23,23 +23,24 @@ class ShopQueries(graphene.ObjectType):
         description="Return information about the shop.",
         required=True,
     )
-    order_settings = graphene.Field(
-        OrderSettings, description="Order related settings from site settings."
+    order_settings = PermissionsField(
+        OrderSettings,
+        description="Order related settings from site settings.",
+        permissions=[OrderPermissions.MANAGE_ORDERS],
     )
-    gift_card_settings = graphene.Field(
+    gift_card_settings = PermissionsField(
         GiftCardSettings,
         description="Gift card related settings from site settings.",
         required=True,
+        permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
     )
 
     def resolve_shop(self, _info):
         return Shop()
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_order_settings(self, info, *args, **_kwargs):
         return info.context.site.settings
 
-    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_card_settings(self, info, *args, **_kwargs):
         return info.context.site.settings
 

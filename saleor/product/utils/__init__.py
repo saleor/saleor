@@ -49,7 +49,7 @@ def delete_categories(categories_ids: List[str], manager):
         products = products | collect_categories_tree_products(category)
 
     ProductChannelListing.objects.filter(product__in=products).update(
-        is_published=False, publication_date=None
+        is_published=False, published_at=None
     )
     products = list(products)
 

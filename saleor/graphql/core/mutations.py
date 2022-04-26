@@ -21,16 +21,11 @@ from graphql.error import GraphQLError
 from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
-    AccountPermissions,
     AuthorizationFilters,
-    resolve_authorization_filter_fn,
+    message_one_of_permissions_required,
+    one_of_permissions_or_auth_filter_required,
 )
-from ..decorators import staff_member_or_app_required
-from ..utils import (
-    get_nodes,
-    get_user_or_app_from_context,
-    resolve_global_ids_to_primary_keys,
-)
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import File, NonNullList, Upload, UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
@@ -150,11 +145,8 @@ class BaseMutation(graphene.Mutation):
         _meta.errors_mapping = errors_mapping
 
         if permissions and auto_permission_message:
-            permission_msg = ", ".join([p.name for p in permissions])
-            description = (
-                f"{description} Requires one of the following "
-                f"permissions: {permission_msg}."
-            )
+            permissions_msg = message_one_of_permissions_required(permissions)
+            description = f"{description} {permissions_msg}"
 
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
@@ -363,37 +355,7 @@ class BaseMutation(graphene.Mutation):
         if not all_permissions:
             return True
 
-        authorization_filters = [
-            p for p in all_permissions if isinstance(p, AuthorizationFilters)
-        ]
-        permissions = [
-            p for p in all_permissions if not isinstance(p, AuthorizationFilters)
-        ]
-
-        granted_by_permissions = False
-        granted_by_authorization_filters = False
-
-        app = getattr(context, "app", None)
-        if app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
-            # `MANAGE_STAFF` permission for apps is not supported. If apps could use it
-            # they could create a staff user with full access which would be a
-            # permission leak issue.
-            return False
-
-        requestor = get_user_or_app_from_context(context)
-        if permissions:
-            granted_by_permissions = requestor.has_perms(permissions)
-
-        if authorization_filters:
-            internal_perm_checks = []
-            for p in authorization_filters:
-                perm_fn = resolve_authorization_filter_fn(p)
-                if perm_fn:
-                    res = perm_fn(context)
-                    internal_perm_checks.append(bool(res))
-            granted_by_authorization_filters = any(internal_perm_checks)
-
-        return granted_by_permissions or granted_by_authorization_filters
+        return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod
     def mutate(cls, root, info, **data):
@@ -782,9 +744,12 @@ class FileUpload(BaseMutation):
         )
         error_type_class = UploadError
         error_type_field = "upload_errors"
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        )
 
     @classmethod
-    @staff_member_or_app_required
     def perform_mutation(cls, _root, info, **data):
         file_data = info.context.FILES.get(data["file"])
 

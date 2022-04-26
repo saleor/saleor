@@ -18,7 +18,7 @@ from ..channel.types import (
 )
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.fields import ConnectionField, JSONString
+from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.types import (
     CountryDisplay,
     ModelObjectType,
@@ -27,7 +27,6 @@ from ..core.types import (
     NonNullList,
     Weight,
 )
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
 from ..translations.fields import TranslationField
@@ -90,9 +89,12 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         type_name="shipping method",
         resolver=None,  # Disable default resolver
     )
-    channel_listings = NonNullList(
-        ShippingMethodChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(ShippingMethodChannelListing),
         description="List of channels available for the method.",
+        permissions=[
+            ShippingPermissions.MANAGE_SHIPPING,
+        ],
     )
     maximum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
@@ -109,6 +111,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     excluded_products = ConnectionField(
         "saleor.graphql.product.types.products.ProductCountableConnection",
         description="List of excluded products for the shipping method.",
+        permissions=[ShippingPermissions.MANAGE_SHIPPING],
     )
     minimum_order_weight = graphene.Field(
         Weight, description="Minimum order weight to use this shipping method."
@@ -193,7 +196,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listings(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
@@ -202,7 +204,6 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         )
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
         root: ChannelContext[models.ShippingMethod], info, **kwargs
     ):
@@ -226,7 +227,9 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
     countries = NonNullList(
-        CountryDisplay, description="List of countries available for the method."
+        CountryDisplay,
+        description="List of countries available for the method.",
+        required=True,
     )
     shipping_methods = NonNullList(
         ShippingMethodType,

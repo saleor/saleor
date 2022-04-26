@@ -10,7 +10,7 @@ from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
-from ..account.utils import check_requestor_access
+from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
@@ -78,9 +78,11 @@ class CheckoutLine(ModelObjectType):
     total_price = graphene.Field(
         TaxedMoney,
         description="The sum of the checkout line price, taxes and discounts.",
+        required=True,
     )
     requires_shipping = graphene.Boolean(
-        description="Indicates whether the item need to be delivered."
+        description="Indicates whether the item need to be delivered.",
+        required=True,
     )
 
     class Meta:
@@ -217,12 +219,14 @@ class Checkout(ModelObjectType):
     )
     email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = NonNullList(
-        GiftCard, description="List of gift cards associated with this checkout."
+        GiftCard,
+        description="List of gift cards associated with this checkout.",
+        required=True,
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if checkout requires shipping.", required=True
     )
-    quantity = graphene.Int(required=True, description="The number of items purchased.")
+    quantity = graphene.Int(description="The number of items purchased.", required=True)
     stock_reservation_expires = graphene.DateTime(
         description=(
             f"{ADDED_IN_31} Date when oldest stock reservation for this checkout "
@@ -235,10 +239,12 @@ class Checkout(ModelObjectType):
             "A list of checkout lines, each containing information about "
             "an item in the checkout."
         ),
+        required=True,
     )
     shipping_price = graphene.Field(
         TaxedMoney,
         description="The price of the shipping, with all the taxes included.",
+        required=True,
     )
     shipping_method = graphene.Field(
         ShippingMethod,
@@ -257,6 +263,7 @@ class Checkout(ModelObjectType):
     subtotal_price = graphene.Field(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
+        required=True,
     )
     token = graphene.Field(UUID, description="The checkout's token.", required=True)
     total_price = graphene.Field(
@@ -265,9 +272,10 @@ class Checkout(ModelObjectType):
             "The sum of the the checkout line prices, with all the taxes,"
             "shipping costs, and discounts included."
         ),
+        required=True,
     )
     language_code = graphene.Field(
-        LanguageCodeEnum, required=True, description="Checkout language code."
+        LanguageCodeEnum, description="Checkout language code.", required=True
     )
 
     class Meta:
@@ -300,7 +308,9 @@ class Checkout(ModelObjectType):
         if not root.user_id:
             return None
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AccountPermissions.MANAGE_USERS)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AccountPermissions.MANAGE_USERS
+        )
         return root.user
 
     @staticmethod

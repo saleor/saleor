@@ -5,7 +5,6 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
 from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
-from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
 from .filters import CheckoutFilterInput
 from .mutations import (
@@ -52,22 +51,27 @@ class CheckoutQueries(graphene.ObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        permissions=[
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+        ],
         description="List of checkouts.",
     )
     checkout_lines = ConnectionField(
-        CheckoutLineCountableConnection, description="List of checkout lines."
+        CheckoutLineCountableConnection,
+        description="List of checkout lines.",
+        permissions=[
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+        ],
     )
 
     def resolve_checkout(self, info, token):
         return resolve_checkout(info, token)
 
-    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, info, *_args, channel=None, **kwargs):
         qs = resolve_checkouts(channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, CheckoutCountableConnection)
 
-    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkout_lines(self, info, *_args, **kwargs):
         qs = resolve_checkout_lines()
         return create_connection_slice(
