@@ -46,6 +46,7 @@ class Migration(migrations.Migration):
                     ("PAYMENT_REFUNDED", "payment_refunded"),
                     ("PAYMENT_VOIDED", "payment_voided"),
                     ("PAYMENT_FAILED", "payment_failed"),
+                    ("TRANSACTION_EVENT", "transaction_event"),
                     ("TRANSACTION_CAPTURE_REQUESTED", "transaction_capture_requested"),
                     ("TRANSACTION_REFUND_REQUESTED", "transaction_refund_requested"),
                     ("TRANSACTION_VOID_REQUESTED", "transaction_void_requested"),

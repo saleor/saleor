@@ -167,6 +167,7 @@ class OrderEvents:
         (PAYMENT_REFUNDED, "The payment was refunded"),
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),
+        (TRANSACTION_EVENT, "The transaction event"),
         (TRANSACTION_CAPTURE_REQUESTED, "The capture on transaction requested"),
         (TRANSACTION_REFUND_REQUESTED, "The refund on transaction requested"),
         (TRANSACTION_VOID_REQUESTED, "The void on transaction requested"),
