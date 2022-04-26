@@ -396,6 +396,7 @@ class Product(SeoModel, ModelWithMetadata):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     description_plaintext = TextField(blank=True)
     search_document = models.TextField(blank=True, default="")
+    search_vector = SearchVectorField(blank=True, null=True)
 
     category = models.ForeignKey(
         Category,
@@ -404,7 +405,7 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         blank=True,
     )
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
@@ -434,9 +435,12 @@ class Product(SeoModel, ModelWithMetadata):
         indexes = [
             GinIndex(
                 name="product_search_gin",
-                # `opclasses` and `fields` should be the same length
                 fields=["search_document"],
                 opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                name="product_tsearch",
+                fields=["search_vector"],
             ),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
@@ -584,7 +588,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     quantity_limit_per_customer = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
     )
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     weight = MeasurementField(
@@ -766,7 +770,7 @@ class DigitalContentUrl(models.Model):
     content = models.ForeignKey(
         DigitalContent, related_name="urls", on_delete=models.CASCADE
     )
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
     line = models.OneToOneField(
         "order.OrderLine",

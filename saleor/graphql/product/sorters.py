@@ -123,7 +123,7 @@ class CollectionSortingInput(ChannelSortInputObjectType):
 
 class ProductOrderField(graphene.Enum):
     NAME = ["name", "slug"]
-    RANK = ["name", "slug"]
+    RANK = ["search_rank", "id"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
     MINIMAL_PRICE = ["discounted_price_amount", "name", "slug"]
     LAST_MODIFIED = ["updated_at", "name", "slug"]
@@ -144,7 +144,9 @@ class ProductOrderField(graphene.Enum):
                 "collection. Note: "
                 "This option is available only for the `Collection.products` query."
             ),
-            ProductOrderField.RANK.name: (f"rank. {DEPRECATED_IN_3X_INPUT}"),
+            ProductOrderField.RANK.name: (
+                "rank. Note: This option is available only with the `search` filter."
+            ),
             ProductOrderField.NAME.name: "name.",
             ProductOrderField.PRICE.name: "price.",
             ProductOrderField.TYPE.name: "type.",

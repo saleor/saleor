@@ -1,5 +1,6 @@
 from ..core.permissions import (
     AccountPermissions,
+    ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
     OrderPermissions,
@@ -13,6 +14,16 @@ from ..core.permissions import (
 
 class WebhookEventAsyncType:
     ANY = "any_events"
+
+    CATEGORY_CREATED = "category_created"
+    CATEGORY_UPDATED = "category_updated"
+    CATEGORY_DELETED = "category_deleted"
+
+    CHANNEL_CREATED = "channel_created"
+    CHANNEL_UPDATED = "channel_updated"
+    CHANNEL_DELETED = "channel_deleted"
+    CHANNEL_STATUS_CHANGED = "channel_status_changed"
+
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
     ORDER_FULLY_PAID = "order_fully_paid"
@@ -62,11 +73,26 @@ class WebhookEventAsyncType:
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
 
+    SHIPPING_PRICE_CREATED = "shipping_price_created"
+    SHIPPING_PRICE_UPDATED = "shipping_price_updated"
+    SHIPPING_PRICE_DELETED = "shipping_price_deleted"
+
+    SHIPPING_ZONE_CREATED = "shipping_zone_created"
+    SHIPPING_ZONE_UPDATED = "shipping_zone_updated"
+    SHIPPING_ZONE_DELETED = "shipping_zone_deleted"
+
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        CATEGORY_CREATED: "Category created",
+        CATEGORY_UPDATED: "Category updated",
+        CATEGORY_DELETED: "Category deleted",
+        CHANNEL_CREATED: "Channel created",
+        CHANNEL_UPDATED: "Channel updated",
+        CHANNEL_DELETED: "Channel deleted",
+        CHANNEL_STATUS_CHANGED: "Channel status changed",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
         ORDER_FULLY_PAID: "Order paid",
@@ -103,12 +129,25 @@ class WebhookEventAsyncType:
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
         PAGE_DELETED: "Page Deleted",
+        SHIPPING_PRICE_CREATED: "Shipping price created",
+        SHIPPING_PRICE_UPDATED: "Shipping price updated",
+        SHIPPING_PRICE_DELETED: "Shipping price deleted",
+        SHIPPING_ZONE_CREATED: "Shipping zone created",
+        SHIPPING_ZONE_UPDATED: "Shipping zone updated",
+        SHIPPING_ZONE_DELETED: "Shipping zone deleted",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
     }
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
+        (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
+        (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
+        (CHANNEL_CREATED, DISPLAY_LABELS[CHANNEL_CREATED]),
+        (CHANNEL_UPDATED, DISPLAY_LABELS[CHANNEL_UPDATED]),
+        (CHANNEL_DELETED, DISPLAY_LABELS[CHANNEL_DELETED]),
+        (CHANNEL_STATUS_CHANGED, DISPLAY_LABELS[CHANNEL_STATUS_CHANGED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
@@ -145,6 +184,12 @@ class WebhookEventAsyncType:
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
+        (SHIPPING_PRICE_CREATED, DISPLAY_LABELS[SHIPPING_PRICE_CREATED]),
+        (SHIPPING_PRICE_UPDATED, DISPLAY_LABELS[SHIPPING_PRICE_UPDATED]),
+        (SHIPPING_PRICE_DELETED, DISPLAY_LABELS[SHIPPING_PRICE_DELETED]),
+        (SHIPPING_ZONE_CREATED, DISPLAY_LABELS[SHIPPING_ZONE_CREATED]),
+        (SHIPPING_ZONE_UPDATED, DISPLAY_LABELS[SHIPPING_ZONE_UPDATED]),
+        (SHIPPING_ZONE_DELETED, DISPLAY_LABELS[SHIPPING_ZONE_DELETED]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
     ]
@@ -152,6 +197,13 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        CHANNEL_CREATED: ChannelPermissions.MANAGE_CHANNELS,
+        CHANNEL_UPDATED: ChannelPermissions.MANAGE_CHANNELS,
+        CHANNEL_DELETED: ChannelPermissions.MANAGE_CHANNELS,
+        CHANNEL_STATUS_CHANGED: ChannelPermissions.MANAGE_CHANNELS,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
@@ -188,6 +240,12 @@ class WebhookEventAsyncType:
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
+        SHIPPING_PRICE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_PRICE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_PRICE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_ZONE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_ZONE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_ZONE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
     }
@@ -274,6 +332,13 @@ class WebhookEventSyncType:
 
 
 SUBSCRIBABLE_EVENTS = [
+    WebhookEventAsyncType.CATEGORY_CREATED,
+    WebhookEventAsyncType.CATEGORY_UPDATED,
+    WebhookEventAsyncType.CATEGORY_DELETED,
+    WebhookEventAsyncType.CHANNEL_CREATED,
+    WebhookEventAsyncType.CHANNEL_UPDATED,
+    WebhookEventAsyncType.CHANNEL_DELETED,
+    WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
     WebhookEventAsyncType.ORDER_CREATED,
     WebhookEventAsyncType.ORDER_UPDATED,
     WebhookEventAsyncType.ORDER_CONFIRMED,
@@ -309,6 +374,12 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.PAGE_CREATED,
     WebhookEventAsyncType.PAGE_UPDATED,
     WebhookEventAsyncType.PAGE_DELETED,
+    WebhookEventAsyncType.SHIPPING_PRICE_CREATED,
+    WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
+    WebhookEventAsyncType.SHIPPING_PRICE_DELETED,
+    WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
+    WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
+    WebhookEventAsyncType.SHIPPING_ZONE_DELETED,
     WebhookEventAsyncType.TRANSLATION_CREATED,
     WebhookEventAsyncType.TRANSLATION_UPDATED,
 ]

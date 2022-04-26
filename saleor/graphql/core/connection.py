@@ -1,5 +1,5 @@
 import json
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
@@ -51,6 +51,28 @@ def get_field_value(instance: DjangoModel, field_name: str):
     return attr
 
 
+def _prepare_filter_by_rank_expression(
+    cursor: List[str],
+    sorting_direction: str,
+) -> Q:
+    try:
+        rank = Decimal(cursor[0])
+        int(cursor[1])
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        raise ValueError("Invalid cursor for sorting by rank.")
+
+    # Because rank is float number, it gets mangled by PostgreSQL's query parser
+    # making equal comparisons impossible. Instead we compare rank against small
+    # range of values, constructed using epsilon.
+    if sorting_direction == "gt":
+        return Q(
+            search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=cursor[1]
+        ) | Q(search_rank__gt=rank + EPSILON)
+    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=cursor[1]) | Q(
+        search_rank__lt=rank - EPSILON
+    )
+
+
 def _prepare_filter_expression(
     field_name: str,
     index: int,
@@ -92,6 +114,9 @@ def _prepare_filter(
                 ('first_field', 'first_value_form_cursor'))
         )
     """
+    if sorting_fields == ["search_rank", "id"]:
+        # Fast path for filtering by rank
+        return _prepare_filter_by_rank_expression(cursor, sorting_direction)
     filter_kwargs = Q()
     for index, field_name in enumerate(sorting_fields):
         if cursor[index] is None and sorting_direction == "gt":
@@ -235,7 +260,10 @@ def connection_from_queryset_slice(
     filter_kwargs = (
         _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
-    filtered_qs = qs.filter(filter_kwargs)
+    try:
+        filtered_qs = qs.filter(filter_kwargs)
+    except ValueError:
+        raise GraphQLError("Received cursor is invalid.")
     filtered_qs = filtered_qs[:end_margin]
     edges, page_info = _get_edges_for_connection(
         edge_type, filtered_qs, args, sorting_fields

@@ -54,8 +54,15 @@ if TYPE_CHECKING:
         PaymentGateway,
         TokenConfig,
     )
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ..shipping.interface import ShippingMethodData
+    from ..shipping.models import ShippingMethod, ShippingZone
     from ..translation.models import Translation
     from ..warehouse.models import Stock
     from .base_plugin import BasePlugin
@@ -784,6 +791,72 @@ class PluginsManager(PaymentInterface):
     def page_deleted(self, page: "Page"):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
+
+    def category_created(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_created", default_value, category)
+
+    def category_updated(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_updated", default_value, category)
+
+    def category_deleted(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_deleted", default_value, category)
+
+    def channel_created(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_created", default_value, channel)
+
+    def channel_updated(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_updated", default_value, channel)
+
+    def channel_deleted(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_deleted", default_value, channel)
+
+    def channel_status_changed(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "channel_status_changed", default_value, channel
+        )
+
+    def shipping_price_created(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_created", default_value, shipping_method
+        )
+
+    def shipping_price_updated(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_updated", default_value, shipping_method
+        )
+
+    def shipping_price_deleted(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_deleted", default_value, shipping_method
+        )
+
+    def shipping_zone_created(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_created", default_value, shipping_zone
+        )
+
+    def shipping_zone_updated(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_updated", default_value, shipping_zone
+        )
+
+    def shipping_zone_deleted(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_deleted", default_value, shipping_zone
+        )
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str

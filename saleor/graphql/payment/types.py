@@ -35,6 +35,10 @@ class Transaction(ModelObjectType):
         model = models.Transaction
 
     @staticmethod
+    def resolve_created(root: models.Transaction, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_amount(root: models.Transaction, _info):
         return root.get_amount()
 
@@ -121,6 +125,14 @@ class Payment(ModelObjectType):
         description = "Represents a payment of a given type."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Payment
+
+    @staticmethod
+    def resolve_created(root: models.Payment, _info):
+        return root.created_at
+
+    @staticmethod
+    def resolve_modified(root: models.Payment, _info):
+        return root.modified_at
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)

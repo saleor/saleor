@@ -59,31 +59,8 @@ def parse_django_datetime(date):
     return json.loads(json.dumps(date, cls=DjangoJSONEncoder))
 
 
-# <<<<<<< HEAD
 @pytest.fixture
 def order_for_payload(fulfilled_order):
-    # =======
-    # def sort_by_id(dicts):
-    #     return sorted(dicts, key=lambda d: d["id"])
-    #
-    #
-    # @freeze_time()
-    # @mock.patch("saleor.webhook.payloads.generate_order_lines_payload")
-    # @mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
-    # def test_generate_order_payload(
-    #     mocked_fulfillment_lines,
-    #     mocked_order_lines,
-    #     fulfilled_order,
-    #     payment_txn_captured,
-    #     customer_user,
-    # ):
-    #     # given
-    #     fulfillment_lines = '"fulfillment_lines"'
-    #     mocked_fulfillment_lines.return_value = fulfillment_lines
-    #     order_lines = '"order_lines"'
-    #     mocked_order_lines.return_value = order_lines
-    #
-    # >>>>>>> main
     order = fulfilled_order
 
     new_order = Order.objects.create(
@@ -116,11 +93,6 @@ def order_for_payload(fulfilled_order):
     return order
 
 
-def sort_by_id(dicts):
-    return sorted(dicts, key=lambda d: d["id"])
-
-
-# <<<<<<< HEAD
 @pytest.fixture
 def payment_for_payload(payment_txn_captured):
     payment_txn_captured.psp_reference = "123"
@@ -165,7 +137,7 @@ def test_generate_order_payload(
         "id": graphene.Node.to_global_id("Order", order.id),
         "type": "Order",
         "token": str(order.id),
-        "created": parse_django_datetime(order.created),
+        "created": parse_django_datetime(order.created_at),
         "status": order.status,
         "origin": order.origin,
         "user_email": order.user_email,
@@ -197,8 +169,8 @@ def test_generate_order_payload(
                 "partial": False,
                 "cc_brand": payment.cc_brand,
                 "is_active": payment.is_active,
-                "created": parse_django_datetime(payment.created),
-                "modified": parse_django_datetime(payment.modified),
+                "created": parse_django_datetime(payment.created_at),
+                "modified": parse_django_datetime(payment.modified_at),
                 "charge_status": payment.charge_status,
                 "psp_reference": payment.psp_reference,
                 "total": str(quantize_price(payment.total, currency)),
@@ -249,7 +221,28 @@ def test_generate_order_payload(
             "country_area": order.billing_address.country_area,
             "phone": str(order.billing_address.phone),
         },
-        "discounts": ANY,
+        "discounts": [
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
+                "type": discount_1.type,
+                "value_type": discount_1.value_type,
+                "value": "20.000",
+                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
+                "name": discount_1.name,
+                "translated_name": discount_1.translated_name,
+                "reason": discount_1.reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
+                "type": discount_2.type,
+                "value_type": discount_2.value_type,
+                "value": "10.000",
+                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
+                "name": discount_2.name,
+                "translated_name": discount_2.translated_name,
+                "reason": discount_2.reason,
+            },
+        ],
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines),
         "included_taxes_in_prices": taxes_included,
@@ -259,7 +252,7 @@ def test_generate_order_payload(
                 "type": "Fulfillment",
                 "status": fulfillment.status,
                 "tracking_number": fulfillment.tracking_number,
-                "created": parse_django_datetime(fulfillment.created),
+                "created": parse_django_datetime(fulfillment.created_at),
                 "shipping_refund_amount": "0.00",
                 "total_refund_amount": "0.00",
                 "lines": json.loads(fulfillment_lines),
@@ -283,31 +276,6 @@ def test_generate_order_payload(
         ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
-
-    assert sort_by_id(payload["discounts"]) == sort_by_id(
-        [
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
-                "type": discount_1.type,
-                "value_type": discount_1.value_type,
-                "value": ANY,
-                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
-                "name": discount_1.name,
-                "translated_name": discount_1.translated_name,
-                "reason": discount_1.reason,
-            },
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
-                "type": discount_2.type,
-                "value_type": discount_2.value_type,
-                "value": ANY,
-                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
-                "name": discount_2.name,
-                "translated_name": discount_2.translated_name,
-                "reason": discount_2.reason,
-            },
-        ],
-    )
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
     mocked_order_lines.assert_called_once_with(order, ANY, ANY)
@@ -353,7 +321,7 @@ def test_generate_order_payload_without_taxes(
         "id": graphene.Node.to_global_id("Order", order.id),
         "type": "Order",
         "token": str(order.id),
-        "created": parse_django_datetime(order.created),
+        "created": parse_django_datetime(order.created_at),
         "status": order.status,
         "origin": order.origin,
         "user_email": order.user_email,
@@ -385,8 +353,8 @@ def test_generate_order_payload_without_taxes(
                 "partial": False,
                 "cc_brand": payment.cc_brand,
                 "is_active": payment.is_active,
-                "created": parse_django_datetime(payment.created),
-                "modified": parse_django_datetime(payment.modified),
+                "created": parse_django_datetime(payment.created_at),
+                "modified": parse_django_datetime(payment.modified_at),
                 "charge_status": payment.charge_status,
                 "psp_reference": payment.psp_reference,
                 "total": str(payment.total.quantize(Decimal("0.01"))),
@@ -437,7 +405,28 @@ def test_generate_order_payload_without_taxes(
             "country_area": order.billing_address.country_area,
             "phone": str(order.billing_address.phone),
         },
-        "discounts": ANY,
+        "discounts": [
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
+                "type": discount_1.type,
+                "value_type": discount_1.value_type,
+                "value": "20.000",
+                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
+                "name": discount_1.name,
+                "translated_name": discount_1.translated_name,
+                "reason": discount_1.reason,
+            },
+            {
+                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
+                "type": discount_2.type,
+                "value_type": discount_2.value_type,
+                "value": "10.000",
+                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
+                "name": discount_2.name,
+                "translated_name": discount_2.translated_name,
+                "reason": discount_2.reason,
+            },
+        ],
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(order_lines),
         "included_taxes_in_prices": include_taxes_in_prices(),
@@ -447,7 +436,7 @@ def test_generate_order_payload_without_taxes(
                 "type": "Fulfillment",
                 "status": fulfillment.status,
                 "tracking_number": fulfillment.tracking_number,
-                "created": parse_django_datetime(fulfillment.created),
+                "created": parse_django_datetime(fulfillment.created_at),
                 "shipping_refund_amount": "0.00",
                 "total_refund_amount": "0.00",
                 "lines": json.loads(fulfillment_lines),
@@ -469,31 +458,6 @@ def test_generate_order_payload_without_taxes(
         ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
-
-    assert sort_by_id(payload["discounts"]) == sort_by_id(
-        [
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_1.pk),
-                "type": discount_1.type,
-                "value_type": discount_1.value_type,
-                "value": ANY,
-                "amount_value": str(quantize_price(discount_1.amount_value, currency)),
-                "name": discount_1.name,
-                "translated_name": discount_1.translated_name,
-                "reason": discount_1.reason,
-            },
-            {
-                "id": graphene.Node.to_global_id("OrderDiscount", discount_2.pk),
-                "type": discount_2.type,
-                "value_type": discount_2.value_type,
-                "value": ANY,
-                "amount_value": str(quantize_price(discount_2.amount_value, currency)),
-                "name": discount_2.name,
-                "translated_name": discount_2.translated_name,
-                "reason": discount_2.reason,
-            },
-        ],
-    )
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
     mocked_order_lines.assert_called_once_with(order, ANY, ANY)
@@ -1451,7 +1415,7 @@ def test_generate_checkout_payload_without_taxes(
     assert payload == {
         "type": "Checkout",
         "token": graphene.Node.to_global_id("Checkout", checkout.pk),
-        "created": parse_django_datetime(checkout.created),
+        "created": parse_django_datetime(checkout.created_at),
         "last_change": parse_django_datetime(checkout.last_change),
         "email": checkout.email,
         "currency": checkout.currency,
@@ -1556,7 +1520,7 @@ def test_generate_checkout_payload(
     assert payload == {
         "type": "Checkout",
         "token": graphene.Node.to_global_id("Checkout", checkout.pk),
-        "created": parse_django_datetime(checkout.created),
+        "created": parse_django_datetime(checkout.created_at),
         "last_change": parse_django_datetime(checkout.last_change),
         "email": checkout.email,
         "currency": checkout.currency,

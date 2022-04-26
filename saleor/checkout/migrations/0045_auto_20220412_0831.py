@@ -7,7 +7,7 @@ from decimal import Decimal
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("checkout", "0043_populate_currency_to_checkout_line"),
+        ("checkout", "0044_populate_currency_to_checkout_line"),
     ]
 
     operations = [

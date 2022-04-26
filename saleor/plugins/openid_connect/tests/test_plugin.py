@@ -96,7 +96,7 @@ def test_external_refresh_from_cookie(
     mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     oauth_payload = {
@@ -149,7 +149,7 @@ def test_external_refresh_from_input(
     mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     oauth_payload = {
@@ -254,7 +254,8 @@ def test_external_refresh_raises_error_when_token_is_invalid(
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode", Mock(side_effect=JoseError())
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(side_effect=JoseError()),
     )
     oauth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
@@ -479,7 +480,7 @@ def test_external_obtain_access_tokens_with_saleor_staff(
     mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     plugin = openid_plugin(use_oauth_scope_permissions=True)
@@ -547,7 +548,7 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
         Mock(return_value=mocked_jwt_validator),
     )
     plugin = openid_plugin(use_oauth_scope_permissions=True)

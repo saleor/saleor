@@ -111,7 +111,7 @@ from ..product.models import (
     ProductVariantTranslation,
     VariantMedia,
 )
-from ..product.search import prepare_product_search_document_value
+from ..product.search import prepare_product_search_vector_value
 from ..product.tests.utils import create_image
 from ..shipping.models import (
     ShippingMethod,
@@ -2208,8 +2208,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
-    product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.search_vector = prepare_product_search_vector_value(product)
+    product.save(update_fields=["search_vector"])
 
     return product
 
@@ -2424,8 +2424,8 @@ def product_with_default_variant(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
 
-    product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.search_vector = prepare_product_search_vector_value(product)
+    product.save(update_fields=["search_vector"])
 
     return product
 
@@ -2832,9 +2832,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
-        product.search_document = prepare_product_search_document_value(product)
+        product.search_vector = prepare_product_search_vector_value(product)
 
-    Product.objects.bulk_update(products, ["search_document"])
+    Product.objects.bulk_update(products, ["search_vector"])
 
     return products
 
@@ -4093,7 +4093,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=pytz.utc),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -5219,14 +5219,27 @@ def app(db):
         name="Sample app objects",
         is_active=True,
     )
-    app.tokens.create(name="Default")
     return app
 
 
 @pytest.fixture
-def app_with_extensions(app, permission_manage_products):
+def webhook_app(db, permission_manage_shipping):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.permissions.add(permission_manage_shipping)
+    return app
+
+
+@pytest.fixture
+def app_with_token(db):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Test")
+    return app
+
+
+@pytest.fixture
+def app_with_extensions(app_with_token, permission_manage_products):
     first_app_extension = AppExtension(
-        app=app,
+        app=app_with_token,
         label="Create product with App",
         url="www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
@@ -5235,7 +5248,7 @@ def app_with_extensions(app, permission_manage_products):
         [
             first_app_extension,
             AppExtension(
-                app=app,
+                app=app_with_token,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
                 mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
@@ -5243,7 +5256,7 @@ def app_with_extensions(app, permission_manage_products):
         ]
     )
     first_app_extension.permissions.add(permission_manage_products)
-    return app, extensions
+    return app_with_token, extensions
 
 
 @pytest.fixture
@@ -5292,7 +5305,6 @@ def shipping_app(db, permission_manage_shipping):
 @pytest.fixture
 def tax_app(db, permission_handle_taxes):
     app = App.objects.create(name="Tax App", is_active=True)
-    app.tokens.create(name="Default")
     app.permissions.add(permission_handle_taxes)
 
     webhook = Webhook.objects.create(

@@ -38,7 +38,7 @@ def assign_permission(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("checkout", "0041_checkoutline_price_override"),
+        ("checkout", "0042_rename_created_checkout_created_at"),
     ]
 
     operations = [

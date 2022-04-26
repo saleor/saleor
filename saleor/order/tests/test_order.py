@@ -21,6 +21,7 @@ from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
+from ...tests.fixtures import recalculate_order
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
@@ -76,6 +77,13 @@ def test_order_get_subtotal(order_with_lines):
 
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
     assert order_with_lines.get_subtotal() == target_subtotal
+
+
+def test_recalculate_order_keeps_weight_unit(order_with_lines):
+    initial_weight_unit = order_with_lines.weight.unit
+    recalculate_order(order_with_lines)
+    recalculated_weight_unit = order_with_lines.weight.unit
+    assert initial_weight_unit == recalculated_weight_unit
 
 
 def test_add_variant_to_order_adds_line_for_new_variant(

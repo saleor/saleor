@@ -17,7 +17,7 @@ from ...core.permissions import (
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import generate_unique_slug
 from ...product import models as product_models
-from ...product.search import update_products_search_document
+from ...product.search import update_products_search_vector
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import JSONString
 from ..core.inputs import ReorderInput
@@ -734,7 +734,7 @@ class AttributeValueUpdate(AttributeValueCreate):
             Q(Exists(instance.productassignments.filter(product_id=OuterRef("id"))))
             | Q(Exists(variants.filter(product_id=OuterRef("id"))))
         )
-        update_products_search_document(products)
+        update_products_search_vector(products)
 
 
 class AttributeValueDelete(ModelDeleteMutation):
@@ -757,7 +757,7 @@ class AttributeValueDelete(ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(_root, info, **data)
-        update_products_search_document(
+        update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
         return response

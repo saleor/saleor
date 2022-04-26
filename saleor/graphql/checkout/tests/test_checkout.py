@@ -158,7 +158,7 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_checkout_create_triggers_webhooks(
     mocked_webhook_trigger,
@@ -3380,11 +3380,36 @@ QUERY_CHECKOUT_USER_ID = """
     """
 
 
-def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
+def test_anonymous_client_can_fetch_anonymoues_checkout_user(api_client, checkout):
+    # given
     query = QUERY_CHECKOUT_USER_ID
     variables = {"token": str(checkout.token)}
+
+    # when
     response = api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+
+    # then
+
+    content = get_graphql_content(response)
+    assert not content["data"]["checkout"]["user"]
+
+
+def test_anonymous_client_cant_fetch_checkout_with_attached_user(
+    api_client, checkout, customer_user
+):
+    # given
+    checkout.user = customer_user
+    checkout.save()
+
+    query = QUERY_CHECKOUT_USER_ID
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkout"]
 
 
 def test_authorized_access_to_checkout_user_as_customer(
@@ -4078,6 +4103,41 @@ def test_checkout_delivery_method_update_with_id_of_different_type_causes_and_er
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethodId"
     assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+    assert checkout.shipping_method is None
+    assert checkout.collection_point is None
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_with_nonexistant_id_results_not_found(
+    mock_clean_delivery,
+    api_client,
+    warehouse_for_cc,
+    checkout_with_item,
+    address,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    nonexistant_id = "YXBwOjEyMzQ6c29tZS1pZA=="
+    response = api_client.post_graphql(
+        query,
+        {
+            "token": checkout.token,
+            "deliveryMethodId": nonexistant_id,
+        },
+    )
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    assert not data["checkout"]
+    assert data["errors"][0]["field"] == "deliveryMethodId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
     assert checkout.shipping_method is None
     assert checkout.collection_point is None
 

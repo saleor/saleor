@@ -218,7 +218,9 @@ class BaseMutation(graphene.Mutation):
         return pk
 
     @classmethod
-    def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
+    def get_node_or_error(
+        cls, info, node_id, field="id", only_type=None, qs=None, code="not_found"
+    ):
         if not node_id:
             return None
 
@@ -240,7 +242,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id, code="not_found"
+                            "Couldn't resolve to a node: %s" % node_id, code=code
                         )
                     }
                 )
@@ -639,6 +641,7 @@ class ModelDeleteMutation(ModelMutation):
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
+        cls.post_save_action(info, instance, None)
         return cls.success_response(instance)
 
 

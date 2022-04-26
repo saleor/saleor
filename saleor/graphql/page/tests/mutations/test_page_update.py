@@ -122,7 +122,7 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
         assert attr_data in expected_attributes
 
 
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @freeze_time("2020-03-18 12:00:00")
 def test_update_page_trigger_webhook(

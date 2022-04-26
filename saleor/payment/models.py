@@ -35,8 +35,8 @@ class Payment(ModelWithMetadata):
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)
     partial = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
         max_length=20, choices=ChargeStatus.CHOICES, default=ChargeStatus.NOT_CHARGED
     )
@@ -119,7 +119,7 @@ class Payment(ModelWithMetadata):
         return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (
             self.gateway,
             self.is_active,
-            self.created,
+            self.created_at,
             self.charge_status,
         )
 
@@ -218,7 +218,7 @@ class Transaction(models.Model):
     and your customers, with a chosen payment method.
     """
 
-    created = models.DateTimeField(auto_now_add=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
     payment = models.ForeignKey(
         Payment, related_name="transactions", on_delete=models.PROTECT
     )
@@ -250,7 +250,7 @@ class Transaction(models.Model):
         return "Transaction(type=%s, is_success=%s, created=%s)" % (
             self.kind,
             self.is_success,
-            self.created,
+            self.created_at,
         )
 
     def get_amount(self):

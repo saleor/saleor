@@ -325,6 +325,10 @@ class GiftCard(ModelObjectType):
         model = models.GiftCard
 
     @staticmethod
+    def resolve_created(root: models.GiftCard, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_last_4_code_chars(root: models.GiftCard, *_args, **_kwargs):
         return root.display_code
 

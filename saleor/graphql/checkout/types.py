@@ -276,6 +276,10 @@ class Checkout(ModelObjectType):
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
+    def resolve_created(root: models.Checkout, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_id(root: models.Checkout, _):
         return graphene.Node.to_global_id("Checkout", root.pk)
 
@@ -293,6 +297,8 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     def resolve_user(root: models.Checkout, info):
+        if not root.user_id:
+            return None
         requestor = get_user_or_app_from_context(info.context)
         check_requestor_access(requestor, root.user, AccountPermissions.MANAGE_USERS)
         return root.user

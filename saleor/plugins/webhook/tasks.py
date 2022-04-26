@@ -42,6 +42,7 @@ from ...webhook.event_types import (
 )
 from ...webhook.models import Webhook
 from ...webhook.payloads import generate_meta, generate_requestor
+from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
     attempt_update,
@@ -137,7 +138,7 @@ def create_deliveries_for_subscriptions(
             )
             continue
 
-        event_payload = EventPayload(payload=json.dumps([{**data, "meta": meta}]))
+        event_payload = EventPayload(payload=json.dumps({**data, "meta": meta}))
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -165,6 +166,7 @@ def trigger_webhooks_async(
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
+
     if regular_webhooks:
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
@@ -177,7 +179,9 @@ def trigger_webhooks_async(
     if subscription_webhooks:
         meta = {}
         if requestor:
-            meta = generate_meta(requestor_data=generate_requestor(requestor))
+            meta = generate_meta(
+                requestor_data=generate_requestor(requestor), camel_case=True
+            )
         deliveries.extend(
             create_deliveries_for_subscriptions(
                 event_type=event_type,
@@ -202,8 +206,10 @@ def trigger_webhook_sync(
     event_type: str, data: str, app: "App", timeout=None
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
+    webhooks = get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
+    if not webhook:
+        raise PaymentError(f"No payment webhook found for event: {event_type}.")
     event_payload = EventPayload.objects.create(payload=data)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
@@ -211,9 +217,6 @@ def trigger_webhook_sync(
         payload=event_payload,
         webhook=webhook,
     )
-    if not webhooks:
-        raise PaymentError(f"No payment webhook found for event: {event_type}.")
-
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
@@ -528,7 +531,7 @@ def send_webhook_request_sync(
 @app.task(compression="zlib")
 def trigger_webhooks_for_event(event_type, data):
     """Send a webhook request for an event as an async task."""
-    webhooks = _get_webhooks_for_event(event_type)
+    webhooks = get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
             webhook.app.name,

@@ -23,6 +23,13 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        zones = [zone for zone in queryset]
+        queryset.delete()
+        for zone in zones:
+            info.context.plugins.shipping_zone_deleted(zone)
+
 
 class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
@@ -56,3 +63,10 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
             qs=models.ShippingMethod.objects,
             schema=schema,
         )
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        shipping_methods = [sm for sm in queryset]
+        queryset.delete()
+        for method in shipping_methods:
+            info.context.plugins.shipping_price_deleted(method)

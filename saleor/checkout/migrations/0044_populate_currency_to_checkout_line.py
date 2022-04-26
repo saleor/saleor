@@ -16,7 +16,7 @@ def set_default_checkout_line_currency(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("checkout", "0042_create_checkout_tax_fields"),
+        ("checkout", "0043_create_checkout_tax_fields"),
     ]
 
     operations = [

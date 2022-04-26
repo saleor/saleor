@@ -124,6 +124,7 @@ def recalculate_order_weight(order: Order, *, save: bool = False):
     for line in order.lines.all():
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
+    weight.unit = order.weight.unit
     order.weight = weight
     if save:
         order.save(update_fields=["weight", "updated_at"])

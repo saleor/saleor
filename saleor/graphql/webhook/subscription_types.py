@@ -33,6 +33,58 @@ TRANSLATIONS_TYPES_MAP = {
 }
 
 
+class CategoryBase(AbstractType):
+    category = graphene.Field(
+        "saleor.graphql.product.types.Category",
+        description=f"{ADDED_IN_32} Look up a category. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_category(root, info):
+        _, category = root
+        return category
+
+
+class CategoryCreated(ObjectType, CategoryBase):
+    ...
+
+
+class CategoryUpdated(ObjectType, CategoryBase):
+    ...
+
+
+class CategoryDeleted(ObjectType, CategoryBase):
+    ...
+
+
+class ChannelBase(AbstractType):
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description=f"{ADDED_IN_32} Look up a channel. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_channel(root, info):
+        _, channel = root
+        return channel
+
+
+class ChannelCreated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelUpdated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelDeleted(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelStatusChanged(ObjectType, ChannelBase):
+    ...
+
+
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
@@ -342,6 +394,72 @@ class PageDeleted(ObjectType, PageBase):
     ...
 
 
+class ShippingPriceBase(AbstractType):
+    shipping_method = graphene.Field(
+        "saleor.graphql.shipping.types.ShippingMethodType",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description=f"{ADDED_IN_32} Look up a shipping method. {PREVIEW_FEATURE}",
+    )
+    shipping_zone = graphene.Field(
+        "saleor.graphql.shipping.types.ShippingZone",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description=f"{ADDED_IN_32} Look up a shipping zone. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_shipping_method(root, _info, channel=None):
+        _, shipping_method = root
+        return ChannelContext(node=shipping_method, channel_slug=channel)
+
+    @staticmethod
+    def resolve_shipping_zone(root, _info, channel=None):
+        _, shipping_method = root
+        return ChannelContext(node=shipping_method.shipping_zone, channel_slug=channel)
+
+
+class ShippingPriceCreated(ObjectType, ShippingPriceBase):
+    ...
+
+
+class ShippingPriceUpdated(ObjectType, ShippingPriceBase):
+    ...
+
+
+class ShippingPriceDeleted(ObjectType, ShippingPriceBase):
+    ...
+
+
+class ShippingZoneBase(AbstractType):
+    shipping_zone = graphene.Field(
+        "saleor.graphql.shipping.types.ShippingZone",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description=f"{ADDED_IN_32} Look up a shipping zone. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_shipping_zone(root, _info, channel=None):
+        _, shipping_zone = root
+        return ChannelContext(node=shipping_zone, channel_slug=channel)
+
+
+class ShippingZoneCreated(ObjectType, ShippingZoneBase):
+    ...
+
+
+class ShippingZoneUpdated(ObjectType, ShippingZoneBase):
+    ...
+
+
+class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
+    ...
+
+
 class TranslationTypes(Union):
     class Meta:
         types = tuple(TRANSLATIONS_TYPES_MAP.values())
@@ -378,6 +496,13 @@ class TranslationUpdated(ObjectType, TranslationBase):
 class Event(Union):
     class Meta:
         types = (
+            CategoryCreated,
+            CategoryUpdated,
+            CategoryDeleted,
+            ChannelCreated,
+            ChannelUpdated,
+            ChannelDeleted,
+            ChannelStatusChanged,
             OrderCreated,
             OrderUpdated,
             OrderConfirmed,
@@ -413,6 +538,12 @@ class Event(Union):
             PageCreated,
             PageUpdated,
             PageDeleted,
+            ShippingPriceCreated,
+            ShippingPriceUpdated,
+            ShippingPriceDeleted,
+            ShippingZoneCreated,
+            ShippingZoneUpdated,
+            ShippingZoneDeleted,
             TranslationCreated,
             TranslationUpdated,
         )
@@ -420,6 +551,13 @@ class Event(Union):
     @classmethod
     def get_type(cls, object_type: str):
         types = {
+            WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
+            WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
+            WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
+            WebhookEventAsyncType.CHANNEL_CREATED: ChannelCreated,
+            WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
+            WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
+            WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
             WebhookEventAsyncType.ORDER_CREATED: OrderCreated,
             WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
             WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
@@ -459,6 +597,12 @@ class Event(Union):
             WebhookEventAsyncType.PAGE_CREATED: PageCreated,
             WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,
             WebhookEventAsyncType.PAGE_DELETED: PageDeleted,
+            WebhookEventAsyncType.SHIPPING_PRICE_CREATED: ShippingPriceCreated,
+            WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: ShippingPriceUpdated,
+            WebhookEventAsyncType.SHIPPING_PRICE_DELETED: ShippingPriceDeleted,
+            WebhookEventAsyncType.SHIPPING_ZONE_CREATED: ShippingZoneCreated,
+            WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
+            WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
             WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
             WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
         }
