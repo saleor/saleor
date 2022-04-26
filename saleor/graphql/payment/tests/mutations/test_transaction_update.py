@@ -268,6 +268,30 @@ def test_transaction_update_multiple_amounts_provided(
     assert transaction.refunded_value == refunded_value
 
 
+def test_transaction_update_permission_denied_for_staff(
+    transaction, staff_api_client, permission_manage_payments
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_transaction_update_for_order_missing_app_permission(
     transaction, app_api_client
 ):

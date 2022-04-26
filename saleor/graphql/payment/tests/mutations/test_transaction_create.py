@@ -336,6 +336,46 @@ def test_transaction_create_create_event_for_order(
     }
 
 
+def test_transaction_create_permission_denied_for_staff(
+    order_with_lines, staff_api_client, permission_manage_payments
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+    reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.VOID.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "reference": reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_transaction_create_missing_app_permission(order_with_lines, app_api_client):
     # given
     status = "Authorized for 10$"

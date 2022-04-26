@@ -640,10 +640,20 @@ class TransactionCreate(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_32} Create transaction for checkout or order. {PREVIEW_FEATURE}"
+            f"{ADDED_IN_32} Create transaction for checkout or order. Can be used only"
+            f" by apps. {PREVIEW_FEATURE}"
         )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+
+    @classmethod
+    def check_permissions(cls, context, permissions=None):
+        """Determine whether app has rights to perform this mutation."""
+        permissions = permissions or cls._meta.permissions
+        app = getattr(context, "app", None)
+        if app:
+            return app.has_perms(permissions)
+        return False
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: List[dict], field_name, error_code):
@@ -811,7 +821,8 @@ class TransactionUpdate(TransactionCreate):
 
     class Meta:
         description = (
-            f"{ADDED_IN_32} Create transaction for checkout or order. {PREVIEW_FEATURE}"
+            f"{ADDED_IN_32} Create transaction for checkout or order. Can be used only"
+            f" by apps. {PREVIEW_FEATURE}"
         )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
