@@ -2,7 +2,9 @@ import json
 from unittest.mock import patch
 
 import graphene
+import pytest
 
+from .....channel.models import Channel
 from .....graphql.webhook.subscription_payload import validate_subscription_query
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
@@ -61,6 +63,87 @@ def test_category_deleted(category, subscription_category_deleted_webhook):
     # then
     expected_payload = json.dumps({"category": {"id": category_id}, "meta": None})
     assert category_instances[0].id is not None
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_channel_created(channel_USD, subscription_channel_created_webhook):
+    # given
+    webhooks = [subscription_channel_created_webhook]
+    event_type = WebhookEventAsyncType.CHANNEL_CREATED
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, channel_USD, webhooks)
+
+    # then
+    expected_payload = json.dumps({"channel": {"id": channel_id}, "meta": None})
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_channel_updated(channel_USD, subscription_channel_updated_webhook):
+    # given
+    webhooks = [subscription_channel_updated_webhook]
+    event_type = WebhookEventAsyncType.CHANNEL_UPDATED
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, channel_USD, webhooks)
+
+    # then
+    expected_payload = json.dumps({"channel": {"id": channel_id}, "meta": None})
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_channel_deleted(channel_USD, subscription_channel_deleted_webhook):
+    # given
+    webhooks = [subscription_channel_deleted_webhook]
+
+    channel_query = Channel.objects.filter(pk=channel_USD.id)
+    channel_instances = [channel for channel in channel_query]
+    channel_query.delete()
+
+    event_type = WebhookEventAsyncType.CHANNEL_DELETED
+    channel_id = graphene.Node.to_global_id("Channel", channel_instances[0].id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, channel_instances[0], webhooks
+    )
+
+    # then
+    expected_payload = json.dumps({"channel": {"id": channel_id}, "meta": None})
+    assert channel_instances[0].id is not None
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+@pytest.mark.parametrize("status", [True, False])
+def test_channel_status_changed(
+    status, channel_USD, subscription_channel_status_changed_webhook
+):
+    # given
+    webhooks = [subscription_channel_status_changed_webhook]
+
+    channel_USD.is_active = status
+    channel_USD.save(update_fields=["is_active"])
+
+    event_type = WebhookEventAsyncType.CHANNEL_STATUS_CHANGED
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, channel_USD, webhooks)
+
+    # then
+    expected_payload = json.dumps(
+        {"channel": {"id": channel_id, "isActive": status}, "meta": None}
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

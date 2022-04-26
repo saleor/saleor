@@ -799,6 +799,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("category_deleted", default_value, category)
 
+    def channel_created(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_created", default_value, channel)
+
+    def channel_updated(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_updated", default_value, channel)
+
+    def channel_deleted(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_deleted", default_value, channel)
+
+    def channel_status_changed(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "channel_status_changed", default_value, channel
+        )
+
     def shipping_price_created(self, shipping_method: "ShippingMethod"):
         default_value = None
         return self.__run_method_on_plugins(
