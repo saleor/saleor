@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
 
             ALTER TABLE order_order_gift_cards
             RENAME CONSTRAINT order_order_gift_cards_order_token_fk_order_order_id
-            TO order_order_gift_cards_order_id_fk_order_order_id;
+            TO order_order_gift_cards_order_id_ce5608c4_fk_order_order_id;
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),

@@ -1087,10 +1087,6 @@ def test_unassign_attributes_from_product_type(
         == remaining_attribute_global_id
     )
 
-    product.refresh_from_db()
-    assert product.search_document
-    assert product_attr_value.name not in product.search_document
-
 
 def test_unassign_attributes_not_in_product_type(
     staff_api_client,
