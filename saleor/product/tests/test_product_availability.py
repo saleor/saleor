@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from unittest.mock import Mock
 
+from django.utils import timezone
 from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -183,9 +184,9 @@ def test_available_products_only_published(product_list, channel_USD):
 
 def test_available_products_only_available(product_list, channel_USD):
     channel_listing = product_list[0].channel_listings.get()
-    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    channel_listing.publication_date = date_tomorrow
-    channel_listing.save(update_fields=["publication_date"])
+    date_tomorrow = timezone.now() + datetime.timedelta(days=1)
+    channel_listing.published_at = date_tomorrow
+    channel_listing.save(update_fields=["published_at"])
 
     available_products = models.Product.objects.published(channel_USD.slug)
     assert available_products.count() == 2
@@ -199,9 +200,9 @@ def test_available_products_only_available(product_list, channel_USD):
 
 def test_available_products_available_from_yesterday(product_list, channel_USD):
     channel_listing = product_list[0].channel_listings.get()
-    date_tomorrow = datetime.date.today() - datetime.timedelta(days=1)
-    channel_listing.publication_date = date_tomorrow
-    channel_listing.save(update_fields=["publication_date"])
+    date_tomorrow = timezone.now() - datetime.timedelta(days=1)
+    channel_listing.published_at = date_tomorrow
+    channel_listing.save(update_fields=["published_at"])
 
     available_products = models.Product.objects.published(channel_USD.slug)
     assert available_products.count() == 3
@@ -236,7 +237,7 @@ def test_available_products_available_with_many_channels(
 @freeze_time("2020-03-18 12:00:00")
 def test_product_is_visible_from_today(product):
     product_channel_listing = product.channel_listings.get()
-    product_channel_listing.publication_date = datetime.date.today()
+    product_channel_listing.published_at = timezone.now()
     product_channel_listing.save()
     assert product_channel_listing.is_visible
 
@@ -304,22 +305,22 @@ def test_filter_not_published_product_is_unpublished(product, channel_USD):
 
 
 def test_filter_not_published_product_published_tomorrow(product, channel_USD):
-    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    date_tomorrow = timezone.now() + datetime.timedelta(days=1)
     channel_listing = product.channel_listings.get()
     channel_listing.is_published = True
-    channel_listing.publication_date = date_tomorrow
-    channel_listing.save(update_fields=["is_published", "publication_date"])
+    channel_listing.published_at = date_tomorrow
+    channel_listing.save(update_fields=["is_published", "published_at"])
 
     available_products = models.Product.objects.not_published(channel_USD.slug)
     assert available_products.count() == 1
 
 
 def test_filter_not_published_product_not_published_tomorrow(product, channel_USD):
-    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    date_tomorrow = timezone.now() + datetime.timedelta(days=1)
     channel_listing = product.channel_listings.get()
     channel_listing.is_published = False
-    channel_listing.publication_date = date_tomorrow
-    channel_listing.save(update_fields=["is_published", "publication_date"])
+    channel_listing.published_at = date_tomorrow
+    channel_listing.save(update_fields=["is_published", "published_at"])
 
     available_products = models.Product.objects.not_published(channel_USD.slug)
     assert available_products.count() == 1

@@ -73,19 +73,17 @@ class CollectionSortField(graphene.Enum):
     NAME = ["name", "slug"]
     AVAILABILITY = ["is_published", "slug"]
     PRODUCT_COUNT = ["product_count", "slug"]
-    PUBLICATION_DATE = ["publication_date", "slug"]
+    PUBLICATION_DATE = ["published_at", "slug"]
+    PUBLISHED_AT = ["published_at", "slug"]
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            CollectionSortField.NAME,
-            CollectionSortField.AVAILABILITY,
-            CollectionSortField.PRODUCT_COUNT,
-            CollectionSortField.PUBLICATION_DATE,
-        ]:
+        if self.name in CollectionSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            return f"Sort collections by {sort_name}."
+            description = f"Sort collections by {sort_name}."
+            if self.name == "PUBLICATION_DATE":
+                description += DEPRECATED_IN_3X_INPUT
+            return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
@@ -105,13 +103,17 @@ class CollectionSortField(graphene.Enum):
 
     @staticmethod
     def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        return CollectionSortField.qs_with_published_at(queryset, channel_slug)
+
+    @staticmethod
+    def qs_with_published_at(queryset: QuerySet, channel_slug: str) -> QuerySet:
         subquery = Subquery(
             CollectionChannelListing.objects.filter(
                 collection_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("publication_date")[:1]
+            ).values_list("published_at")[:1]
         )
         return queryset.annotate(
-            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+            published_at=ExpressionWrapper(subquery, output_field=DateField())
         )
 
 
@@ -130,8 +132,8 @@ class ProductOrderField(graphene.Enum):
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
-    PUBLICATION_DATE = ["publication_date", "name", "slug"]
-    PUBLISHED_AT = ["publication_date", "name", "slug"]
+    PUBLICATION_DATE = ["published_at", "name", "slug"]
+    PUBLISHED_AT = ["published_at", "name", "slug"]
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
     COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
@@ -208,10 +210,10 @@ class ProductOrderField(graphene.Enum):
         subquery = Subquery(
             ProductChannelListing.objects.filter(
                 product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("publication_date")[:1]
+            ).values_list("published_at")[:1]
         )
         return queryset.annotate(
-            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+            published_at=ExpressionWrapper(subquery, output_field=DateField())
         )
 
     @staticmethod

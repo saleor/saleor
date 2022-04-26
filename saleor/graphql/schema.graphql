@@ -3183,7 +3183,10 @@ type Product implements Node & ObjectWithMetadata {
   ): ProductTranslation
 
   """Date when product is available for purchase."""
-  availableForPurchase: Date
+  availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
+
+  """Date when product is available for purchase."""
+  availableForPurchaseAt: DateTime
 
   """Whether the product is available for purchase."""
   isAvailableForPurchase: Boolean
@@ -3538,7 +3541,7 @@ type AttributeValue implements Node {
   """Represents the date value of the attribute value."""
   date: Date
 
-  """Represents the date time value of the attribute value."""
+  """Represents the date/time value of the attribute value."""
   dateTime: DateTime
 }
 
@@ -4449,11 +4452,17 @@ type TaxedMoneyRange {
 """Represents product channel listing."""
 type ProductChannelListing implements Node {
   id: ID!
-  publicationDate: Date
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """New in Saleor 3.3. The product publication date time."""
+  publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
   visibleInListings: Boolean!
-  availableForPurchase: Date
+  availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
+
+  """New in Saleor 3.3. The product available for purchase date time."""
+  availableForPurchaseAt: DateTime
 
   """The price of the cheapest variant (including discounts)."""
   discountedPrice: Money
@@ -4585,10 +4594,12 @@ input AttributeInput {
   """The range that the returned values should be in."""
   valuesRange: IntRangeInput
 
-  """The date time range that the returned values should be in."""
+  """The date/time range that the returned values should be in."""
   dateTime: DateTimeRangeInput
 
-  """The date range that the returned values should be in."""
+  """
+  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used.
+  """
   date: DateRangeInput
 
   """The boolean value of the attribute."""
@@ -4720,7 +4731,10 @@ type CollectionTranslation implements Node {
 """Represents collection channel listing."""
 type CollectionChannelListing implements Node {
   id: ID!
-  publicationDate: Date
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """New in Saleor 3.3. The collection publication date."""
+  publishedAt: DateTime
   isPublished: Boolean!
   channel: Channel!
 }
@@ -4962,7 +4976,10 @@ type Page implements Node & ObjectWithMetadata {
 
   """Content of the page (JSON)."""
   content: JSONString
-  publicationDate: Date
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """New in Saleor 3.3. The page publication date."""
+  publishedAt: DateTime
   isPublished: Boolean!
   slug: String!
   pageType: PageType!
@@ -7210,8 +7227,19 @@ enum CollectionSortField {
   """Sort collections by product count."""
   PRODUCT_COUNT
 
-  """Sort collections by publication date."""
+  """
+  Sort collections by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   PUBLICATION_DATE
+
+  """
+  Sort collections by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  PUBLISHED_AT
 }
 
 input ProductTypeFilterInput {
@@ -7332,8 +7360,19 @@ enum PageSortField {
   """Sort pages by creation date."""
   CREATION_DATE
 
-  """Sort pages by publication date."""
+  """
+  Sort pages by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   PUBLICATION_DATE
+
+  """
+  Sort pages by publication date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  PUBLISHED_AT
 }
 
 input PageFilterInput {
@@ -12099,7 +12138,11 @@ input CollectionCreateInput {
   """Search engine optimization fields."""
   seo: SeoInput
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   publicationDate: Date
 
   """List of products to be added to the collection."""
@@ -12186,7 +12229,11 @@ input CollectionInput {
   """Search engine optimization fields."""
   seo: SeoInput
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   publicationDate: Date
 }
 
@@ -12246,8 +12293,15 @@ input PublishableChannelListingInput {
   """Determines if object is visible to customers."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
+  """
   publicationDate: Date
+
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
 }
 
 """
@@ -12324,7 +12378,7 @@ input AttributeValueInput {
   """Represents the date value of the attribute value."""
   date: Date
 
-  """Represents the date time value of the attribute value."""
+  """Represents the date/time value of the attribute value."""
   dateTime: DateTime
 }
 
@@ -12450,8 +12504,15 @@ input ProductChannelListingAddInput {
   """Determines if object is visible to customers."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
+  """
   publicationDate: Date
+
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
 
   """
   Determines if product is visible in product listings (doesn't apply to product collections).
@@ -12462,9 +12523,16 @@ input ProductChannelListingAddInput {
   isAvailableForPurchase: Boolean
 
   """
-  A start date from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
+  A start date from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `availableForPurchaseAt` field instead.
   """
   availableForPurchaseDate: Date
+
+  """
+  New in Saleor 3.3. A start date time from which a product will be available for purchase. When not set and `isAvailable` is set to True, the current day is assumed.
+  """
+  availableForPurchaseAt: DateTime
 
   """List of variants to which the channel should be assigned."""
   addVariants: [ID!]
@@ -13283,8 +13351,15 @@ input PageCreateInput {
   """Determines if page is visible in the storefront."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
+  """
   publicationDate: String
+
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
 
   """Search engine optimization fields."""
   seo: SeoInput
@@ -13347,8 +13422,15 @@ input PageInput {
   """Determines if page is visible in the storefront."""
   isPublished: Boolean
 
-  """Publication date. ISO 8601 standard."""
+  """
+  Publication date. ISO 8601 standard. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `publishedAt` field instead.
+  """
   publicationDate: String
+
+  """New in Saleor 3.3. Publication date time. ISO 8601 standard."""
+  publishedAt: DateTime
 
   """Search engine optimization fields."""
   seo: SeoInput
