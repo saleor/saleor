@@ -27,6 +27,8 @@ from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import Subscription
+from transferrequest.graphql.schema import TransferRequestMutations, TransferRequestQueries
+
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
@@ -53,6 +55,7 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
+    TransferRequestQueries,
 ):
     pass
 
@@ -80,6 +83,7 @@ class Mutation(
     ShopMutations,
     WarehouseMutations,
     WebhookMutations,
+    TransferRequestMutations
 ):
     pass
 
