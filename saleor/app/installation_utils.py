@@ -82,7 +82,6 @@ def install_app(
                 ]
             )
 
-
     _, token = app.tokens.create(name="Default token")
 
     try:
