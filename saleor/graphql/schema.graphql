@@ -4458,7 +4458,9 @@ enum ProductOrderField {
   """Sort products by name."""
   NAME
 
-  """Sort products by name."""
+  """
+  Sort products by rank. Note: This option is available only with the `search` filter.
+  """
   RANK
 
   """Sort products by price."""

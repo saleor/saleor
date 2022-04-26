@@ -49,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow plugins to create their custom error code - #9300 by @LeOndaz
 
 #### Other
+- Use full-text search for products search API - #9344 by @patrys
 
 - Include required permission in mutations' descriptions - #9363 by @maarcingebala
 - Make GraphQL list items non-nullable - #9391 by @maarcingebala

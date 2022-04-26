@@ -10,7 +10,7 @@ from ..order.search import prepare_order_search_document_value
 from ..product.models import Product
 from ..product.search import (
     PRODUCT_FIELDS_TO_PREFETCH,
-    prepare_product_search_document_value,
+    prepare_product_search_vector_value,
 )
 
 task_logger = get_task_logger(__name__)
@@ -82,7 +82,7 @@ def set_order_search_document_values(updated_count: int = 0) -> None:
 @app.task
 def set_product_search_document_values(updated_count: int = 0) -> None:
     products = list(
-        Product.objects.filter(search_document="")
+        Product.objects.filter(search_vector=None)
         .prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)[:BATCH_SIZE]
         .iterator()
     )
@@ -91,8 +91,9 @@ def set_product_search_document_values(updated_count: int = 0) -> None:
         task_logger.info("No products to update.")
         return
 
-    updated_count += set_search_document_values(
-        products, prepare_product_search_document_value
+    updated_count += set_search_vector_values(
+        products,
+        prepare_product_search_vector_value,
     )
 
     task_logger.info("Updated %d products", updated_count)
@@ -115,5 +116,19 @@ def set_search_document_values(instances: List, prepare_search_document_func):
             instance, already_prefetched=True
         )
     Model.objects.bulk_update(instances, ["search_document"])
+
+    return len(instances)
+
+
+def set_search_vector_values(
+    instances,
+    prepare_search_vector_func,
+):
+    Model = instances[0]._meta.model
+    for instance in instances:
+        instance.search_vector = prepare_search_vector_func(
+            instance, already_prefetched=True
+        )
+    Model.objects.bulk_update(instances, ["search_vector"])
 
     return len(instances)

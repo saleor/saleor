@@ -118,6 +118,9 @@ documentation = "https://docs.saleor.io/"
   django-stubs = "1.8.0"
   pytest-socket = "^0.5.1"
   before_after = "^1.0.1"
+  types-certifi = "^2021.10.8"
+  types-freezegun = "^1.1.7"
+  types-six = "^1.16.12"
 
 [tool.black]
 target_version = [ "py35", "py36", "py37", "py38" ]
