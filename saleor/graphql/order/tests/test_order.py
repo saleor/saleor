@@ -4127,6 +4127,52 @@ def test_order_lines_create(
     assert variant.sku.lower() in order.search_document
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_for_just_published_product(
+    product_variant_out_of_stock_webhook_mock,
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    product_listing = variant.product.channel_listings.get(channel=order.channel)
+    product_listing.published_at = datetime.now(pytz.utc)
+    product_listing.save(update_fields=["published_at"])
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
+
+
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_unavailable_variant(

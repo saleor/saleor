@@ -15,7 +15,7 @@ from django.db.models import (
     BooleanField,
     Case,
     Count,
-    DateField,
+    DateTimeField,
     Exists,
     ExpressionWrapper,
     F,
@@ -262,7 +262,7 @@ class ProductsQueryset(models.QuerySet):
             ).values_list("published_at")[:1]
         )
         return self.annotate(
-            published_at=ExpressionWrapper(query, output_field=DateField())
+            published_at=ExpressionWrapper(query, output_field=DateTimeField())
         )
 
     def annotate_visible_in_listings(self, channel_slug):
