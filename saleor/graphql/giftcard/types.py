@@ -15,15 +15,18 @@ from ...core.permissions import (
 from ...core.tracing import traced_resolver
 from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
-from ..account.utils import check_requestor_access, requestor_has_access
+from ..account.utils import (
+    check_is_owner_or_has_one_of_perms,
+    is_owner_or_has_one_of_perms,
+)
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.fields import PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
@@ -68,9 +71,19 @@ class GiftCardEvent(ModelObjectType):
     type = GiftCardEventsEnum(description="Gift card event type.")
     user = graphene.Field(
         "saleor.graphql.account.types.User",
-        description="User who performed the action.",
+        description=(
+            "User who performed the action. Requires one of the following "
+            f"permissions: {AccountPermissions.MANAGE_USERS}, "
+            f"{AccountPermissions.MANAGE_STAFF}, {AuthorizationFilters.OWNER}."
+        ),
     )
-    app = graphene.Field(App, description="App that performed the action.")
+    app = graphene.Field(
+        App,
+        description=(
+            "App that performed the action. Requires one of the following permissions: "
+            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}."
+        ),
+    )
     message = graphene.String(description="Content of the event.")
     email = graphene.String(description="Email of the customer.")
     order_id = graphene.ID(
@@ -104,19 +117,13 @@ class GiftCardEvent(ModelObjectType):
     def resolve_user(root: models.GiftCardEvent, info):
         def _resolve_user(event_user):
             requester = get_user_or_app_from_context(info.context)
-            if (
-                requester == event_user
-                or requester.has_perm(AccountPermissions.MANAGE_USERS)
-                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
-            ):
-                return event_user
-            return PermissionDenied(
-                permissions=[
-                    AccountPermissions.MANAGE_STAFF,
-                    AccountPermissions.MANAGE_USERS,
-                    AuthorizationFilters.OWNER,
-                ]
+            check_is_owner_or_has_one_of_perms(
+                requester,
+                event_user,
+                AccountPermissions.MANAGE_USERS,
+                AccountPermissions.MANAGE_STAFF,
             )
+            return event_user
 
         if root.user_id is None:
             return _resolve_user(None)
@@ -127,11 +134,10 @@ class GiftCardEvent(ModelObjectType):
     def resolve_app(root: models.GiftCardEvent, info):
         def _resolve_app(app):
             requester = get_user_or_app_from_context(info.context)
-            if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
-                return app
-            return PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            check_is_owner_or_has_one_of_perms(
+                requester, app, AppPermission.MANAGE_APPS
             )
+            return app
 
         if root.app_id is None:
             return _resolve_app(None)
@@ -230,9 +236,9 @@ class GiftCard(ModelObjectType):
     )
     code = graphene.String(
         description=(
-            "Gift card code. "
-            "Can be fetched by staff member with manage gift card permission when "
-            "gift card wasn't used yet and by the gift card owner."
+            "Gift card code. Can be fetched by a staff member with "
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD} when gift card wasn't yet used "
+            "and by the gift card owner."
         ),
         required=True,
     )
@@ -254,6 +260,8 @@ class GiftCard(ModelObjectType):
         required=False,
         description=(
             f"{ADDED_IN_31} Email address of the user who bought or issued gift card. "
+            "Requires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS}, {AuthorizationFilters.OWNER}. "
             f"{PREVIEW_FEATURE}"
         ),
     )
@@ -268,14 +276,18 @@ class GiftCard(ModelObjectType):
     expiry_date = graphene.Date()
     app = graphene.Field(
         App,
-        description=f"{ADDED_IN_31} App which created the gift card. {PREVIEW_FEATURE}",
+        description=(
+            f"{ADDED_IN_31} App which created the gift card. Requires one of the "
+            f"following permissions: {AppPermission.MANAGE_APPS}, "
+            f"{AuthorizationFilters.OWNER}. {PREVIEW_FEATURE}"
+        ),
     )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
         description=f"{ADDED_IN_31} Related gift card product. {PREVIEW_FEATURE}",
     )
-    events = NonNullList(
-        GiftCardEvent,
+    events = PermissionsField(
+        NonNullList(GiftCardEvent),
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
@@ -284,11 +296,17 @@ class GiftCard(ModelObjectType):
             f"{PREVIEW_FEATURE}"
         ),
         required=True,
+        permissions=[
+            GiftcardPermissions.MANAGE_GIFT_CARD,
+        ],
     )
-    tags = NonNullList(
-        GiftCardTag,
+    tags = PermissionsField(
+        NonNullList(GiftCardTag),
         description=f"{ADDED_IN_31} The gift card tag. {PREVIEW_FEATURE}",
         required=True,
+        permissions=[
+            GiftcardPermissions.MANAGE_GIFT_CARD,
+        ],
     )
     bought_in_channel = graphene.String(
         description=(
@@ -362,7 +380,9 @@ class GiftCard(ModelObjectType):
     def resolve_created_by(root: models.GiftCard, info):
         def _resolve_created_by(user):
             requestor = get_user_or_app_from_context(info.context)
-            check_requestor_access(requestor, user, AccountPermissions.MANAGE_USERS)
+            check_is_owner_or_has_one_of_perms(
+                requestor, user, AccountPermissions.MANAGE_USERS
+            )
             return user
 
         if root.created_by_id is None:
@@ -374,7 +394,9 @@ class GiftCard(ModelObjectType):
     def resolve_used_by(root: models.GiftCard, info):
         def _resolve_used_by(user):
             requestor = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requestor, user, AccountPermissions.MANAGE_USERS):
+            if is_owner_or_has_one_of_perms(
+                requestor, user, AccountPermissions.MANAGE_USERS
+            ):
                 return user
 
         if not root.used_by_id:
@@ -390,7 +412,7 @@ class GiftCard(ModelObjectType):
     def resolve_created_by_email(root: models.GiftCard, info):
         def _resolve_created_by_email(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(
+            if is_owner_or_has_one_of_perms(
                 requester, user, GiftcardPermissions.MANAGE_GIFT_CARD
             ):
                 return user.email if user else root.created_by_email
@@ -409,7 +431,7 @@ class GiftCard(ModelObjectType):
     def resolve_used_by_email(root: models.GiftCard, info):
         def _resolve_used_by_email(user):
             requester = get_user_or_app_from_context(info.context)
-            if requestor_has_access(
+            if is_owner_or_has_one_of_perms(
                 requester, user, GiftcardPermissions.MANAGE_GIFT_CARD
             ):
                 return user.email if user else root.used_by_email
@@ -428,11 +450,10 @@ class GiftCard(ModelObjectType):
     def resolve_app(root: models.GiftCard, info):
         def _resolve_app(app):
             requester = get_user_or_app_from_context(info.context)
-            if requester == app or requester.has_perm(AppPermission.MANAGE_APPS):
-                return app
-            return PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            check_is_owner_or_has_one_of_perms(
+                requester, app, AppPermission.MANAGE_APPS
             )
+            return app
 
         if root.app_id is None:
             return _resolve_app(None)
@@ -449,7 +470,6 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_events(root: models.GiftCard, info, **kwargs):
         def filter_events(events):
             event_filter = kwargs.get("filter", {})
@@ -466,7 +486,6 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_tags(root: models.GiftCard, info):
         return GiftCardTagsByGiftCardIdLoader(info.context).load(root.id)
 
@@ -513,7 +532,9 @@ class GiftCard(ModelObjectType):
     def resolve_user(root: models.GiftCard, info):
         def _resolve_user(user):
             requestor = get_user_or_app_from_context(info.context)
-            if requestor_has_access(requestor, user, AccountPermissions.MANAGE_USERS):
+            if is_owner_or_has_one_of_perms(
+                requestor, user, AccountPermissions.MANAGE_USERS
+            ):
                 return user
 
         if not root.created_by_id:

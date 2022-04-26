@@ -17,8 +17,8 @@ from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
-from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ..dataloaders import (
     CollectionsByProductIdLoader,
@@ -44,8 +44,16 @@ class ProductChannelListing(ModelObjectType):
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
-    purchase_cost = graphene.Field(MoneyRange, description="Purchase cost of product.")
-    margin = graphene.Field(Margin, description="Range of margin percentage value.")
+    purchase_cost = PermissionsField(
+        MoneyRange,
+        description="Purchase cost of product.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
+    margin = PermissionsField(
+        Margin,
+        description="Range of margin percentage value.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
@@ -77,7 +85,6 @@ class ProductChannelListing(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -115,7 +122,6 @@ class ProductChannelListing(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -252,7 +258,11 @@ class ProductVariantChannelListing(ModelObjectType):
     channel = graphene.Field(Channel, required=True)
     price = graphene.Field(Money)
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
-    margin = graphene.Int(description="Gross margin percentage value.")
+    margin = PermissionsField(
+        graphene.Int,
+        description="Gross margin percentage value.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
@@ -269,7 +279,6 @@ class ProductVariantChannelListing(ModelObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariantChannelListing, *_args):
         return get_margin_for_variant_channel_listing(root)
 

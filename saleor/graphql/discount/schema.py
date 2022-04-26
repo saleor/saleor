@@ -3,10 +3,9 @@ import graphene
 from ...core.permissions import DiscountPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
-from ..core.fields import FilterConnectionField
+from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
-from ..decorators import permission_required
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .filters import SaleFilter, VoucherFilter
@@ -40,13 +39,16 @@ class SaleFilterInput(FilterInputObjectType):
 
 
 class DiscountQueries(graphene.ObjectType):
-    sale = graphene.Field(
+    sale = PermissionsField(
         Sale,
         id=graphene.Argument(graphene.ID, description="ID of the sale.", required=True),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description="Look up a sale by ID.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     sales = FilterConnectionField(
         SaleCountableConnection,
@@ -62,8 +64,11 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of the shop's sales.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
-    voucher = graphene.Field(
+    voucher = PermissionsField(
         Voucher,
         id=graphene.Argument(
             graphene.ID, description="ID of the voucher.", required=True
@@ -72,6 +77,9 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="Look up a voucher by ID.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     vouchers = FilterConnectionField(
         VoucherCountableConnection,
@@ -87,26 +95,25 @@ class DiscountQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of the shop's vouchers.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
 
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sale(self, info, id, channel=None):
         _, id = from_global_id_or_error(id, Sale)
         return resolve_sale(id, channel)
 
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sales(self, info, channel=None, **kwargs):
         qs = resolve_sales(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(self, info, id, channel=None):
         _, id = from_global_id_or_error(id, Voucher)
         return resolve_voucher(id, channel)
 
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_vouchers(self, info, channel=None, **kwargs):
         qs = resolve_vouchers(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel

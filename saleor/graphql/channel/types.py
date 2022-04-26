@@ -7,8 +7,8 @@ from graphene.types.resolver import get_default_resolver
 from ...channel import models
 from ...core.permissions import ChannelPermissions
 from ..core.descriptions import ADDED_IN_31
+from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from . import ChannelContext
@@ -102,8 +102,13 @@ class Channel(ModelObjectType):
     slug = graphene.String(required=True)
     currency_code = graphene.String(required=True)
     slug = graphene.String(required=True)
-    has_orders = graphene.Boolean(
-        required=True, description="Whether a channel has associated orders."
+    has_orders = PermissionsField(
+        graphene.Boolean,
+        description="Whether a channel has associated orders.",
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+        ],
+        required=True,
     )
     default_country = graphene.Field(
         CountryDisplay,
@@ -121,7 +126,6 @@ class Channel(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    @permission_required(ChannelPermissions.MANAGE_CHANNELS)
     def resolve_has_orders(root: models.Channel, info):
         return (
             ChannelWithHasOrdersByIdLoader(info.context)
