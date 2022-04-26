@@ -639,9 +639,11 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
+        auto_permission_message = False
         description = (
-            f"{ADDED_IN_32} Create transaction for checkout or order. Can be used only"
-            f" by apps. {PREVIEW_FEATURE}"
+            f"{ADDED_IN_32} Create transaction for checkout or order. Requires the "
+            f"following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            f"{PREVIEW_FEATURE}"
         )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -650,8 +652,7 @@ class TransactionCreate(BaseMutation):
     def check_permissions(cls, context, permissions=None):
         """Determine whether app has rights to perform this mutation."""
         permissions = permissions or cls._meta.permissions
-        app = getattr(context, "app", None)
-        if app:
+        if app := getattr(context, "app", None):
             return app.has_perms(permissions)
         return False
 
@@ -820,9 +821,11 @@ class TransactionUpdate(TransactionCreate):
         )
 
     class Meta:
+        auto_permission_message = False
         description = (
-            f"{ADDED_IN_32} Create transaction for checkout or order. Can be used only"
-            f" by apps. {PREVIEW_FEATURE}"
+            f"{ADDED_IN_32} Create transaction for checkout or order. Requires the "
+            f"following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            f"{PREVIEW_FEATURE}"
         )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
