@@ -5304,7 +5304,6 @@ def tax_app(db, permission_handle_taxes):
         [
             WebhookEvent(event_type=event_type, webhook=webhook)
             for event_type in [
-                WebhookEventSyncType.FETCH_TAX_CODES,
                 WebhookEventSyncType.ORDER_CALCULATE_TAXES,
                 WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
             ]

@@ -40,7 +40,6 @@ def tax_app_factory(app_factory):
             webhook_event_types = [
                 WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
                 WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-                WebhookEventSyncType.FETCH_TAX_CODES,
             ]
         if permissions is None:
             permissions = [CheckoutPermissions.HANDLE_TAXES]
@@ -88,12 +87,6 @@ def test_get_current_tax_app_multiple_apps(app_factory, tax_app_factory):
         ],
     )
     tax_app_factory(name="Unauthorized Tax App", permissions=[])
-    tax_app_factory(
-        name="Partial Tax App 2",
-        webhook_event_types=[
-            WebhookEventSyncType.FETCH_TAX_CODES,
-        ],
-    )
     tax_app_factory(
         name="Partial Tax App 2",
         webhook_event_types=[

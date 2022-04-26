@@ -4,7 +4,7 @@ import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.db.models import QuerySet
 
@@ -198,31 +198,6 @@ def parse_tax_data(
         return None
 
 
-def parse_tax_codes(
-    response_tax_data: Any,
-) -> Optional[Dict[str, str]]:
-    if not isinstance(response_tax_data, list):
-        return None
-
-    tax_types = {}
-
-    for tax in response_tax_data:
-        code = tax.get("code")
-        description = tax.get("description")
-
-        if not code:
-            return None
-
-        # We assume here that the integration does not provide descriptions
-        # and tax codes have enough details for displaying them in dashboard
-        if not description:
-            description = code
-
-        tax_types[code] = description
-
-    return tax_types
-
-
 @contextmanager
 def catch_duration_time():
     start = time()
@@ -297,7 +272,6 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         delivery.delete()
 
 
-WEBHOOK_TAX_CODES_CACHE_KEY = "webhook_tax_codes"
 DEFAULT_TAX_CODE = "UNMAPPED"
 DEFAULT_TAX_DESCRIPTION = "Unmapped Product/Product Type"
 
@@ -308,7 +282,6 @@ def get_current_tax_app() -> Optional[App]:
         App.objects.order_by("pk")
         .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
         .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-        .for_event_type(WebhookEventSyncType.FETCH_TAX_CODES)
         .last()
     )
 
