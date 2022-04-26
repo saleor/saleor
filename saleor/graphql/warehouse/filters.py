@@ -48,7 +48,7 @@ def filter_click_and_collect_option(qs, _, value):
 
 def filter_search_stock(qs, _, value):
     if value:
-        products = Product.objects.filter(name=value).values("pk")
+        products = Product.objects.filter(name__ilike=value).values("pk")
         variants = ProductVariant.objects.filter(
             Exists(products.filter(variants=OuterRef("pk")))
         ).values("product_id")
@@ -58,7 +58,7 @@ def filter_search_stock(qs, _, value):
             | Q(Exists(addresses.filter(id=OuterRef("address_id"))))
         ).values("pk")
         return qs.filter(
-            Q(Exists(variants.filter(product_id=OuterRef("pk"))))
+            Q(Exists(variants.filter(product_id__in=products)))
             | Q(Exists(warehouses.filter(stock=OuterRef("pk"))))
         )
     return qs
