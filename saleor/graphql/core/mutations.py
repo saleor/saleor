@@ -27,7 +27,13 @@ from ...core.permissions import (
 )
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
-from .types import File, NonNullList, Upload, UploadError
+from .types import (
+    TYPES_WITH_DOUBLE_ID_AVAILABLE,
+    File,
+    NonNullList,
+    Upload,
+    UploadError,
+)
 from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -177,8 +183,8 @@ class BaseMutation(graphene.Mutation):
         Whether by using the provided query set object or by calling type's get_node().
         """
         if qs is not None:
-            if str(graphene_type) == "Order":
-                return cls._get_order_node_by_pk(pk, qs)
+            if str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE:
+                return cls._get_node_for_types_with_double_id(pk, qs, graphene_type)
             return qs.filter(pk=pk).first()
         get_node = getattr(graphene_type, "get_node", None)
         if get_node:
@@ -186,15 +192,19 @@ class BaseMutation(graphene.Mutation):
         return None
 
     @classmethod
-    def _get_order_node_by_pk(cls, pk: Union[int, str], qs):
-        # This is temporary method that allows fetching orders with use of
+    def _get_node_for_types_with_double_id(cls, pk: Union[int, str], qs, graphene_type):
+        # This is temporary method that allows fetching objects with use of
         # new and old id.
         lookup = Q(pk=pk)
         if pk is not None:
             try:
                 UUID(str(pk))
             except ValueError:
-                lookup = Q(number=pk) & Q(use_old_id=True)
+                lookup = (
+                    Q(number=pk) & Q(use_old_id=True)
+                    if str(graphene_type) == "Order"
+                    else Q(old_id=pk) & Q(old_id__isnull=False)
+                )
         return qs.filter(lookup).first()
 
     @classmethod
