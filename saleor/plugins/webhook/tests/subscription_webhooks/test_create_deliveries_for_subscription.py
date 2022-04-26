@@ -13,6 +13,11 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 
 
+def _make_webhook_inactive(webhook):
+    webhook.app.is_active = False
+    webhook.app.save(update_fields=["is_active"])
+
+
 def test_category_created(category, subscription_category_created_webhook):
     # given
     webhooks = [subscription_category_created_webhook]
@@ -150,7 +155,12 @@ def test_channel_status_changed(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def generate_expected_payload_for_gift_card(gift_card, card_global_id):
+def generate_expected_payload_for_gift_card(
+    gift_card, card_global_id, is_webhook_active
+):
+    if not is_webhook_active:
+        return json.dumps({"giftCard": None, "meta": None})
+
     return json.dumps(
         {
             "giftCard": {
@@ -164,8 +174,14 @@ def generate_expected_payload_for_gift_card(gift_card, card_global_id):
     )
 
 
-def test_gift_card_created(gift_card, subscription_gift_card_created_webhook):
+@pytest.mark.parametrize("is_webhook_active", [True, False])
+def test_gift_card_created(
+    is_webhook_active, gift_card, subscription_gift_card_created_webhook
+):
     # given
+    if not is_webhook_active:
+        _make_webhook_inactive(subscription_gift_card_created_webhook)
+
     webhooks = [subscription_gift_card_created_webhook]
     event_type = WebhookEventAsyncType.GIFT_CARD_CREATED
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.id)
@@ -174,14 +190,22 @@ def test_gift_card_created(gift_card, subscription_gift_card_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
+    expected_payload = generate_expected_payload_for_gift_card(
+        gift_card, gift_card_id, is_webhook_active
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_gift_card_updated(gift_card, subscription_gift_card_updated_webhook):
+@pytest.mark.parametrize("is_webhook_active", [True, False])
+def test_gift_card_updated(
+    is_webhook_active, gift_card, subscription_gift_card_updated_webhook
+):
     # given
+    if not is_webhook_active:
+        _make_webhook_inactive(subscription_gift_card_updated_webhook)
+
     webhooks = [subscription_gift_card_updated_webhook]
     event_type = WebhookEventAsyncType.GIFT_CARD_UPDATED
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.id)
@@ -190,14 +214,22 @@ def test_gift_card_updated(gift_card, subscription_gift_card_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
+    expected_payload = generate_expected_payload_for_gift_card(
+        gift_card, gift_card_id, is_webhook_active
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_gift_card_deleted(gift_card, subscription_gift_card_deleted_webhook):
+@pytest.mark.parametrize("is_webhook_active", [True, False])
+def test_gift_card_deleted(
+    is_webhook_active, gift_card, subscription_gift_card_deleted_webhook
+):
     # given
+    if not is_webhook_active:
+        _make_webhook_inactive(subscription_gift_card_deleted_webhook)
+
     webhooks = [subscription_gift_card_deleted_webhook]
 
     gift_card_query = GiftCard.objects.filter(pk=gift_card.id)
@@ -213,18 +245,24 @@ def test_gift_card_deleted(gift_card, subscription_gift_card_deleted_webhook):
     )
 
     # then
-    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
+    expected_payload = generate_expected_payload_for_gift_card(
+        gift_card, gift_card_id, is_webhook_active
+    )
     assert gift_card_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
 
+@pytest.mark.parametrize("is_webhook_active", [True, False])
 @pytest.mark.parametrize("status", [True, False])
 def test_gift_card_status_changed(
-    status, gift_card, subscription_gift_card_status_changed_webhook
+    status, is_webhook_active, gift_card, subscription_gift_card_status_changed_webhook
 ):
     # given
+    if not is_webhook_active:
+        _make_webhook_inactive(subscription_gift_card_status_changed_webhook)
+
     webhooks = [subscription_gift_card_status_changed_webhook]
 
     gift_card.is_active = status
@@ -237,7 +275,9 @@ def test_gift_card_status_changed(
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_gift_card(gift_card, gift_card_id)
+    expected_payload = generate_expected_payload_for_gift_card(
+        gift_card, gift_card_id, is_webhook_active
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
