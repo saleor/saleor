@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from unittest import mock
 
 import pytest
 
@@ -159,6 +160,61 @@ def test_create_never_expiry_gift_cards(
         )
         assert not card_data["events"][0]["balance"]["oldInitialBalance"]
         assert not card_data["events"][0]["balance"]["oldCurrentBalance"]
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_gift_cards_trigger_webhooks(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    initial_balance = 100
+    currency = "USD"
+    tags = ["gift-card-tag", "gift-card-tag-2"]
+    count = 10
+    is_active = True
+    variables = {
+        "input": {
+            "count": count,
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "tags": tags,
+            "isActive": is_active,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GIFT_CARD_BULK_CREATE_MUTATION,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardBulkCreate"]["errors"]
+    data = content["data"]["giftCardBulkCreate"]
+
+    assert not errors
+    assert data["count"] == count
+    assert len(data["giftCards"]) == count
+    assert mocked_webhook_trigger.call_count == count
 
 
 def test_create_gift_cards_with_expiry_date_by_app(

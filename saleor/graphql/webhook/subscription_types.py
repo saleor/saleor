@@ -133,6 +133,34 @@ class DraftOrderDeleted(ObjectType, OrderBase):
     ...
 
 
+class GiftCardBase(AbstractType):
+    gift_card = graphene.Field(
+        "saleor.graphql.giftcard.types.GiftCard",
+        description=f"{ADDED_IN_32} Look up a gift card. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_gift_card(root, info):
+        _, gift_card = root
+        return gift_card
+
+
+class GiftCardCreated(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardUpdated(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardDeleted(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardStatusChanged(ObjectType, GiftCardBase):
+    ...
+
+
 class ProductBase(AbstractType):
     product = graphene.Field(
         "saleor.graphql.product.types.Product",
@@ -503,6 +531,10 @@ class Event(Union):
             ChannelUpdated,
             ChannelDeleted,
             ChannelStatusChanged,
+            GiftCardCreated,
+            GiftCardUpdated,
+            GiftCardDeleted,
+            GiftCardStatusChanged,
             OrderCreated,
             OrderUpdated,
             OrderConfirmed,
@@ -558,6 +590,10 @@ class Event(Union):
             WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
             WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
             WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
+            WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
+            WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
+            WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
+            WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
             WebhookEventAsyncType.ORDER_CREATED: OrderCreated,
             WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
             WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,

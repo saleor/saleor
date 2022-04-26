@@ -3,6 +3,7 @@ from ..core.permissions import (
     ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
+    GiftcardPermissions,
     OrderPermissions,
     PagePermissions,
     PaymentPermissions,
@@ -23,6 +24,11 @@ class WebhookEventAsyncType:
     CHANNEL_UPDATED = "channel_updated"
     CHANNEL_DELETED = "channel_deleted"
     CHANNEL_STATUS_CHANGED = "channel_status_changed"
+
+    GIFT_CARD_CREATED = "gift_card_created"
+    GIFT_CARD_UPDATED = "gift_card_updated"
+    GIFT_CARD_DELETED = "gift_card_deleted"
+    GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
 
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
@@ -93,6 +99,10 @@ class WebhookEventAsyncType:
         CHANNEL_UPDATED: "Channel updated",
         CHANNEL_DELETED: "Channel deleted",
         CHANNEL_STATUS_CHANGED: "Channel status changed",
+        GIFT_CARD_CREATED: "Gift card created",
+        GIFT_CARD_UPDATED: "Gift card updated",
+        GIFT_CARD_DELETED: "Gift card deleted",
+        GIFT_CARD_STATUS_CHANGED: "Gift card status changed",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
         ORDER_FULLY_PAID: "Order paid",
@@ -148,6 +158,10 @@ class WebhookEventAsyncType:
         (CHANNEL_UPDATED, DISPLAY_LABELS[CHANNEL_UPDATED]),
         (CHANNEL_DELETED, DISPLAY_LABELS[CHANNEL_DELETED]),
         (CHANNEL_STATUS_CHANGED, DISPLAY_LABELS[CHANNEL_STATUS_CHANGED]),
+        (GIFT_CARD_CREATED, DISPLAY_LABELS[GIFT_CARD_CREATED]),
+        (GIFT_CARD_UPDATED, DISPLAY_LABELS[GIFT_CARD_UPDATED]),
+        (GIFT_CARD_DELETED, DISPLAY_LABELS[GIFT_CARD_DELETED]),
+        (GIFT_CARD_STATUS_CHANGED, DISPLAY_LABELS[GIFT_CARD_STATUS_CHANGED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
@@ -204,6 +218,10 @@ class WebhookEventAsyncType:
         CHANNEL_UPDATED: ChannelPermissions.MANAGE_CHANNELS,
         CHANNEL_DELETED: ChannelPermissions.MANAGE_CHANNELS,
         CHANNEL_STATUS_CHANGED: ChannelPermissions.MANAGE_CHANNELS,
+        GIFT_CARD_CREATED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_DELETED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_STATUS_CHANGED: GiftcardPermissions.MANAGE_GIFT_CARD,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
@@ -330,6 +348,10 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.CHANNEL_UPDATED,
     WebhookEventAsyncType.CHANNEL_DELETED,
     WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
+    WebhookEventAsyncType.GIFT_CARD_CREATED,
+    WebhookEventAsyncType.GIFT_CARD_UPDATED,
+    WebhookEventAsyncType.GIFT_CARD_DELETED,
+    WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
     WebhookEventAsyncType.ORDER_CREATED,
     WebhookEventAsyncType.ORDER_UPDATED,
     WebhookEventAsyncType.ORDER_CONFIRMED,

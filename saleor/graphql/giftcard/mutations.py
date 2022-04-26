@@ -240,6 +240,7 @@ class GiftCardCreate(ModelMutation):
                 channel_slug=cleaned_input["channel"],
                 resending=False,
             )
+        info.context.plugins.gift_card_created(instance)
 
     @staticmethod
     def assign_gift_card_tags(instance: models.GiftCard, tags_values: Iterable[str]):
@@ -338,6 +339,7 @@ class GiftCardUpdate(GiftCardCreate):
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
 
+        info.context.plugins.gift_card_updated(instance)
         return cls.success_response(instance)
 
     @classmethod
@@ -373,6 +375,10 @@ class GiftCardDelete(ModelDeleteMutation):
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.gift_card_deleted(instance)
+
 
 class GiftCardDeactivate(BaseMutation):
     gift_card = graphene.Field(GiftCard, description="Deactivated gift card.")
@@ -399,6 +405,7 @@ class GiftCardDeactivate(BaseMutation):
             events.gift_card_deactivated_event(
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
+        info.context.plugins.gift_card_status_changed(gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
 
@@ -428,6 +435,7 @@ class GiftCardActivate(BaseMutation):
             events.gift_card_activated_event(
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
+        info.context.plugins.gift_card_status_changed(gift_card)
         return GiftCardActivate(gift_card=gift_card)
 
 
@@ -556,4 +564,5 @@ class GiftCardAddNote(BaseMutation):
             app=info.context.app,
             message=cleaned_input["message"],
         )
+        info.context.plugins.gift_card_updated(gift_card)
         return GiftCardAddNote(gift_card=gift_card, event=event)
