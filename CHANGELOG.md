@@ -7,6 +7,11 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - PREVIEW_FEATURE: replace error code `NOT_FOUND` with `CHECKOUT_NOT_FOUND` for mutation `OrderCreateFromCheckout` - #9569 by @korycins
+
+### Other changes
+
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Precise timestamps for publication dates - #9581 by @IKarbowiak
   - Change `publicationDate` fields to `publishedAt` date time fields.
     - Types and inputs where `publicationDate` is deprecated and `publishedAt` field should be used instead:
@@ -25,11 +30,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `PUBLICATION_DATE` in `CollectionSortField`, the `PUBLISHED_AT` should be used instead.
   - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
   - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
-
-### Other changes
-
-- Fix filtering product attributes by date range - #9543 by @IKarbowiak
-- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 
 # 3.2.0
 
