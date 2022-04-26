@@ -170,6 +170,7 @@ QUERY_PRODUCT = """
                 value
             }
             availableForPurchase
+            availableForPurchaseAt
             isAvailableForPurchase
             isAvailable
         }
@@ -1122,8 +1123,8 @@ def test_product_query_is_available_for_purchase_true(
     user_api_client, product, channel_USD
 ):
     # given
-    available_for_purchase = datetime.today() - timedelta(days=1)
-    product.channel_listings.update(available_for_purchase=available_for_purchase)
+    available_for_purchase = timezone.now() - timedelta(days=1)
+    product.channel_listings.update(available_for_purchase_at=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -1140,6 +1141,7 @@ def test_product_query_is_available_for_purchase_true(
     assert product_data["availableForPurchase"] == available_for_purchase.strftime(
         "%Y-%m-%d"
     )
+    assert product_data["availableForPurchaseAt"] == available_for_purchase.isoformat()
     assert product_data["isAvailableForPurchase"] is True
 
 
@@ -1147,8 +1149,8 @@ def test_product_query_is_available_for_purchase_false(
     user_api_client, product, channel_USD
 ):
     # given
-    available_for_purchase = datetime.today() + timedelta(days=1)
-    product.channel_listings.update(available_for_purchase=available_for_purchase)
+    available_for_purchase = timezone.now() + timedelta(days=1)
+    product.channel_listings.update(available_for_purchase_at=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -1165,6 +1167,7 @@ def test_product_query_is_available_for_purchase_false(
     assert product_data["availableForPurchase"] == available_for_purchase.strftime(
         "%Y-%m-%d"
     )
+    assert product_data["availableForPurchaseAt"] == available_for_purchase.isoformat()
     assert product_data["isAvailableForPurchase"] is False
     assert product_data["isAvailable"] is False
 
@@ -1173,7 +1176,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
     user_api_client, product, channel_USD
 ):
     # given
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -1188,6 +1191,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
     product_data = content["data"]["product"]
 
     assert not product_data["availableForPurchase"]
+    assert not product_data["availableForPurchaseAt"]
     assert product_data["isAvailableForPurchase"] is False
     assert product_data["isAvailable"] is False
 

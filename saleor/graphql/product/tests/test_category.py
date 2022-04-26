@@ -1081,7 +1081,7 @@ def test_category_delete_mutation_for_categories_tree(
     )
     for product_channel_listing in product_channel_listings:
         assert product_channel_listing.is_published is False
-        assert not product_channel_listing.publication_date
+        assert not product_channel_listing.published_at
     assert product_channel_listings.count() == 4
 
 
@@ -1118,7 +1118,7 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     )
     for product_channel_listing in product_channel_listings:
         assert product_channel_listing.is_published is True
-        assert product_channel_listing.publication_date
+        assert product_channel_listing.published_at
 
     child_product.refresh_from_db()
     assert not child_product.category
@@ -1127,7 +1127,7 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     )
     for product_channel_listing in product_channel_listings:
         assert product_channel_listing.is_published is False
-        assert not product_channel_listing.publication_date
+        assert not product_channel_listing.published_at
 
 
 LEVELED_CATEGORIES_QUERY = """

@@ -12,7 +12,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
@@ -99,7 +99,15 @@ class Page(ModelObjectType):
     seo_description = graphene.String()
     title = graphene.String(required=True)
     content = JSONString(description="Content of the page (JSON).")
-    publication_date = graphene.Date()
+    publication_date = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `publishedAt` field to fetch the publication date."
+        ),
+    )
+    published_at = graphene.DateTime(
+        description=f"{ADDED_IN_33} The page publication date."
+    )
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)
     page_type = graphene.Field(PageType, required=True)
@@ -123,6 +131,10 @@ class Page(ModelObjectType):
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Page
+
+    @staticmethod
+    def resolve_publication_date(root: models.Page, info, **_kwargs):
+        return root.published_at
 
     @staticmethod
     def resolve_created(root: models.Page, _info):

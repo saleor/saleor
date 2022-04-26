@@ -221,7 +221,7 @@ def test_delete_categories_with_subcategories_and_products(
                 product=parent_product,
                 channel=channel_PLN,
                 is_published=True,
-                publication_date=timezone.now(),
+                published_at=timezone.now(),
             ),
         ]
     )
@@ -263,7 +263,7 @@ def test_delete_categories_with_subcategories_and_products(
     )
     for product_channel_listing in product_channel_listings:
         assert product_channel_listing.is_published is False
-        assert not product_channel_listing.publication_date
+        assert not product_channel_listing.published_at
     assert product_channel_listings.count() == 3
 
 

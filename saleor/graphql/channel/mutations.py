@@ -2,6 +2,7 @@ import datetime
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
@@ -9,6 +10,7 @@ from ...channel import models
 from ...checkout.models import Checkout
 from ...core.permissions import ChannelPermissions
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
@@ -349,12 +351,38 @@ class BaseChannelListingMutation(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def clean_publication_date(cls, cleaned_input, input_source="add_channels"):
+    def clean_publication_date(
+        cls, errors, error_code_enum, cleaned_input, input_source="add_channels"
+    ):
+        invalid_channels = []
         for add_channel in cleaned_input.get(input_source, []):
-            is_published = add_channel.get("is_published")
+            # should update errors dict
+            if "publication_date" in add_channel and "published_at" in add_channel:
+                invalid_channels.append(add_channel["channel_id"])
+                continue
             publication_date = add_channel.get("publication_date")
+            publication_date = (
+                convert_to_utc_date_time(publication_date)
+                if publication_date
+                else add_channel.get("published_at")
+            )
+            is_published = add_channel.get("is_published")
             if is_published and not publication_date:
-                add_channel["publication_date"] = datetime.date.today()
+                add_channel["published_at"] = datetime.datetime.now(pytz.UTC)
+            elif "publication_date" in add_channel or "published_at" in add_channel:
+                add_channel["published_at"] = publication_date
+        if invalid_channels:
+            error_msg = (
+                "Only one of argument: publicationDate or publishedAt "
+                "must be specified."
+            )
+            errors["publication_date"].append(
+                ValidationError(
+                    error_msg,
+                    code=error_code_enum.INVALID.value,
+                    params={"channels": invalid_channels},
+                )
+            )
 
 
 class ChannelActivate(BaseMutation):
