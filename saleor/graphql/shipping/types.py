@@ -227,7 +227,9 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
     countries = NonNullList(
-        CountryDisplay, description="List of countries available for the method."
+        CountryDisplay,
+        description="List of countries available for the method.",
+        required=True,
     )
     shipping_methods = NonNullList(
         ShippingMethodType,
