@@ -8929,7 +8929,7 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
-  New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
+  New in Saleor 3.2. Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.Note: this feature is in a preview state and can be subject to changes at later point.
   """
   transactionCreate(
     """The ID of the checkout or order."""
@@ -8943,7 +8943,7 @@ type Mutation {
   ): TransactionCreate
 
   """
-  New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
+  New in Saleor 3.2. Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.Note: this feature is in a preview state and can be subject to changes at later point.
   """
   transactionUpdate(
     """The ID of the transaction."""
@@ -10203,7 +10203,7 @@ type Mutation {
   ): CheckoutLanguageCodeUpdate
 
   """
-  New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_CHECKOUTS.
+  New in Saleor 3.2. Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.Note: this feature is in a preview state and can be subject to changes at later point.
   """
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
@@ -13063,7 +13063,7 @@ input MoneyInput {
 }
 
 """
-New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
+New in Saleor 3.2. Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.Note: this feature is in a preview state and can be subject to changes at later point.
 """
 type TransactionCreate {
   transaction: TransactionItem
@@ -13144,7 +13144,7 @@ input TransactionEventInput {
 }
 
 """
-New in Saleor 3.2. Create transaction for checkout or order. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_PAYMENTS.
+New in Saleor 3.2. Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.Note: this feature is in a preview state and can be subject to changes at later point.
 """
 type TransactionUpdate {
   transaction: TransactionItem
@@ -15532,7 +15532,7 @@ type CheckoutLanguageCodeUpdate {
 }
 
 """
-New in Saleor 3.2. Create new order from existing checkout. Note: this feature is in a preview state and can be subject to changes at later point. Requires one of the following permissions: HANDLE_CHECKOUTS.
+New in Saleor 3.2. Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.Note: this feature is in a preview state and can be subject to changes at later point.
 """
 type OrderCreateFromCheckout {
   """Placed order."""
