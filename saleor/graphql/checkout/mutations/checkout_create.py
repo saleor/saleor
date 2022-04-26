@@ -39,10 +39,11 @@ class CheckoutLineInput(graphene.InputObjectType):
     price = PositiveDecimal(
         required=False,
         description=(
-            f"{ADDED_IN_31} Custom price of the item. Can be set only by apps "
+            "Custom price of the item. Can be set only by apps "
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
-            "will be provided multiple times, the last price will be used. "
-            f"{PREVIEW_FEATURE}"
+            "will be provided multiple times, the last price will be used."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
     )
 

@@ -42,7 +42,7 @@ class PageInput(graphene.InputObjectType):
         )
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_33} Publication date time. ISO 8601 standard."
+        description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
     seo = SeoInput(description="Search engine optimization fields.")
 

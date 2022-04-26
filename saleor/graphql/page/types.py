@@ -106,7 +106,7 @@ class Page(ModelObjectType):
         ),
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_33} The page publication date."
+        description="The page publication date." + ADDED_IN_33
     )
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)

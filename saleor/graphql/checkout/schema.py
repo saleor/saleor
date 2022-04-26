@@ -44,9 +44,9 @@ class CheckoutQueries(graphene.ObjectType):
     # FIXME we could optimize the below field
     checkouts = FilterConnectionField(
         CheckoutCountableConnection,
-        sort_by=CheckoutSortingInput(description=f"{ADDED_IN_31} Sort checkouts."),
+        sort_by=CheckoutSortingInput(description="Sort checkouts." + ADDED_IN_31),
         filter=CheckoutFilterInput(
-            description=f"{ADDED_IN_31} Filtering options for checkouts."
+            description="Filtering options for checkouts." + ADDED_IN_31
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -101,7 +101,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field(
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} " "Use `checkoutDeliveryMethodUpdate` instead."
+            f"{DEPRECATED_IN_3X_FIELD} Use `checkoutDeliveryMethodUpdate` instead."
         )
     )
     checkout_delivery_method_update = CheckoutDeliveryMethodUpdate.Field()

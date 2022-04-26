@@ -43,11 +43,11 @@ class GiftCardQueries(graphene.ObjectType):
     gift_cards = FilterConnectionField(
         GiftCardCountableConnection,
         sort_by=GiftCardSortingInput(
-            description=f"{ADDED_IN_31} Sort gift cards. {PREVIEW_FEATURE}"
+            description="Sort gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
         filter=GiftCardFilterInput(
             description=(
-                f"{ADDED_IN_31} Filtering options for gift cards. {PREVIEW_FEATURE}"
+                "Filtering options for gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
             )
         ),
         description="List of gift cards.",
@@ -57,7 +57,7 @@ class GiftCardQueries(graphene.ObjectType):
     )
     gift_card_currencies = PermissionsField(
         NonNullList(graphene.String),
-        description=f"{ADDED_IN_31} List of gift card currencies. {PREVIEW_FEATURE}",
+        description="List of gift card currencies." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -68,7 +68,7 @@ class GiftCardQueries(graphene.ObjectType):
         filter=GiftCardTagFilterInput(
             description="Filtering options for gift card tags."
         ),
-        description=f"{ADDED_IN_31} List of gift card tags. {PREVIEW_FEATURE}",
+        description="List of gift card tags." + ADDED_IN_31 + PREVIEW_FEATURE,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],

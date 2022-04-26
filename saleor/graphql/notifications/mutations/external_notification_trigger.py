@@ -58,10 +58,9 @@ class ExternalNotificationTrigger(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Trigger sending a notification "
-            "with the notify plugin method. "
+            "Trigger sending a notification with the notify plugin method. "
             "Serializes nodes provided as ids parameter and includes this data in "
-            "the notification payload."
+            "the notification payload." + ADDED_IN_31
         )
         error_type_class = ExternalNotificationError
 
