@@ -14,9 +14,8 @@ from ..core.connection import (
 )
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import FilterConnectionField, JSONString
+from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -40,8 +39,17 @@ class PageType(ModelObjectType):
         AttributeCountableConnection,
         filter=AttributeFilterInput(),
         description="Attributes that can be assigned to the page type.",
+        permissions=[
+            PagePermissions.MANAGE_PAGES,
+        ],
     )
-    has_pages = graphene.Boolean(description="Whether page type has pages assigned.")
+    has_pages = PermissionsField(
+        graphene.Boolean,
+        description="Whether page type has pages assigned.",
+        permissions=[
+            PagePermissions.MANAGE_PAGES,
+        ],
+    )
 
     class Meta:
         description = (
@@ -60,7 +68,6 @@ class PageType(ModelObjectType):
         return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    @permission_required(PagePermissions.MANAGE_PAGES)
     def resolve_available_attributes(root: models.PageType, info, **kwargs):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
@@ -69,7 +76,6 @@ class PageType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
-    @permission_required(PagePermissions.MANAGE_PAGES)
     def resolve_has_pages(root: models.PageType, info, **kwargs):
         return (
             PagesByPageTypeIdLoader(info.context)
