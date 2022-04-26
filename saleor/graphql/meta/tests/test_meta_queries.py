@@ -54,6 +54,8 @@ QUERY_SELF_PUBLIC_META = """
                 key
                 value
             }
+            metafields(keys: ["INVALID", "key"])
+            keyFieldValue: metafield(key: "key")
         }
     }
 """
@@ -73,6 +75,10 @@ def test_query_public_meta_for_me_as_customer(user_api_client):
     metadata = content["data"]["me"]["metadata"][0]
     assert metadata["key"] == PUBLIC_KEY
     assert metadata["value"] == PUBLIC_VALUE
+    metafields = content["data"]["me"]["metafields"]
+    assert metafields[PUBLIC_KEY] == PUBLIC_VALUE
+    field_value = content["data"]["me"]["keyFieldValue"]
+    assert field_value == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_me_as_staff(staff_api_client):
@@ -89,6 +95,10 @@ def test_query_public_meta_for_me_as_staff(staff_api_client):
     metadata = content["data"]["me"]["metadata"][0]
     assert metadata["key"] == PUBLIC_KEY
     assert metadata["value"] == PUBLIC_VALUE
+    metafields = content["data"]["me"]["metafields"]
+    assert metafields[PUBLIC_KEY] == PUBLIC_VALUE
+    field_value = content["data"]["me"]["keyFieldValue"]
+    assert field_value == PUBLIC_VALUE
 
 
 QUERY_USER_PUBLIC_META = """
