@@ -15,6 +15,7 @@ from ..core.types import ModelObjectType, NonNullList
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
+from .dataloaders import WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
@@ -181,6 +182,11 @@ class Stock(ModelObjectType):
                 0,
             )
         )["quantity_reserved"]
+
+    def resolve_warehouse(root, info, *_args, **kwargs):
+        if root.warehouse_id:
+            return WarehouseByIdLoader(info.context).load(root.warehouse_id)
+        return None
 
     @staticmethod
     def resolve_product_variant(root, info, *_args):
