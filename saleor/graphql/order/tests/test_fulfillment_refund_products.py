@@ -98,7 +98,7 @@ def test_fulfillment_refund_products_with_transaction_action_request(
     event = fulfilled_order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == amount_to_refund
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
