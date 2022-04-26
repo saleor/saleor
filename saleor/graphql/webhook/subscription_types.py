@@ -57,6 +57,34 @@ class CategoryDeleted(ObjectType, CategoryBase):
     ...
 
 
+class ChannelBase(AbstractType):
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description=f"{ADDED_IN_32} Look up a channel. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_channel(root, info):
+        _, channel = root
+        return channel
+
+
+class ChannelCreated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelUpdated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelDeleted(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelStatusChanged(ObjectType, ChannelBase):
+    ...
+
+
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
@@ -471,6 +499,10 @@ class Event(Union):
             CategoryCreated,
             CategoryUpdated,
             CategoryDeleted,
+            ChannelCreated,
+            ChannelUpdated,
+            ChannelDeleted,
+            ChannelStatusChanged,
             OrderCreated,
             OrderUpdated,
             OrderConfirmed,
@@ -522,6 +554,10 @@ class Event(Union):
             WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
             WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
             WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
+            WebhookEventAsyncType.CHANNEL_CREATED: ChannelCreated,
+            WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
+            WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
+            WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
             WebhookEventAsyncType.ORDER_CREATED: OrderCreated,
             WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
             WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
