@@ -4,14 +4,15 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # Unreleased
 
+# 3.3.0
+
 ### Breaking changes
 
 - PREVIEW_FEATURE: replace error code `NOT_FOUND` with `CHECKOUT_NOT_FOUND` for mutation `OrderCreateFromCheckout` - #9569 by @korycins
 
 ### Other changes
 
-- Fix filtering product attributes by date range - #9543 by @IKarbowiak
-- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Use fulltext search for products (#9344) (4b6f25964)
 - Precise timestamps for publication dates - #9581 by @IKarbowiak
   - Change `publicationDate` fields to `publishedAt` date time fields.
     - Types and inputs where `publicationDate` is deprecated and `publishedAt` field should be used instead:
@@ -31,6 +32,18 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
   - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
 - Add an alternative API for fetching metadata - #9231 by @patrys
+- New webhook events related to gift card changes (#9588) (52adcd10d)
+- New webhook events for changes related to channels (#9570) (e5d78c63e)
+- Tighten the schema types for output fields (#9605) (81418cb4c)
+- Include permissions in schema descriptions of protected fields (#9428) (f0a988e79)
+- Update address database (#9585) (1f5e84e4a)
+- Handle pagination with invalid cursor that is valid base64 (#9521) (3c12a1e95)
+- Handle all Braintree errors (#9503) (20f21c34a)
+- Fix `recalculate_order` dismissing weight unit (#9527) (9aea31774)
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Optimize stock warehouse resolver performance (955489bff)
+- Improve shipping zone filters performance (#9540) (7841ec536)
 
 # 3.2.0
 
@@ -44,7 +57,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated the `token` field in order payload, the `id` field should be used
     instead.
 - Enable JWT expiration by default - #9483 by @maarcingebala
-
 
 ### Other changes
 
@@ -69,6 +81,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow plugins to create their custom error code - #9300 by @LeOndaz
 
 #### Other
+
 - Use full-text search for products search API - #9344 by @patrys
 
 - Include required permission in mutations' descriptions - #9363 by @maarcingebala
