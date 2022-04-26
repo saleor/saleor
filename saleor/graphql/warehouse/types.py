@@ -14,6 +14,7 @@ from ..core.fields import ConnectionField
 from ..core.types import ModelObjectType, NonNullList
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
+from ..product.dataloaders import ProductVariantByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
@@ -182,8 +183,12 @@ class Stock(ModelObjectType):
         )["quantity_reserved"]
 
     @staticmethod
-    def resolve_product_variant(root, *_args):
-        return ChannelContext(node=root.product_variant, channel_slug=None)
+    def resolve_product_variant(root, info, *_args):
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(root.product_variant_id)
+            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
+        )
 
 
 class StockCountableConnection(CountableConnection):
