@@ -1117,6 +1117,18 @@ enum WebhookEventTypeEnum {
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
 
+  """A new gift card created."""
+  GIFT_CARD_CREATED
+
+  """A gift card is updated."""
+  GIFT_CARD_UPDATED
+
+  """A gift card is deleted."""
+  GIFT_CARD_DELETED
+
+  """A gift card status is changed."""
+  GIFT_CARD_STATUS_CHANGED
+
   """A new order is placed."""
   ORDER_CREATED
 
@@ -1303,6 +1315,18 @@ enum WebhookEventTypeAsyncEnum {
 
   """A channel status is changed."""
   CHANNEL_STATUS_CHANGED
+
+  """A new gift card created."""
+  GIFT_CARD_CREATED
+
+  """A gift card is updated."""
+  GIFT_CARD_UPDATED
+
+  """A gift card is deleted."""
+  GIFT_CARD_DELETED
+
+  """A gift card status is changed."""
+  GIFT_CARD_STATUS_CHANGED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1788,6 +1812,10 @@ enum WebhookSampleEventTypeEnum {
   CHANNEL_UPDATED
   CHANNEL_DELETED
   CHANNEL_STATUS_CHANGED
+  GIFT_CARD_CREATED
+  GIFT_CARD_UPDATED
+  GIFT_CARD_DELETED
+  GIFT_CARD_STATUS_CHANGED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -16617,7 +16645,7 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
 
 type CategoryCreated {
   """
@@ -16666,6 +16694,34 @@ type ChannelStatusChanged {
   New in Saleor 3.2. Look up a channel. Note: this feature is in a preview state and can be subject to changes at later point.
   """
   channel: Channel
+}
+
+type GiftCardCreated {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
+}
+
+type GiftCardUpdated {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
+}
+
+type GiftCardDeleted {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
+}
+
+type GiftCardStatusChanged {
+  """
+  New in Saleor 3.2. Look up a gift card. Note: this feature is in a preview state and can be subject to changes at later point.
+  """
+  giftCard: GiftCard
 }
 
 type OrderCreated {

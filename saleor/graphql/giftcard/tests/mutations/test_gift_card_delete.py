@@ -1,6 +1,10 @@
+from unittest import mock
+
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DELETE_GIFT_CARD_MUTATION = """
@@ -78,3 +82,41 @@ def test_delete_gift_card_by_customer(app_api_client, gift_card):
 
     # then
     assert_no_permission(response)
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_gift_card_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    gift_card,
+    permission_manage_gift_card,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_GIFT_CARD_MUTATION,
+        {"id": id},
+        permissions=(permission_manage_gift_card,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardDelete"]["giftCard"]
+
+    assert data["id"] == id
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": id, "is_active": gift_card.is_active},
+        WebhookEventAsyncType.GIFT_CARD_DELETED,
+        [any_webhook],
+        gift_card,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
