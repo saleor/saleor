@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("warehouse", "0021_allocation_order_line_token"),
-        ("order", "0138_alter_orderline_old_id"),
+        ("order", "0139_alter_orderline_old_id"),
     ]
 
     operations = [

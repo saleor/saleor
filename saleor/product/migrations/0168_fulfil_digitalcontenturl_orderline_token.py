@@ -6,8 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0163_digitalcontenturl_order_line_token"),
-        ("order", "0138_alter_orderline_old_id"),
+        ("product", "0167_digitalcontenturl_order_line_token"),
+        ("order", "0139_alter_orderline_old_id"),
     ]
 
     operations = [

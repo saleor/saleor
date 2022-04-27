@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0138_alter_orderline_old_id"),
+        ("order", "0139_alter_orderline_old_id"),
     ]
 
     operations = [

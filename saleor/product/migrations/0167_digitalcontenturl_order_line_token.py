@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0162_auto_20220228_1233"),
+        ("product", "0166_update_publication_date_and_available_for_purchase"),
     ]
 
     operations = [

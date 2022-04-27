@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0141_update_orderline_pk"),
+        ("order", "0142_update_orderline_pk"),
         ("warehouse", "0023_alter_orderline_relations"),
     ]
 

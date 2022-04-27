@@ -7,9 +7,9 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0140_alter_fulfillmentline_line"),
+        ("order", "0141_alter_fulfillmentline_line"),
         ("warehouse", "0023_alter_orderline_relations"),
-        ("product", "0165_alter_digitalcontenturl_line"),
+        ("product", "0169_alter_digitalcontenturl_line"),
     ]
 
     operations = [
