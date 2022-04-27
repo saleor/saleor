@@ -85,6 +85,7 @@ class TranslationQueries(graphene.ObjectType):
     )
     translation = PermissionsField(
         TranslatableItem,
+        description="Lookup a translatable item by ID.",
         id=graphene.Argument(
             graphene.ID, description="ID of the object to retrieve.", required=True
         ),

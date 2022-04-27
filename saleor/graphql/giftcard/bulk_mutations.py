@@ -53,7 +53,7 @@ class GiftCardBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Create gift cards. {PREVIEW_FEATURE}"
+        description = "Create gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
@@ -165,7 +165,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Delete gift cards. {PREVIEW_FEATURE}"
+        description = "Delete gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -186,7 +186,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Activate gift cards. {PREVIEW_FEATURE}"
+        description = "Activate gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -222,7 +222,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Deactivate gift cards. {PREVIEW_FEATURE}"
+        description = "Deactivate gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

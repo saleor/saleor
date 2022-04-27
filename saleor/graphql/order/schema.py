@@ -122,7 +122,8 @@ class OrderQueries(graphene.ObjectType):
     )
     order_by_token = graphene.Field(
         Order,
-        description="{DEPRECATED_IN_3X_FIELD} Look up an order by token.",
+        description="Look up an order by token.",
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
         token=graphene.Argument(UUID, description="The order's token.", required=True),
     )
 

@@ -43,13 +43,14 @@ class WarehouseUpdateInput(WarehouseInput):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            f"{ADDED_IN_31} Click and collect options: local, all or disabled. "
-            f"{PREVIEW_FEATURE}"
+            "Click and collect options: local, all or disabled."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
         required=False,
     )
     is_private = graphene.Boolean(
-        description=f"{ADDED_IN_31} Visibility of warehouse stocks. {PREVIEW_FEATURE}",
+        description="Visibility of warehouse stocks." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -70,8 +71,9 @@ class Warehouse(ModelObjectType):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            f"{ADDED_IN_31} Click and collect options: local, all or disabled. "
-            f"{PREVIEW_FEATURE}"
+            "Click and collect options: local, all or disabled."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
         required=True,
     )

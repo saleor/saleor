@@ -337,7 +337,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         PreorderData,
         required=False,
         description=(
-            f"{ADDED_IN_31} Preorder data for product variant. {PREVIEW_FEATURE}"
+            "Preorder data for product variant." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
     created = graphene.DateTime(required=True)
@@ -1294,8 +1294,8 @@ class ProductType(ModelObjectType):
     assigned_variant_attributes = NonNullList(
         AssignedVariantAttribute,
         description=(
-            f"{ADDED_IN_31} Variant attributes of that product "
-            "type with attached variant selection."
+            "Variant attributes of that product type with attached variant selection."
+            + ADDED_IN_31
         ),
         variant_selection=graphene.Argument(
             VariantAttributeScope,
