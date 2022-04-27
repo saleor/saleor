@@ -50,15 +50,15 @@ def filter_search_stock(qs, _, value):
     if value:
         products = Product.objects.filter(name__ilike=value).values("pk")
         variants = ProductVariant.objects.filter(
-            Exists(products.filter(variants=OuterRef("pk")))
-        ).values("product_id")
+            Exists(products.filter(pk=OuterRef("product_id")))
+        ).values("pk")
         addresses = Address.objects.filter(company_name__ilike=value)
         warehouses = Warehouse.objects.filter(
             Q(name__ilike=value)
             | Q(Exists(addresses.filter(id=OuterRef("address_id"))))
         ).values("pk")
         return qs.filter(
-            Q(Exists(variants.filter(product_id__in=products)))
+            Q(Exists(variants.filter(pk=OuterRef("product_variant_id"))))
             | Q(Exists(warehouses.filter(stock=OuterRef("pk"))))
         )
     return qs
