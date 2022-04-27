@@ -49,6 +49,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Optimize stock warehouse resolver performance (955489bff) by @tomaszszymanski129
 - Improve shipping zone filters performance (#9540) (7841ec536) by @tomaszszymanski129
+- Migrate order line id from int to UUID - #9637 by @IKarbowiak
+  - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
+  for old orders.
 
 # 3.2.0
 
