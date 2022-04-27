@@ -1291,18 +1291,18 @@ class Order(ModelObjectType):
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
     @staticmethod
-    def resolve_language_code_enum(root: models.Order, _info, **_kwargs):
+    def resolve_language_code_enum(root: models.Order, _info):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def resolve_original(root: models.Order, _info, **_kwargs):
+    def resolve_original(root: models.Order, _info):
         if not root.original_id:
             return None
         return graphene.Node.to_global_id("Order", root.original_id)
 
     @staticmethod
     @traced_resolver
-    def resolve_errors(root: models.Order, info, **_kwargs):
+    def resolve_errors(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
             try:

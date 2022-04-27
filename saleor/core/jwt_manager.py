@@ -1,7 +1,7 @@
 import json
 import logging
 from os.path import exists, join
-from typing import Union
+from typing import Optional, Union
 
 import jwt
 from cryptography.hazmat.primitives import serialization
@@ -14,7 +14,7 @@ from jwt.algorithms import RSAAlgorithm
 
 logger = logging.getLogger(__name__)
 
-PUBLIC_KEY = None
+PUBLIC_KEY: Optional[rsa.RSAPublicKey] = None
 KID = "1"
 
 
@@ -98,10 +98,11 @@ class JWTManager(JWTManagerBase):
         return private_key
 
     @classmethod
-    def get_public_key(cls, *_args, **_kwargs):
-        private_key = cls.get_private_key()
+    def get_public_key(cls) -> rsa.RSAPublicKey:
         global PUBLIC_KEY
+
         if PUBLIC_KEY is None:
+            private_key = cls.get_private_key()
             PUBLIC_KEY = private_key.public_key()
         return PUBLIC_KEY
 
@@ -123,7 +124,7 @@ class JWTManager(JWTManagerBase):
         if headers.get("alg") == "RS256":
             return jwt.decode(
                 token,
-                cls.get_public_key(),
+                cls.get_public_key(),  # type: ignore
                 algorithms=["RS256"],
                 options={"verify_exp": verify_expiration},
             )

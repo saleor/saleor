@@ -127,28 +127,34 @@ class OrderQueries(graphene.ObjectType):
         token=graphene.Argument(UUID, description="The order's token.", required=True),
     )
 
-    def resolve_homepage_events(self, info, *_args, **kwargs):
+    @staticmethod
+    def resolve_homepage_events(_root, info, **kwargs):
         qs = resolve_homepage_events()
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
-    def resolve_order(self, info, **data):
+    @staticmethod
+    def resolve_order(_root, _info, **data):
         _, id = from_global_id_or_error(data.get("id"), Order)
         return resolve_order(id)
 
-    def resolve_orders(self, info, channel=None, **kwargs):
+    @staticmethod
+    def resolve_orders(_root, info, *, channel=None, **kwargs):
         qs = resolve_orders(info, channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
-    def resolve_draft_orders(self, info, **kwargs):
+    @staticmethod
+    def resolve_draft_orders(_root, info, **kwargs):
         qs = resolve_draft_orders(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
-    def resolve_orders_total(self, info, period, channel=None, **_kwargs):
+    @staticmethod
+    def resolve_orders_total(_root, info, *, period, channel=None):
         return resolve_orders_total(info, period, channel)
 
-    def resolve_order_by_token(self, _info, token):
+    @staticmethod
+    def resolve_order_by_token(_root, _info, *, token):
         return resolve_order_by_token(token)
 
 

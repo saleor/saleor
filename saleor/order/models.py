@@ -408,7 +408,7 @@ class Order(ModelWithMetadata):
     def total_balance(self):
         return self.total_captured - self.total.gross
 
-    def get_total_weight(self, *_args):
+    def get_total_weight(self, _lines=None):
         return self.weight
 
 

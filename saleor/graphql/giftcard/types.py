@@ -352,11 +352,11 @@ class GiftCard(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_last_4_code_chars(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_last_4_code_chars(root: models.GiftCard, _info):
         return root.display_code
 
     @staticmethod
-    def resolve_code(root: models.GiftCard, info, **_kwargs):
+    def resolve_code(root: models.GiftCard, info):
         def _resolve_code(user):
             requestor = get_user_or_app_from_context(info.context)
             # Gift card code can be fetched by the staff user and app
@@ -552,11 +552,11 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_end_date(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_end_date(root: models.GiftCard, _info):
         return root.expiry_date
 
     @staticmethod
-    def resolve_start_date(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_start_date(_root: models.GiftCard, _info):
         return None
 
 

@@ -44,15 +44,15 @@ class WebhookQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_webhook_sample_payload(_, info, **data):
+    def resolve_webhook_sample_payload(_root, info, **data):
         return resolve_sample_payload(info, data["event_type"])
 
     @staticmethod
-    def resolve_webhook(_, info, **data):
+    def resolve_webhook(_root, info, **data):
         return resolve_webhook(info, data["id"])
 
     @staticmethod
-    def resolve_webhook_events(_, *_args, **_data):
+    def resolve_webhook_events(_root, _info):
         return resolve_webhook_events()
 
 

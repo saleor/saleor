@@ -58,7 +58,7 @@ class AppTokenCreate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, input_data)
@@ -122,7 +122,7 @@ class AppTokenVerify(BaseMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, _info, **data):
         token = data.get("token")
         tokens = models.AppToken.objects.filter(
             app__is_active=True, token_last_4=token[-4:]
@@ -257,7 +257,7 @@ class AppActivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         app = cls.get_instance(info, **data)
         app.is_active = True
         cls.save(info, app, cleaned_input=None)
@@ -277,7 +277,7 @@ class AppDeactivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         app = cls.get_instance(info, **data)
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
@@ -336,7 +336,7 @@ class AppRetryInstall(ModelMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         activate_after_installation = data.get("activate_after_installation")
         app_installation = cls.get_instance(info, **data)
         cls.clean_instance(info, app_installation)
@@ -483,7 +483,7 @@ class AppFetchManifest(BaseMutation):
             ]
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
         manifest_data = cls.fetch_manifest(manifest_url)

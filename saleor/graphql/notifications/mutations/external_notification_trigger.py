@@ -65,7 +65,7 @@ class ExternalNotificationTrigger(BaseMutation):
         error_type_class = ExternalNotificationError
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         manager = info.context.plugins
         plugin_id = data.get("plugin_id")
         channel_slug = validate_and_get_channel(data, ExternalNotificationErrorCodes)

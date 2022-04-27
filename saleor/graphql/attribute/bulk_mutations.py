@@ -26,12 +26,12 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(cls, root, info, ids, **data):
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
-        response = super().perform_mutation(_root, info, ids, **data)
+        response = super().perform_mutation(root, info, ids, **data)
         update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
@@ -80,12 +80,12 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(cls, root, info, ids, **data):
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
-        response = super().perform_mutation(_root, info, ids, **data)
+        response = super().perform_mutation(root, info, ids, **data)
         update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
