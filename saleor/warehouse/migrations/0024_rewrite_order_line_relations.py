@@ -20,10 +20,6 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE, to="order.orderline"
             ),
         ),
-        # migrations.AlterUniqueTogether(
-        #     name='allocation',
-        #     unique_together={('order_line_token', 'stock')},
-        # ),
         migrations.RemoveField(
             model_name="allocation",
             name="order_line",
@@ -33,10 +29,6 @@ class Migration(migrations.Migration):
             old_name="order_line_token",
             new_name="order_line",
         ),
-        # migrations.AlterUniqueTogether(
-        #     name='allocation',
-        #     unique_together={('order_line', 'stock')},
-        # ),
         migrations.AlterField(
             model_name="allocation",
             name="order_line",
@@ -54,10 +46,6 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE, to="order.orderline"
             ),
         ),
-        # migrations.AlterUniqueTogether(
-        #     name='preorderallocation',
-        #     unique_together={('order_line_token', 'product_variant_channel_listing')},
-        # ),
         migrations.RemoveField(
             model_name="preorderallocation",
             name="order_line",
@@ -67,10 +55,6 @@ class Migration(migrations.Migration):
             old_name="order_line_token",
             new_name="order_line",
         ),
-        # migrations.AlterUniqueTogether(
-        #     name='preorderallocation',
-        #     unique_together={('order_line', 'product_variant_channel_listing')},
-        # ),
         migrations.AlterField(
             model_name="preorderallocation",
             name="order_line",
