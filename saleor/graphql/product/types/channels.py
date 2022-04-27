@@ -16,9 +16,14 @@ from ....product.utils.costs import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_33,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
+from ...core.fields import PermissionsField
 from ...core.types import ModelObjectType
-from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ..dataloaders import (
     CollectionsByProductIdLoader,
@@ -36,16 +41,41 @@ class Margin(graphene.ObjectType):
 
 class ProductChannelListing(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    publication_date = graphene.Date()
+    publication_date = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `publishedAt` field to fetch the publication date."
+        ),
+    )
+    published_at = graphene.DateTime(
+        description="The product publication date time." + ADDED_IN_33
+    )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
     visible_in_listings = graphene.Boolean(required=True)
-    available_for_purchase = graphene.Date()
+    available_for_purchase = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `availableForPurchaseAt` field to fetch "
+            "the available for purchase date."
+        ),
+    )
+    available_for_purchase_at = graphene.DateTime(
+        description="The product available for purchase date time." + ADDED_IN_33
+    )
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
-    purchase_cost = graphene.Field(MoneyRange, description="Purchase cost of product.")
-    margin = graphene.Field(Margin, description="Range of margin percentage value.")
+    purchase_cost = PermissionsField(
+        MoneyRange,
+        description="Purchase cost of product.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
+    margin = PermissionsField(
+        Margin,
+        description="Range of margin percentage value.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
@@ -72,12 +102,21 @@ class ProductChannelListing(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
+    def resolve_publication_date(root: models.ProductChannelListing, info, **_kwargs):
+        return root.published_at
+
+    @staticmethod
+    def resolve_available_for_purchase(
+        root: models.ProductChannelListing, info, **_kwargs
+    ):
+        return root.available_for_purchase_at
+
+    @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
     @traced_resolver
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -115,7 +154,6 @@ class ProductChannelListing(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductChannelListing, info, *_kwargs):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -252,11 +290,15 @@ class ProductVariantChannelListing(ModelObjectType):
     channel = graphene.Field(Channel, required=True)
     price = graphene.Field(Money)
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
-    margin = graphene.Int(description="Gross margin percentage value.")
+    margin = PermissionsField(
+        graphene.Int,
+        description="Gross margin percentage value.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
-        description=f"{ADDED_IN_31} Preorder variant data. {PREVIEW_FEATURE}",
+        description="Preorder variant data." + ADDED_IN_31 + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -269,7 +311,6 @@ class ProductVariantChannelListing(ModelObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariantChannelListing, *_args):
         return get_margin_for_variant_channel_listing(root)
 
@@ -287,7 +328,15 @@ class ProductVariantChannelListing(ModelObjectType):
 
 class CollectionChannelListing(ModelObjectType):
     id = graphene.GlobalID(required=True)
-    publication_date = graphene.Date()
+    publication_date = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `publishedAt` field to fetch the publication date."
+        ),
+    )
+    published_at = graphene.DateTime(
+        description="The collection publication date." + ADDED_IN_33
+    )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
 
@@ -295,6 +344,10 @@ class CollectionChannelListing(ModelObjectType):
         description = "Represents collection channel listing."
         model = models.CollectionChannelListing
         interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_publication_date(root: models.ProductChannelListing, info, **_kwargs):
+        return root.published_at
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):

@@ -51,7 +51,7 @@ class OrderCreateFromCheckout(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_32} Create new order from existing checkout. {PREVIEW_FEATURE}"
+            "Create new order from existing checkout." + ADDED_IN_32 + PREVIEW_FEATURE
         )
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)

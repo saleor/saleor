@@ -9,9 +9,8 @@ from ...product.models import Category, Collection, Product, ProductVariant
 from ...shipping.models import ShippingMethod
 from ..attribute.resolvers import resolve_attributes
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.fields import ConnectionField
+from ..core.fields import ConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
-from ..decorators import permission_required
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
 from ..product.resolvers import resolve_categories
@@ -80,9 +79,13 @@ class TranslationQueries(graphene.ObjectType):
         kind=graphene.Argument(
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),
+        permissions=[
+            SitePermissions.MANAGE_TRANSLATIONS,
+        ],
     )
-    translation = graphene.Field(
+    translation = PermissionsField(
         TranslatableItem,
+        description="Lookup a translatable item by ID.",
         id=graphene.Argument(
             graphene.ID, description="ID of the object to retrieve.", required=True
         ),
@@ -91,9 +94,9 @@ class TranslationQueries(graphene.ObjectType):
             required=True,
             description="Kind of the object to retrieve.",
         ),
+        permissions=[SitePermissions.MANAGE_TRANSLATIONS],
     )
 
-    @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translations(self, info, kind, **kwargs):
         if kind == TranslatableKinds.PRODUCT:
             qs = resolve_products(info)
@@ -120,7 +123,6 @@ class TranslationQueries(graphene.ObjectType):
 
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
-    @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translation(self, info, id, kind, **_kwargs):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:

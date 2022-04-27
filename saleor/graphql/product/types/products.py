@@ -9,6 +9,7 @@ from graphene import relay
 
 from ....attribute import models as attribute_models
 from ....core.permissions import (
+    AuthorizationFilters,
     OrderPermissions,
     ProductPermissions,
     has_one_of_permissions,
@@ -53,7 +54,12 @@ from ...core.descriptions import (
 )
 from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
-from ...core.fields import ConnectionField, FilterConnectionField, JSONString
+from ...core.fields import (
+    ConnectionField,
+    FilterConnectionField,
+    JSONString,
+    PermissionsField,
+)
 from ...core.types import (
     Image,
     ModelObjectType,
@@ -64,11 +70,6 @@ from ...core.types import (
     Weight,
 )
 from ...core.utils import from_global_id_or_error
-from ...decorators import (
-    one_of_permissions_required,
-    permission_required,
-    staff_member_or_app_required,
-)
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
@@ -195,12 +196,17 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 class PreorderData(graphene.ObjectType):
-    global_threshold = graphene.Int(
-        required=False, description="The global preorder threshold for product variant."
+    global_threshold = PermissionsField(
+        graphene.Int,
+        required=False,
+        description="The global preorder threshold for product variant.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
-    global_sold_units = graphene.Int(
+    global_sold_units = PermissionsField(
+        graphene.Int,
         required=True,
         description="Total number of sold product variant during preorder.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
     end_date = graphene.DateTime(required=False, description="Preorder end date.")
 
@@ -208,12 +214,10 @@ class PreorderData(graphene.ObjectType):
         description = "Represents preorder settings for product variant."
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_global_threshold(root, *_args):
         return root.global_threshold
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_global_sold_units(root, *_args):
         return root.global_sold_units
 
@@ -233,9 +237,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             "gateway to resolve this object in a federated query."
         ),
     )
-    channel_listings = NonNullList(
-        ProductVariantChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
     )
     pricing = graphene.Field(
         VariantPricingInfo,
@@ -255,8 +263,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         ),
     )
     margin = graphene.Int(description="Gross margin percentage value.")
-    quantity_ordered = graphene.Int(description="Total quantity ordered.")
-    revenue = graphene.Field(
+    quantity_ordered = PermissionsField(
+        graphene.Int,
+        description="Total quantity ordered.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
+    revenue = PermissionsField(
         TaxedMoney,
         period=graphene.Argument(ReportingPeriod),
         description=(
@@ -264,6 +276,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
             "field should be queried using `reportProductSales` query as it uses "
             "optimizations suitable for such calculations."
         ),
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
     images = NonNullList(
         lambda: ProductImage,
@@ -279,10 +292,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         type_name="product variant",
         resolver=ChannelContextType.resolve_translation,
     )
-    digital_content = graphene.Field(
-        DigitalContent, description="Digital content for the product variant."
+    digital_content = PermissionsField(
+        DigitalContent,
+        description="Digital content for the product variant.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
-    stocks = graphene.Field(
+    stocks = PermissionsField(
         NonNullList(Stock),
         description="Stocks for the product variant.",
         address=destination_address_argument,
@@ -293,6 +308,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                 f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     quantity_available = graphene.Int(
         required=False,
@@ -318,7 +337,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         PreorderData,
         required=False,
         description=(
-            f"{ADDED_IN_31} Preorder data for product variant. {PREVIEW_FEATURE}"
+            "Preorder data for product variant." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
     created = graphene.DateTime(required=True)
@@ -341,9 +360,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         return root.channel_slug
 
     @staticmethod
-    @one_of_permissions_required(
-        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
-    )
     def resolve_stocks(
         root: ChannelContext[models.ProductVariant],
         info,
@@ -472,7 +488,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         ).load((root.node.id, country_code, str(root.channel_slug)))
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(root: ChannelContext[models.ProductVariant], *_args):
         return getattr(root.node, "digital_content", None)
 
@@ -512,7 +527,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @staff_member_or_app_required
     def resolve_channel_listings(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
@@ -605,14 +619,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_ordered(root: ChannelContext[models.ProductVariant], *_args):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root.node, "quantity_ordered", None)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     @traced_resolver
     def resolve_revenue(root: ChannelContext[models.ProductVariant], info, period):
         start_date = reporting_period_to_date(period)
@@ -780,9 +792,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
-    channel_listings = NonNullList(
-        ProductChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(ProductChannelListing),
         description="List of availability in channels for the product.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
     media_by_id = graphene.Field(
         lambda: ProductMedia,
@@ -798,7 +811,12 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         ),
     )
     variants = NonNullList(
-        ProductVariant, description="List of variants for the product."
+        ProductVariant,
+        description=(
+            "List of variants for the product. Requires the following permissions to "
+            "include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+        ),
     )
     media = NonNullList(
         lambda: ProductMedia,
@@ -810,7 +828,12 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
     )
     collections = NonNullList(
-        lambda: Collection, description="List of collections for the product."
+        lambda: Collection,
+        description=(
+            "List of collections for the product. Requires the following permissions "
+            "to include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+        ),
     )
     translation = TranslationField(
         ProductTranslation,
@@ -818,6 +841,14 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         resolver=ChannelContextType.resolve_translation,
     )
     available_for_purchase = graphene.Date(
+        description="Date when product is available for purchase.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `availableForPurchaseAt` field to fetch "
+            "the available for purchase date."
+        ),
+    )
+    available_for_purchase_at = graphene.DateTime(
         description="Date when product is available for purchase."
     )
     is_available_for_purchase = graphene.Boolean(
@@ -1078,7 +1109,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return variants.then(map_channel_context)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_channel_listings(root: ChannelContext[models.Product], info, **_kwargs):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
@@ -1166,7 +1196,25 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         def calculate_available_for_purchase(product_channel_listing):
             if not product_channel_listing:
                 return None
-            return product_channel_listing.available_for_purchase
+            return product_channel_listing.available_for_purchase_at
+
+        return (
+            ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
+            .load((root.node.id, channel_slug))
+            .then(calculate_available_for_purchase)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_available_for_purchase_at(root: ChannelContext[models.Product], info):
+        if not root.channel_slug:
+            return None
+        channel_slug = str(root.channel_slug)
+
+        def calculate_available_for_purchase(product_channel_listing):
+            if not product_channel_listing:
+                return None
+            return product_channel_listing.available_for_purchase_at
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
@@ -1246,8 +1294,8 @@ class ProductType(ModelObjectType):
     assigned_variant_attributes = NonNullList(
         AssignedVariantAttribute,
         description=(
-            f"{ADDED_IN_31} Variant attributes of that product "
-            "type with attached variant selection."
+            "Variant attributes of that product type with attached variant selection."
+            + ADDED_IN_31
         ),
         variant_selection=graphene.Argument(
             VariantAttributeScope,
@@ -1258,7 +1306,10 @@ class ProductType(ModelObjectType):
         Attribute, description="Product attributes of that product type."
     )
     available_attributes = FilterConnectionField(
-        AttributeCountableConnection, filter=AttributeFilterInput()
+        AttributeCountableConnection,
+        filter=AttributeFilterInput(),
+        description="List of attributes which can be assigned to this product type.",
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
 
     class Meta:
@@ -1352,7 +1403,6 @@ class ProductType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
         qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
             root.pk
@@ -1411,9 +1461,12 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         type_name="collection",
         resolver=ChannelContextType.resolve_translation,
     )
-    channel_listings = NonNullList(
-        CollectionChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(CollectionChannelListing),
         description="List of channels in which the collection is available.",
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+        ],
     )
 
     class Meta:
@@ -1453,7 +1506,6 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_channel_listings(root: ChannelContext[models.Collection], info):
         return CollectionChannelListingByCollectionIdLoader(info.context).load(
             root.node.id
@@ -1517,7 +1569,11 @@ class Category(ModelObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="List of products in the category.",
+        description=(
+            "List of products in the category. Requires the following permissions to "
+            "include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+        ),
     )
     children = ConnectionField(
         lambda: CategoryCountableConnection,

@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import graphene
+import pytz
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
@@ -16,6 +17,7 @@ from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.date_time import convert_to_utc_date_time
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
@@ -44,7 +46,7 @@ from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -210,7 +212,9 @@ class CollectionInput(graphene.InputObjectType):
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
-    publication_date = graphene.Date(description="Publication date. ISO 8601 standard.")
+    publication_date = graphene.Date(
+        description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
+    )
 
 
 class CollectionCreateInput(CollectionInput):
@@ -252,7 +256,9 @@ class CollectionCreate(ModelMutation):
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = datetime.date.today()
+            cleaned_input["published_at"] = datetime.datetime.now(pytz.UTC)
+        elif publication_date:
+            cleaned_input["published_at"] = convert_to_utc_date_time(publication_date)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -816,14 +822,14 @@ class ProductVariantInput(graphene.InputObjectType):
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
         description=(
-            f"{ADDED_IN_31} Determines if variant is in preorder. {PREVIEW_FEATURE}"
+            "Determines if variant is in preorder." + ADDED_IN_31 + PREVIEW_FEATURE
         )
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
-            f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`,"
-            f"that can be bought in a single checkout. {PREVIEW_FEATURE}"
+            "Determines maximum quantity of `ProductVariant`,"
+            "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
 
@@ -1932,9 +1938,10 @@ class ProductVariantPreorderDeactivate(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Deactivates product variant preorder. "
-            f"It changes all preorder allocation into regular allocation. "
-            f"{PREVIEW_FEATURE}"
+            "Deactivates product variant preorder. "
+            "It changes all preorder allocation into regular allocation."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError

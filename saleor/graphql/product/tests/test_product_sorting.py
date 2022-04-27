@@ -1,8 +1,9 @@
 import random
-from datetime import date, timedelta
+from datetime import timedelta
 
 import graphene
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import CollectionProduct, Product, ProductChannelListing
@@ -160,26 +161,26 @@ query Products($sortBy: ProductOrder, $channel: String) {
 @freeze_time("2020-03-18 12:00:00")
 @pytest.mark.parametrize(
     "direction, order_direction",
-    (("ASC", "publication_date"), ("DESC", "-publication_date")),
+    (("ASC", "published_at"), ("DESC", "-published_at")),
 )
-def test_sort_products_by_publication_date(
+def test_sort_products_by_published_at(
     direction, order_direction, api_client, product_list, channel_USD
 ):
     product_channel_listings = []
     for iter_value, product in enumerate(product_list):
         product_channel_listing = product.channel_listings.get(channel=channel_USD)
-        product_channel_listing.publication_date = date.today() - timedelta(
+        product_channel_listing.published_at = timezone.now() - timedelta(
             days=iter_value
         )
         product_channel_listings.append(product_channel_listing)
     ProductChannelListing.objects.bulk_update(
-        product_channel_listings, ["publication_date"]
+        product_channel_listings, ["published_at"]
     )
 
     variables = {
         "sortBy": {
             "direction": direction,
-            "field": "PUBLICATION_DATE",
+            "field": "PUBLISHED_AT",
         },
         "channel": channel_USD.slug,
     }

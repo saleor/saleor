@@ -1,10 +1,15 @@
-import re
 from typing import cast
 
 import graphene
 from django.db.models import QuerySet
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...core.permissions import (
+    PagePermissions,
+    PageTypePermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
 from ...core.tracing import traced_resolver
 from ..core.connection import (
     CountableConnection,
@@ -31,9 +36,6 @@ from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import AttributeValueFilterInput
 from .sorters import AttributeChoicesSortingInput
-
-COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
-color_pattern = re.compile(COLOR_PATTERN)
 
 
 class AttributeValue(ModelObjectType):
@@ -155,30 +157,69 @@ class Attribute(ModelObjectType):
     )
 
     value_required = graphene.Boolean(
-        description=AttributeDescriptions.VALUE_REQUIRED, required=True
+        description=(
+            f"{AttributeDescriptions.VALUE_REQUIRED} Requires one of the following "
+            f"permissions: {PagePermissions.MANAGE_PAGES}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+        ),
+        required=True,
     )
     visible_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT, required=True
+        description=(
+            f"{AttributeDescriptions.VISIBLE_IN_STOREFRONT} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+        ),
+        required=True,
     )
     filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT, required=True
+        description=(
+            f"{AttributeDescriptions.FILTERABLE_IN_STOREFRONT} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+        ),
+        required=True,
     )
     filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD, required=True
+        description=(
+            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+        ),
+        required=True,
     )
     available_in_grid = graphene.Boolean(
-        description=AttributeDescriptions.AVAILABLE_IN_GRID, required=True
+        description=(
+            f"{AttributeDescriptions.AVAILABLE_IN_GRID} Requires one of the following "
+            f"permissions: {PagePermissions.MANAGE_PAGES}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+        ),
+        required=True,
     )
-
-    translation = TranslationField(AttributeTranslation, type_name="attribute")
-
     storefront_search_position = graphene.Int(
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION, required=True
+        description=(
+            f"{AttributeDescriptions.STOREFRONT_SEARCH_POSITION} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+        ),
+        required=True,
     )
+    translation = TranslationField(AttributeTranslation, type_name="attribute")
     with_choices = graphene.Boolean(
         description=AttributeDescriptions.WITH_CHOICES, required=True
     )
-
     product_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
@@ -280,8 +321,8 @@ class AssignedVariantAttribute(graphene.ObjectType):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Represents assigned attribute to variant with "
-            "variant selection attached."
+            "Represents assigned attribute to variant with variant selection attached."
+            + ADDED_IN_31
         )
 
 

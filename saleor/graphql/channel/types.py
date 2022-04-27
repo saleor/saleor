@@ -7,8 +7,8 @@ from graphene.types.resolver import get_default_resolver
 from ...channel import models
 from ...core.permissions import ChannelPermissions
 from ..core.descriptions import ADDED_IN_31
+from ..core.fields import PermissionsField
 from ..core.types import CountryDisplay, ModelObjectType
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from . import ChannelContext
@@ -77,9 +77,29 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
         return ObjectWithMetadata.resolve_metadata(root.node, info)
 
     @staticmethod
+    def resolve_metafield(root: ChannelContext, info, *, key: str):
+        # Used in metadata API to resolve metadata fields from an instance.
+        return ObjectWithMetadata.resolve_metafield(root.node, info, key=key)
+
+    @staticmethod
+    def resolve_metafields(root: ChannelContext, info, keys=None):
+        # Used in metadata API to resolve metadata fields from an instance.
+        return ObjectWithMetadata.resolve_metafields(root.node, info, keys=keys)
+
+    @staticmethod
     def resolve_private_metadata(root: ChannelContext, info):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
+
+    @staticmethod
+    def resolve_private_metafield(root: ChannelContext, info, *, key: str):
+        # Used in metadata API to resolve private metadata fields from an instance.
+        return ObjectWithMetadata.resolve_private_metafield(root.node, info, key=key)
+
+    @staticmethod
+    def resolve_private_metafields(root: ChannelContext, info, keys=None):
+        # Used in metadata API to resolve private metadata fields from an instance.
+        return ObjectWithMetadata.resolve_private_metafields(root.node, info, keys=keys)
 
 
 class ChannelContextTypeWithMetadata(
@@ -102,15 +122,20 @@ class Channel(ModelObjectType):
     slug = graphene.String(required=True)
     currency_code = graphene.String(required=True)
     slug = graphene.String(required=True)
-    has_orders = graphene.Boolean(
-        required=True, description="Whether a channel has associated orders."
+    has_orders = PermissionsField(
+        graphene.Boolean,
+        description="Whether a channel has associated orders.",
+        permissions=[
+            ChannelPermissions.MANAGE_CHANNELS,
+        ],
+        required=True,
     )
     default_country = graphene.Field(
         CountryDisplay,
         description=(
-            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided."
+            "when the country was not explicitly provided." + ADDED_IN_31
         ),
         required=True,
     )
@@ -121,7 +146,6 @@ class Channel(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    @permission_required(ChannelPermissions.MANAGE_CHANNELS)
     def resolve_has_orders(root: models.Channel, info):
         return (
             ChannelWithHasOrdersByIdLoader(info.context)
