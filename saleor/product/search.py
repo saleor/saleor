@@ -63,19 +63,18 @@ def prepare_product_search_vector_value(
 def generate_variants_search_vector_value(product: "Product") -> Optional[SearchVector]:
     variants = list(product.variants.all())
 
-    if not variants:
+    variant_vectors = [
+        SearchVector(Value(variant.sku), Value(variant.name), weight="A")
+        if variant.sku
+        else SearchVector(Value(variant.name), weight="A")
+        for variant in variants
+        if variant.sku or variant.name
+    ]
+
+    if not variant_vectors:
         return None
 
-    search_vector = reduce(
-        add,
-        (
-            SearchVector(Value(variant.sku), Value(variant.name), weight="A")
-            if variant.sku
-            else SearchVector(Value(variant.name), weight="A")
-            for variant in variants
-            if variant.sku or variant.name
-        ),
-    )
+    search_vector = reduce(add, variant_vectors)
 
     for variant in variants:
         attribute_vector = generate_attributes_search_vector_value(
