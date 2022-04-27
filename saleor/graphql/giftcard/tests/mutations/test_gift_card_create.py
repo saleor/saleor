@@ -1,11 +1,14 @@
 from datetime import date, timedelta
 from unittest import mock
 
+import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCard
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 CREATE_GIFT_CARD_MUTATION = """
@@ -617,3 +620,63 @@ def test_create_gift_card_with_expiry_date_type_invalid(
     assert len(errors) == 1
     assert errors[0]["field"] == "expiryDate"
     assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_gift_card_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    app_api_client,
+    permission_manage_gift_card,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    initial_balance = 100
+    currency = "USD"
+    tag = "gift-card-tag"
+    note = "This is gift card note that will be save in gift card event."
+    variables = {
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "addTags": [tag],
+            "note": note,
+            "expiryDate": None,
+            "isActive": False,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+    gift_card = GiftCard.objects.last()
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardCreate"]["errors"]
+    data = content["data"]["giftCardCreate"]["giftCard"]
+
+    assert not errors
+    assert data["code"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+            "is_active": gift_card.is_active,
+        },
+        WebhookEventAsyncType.GIFT_CARD_CREATED,
+        [any_webhook],
+        gift_card,
+        SimpleLazyObject(lambda: app_api_client.app),
+    )

@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Any, Dict, Iterable, List, Optional, Union, cast
 
 import graphene
+import pytz
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 
@@ -152,9 +153,9 @@ def check_lines_quantity(
 
 
 def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
-    today = datetime.date.today()
+    today = datetime.datetime.now(pytz.UTC)
     is_available_for_purchase = Q(
-        available_for_purchase__lte=today,
+        available_for_purchase_at__lte=today,
         product__variants__id__in=variants_id,
         channel_id=channel_id,
     )

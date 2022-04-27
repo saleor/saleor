@@ -17,10 +17,9 @@ from ...site import models as site_models
 from ..channel import ChannelContext
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
-from ..core.fields import JSONString
+from ..core.fields import JSONString, PermissionsField
 from ..core.types import LanguageDisplay, ModelObjectType, NonNullList
 from ..core.utils import str_to_enum
-from ..decorators import permission_required
 from ..page.dataloaders import SelectedAttributesByPageIdLoader
 from ..product.dataloaders import (
     SelectedAttributesByProductIdLoader,
@@ -454,7 +453,7 @@ class VoucherTranslatableContent(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String()
     translation = TranslationField(VoucherTranslation, type_name="voucher")
-    voucher = graphene.Field(
+    voucher = PermissionsField(
         "saleor.graphql.discount.types.Voucher",
         description=(
             "Vouchers allow giving discounts to particular customers on categories, "
@@ -464,6 +463,7 @@ class VoucherTranslatableContent(ModelObjectType):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
         ),
+        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
 
     class Meta:
@@ -471,7 +471,6 @@ class VoucherTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(root: discount_models.Voucher, _info):
         return ChannelContext(node=root, channel_slug=None)
 
@@ -489,7 +488,7 @@ class SaleTranslatableContent(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     translation = TranslationField(SaleTranslation, type_name="sale")
-    sale = graphene.Field(
+    sale = PermissionsField(
         "saleor.graphql.discount.types.Sale",
         description=(
             "Sales allow creating discounts for categories, collections "
@@ -498,6 +497,7 @@ class SaleTranslatableContent(ModelObjectType):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
         ),
+        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
 
     class Meta:
@@ -505,7 +505,6 @@ class SaleTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sale(root: discount_models.Sale, _info):
         return ChannelContext(node=root, channel_slug=None)
 
@@ -570,7 +569,7 @@ class ShippingMethodTranslatableContent(ModelObjectType):
     translation = TranslationField(
         ShippingMethodTranslation, type_name="shipping method"
     )
-    shipping_method = graphene.Field(
+    shipping_method = PermissionsField(
         "saleor.graphql.shipping.types.ShippingMethodType",
         description=(
             "Shipping method are the methods you'll use to get customer's orders "
@@ -579,6 +578,9 @@ class ShippingMethodTranslatableContent(ModelObjectType):
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
         ),
+        permissions=[
+            ShippingPermissions.MANAGE_SHIPPING,
+        ],
     )
 
     class Meta:
@@ -586,6 +588,5 @@ class ShippingMethodTranslatableContent(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
         return ChannelContext(node=root, channel_slug=None)

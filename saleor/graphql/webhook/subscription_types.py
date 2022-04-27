@@ -57,6 +57,34 @@ class CategoryDeleted(ObjectType, CategoryBase):
     ...
 
 
+class ChannelBase(AbstractType):
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description=f"{ADDED_IN_32} Look up a channel. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_channel(root, info):
+        _, channel = root
+        return channel
+
+
+class ChannelCreated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelUpdated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelDeleted(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelStatusChanged(ObjectType, ChannelBase):
+    ...
+
+
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
@@ -102,6 +130,34 @@ class DraftOrderUpdated(ObjectType, OrderBase):
 
 
 class DraftOrderDeleted(ObjectType, OrderBase):
+    ...
+
+
+class GiftCardBase(AbstractType):
+    gift_card = graphene.Field(
+        "saleor.graphql.giftcard.types.GiftCard",
+        description=f"{ADDED_IN_32} Look up a gift card. {PREVIEW_FEATURE}",
+    )
+
+    @staticmethod
+    def resolve_gift_card(root, info):
+        _, gift_card = root
+        return gift_card
+
+
+class GiftCardCreated(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardUpdated(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardDeleted(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardStatusChanged(ObjectType, GiftCardBase):
     ...
 
 
@@ -471,6 +527,14 @@ class Event(Union):
             CategoryCreated,
             CategoryUpdated,
             CategoryDeleted,
+            ChannelCreated,
+            ChannelUpdated,
+            ChannelDeleted,
+            ChannelStatusChanged,
+            GiftCardCreated,
+            GiftCardUpdated,
+            GiftCardDeleted,
+            GiftCardStatusChanged,
             OrderCreated,
             OrderUpdated,
             OrderConfirmed,
@@ -522,6 +586,14 @@ class Event(Union):
             WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
             WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
             WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
+            WebhookEventAsyncType.CHANNEL_CREATED: ChannelCreated,
+            WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
+            WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
+            WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
+            WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
+            WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
+            WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
+            WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
             WebhookEventAsyncType.ORDER_CREATED: OrderCreated,
             WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
             WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,

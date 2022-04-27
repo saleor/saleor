@@ -11,7 +11,7 @@ from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ....product.search import update_products_search_document
+from ....product.search import update_products_search_vector
 from ...attribute.mutations import (
     BaseReorderAttributesMutation,
     BaseReorderAttributeValuesMutation,
@@ -344,7 +344,7 @@ class ProductAttributeUnassign(BaseMutation):
         cls.save_field_values(product_type, "product_attributes", attribute_pks)
         cls.save_field_values(product_type, "variant_attributes", attribute_pks)
 
-        update_products_search_document(product_type.products.all())
+        update_products_search_vector(product_type.products.all())
 
         return cls(product_type=product_type)
 

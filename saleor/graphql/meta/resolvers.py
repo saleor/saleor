@@ -80,7 +80,7 @@ def resolve_metadata(metadata: dict):
     )
 
 
-def resolve_private_metadata(root: ModelWithMetadata, info):
+def check_private_metadata_privilege(root: ModelWithMetadata, info):
     item_type, item_id = resolve_object_with_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
@@ -101,4 +101,7 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
     if not requester.has_perms(required_permissions):
         raise PermissionDenied()
 
+
+def resolve_private_metadata(root: ModelWithMetadata, info):
+    check_private_metadata_privilege(root, info)
     return resolve_metadata(root.private_metadata)

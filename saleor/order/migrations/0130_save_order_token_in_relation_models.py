@@ -147,20 +147,9 @@ class Migration(migrations.Migration):
             ALTER TABLE order_order_gift_cards
             ALTER COLUMN order_token SET NOT NULL;
 
-            DO $$
-            DECLARE query text;
-            BEGIN
-                query := FORMAT(
-                    'alter table order_order_gift_cards drop constraint %s',
-                    (
-                        select constraint_name from information_schema.table_constraints
-                        WHERE table_name = 'order_order_gift_cards'
-                            and constraint_type = 'FOREIGN KEY'
-                            and constraint_name like '%order_order_id'
-                    )
-                );
-                EXECUTE query;
-            END $$;
+            ALTER TABLE order_order_gift_cards
+                DROP CONSTRAINT
+                    order_order_gift_cards_order_id_ce5608c4_fk_order_order_id;
 
             ALTER TABLE order_order_gift_cards
                 ADD CONSTRAINT order_order_gift_cards_order_id_fk_order_order_number
