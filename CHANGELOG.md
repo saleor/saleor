@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Fix filtering product attributes by date range - #9543 by @IKarbowiak
 - Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Fix for sending incorrect prices to Avatax - #9633 by @korycins
 
 # 3.2.0
 
