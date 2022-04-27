@@ -287,9 +287,12 @@ def _create_lines_for_order(
         variant_translation["product_variant_id"]: variant_translation.get("name")
         for variant_translation in variants_translation
     }
+    channel = checkout_info.checkout.channel
+    if checkout_info.checkout.metadata.get("alternative_channel"):
+        channel = checkout_info.checkout.alternative_channel
 
     check_stock_quantity_bulk(
-        variants, country_code, quantities, checkout_info.channel.slug
+        variants, country_code, quantities, channel.slug
     )
 
     return [
@@ -422,12 +425,16 @@ def _create_order(
         if site_settings.automatically_confirm_all_new_orders
         else OrderStatus.UNCONFIRMED
     )
+
+    channel = checkout.channel
+    if checkout.metadata.get('alternative_channel'):
+        channel = checkout.alternative_channel
     order = Order.objects.create(
         **order_data,
         checkout_token=checkout.token,
         status=status,
         origin=OrderOrigin.CHECKOUT,
-        channel=checkout_info.channel,
+        channel=channel
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
@@ -460,7 +467,7 @@ def _create_order(
     OrderLine.objects.bulk_create(order_lines)
 
     country_code = checkout_info.get_country()
-    allocate_stocks(order_lines_info, country_code, checkout_info.channel.slug)
+    allocate_stocks(order_lines_info, country_code, channel.slug)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():

@@ -79,7 +79,8 @@ class StockQuerySet(models.QuerySet):
         )
 
     def for_country_and_channel(self, country_code: str, channel_slug):
-        filter_lookup = {"shipping_zones__countries__contains": country_code}
+        # filter_lookup = {"shipping_zones__countries__contains": country_code}
+        filter_lookup = {}
         if channel_slug is not None:
             filter_lookup["shipping_zones__channels__slug"] = channel_slug
         query_warehouse = models.Subquery(

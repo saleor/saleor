@@ -12,7 +12,7 @@ def resolve_checkout_lines():
 def resolve_checkouts(channel_slug):
     queryset = models.Checkout.objects.all()
     if channel_slug:
-        queryset = queryset.filter(channel__slug=channel_slug)
+        queryset = queryset.filter(channel__slug=channel_slug).order_by('-id')
     return queryset
 
 
