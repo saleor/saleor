@@ -11,7 +11,7 @@ from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ....product.search import update_products_search_document
+from ....product.search import update_products_search_vector
 from ...attribute.mutations import (
     BaseReorderAttributesMutation,
     BaseReorderAttributeValuesMutation,
@@ -35,8 +35,9 @@ class ProductAttributeAssignInput(graphene.InputObjectType):
     variant_selection = graphene.Boolean(
         required=False,
         description=(
-            f"{ADDED_IN_31} Whether attribute is allowed in variant selection. "
+            "Whether attribute is allowed in variant selection. "
             f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+            + ADDED_IN_31
         ),
     )
 
@@ -46,8 +47,9 @@ class ProductAttributeAssignmentUpdateInput(graphene.InputObjectType):
     variant_selection = graphene.Boolean(
         required=True,
         description=(
-            f"{ADDED_IN_31} Whether attribute is allowed in variant selection. "
+            "Whether attribute is allowed in variant selection. "
             f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+            + ADDED_IN_31
         ),
     )
 
@@ -344,7 +346,7 @@ class ProductAttributeUnassign(BaseMutation):
         cls.save_field_values(product_type, "product_attributes", attribute_pks)
         cls.save_field_values(product_type, "variant_attributes", attribute_pks)
 
-        update_products_search_document(product_type.products.all())
+        update_products_search_vector(product_type.products.all())
 
         return cls(product_type=product_type)
 
@@ -365,8 +367,8 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Update attributes assigned to product "
-            "variant for given product type."
+            "Update attributes assigned to product variant for given product type."
+            + ADDED_IN_31
         )
 
         error_type_class = ProductError

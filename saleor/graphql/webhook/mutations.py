@@ -57,8 +57,9 @@ class WebhookCreateInput(graphene.InputObjectType):
         required=False,
     )
     query = graphene.String(
-        description=f"{ADDED_IN_32} Subscription query used to define a webhook "
-        f"payload. {PREVIEW_FEATURE}",
+        description="Subscription query used to define a webhook payload."
+        + ADDED_IN_32
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -172,8 +173,9 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="Use to create a hash signature with each payload.", required=False
     )
     query = graphene.String(
-        description=f"{ADDED_IN_32} Subscription query used to define a webhook "
-        f"payload. {PREVIEW_FEATURE}",
+        description="Subscription query used to define a webhook payload."
+        + ADDED_IN_32
+        + PREVIEW_FEATURE,
         required=False,
     )
 

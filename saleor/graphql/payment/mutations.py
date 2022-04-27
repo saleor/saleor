@@ -107,13 +107,13 @@ class PaymentInput(graphene.InputObjectType):
         ),
     )
     store_payment_method = StorePaymentMethodEnum(
-        description=f"{ADDED_IN_31} Payment store type.",
+        description="Payment store type." + ADDED_IN_31,
         required=False,
         default_value=StorePaymentMethod.NONE,
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description=f"{ADDED_IN_31} User public metadata.",
+        description="User public metadata." + ADDED_IN_31,
         required=False,
     )
 
@@ -641,9 +641,10 @@ class TransactionCreate(BaseMutation):
     class Meta:
         auto_permission_message = False
         description = (
-            f"{ADDED_IN_32} Create transaction for checkout or order. Requires the "
-            f"following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
-            f"{PREVIEW_FEATURE}"
+            "Create transaction for checkout or order. Requires the "
+            "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -823,9 +824,10 @@ class TransactionUpdate(TransactionCreate):
     class Meta:
         auto_permission_message = False
         description = (
-            f"{ADDED_IN_32} Create transaction for checkout or order. Requires the "
-            f"following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
-            f"{PREVIEW_FEATURE}"
+            "Create transaction for checkout or order. Requires the "
+            "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -900,8 +902,7 @@ class TransactionRequestAction(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_32} Request an action for payment transaction. "
-            f"{PREVIEW_FEATURE}"
+            "Request an action for payment transaction." + ADDED_IN_32 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionRequestActionError
         permissions = (

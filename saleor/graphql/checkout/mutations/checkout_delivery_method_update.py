@@ -39,8 +39,8 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Updates the delivery method "
-            f"(shipping method or pick up point) of the checkout. {PREVIEW_FEATURE}"
+            "Updates the delivery method (shipping method or pick up point) "
+            "of the checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         )
         error_type_class = CheckoutError
 

@@ -1,11 +1,12 @@
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
 import pytest
+import pytz
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -2567,12 +2568,12 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
-    next_day = date.today() + timedelta(days=1)
+    next_day = datetime.now(pytz.UTC) + timedelta(days=1)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
     channel_listing = variant_1.product.channel_listings.get()
-    channel_listing.publication_date = next_day
+    channel_listing.published_at = next_day
     channel_listing.save()
 
     variant_1.quantity = 2
@@ -3245,7 +3246,7 @@ def test_can_finalize_order_product_unavailable_for_purchase(
 
     line = order.lines.first()
     product = line.variant.product
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -3276,7 +3277,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     line = order.lines.first()
     product = line.variant.product
     product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=1)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=1)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -3364,7 +3365,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listings.update(available_for_purchase=None)
+    variant.product.channel_listings.update(available_for_purchase_at=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -3383,7 +3384,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line = order.lines.first()
     variant = line.variant
     variant.product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=2)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=2)
     )
     line.refresh_from_db()
 
@@ -4005,7 +4006,7 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     product = order.lines.first().variant.product
     product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=5)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=5)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -4273,6 +4274,52 @@ def test_order_lines_create(
 
     order.refresh_from_db()
     assert variant.sku.lower() in order.search_document
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_for_just_published_product(
+    product_variant_out_of_stock_webhook_mock,
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    product_listing = variant.product.channel_listings.get(channel=order.channel)
+    product_listing.published_at = datetime.now(pytz.utc)
+    product_listing.save(update_fields=["published_at"])
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
 
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")

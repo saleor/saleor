@@ -579,15 +579,21 @@ PRODUCT_FIELDS = (
 def serialize_product_channel_listing_payload(channel_listings):
     serializer = PayloadSerializer()
     fields = (
-        "publication_date",
+        "published_at",
         "id_published",
         "visible_in_listings",
-        "available_for_purchase",
+        "available_for_purchase_at",
     )
     channel_listing_payload = serializer.serialize(
         channel_listings,
         fields=fields,
-        extra_dict_data={"channel_slug": lambda pch: pch.channel.slug},
+        extra_dict_data={
+            "channel_slug": lambda pch: pch.channel.slug,
+            # deprecated in 3.3 - published_at and available_for_purchase_at
+            # should be used instead
+            "publication_date": lambda pch: pch.published_at,
+            "available_for_purchase": lambda pch: pch.available_for_purchase_at,
+        },
     )
     return channel_listing_payload
 
@@ -874,7 +880,7 @@ def generate_page_payload(
         "metadata",
         "title",
         "content",
-        "publication_date",
+        "published_at",
         "is_published",
         "updated_at",
     ]
@@ -882,7 +888,9 @@ def generate_page_payload(
         [page],
         fields=page_fields,
         extra_dict_data={
-            "data": generate_meta(requestor_data=generate_requestor(requestor))
+            "data": generate_meta(requestor_data=generate_requestor(requestor)),
+            # deprecated in 3.3 - published_at should be used instead
+            "publication_date": page.published_at,
         },
     )
     return page_payload

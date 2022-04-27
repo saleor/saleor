@@ -6,7 +6,7 @@ from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
-from ..account.utils import requestor_has_access
+from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
@@ -25,7 +25,7 @@ from .resolvers import (
 
 def has_required_permission(app: models.App, context):
     requester = get_user_or_app_from_context(context)
-    if not requestor_has_access(requester, app, AppPermission.MANAGE_APPS):
+    if not is_owner_or_has_one_of_perms(requester, app, AppPermission.MANAGE_APPS):
         raise PermissionDenied(
             permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
         )
@@ -208,7 +208,7 @@ class App(ModelObjectType):
     )
     extensions = NonNullList(
         AppExtension,
-        description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
+        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=True,
     )
 

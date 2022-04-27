@@ -125,6 +125,7 @@ def trigger_webhooks_async(
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
+
     if regular_webhooks:
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(

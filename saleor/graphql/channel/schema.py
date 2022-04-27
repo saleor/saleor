@@ -1,8 +1,9 @@
 import graphene
 
+from ...core.permissions import AuthorizationFilters
+from ..core.fields import PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
-from ..decorators import staff_member_or_app_required
 from .mutations import (
     ChannelActivate,
     ChannelCreate,
@@ -15,19 +16,28 @@ from .types import Channel
 
 
 class ChannelQueries(graphene.ObjectType):
-    channel = graphene.Field(
+    channel = PermissionsField(
         Channel,
         id=graphene.Argument(graphene.ID, description="ID of the channel."),
         description="Look up a channel by ID.",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
     )
-    channels = NonNullList(Channel, description="List of all channels.")
+    channels = PermissionsField(
+        NonNullList(Channel),
+        description="List of all channels.",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
 
-    @staff_member_or_app_required
     def resolve_channel(self, info, id=None, **kwargs):
         _, id = from_global_id_or_error(id, Channel)
         return resolve_channel(id)
 
-    @staff_member_or_app_required
     def resolve_channels(self, _info, **kwargs):
         return resolve_channels()
 

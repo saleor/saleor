@@ -438,7 +438,7 @@ class FulfillmentApprove(BaseMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Approve existing fulfillment."
+        description = "Approve existing fulfillment." + ADDED_IN_31
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

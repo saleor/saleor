@@ -4,11 +4,10 @@ from ...core.permissions import OrderPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
-from ..core.fields import ConnectionField, FilterConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import from_global_id_or_error
-from ..decorators import permission_required
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
@@ -76,11 +75,17 @@ class OrderQueries(graphene.ObjectType):
             "List of activity events to display on "
             "homepage (at the moment it only contains order-events)."
         ),
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
-    order = graphene.Field(
+    order = PermissionsField(
         Order,
         description="Look up an order by ID.",
         id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     orders = FilterConnectionField(
         OrderCountableConnection,
@@ -90,14 +95,20 @@ class OrderQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of orders.",
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     draft_orders = FilterConnectionField(
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         description="List of draft orders.",
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
-    orders_total = graphene.Field(
+    orders_total = PermissionsField(
         TaxedMoney,
         description="Return the total sales amount from a specific period.",
         period=graphene.Argument(ReportingPeriod, description="A period of time."),
@@ -105,36 +116,35 @@ class OrderQueries(graphene.ObjectType):
             graphene.String,
             description="Slug of a channel for which the data should be returned.",
         ),
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     order_by_token = graphene.Field(
         Order,
-        description="{DEPRECATED_IN_3X_FIELD} Look up an order by token.",
+        description="Look up an order by token.",
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
         token=graphene.Argument(UUID, description="The order's token.", required=True),
     )
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_homepage_events(self, info, *_args, **kwargs):
         qs = resolve_homepage_events()
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_order(self, info, **data):
         _, id = from_global_id_or_error(data.get("id"), Order)
         return resolve_order(id)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders(self, info, channel=None, **kwargs):
         qs = resolve_orders(info, channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_draft_orders(self, info, **kwargs):
         qs = resolve_draft_orders(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, channel=None, **_kwargs):
         return resolve_orders_total(info, period, channel)
 

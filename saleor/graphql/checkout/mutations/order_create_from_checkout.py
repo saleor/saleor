@@ -52,9 +52,10 @@ class OrderCreateFromCheckout(BaseMutation):
     class Meta:
         auto_permission_message = False
         description = (
-            f"{ADDED_IN_32} Create new order from existing checkout. Requires the "
-            f"following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
-            f"{PREVIEW_FEATURE}"
+            "Create new order from existing checkout. Requires the "
+            "following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
+            + ADDED_IN_32
+            + PREVIEW_FEATURE
         )
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)

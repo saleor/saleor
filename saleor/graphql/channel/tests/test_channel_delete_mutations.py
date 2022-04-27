@@ -1,9 +1,13 @@
+from unittest import mock
+
 import graphene
+from django.utils.functional import SimpleLazyObject
 
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
 from ....checkout.models import Checkout
 from ....order.models import Order
+from ....webhook.event_types import WebhookEventAsyncType
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_DELETE_MUTATION = """
@@ -225,3 +229,45 @@ def test_channel_delete_mutation_as_anonymous(
     # then
     assert_no_permission(response)
     assert Channel.objects.filter(slug=channel_USD.slug).exists()
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_channel_delete_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    checkout,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    other_channel_USD,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
+    variables = {"id": channel_id, "input": {"channelId": channel_target_id}}
+    assert Checkout.objects.first() is not None
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    get_graphql_content(response)
+
+    # then
+    assert not Channel.objects.filter(slug=channel_USD.slug).exists()
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": graphene.Node.to_global_id("Channel", channel_USD.id)},
+        WebhookEventAsyncType.CHANNEL_DELETED,
+        [any_webhook],
+        channel_USD,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )

@@ -1,8 +1,12 @@
+from unittest import mock
+
 import graphene
+from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
+from ....webhook.event_types import WebhookEventAsyncType
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_CREATE_MUTATION = """
@@ -267,3 +271,53 @@ def test_channel_create_mutation_with_shipping_zones(
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
     for shipping_zone in shipping_zones:
         shipping_zone.channels.get(slug=slug)
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_channel_create_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    permission_manage_channels,
+    staff_api_client,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+    channel = Channel.objects.last()
+    data = content["data"]["channelCreate"]
+
+    # then
+    assert data["channel"]
+    assert not data["errors"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": graphene.Node.to_global_id("Channel", channel.id)},
+        WebhookEventAsyncType.CHANNEL_CREATED,
+        [any_webhook],
+        channel,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )

@@ -22,6 +22,25 @@ All notable, unreleased changes to this project will be documented in this file.
     - `transactionRequestAction`
   - add new webhook event:
     - `TRANSACTION_ACTION_REQUEST`
+- Precise timestamps for publication dates - #9581 by @IKarbowiak
+  - Change `publicationDate` fields to `publishedAt` date time fields.
+    - Types and inputs where `publicationDate` is deprecated and `publishedAt` field should be used instead:
+      - `Product`
+      - `ProductChannelListing`
+      - `CollectionChannelListing`
+      - `Page`
+      - `PublishableChannelListingInput`
+      - `ProductChannelListingAddInput`
+      - `PageCreateInput`
+      - `PageInput`
+  - Change `availableForPurchaseDate` fields to `availableForPurchaseAt` date time field.
+    - Deprecate `Product.availableForPurchase` field, the `Product.availableForPurchaseAt` should be used instead.
+    - Deprecate `ProductChannelListing.availableForPurchase` field, the `ProductChannelListing.availableForPurchaseAt` should be used instead.
+  - Deprecate `publicationDate` on `CollectionInput` and `CollectionCreateInput`.
+  - Deprecate `PUBLICATION_DATE` in `CollectionSortField`, the `PUBLISHED_AT` should be used instead.
+  - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
+  - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
+- Add an alternative API for fetching metadata - #9231 by @patrys
 
 # 3.2.0
 
@@ -35,6 +54,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated the `token` field in order payload, the `id` field should be used
     instead.
 - Enable JWT expiration by default - #9483 by @maarcingebala
+
 
 ### Other changes
 
@@ -59,6 +79,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow plugins to create their custom error code - #9300 by @LeOndaz
 
 #### Other
+- Use full-text search for products search API - #9344 by @patrys
 
 - Include required permission in mutations' descriptions - #9363 by @maarcingebala
 - Make GraphQL list items non-nullable - #9391 by @maarcingebala

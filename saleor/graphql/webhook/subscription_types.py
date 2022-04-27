@@ -41,7 +41,7 @@ TRANSLATIONS_TYPES_MAP = {
 class CategoryBase(AbstractType):
     category = graphene.Field(
         "saleor.graphql.product.types.Category",
-        description=f"{ADDED_IN_32} Look up a category. {PREVIEW_FEATURE}",
+        description="Look up a category." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -62,10 +62,38 @@ class CategoryDeleted(ObjectType, CategoryBase):
     ...
 
 
+class ChannelBase(AbstractType):
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="Look up a channel." + ADDED_IN_32 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_channel(root, info):
+        _, channel = root
+        return channel
+
+
+class ChannelCreated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelUpdated(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelDeleted(ObjectType, ChannelBase):
+    ...
+
+
+class ChannelStatusChanged(ObjectType, ChannelBase):
+    ...
+
+
 class OrderBase(AbstractType):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        description=f"{ADDED_IN_32} Look up an order. {PREVIEW_FEATURE}",
+        description="Look up an order." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -110,17 +138,45 @@ class DraftOrderDeleted(ObjectType, OrderBase):
     ...
 
 
+class GiftCardBase(AbstractType):
+    gift_card = graphene.Field(
+        "saleor.graphql.giftcard.types.GiftCard",
+        description="Look up a gift card." + ADDED_IN_32 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_gift_card(root, info):
+        _, gift_card = root
+        return gift_card
+
+
+class GiftCardCreated(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardUpdated(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardDeleted(ObjectType, GiftCardBase):
+    ...
+
+
+class GiftCardStatusChanged(ObjectType, GiftCardBase):
+    ...
+
+
 class ProductBase(AbstractType):
     product = graphene.Field(
         "saleor.graphql.product.types.Product",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a product. {PREVIEW_FEATURE}",
+        description="Look up a product." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
-        description=f"{ADDED_IN_32} Look up a category. {PREVIEW_FEATURE}",
+        description="Look up a category." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -152,7 +208,7 @@ class ProductVariantBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a product variant. {PREVIEW_FEATURE}",
+        description="Look up a product variant." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -176,7 +232,7 @@ class ProductVariantDeleted(ObjectType, ProductVariantBase):
 class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
-        description=f"{ADDED_IN_32} Look up a warehouse. {PREVIEW_FEATURE}",
+        description="Look up a warehouse." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -194,7 +250,7 @@ class ProductVariantOutOfStock(ObjectType, ProductVariantBase):
 class ProductVariantBackInStock(ObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
-        description=f"{ADDED_IN_32} Look up a warehouse. {PREVIEW_FEATURE}",
+        description="Look up a warehouse." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -215,7 +271,7 @@ class SaleBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a sale. {PREVIEW_FEATURE}",
+        description="Look up a sale." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -239,7 +295,7 @@ class SaleDeleted(ObjectType, SaleBase):
 class InvoiceBase(AbstractType):
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
-        description=f"{ADDED_IN_32} Look up an Invoice. {PREVIEW_FEATURE}",
+        description="Look up an Invoice." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -263,7 +319,7 @@ class InvoiceSent(ObjectType, InvoiceBase):
 class FulfillmentBase(AbstractType):
     fulfillment = graphene.Field(
         "saleor.graphql.order.types.Fulfillment",
-        description=f"{ADDED_IN_32} Look up a Fulfillment. {PREVIEW_FEATURE}",
+        description="Look up a Fulfillment." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -283,7 +339,7 @@ class FulfillmentCanceled(ObjectType, FulfillmentBase):
 class UserBase(AbstractType):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=f"{ADDED_IN_32} Look up a user. {PREVIEW_FEATURE}",
+        description="Look up a user." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -306,7 +362,7 @@ class CollectionBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a collection. {PREVIEW_FEATURE}",
+        description="Look up a collection." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -330,7 +386,7 @@ class CollectionDeleted(ObjectType, CollectionBase):
 class CheckoutBase(AbstractType):
     checkout = graphene.Field(
         "saleor.graphql.checkout.types.Checkout",
-        description=f"{ADDED_IN_32} Look up a Checkout. {PREVIEW_FEATURE}",
+        description="Look up a Checkout." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -350,7 +406,7 @@ class CheckoutUpdated(ObjectType, CheckoutBase):
 class PageBase(AbstractType):
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
-        description=f"{ADDED_IN_32} Look up a page. {PREVIEW_FEATURE}",
+        description="Look up a page." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -377,14 +433,14 @@ class ShippingPriceBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a shipping method. {PREVIEW_FEATURE}",
+        description="Look up a shipping method." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
     shipping_zone = graphene.Field(
         "saleor.graphql.shipping.types.ShippingZone",
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a shipping zone. {PREVIEW_FEATURE}",
+        description="Look up a shipping zone." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -416,7 +472,7 @@ class ShippingZoneBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a shipping zone. {PREVIEW_FEATURE}",
+        description="Look up a shipping zone." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -494,7 +550,7 @@ class TranslationTypes(Union):
 class TranslationBase(AbstractType):
     translation = graphene.Field(
         TranslationTypes,
-        description=f"{ADDED_IN_32} Look up a translation. {PREVIEW_FEATURE}",
+        description="Look up a translation." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -517,6 +573,14 @@ class Event(Union):
             CategoryCreated,
             CategoryUpdated,
             CategoryDeleted,
+            ChannelCreated,
+            ChannelUpdated,
+            ChannelDeleted,
+            ChannelStatusChanged,
+            GiftCardCreated,
+            GiftCardUpdated,
+            GiftCardDeleted,
+            GiftCardStatusChanged,
             OrderCreated,
             OrderUpdated,
             OrderConfirmed,
@@ -569,6 +633,14 @@ class Event(Union):
             WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
             WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
             WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
+            WebhookEventAsyncType.CHANNEL_CREATED: ChannelCreated,
+            WebhookEventAsyncType.CHANNEL_UPDATED: ChannelUpdated,
+            WebhookEventAsyncType.CHANNEL_DELETED: ChannelDeleted,
+            WebhookEventAsyncType.CHANNEL_STATUS_CHANGED: ChannelStatusChanged,
+            WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
+            WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
+            WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
+            WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
             WebhookEventAsyncType.ORDER_CREATED: OrderCreated,
             WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
             WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
@@ -629,7 +701,7 @@ class Event(Union):
 class Subscription(ObjectType):
     event = graphene.Field(
         Event,
-        description=f"{ADDED_IN_32} Look up subscription event. {PREVIEW_FEATURE}",
+        description="Look up subscription event." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
 
     @staticmethod
