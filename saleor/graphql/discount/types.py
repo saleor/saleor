@@ -84,7 +84,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description=f"{ADDED_IN_31} List of product variants this sale applies to.",
+        description="List of product variants this sale applies to." + ADDED_IN_31,
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -231,7 +231,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description=f"{ADDED_IN_31} List of product variants this voucher applies to.",
+        description="List of product variants this voucher applies to." + ADDED_IN_31,
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],

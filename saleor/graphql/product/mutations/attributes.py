@@ -35,8 +35,9 @@ class ProductAttributeAssignInput(graphene.InputObjectType):
     variant_selection = graphene.Boolean(
         required=False,
         description=(
-            f"{ADDED_IN_31} Whether attribute is allowed in variant selection. "
+            "Whether attribute is allowed in variant selection. "
             f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+            + ADDED_IN_31
         ),
     )
 
@@ -46,8 +47,9 @@ class ProductAttributeAssignmentUpdateInput(graphene.InputObjectType):
     variant_selection = graphene.Boolean(
         required=True,
         description=(
-            f"{ADDED_IN_31} Whether attribute is allowed in variant selection. "
+            "Whether attribute is allowed in variant selection. "
             f"Allowed types are: {AttributeInputType.ALLOWED_IN_VARIANT_SELECTION}."
+            + ADDED_IN_31
         ),
     )
 
@@ -365,8 +367,8 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Update attributes assigned to product "
-            "variant for given product type."
+            "Update attributes assigned to product variant for given product type."
+            + ADDED_IN_31
         )
 
         error_type_class = ProductError

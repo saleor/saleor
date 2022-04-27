@@ -321,8 +321,8 @@ class AssignedVariantAttribute(graphene.ObjectType):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Represents assigned attribute to variant with "
-            "variant selection attached."
+            "Represents assigned attribute to variant with variant selection attached."
+            + ADDED_IN_31
         )
 
 

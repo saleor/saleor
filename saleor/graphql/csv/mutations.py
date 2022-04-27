@@ -188,7 +188,7 @@ class ExportGiftCards(BaseExportMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Export gift cards to csv file. {PREVIEW_FEATURE}"
+        description = "Export gift cards to csv file." + ADDED_IN_31 + PREVIEW_FEATURE
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = ExportError
 

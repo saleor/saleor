@@ -109,7 +109,7 @@ class GiftCardEvent(ModelObjectType):
     )
 
     class Meta:
-        description = f"{ADDED_IN_31} History log of the gift card. {PREVIEW_FEATURE}"
+        description = "History log of the gift card." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
 
@@ -219,7 +219,7 @@ class GiftCardTag(ModelObjectType):
     name = graphene.String(required=True)
 
     class Meta:
-        description = f"{ADDED_IN_31} The gift card tag. {PREVIEW_FEATURE}"
+        description = "The gift card tag." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCardTag
         interfaces = [graphene.relay.Node]
 
@@ -246,30 +246,31 @@ class GiftCard(ModelObjectType):
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description=(
-            f"{ADDED_IN_31} The user who bought or issued a gift card. "
-            f"{PREVIEW_FEATURE}"
+            "The user who bought or issued a gift card." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description=(
-            f"{ADDED_IN_31} The customer who used a gift card. {PREVIEW_FEATURE}"
+            "The customer who used a gift card." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
     created_by_email = graphene.String(
         required=False,
         description=(
-            f"{ADDED_IN_31} Email address of the user who bought or issued gift card. "
-            "Requires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS}, {AuthorizationFilters.OWNER}. "
-            f"{PREVIEW_FEATURE}"
+            "Email address of the user who bought or issued gift card."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
+            + "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS}, {AuthorizationFilters.OWNER}."
         ),
     )
     used_by_email = graphene.String(
         required=False,
         description=(
-            f"{ADDED_IN_31} Email address of the customer who used a gift card. "
-            f"{PREVIEW_FEATURE}"
+            "Email address of the customer who used a gift card."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
     )
     last_used_on = graphene.DateTime()
@@ -277,14 +278,16 @@ class GiftCard(ModelObjectType):
     app = graphene.Field(
         App,
         description=(
-            f"{ADDED_IN_31} App which created the gift card. Requires one of the "
-            f"following permissions: {AppPermission.MANAGE_APPS}, "
-            f"{AuthorizationFilters.OWNER}. {PREVIEW_FEATURE}"
+            "App which created the gift card."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
+            + "\n\nRequires one of the following permissions: "
+            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}."
         ),
     )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
-        description=f"{ADDED_IN_31} Related gift card product. {PREVIEW_FEATURE}",
+        description="Related gift card product." + ADDED_IN_31 + PREVIEW_FEATURE,
     )
     events = PermissionsField(
         NonNullList(GiftCardEvent),
@@ -292,8 +295,9 @@ class GiftCard(ModelObjectType):
             description="Filtering options for gift card events."
         ),
         description=(
-            f"{ADDED_IN_31} List of events associated with the gift card. "
-            f"{PREVIEW_FEATURE}"
+            "List of events associated with the gift card."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
         required=True,
         permissions=[
@@ -302,7 +306,7 @@ class GiftCard(ModelObjectType):
     )
     tags = PermissionsField(
         NonNullList(GiftCardTag),
-        description=f"{ADDED_IN_31} The gift card tag. {PREVIEW_FEATURE}",
+        description="The gift card tag." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -310,8 +314,9 @@ class GiftCard(ModelObjectType):
     )
     bought_in_channel = graphene.String(
         description=(
-            f"{ADDED_IN_31} Slug of the channel where the gift card was bought. "
-            f"{PREVIEW_FEATURE}"
+            "Slug of the channel where the gift card was bought."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
         required=False,
     )
