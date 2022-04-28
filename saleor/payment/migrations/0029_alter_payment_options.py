@@ -8,13 +8,16 @@ def assing_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         Group = apps.get_model("auth", "Group")
         Permission = apps.get_model("auth", "Permission")
-        handle_payments = Permission.objects.filter(
-            codename="handle_payments", content_type__app_label="payment"
-        ).first()
+        ContentType = apps.get_model("contenttypes", "ContentType")
+
+        ct, _ = ContentType.objects.get_or_create(app_label="payment", model="payment")
+        handle_payments, _ = Permission.objects.get_or_create(
+            name="Handle payments", codename="handle_payments", content_type=ct
+        )
         for group in Group.objects.iterator():
             group.permissions.add(handle_payments)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):
