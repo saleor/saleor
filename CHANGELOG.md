@@ -4,6 +4,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # Unreleased
 
+### Other changes
+- Fix for sending incorrect prices to Avatax - #9633 by @korycins
+
 # 3.3.1
 
 - Drop manual calls to emit post_migrate in migrations (#9647) (b32308802)
