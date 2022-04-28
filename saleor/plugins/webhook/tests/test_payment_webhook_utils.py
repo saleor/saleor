@@ -178,11 +178,12 @@ def test_parse_payment_action_response_parse_amount(
     assert gateway_response.amount == dummy_webhook_app_payment_data.amount
 
 
-def test_clear_successful_delivery(event_delivery, event_payload):
+def test_clear_successful_delivery(event_delivery):
     # given
     assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()
     event_delivery.status = EventDeliveryStatus.SUCCESS
     event_delivery.save()
+    event_payload = event_delivery.payload
     # when
     clear_successful_delivery(event_delivery)
     # then
@@ -190,17 +191,13 @@ def test_clear_successful_delivery(event_delivery, event_payload):
     assert not EventPayload.objects.filter(pk=event_payload.pk).exists()
 
 
-def test_clear_successful_delivery_when_payload_in_multiple_deliveries(
-    event_delivery, event_payload
-):
+def test_clear_successful_delivery_when_payload_in_multiple_deliveries(event_delivery):
     # given
     assert EventDelivery.objects.filter(pk=event_delivery.pk).exists()
     event_delivery.status = EventDeliveryStatus.SUCCESS
     event_delivery.save()
-    EventDelivery.objects.create(
-        payload=event_delivery.payload,
-        webhook=event_delivery.webhook,
-    )
+    event_payload = event_delivery.payload
+    EventDelivery.objects.create(payload=event_payload, webhook=event_delivery.webhook)
     # when
     clear_successful_delivery(event_delivery)
     # then
