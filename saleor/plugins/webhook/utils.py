@@ -197,4 +197,7 @@ def delivery_update(delivery: "EventDelivery", status: str):
 
 def clear_successful_delivery(delivery: "EventDelivery"):
     if delivery.status == EventDeliveryStatus.SUCCESS:
+        payload = delivery.payload
         delivery.delete()
+        if payload:
+            EventPayload.objects.filter(pk=payload.pk, deliveries__isnull=True).delete()
