@@ -5700,6 +5700,47 @@ def app_manifest():
 
 
 @pytest.fixture
+def app_manifest_webhook():
+    return {
+        "name": "webhook",
+        "events": [
+            "ORDER_CREATED",
+            "ORDER_FULLY_PAID",
+            "CUSTOMER_CREATED",
+            "FULFILLMENT_CREATED",
+        ],
+        "query": """
+            subscription {
+                event {
+                    ... on OrderCreated {
+                        order {
+                            id
+                        }
+                    }
+                    ... on OrderFullyPaid {
+                        order {
+                            id
+                        }
+                    }
+                    ... on CustomerCreated {
+                        user {
+                            id
+                        }
+                    }
+                    ... on FulfillmentCreated {
+                        fulfillment {
+                            id
+                        }
+                    }
+                }
+            }
+        """,
+        "targetUrl": "https://app.example/api/webhook",
+        "isActive": True,
+    }
+
+
+@pytest.fixture
 def event_payload():
     """Return event payload."""
     return EventPayload.objects.create(payload='{"payload_key": "payload_value"}')
