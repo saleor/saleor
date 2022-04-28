@@ -23,7 +23,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        menus = [menu for menu in queryset]
+        menus = list(queryset)
         queryset.delete()
         for menu in menus:
             info.context.plugins.menu_deleted(menu)
@@ -45,7 +45,7 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        menu_items = [menu_item for menu_item in queryset]
+        menu_items = list(queryset)
         queryset.delete()
         for menu_item in menu_items:
             info.context.plugins.menu_item_deleted(menu_item)
