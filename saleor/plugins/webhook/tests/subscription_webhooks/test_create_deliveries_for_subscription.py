@@ -5,6 +5,7 @@ import graphene
 import pytest
 
 from .....channel.models import Channel
+from .....discount.models import Voucher
 from .....giftcard.models import GiftCard
 from .....graphql.webhook.subscription_payload import validate_subscription_query
 from .....product.models import Category
@@ -894,6 +895,76 @@ def test_product_created_multiple_events_in_subscription(
     deliveries = create_deliveries_for_subscriptions(event_type, product, webhooks)
     expected_payload = json.dumps({"product": {"id": product_id}, "meta": None})
 
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def generate_expected_payload_for_voucher(voucher, voucher_global_id):
+    return json.dumps(
+        {
+            "voucher": {
+                "id": voucher_global_id,
+                "name": voucher.name,
+                "code": voucher.code,
+                "usageLimit": voucher.usage_limit,
+            },
+            "meta": None,
+        }
+    )
+
+
+def test_voucher_created(voucher, subscription_voucher_created_webhook):
+    # given
+    webhooks = [subscription_voucher_created_webhook]
+    event_type = WebhookEventAsyncType.VOUCHER_CREATED
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
+
+    # then
+    expected_payload = generate_expected_payload_for_voucher(voucher, voucher_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_updated(voucher, subscription_voucher_updated_webhook):
+    # given
+    webhooks = [subscription_voucher_updated_webhook]
+    event_type = WebhookEventAsyncType.VOUCHER_UPDATED
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
+
+    # then
+    expected_payload = generate_expected_payload_for_voucher(voucher, voucher_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
+    # given
+    webhooks = [subscription_voucher_deleted_webhook]
+
+    voucher_query = Voucher.objects.filter(pk=voucher.id)
+    voucher_instances = [voucher for voucher in voucher_query]
+    voucher_query.delete()
+
+    event_type = WebhookEventAsyncType.VOUCHER_DELETED
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher_instances[0].id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, voucher_instances[0], webhooks
+    )
+
+    # then
+    expected_payload = generate_expected_payload_for_voucher(voucher, voucher_id)
+    assert voucher_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

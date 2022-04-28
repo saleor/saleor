@@ -35,3 +35,10 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        vouchers = [voucher for voucher in queryset]
+        queryset.delete()
+        for voucher in vouchers:
+            info.context.plugins.voucher_deleted(voucher)

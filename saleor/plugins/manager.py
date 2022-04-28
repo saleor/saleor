@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
-    from ..discount.models import Sale
+    from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -889,6 +889,18 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "shipping_zone_deleted", default_value, shipping_zone
         )
+
+    def voucher_created(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
+
+    def voucher_updated(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
+
+    def voucher_deleted(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_deleted", default_value, voucher)
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str
