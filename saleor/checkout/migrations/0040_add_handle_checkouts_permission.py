@@ -9,27 +9,28 @@ def assign_permissions(apps, schema_editor):
         Permission = apps.get_model("auth", "Permission")
         App = apps.get_model("app", "App")
         Group = apps.get_model("auth", "Group")
+        ContentType = apps.get_model("contenttypes", "ContentType")
 
-        handle_checkouts = Permission.objects.filter(
-            codename="handle_checkouts", content_type__app_label="checkout"
-        ).first()
+        ct, _ = ContentType.objects.get_or_create(
+            app_label="checkout", model="checkout"
+        )
+        handle_checkouts, _ = Permission.objects.get_or_create(
+            name="Handle checkouts", content_type=ct, codename="handle_checkouts"
+        )
+
         manage_checkouts = Permission.objects.filter(
             codename="manage_checkouts", content_type__app_label="checkout"
         ).first()
 
-        app_qs = App.objects.filter(
-            permissions=manage_checkouts,
-        )
+        app_qs = App.objects.filter(permissions=manage_checkouts)
         for app in app_qs.iterator():
             app.permissions.add(handle_checkouts)
 
-        groups = Group.objects.filter(
-            permissions=manage_checkouts,
-        )
+        groups = Group.objects.filter(permissions=manage_checkouts)
         for group in groups.iterator():
             group.permissions.add(handle_checkouts)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):
