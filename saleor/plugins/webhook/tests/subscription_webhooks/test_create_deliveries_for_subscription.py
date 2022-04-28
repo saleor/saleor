@@ -951,7 +951,7 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     webhooks = [subscription_voucher_deleted_webhook]
 
     voucher_query = Voucher.objects.filter(pk=voucher.id)
-    voucher_instances = [voucher for voucher in voucher_query]
+    voucher_instances = list(voucher_query)
     voucher_query.delete()
 
     event_type = WebhookEventAsyncType.VOUCHER_DELETED

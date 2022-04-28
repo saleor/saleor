@@ -38,7 +38,7 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        vouchers = [voucher for voucher in queryset]
+        vouchers = list(queryset)
         queryset.delete()
         for voucher in vouchers:
             info.context.plugins.voucher_deleted(voucher)
