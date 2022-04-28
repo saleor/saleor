@@ -4,6 +4,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # Unreleased
 
+### Other changes
+- Fix for sending incorrect prices to Avatax - #9633 by @korycins
+
 # 3.3.1
 
 - Drop manual calls to emit post_migrate in migrations (#9647) (b32308802)
@@ -37,7 +40,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
   - Add a new column `published at` to export products. The new field should be used instead of `publication_date`.
 - Add an alternative API for fetching metadata - #9231 by @patrys
-- Fix for sending incorrect prices to Avatax - #9633 by @korycins
 - New webhook events related to gift card changes (#9588) (52adcd10d) by @SzymJ
 - New webhook events for changes related to channels (#9570) (e5d78c63e) by @SzymJ
 - Tighten the schema types for output fields (#9605) (81418cb4c) by @patrys
