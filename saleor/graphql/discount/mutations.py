@@ -67,7 +67,7 @@ class CatalogueInput(graphene.InputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        description=f"{ADDED_IN_31} Product variant related to the discount.",
+        description="Product variant related to the discount." + ADDED_IN_31,
         name="variants",
     )
 
@@ -163,7 +163,7 @@ class VoucherInput(graphene.InputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        description=f"{ADDED_IN_31} Variants discounted by the voucher.",
+        description="Variants discounted by the voucher." + ADDED_IN_31,
         name="variants",
     )
     collections = NonNullList(
@@ -530,7 +530,7 @@ class SaleInput(graphene.InputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        descriptions=f"{ADDED_IN_31} Product variant related to the discount.",
+        descriptions="Product variant related to the discount." + ADDED_IN_31,
         name="variants",
     )
     categories = NonNullList(

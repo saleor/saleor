@@ -59,7 +59,7 @@ class PublishableChannelListingInput(graphene.InputObjectType):
         )
     )
     published_at = graphene.types.datetime.DateTime(
-        description=f"{ADDED_IN_33} Publication date time. ISO 8601 standard."
+        description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
 
 
@@ -83,9 +83,9 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
     )
     available_for_purchase_at = graphene.DateTime(
         description=(
-            f"{ADDED_IN_33} A start date time from which a product will be available "
+            "A start date time from which a product will be available "
             "for purchase. When not set and `isAvailable` is set to True, "
-            "the current day is assumed."
+            "the current day is assumed." + ADDED_IN_33
         )
     )
     add_variants = NonNullList(
@@ -371,8 +371,9 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     preorder_threshold = graphene.Int(
         description=(
-            f"{ADDED_IN_31} The threshold for preorder variant in channel. "
-            f"{PREVIEW_FEATURE}"
+            "The threshold for preorder variant in channel."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         )
     )
 

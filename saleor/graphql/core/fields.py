@@ -23,7 +23,7 @@ class PermissionsField(graphene.Field):
         if self.permissions:
             permissions_msg = message_one_of_permissions_required(self.permissions)
             description = self.description or ""
-            self.description = f"{description} {permissions_msg}"
+            self.description = description + permissions_msg
 
     def get_resolver(self, parent_resolver):
         resolver = self.resolver or parent_resolver

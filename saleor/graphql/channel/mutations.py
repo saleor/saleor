@@ -34,9 +34,9 @@ class ChannelCreateInput(ChannelInput):
     )
     default_country = CountryCodeEnum(
         description=(
-            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided."
+            "when the country was not explicitly provided." + ADDED_IN_31
         ),
         required=True,
     )
@@ -92,9 +92,9 @@ class ChannelUpdateInput(ChannelInput):
     slug = graphene.String(description="Slug of the channel.")
     default_country = CountryCodeEnum(
         description=(
-            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided."
+            "when the country was not explicitly provided." + ADDED_IN_31
         )
     )
     add_shipping_zones = NonNullList(
