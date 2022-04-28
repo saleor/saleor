@@ -25,7 +25,7 @@ def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
         for group in groups:
             group.permissions.add(manage_page_types_and_attributes_perm)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 def add_page_types_to_existing_pages(apps, schema_editor):

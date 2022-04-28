@@ -21,7 +21,7 @@ def assing_permissions(apps, schema_editor):
         for group in Group.objects.filter(permissions__in=manage_users).iterator():
             group.permissions.add(impersonate_user)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

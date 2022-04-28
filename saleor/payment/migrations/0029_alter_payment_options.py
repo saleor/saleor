@@ -17,7 +17,7 @@ def assing_permissions(apps, schema_editor):
         for group in Group.objects.iterator():
             group.permissions.add(handle_payments)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

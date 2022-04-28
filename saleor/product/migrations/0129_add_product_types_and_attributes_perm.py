@@ -26,7 +26,7 @@ def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
         for group in groups:
             group.permissions.add(product_type_and_attribute_permission)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

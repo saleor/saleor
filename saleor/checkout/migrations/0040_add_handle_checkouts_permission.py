@@ -30,7 +30,7 @@ def assign_permissions(apps, schema_editor):
         for group in groups.iterator():
             group.permissions.add(handle_checkouts)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):
