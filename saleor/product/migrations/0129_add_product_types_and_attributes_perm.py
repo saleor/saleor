@@ -8,11 +8,16 @@ def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         Group = apps.get_model("auth", "Group")
         Permission = apps.get_model("auth", "Permission")
+        ContentType = apps.get_model("contenttypes", "ContentType")
 
-        product_type_and_attribute_permission = Permission.objects.filter(
+        ct, _ = ContentType.objects.get_or_create(
+            app_label="product", model="producttype"
+        )
+        product_type_and_attribute_permission, _ = Permission.objects.get_or_create(
             codename="manage_product_types_and_attributes",
-            content_type__app_label="product",
-        ).first()
+            content_type=ct,
+            name="Manage product types and attributes.",
+        )
 
         groups = Group.objects.filter(
             permissions__content_type__app_label="product",
@@ -21,7 +26,7 @@ def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
         for group in groups:
             group.permissions.add(product_type_and_attribute_permission)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

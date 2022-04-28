@@ -7,10 +7,13 @@ def assing_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         Group = apps.get_model("auth", "Group")
         Permission = apps.get_model("auth", "Permission")
+        ContentType = apps.get_model("contenttypes", "ContentType")
 
-        impersonate_user = Permission.objects.filter(
-            codename="impersonate_user", content_type__app_label="account"
-        ).first()
+        ct, _ = ContentType.objects.get_or_create(app_label="account", model="user")
+        impersonate_user, _ = Permission.objects.get_or_create(
+            name="Impersonate user.", content_type=ct, codename="impersonate_user"
+        )
+
         manage_users = Permission.objects.filter(
             codename="manage_users", content_type__app_label="account"
         )
@@ -18,7 +21,7 @@ def assing_permissions(apps, schema_editor):
         for group in Group.objects.filter(permissions__in=manage_users).iterator():
             group.permissions.add(impersonate_user)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

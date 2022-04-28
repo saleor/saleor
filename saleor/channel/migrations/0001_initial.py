@@ -9,13 +9,17 @@ def assing_permissions(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         Group = apps.get_model("auth", "Group")
         Permission = apps.get_model("auth", "Permission")
-        manage_channels = Permission.objects.filter(
-            codename="manage_channels", content_type__app_label="channel"
-        ).first()
+        ContentType = apps.get_model("contenttypes", "ContentType")
+
+        ct, _ = ContentType.objects.get_or_create(app_label="channel", model="channel")
+        manage_channels, _ = Permission.objects.get_or_create(
+            name="Manage channels.", content_type=ct, codename="manage_channels"
+        )
+
         for group in Group.objects.iterator():
             group.permissions.add(manage_channels)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 def get_default_currency(Checkout, Order, Product, ShippingMethod, Voucher):
