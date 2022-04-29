@@ -21,6 +21,7 @@ from ..payment.interface import (
     InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
+    TransactionActionData,
 )
 from .models import PluginConfiguration
 
@@ -553,6 +554,8 @@ class BasePlugin:
     ]
 
     process_payment: Callable[["PaymentData", Any], Any]
+
+    transaction_action_request: Callable[["TransactionActionData", None], None]
 
     #  Trigger when product is created.
     #

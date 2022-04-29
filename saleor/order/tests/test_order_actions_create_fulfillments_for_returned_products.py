@@ -40,6 +40,7 @@ def test_create_return_fulfillment_only_order_lines(
         app=None,
         order=order_with_lines,
         payment=payment,
+        transactions=[],
         order_lines=[
             OrderLineInfo(line=line, quantity=2, replace=False)
             for line in order_lines_to_return
@@ -118,6 +119,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         app=None,
         order=order_with_lines,
         payment=payment,
+        transactions=[],
         order_lines=order_lines_to_refund,
         fulfillment_lines=[],
         manager=get_plugins_manager(),
@@ -194,6 +196,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
         app=None,
         order=order_with_lines,
         payment=payment,
+        transactions=[],
         order_lines=order_lines_to_refund,
         fulfillment_lines=[],
         manager=get_plugins_manager(),
@@ -286,6 +289,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
         app=None,
         order=order_with_lines,
         payment=payment,
+        transactions=[],
         order_lines=order_lines_data,
         fulfillment_lines=[],
         manager=get_plugins_manager(),
@@ -396,6 +400,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
         app=None,
         order=fulfilled_order,
         payment=payment,
+        transactions=[],
         order_lines=[],
         fulfillment_lines=[
             FulfillmentLineData(line=line, quantity=2, replace=False)
@@ -454,6 +459,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
         app=None,
         order=fulfilled_order,
         payment=payment,
+        transactions=[],
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_return,
         manager=get_plugins_manager(),
@@ -596,6 +602,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         app=None,
         order=fulfilled_order,
         payment=payment,
+        transactions=[],
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_process,
         manager=get_plugins_manager(),

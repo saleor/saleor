@@ -3,9 +3,11 @@ from graphene import AbstractType, ObjectType, Union
 from rx import Observable
 
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
 from ...page.models import PageTranslation
+from ...payment.interface import TransactionActionData
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -15,7 +17,10 @@ from ...product.models import (
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType
 from ..channel import ChannelContext
-from ..core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.scalars import PositiveDecimal
+from ..payment.enums import TransactionActionEnum
+from ..payment.types import TransactionItem
 from ..translations import types as translation_types
 
 TRANSLATIONS_TYPES_MAP = {
@@ -488,6 +493,47 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
     ...
 
 
+class TransactionAction(ObjectType):
+    action_type = graphene.Field(
+        TransactionActionEnum,
+        required=True,
+        description="Determines the action type.",
+    )
+    amount = PositiveDecimal(
+        description="Transaction request amount. Null when action type is VOID.",
+    )
+
+    @staticmethod
+    def resolve_amount(root: TransactionActionData, _info):
+        if root.action_value:
+            return quantize_price(root.action_value, root.transaction.currency)
+        return None
+
+
+class TransactionActionRequest(ObjectType):
+    transaction = graphene.Field(
+        TransactionItem,
+        description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+    action = graphene.Field(
+        TransactionAction,
+        required=True,
+        description="Requested action data." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_transaction(root, _info):
+        _, transaction_action_data = root
+        transaction_action_data: TransactionActionData
+        return transaction_action_data.transaction
+
+    @staticmethod
+    def resolve_action(root, _info):
+        _, transaction_action_data = root
+        transaction_action_data: TransactionActionData
+        return transaction_action_data
+
+
 class TranslationTypes(Union):
     class Meta:
         types = tuple(TRANSLATIONS_TYPES_MAP.values())
@@ -576,6 +622,7 @@ class Event(Union):
             ShippingZoneCreated,
             ShippingZoneUpdated,
             ShippingZoneDeleted,
+            TransactionActionRequest,
             TranslationCreated,
             TranslationUpdated,
         )
@@ -639,6 +686,7 @@ class Event(Union):
             WebhookEventAsyncType.SHIPPING_ZONE_CREATED: ShippingZoneCreated,
             WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
             WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
+            WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
             WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
             WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
         }

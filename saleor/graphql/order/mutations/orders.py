@@ -33,6 +33,11 @@ from ....order.utils import (
     update_order_prices,
 )
 from ....payment import PaymentError, TransactionKind, gateway
+from ....payment.gateway import (
+    request_capture_action,
+    request_refund_action,
+    request_void_action,
+)
 from ....plugins.manager import PluginsManager
 from ....shipping import models as shipping_models
 from ....shipping.interface import ShippingMethodData
@@ -566,33 +571,52 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        order_info = fetch_order_info(order)
-        payment = order_info.payment
-        clean_order_capture(payment)
 
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.capture,
-            payment,
-            info.context.plugins,
-            amount=amount,
-            channel_slug=order.channel.slug,
-        )
-        order_info.payment.refresh_from_db()
-        # Confirm that we changed the status to capture. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.CAPTURE:
-            order_captured(
-                order_info,
+        if payment_transactions := list(order.payment_transactions.all()):
+            try:
+                # We use the last transaction as we don't have a possibility to
+                # provide way of handling multiple transaction here
+                payment_transaction = payment_transactions[-1]
+                request_capture_action(
+                    transaction=payment_transaction,
+                    manager=info.context.plugins,
+                    capture_value=amount,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                )
+        else:
+            order_info = fetch_order_info(order)
+            payment = order_info.payment
+            clean_order_capture(payment)
+            transaction = try_payment_action(
+                order,
                 info.context.user,
                 info.context.app,
-                amount,
+                payment,
+                gateway.capture,
                 payment,
                 info.context.plugins,
+                amount=amount,
+                channel_slug=order.channel.slug,
             )
+            order_info.payment.refresh_from_db()
+            # Confirm that we changed the status to capture. Some payment can receive
+            # asynchronous webhook with update status
+            if transaction.kind == TransactionKind.CAPTURE:
+                order_captured(
+                    order_info,
+                    info.context.user,
+                    info.context.app,
+                    amount,
+                    payment,
+                    info.context.plugins,
+                )
         return OrderCapture(order=order)
 
 
@@ -611,29 +635,46 @@ class OrderVoid(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        payment = order.get_last_payment()
-        clean_void_payment(payment)
 
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.void,
-            payment,
-            info.context.plugins,
-            channel_slug=order.channel.slug,
-        )
-        # Confirm that we changed the status to void. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.VOID:
-            order_voided(
+        if payment_transactions := list(order.payment_transactions.all()):
+            # We use the last transaction as we don't have a possibility to
+            # provide way of handling multiple transaction here
+            try:
+                request_void_action(
+                    payment_transactions[-1],
+                    info.context.plugins,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                )
+        else:
+            payment = order.get_last_payment()
+            clean_void_payment(payment)
+            transaction = try_payment_action(
                 order,
                 info.context.user,
                 info.context.app,
                 payment,
+                gateway.void,
+                payment,
                 info.context.plugins,
+                channel_slug=order.channel.slug,
             )
+            # Confirm that we changed the status to void. Some payment can receive
+            # asynchronous webhook with update status
+            if transaction.kind == TransactionKind.VOID:
+                order_voided(
+                    order,
+                    info.context.user,
+                    info.context.app,
+                    payment,
+                    info.context.plugins,
+                )
         return OrderVoid(order=order)
 
 
@@ -667,35 +708,53 @@ class OrderRefund(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
 
-        payment = order.get_last_payment()
-        clean_refund_payment(payment)
-
-        transaction = try_payment_action(
-            order,
-            info.context.user,
-            info.context.app,
-            payment,
-            gateway.refund,
-            payment,
-            info.context.plugins,
-            amount=amount,
-            channel_slug=order.channel.slug,
-        )
-        order.fulfillments.create(
-            status=FulfillmentStatus.REFUNDED, total_refund_amount=amount
-        )
-
-        # Confirm that we changed the status to refund. Some payment can receive
-        # asynchronous webhook with update status
-        if transaction.kind == TransactionKind.REFUND:
-            order_refunded(
+        if payment_transactions := list(order.payment_transactions.all()):
+            # We use the last transaction as we don't have a possibility to
+            # provide way of handling multiple transaction here
+            try:
+                request_refund_action(
+                    payment_transactions[-1],
+                    info.context.plugins,
+                    refund_value=amount,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                )
+        else:
+            payment = order.get_last_payment()
+            clean_payment(payment)
+            clean_refund_payment(payment)
+            transaction = try_payment_action(
                 order,
                 info.context.user,
                 info.context.app,
-                amount,
+                payment,
+                gateway.refund,
                 payment,
                 info.context.plugins,
+                amount=amount,
+                channel_slug=order.channel.slug,
             )
+            # Confirm that we changed the status to refund. Some payment can receive
+            # asynchronous webhook with update status
+            if transaction.kind == TransactionKind.REFUND:
+                order_refunded(
+                    order,
+                    info.context.user,
+                    info.context.app,
+                    amount,
+                    payment,
+                    info.context.plugins,
+                )
+
+        order.fulfillments.create(
+            status=FulfillmentStatus.REFUNDED, total_refund_amount=amount
+        )
         return OrderRefund(order=order)
 
 
@@ -746,7 +805,25 @@ class OrderConfirm(ModelMutation):
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = info.context.plugins
-        if payment and payment.is_authorized and payment.can_capture():
+        if payment_transactions := list(order.payment_transactions.all()):
+            try:
+                # We use the last transaction as we don't have a possibility to
+                # provide way of handling multiple transaction here
+                payment_transaction = payment_transactions[-1]
+                request_capture_action(
+                    transaction=payment_transaction,
+                    manager=info.context.plugins,
+                    capture_value=payment_transaction.captured_value,
+                    channel_slug=order.channel.slug,
+                    user=info.context.user,
+                    app=info.context.app,
+                )
+            except PaymentError as e:
+                raise ValidationError(
+                    str(e),
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                )
+        elif payment and payment.is_authorized and payment.can_capture():
             gateway.capture(
                 payment, info.context.plugins, channel_slug=order.channel.slug
             )
