@@ -164,9 +164,9 @@ class CheckoutLineCountableConnection(CountableConnection):
 class DeliveryMethod(graphene.Union):
     class Meta:
         description = (
-            f"{ADDED_IN_31} Represents a delivery method chosen for the checkout. "
+            "Represents a delivery method chosen for the checkout. "
             '`Warehouse` type is used when checkout is marked as "click and collect" '
-            f"and `ShippingMethod` otherwise. {PREVIEW_FEATURE}"
+            "and `ShippingMethod` otherwise." + ADDED_IN_31 + PREVIEW_FEATURE
         )
         types = (Warehouse, ShippingMethod)
 
@@ -208,8 +208,9 @@ class Checkout(ModelObjectType):
         Warehouse,
         required=True,
         description=(
-            f"{ADDED_IN_31} Collection points that can be used for this order. "
-            f"{PREVIEW_FEATURE}"
+            "Collection points that can be used for this order."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
     )
     available_payment_gateways = NonNullList(
@@ -229,8 +230,8 @@ class Checkout(ModelObjectType):
     quantity = graphene.Int(description="The number of items purchased.", required=True)
     stock_reservation_expires = graphene.DateTime(
         description=(
-            f"{ADDED_IN_31} Date when oldest stock reservation for this checkout "
-            " expires or null if no stock is reserved."
+            "Date when oldest stock reservation for this checkout "
+            "expires or null if no stock is reserved." + ADDED_IN_31
         ),
     )
     lines = NonNullList(
@@ -255,8 +256,9 @@ class Checkout(ModelObjectType):
     delivery_method = graphene.Field(
         DeliveryMethod,
         description=(
-            f"{ADDED_IN_31} The delivery method selected for this checkout. "
-            f"{PREVIEW_FEATURE}"
+            "The delivery method selected for this checkout."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
     )
 

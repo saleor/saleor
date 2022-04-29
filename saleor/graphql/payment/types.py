@@ -76,8 +76,9 @@ class PaymentSource(graphene.ObjectType):
         MetadataItem,
         required=True,
         description=(
-            f"{ADDED_IN_31} List of public metadata items. "
-            "Can be accessed without permissions."
+            "List of public metadata items."
+            + ADDED_IN_31
+            + "\n\nCan be accessed without permissions."
         ),
     )
 

@@ -48,7 +48,7 @@ class ProductChannelListing(ModelObjectType):
         ),
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_33} The product publication date time."
+        description="The product publication date time." + ADDED_IN_33
     )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)
@@ -61,7 +61,7 @@ class ProductChannelListing(ModelObjectType):
         ),
     )
     available_for_purchase_at = graphene.DateTime(
-        description=f"{ADDED_IN_33} The product available for purchase date time."
+        description="The product available for purchase date time." + ADDED_IN_33
     )
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
@@ -298,7 +298,7 @@ class ProductVariantChannelListing(ModelObjectType):
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
-        description=f"{ADDED_IN_31} Preorder variant data. {PREVIEW_FEATURE}",
+        description="Preorder variant data." + ADDED_IN_31 + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -335,7 +335,7 @@ class CollectionChannelListing(ModelObjectType):
         ),
     )
     published_at = graphene.DateTime(
-        description=f"{ADDED_IN_33} The collection publication date."
+        description="The collection publication date." + ADDED_IN_33
     )
     is_published = graphene.Boolean(required=True)
     channel = graphene.Field(Channel, required=True)

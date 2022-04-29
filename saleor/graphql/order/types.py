@@ -518,7 +518,7 @@ class OrderLine(ModelObjectType):
     )
     quantity_to_fulfill = graphene.Int(
         required=True,
-        description=f"{ADDED_IN_31} A quantity of items remaining to be fulfilled.",
+        description="A quantity of items remaining to be fulfilled." + ADDED_IN_31,
     )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
@@ -762,8 +762,9 @@ class Order(ModelObjectType):
     available_collection_points = NonNullList(
         Warehouse,
         description=(
-            f"{ADDED_IN_31} Collection points that can be used for this order. "
-            f"{PREVIEW_FEATURE}"
+            "Collection points that can be used for this order."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
         required=True,
     )
@@ -873,8 +874,9 @@ class Order(ModelObjectType):
     delivery_method = graphene.Field(
         DeliveryMethod,
         description=(
-            f"{ADDED_IN_31} The delivery method selected for this checkout. "
-            f"{PREVIEW_FEATURE}"
+            "The delivery method selected for this checkout."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         ),
     )
     language_code = graphene.String(

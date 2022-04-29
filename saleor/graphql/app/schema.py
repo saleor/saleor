@@ -80,7 +80,7 @@ class AppQueries(graphene.ObjectType):
         filter=AppExtensionFilterInput(
             description="Filtering options for apps extensions."
         ),
-        description=f"{ADDED_IN_31} List of all extensions. {PREVIEW_FEATURE}",
+        description="List of all extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -91,7 +91,7 @@ class AppQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the app extension.", required=True
         ),
-        description=f"{ADDED_IN_31} Look up an app extension by ID. {PREVIEW_FEATURE}",
+        description="Look up an app extension by ID." + ADDED_IN_31 + PREVIEW_FEATURE,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,

@@ -19,6 +19,7 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
+from . import __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 
 
@@ -575,7 +576,7 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     Will only be called if SENTRY_DSN is not None, during core start, can be
     overriden in separate settings file.
     """
-    sentry_sdk.init(dsn, **sentry_opts)
+    sentry_sdk.init(dsn, release=__version__, **sentry_opts)
     ignore_logger("graphql.execution.utils")
     ignore_logger("graphql.execution.executor")
 

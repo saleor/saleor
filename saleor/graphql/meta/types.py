@@ -51,8 +51,9 @@ class ObjectWithMetadata(graphene.Interface):
         description=(
             "A single key from private metadata. "
             "Requires staff permissions to access.\n\n"
-            "Tip: Use GraphQL aliases to fetch multiple keys.\n\n"
-            f"{ADDED_IN_33}\n\n{PREVIEW_FEATURE}"
+            "Tip: Use GraphQL aliases to fetch multiple keys."
+            + ADDED_IN_33
+            + PREVIEW_FEATURE
         ),
     )
     private_metafields = Metadata(
@@ -60,8 +61,7 @@ class ObjectWithMetadata(graphene.Interface):
         description=(
             "Private metadata. Requires staff permissions to access. "
             "Use `keys` to control which fields you want to include. "
-            "The default is to include everything.\n\n"
-            f"{ADDED_IN_33}\n\n{PREVIEW_FEATURE}"
+            "The default is to include everything." + ADDED_IN_33 + PREVIEW_FEATURE
         ),
     )
     metadata = NonNullList(
@@ -75,16 +75,16 @@ class ObjectWithMetadata(graphene.Interface):
         args={"key": graphene.NonNull(graphene.String)},
         description=(
             "A single key from public metadata.\n\n"
-            "Tip: Use GraphQL aliases to fetch multiple keys.\n\n"
-            f"{ADDED_IN_33}\n\n{PREVIEW_FEATURE}"
+            "Tip: Use GraphQL aliases to fetch multiple keys."
+            + ADDED_IN_33
+            + PREVIEW_FEATURE
         ),
     )
     metafields = Metadata(
         args={"keys": NonNullList(graphene.String)},
         description=(
             "Public metadata. Use `keys` to control which fields you want to include. "
-            "The default is to include everything.\n\n"
-            f"{ADDED_IN_33}\n\n{PREVIEW_FEATURE}"
+            "The default is to include everything." + ADDED_IN_33 + PREVIEW_FEATURE
         ),
     )
 

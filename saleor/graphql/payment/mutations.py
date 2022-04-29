@@ -88,13 +88,13 @@ class PaymentInput(graphene.InputObjectType):
         ),
     )
     store_payment_method = StorePaymentMethodEnum(
-        description=f"{ADDED_IN_31} Payment store type.",
+        description="Payment store type." + ADDED_IN_31,
         required=False,
         default_value=StorePaymentMethod.NONE,
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description=f"{ADDED_IN_31} User public metadata.",
+        description="User public metadata." + ADDED_IN_31,
         required=False,
     )
 
