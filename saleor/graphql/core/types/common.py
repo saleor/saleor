@@ -35,6 +35,9 @@ from ..enums import (
     ShopErrorCode,
     StockErrorCode,
     TimePeriodTypeEnum,
+    TransactionCreateErrorCode,
+    TransactionRequestActionErrorCode,
+    TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
     WarehouseErrorCode,
@@ -328,6 +331,20 @@ class PaymentError(Error):
         graphene.ID,
         description="List of varint IDs which causes the error.",
         required=False,
+    )
+
+
+class TransactionCreateError(Error):
+    code = TransactionCreateErrorCode(description="The error code.", required=True)
+
+
+class TransactionUpdateError(Error):
+    code = TransactionUpdateErrorCode(description="The error code.", required=True)
+
+
+class TransactionRequestActionError(Error):
+    code = TransactionRequestActionErrorCode(
+        description="The error code.", required=True
     )
 
 

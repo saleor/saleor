@@ -11,6 +11,9 @@ from .mutations import (
     PaymentInitialize,
     PaymentRefund,
     PaymentVoid,
+    TransactionCreate,
+    TransactionRequestAction,
+    TransactionUpdate,
 )
 from .resolvers import resolve_payment_by_id, resolve_payments
 from .types import Payment, PaymentCountableConnection
@@ -52,3 +55,7 @@ class PaymentMutations(graphene.ObjectType):
     payment_void = PaymentVoid.Field()
     payment_initialize = PaymentInitialize.Field()
     payment_check_balance = PaymentCheckBalance.Field()
+
+    transaction_create = TransactionCreate.Field()
+    transaction_update = TransactionUpdate.Field()
+    transaction_request_action = TransactionRequestAction.Field()

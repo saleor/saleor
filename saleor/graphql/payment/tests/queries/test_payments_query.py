@@ -4,7 +4,7 @@ from decimal import Decimal
 import graphene
 
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
-from ...enums import OrderAction, PaymentChargeStatusEnum
+from ...enums import PaymentChargeStatusEnum, TransactionActionEnum
 
 PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
     payments(first: 20, filter: $filter) {
@@ -12,10 +12,6 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
             node {
                 id
                 gateway
-                capturedAmount {
-                    amount
-                    currency
-                }
                 total {
                     amount
                     currency
@@ -29,6 +25,10 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
                         currency
                         amount
                     }
+                }
+                capturedAmount{
+                    currency
+                    amount
                 }
             }
         }
@@ -54,7 +54,7 @@ def test_payments_query(
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    assert data["actions"] == [OrderAction.REFUND.name]
+    assert data["actions"] == [TransactionActionEnum.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [
         {

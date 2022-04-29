@@ -13,6 +13,7 @@ from ....checkout.models import Checkout
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
+from ....payment.models import TransactionItem
 from ....payment.utils import payment_owned_by_user
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -3644,4 +3645,87 @@ def test_delete_private_metadata_for_voucher(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], voucher, voucher_id
+    )
+
+
+def test_add_public_metadata_for_transaction_item(
+    staff_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction_item = TransactionItem.objects.create()
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_payments, transaction_id, "TransactionItem"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], transaction_item, transaction_id
+    )
+
+
+def test_delete_public_metadata_for_transaction_item(
+    staff_api_client, permission_manage_payments
+):
+    # given
+    transaction_item = TransactionItem.objects.create(
+        metadata={PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_payments, transaction_id, "TransactionItem"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], transaction_item, transaction_id
+    )
+
+
+def test_add_private_metadata_for_transaction_item(
+    staff_api_client, permission_manage_payments
+):
+    # given
+    transaction_item = TransactionItem.objects.create(
+        private_metadata={PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_payments, transaction_id, "TransactionItem"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        transaction_item,
+        transaction_id,
+    )
+
+
+def test_delete_private_metadata_for_transaction_item(
+    staff_api_client, permission_manage_payments, voucher
+):
+    # given
+    transaction_item = TransactionItem.objects.create(
+        private_metadata={PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_payments, transaction_id, "TransactionItem"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        transaction_item,
+        transaction_id,
     )

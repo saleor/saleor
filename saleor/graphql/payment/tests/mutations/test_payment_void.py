@@ -13,6 +13,7 @@ VOID_QUERY = """
             errors {
                 field
                 message
+                code
             }
         }
     }

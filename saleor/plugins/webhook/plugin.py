@@ -30,6 +30,7 @@ from ...webhook.payloads import (
     generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
+    generate_transaction_action_request_payload,
     generate_translation_payload,
 )
 from ...webhook.utils import get_webhooks_for_event
@@ -58,7 +59,12 @@ if TYPE_CHECKING:
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
-    from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
+    from ...payment.interface import (
+        GatewayResponse,
+        PaymentData,
+        PaymentGateway,
+        TransactionActionData,
+    )
     from ...product.models import Category, Collection, Product, ProductVariant
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
@@ -750,6 +756,24 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
+    def transaction_action_request(
+        self, transaction_data: "TransactionActionData", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = generate_transaction_action_request_payload(
+                transaction_data, self.requestor
+            )
+            trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                subscribable_object=transaction_data,
+                requestor=self.requestor,
+            )
+
     def __run_payment_webhook(
         self,
         event_type: str,
@@ -950,6 +974,11 @@ class WebhookPlugin(BasePlugin):
         )
 
     def is_event_active(self, event: str, channel=Optional[str]):
-        map_event = {"invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED}
+        map_event = {
+            "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
+            "transaction_action_request": (
+                WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
+            ),
+        }
         webhooks = get_webhooks_for_event(event_type=map_event[event])
         return any(webhooks)
