@@ -15815,6 +15815,7 @@ type Manifest {
   homepageUrl: String
   supportUrl: String
   extensions: [AppManifestExtension!]!
+  webhooks: [AppManifestWebhook!]!
 }
 
 type AppManifestExtension {
@@ -15832,6 +15833,14 @@ type AppManifestExtension {
 
   """Type of way how app extension will be opened."""
   target: AppExtensionTargetEnum!
+}
+
+type AppManifestWebhook {
+  name: String!
+  events: [WebhookEventTypeEnum!]!
+  query: String!
+  targetUrl: String!
+  isActive: Boolean!
 }
 
 """

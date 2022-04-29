@@ -13,6 +13,7 @@ from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..webhook.enums import WebhookEventTypeEnum
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
@@ -124,6 +125,26 @@ class AppExtensionCountableConnection(CountableConnection):
         node = AppExtension
 
 
+class AppManifestWebhook(graphene.ObjectType):
+    name = graphene.String(required=True)
+    events = NonNullList(WebhookEventTypeEnum, required=True)
+    query = graphene.String(required=True)
+    target_url = graphene.String(required=True)
+    is_active = graphene.Boolean(required=True)
+
+    @staticmethod
+    def resolve_events(root, info):
+        return [WebhookEventTypeEnum[name] for name in root["events"]]
+
+    @staticmethod
+    def resolve_target_url(root, info):
+        return root["targetUrl"]
+
+    @staticmethod
+    def resolve_is_active(root, info):
+        return root["isActive"]
+
+
 class Manifest(graphene.ObjectType):
     identifier = graphene.String(required=True)
     version = graphene.String(required=True)
@@ -138,6 +159,7 @@ class Manifest(graphene.ObjectType):
     homepage_url = graphene.String()
     support_url = graphene.String()
     extensions = NonNullList(AppManifestExtension, required=True)
+    webhooks = NonNullList(AppManifestWebhook, required=True)
 
     class Meta:
         description = "The manifest definition."
