@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .core.views import jwks
 from .graphql.api import schema
+# from . import prefer_import  # noqa
 from .graphql.views import GraphQLView
 from .plugins.views import (
     handle_global_plugin_webhook,
