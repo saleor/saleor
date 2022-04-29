@@ -119,7 +119,7 @@ def test_transaction_request_capture_action_for_order(
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_capture_amount
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @pytest.mark.parametrize(
@@ -183,7 +183,7 @@ def test_transaction_request_refund_action_for_order(
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == expected_called_refund_amount
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -234,7 +234,7 @@ def test_transaction_request_void_action_for_order(
 
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")

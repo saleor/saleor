@@ -52,7 +52,7 @@ def event_transaction_capture_requested(
         app=app,
         parameters={
             "amount": amount,
-            "payment_id": reference,
+            "reference": reference,
         },
     )
 
@@ -69,7 +69,7 @@ def event_transaction_refund_requested(
         app=app,
         parameters={
             "amount": amount,
-            "payment_id": reference,
+            "reference": reference,
         },
     )
 
@@ -85,7 +85,7 @@ def event_transaction_void_requested(
         user=user,
         app=app,
         parameters={
-            "payment_id": reference,
+            "reference": reference,
         },
     )
 

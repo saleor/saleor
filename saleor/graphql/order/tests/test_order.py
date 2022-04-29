@@ -5661,7 +5661,7 @@ def test_order_capture_with_transaction_action_request(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == capture_value
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -5928,7 +5928,7 @@ def test_order_void_with_transaction_action_request(
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -6085,7 +6085,7 @@ def test_order_refund_with_transaction_action_request(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == refund_value
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
 
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")

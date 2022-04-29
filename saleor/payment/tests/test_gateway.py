@@ -399,7 +399,7 @@ def test_request_capture_action_on_order(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
     assert event.user == staff_user
 
 
@@ -445,7 +445,7 @@ def test_request_capture_action_by_app(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
     assert event.app == app
 
 
@@ -560,7 +560,7 @@ def test_request_refund_action_on_order(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
     assert event.user == staff_user
 
 
@@ -606,7 +606,7 @@ def test_request_refund_action_by_app(
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
     assert Decimal(event.parameters["amount"]) == action_value
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
     assert event.app == app
     assert not event.user
 
@@ -715,7 +715,7 @@ def test_request_void_action_on_order(
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
     assert event.user == staff_user
 
 
@@ -758,7 +758,7 @@ def test_request_void_action_by_app(
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
-    assert event.parameters["payment_id"] == transaction.reference
+    assert event.parameters["reference"] == transaction.reference
     assert event.app == app
     assert not event.user
 
