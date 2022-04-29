@@ -14,6 +14,7 @@ DEPRECATED_IN_3X_MUTATION = (
 ADDED_IN_31 = "\n\nAdded in Saleor 3.1."
 ADDED_IN_32 = "\n\nAdded in Saleor 3.2."
 ADDED_IN_33 = "\n\nAdded in Saleor 3.3."
+ADDED_IN_34 = "\n\nAdded in Saleor 3.4."
 
 
 PREVIEW_FEATURE = (

@@ -17,7 +17,7 @@ from ...product.models import (
 from ...shipping.models import ShippingMethodTranslation
 from ...webhook.event_types import WebhookEventAsyncType
 from ..channel import ChannelContext
-from ..core.descriptions import ADDED_IN_32, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, PREVIEW_FEATURE
 from ..core.scalars import PositiveDecimal
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
@@ -513,12 +513,12 @@ class TransactionAction(ObjectType):
 class TransactionActionRequest(ObjectType):
     transaction = graphene.Field(
         TransactionItem,
-        description=f"{ADDED_IN_32} Look up a transaction. {PREVIEW_FEATURE}",
+        description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
     )
     action = graphene.Field(
         TransactionAction,
         required=True,
-        description=f"{ADDED_IN_32} Requested action data. {PREVIEW_FEATURE}",
+        description="Requested action data." + ADDED_IN_34 + PREVIEW_FEATURE,
     )
 
     @staticmethod

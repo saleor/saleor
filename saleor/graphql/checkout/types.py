@@ -21,7 +21,7 @@ from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_32,
+    ADDED_IN_34,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -300,9 +300,10 @@ class Checkout(ModelObjectType):
     transactions = NonNullList(
         TransactionItem,
         description=(
-            f"{ADDED_IN_32} List of transactions for the checkout. Requires one of the "
-            f"following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS. "
-            f"{PREVIEW_FEATURE}"
+            "List of transactions for the checkout. Requires one of the "
+            "following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS."
+            + ADDED_IN_34
+            + PREVIEW_FEATURE
         ),
     )
 

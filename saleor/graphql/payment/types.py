@@ -7,7 +7,7 @@ from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_32, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.permissions import public_payment_permissions
@@ -290,7 +290,7 @@ class TransactionItem(ModelObjectType):
 
     class Meta:
         description = (
-            f"{ADDED_IN_32} Represents a payment transaction. {PREVIEW_FEATURE}"
+            "Represents a payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.TransactionItem
