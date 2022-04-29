@@ -22,7 +22,6 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
@@ -30,10 +29,9 @@ from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
-from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import (
     generate_checkout_payload,
-    generate_checkout_payload_without_taxes,
     generate_collection_payload,
     generate_customer_payload,
     generate_invoice_payload,
@@ -726,37 +724,6 @@ def test_checkout_updated(
         [any_webhook],
         checkout_with_items,
         None,
-    )
-
-
-@freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhook_sync")
-def test_get_shipping_methods_for_checkout_uses_untaxed_payload_serializer(
-    mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
-    any_webhook,
-    settings,
-    checkout,
-    shipping_app,
-    permission_manage_shipping,
-):
-    # given
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-
-    # when
-    manager.list_shipping_methods_for_checkout(checkout_info, lines)
-
-    # then
-    expected_data = generate_checkout_payload_without_taxes(checkout_info, lines)
-    mocked_webhook_trigger.assert_called_once_with(
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-        data=expected_data,
-        app=shipping_app,
     )
 
 

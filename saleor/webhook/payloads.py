@@ -15,13 +15,7 @@ from prices import TaxedMoney
 from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
-from ..checkout import calculations as checkout_calculations
-from ..checkout.fetch import (
-    CheckoutInfo,
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.taxes import include_taxes_in_prices
@@ -32,7 +26,6 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..discount import DiscountInfo
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order import calculations as order_calculations
@@ -50,11 +43,11 @@ from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
 from .payload_serializers import PayloadSerializer
 from .serializers import (
-    get_base_price,
-    serialize_checkout_lines_with_taxes,
-    serialize_checkout_lines_without_taxes,
+    serialize_checkout_lines,
+    serialize_checkout_lines_for_tax_calculation,
     serialize_product_or_variant_attributes,
 )
+from .utils import get_base_price
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -321,6 +314,7 @@ def _generate_order_payload(
     discount_price_fields = ("amount_value",)
 
     channel_fields = ("slug", "currency_code")
+    # TODO: price_amount problably not working
     shipping_method_fields = ("name", "type", "currency", "price_amount")
 
     fulfillments = order.fulfillments.all()
@@ -524,14 +518,12 @@ def _generate_order_payload_for_invoice(order: "Order"):
     return payload
 
 
+CHANNEL_FIELDS_IN_CHECKOUT_PAYLOADS = ("slug", "currency_code")
+
+
 @traced_payload_generator
-def _generate_checkout_payload(
-    checkout: "Checkout",
-    requestor: Optional["RequestorOrLazyObject"] = None,
-    *,
-    checkout_prices_data: Dict[str, Decimal],
-    lines_dict_data: List[Dict[str, Any]],
-    included_taxes_in_prices: bool,
+def generate_checkout_payload(
+    checkout: "Checkout", requestor: Optional["RequestorOrLazyObject"] = None
 ):
     serializer = PayloadSerializer()
     checkout_fields = (
@@ -547,10 +539,14 @@ def _generate_checkout_payload(
         "metadata",
     )
 
-    quantize_price_fields(checkout, ["discount_amount"], checkout.currency)
+    checkout_price_fields = ("discount_amount",)
+    quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
     channel_fields = ("slug", "currency_code")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
+
+    discounts = fetch_active_discounts()
+    lines_dict_data = serialize_checkout_lines(checkout, discounts)
 
     # todo use the most appropriate warehouse
     warehouse = None
@@ -576,9 +572,7 @@ def _generate_checkout_payload(
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
-            "included_taxes_in_prices": included_taxes_in_prices,
-            **checkout_prices_data,
-            "lines": lines_dict_data,
+            "lines": list(lines_dict_data),
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)
             )[0]
@@ -1184,9 +1178,7 @@ def generate_excluded_shipping_methods_for_checkout_payload(
     lines: Iterable["CheckoutLineInfo"],
     available_shipping_methods: List[ShippingMethodData],
 ):
-    checkout_data = json.loads(
-        generate_checkout_payload_without_taxes(checkout_info, lines)
-    )[0]
+    checkout_data = json.loads(generate_checkout_payload(checkout_info.checkout))[0]
     payload = {
         "checkout": checkout_data,
         "shipping_methods": [
@@ -1282,73 +1274,8 @@ def generate_order_payload_without_taxes(
     )
 
 
-def _generate_checkout_prices_data_with_taxes(
-    manager: PluginsManager,
-    checkout_info: CheckoutInfo,
-    lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable[DiscountInfo],
-) -> Dict[str, Decimal]:
-    subtotal = checkout_calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=None,
-        discounts=discounts,
-    )
-    total = checkout_calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=None,
-        discounts=discounts,
-    )
-
-    return {
-        "subtotal_net_amount": subtotal.net.amount,
-        "subtotal_gross_amount": subtotal.gross.amount,
-        "total_net_amount": total.net.amount,
-        "total_gross_amount": total.gross.amount,
-    }
-
-
-def _generate_checkout_prices_data_without_taxes(
-    checkout: Checkout,
-    use_gross_as_base_price: bool,
-) -> Dict[str, Decimal]:
-    def untaxed_price_amount(price: TaxedMoney) -> Decimal:
-        return quantize_price(
-            get_base_price(price, use_gross_as_base_price), checkout.currency
-        )
-
-    return {
-        "subtotal_base_amount": untaxed_price_amount(checkout.subtotal),
-        "total_base_amount": untaxed_price_amount(checkout.total),
-    }
-
-
-def generate_checkout_payload(
-    checkout: "Checkout",
-    requestor: Optional["RequestorOrLazyObject"] = None,
-):
-    manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
-
-    return _generate_checkout_payload(
-        checkout,
-        requestor,
-        checkout_prices_data=_generate_checkout_prices_data_with_taxes(
-            manager, checkout_info, lines, discounts
-        ),
-        lines_dict_data=serialize_checkout_lines_with_taxes(
-            checkout_info, manager, lines, discounts
-        ),
-        included_taxes_in_prices=include_taxes_in_prices(),
-    )
-
-
-def generate_checkout_payload_without_taxes(
+@traced_payload_generator
+def generate_checkout_payload_for_tax_calculation(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     requestor: Optional["RequestorOrLazyObject"] = None,
@@ -1356,16 +1283,71 @@ def generate_checkout_payload_without_taxes(
     checkout = checkout_info.checkout
     included_taxes_in_prices = include_taxes_in_prices()
 
-    return _generate_checkout_payload(
-        checkout,
-        requestor,
-        checkout_prices_data=_generate_checkout_prices_data_without_taxes(
-            checkout, included_taxes_in_prices
-        ),
-        lines_dict_data=serialize_checkout_lines_without_taxes(
-            checkout,
-            lines,
-            included_taxes_in_prices,
-        ),
-        included_taxes_in_prices=included_taxes_in_prices,
+    serializer = PayloadSerializer()
+
+    checkout_fields = (
+        "currency",
+        "private_metadata",
+        "metadata",
     )
+
+    # Prepare checkout data
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    checkout.id = checkout.token  # type:ignore
+
+    total_amount = quantize_price(
+        get_base_price(checkout.total, included_taxes_in_prices), checkout.currency
+    )
+
+    # Prepare user data
+    user = checkout_info.user
+    user_id = None
+    user_public_metadata = {}
+    if user:
+        user_id = graphene.Node.to_global_id("User", user.id)
+        user_public_metadata = user.metadata
+
+    # Prepare shipping data
+    shipping_method = checkout.shipping_method
+    shipping_method_name = None
+    if shipping_method:
+        shipping_method_name = shipping_method.name
+    shipping_method_amount = quantize_price(
+        get_base_price(checkout.shipping_price, included_taxes_in_prices),
+        checkout.currency,
+    )
+
+    # Prepare discount data
+    discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
+    discount_name = checkout.discount_name
+    discounts = (
+        [{"name": discount_name, "amount": discount_amount}] if discount_amount else []
+    )
+
+    # Prepare line data
+    lines_dict_data = serialize_checkout_lines_for_tax_calculation(
+        checkout_info,
+        lines,
+        included_taxes_in_prices,
+    )
+
+    checkout_data = serializer.serialize(
+        [checkout],
+        fields=checkout_fields,
+        obj_id_name="id",
+        additional_fields={
+            "channel": (lambda c: c.channel, CHANNEL_FIELDS_IN_CHECKOUT_PAYLOADS),
+            "address": (lambda _: address, ADDRESS_FIELDS),
+        },
+        extra_dict_data={
+            "user_id": user_id,
+            "user_public_metadata": user_public_metadata,
+            "included_taxes_in_prices": included_taxes_in_prices,
+            "total_amount": total_amount,
+            "shipping_amount": shipping_method_amount,
+            "shipping_name": shipping_method_name,
+            "discounts": discounts,
+            "lines": lines_dict_data,
+        },
+    )
+    return checkout_data

@@ -12,9 +12,14 @@ def checkout_with_prices(
     warehouse,
     customer_user,
     shipping_method,
+    voucher,
 ):
     lines = checkout_with_items.lines.all()
     for i, line in enumerate(lines, start=1):
+        line.undiscounted_unit_price_net_amount = Decimal("9.000") + Decimal(i)
+        line.undiscounted_unit_price_gross_amount = Decimal("9.000") + Decimal(
+            i
+        ) * Decimal("1.100")
         line.unit_price_net_amount = Decimal("10.000") + Decimal(i)
         line.unit_price_gross_amount = Decimal("10.000") + Decimal(i) * Decimal("1.100")
         line.unit_price_with_discounts_net_amount = (
@@ -23,8 +28,11 @@ def checkout_with_prices(
         line.unit_price_with_discounts_gross_amount = (
             Decimal("10.000") + Decimal(i) * Decimal("1.100") - Decimal("0.300")
         )
+        line.total_price_gross_amount = line.unit_price_gross_amount * line.quantity
+        line.total_price_net_amount = line.unit_price_net_amount * line.quantity
 
-    checkout_with_items.discount_amount = Decimal("0.000")
+    checkout_with_items.discount_amount = Decimal("5.000")
+    checkout_with_items.discount_name = "Voucher 5 USD"
     checkout_with_items.user = customer_user
     checkout_with_items.billing_address = address
     checkout_with_items.shipping_address = address_other_country
@@ -34,20 +42,29 @@ def checkout_with_prices(
     checkout_with_items.subtotal_gross_amount = Decimal("123.000")
     checkout_with_items.total_net_amount = Decimal("150.000")
     checkout_with_items.total_gross_amount = Decimal("178.000")
+    checkout_with_items.shipping_price_net_amount = Decimal("10.000")
+    checkout_with_items.shipping_price_gross_amount = Decimal("11.000")
+    checkout_with_items.metadata = {"meta_key": "meta_value"}
+    checkout_with_items.private_metadata = {"priv_meta_key": "priv_meta_value"}
 
     checkout_with_items.lines.bulk_update(
         lines,
         [
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_unit_price_gross_amount",
             "unit_price_net_amount",
             "unit_price_gross_amount",
             "unit_price_with_discounts_net_amount",
             "unit_price_with_discounts_gross_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
         ],
     )
 
     checkout_with_items.save(
         update_fields=[
             "discount_amount",
+            "discount_name",
             "user",
             "billing_address",
             "shipping_address",
@@ -57,8 +74,16 @@ def checkout_with_prices(
             "subtotal_gross_amount",
             "total_net_amount",
             "total_gross_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+            "metadata",
+            "private_metadata",
         ]
     )
+
+    user = checkout_with_items.user
+    user.metadata = {"user_public_meta_key": "user_public_meta_value"}
+    user.save(update_fields=["metadata"])
 
     return checkout_with_items
 

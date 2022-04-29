@@ -14,7 +14,7 @@ from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
-    generate_checkout_payload_without_taxes,
+    generate_checkout_payload_for_tax_calculation,
     generate_collection_payload,
     generate_customer_payload,
     generate_excluded_shipping_methods_for_checkout_payload,
@@ -911,7 +911,7 @@ class WebhookPlugin(BasePlugin):
     ) -> Optional["TaxData"]:
         return trigger_all_webhooks_sync(
             WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            lambda: generate_checkout_payload_without_taxes(
+            lambda: generate_checkout_payload_for_tax_calculation(
                 checkout_info,
                 lines,
                 self.requestor,
@@ -939,9 +939,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
         ).prefetch_related("webhooks")
         if apps:
-            payload = generate_checkout_payload_without_taxes(
-                checkout_info, lines, self.requestor
-            )
+            payload = generate_checkout_payload(checkout_info.checkout, self.requestor)
             for app in apps:
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
