@@ -4,14 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # Unreleased
 
-### Breaking changes
-
-- PREVIEW_FEATURE: replace error code `NOT_FOUND` with `CHECKOUT_NOT_FOUND` for mutation `OrderCreateFromCheckout` - #9569 by @korycins
-
 ### Other changes
-
-- Fix filtering product attributes by date range - #9543 by @IKarbowiak
-- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Fix for sending incorrect prices to Avatax - #9633 by @korycins
 - PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
   - add fields:
     - `order.transactions`
@@ -22,6 +16,23 @@ All notable, unreleased changes to this project will be documented in this file.
     - `transactionRequestAction`
   - add new webhook event:
     - `TRANSACTION_ACTION_REQUEST`
+
+# 3.3.1
+
+- Drop manual calls to emit post_migrate in migrations (#9647) (b32308802)
+- Fix search indexing of empty variants (#9640) (31833a717)
+
+# 3.3.0
+
+### Breaking changes
+
+- PREVIEW_FEATURE: replace error code `NOT_FOUND` with `CHECKOUT_NOT_FOUND` for mutation `OrderCreateFromCheckout` - #9569 by @korycins
+
+### Other changes
+
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Use fulltext search for products (#9344) (4b6f25964) by @patrys
 - Precise timestamps for publication dates - #9581 by @IKarbowiak
   - Change `publicationDate` fields to `publishedAt` date time fields.
     - Types and inputs where `publicationDate` is deprecated and `publishedAt` field should be used instead:
@@ -39,8 +50,20 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `publicationDate` on `CollectionInput` and `CollectionCreateInput`.
   - Deprecate `PUBLICATION_DATE` in `CollectionSortField`, the `PUBLISHED_AT` should be used instead.
   - Deprecate `PUBLICATION_DATE` in `PageSortField`, the `PUBLISHED_AT` should be used instead.
-  - Add a new column `pubished at` to export products. The new field should be used instead of `publication_date`.
+  - Add a new column `published at` to export products. The new field should be used instead of `publication_date`.
 - Add an alternative API for fetching metadata - #9231 by @patrys
+- New webhook events related to gift card changes (#9588) (52adcd10d) by @SzymJ
+- New webhook events for changes related to channels (#9570) (e5d78c63e) by @SzymJ
+- Tighten the schema types for output fields (#9605) (81418cb4c) by @patrys
+- Include permissions in schema descriptions of protected fields (#9428) (f0a988e79) by @maarcingebala
+- Update address database (#9585) (1f5e84e4a) by @patrys
+- Handle pagination with invalid cursor that is valid base64 (#9521) (3c12a1e95) by @jakubkuc
+- Handle all Braintree errors (#9503) (20f21c34a) by @L3str4nge
+- Fix `recalculate_order` dismissing weight unit (#9527) (9aea31774)
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
+- Optimize stock warehouse resolver performance (955489bff) by @tomaszszymanski129
+- Improve shipping zone filters performance (#9540) (7841ec536) by @tomaszszymanski129
 
 # 3.2.0
 
@@ -54,7 +77,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecated the `token` field in order payload, the `id` field should be used
     instead.
 - Enable JWT expiration by default - #9483 by @maarcingebala
-
 
 ### Other changes
 
@@ -79,6 +101,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow plugins to create their custom error code - #9300 by @LeOndaz
 
 #### Other
+
 - Use full-text search for products search API - #9344 by @patrys
 
 - Include required permission in mutations' descriptions - #9363 by @maarcingebala

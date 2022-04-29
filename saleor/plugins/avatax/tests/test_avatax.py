@@ -3349,6 +3349,49 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
     assert lines_data[0]["taxCode"] == DEFAULT_TAX_CODE
 
 
+def test_get_order_lines_data_with_invoice_type(
+    settings, channel_USD, plugin_configuration, order, order_line
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    order_line.unit_price_gross_amount = Decimal("10")
+    order_line.undiscounted_unit_price_gross_amount = Decimal("20")
+    order_line.quantity = 1
+    order_line.save(
+        update_fields=[
+            "quantity",
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+        ]
+    )
+    variant = order_line.variant
+    variant.product.store_value_in_metadata(
+        {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
+    )
+    variant.product.save()
+
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
+
+    # when
+    lines_data = get_order_lines_data(order, config, invoice_transaction_type=True)
+
+    # then
+    assert len(lines_data) == 1
+    line_data = lines_data[0]
+    assert line_data["amount"] == "10.000"
+
+
 def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
     settings, channel_USD, plugin_configuration, order_with_lines, avatax_config
 ):

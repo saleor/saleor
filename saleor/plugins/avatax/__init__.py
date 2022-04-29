@@ -365,16 +365,20 @@ def get_order_lines_data(
             "name": line.variant.product.name,
             "tax_included": tax_included,
         }
-        append_line_to_data(
-            **append_line_to_data_kwargs,
-            amount=undiscounted_amount,
-        )
+        if not invoice_transaction_type:
+            append_line_to_data(
+                **append_line_to_data_kwargs,
+                amount=undiscounted_amount,
+            )
 
-        # for invoice transaction we want to include only final price
-        if (
-            not invoice_transaction_type
-            and undiscounted_amount != price_with_discounts_amount
-        ):
+            # for invoice transaction we want to include only final price
+            if undiscounted_amount != price_with_discounts_amount:
+                append_line_to_data(
+                    **append_line_to_data_kwargs,
+                    amount=price_with_discounts_amount,
+                    ref1=line.variant.sku,
+                )
+        else:
             append_line_to_data(
                 **append_line_to_data_kwargs,
                 amount=price_with_discounts_amount,
