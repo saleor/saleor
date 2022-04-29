@@ -61,7 +61,7 @@ from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_32,
+    ADDED_IN_34,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -787,7 +787,7 @@ class Order(ModelObjectType):
         description=(
             "List of transactions for the order. Requires one of the "
             "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS."
-            + ADDED_IN_32
+            + ADDED_IN_34
             + PREVIEW_FEATURE
         ),
         required=True,

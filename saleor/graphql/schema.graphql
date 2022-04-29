@@ -7098,7 +7098,13 @@ type Checkout implements Node & ObjectWithMetadata {
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
 
-  "\\n\\nAdded in Saleor 3.2. List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   transactions: [TransactionItem!]
 }
 
@@ -7396,7 +7402,13 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 """
 union DeliveryMethod = Warehouse | ShippingMethod
 
-"\\n\\nAdded in Saleor 3.2. Represents a payment transaction. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+"""
+Represents a payment transaction.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
 type TransactionItem implements Node & ObjectWithMetadata {
   """The ID of the object."""
   id: ID!
@@ -7674,7 +7686,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10883,7 +10895,7 @@ type Mutation {
   """
   Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10901,7 +10913,7 @@ type Mutation {
   """
   Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10919,7 +10931,7 @@ type Mutation {
   """
   Request an action for payment transaction.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -15656,7 +15668,7 @@ input MoneyInput {
 """
 Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
 
-Added in Saleor 3.2.
+Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -15741,7 +15753,7 @@ input TransactionEventInput {
 """
 Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
 
-Added in Saleor 3.2.
+Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -15807,7 +15819,7 @@ input TransactionUpdateInput {
 """
 Request an action for payment transaction.
 
-Added in Saleor 3.2.
+Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -20650,10 +20662,22 @@ type ShippingZoneDeleted {
 }
 
 type TransactionActionRequest {
-  "\\n\\nAdded in Saleor 3.2. Look up a transaction. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a transaction.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   transaction: TransactionItem
 
-  "\\n\\nAdded in Saleor 3.2. Requested action data. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Requested action data.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   action: TransactionAction!
 }
 

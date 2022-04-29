@@ -36,7 +36,7 @@ from ..checkout.mutations.utils import get_checkout_by_token
 from ..checkout.types import Checkout
 from ..core.descriptions import (
     ADDED_IN_31,
-    ADDED_IN_32,
+    ADDED_IN_34,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -643,7 +643,7 @@ class TransactionCreate(BaseMutation):
         description = (
             "Create transaction for checkout or order. Requires the "
             "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
-            + ADDED_IN_32
+            + ADDED_IN_34
             + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionCreateError
@@ -826,7 +826,7 @@ class TransactionUpdate(TransactionCreate):
         description = (
             "Create transaction for checkout or order. Requires the "
             "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
-            + ADDED_IN_32
+            + ADDED_IN_34
             + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionUpdateError
@@ -902,7 +902,7 @@ class TransactionRequestAction(BaseMutation):
 
     class Meta:
         description = (
-            "Request an action for payment transaction." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Request an action for payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionRequestActionError
         permissions = (
