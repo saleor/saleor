@@ -34,6 +34,7 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
+# alter_checkout_line_old_id_and_created_at
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
@@ -178,6 +179,9 @@ class CheckoutLine(models.Model):
     their `data` field is different.
     """
 
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     checkout = models.ForeignKey(
         Checkout, related_name="lines", on_delete=models.CASCADE
     )
@@ -193,7 +197,7 @@ class CheckoutLine(models.Model):
     )
 
     class Meta:
-        ordering = ("id",)
+        ordering = ("created_at",)
 
     def __str__(self):
         return smart_str(self.variant)
