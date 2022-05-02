@@ -915,7 +915,7 @@ pyflakes = ">=2.4.0,<2.5.0"
 
 [[package]]
 name = "fonttools"
-version = "4.33.2"
+version = "4.33.3"
 description = "Tools to manipulate font files"
 category = "main"
 optional = false
@@ -1620,7 +1620,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [[package]]
 name = "petl"
-version = "1.7.8"
+version = "1.7.9"
 description = "A Python package for extracting, transforming and loading tables of data."
 category = "main"
 optional = false
@@ -2797,8 +2797,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "274762230a58713e4737812e179a7a6f6fae561f8ccb5a1ca643a8cc1a2cb5de"
+python-versions = "~3.9"
+content-hash = "b13c98858fbe3a972f19432b73c7d26624d137d1e9ed15974c47537377de2c33"
 
 [metadata.files]
 adyen = [
@@ -3301,8 +3301,8 @@ flake8 = [
     {file = "flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
 ]
 fonttools = [
-    {file = "fonttools-4.33.2-py3-none-any.whl", hash = "sha256:b4da40696829845ea8c1cb33ce51c552179754cbee7ab4e8b96a6bcf421f437a"},
-    {file = "fonttools-4.33.2.zip", hash = "sha256:696fe922a271584c3ec8325ba31d4001a4fd6c4953b22900b767f1cb53ce1044"},
+    {file = "fonttools-4.33.3-py3-none-any.whl", hash = "sha256:f829c579a8678fa939a1d9e9894d01941db869de44390adb49ce67055a06cc2a"},
+    {file = "fonttools-4.33.3.zip", hash = "sha256:c0fdcfa8ceebd7c1b2021240bd46ef77aa8e7408cf10434be55df52384865f8e"},
 ]
 freezegun = [
     {file = "freezegun-1.2.1-py3-none-any.whl", hash = "sha256:15103a67dfa868ad809a8f508146e396be2995172d25f927e48ce51c0bf5cb09"},
@@ -3846,7 +3846,7 @@ pathspec = [
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
 ]
 petl = [
-    {file = "petl-1.7.8.tar.gz", hash = "sha256:f6b0100d6a42ca8f5fc84ea7b312fe922b7027cd8d2f7f22144eee0c4dd34a52"},
+    {file = "petl-1.7.9.tar.gz", hash = "sha256:b750bd32496d4aea79069dc48fa2876a87a0b6d81f8531144e6d8160bd51eb31"},
 ]
 phonenumberslite = [
     {file = "phonenumberslite-8.12.46-py2.py3-none-any.whl", hash = "sha256:752555fb0cb9e442054c93fd23ab2ac1b741aea30e6e990be560ef75cac55c21"},

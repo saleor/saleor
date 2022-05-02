@@ -141,3 +141,31 @@ class StorePaymentMethod:
         (OFF_SESSION, "Off session"),
         (NONE, "None"),
     ]
+
+
+class TransactionAction:
+    """Represents possible actions on payment transaction.
+
+    The following actions are possible:
+    CAPTURE - Represents the capture action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+    """
+
+    CAPTURE = "capture"
+    REFUND = "refund"
+    VOID = "void"
+
+    CHOICES = [
+        (CAPTURE, "Capture payment"),
+        (REFUND, "Refund payment"),
+        (VOID, "Void payment"),
+    ]
+
+
+class TransactionStatus:
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+    CHOICES = [(PENDING, "Pending"), (SUCCESS, "Success"), (FAILURE, "Failure")]

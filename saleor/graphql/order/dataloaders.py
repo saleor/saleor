@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.db.models import F
 
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from ...payment.models import TransactionItem
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
@@ -125,3 +126,14 @@ class FulfillmentLinesByIdLoader(DataLoader):
             self.database_connection_name
         ).in_bulk(keys)
         return [fulfillment_lines.get(line_id) for line_id in keys]
+
+
+class TransactionItemsByOrderIDLoader(DataLoader):
+    context_key = "transaction_items_by_order_id"
+
+    def batch_load(self, keys):
+        transactions = TransactionItem.objects.filter(order_id__in=keys).order_by("pk")
+        transactions_map = defaultdict(list)
+        for transaction in transactions:
+            transactions_map[transaction.order_id].append(transaction)
+        return [transactions_map.get(order_id, []) for order_id in keys]

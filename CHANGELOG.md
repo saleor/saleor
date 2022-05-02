@@ -7,6 +7,19 @@ All notable, unreleased changes to this project will be documented in this file.
   - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
   for old order lines.
 
+### Other changes
+- Fix for sending incorrect prices to Avatax - #9633 by @korycins
+- PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
+  - add fields:
+    - `order.transactions`
+    - `checkout.transactions`
+  - add mutations:
+    - `transactionCreate`
+    - `transactionUpdate`
+    - `transactionRequestAction`
+  - add new webhook event:
+    - `TRANSACTION_ACTION_REQUEST`
+
 # 3.3.1
 
 - Drop manual calls to emit post_migrate in migrations (#9647) (b32308802)
@@ -20,6 +33,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Use fulltext search for products (#9344) (4b6f25964) by @patrys
 - Precise timestamps for publication dates - #9581 by @IKarbowiak
   - Change `publicationDate` fields to `publishedAt` date time fields.

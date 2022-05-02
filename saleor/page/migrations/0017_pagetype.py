@@ -9,11 +9,14 @@ def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         Group = apps.get_model("auth", "Group")
         Permission = apps.get_model("auth", "Permission")
+        ContentType = apps.get_model("contenttypes", "ContentType")
 
-        manage_page_types_and_attributes_perm = Permission.objects.filter(
+        ct, _ = ContentType.objects.get_or_create(app_label="page", model="pagetype")
+        manage_page_types_and_attributes_perm, _ = Permission.objects.get_or_create(
             codename="manage_page_types_and_attributes",
-            content_type__app_label="page",
-        ).first()
+            content_type=ct,
+            name="Manage page types and attributes.",
+        )
 
         groups = Group.objects.filter(
             permissions__content_type__app_label="page",
@@ -22,7 +25,7 @@ def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
         for group in groups:
             group.permissions.add(manage_page_types_and_attributes_perm)
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 def add_page_types_to_existing_pages(apps, schema_editor):

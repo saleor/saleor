@@ -53,7 +53,7 @@ def queryset_in_batches(queryset):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0143_rewrite_fulfillmentline_orderline_relation"),
+        ("order", "0144_rewrite_fulfillmentline_orderline_relation"),
     ]
 
     operations = [

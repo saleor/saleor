@@ -52,7 +52,7 @@ def set_order_line_old_id(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0137_orderline_token_and_old_id"),
+        ("order", "0138_add_orderline_token_old_id_created_at"),
     ]
 
     operations = [
