@@ -760,7 +760,7 @@ def test_order_discounts_query(
     assert len(discounts_data) == 1
     discount_data = discounts_data[0]
     _, discount_id = graphene.Node.from_global_id(discount_data["id"])
-    assert int(discount_id) == discount.id
+    assert discount_id == str(discount.id)
     assert discount_data["valueType"] == discount.value_type.upper()
     assert discount_data["value"] == discount.value
     assert discount_data["amount"]["amount"] == discount.amount_value
