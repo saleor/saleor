@@ -4,8 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # Unreleased
 - Migrate order line id from int to UUID - #9637 by @IKarbowiak
-  - Changed the order `id` changed from `int` to `UUID`, the old ids still can be used
-  for old orders.
+  - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
+  for old order lines.
 
 # 3.3.1
 
