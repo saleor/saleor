@@ -34,7 +34,6 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
-# alter_checkout_line_old_id_and_created_at
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
