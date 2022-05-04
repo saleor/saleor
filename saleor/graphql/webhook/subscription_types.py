@@ -573,7 +573,7 @@ class VoucherBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a voucher." + ADDED_IN_32 + PREVIEW_FEATURE,
+        description="Look up a voucher." + ADDED_IN_34 + PREVIEW_FEATURE,
     )
 
     @staticmethod

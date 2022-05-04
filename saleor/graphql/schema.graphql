@@ -20738,7 +20738,7 @@ type VoucherCreated {
   """
   Look up a voucher.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -20752,7 +20752,7 @@ type VoucherUpdated {
   """
   Look up a voucher.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -20766,7 +20766,7 @@ type VoucherDeleted {
   """
   Look up a voucher.
   
-  Added in Saleor 3.2.
+  Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
