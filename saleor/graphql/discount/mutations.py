@@ -328,10 +328,10 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )
-        input = data.get("input")
-        cls.add_catalogues_to_node(voucher, input)
+        input_data = data.get("input", {})
+        cls.add_catalogues_to_node(voucher, input_data)
 
-        if input:
+        if input_data:
             info.context.plugins.voucher_updated(voucher)
 
         return VoucherAddCatalogues(voucher=voucher)
@@ -349,10 +349,10 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )
-        input = data.get("input")
-        cls.remove_catalogues_from_node(voucher, input)
+        input_data = data.get("input", {})
+        cls.remove_catalogues_from_node(voucher, input_data)
 
-        if input:
+        if input_data:
             info.context.plugins.voucher_updated(voucher)
 
         return VoucherRemoveCatalogues(voucher=voucher)
