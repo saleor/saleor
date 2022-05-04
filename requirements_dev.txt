@@ -67,7 +67,7 @@ draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 execnet==1.9.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
-faker==13.6.0; python_version >= "3.6"
+faker==13.7.0; python_version >= "3.6"
 filelock==3.6.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 flake8==4.0.1; python_version >= "3.6"
 fonttools==4.33.3; python_version >= "3.7"
