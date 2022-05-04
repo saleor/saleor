@@ -13,6 +13,7 @@ from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEA
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
+from ..product.dataloaders import ProductVariantByIdLoader
 from .dataloaders import WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
@@ -200,8 +201,12 @@ class Stock(ModelObjectType):
         return None
 
     @staticmethod
-    def resolve_product_variant(root, _info):
-        return ChannelContext(node=root.product_variant, channel_slug=None)
+    def resolve_product_variant(root, info):
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(root.product_variant_id)
+            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
+        )
 
 
 class StockCountableConnection(CountableConnection):
