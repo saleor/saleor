@@ -6,6 +6,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrate order line id from int to UUID - #9637 by @IKarbowiak
   - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
   for old order lines.
+- Migrate order discount id from int to UUID - #9683 by @IKarbowiak
+  - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
+  for old order discounts.
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins
