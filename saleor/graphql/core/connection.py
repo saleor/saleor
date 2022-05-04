@@ -491,7 +491,8 @@ class CountableConnection(NonNullConnection):
 
     total_count = graphene.Int(description="A total count of items in the collection.")
 
-    def resolve_total_count(root, *_):
+    @staticmethod
+    def resolve_total_count(root, _info):
         try:
             if isinstance(root, dict):
                 total_count = root["total_count"]

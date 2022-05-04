@@ -76,7 +76,7 @@ class PageType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
-    def resolve_has_pages(root: models.PageType, info, **kwargs):
+    def resolve_has_pages(root: models.PageType, info):
         return (
             PagesByPageTypeIdLoader(info.context)
             .load(root.pk)
@@ -84,7 +84,7 @@ class PageType(ModelObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["PageType"], info, **_kwargs):
+    def __resolve_references(roots: List["PageType"], _info):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
 
 
@@ -133,7 +133,7 @@ class Page(ModelObjectType):
         model = models.Page
 
     @staticmethod
-    def resolve_publication_date(root: models.Page, info, **_kwargs):
+    def resolve_publication_date(root: models.Page, _info):
         return root.published_at
 
     @staticmethod
@@ -145,7 +145,7 @@ class Page(ModelObjectType):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
-    def resolve_content_json(root: models.Page, info):
+    def resolve_content_json(root: models.Page, _info):
         content = root.content
         return content if content is not None else {}
 

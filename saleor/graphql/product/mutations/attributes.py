@@ -516,7 +516,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         product_type_id: str = data["product_type_id"]
         operations: List[ProductAttributeAssignmentUpdateInput] = data["operations"]
         # Retrieve the requested product type

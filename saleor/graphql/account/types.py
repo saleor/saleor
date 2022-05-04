@@ -123,7 +123,7 @@ class Address(ModelObjectType):
         return False
 
     @staticmethod
-    def __resolve_references(roots: List["Address"], info, **_kwargs):
+    def __resolve_references(roots: List["Address"], info):
         from .resolvers import resolve_addresses
 
         root_ids = [root.id for root in roots]
@@ -216,7 +216,7 @@ class UserPermission(Permission):
 
     @staticmethod
     @traced_resolver
-    def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
+    def resolve_source_permission_groups(root: Permission, _info, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
         groups = auth_models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
@@ -305,16 +305,16 @@ class User(ModelObjectType):
         model = get_user_model()
 
     @staticmethod
-    def resolve_addresses(root: models.User, _info, **_kwargs):
+    def resolve_addresses(root: models.User, _info):
         return root.addresses.annotate_default(root).all()  # type: ignore
 
     @staticmethod
-    def resolve_checkout(root: models.User, _info, **_kwargs):
+    def resolve_checkout(root: models.User, _info):
         return get_user_checkout(root)
 
     @staticmethod
     @traced_resolver
-    def resolve_checkout_tokens(root: models.User, info, channel=None, **_kwargs):
+    def resolve_checkout_tokens(root: models.User, info, channel=None):
         def return_checkout_tokens(checkouts):
             if not checkouts:
                 return []
@@ -349,17 +349,17 @@ class User(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_user_permissions(root: models.User, _info, **_kwargs):
+    def resolve_user_permissions(root: models.User, _info):
         from .resolvers import resolve_permissions
 
         return resolve_permissions(root)
 
     @staticmethod
-    def resolve_permission_groups(root: models.User, _info, **_kwargs):
+    def resolve_permission_groups(root: models.User, _info):
         return root.groups.all()
 
     @staticmethod
-    def resolve_editable_groups(root: models.User, _info, **_kwargs):
+    def resolve_editable_groups(root: models.User, _info):
         return get_groups_which_user_can_manage(root)
 
     @staticmethod
@@ -397,7 +397,7 @@ class User(ModelObjectType):
         return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
-    def resolve_avatar(root: models.User, info, size=None, **_kwargs):
+    def resolve_avatar(root: models.User, info, size=None):
         if root.avatar:
             return Image.get_adjusted(
                 image=root.avatar,
@@ -416,11 +416,11 @@ class User(ModelObjectType):
         raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
     @staticmethod
-    def resolve_language_code(root, _info, **_kwargs):
+    def resolve_language_code(root, _info):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def __resolve_references(roots: List["User"], info, **_kwargs):
+    def __resolve_references(roots: List["User"], info):
         from .resolvers import resolve_users
 
         ids = set()
@@ -561,7 +561,7 @@ class Group(ModelObjectType):
         return can_user_manage_group(user, root)
 
     @staticmethod
-    def __resolve_references(roots: List["Group"], info, **_kwargs):
+    def __resolve_references(roots: List["Group"], info):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)

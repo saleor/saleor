@@ -64,15 +64,18 @@ class CheckoutQueries(graphene.ObjectType):
         ],
     )
 
-    def resolve_checkout(self, info, token):
+    @staticmethod
+    def resolve_checkout(_root, info, *, token):
         return resolve_checkout(info, token)
 
-    def resolve_checkouts(self, info, *_args, channel=None, **kwargs):
+    @staticmethod
+    def resolve_checkouts(_root, info, *, channel=None, **kwargs):
         qs = resolve_checkouts(channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, CheckoutCountableConnection)
 
-    def resolve_checkout_lines(self, info, *_args, **kwargs):
+    @staticmethod
+    def resolve_checkout_lines(_root, info, **kwargs):
         qs = resolve_checkout_lines()
         return create_connection_slice(
             qs, info, kwargs, CheckoutLineCountableConnection

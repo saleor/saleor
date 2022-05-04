@@ -162,8 +162,9 @@ class AccountQueries(graphene.ObjectType):
         description="Look up a user by ID or email address.",
     )
 
+    @staticmethod
     def resolve_address_validation_rules(
-        self, info, country_code, country_area=None, city=None, city_area=None
+        _root, info, *, country_code, country_area=None, city=None, city_area=None
     ):
         return resolve_address_validation_rules(
             info,
@@ -173,34 +174,41 @@ class AccountQueries(graphene.ObjectType):
             city_area=city_area,
         )
 
-    def resolve_customers(self, info, **kwargs):
-        qs = resolve_customers(info, **kwargs)
+    @staticmethod
+    def resolve_customers(_root, info, **kwargs):
+        qs = resolve_customers(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
-    def resolve_permission_groups(self, info, **kwargs):
-        qs = resolve_permission_groups(info, **kwargs)
+    @staticmethod
+    def resolve_permission_groups(_root, info, **kwargs):
+        qs = resolve_permission_groups(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
-    def resolve_permission_group(self, info, id):
+    @staticmethod
+    def resolve_permission_group(_root, _info, *, id):
         _, id = from_global_id_or_error(id, Group)
         return resolve_permission_group(id)
 
-    def resolve_me(self, info):
+    @staticmethod
+    def resolve_me(_root, info):
         user = info.context.user
         return user if user.is_authenticated else None
 
-    def resolve_staff_users(self, info, **kwargs):
-        qs = resolve_staff_users(info, **kwargs)
+    @staticmethod
+    def resolve_staff_users(_root, info, **kwargs):
+        qs = resolve_staff_users(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
-    def resolve_user(self, info, id=None, email=None):
+    @staticmethod
+    def resolve_user(_root, info, *, id=None, email=None):
         validate_one_of_args_is_in_query("id", id, "email", email)
         return resolve_user(info, id, email)
 
-    def resolve_address(self, info, id):
+    @staticmethod
+    def resolve_address(_root, info, *, id):
         return resolve_address(info, id)
 
 
