@@ -315,11 +315,13 @@ class Shop(graphene.ObjectType):
         return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
-    def resolve_available_shipping_methods(_, info, channel, address=None):
-        return resolve_available_shipping_methods(info, channel, address)
+    def resolve_available_shipping_methods(_, info, *, channel, address=None):
+        return resolve_available_shipping_methods(
+            info, channel_slug=channel, address=address
+        )
 
     @staticmethod
-    def resolve_channel_currencies(_, info):
+    def resolve_channel_currencies(_, _info):
         return set(
             channel_models.Channel.objects.values_list("currency_code", flat=True)
         )
@@ -427,8 +429,10 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.customer_set_password_url
 
     @staticmethod
-    def resolve_translation(_, info, language_code):
-        return resolve_translation(info.context.site.settings, info, language_code)
+    def resolve_translation(_, info, *, language_code):
+        return resolve_translation(
+            info.context.site.settings, info, language_code=language_code
+        )
 
     @staticmethod
     def resolve_automatic_fulfillment_digital_products(_, info):

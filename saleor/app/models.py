@@ -1,9 +1,11 @@
-from typing import Set
+from typing import Collection, Set, Union
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.db import models
 from oauthlib.common import generate_token
+
+from saleor.core.permissions.enums import BasePermissionEnum
 
 from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
@@ -78,25 +80,25 @@ class App(ModelWithMetadata):
             setattr(self, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(self, perm_cache_name)
 
-    def has_perms(self, perm_list):
+    def has_perms(self, perm_list: Collection[Union[BasePermissionEnum, str]]) -> bool:
         """Return True if the app has each of the specified permissions."""
         if not self.is_active:
             return False
 
-        try:
-            wanted_perms = {perm.value for perm in perm_list}
-        except AttributeError:
-            wanted_perms = set(perm_list)
+        wanted_perms = {
+            perm.value if isinstance(perm, BasePermissionEnum) else perm
+            for perm in perm_list
+        }
         actual_perms = self.get_permissions()
 
         return (wanted_perms & actual_perms) == wanted_perms
 
-    def has_perm(self, perm):
+    def has_perm(self, perm: Union[BasePermissionEnum, str]) -> bool:
         """Return True if the app has the specified permission."""
         if not self.is_active:
             return False
 
-        perm_value = perm.value if hasattr(perm, "value") else perm
+        perm_value = perm.value if isinstance(perm, BasePermissionEnum) else perm
         return perm_value in self.get_permissions()
 
 

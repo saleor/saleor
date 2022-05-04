@@ -213,7 +213,7 @@ class AccountRequestDeletion(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         redirect_url = data["redirect_url"]
         try:
@@ -306,7 +306,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         address_type = data.get("type", None)
         user = info.context.user
         cleaned_input = cls.clean_input(
