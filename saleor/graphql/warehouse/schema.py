@@ -56,12 +56,14 @@ class WarehouseQueries(graphene.ObjectType):
         ],
     )
 
-    def resolve_warehouse(self, info, **data):
+    @staticmethod
+    def resolve_warehouse(_root, _info, **data):
         warehouse_pk = data.get("id")
         _, id = from_global_id_or_error(warehouse_pk, Warehouse)
         return resolve_warehouse(id)
 
-    def resolve_warehouses(self, info, **kwargs):
+    @staticmethod
+    def resolve_warehouses(_root, info, **kwargs):
         qs = resolve_warehouses()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
@@ -89,12 +91,14 @@ class StockQueries(graphene.ObjectType):
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
 
-    def resolve_stock(self, info, **kwargs):
+    @staticmethod
+    def resolve_stock(_root, _info, **kwargs):
         stock_id = kwargs.get("id")
         _, id = from_global_id_or_error(stock_id, Stock)
         return resolve_stock(id)
 
-    def resolve_stocks(self, info, **kwargs):
+    @staticmethod
+    def resolve_stocks(_root, info, **kwargs):
         qs = resolve_stocks()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)

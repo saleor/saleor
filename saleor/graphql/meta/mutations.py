@@ -280,7 +280,7 @@ class UpdateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
@@ -314,7 +314,7 @@ class DeleteMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_keys = data.pop("keys")
@@ -346,7 +346,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
@@ -379,7 +379,7 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_keys = data.pop("keys")

@@ -42,11 +42,11 @@ class AttributeQueries(graphene.ObjectType):
     )
 
     def resolve_attributes(self, info, **kwargs):
-        qs = resolve_attributes(info, **kwargs)
+        qs = resolve_attributes(info)
         qs = filter_connection_queryset(qs, kwargs, info.context)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
-    def resolve_attribute(self, info, id=None, slug=None):
+    def resolve_attribute(self, _info, *, id=None, slug=None):
         if id:
             _, id = from_global_id_or_error(id, Attribute)
             return resolve_attribute_by_id(id)

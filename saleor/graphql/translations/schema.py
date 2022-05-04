@@ -97,7 +97,8 @@ class TranslationQueries(graphene.ObjectType):
         permissions=[SitePermissions.MANAGE_TRANSLATIONS],
     )
 
-    def resolve_translations(self, info, kind, **kwargs):
+    @staticmethod
+    def resolve_translations(_root, info, *, kind, **kwargs):
         if kind == TranslatableKinds.PRODUCT:
             qs = resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
@@ -123,7 +124,8 @@ class TranslationQueries(graphene.ObjectType):
 
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
-    def resolve_translation(self, info, id, kind, **_kwargs):
+    @staticmethod
+    def resolve_translation(_root, _info, *, id, kind):
         _type, kind_id = from_global_id_or_error(id)
         if not _type == kind:
             return None

@@ -132,7 +132,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)
@@ -182,7 +182,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -235,7 +235,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -293,7 +293,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
 
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
@@ -358,7 +358,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         tax_included = info.context.site.settings.include_taxes_in_prices
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine

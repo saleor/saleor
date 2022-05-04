@@ -110,7 +110,7 @@ class Warehouse(ModelObjectType):
         return AddressByIdLoader(info.context).load(root.address_id)
 
     @staticmethod
-    def resolve_company_name(root, info, *_args, **_kwargs):
+    def resolve_company_name(root, info):
         def _resolve_company_name(address):
             return address.company_name
 
@@ -169,17 +169,17 @@ class Stock(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_quantity(root, *_args):
+    def resolve_quantity(root, _info):
         return root.quantity
 
     @staticmethod
-    def resolve_quantity_allocated(root, *_args):
+    def resolve_quantity_allocated(root, _info):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
 
     @staticmethod
-    def resolve_quantity_reserved(root, info, *_args):
+    def resolve_quantity_reserved(root, info):
         if not is_reservation_enabled(info.context.site.settings):
             return 0
 
@@ -194,13 +194,13 @@ class Stock(ModelObjectType):
         )["quantity_reserved"]
 
     @staticmethod
-    def resolve_warehouse(root, info, *_args, **kwargs):
+    def resolve_warehouse(root, info):
         if root.warehouse_id:
             return WarehouseByIdLoader(info.context).load(root.warehouse_id)
         return None
 
     @staticmethod
-    def resolve_product_variant(root, *_args):
+    def resolve_product_variant(root, _info):
         return ChannelContext(node=root.product_variant, channel_slug=None)
 
 
@@ -236,16 +236,16 @@ class Allocation(graphene.ObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def get_node(info, id):
+    def get_node(_info, id):
         try:
             return models.Allocation.objects.get(pk=id)
         except models.Allocation.DoesNotExist:
             return None
 
     @staticmethod
-    def resolve_warehouse(root, *_args):
+    def resolve_warehouse(root, _info):
         return root.stock.warehouse
 
     @staticmethod
-    def resolve_quantity(root, *_args):
+    def resolve_quantity(root, _info):
         return root.quantity_allocated
