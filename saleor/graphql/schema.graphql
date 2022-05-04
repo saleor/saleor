@@ -20136,7 +20136,13 @@ type GiftCardStatusChanged {
 }
 
 type MenuCreated {
-  "\\n\\nAdded in Saleor 3.2. Look up a menu. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a menu.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   menu(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -20144,7 +20150,13 @@ type MenuCreated {
 }
 
 type MenuUpdated {
-  "\\n\\nAdded in Saleor 3.2. Look up a menu. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a menu.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   menu(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -20152,7 +20164,13 @@ type MenuUpdated {
 }
 
 type MenuDeleted {
-  "\\n\\nAdded in Saleor 3.2. Look up a menu. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a menu.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   menu(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -20160,7 +20178,13 @@ type MenuDeleted {
 }
 
 type MenuItemCreated {
-  "\\n\\nAdded in Saleor 3.2. Look up a menu item. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a menu item.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   menuItem(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -20168,7 +20192,13 @@ type MenuItemCreated {
 }
 
 type MenuItemUpdated {
-  "\\n\\nAdded in Saleor 3.2. Look up a menu item. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a menu item.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   menuItem(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -20176,7 +20206,13 @@ type MenuItemUpdated {
 }
 
 type MenuItemDeleted {
-  "\\n\\nAdded in Saleor 3.2. Look up a menu item. \\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point."
+  """
+  Look up a menu item.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   menuItem(
     """Slug of a channel for which the data should be returned."""
     channel: String

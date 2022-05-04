@@ -172,7 +172,7 @@ class MenuBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a menu. {PREVIEW_FEATURE}",
+        description="Look up a menu." + ADDED_IN_34 + PREVIEW_FEATURE,
     )
 
     @staticmethod
@@ -199,7 +199,7 @@ class MenuItemBase(AbstractType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description=f"{ADDED_IN_32} Look up a menu item. {PREVIEW_FEATURE}",
+        description="Look up a menu item." + ADDED_IN_34 + PREVIEW_FEATURE,
     )
 
     @staticmethod
