@@ -49,7 +49,7 @@ django==3.2.13; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
-faker==13.6.0; python_version >= "3.6"
+faker==13.7.0; python_version >= "3.6"
 fonttools==4.33.3; python_version >= "3.7"
 freezegun==1.2.1; python_version >= "3.6"
 google-api-core==2.7.2; python_version >= "3.7"
