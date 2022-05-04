@@ -4255,7 +4255,14 @@ def test_order_lines_create(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
     )
     assert OrderEvent.objects.count() == 1
-    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    event = OrderEvent.objects.last()
+    assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
+    assert len(event.parameters["lines"]) == 1
+    line = OrderLine.objects.last()
+    assert event.parameters["lines"] == [
+        {"item": str(line), "line_pk": line.pk, "quantity": quantity}
+    ]
+
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
