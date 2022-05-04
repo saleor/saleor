@@ -111,6 +111,9 @@ def test_generate_order_payload(
     assert order.fulfillments.count() == 1
 
     fulfillment = order.fulfillments.first()
+    shipping_method_channel_listing = order.shipping_method.channel_listings.filter(
+        channel=order.channel,
+    ).first()
 
     # when
     payload = json.loads(generate_order_payload(order, customer_user))[0]
@@ -143,6 +146,8 @@ def test_generate_order_payload(
             ),
             "name": order.shipping_method.name,
             "type": order.shipping_method.type,
+            "currency": shipping_method_channel_listing.currency,
+            "price_amount": str(shipping_method_channel_listing.price_amount),
         },
         "payments": [
             {
@@ -1115,6 +1120,10 @@ def test_generate_checkout_payload(
     # when
     payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]
 
+    shipping_method_channel_listing = checkout.shipping_method.channel_listings.filter(
+        channel=checkout.channel,
+    ).first()
+
     # then
     assert payload == {
         "type": "Checkout",
@@ -1179,6 +1188,8 @@ def test_generate_checkout_payload(
             ),
             "name": checkout.shipping_method.name,
             "type": checkout.shipping_method.type,
+            "currency": shipping_method_channel_listing.currency,
+            "price_amount": str(shipping_method_channel_listing.price_amount),
         },
         "lines": serialize_checkout_lines(checkout),
         "collection_point": json.loads(
