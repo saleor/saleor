@@ -1,10 +1,9 @@
 from functools import partial
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
-from django.db.models import Q
 from django.shortcuts import reverse
 from graphql.error import GraphQLError
 from graphql_relay import to_global_id
@@ -15,7 +14,6 @@ from ...order.types import Order
 from ...product.types import Product
 from ...tests.utils import get_graphql_content
 from ...utils import get_nodes
-from ...utils.filters import filter_by_query_param
 
 
 def test_middleware_dont_generate_sql_requests(client, settings, assert_num_queries):
@@ -334,19 +332,6 @@ def test_get_nodes_for_order_with_uuid_and_int_id(order_list):
 
     # then
     assert orders == order_list
-
-
-@patch("saleor.product.models.Product.objects")
-def test_filter_by_query_param(qs):
-    qs.filter.return_value = qs
-
-    qs = filter_by_query_param(qs, "test", ["name", "force"])
-    test_kwargs = {"name__icontains": "test", "force__icontains": "test"}
-    q_objects = Q()
-    for q in test_kwargs:
-        q_objects |= Q(**{q: test_kwargs[q]})
-    # FIXME: django 1.11 fails on called_once_with(q_objects)
-    qs.filter.call_count == 1
 
 
 def test_from_global_id_or_error(product):
