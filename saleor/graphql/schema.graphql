@@ -5344,10 +5344,18 @@ enum ProductOrderField {
   """
   RANK
 
-  """Sort products by price."""
+  """
+  Sort products by price.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PRICE
 
-  """Sort products by a minimal price of a product's variant."""
+  """
+  Sort products by a minimal price of a product's variant.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   MINIMAL_PRICE
 
   """Sort products by update date."""
@@ -5359,13 +5367,25 @@ enum ProductOrderField {
   """Sort products by type."""
   TYPE
 
-  """Sort products by publication status."""
+  """
+  Sort products by publication status.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PUBLISHED
 
-  """Sort products by publication date."""
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PUBLICATION_DATE
 
-  """Sort products by publication date."""
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PUBLISHED_AT
 
   """Sort products by update date."""
@@ -5373,6 +5393,8 @@ enum ProductOrderField {
 
   """
   Sort products by collection. Note: This option is available only for the `Collection.products` query.
+  
+  This option requires a channel filter to work as the values can vary between channels.
   """
   COLLECTION
 
@@ -8762,7 +8784,11 @@ enum CollectionSortField {
   """Sort collections by name."""
   NAME
 
-  """Sort collections by availability."""
+  """
+  Sort collections by availability.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   AVAILABILITY
 
   """Sort collections by product count."""
@@ -8771,14 +8797,14 @@ enum CollectionSortField {
   """
   Sort collections by publication date.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.
+  This option requires a channel filter to work as the values can vary between channels.
   """
   PUBLICATION_DATE
 
   """
   Sort collections by publication date.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.
+  This option requires a channel filter to work as the values can vary between channels.
   """
   PUBLISHED_AT
 }
@@ -9339,7 +9365,11 @@ enum SaleSortField {
   """Sort sales by end date."""
   END_DATE
 
-  """Sort sales by value."""
+  """
+  Sort sales by value.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   VALUE
 
   """Sort sales by type."""
@@ -9409,7 +9439,11 @@ enum VoucherSortField {
   """Sort vouchers by end date."""
   END_DATE
 
-  """Sort vouchers by value."""
+  """
+  Sort vouchers by value.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   VALUE
 
   """Sort vouchers by type."""
@@ -9418,7 +9452,11 @@ enum VoucherSortField {
   """Sort vouchers by usage limit."""
   USAGE_LIMIT
 
-  """Sort vouchers by minimum spent amount."""
+  """
+  Sort vouchers by minimum spent amount.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   MINIMUM_SPENT_AMOUNT
 }
 
