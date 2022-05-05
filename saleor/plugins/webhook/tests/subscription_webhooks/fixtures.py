@@ -1274,3 +1274,81 @@ def subscription_translation_updated_webhook(subscription_webhook):
         TRANSLATION_UPDATED_SUBSCRIPTION_QUERY,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
     )
+
+
+VOUCHER_DETAILS_FRAGMENT = """
+    fragment VoucherDetails on Voucher{
+        id
+        name
+        code
+        usageLimit
+    }
+"""
+
+VOUCHER_CREATED_SUBSCRIPTION_QUERY = (
+    VOUCHER_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on VoucherCreated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_voucher_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        VOUCHER_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_CREATED
+    )
+
+
+VOUCHER_UPDATED_SUBSCRIPTION_QUERY = (
+    VOUCHER_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on VoucherUpdated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_voucher_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        VOUCHER_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_UPDATED
+    )
+
+
+VOUCHER_DELETED_SUBSCRIPTION_QUERY = (
+    VOUCHER_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on VoucherDeleted{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_voucher_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        VOUCHER_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_DELETED
+    )
