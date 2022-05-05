@@ -153,22 +153,32 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_gateway(cls, manager, gateway_id, currency):
+    def validate_gateway(cls, manager, gateway_id, checkout):
         """Validate if given gateway can be used for this checkout.
 
-        Check if provided gateway_id is on the list of available payment gateways.
-        Gateway will be rejected if gateway_id is invalid or a gateway doesn't support
-        checkout's currency.
+        Check if provided gateway is active and CONFIGURATION_PER_CHANNEL is True.
+        If CONFIGURATION_PER_CHANNEL is False then check if gateway has
+        defined currency.
         """
-        if not is_currency_supported(currency, gateway_id, manager):
-            raise ValidationError(
-                {
-                    "gateway": ValidationError(
-                        f"The gateway {gateway_id} is not available for this checkout.",
-                        code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
-                    )
-                }
-            )
+        payment_gateway = manager.get_plugin(gateway_id, checkout.channel.slug)
+
+        if not payment_gateway or not payment_gateway.active:
+            cls.raise_not_supported_gateway_error(gateway_id)
+
+        if not payment_gateway.CONFIGURATION_PER_CHANNEL:
+            if not is_currency_supported(checkout.currency, gateway_id, manager):
+                cls.raise_not_supported_gateway_error(gateway_id)
+
+    @classmethod
+    def raise_not_supported_gateway_error(cls, gateway_id: str):
+        raise ValidationError(
+            {
+                "gateway": ValidationError(
+                    f"The gateway {gateway_id} is not available for this checkout.",
+                    code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
+                )
+            }
+        )
 
     @classmethod
     def validate_token(cls, manager, gateway: str, input_data: dict, channel_slug: str):
@@ -241,7 +251,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         gateway = data["gateway"]
 
         manager = info.context.plugins
-        cls.validate_gateway(manager, gateway, checkout.currency)
+        cls.validate_gateway(manager, gateway, checkout)
         cls.validate_return_url(data)
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
