@@ -506,6 +506,7 @@ def test_update_order_line_discount(
     staff_api_client,
     permission_manage_orders,
 ):
+    # given
     order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
@@ -513,6 +514,8 @@ def test_update_order_line_discount(
     unit_price = Money(Decimal(7.3), currency="USD")
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
     line_to_discount.undiscounted_unit_price = line_to_discount.unit_price
+    line_to_discount.undiscounted_base_unit_price = unit_price
+    line_to_discount.base_unit_price = unit_price
     total_price = line_to_discount.unit_price * line_to_discount.quantity
     line_to_discount.total_price = total_price
     line_to_discount.undiscounted_total_price = total_price
@@ -531,7 +534,11 @@ def test_update_order_line_discount(
         },
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountUpdate"]
 
@@ -572,11 +579,13 @@ def test_update_order_line_discount_line_with_discount(
     staff_api_client,
     permission_manage_orders,
 ):
+    # given
     order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
     line_to_discount = order.lines.first()
     unit_price = quantize_price(Money(Decimal(7.3), currency="USD"), currency="USD")
+    line_to_discount.base_unit_price = unit_price
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
 
     line_to_discount.unit_discount_amount = Decimal("2.500")
@@ -595,6 +604,11 @@ def test_update_order_line_discount_line_with_discount(
     line_to_discount.undiscounted_total_price_net_amount = (
         line_to_discount.undiscounted_unit_price_net_amount * line_to_discount.quantity
     )
+
+    line_to_discount.undiscounted_base_unit_price_amount = (
+        unit_price.amount + line_to_discount.unit_discount_amount
+    )
+
     line_to_discount.save()
 
     line_discount_amount_before_update = line_to_discount.unit_discount_amount
@@ -614,7 +628,11 @@ def test_update_order_line_discount_line_with_discount(
     }
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountUpdate"]
 
@@ -717,8 +735,10 @@ def test_delete_discount_from_order_line(
     order.save(update_fields=["status"])
     line = order.lines.first()
 
-    line_undiscounted_price = line.undiscounted_unit_price
-    line_undiscounted_total_price = line.undiscounted_total_price
+    line_undiscounted_price = TaxedMoney(
+        line.undiscounted_base_unit_price, line.undiscounted_base_unit_price
+    )
+    line_undiscounted_total_price = line_undiscounted_price * line.quantity
 
     mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
         undiscounted_price=line_undiscounted_price,
