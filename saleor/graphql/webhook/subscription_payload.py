@@ -30,7 +30,7 @@ def validate_subscription_query(query: str) -> bool:
 def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
     """Check if document contains only a single subscription definition.
 
-    Only fragments and single subscription definition are allowed.
+    Only queries and single subscription definition are allowed.
     """
     subscriptions = []
     for definition in document.document_ast.definitions:

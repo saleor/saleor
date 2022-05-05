@@ -1700,6 +1700,7 @@ def categories_tree_with_published_products(
                 channel=channel_USD,
                 publication_date=datetime.date.today(),
                 is_published=True,
+                visible_in_listings=True
             )
         )
         product_channel_listings.append(
@@ -1708,6 +1709,7 @@ def categories_tree_with_published_products(
                 channel=channel_PLN,
                 publication_date=datetime.date.today(),
                 is_published=True,
+                visible_in_listings=True
             )
         )
     ProductChannelListing.objects.bulk_create(product_channel_listings)
