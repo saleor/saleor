@@ -13,15 +13,15 @@ from ..decorators import permission_required
 from .enums import AppTypeEnum
 
 
-def resolve_apps_installations(info, **_kwargs):
+def resolve_apps_installations(info):
     return models.AppInstallation.objects.all()
 
 
-def resolve_apps(info, **_kwargs):
+def resolve_apps(info):
     return models.App.objects.all()
 
 
-def resolve_access_token_for_app(info, root, **_kwargs):
+def resolve_access_token_for_app(info, root):
     if root.type != AppTypeEnum.THIRDPARTY.value:
         return None
 
@@ -31,7 +31,7 @@ def resolve_access_token_for_app(info, root, **_kwargs):
     return create_access_token_for_app(root, user)
 
 
-def resolve_access_token_for_app_extension(info, root, **_kwargs):
+def resolve_access_token_for_app_extension(info, root):
     user = info.context.user
     if not user_is_valid(user):
         return None

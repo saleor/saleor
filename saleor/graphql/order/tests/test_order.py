@@ -1,11 +1,12 @@
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
 import pytest
+import pytz
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -24,7 +25,7 @@ from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
 from ....giftcard import GiftCardEvents
 from ....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
-from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -34,8 +35,9 @@ from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
 )
-from ....payment import ChargeStatus, PaymentError
-from ....payment.models import Payment
+from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
+from ....payment.interface import TransactionActionData
+from ....payment.models import Payment, TransactionEvent, TransactionItem
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant, ProductVariantChannelListing
@@ -49,6 +51,7 @@ from ...order.mutations.orders import (
     clean_refund_payment,
     try_payment_action,
 )
+from ...payment.enums import TransactionStatusEnum
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
     assert_no_permission,
@@ -287,6 +290,19 @@ query OrdersQuery {
                 paymentStatusDisplay
                 userEmail
                 isPaid
+                actions
+                totalAuthorized{
+                    amount
+                    currency
+                }
+                totalCaptured{
+                    amount
+                    currency
+                }
+                totalBalance{
+                    amount
+                    currency
+                }
                 shippingPrice {
                     gross {
                         amount
@@ -323,6 +339,40 @@ query OrdersQuery {
                 }
                 payments{
                     id
+                    actions
+                    total{
+                        currency
+                        amount
+                    }
+                }
+                transactions{
+                    reference
+                    type
+                    status
+                    modifiedAt
+                    createdAt
+                    authorizedAmount{
+                        amount
+                        currency
+                    }
+                    voidedAmount{
+                        currency
+                        amount
+                    }
+                    capturedAmount{
+                        currency
+                        amount
+                    }
+                    refundedAmount{
+                        currency
+                        amount
+                    }
+                    events{
+                       status
+                       reference
+                       name
+                       createdAt
+                    }
                 }
                 subtotal {
                     net {
@@ -524,6 +574,106 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
+
+
+def test_order_query_with_transactions_details(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+    shipping_zone,
+):
+    # given
+    order = fulfilled_order
+    net = Money(amount=Decimal("100"), currency="USD")
+    gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
+    shipping_price = TaxedMoney(net=net, gross=gross)
+    order.shipping_price = shipping_price
+    shipping_tax_rate = Decimal("0.23")
+    order.shipping_tax_rate = shipping_tax_rate
+    private_value = "abc123"
+    public_value = "123abc"
+    order.shipping_method.store_value_in_metadata({"test": public_value})
+    order.shipping_method.store_value_in_private_metadata({"test": private_value})
+    order.shipping_method.save()
+    order.save()
+    transactions = TransactionItem.objects.bulk_create(
+        [
+            TransactionItem(
+                order_id=order.id,
+                status="Authorized",
+                type="Credit card",
+                reference="123",
+                currency="USD",
+                authorized_value=Decimal("15"),
+                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+            ),
+            TransactionItem(
+                order_id=order.id,
+                status="Authorized second credit card",
+                type="Credit card",
+                reference="321",
+                currency="USD",
+                authorized_value=Decimal("10"),
+                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+            ),
+            TransactionItem(
+                order_id=order.id,
+                status="Captured",
+                type="Credit card",
+                reference="321",
+                currency="USD",
+                captured_value=Decimal("15"),
+                available_actions=[TransactionAction.REFUND],
+            ),
+        ]
+    )
+
+    event_status = TransactionStatus.FAILURE
+    event_reference = "PSP-ref"
+    event_name = "Failed authorization"
+    TransactionEvent.objects.bulk_create(
+        [
+            TransactionEvent(
+                name=event_name,
+                status=event_status,
+                reference=event_reference,
+                transaction=transaction,
+            )
+            for transaction in transactions
+        ]
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    payment_charge_status = PaymentChargeStatusEnum.PARTIALLY_CHARGED
+    assert order_data["paymentStatus"] == payment_charge_status.name
+    assert (
+        order_data["paymentStatusDisplay"]
+        == dict(ChargeStatus.CHOICES)[payment_charge_status.value]
+    )
+    assert order_data["isPaid"] == order.is_fully_paid()
+
+    assert len(order_data["payments"]) == order.payments.count()
+    assert Decimal(order_data["totalAuthorized"]["amount"]) == Decimal("25")
+    assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal("15")
+
+    assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
+
+    for transaction in order_data["transactions"]:
+        assert len(transaction["events"]) == 1
+        event = transaction["events"][0]
+        assert event["name"] == event_name
+        assert event["status"] == TransactionStatusEnum.FAILURE.name
+        assert event["reference"] == event_reference
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(
@@ -2418,12 +2568,12 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
-    next_day = date.today() + timedelta(days=1)
+    next_day = datetime.now(pytz.UTC) + timedelta(days=1)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
     channel_listing = variant_1.product.channel_listings.get()
-    channel_listing.publication_date = next_day
+    channel_listing.published_at = next_day
     channel_listing.save()
 
     variant_1.quantity = 2
@@ -3096,7 +3246,7 @@ def test_can_finalize_order_product_unavailable_for_purchase(
 
     line = order.lines.first()
     product = line.variant.product
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -3127,7 +3277,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     line = order.lines.first()
     product = line.variant.product
     product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=1)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=1)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -3215,7 +3365,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listings.update(available_for_purchase=None)
+    variant.product.channel_listings.update(available_for_purchase_at=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -3234,7 +3384,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line = order.lines.first()
     variant = line.variant
     variant.product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=2)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=2)
     )
     line.refresh_from_db()
 
@@ -3856,7 +4006,7 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     product = order.lines.first().variant.product
     product.channel_listings.update(
-        available_for_purchase=date.today() + timedelta(days=5)
+        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=5)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -4105,7 +4255,14 @@ def test_order_lines_create(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
     )
     assert OrderEvent.objects.count() == 1
-    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    event = OrderEvent.objects.last()
+    assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
+    assert len(event.parameters["lines"]) == 1
+    line = OrderLine.objects.last()
+    assert event.parameters["lines"] == [
+        {"item": str(line), "line_pk": line.pk, "quantity": quantity}
+    ]
+
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
@@ -4124,6 +4281,52 @@ def test_order_lines_create(
 
     order.refresh_from_db()
     assert variant.sku.lower() in order.search_document
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_for_just_published_product(
+    product_variant_out_of_stock_webhook_mock,
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    product_listing = variant.product.channel_listings.get(channel=order.channel)
+    product_listing.published_at = datetime.now(pytz.utc)
+    product_listing.save(update_fields=["published_at"])
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
 
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
@@ -5335,17 +5538,7 @@ def test_order_cancel_with_bought_gift_cards(
     assert gift_card.events.filter(type=GiftCardEvents.DEACTIVATED)
 
 
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_order_capture(
-    mocked_notify,
-    channel_USD,
-    staff_api_client,
-    permission_manage_orders,
-    payment_txn_preauth,
-    staff_user,
-):
-    order = payment_txn_preauth.order
-    query = """
+ORDER_CAPTURE_MUTATION = """
         mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
             orderCapture(id: $id, amount: $amount) {
                 order {
@@ -5356,14 +5549,31 @@ def test_order_capture(
                         amount
                     }
                 }
+                errors{
+                    field
+                    message
+                    code
+                }
             }
         }
-    """
+"""
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_order_capture(
+    mocked_notify,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+    staff_user,
+):
+    order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_preauth.total)
     variables = {"id": order_id, "amount": amount}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCapture"]["order"]
@@ -5408,6 +5618,97 @@ def test_order_capture(
         expected_payment_payload,
         channel_slug=order.channel.slug,
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
+def test_order_capture_with_transaction_action_request(
+    mocked_transaction_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    capture_value = Decimal(5.0)
+    mocked_is_active.return_value = True
+    order_id = to_global_id_or_none(order)
+
+    variables = {"id": order_id, "amount": capture_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCapture"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.CAPTURE,
+            action_value=capture_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
+    assert Decimal(event.parameters["amount"]) == capture_value
+    assert event.parameters["reference"] == transaction.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_order_capture_with_transaction_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    authorization_value = Decimal("10")
+    TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=authorization_value,
+    )
+    mocked_is_active.return_value = False
+
+    order_id = to_global_id_or_none(order)
+
+    variables = {"id": order_id, "amount": authorization_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CAPTURE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCapture"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == (
+        "No app or plugin is configured to handle payment action requests."
+    )
+    assert data["errors"][0]["code"] == (
+        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
 
 
 MUTATION_MARK_ORDER_AS_PAID = """
@@ -5586,6 +5887,95 @@ def test_order_void_payment_error(
     mock_void_payment.assert_called_once()
 
 
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
+def test_order_void_with_transaction_action_request(
+    mocked_transaction_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+
+    mocked_is_active.return_value = True
+
+    order_id = to_global_id_or_none(order)
+
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_VOID, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderVoid"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.VOID,
+            action_value=None,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.TRANSACTION_VOID_REQUESTED
+    assert event.parameters["reference"] == transaction.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_order_void_with_transaction_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["capture", "void"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10.0"),
+    )
+    mocked_is_active.return_value = False
+
+    order_id = to_global_id_or_none(order)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_VOID, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderVoid"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == (
+        "No app or plugin is configured to handle payment action requests."
+    )
+    assert data["errors"][0]["code"] == (
+        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
+
+
 ORDER_REFUND_MUTATION = """
     mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
         orderRefund(id: $id, amount: $amount) {
@@ -5652,6 +6042,93 @@ def test_order_refund_with_gift_card_lines(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_REFUND.name
     assert data["errors"][0]["field"] == "id"
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
+def test_order_refund_with_transaction_action_request(
+    mocked_transaction_action_request,
+    mocked_is_active,
+    staff_api_client,
+    permission_manage_orders,
+    order,
+):
+    # given
+    transaction = TransactionItem.objects.create(
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=Decimal("10"),
+    )
+    refund_value = Decimal(5.0)
+    mocked_is_active.return_value = True
+
+    order_id = to_global_id_or_none(order)
+    variables = {"id": order_id, "amount": refund_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+    assert not data["errors"]
+
+    assert mocked_is_active.called
+    mocked_transaction_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
+            action_value=refund_value,
+        ),
+        channel_slug=order.channel.slug,
+    )
+
+    event = order.events.first()
+    assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
+    assert Decimal(event.parameters["amount"]) == refund_value
+    assert event.parameters["reference"] == transaction.reference
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+def test_order_refund_with_transaction_action_request_missing_event(
+    mocked_is_active, staff_api_client, permission_manage_orders, order
+):
+    # given
+    captured_value = Decimal("10")
+    TransactionItem.objects.create(
+        status="Authorized",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        authorized_value=captured_value,
+    )
+    mocked_is_active.return_value = False
+
+    order_id = to_global_id_or_none(order)
+    variables = {"id": order_id, "amount": captured_value}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == (
+        OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.name
+    )
+
+    assert mocked_is_active.called
 
 
 @pytest.mark.parametrize(

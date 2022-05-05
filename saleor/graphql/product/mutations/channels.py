@@ -1,8 +1,9 @@
-import datetime
 from collections import defaultdict
+from datetime import datetime
 from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.utils import IntegrityError
@@ -10,6 +11,7 @@ from django.db.utils import IntegrityError
 from ....checkout.models import CheckoutLine
 from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.date_time import convert_to_utc_date_time
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import CollectionChannelListing
 from ....product.models import Product as ProductModel
@@ -20,7 +22,12 @@ from ....product.tasks import update_product_discounted_price_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_33,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import (
@@ -46,7 +53,13 @@ class PublishableChannelListingInput(graphene.InputObjectType):
         description="Determines if object is visible to customers."
     )
     publication_date = graphene.types.datetime.Date(
-        description="Publication date. ISO 8601 standard."
+        description=(
+            f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
+            "Use `publishedAt` field instead."
+        )
+    )
+    published_at = graphene.types.datetime.DateTime(
+        description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
 
 
@@ -64,7 +77,15 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
         description=(
             "A start date from which a product will be available for purchase. "
             "When not set and isAvailable is set to True, "
-            "the current day is assumed."
+            f"the current day is assumed. {DEPRECATED_IN_3X_INPUT} "
+            "Use `availableForPurchaseAt` field instead."
+        )
+    )
+    available_for_purchase_at = graphene.DateTime(
+        description=(
+            "A start date time from which a product will be available "
+            "for purchase. When not set and `isAvailable` is set to True, "
+            "the current day is assumed." + ADDED_IN_33
         )
     )
     add_variants = NonNullList(
@@ -112,16 +133,21 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def clean_available_for_purchase(cls, cleaned_input, errors: ErrorType):
-        channels_with_invalid_available_for_purchase = []
-        for update_variant in cleaned_input.get("update_channels", []):
-            is_available_for_purchase = update_variant.get("is_available_for_purchase")
-            available_for_purchase_date = update_variant.get(
+        channels_with_invalid_available_for_purchase: List[str] = []
+        channels_with_invalid_date: List[str] = []
+        for update_channel in cleaned_input.get("update_channels", []):
+            is_available_for_purchase = update_channel.get("is_available_for_purchase")
+            available_for_purchase_date = update_channel.get(
                 "available_for_purchase_date"
-            )
+            ) or update_channel.get("available_for_purchase_at")
             if not is_available_for_purchase and available_for_purchase_date:
                 channels_with_invalid_available_for_purchase.append(
-                    update_variant["channel_id"]
+                    update_channel["channel_id"]
                 )
+            channels_with_invalid_date = cls.clean_available_fo_purchase_date(
+                update_channel, channels_with_invalid_date
+            )
+
         if channels_with_invalid_available_for_purchase:
             error_msg = (
                 "Cannot set available for purchase date when"
@@ -134,6 +160,33 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                     params={"channels": channels_with_invalid_available_for_purchase},
                 )
             )
+        if channels_with_invalid_date:
+            error_msg = (
+                "Only one of argument: availableForPurchaseDate or "
+                "availableForPurchaseAt must be specified."
+            )
+            errors["available_for_purchase_date"].append(
+                ValidationError(
+                    error_msg,
+                    code=ProductErrorCode.INVALID.value,
+                    params={"channels": channels_with_invalid_date},
+                )
+            )
+
+    @staticmethod
+    def clean_available_fo_purchase_date(
+        update_channel_input, channels_with_invalid_date
+    ):
+        # DEPRECATED
+        available_for_purchase_date = update_channel_input.get(
+            "available_for_purchase_date"
+        )
+        available_for_purchase_at = update_channel_input.get(
+            "available_for_purchase_at"
+        )
+        if available_for_purchase_date and available_for_purchase_at:
+            channels_with_invalid_date.append(update_channel_input["channel_id"])
+        return channels_with_invalid_date
 
     @classmethod
     def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
@@ -165,23 +218,16 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             add_variants = update_channel.get("add_variants", None)
             remove_variants = update_channel.get("remove_variants", None)
             defaults = {"currency": channel.currency_code}
-            for field in ["is_published", "publication_date", "visible_in_listings"]:
+            for field in ["is_published", "published_at", "visible_in_listings"]:
                 if field in update_channel.keys():
-                    defaults[field] = update_channel.get(field, None)
+                    defaults[field] = update_channel[field]
             is_available_for_purchase = update_channel.get("is_available_for_purchase")
-            available_for_purchase_date = update_channel.get(
-                "available_for_purchase_date"
-            )
             if is_available_for_purchase is not None:
-                if is_available_for_purchase is False:
-                    defaults["available_for_purchase"] = None
-                elif (
-                    is_available_for_purchase is True
-                    and not available_for_purchase_date
-                ):
-                    defaults["available_for_purchase"] = datetime.date.today()
-                else:
-                    defaults["available_for_purchase"] = available_for_purchase_date
+                defaults[
+                    "available_for_purchase_at"
+                ] = cls.get_available_for_purchase_date(
+                    is_available_for_purchase, update_channel
+                )
             product_channel_listing, _ = ProductChannelListing.objects.update_or_create(
                 product=product, channel=channel, defaults=defaults
             )
@@ -189,6 +235,20 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.remove_variants(
                 product_channel_listing, product, channel, remove_variants
             )
+
+    @staticmethod
+    def get_available_for_purchase_date(is_available_for_purchase, update_channel):
+        available_for_purchase_date = update_channel.get("available_for_purchase_date")
+        available_for_purchase_date = (
+            convert_to_utc_date_time(available_for_purchase_date)
+            if available_for_purchase_date
+            else update_channel.get("available_for_purchase_at")
+        )
+        if is_available_for_purchase is False:
+            return None
+        elif is_available_for_purchase is True and not available_for_purchase_date:
+            return datetime.now(pytz.UTC)
+        return available_for_purchase_date
 
     @classmethod
     def validate_variants(cls, input, errors):
@@ -287,7 +347,9 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
             input_source="update_channels",
         )
-        cls.clean_publication_date(cleaned_input, input_source="update_channels")
+        cls.clean_publication_date(
+            errors, ProductErrorCode, cleaned_input, input_source="update_channels"
+        )
         cls.clean_available_for_purchase(cleaned_input, errors)
         cls.validate_variants(cleaned_input, errors)
         if not product.category:
@@ -309,8 +371,9 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     preorder_threshold = graphene.Int(
         description=(
-            f"{ADDED_IN_31} The threshold for preorder variant in channel. "
-            f"{PREVIEW_FEATURE}"
+            "The threshold for preorder variant in channel."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         )
     )
 
@@ -507,9 +570,9 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
     def add_channels(cls, collection: "CollectionModel", add_channels: List[Dict]):
         for add_channel in add_channels:
             defaults = {}
-            for field in ["is_published", "publication_date"]:
+            for field in ["is_published", "published_at"]:
                 if field in add_channel.keys():
-                    defaults[field] = add_channel.get(field, None)
+                    defaults[field] = add_channel[field]
             CollectionChannelListing.objects.update_or_create(
                 collection=collection, channel=add_channel["channel"], defaults=defaults
             )
@@ -537,7 +600,7 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
             errors,
             CollectionErrorCode.DUPLICATED_INPUT_ITEM.value,
         )
-        cls.clean_publication_date(cleaned_input)
+        cls.clean_publication_date(errors, CollectionErrorCode, cleaned_input)
         if errors:
             raise ValidationError(errors)
 

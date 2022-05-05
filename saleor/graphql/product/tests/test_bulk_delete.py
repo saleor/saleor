@@ -221,7 +221,7 @@ def test_delete_categories_with_subcategories_and_products(
                 product=parent_product,
                 channel=channel_PLN,
                 is_published=True,
-                publication_date=timezone.now(),
+                published_at=timezone.now(),
             ),
         ]
     )
@@ -263,7 +263,7 @@ def test_delete_categories_with_subcategories_and_products(
     )
     for product_channel_listing in product_channel_listings:
         assert product_channel_listing.is_published is False
-        assert not product_channel_listing.publication_date
+        assert not product_channel_listing.published_at
     assert product_channel_listings.count() == 3
 
 
@@ -894,7 +894,6 @@ def test_delete_product_variants(
     assert ProductVariantChannelListing.objects.filter(
         variant_id__in=[variant.id for variant in product_variant_list]
     ).exists()
-    variants_sku = [variant.sku for variant in product_variant_list]
 
     variables = {
         "ids": [
@@ -917,10 +916,6 @@ def test_delete_product_variants(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
-    product.refresh_from_db()
-    assert product.search_document
-    for sku in variants_sku:
-        assert sku not in product.search_document
 
 
 def test_delete_product_variants_invalid_object_typed_of_given_ids(

@@ -21,7 +21,8 @@ class BookTypeCountableConnection(CountableConnection):
 class Query(graphene.ObjectType):
     books = ConnectionField(BookTypeCountableConnection)
 
-    def resolve_books(self, info, **kwargs):
+    @staticmethod
+    def resolve_books(_root, info, **kwargs):
         qs = Book.objects.all()
         return create_connection_slice(qs, info, kwargs, BookTypeCountableConnection)
 

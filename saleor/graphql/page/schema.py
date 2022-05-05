@@ -57,20 +57,24 @@ class PageQueries(graphene.ObjectType):
         description="List of the page types.",
     )
 
-    def resolve_page(self, info, id=None, slug=None):
+    @staticmethod
+    def resolve_page(_root, info, *, id=None, slug=None):
         return resolve_page(info, id, slug)
 
-    def resolve_pages(self, info, **kwargs):
-        qs = resolve_pages(info, **kwargs)
+    @staticmethod
+    def resolve_pages(_root, info, **kwargs):
+        qs = resolve_pages(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PageCountableConnection)
 
-    def resolve_page_type(self, info, id):
+    @staticmethod
+    def resolve_page_type(_root, info, *, id):
         _, id = from_global_id_or_error(id, PageType)
         return resolve_page_type(id)
 
-    def resolve_page_types(self, info, **kwargs):
-        qs = resolve_page_types(info, **kwargs)
+    @staticmethod
+    def resolve_page_types(_root, info, **kwargs):
+        qs = resolve_page_types(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PageTypeCountableConnection)
 

@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Iterable, List
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
 
@@ -99,49 +98,6 @@ PERMISSIONS_ENUMS = [
 ]
 
 
-def is_app(context):
-    return bool(context.app)
-
-
-def is_user(context):
-    return context.user.is_active and context.user.is_authenticated
-
-
-def is_staff_user(context):
-    return is_user(context) and context.user.is_staff
-
-
-class AuthorizationFilters(BasePermissionEnum):
-    # Grants access to any authenticated app.
-    AUTHENTICATED_APP = "authorization_filters.authenticated_app"
-
-    # Grants access to any authenticated staff user.
-    AUTHENTICATED_STAFF_USER = "authorization_filters.authenticated_staff_user"
-
-    # Grants access to any authenticated user.
-    AUTHENTICATED_USER = "authorization_filters.authenticated_user"
-
-    # Grants access to the owner of the related object. This rule doesn't come with any
-    # permission function, as the ownership needs to be defined individually in each
-    # case.
-    OWNER = "authorization_filters.owner"
-
-
-AUTHORIZATION_FILTER_MAP = {
-    AuthorizationFilters.AUTHENTICATED_APP: is_app,
-    AuthorizationFilters.AUTHENTICATED_USER: is_user,
-    AuthorizationFilters.AUTHENTICATED_STAFF_USER: is_staff_user,
-}
-
-
-def resolve_authorization_filter_fn(perm):
-    return AUTHORIZATION_FILTER_MAP.get(perm)
-
-
-def split_permission_codename(permissions):
-    return [permission.split(".")[1] for permission in permissions]
-
-
 def get_permissions_codename():
     permissions_values = [
         enum.codename
@@ -149,6 +105,15 @@ def get_permissions_codename():
         for enum in permission_enum
     ]
     return permissions_values
+
+
+def get_permissions_enum_list():
+    permissions_list = [
+        (enum.name, enum.value)
+        for permission_enum in PERMISSIONS_ENUMS
+        for enum in permission_enum
+    ]
+    return permissions_list
 
 
 def get_permissions_enum_dict():
@@ -176,13 +141,8 @@ def get_permission_names(permissions: Iterable["Permission"]):
     return names
 
 
-def get_permissions_enum_list():
-    permissions_list = [
-        (enum.name, enum.value)
-        for permission_enum in PERMISSIONS_ENUMS
-        for enum in permission_enum
-    ]
-    return permissions_list
+def split_permission_codename(permissions):
+    return [permission.split(".")[1] for permission in permissions]
 
 
 def get_permissions(permissions=None):
@@ -199,25 +159,3 @@ def get_permissions_from_codenames(permission_codenames: List[str]):
         .prefetch_related("content_type")
         .order_by("codename")
     )
-
-
-def permission_required(perms, requestor):
-    User = get_user_model()
-    if isinstance(requestor, User):
-        if requestor.has_perms(perms):
-            return True
-    else:
-        # for now MANAGE_STAFF permission for app is not supported
-        if AccountPermissions.MANAGE_STAFF in perms:
-            return False
-        return requestor.has_perms(perms)
-    return False
-
-
-def has_one_of_permissions(requestor, permissions=None):
-    if not permissions:
-        return True
-    for perm in permissions:
-        if permission_required((perm,), requestor):
-            return True
-    return False

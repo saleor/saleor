@@ -18,7 +18,7 @@ from ..channel.types import (
 )
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.fields import ConnectionField, JSONString
+from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.types import (
     CountryDisplay,
     ModelObjectType,
@@ -27,7 +27,6 @@ from ..core.types import (
     NonNullList,
     Weight,
 )
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
 from ..translations.fields import TranslationField
@@ -57,7 +56,7 @@ class ShippingMethodChannelListing(ModelObjectType):
         interfaces = [relay.Node]
 
     @staticmethod
-    def resolve_channel(root: models.ShippingMethodChannelListing, info, **_kwargs):
+    def resolve_channel(root: models.ShippingMethodChannelListing, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
@@ -90,9 +89,12 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         type_name="shipping method",
         resolver=None,  # Disable default resolver
     )
-    channel_listings = NonNullList(
-        ShippingMethodChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(ShippingMethodChannelListing),
         description="List of channels available for the method.",
+        permissions=[
+            ShippingPermissions.MANAGE_SHIPPING,
+        ],
     )
     maximum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
@@ -109,6 +111,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     excluded_products = ConnectionField(
         "saleor.graphql.product.types.products.ProductCountableConnection",
         description="List of excluded products for the shipping method.",
+        permissions=[ShippingPermissions.MANAGE_SHIPPING],
     )
     minimum_order_weight = graphene.Field(
         Weight, description="Minimum order weight to use this shipping method."
@@ -137,9 +140,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         return graphene.Node.to_global_id("ShippingMethodType", root.node.id)
 
     @staticmethod
-    def resolve_maximum_order_price(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
+    def resolve_maximum_order_price(root: ChannelContext[models.ShippingMethod], info):
         maximum_order_price = getattr(root.node, "maximum_order_price", None)
         if maximum_order_price is not None:
             return maximum_order_price
@@ -156,9 +157,7 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
         )
 
     @staticmethod
-    def resolve_minimum_order_price(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
+    def resolve_minimum_order_price(root: ChannelContext[models.ShippingMethod], info):
         minimum_order_price = getattr(root.node, "minimum_order_price", None)
         if minimum_order_price is not None:
             return minimum_order_price
@@ -176,33 +175,27 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
 
     @staticmethod
     def resolve_maximum_order_weight(
-        root: ChannelContext[models.ShippingMethod], *_args
+        root: ChannelContext[models.ShippingMethod], _info
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
-    def resolve_postal_code_rules(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
+    def resolve_postal_code_rules(root: ChannelContext[models.ShippingMethod], info):
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_minimum_order_weight(
-        root: ChannelContext[models.ShippingMethod], *_args
+        root: ChannelContext[models.ShippingMethod], _info
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channel_listings(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
+    def resolve_channel_listings(root: ChannelContext[models.ShippingMethod], info):
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
             root.node.id
         )
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_excluded_products(
         root: ChannelContext[models.ShippingMethod], info, **kwargs
     ):
@@ -226,7 +219,9 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
     countries = NonNullList(
-        CountryDisplay, description="List of countries available for the method."
+        CountryDisplay,
+        description="List of countries available for the method.",
+        required=True,
     )
     shipping_methods = NonNullList(
         ShippingMethodType,
@@ -259,20 +254,18 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_price_range(root: ChannelContext[models.ShippingZone], *_args):
+    def resolve_price_range(root: ChannelContext[models.ShippingZone], _info):
         return resolve_price_range(root.channel_slug)
 
     @staticmethod
-    def resolve_countries(root: ChannelContext[models.ShippingZone], *_args):
+    def resolve_countries(root: ChannelContext[models.ShippingZone], _info):
         return [
             CountryDisplay(code=country.code, country=country.name)
             for country in root.node.countries
         ]
 
     @staticmethod
-    def resolve_shipping_methods(
-        root: ChannelContext[models.ShippingZone], info, **_kwargs
-    ):
+    def resolve_shipping_methods(root: ChannelContext[models.ShippingZone], info):
         def wrap_shipping_method_with_channel_context(shipping_methods):
             shipping_methods = [
                 ChannelContext(node=shipping, channel_slug=root.channel_slug)
@@ -295,11 +288,11 @@ class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_warehouses(root: ChannelContext[models.ShippingZone], *_args):
+    def resolve_warehouses(root: ChannelContext[models.ShippingZone], _info):
         return root.node.warehouses.all()
 
     @staticmethod
-    def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
+    def resolve_channels(root: ChannelContext[models.ShippingZone], info):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
@@ -361,11 +354,11 @@ class ShippingMethod(graphene.ObjectType):
         return root.graphql_id
 
     @staticmethod
-    def resolve_maximum_order_weight(root: ShippingMethodData, *_args):
+    def resolve_maximum_order_weight(root: ShippingMethodData, _info):
         return convert_weight_to_default_weight_unit(root.maximum_order_weight)
 
     @staticmethod
-    def resolve_minimum_order_weight(root: ShippingMethodData, *_args):
+    def resolve_minimum_order_weight(root: ShippingMethodData, _info):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
 
 

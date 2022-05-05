@@ -1,7 +1,9 @@
 from ..core.permissions import (
     AccountPermissions,
+    ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
+    GiftcardPermissions,
     OrderPermissions,
     PagePermissions,
     PaymentPermissions,
@@ -17,6 +19,16 @@ class WebhookEventAsyncType:
     CATEGORY_CREATED = "category_created"
     CATEGORY_UPDATED = "category_updated"
     CATEGORY_DELETED = "category_deleted"
+
+    CHANNEL_CREATED = "channel_created"
+    CHANNEL_UPDATED = "channel_updated"
+    CHANNEL_DELETED = "channel_deleted"
+    CHANNEL_STATUS_CHANGED = "channel_status_changed"
+
+    GIFT_CARD_CREATED = "gift_card_created"
+    GIFT_CARD_UPDATED = "gift_card_updated"
+    GIFT_CARD_DELETED = "gift_card_deleted"
+    GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
 
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
@@ -75,14 +87,28 @@ class WebhookEventAsyncType:
     SHIPPING_ZONE_UPDATED = "shipping_zone_updated"
     SHIPPING_ZONE_DELETED = "shipping_zone_deleted"
 
+    TRANSACTION_ACTION_REQUEST = "transaction_action_request"
+
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
+
+    VOUCHER_CREATED = "voucher_created"
+    VOUCHER_UPDATED = "voucher_updated"
+    VOUCHER_DELETED = "voucher_deleted"
 
     DISPLAY_LABELS = {
         ANY: "Any events",
         CATEGORY_CREATED: "Category created",
         CATEGORY_UPDATED: "Category updated",
         CATEGORY_DELETED: "Category deleted",
+        CHANNEL_CREATED: "Channel created",
+        CHANNEL_UPDATED: "Channel updated",
+        CHANNEL_DELETED: "Channel deleted",
+        CHANNEL_STATUS_CHANGED: "Channel status changed",
+        GIFT_CARD_CREATED: "Gift card created",
+        GIFT_CARD_UPDATED: "Gift card updated",
+        GIFT_CARD_DELETED: "Gift card deleted",
+        GIFT_CARD_STATUS_CHANGED: "Gift card status changed",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
         ORDER_FULLY_PAID: "Order paid",
@@ -125,8 +151,12 @@ class WebhookEventAsyncType:
         SHIPPING_ZONE_CREATED: "Shipping zone created",
         SHIPPING_ZONE_UPDATED: "Shipping zone updated",
         SHIPPING_ZONE_DELETED: "Shipping zone deleted",
+        TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
+        VOUCHER_CREATED: "Voucher created",
+        VOUCHER_UPDATED: "Voucher updated",
+        VOUCHER_DELETED: "Voucher deleted",
     }
 
     CHOICES = [
@@ -134,6 +164,14 @@ class WebhookEventAsyncType:
         (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
         (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
         (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
+        (CHANNEL_CREATED, DISPLAY_LABELS[CHANNEL_CREATED]),
+        (CHANNEL_UPDATED, DISPLAY_LABELS[CHANNEL_UPDATED]),
+        (CHANNEL_DELETED, DISPLAY_LABELS[CHANNEL_DELETED]),
+        (CHANNEL_STATUS_CHANGED, DISPLAY_LABELS[CHANNEL_STATUS_CHANGED]),
+        (GIFT_CARD_CREATED, DISPLAY_LABELS[GIFT_CARD_CREATED]),
+        (GIFT_CARD_UPDATED, DISPLAY_LABELS[GIFT_CARD_UPDATED]),
+        (GIFT_CARD_DELETED, DISPLAY_LABELS[GIFT_CARD_DELETED]),
+        (GIFT_CARD_STATUS_CHANGED, DISPLAY_LABELS[GIFT_CARD_STATUS_CHANGED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
@@ -176,8 +214,12 @@ class WebhookEventAsyncType:
         (SHIPPING_ZONE_CREATED, DISPLAY_LABELS[SHIPPING_ZONE_CREATED]),
         (SHIPPING_ZONE_UPDATED, DISPLAY_LABELS[SHIPPING_ZONE_UPDATED]),
         (SHIPPING_ZONE_DELETED, DISPLAY_LABELS[SHIPPING_ZONE_DELETED]),
+        (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
+        (VOUCHER_CREATED, DISPLAY_LABELS[VOUCHER_CREATED]),
+        (VOUCHER_UPDATED, DISPLAY_LABELS[VOUCHER_UPDATED]),
+        (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -186,6 +228,14 @@ class WebhookEventAsyncType:
         CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        CHANNEL_CREATED: ChannelPermissions.MANAGE_CHANNELS,
+        CHANNEL_UPDATED: ChannelPermissions.MANAGE_CHANNELS,
+        CHANNEL_DELETED: ChannelPermissions.MANAGE_CHANNELS,
+        CHANNEL_STATUS_CHANGED: ChannelPermissions.MANAGE_CHANNELS,
+        GIFT_CARD_CREATED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_DELETED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_STATUS_CHANGED: GiftcardPermissions.MANAGE_GIFT_CARD,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
@@ -228,8 +278,12 @@ class WebhookEventAsyncType:
         SHIPPING_ZONE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_ZONE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_ZONE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
+        TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
+        VOUCHER_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
+        VOUCHER_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
+        VOUCHER_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
     }
 
 
@@ -308,6 +362,14 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.CATEGORY_CREATED,
     WebhookEventAsyncType.CATEGORY_UPDATED,
     WebhookEventAsyncType.CATEGORY_DELETED,
+    WebhookEventAsyncType.CHANNEL_CREATED,
+    WebhookEventAsyncType.CHANNEL_UPDATED,
+    WebhookEventAsyncType.CHANNEL_DELETED,
+    WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
+    WebhookEventAsyncType.GIFT_CARD_CREATED,
+    WebhookEventAsyncType.GIFT_CARD_UPDATED,
+    WebhookEventAsyncType.GIFT_CARD_DELETED,
+    WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
     WebhookEventAsyncType.ORDER_CREATED,
     WebhookEventAsyncType.ORDER_UPDATED,
     WebhookEventAsyncType.ORDER_CONFIRMED,
@@ -349,6 +411,10 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED,
+    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST,
     WebhookEventAsyncType.TRANSLATION_CREATED,
     WebhookEventAsyncType.TRANSLATION_UPDATED,
+    WebhookEventAsyncType.VOUCHER_CREATED,
+    WebhookEventAsyncType.VOUCHER_UPDATED,
+    WebhookEventAsyncType.VOUCHER_DELETED,
 ]

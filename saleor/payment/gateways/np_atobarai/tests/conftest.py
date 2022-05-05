@@ -160,6 +160,7 @@ def create_refund(payment_dummy):
                 app=None,
                 order=order,
                 payment=payment_dummy,
+                transactions=[],
                 order_lines_to_refund=order_lines or [],
                 fulfillment_lines_to_refund=fulfillment_lines or [],
                 manager=get_plugins_manager(),

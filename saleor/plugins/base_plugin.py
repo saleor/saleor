@@ -21,6 +21,7 @@ from ..payment.interface import (
     InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
+    TransactionActionData,
 )
 from .models import PluginConfiguration
 
@@ -33,8 +34,9 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
-    from ..discount import DiscountInfo
+    from ..discount import DiscountInfo, Voucher
     from ..discount.models import Sale
+    from ..giftcard.models import GiftCard
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -253,6 +255,30 @@ class BasePlugin:
     #  updated.
     category_updated: Callable[["Category", None], None]
 
+    #  Trigger when channel is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel is
+    #  created.
+    channel_created: Callable[["Channel", None], None]
+
+    #  Trigger when channel is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel is
+    #  deleted.
+    channel_deleted: Callable[["Channel", None], None]
+
+    #  Trigger when channel is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel is
+    #  updated.
+    channel_updated: Callable[["Channel", None], None]
+
+    #  Trigger when channel status is changed.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a channel
+    #  status is changed.
+    channel_status_changed: Callable[["Channel", None], None]
+
     change_user_address: Callable[
         ["Address", Union[str, NoneType], Union["User", NoneType], "Address"], "Address"
     ]
@@ -410,6 +436,30 @@ class BasePlugin:
     #  Overwrite this method in case your plugin provides a list of tax categories.
     get_tax_rate_type_choices: Callable[[List["TaxType"]], List["TaxType"]]
 
+    #  Trigger when gift card is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card is
+    #  created.
+    gift_card_created: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card is
+    #  deleted.
+    gift_card_deleted: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card is
+    #  updated.
+    gift_card_updated: Callable[["GiftCard", None], None]
+
+    #  Trigger when gift card status is changed.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a gift card
+    #  status is changed.
+    gift_card_status_changed: Callable[["GiftCard", None], None]
+
     initialize_payment: Callable[[dict], InitializedPaymentResponse]
 
     #  Trigger before invoice is deleted.
@@ -504,6 +554,8 @@ class BasePlugin:
     ]
 
     process_payment: Callable[["PaymentData", Any], Any]
+
+    transaction_action_request: Callable[["TransactionActionData", None], None]
 
     #  Trigger when product is created.
     #
@@ -604,6 +656,24 @@ class BasePlugin:
     tracking_number_updated: Callable[["Fulfillment", Any], Any]
 
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when voucher is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher is
+    #  created.
+    voucher_created: Callable[["Voucher", None], None]
+
+    #  Trigger when voucher is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher is
+    #  deleted.
+    voucher_deleted: Callable[["Voucher", None], None]
+
+    #  Trigger when voucher is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher is
+    #  updated.
+    voucher_updated: Callable[["Voucher", None], None]
 
     #  Handle received http request.
     #

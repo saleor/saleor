@@ -16,7 +16,7 @@ from ...core.permissions import (
 )
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
-from ..account.utils import check_requestor_access
+from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
@@ -25,11 +25,10 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import ConnectionField
+from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error, str_to_enum
-from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
@@ -124,7 +123,7 @@ class Address(ModelObjectType):
         return False
 
     @staticmethod
-    def __resolve_references(roots: List["Address"], info, **_kwargs):
+    def __resolve_references(roots: List["Address"], info):
         from .resolvers import resolve_addresses
 
         root_ids = [root.id for root in roots]
@@ -181,7 +180,9 @@ class CustomerEvent(ModelObjectType):
     @staticmethod
     def resolve_app(root: models.CustomerEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        check_requestor_access(requestor, root.user, AppPermission.MANAGE_APPS)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root.user, AppPermission.MANAGE_APPS
+        )
         return AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
 
     @staticmethod
@@ -215,7 +216,7 @@ class UserPermission(Permission):
 
     @staticmethod
     @traced_resolver
-    def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
+    def resolve_source_permission_groups(root: Permission, _info, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
         groups = auth_models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
@@ -252,10 +253,17 @@ class User(ModelObjectType):
         "saleor.graphql.giftcard.types.GiftCardCountableConnection",
         description="List of the user gift cards.",
     )
-    note = graphene.String(description="A note about the customer.")
+    note = PermissionsField(
+        graphene.String,
+        description="A note about the customer.",
+        permissions=[AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF],
+    )
     orders = ConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
-        description="List of user's orders.",
+        description=(
+            "List of user's orders. Requires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_STAFF}, {AuthorizationFilters.OWNER}"
+        ),
     )
     user_permissions = NonNullList(
         UserPermission, description="List of user's permissions."
@@ -269,8 +277,10 @@ class User(ModelObjectType):
         description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
-    events = NonNullList(
-        CustomerEvent, description="List of events associated with the user."
+    events = PermissionsField(
+        NonNullList(CustomerEvent),
+        description="List of events associated with the user.",
+        permissions=[AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF],
     )
     stored_payment_sources = NonNullList(
         "saleor.graphql.payment.types.PaymentSource",
@@ -295,16 +305,16 @@ class User(ModelObjectType):
         model = get_user_model()
 
     @staticmethod
-    def resolve_addresses(root: models.User, _info, **_kwargs):
+    def resolve_addresses(root: models.User, _info):
         return root.addresses.annotate_default(root).all()  # type: ignore
 
     @staticmethod
-    def resolve_checkout(root: models.User, _info, **_kwargs):
+    def resolve_checkout(root: models.User, _info):
         return get_user_checkout(root)
 
     @staticmethod
     @traced_resolver
-    def resolve_checkout_tokens(root: models.User, info, channel=None, **_kwargs):
+    def resolve_checkout_tokens(root: models.User, info, channel=None):
         def return_checkout_tokens(checkouts):
             if not checkouts:
                 return []
@@ -339,30 +349,24 @@ class User(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_user_permissions(root: models.User, _info, **_kwargs):
+    def resolve_user_permissions(root: models.User, _info):
         from .resolvers import resolve_permissions
 
         return resolve_permissions(root)
 
     @staticmethod
-    def resolve_permission_groups(root: models.User, _info, **_kwargs):
+    def resolve_permission_groups(root: models.User, _info):
         return root.groups.all()
 
     @staticmethod
-    def resolve_editable_groups(root: models.User, _info, **_kwargs):
+    def resolve_editable_groups(root: models.User, _info):
         return get_groups_which_user_can_manage(root)
 
     @staticmethod
-    @one_of_permissions_required(
-        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
-    )
     def resolve_note(root: models.User, info):
         return root.note
 
     @staticmethod
-    @one_of_permissions_required(
-        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
-    )
     def resolve_events(root: models.User, info):
         return CustomerEventsByUserLoader(info.context).load(root.id)
 
@@ -393,7 +397,7 @@ class User(ModelObjectType):
         return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
-    def resolve_avatar(root: models.User, info, size=None, **_kwargs):
+    def resolve_avatar(root: models.User, info, size=None):
         if root.avatar:
             return Image.get_adjusted(
                 image=root.avatar,
@@ -412,11 +416,11 @@ class User(ModelObjectType):
         raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
     @staticmethod
-    def resolve_language_code(root, _info, **_kwargs):
+    def resolve_language_code(root, _info):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def __resolve_references(roots: List["User"], info, **_kwargs):
+    def __resolve_references(roots: List["User"], info):
         from .resolvers import resolve_users
 
         ids = set()
@@ -452,23 +456,23 @@ class ChoiceValue(graphene.ObjectType):
 
 
 class AddressValidationData(graphene.ObjectType):
-    country_code = graphene.String()
-    country_name = graphene.String()
-    address_format = graphene.String()
-    address_latin_format = graphene.String()
-    allowed_fields = NonNullList(graphene.String)
-    required_fields = NonNullList(graphene.String)
-    upper_fields = NonNullList(graphene.String)
-    country_area_type = graphene.String()
-    country_area_choices = NonNullList(ChoiceValue)
-    city_type = graphene.String()
-    city_choices = NonNullList(ChoiceValue)
-    city_area_type = graphene.String()
-    city_area_choices = NonNullList(ChoiceValue)
-    postal_code_type = graphene.String()
-    postal_code_matchers = NonNullList(graphene.String)
-    postal_code_examples = NonNullList(graphene.String)
-    postal_code_prefix = graphene.String()
+    country_code = graphene.String(required=True)
+    country_name = graphene.String(required=True)
+    address_format = graphene.String(required=True)
+    address_latin_format = graphene.String(required=True)
+    allowed_fields = NonNullList(graphene.String, required=True)
+    required_fields = NonNullList(graphene.String, required=True)
+    upper_fields = NonNullList(graphene.String, required=True)
+    country_area_type = graphene.String(required=True)
+    country_area_choices = NonNullList(ChoiceValue, required=True)
+    city_type = graphene.String(required=True)
+    city_choices = NonNullList(ChoiceValue, required=True)
+    city_area_type = graphene.String(required=True)
+    city_area_choices = NonNullList(ChoiceValue, required=True)
+    postal_code_type = graphene.String(required=True)
+    postal_code_matchers = NonNullList(graphene.String, required=True)
+    postal_code_examples = NonNullList(graphene.String, required=True)
+    postal_code_prefix = graphene.String(required=True)
 
 
 class StaffNotificationRecipient(graphene.ObjectType):
@@ -520,7 +524,13 @@ class StaffNotificationRecipient(graphene.ObjectType):
 class Group(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
-    users = NonNullList(User, description="List of group users")
+    users = PermissionsField(
+        NonNullList(User),
+        description="List of group users",
+        permissions=[
+            AccountPermissions.MANAGE_STAFF,
+        ],
+    )
     permissions = NonNullList(Permission, description="List of group permissions")
     user_can_manage = graphene.Boolean(
         required=True,
@@ -535,7 +545,6 @@ class Group(ModelObjectType):
         model = auth_models.Group
 
     @staticmethod
-    @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_users(root: auth_models.Group, _info):
         return root.user_set.all()
 
@@ -552,7 +561,7 @@ class Group(ModelObjectType):
         return can_user_manage_group(user, root)
 
     @staticmethod
-    def __resolve_references(roots: List["Group"], info, **_kwargs):
+    def __resolve_references(roots: List["Group"], info):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)

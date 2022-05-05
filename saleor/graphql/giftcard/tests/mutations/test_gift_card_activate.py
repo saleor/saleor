@@ -1,9 +1,12 @@
 from datetime import date, timedelta
+from unittest import mock
 
 import graphene
+from django.utils.functional import SimpleLazyObject
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 ACTIVATE_GIFT_CARD_MUTATION = """
@@ -179,3 +182,50 @@ def test_activate_expired_gift_card(
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == GiftCardErrorCode.EXPIRED_GIFT_CARD.name
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_activate_gift_card_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    gift_card,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    gift_card.is_active = False
+    gift_card.save(update_fields=["is_active"])
+    assert not gift_card.is_active
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ACTIVATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardActivate"]["giftCard"]
+    assert data["isActive"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": variables["id"], "is_active": True},
+        WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
+        [any_webhook],
+        gift_card,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )

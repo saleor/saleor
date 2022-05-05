@@ -6,7 +6,7 @@ from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
-from ..account.utils import requestor_has_access
+from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
@@ -25,7 +25,7 @@ from .resolvers import (
 
 def has_required_permission(app: models.App, context):
     requester = get_user_or_app_from_context(context)
-    if not requestor_has_access(requester, app, AppPermission.MANAGE_APPS):
+    if not is_owner_or_has_one_of_perms(requester, app, AppPermission.MANAGE_APPS):
         raise PermissionDenied(
             permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
         )
@@ -108,7 +108,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         return AppByIdLoader(info.context).load(app_id)
 
     @staticmethod
-    def resolve_permissions(root: models.AppExtension, _info, **_kwargs):
+    def resolve_permissions(root: models.AppExtension, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
@@ -167,7 +167,7 @@ class AppToken(graphene.ObjectType):
             return None
 
     @staticmethod
-    def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
+    def resolve_auth_token(root: models.AppToken, _info):
         return root.token_last_4
 
 
@@ -208,7 +208,7 @@ class App(ModelObjectType):
     )
     extensions = NonNullList(
         AppExtension,
-        description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
+        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=True,
     )
 
@@ -222,14 +222,14 @@ class App(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_permissions(root: models.App, _info, **_kwargs):
+    def resolve_permissions(root: models.App, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_tokens(root: models.App, info, **_kwargs):
+    def resolve_tokens(root: models.App, info):
         has_required_permission(root, info.context)
         return root.tokens.all()
 
@@ -248,7 +248,7 @@ class App(ModelObjectType):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info, **_kwargs):
+    def __resolve_references(roots: List["App"], info):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)

@@ -1,4 +1,6 @@
 import pytest
+from django.contrib.postgres.search import SearchVector
+from django.db.models import Value
 from django.utils.text import slugify
 
 from ...account.models import Address
@@ -24,6 +26,10 @@ def named_products(category, product_type, channel_USD):
             product_type=product_type,
             category=category,
             search_document=f"{name}{description}",
+            search_vector=(
+                SearchVector(Value(name), weight="A")
+                + SearchVector(Value(description), weight="C")
+            ),
         )
         ProductChannelListing.objects.create(
             product=product,

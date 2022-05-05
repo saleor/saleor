@@ -80,7 +80,7 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
-from ...product.search import update_products_search_document
+from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
@@ -472,7 +472,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
     all_products_qs = Product.objects.all()
-    update_products_search_document(all_products_qs)
+    update_products_search_vector(all_products_qs)
     update_products_discounted_prices(all_products_qs)
 
 

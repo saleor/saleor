@@ -2,11 +2,10 @@ import graphene
 
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.fields import FilterConnectionField
+from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
-from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
 from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
@@ -122,6 +121,7 @@ class AccountQueries(graphene.ObjectType):
         filter=CustomerFilterInput(description="Filtering options for customers."),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
+        permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
     )
     permission_groups = FilterConnectionField(
         GroupCountableConnection,
@@ -130,13 +130,15 @@ class AccountQueries(graphene.ObjectType):
         ),
         sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
         description="List of permission groups.",
+        permissions=[AccountPermissions.MANAGE_STAFF],
     )
-    permission_group = graphene.Field(
+    permission_group = PermissionsField(
         Group,
         id=graphene.Argument(
             graphene.ID, description="ID of the group.", required=True
         ),
         description="Look up permission group by ID.",
+        permissions=[AccountPermissions.MANAGE_STAFF],
     )
     me = graphene.Field(User, description="Return the currently authenticated user.")
     staff_users = FilterConnectionField(
@@ -144,18 +146,25 @@ class AccountQueries(graphene.ObjectType):
         filter=StaffUserInput(description="Filtering options for staff users."),
         sort_by=UserSortingInput(description="Sort staff users."),
         description="List of the shop's staff users.",
+        permissions=[AccountPermissions.MANAGE_STAFF],
     )
-    user = graphene.Field(
+    user = PermissionsField(
         User,
         id=graphene.Argument(graphene.ID, description="ID of the user."),
         email=graphene.Argument(
             graphene.String, description="Email address of the user."
         ),
+        permissions=[
+            AccountPermissions.MANAGE_STAFF,
+            AccountPermissions.MANAGE_USERS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
         description="Look up a user by ID or email address.",
     )
 
+    @staticmethod
     def resolve_address_validation_rules(
-        self, info, country_code, country_area=None, city=None, city_area=None
+        _root, info, *, country_code, country_area=None, city=None, city_area=None
     ):
         return resolve_address_validation_rules(
             info,
@@ -165,47 +174,41 @@ class AccountQueries(graphene.ObjectType):
             city_area=city_area,
         )
 
-    @one_of_permissions_required(
-        [OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS]
-    )
-    def resolve_customers(self, info, **kwargs):
-        qs = resolve_customers(info, **kwargs)
+    @staticmethod
+    def resolve_customers(_root, info, **kwargs):
+        qs = resolve_customers(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
-    @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_permission_groups(self, info, **kwargs):
-        qs = resolve_permission_groups(info, **kwargs)
+    @staticmethod
+    def resolve_permission_groups(_root, info, **kwargs):
+        qs = resolve_permission_groups(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
-    @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_permission_group(self, info, id):
+    @staticmethod
+    def resolve_permission_group(_root, _info, *, id):
         _, id = from_global_id_or_error(id, Group)
         return resolve_permission_group(id)
 
-    def resolve_me(self, info):
+    @staticmethod
+    def resolve_me(_root, info):
         user = info.context.user
         return user if user.is_authenticated else None
 
-    @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_staff_users(self, info, **kwargs):
-        qs = resolve_staff_users(info, **kwargs)
+    @staticmethod
+    def resolve_staff_users(_root, info, **kwargs):
+        qs = resolve_staff_users(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
-    @one_of_permissions_required(
-        [
-            AccountPermissions.MANAGE_STAFF,
-            AccountPermissions.MANAGE_USERS,
-            OrderPermissions.MANAGE_ORDERS,
-        ]
-    )
-    def resolve_user(self, info, id=None, email=None):
+    @staticmethod
+    def resolve_user(_root, info, *, id=None, email=None):
         validate_one_of_args_is_in_query("id", id, "email", email)
         return resolve_user(info, id, email)
 
-    def resolve_address(self, info, id):
+    @staticmethod
+    def resolve_address(_root, info, *, id):
         return resolve_address(info, id)
 
 

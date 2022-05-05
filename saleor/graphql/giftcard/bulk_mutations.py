@@ -2,6 +2,7 @@ from typing import Iterable
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...core.permissions import GiftcardPermissions
 from ...core.tracing import traced_atomic_transaction
@@ -52,7 +53,7 @@ class GiftCardBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Create gift cards. {PREVIEW_FEATURE}"
+        description = "Create gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
@@ -69,6 +70,10 @@ class GiftCardBulkCreate(BaseMutation):
         instances = cls.create_instances(input_data, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
+
+        transaction.on_commit(
+            lambda: cls.call_gift_card_created_on_plugins(instances, info)
+        )
         return cls(count=len(instances), gift_cards=instances)
 
     @staticmethod
@@ -147,6 +152,11 @@ class GiftCardBulkCreate(BaseMutation):
         for tag_instance in tags_instances.iterator():
             tag_instance.gift_cards.set(instances)
 
+    @staticmethod
+    def call_gift_card_created_on_plugins(instances, info):
+        for instance in instances:
+            info.context.plugins.gift_card_created(instance)
+
 
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
@@ -155,11 +165,18 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Delete gift cards. {PREVIEW_FEATURE}"
+        description = "Delete gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        instances = [card for card in queryset]
+        queryset.delete()
+        for instance in instances:
+            info.context.plugins.gift_card_deleted(instance)
 
 
 class GiftCardBulkActivate(BaseBulkMutation):
@@ -169,7 +186,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Activate gift cards. {PREVIEW_FEATURE}"
+        description = "Activate gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -192,6 +209,8 @@ class GiftCardBulkActivate(BaseBulkMutation):
         events.gift_cards_activated_event(
             gift_card_ids, user=info.context.user, app=info.context.app
         )
+        for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
+            info.context.plugins.gift_card_status_changed(card)
 
 
 class GiftCardBulkDeactivate(BaseBulkMutation):
@@ -203,7 +222,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Deactivate gift cards. {PREVIEW_FEATURE}"
+        description = "Deactivate gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -218,3 +237,5 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         events.gift_cards_deactivated_event(
             gift_card_ids, user=info.context.user, app=info.context.app
         )
+        for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
+            info.context.plugins.gift_card_status_changed(card)

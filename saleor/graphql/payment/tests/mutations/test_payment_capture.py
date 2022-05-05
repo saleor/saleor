@@ -11,7 +11,7 @@ from .....payment.models import ChargeStatus
 from ....tests.utils import get_graphql_content
 
 CAPTURE_QUERY = """
-    mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal!) {
+    mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal) {
         paymentCapture(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -20,6 +20,7 @@ CAPTURE_QUERY = """
             errors {
                 field
                 message
+                code
             }
         }
     }
@@ -81,7 +82,11 @@ def test_payment_capture_with_payment_non_authorized_yet(
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [
-        {"field": None, "message": "Cannot find successful auth transaction."}
+        {
+            "field": None,
+            "message": "Cannot find successful auth transaction.",
+            "code": "PAYMENT_ERROR",
+        }
     ]
 
 
@@ -104,7 +109,9 @@ def test_payment_capture_gateway_error(
     # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
-    assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
+    assert data["errors"] == [
+        {"field": None, "message": "Unable to process capture", "code": "PAYMENT_ERROR"}
+    ]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -149,7 +156,9 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
-    assert data["errors"] == [{"field": None, "message": error}]
+    assert data["errors"] == [
+        {"field": None, "message": error, "code": "PAYMENT_ERROR"}
+    ]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED

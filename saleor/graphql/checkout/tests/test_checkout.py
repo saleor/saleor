@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+import pytz
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.test import override_settings
@@ -36,7 +37,7 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
-from ....payment import TransactionKind
+from ....payment import TransactionAction, TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import get_plugins_manager
@@ -1605,7 +1606,7 @@ def test_checkout_create_unavailable_for_purchase_product(
     variant = stock.product_variant
     product = variant.product
 
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -1642,7 +1643,8 @@ def test_checkout_create_available_for_purchase_from_tomorrow_product(
     product = variant.product
 
     product.channel_listings.update(
-        available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
+        available_for_purchase_at=datetime.datetime.now(pytz.UTC)
+        + datetime.timedelta(days=1)
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -4669,3 +4671,92 @@ def test_get_checkout_with_vatlayer_set(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+QUERY_CHECKOUT_TRANSACTIONS = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           transactions {
+               id
+           }
+        }
+    }
+    """
+
+
+def test_checkout_transactions_missing_permission(api_client, checkout):
+    # given
+    checkout.payment_transactions.create(
+        status="Authorized",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_TRANSACTIONS
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_transactions_with_manage_checkouts(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    transaction = checkout.payment_transactions.create(
+        status="Authorized",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_TRANSACTIONS
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkout"]["transactions"]) == 1
+    transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
+    assert transaction_id == graphene.Node.to_global_id(
+        "TransactionItem", transaction.id
+    )
+
+
+def test_checkout_transactions_with_handle_payments(
+    staff_api_client, checkout, permission_manage_payments
+):
+    # given
+    transaction = checkout.payment_transactions.create(
+        status="Authorized",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_TRANSACTIONS
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkout"]["transactions"]) == 1
+    transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
+    assert transaction_id == graphene.Node.to_global_id(
+        "TransactionItem", transaction.id
+    )

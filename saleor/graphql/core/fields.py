@@ -5,10 +5,34 @@ import graphene
 from graphene.relay import Connection, is_node
 from graphql import GraphQLError
 
+from ...core.permissions import message_one_of_permissions_required
+from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS
 
 
-class ConnectionField(graphene.Field):
+class PermissionsField(graphene.Field):
+    def __init__(self, *args, **kwargs):
+        self.permissions = kwargs.pop("permissions", [])
+        assert isinstance(self.permissions, list), (
+            "FieldWithPermissions `permissions` argument must be a list: "
+            f"{self.permissions}"
+        )
+
+        super(PermissionsField, self).__init__(*args, **kwargs)
+
+        if self.permissions:
+            permissions_msg = message_one_of_permissions_required(self.permissions)
+            description = self.description or ""
+            self.description = description + permissions_msg
+
+    def get_resolver(self, parent_resolver):
+        resolver = self.resolver or parent_resolver
+        if self.permissions:
+            resolver = one_of_permissions_required(self.permissions)(resolver)
+        return resolver
+
+
+class ConnectionField(PermissionsField):
     def __init__(self, type_, *args, **kwargs):
         kwargs.setdefault(
             "before",
