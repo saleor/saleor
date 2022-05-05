@@ -1,5 +1,6 @@
 from ..core.permissions import (
     AccountPermissions,
+    AppPermission,
     ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
@@ -16,6 +17,11 @@ from ..core.permissions import (
 
 class WebhookEventAsyncType:
     ANY = "any_events"
+
+    APP_CREATED = "app_created"
+    APP_UPDATED = "app_updated"
+    APP_DELETED = "app_deleted"
+    APP_STATUS_CHANGED = "app_status_changed"
 
     CATEGORY_CREATED = "category_created"
     CATEGORY_UPDATED = "category_updated"
@@ -106,6 +112,10 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        APP_CREATED: "App created",
+        APP_UPDATED: "App updated",
+        APP_DELETED: "App deleted",
+        APP_STATUS_CHANGED: "App status changed",
         CATEGORY_CREATED: "Category created",
         CATEGORY_UPDATED: "Category updated",
         CATEGORY_DELETED: "Category deleted",
@@ -175,6 +185,10 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (APP_CREATED, DISPLAY_LABELS[APP_CREATED]),
+        (APP_UPDATED, DISPLAY_LABELS[APP_UPDATED]),
+        (APP_DELETED, DISPLAY_LABELS[APP_DELETED]),
+        (APP_STATUS_CHANGED, DISPLAY_LABELS[APP_STATUS_CHANGED]),
         (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
         (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
         (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
@@ -245,6 +259,10 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        APP_CREATED: AppPermission.MANAGE_APPS,
+        APP_UPDATED: AppPermission.MANAGE_APPS,
+        APP_DELETED: AppPermission.MANAGE_APPS,
+        APP_STATUS_CHANGED: AppPermission.MANAGE_APPS,
         CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -385,6 +403,10 @@ class WebhookEventSyncType:
 
 
 SUBSCRIBABLE_EVENTS = [
+    WebhookEventAsyncType.APP_CREATED,
+    WebhookEventAsyncType.APP_UPDATED,
+    WebhookEventAsyncType.APP_DELETED,
+    WebhookEventAsyncType.APP_STATUS_CHANGED,
     WebhookEventAsyncType.CATEGORY_CREATED,
     WebhookEventAsyncType.CATEGORY_UPDATED,
     WebhookEventAsyncType.CATEGORY_DELETED,
