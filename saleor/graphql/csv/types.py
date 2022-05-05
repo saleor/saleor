@@ -22,8 +22,8 @@ class ExportEvent(ModelObjectType):
         User,
         description=(
             "User who performed the action. Requires one of the following "
-            f"permissions: {AuthorizationFilters.OWNER}, "
-            f"{AccountPermissions.MANAGE_STAFF}."
+            f"permissions: {AuthorizationFilters.OWNER.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}."
         ),
         required=False,
     )
@@ -31,7 +31,8 @@ class ExportEvent(ModelObjectType):
         App,
         description=(
             "App which performed the action. Requires one of the following "
-            f"permissions: {AuthorizationFilters.OWNER}, {AppPermission.MANAGE_APPS}."
+            f"permissions: {AuthorizationFilters.OWNER.name}, "
+            f"{AppPermission.MANAGE_APPS.name}."
         ),
         required=False,
     )

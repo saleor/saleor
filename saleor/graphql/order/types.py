@@ -216,8 +216,8 @@ class OrderEvent(ModelObjectType):
         App,
         description=(
             "App that performed the action. Requires of of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     message = graphene.String(description="Content of the event.")
@@ -701,8 +701,9 @@ class Order(ModelObjectType):
         description=(
             "User who placed the order. This field is set only for orders placed by "
             "authenticated users. Requires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS}, {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     tracking_client_id = graphene.String(required=True)
@@ -710,16 +711,16 @@ class Order(ModelObjectType):
         "saleor.graphql.account.types.Address",
         description=(
             "Billing address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
             "Shipping address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_method_name = graphene.String()
@@ -762,7 +763,7 @@ class Order(ModelObjectType):
         Invoice,
         description=(
             "List of order invoices. Requires one of the following permissions: "
-            f"{OrderPermissions.MANAGE_ORDERS}, {AuthorizationFilters.OWNER}."
+            f"{OrderPermissions.MANAGE_ORDERS.name}, {AuthorizationFilters.OWNER.name}."
         ),
         required=True,
     )
@@ -863,8 +864,8 @@ class Order(ModelObjectType):
     user_email = graphene.String(
         description=(
             "Email address of the customer. Requires the following permissions to "
-            f"access the full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}"
+            f"access the full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
         required=False,
     )
