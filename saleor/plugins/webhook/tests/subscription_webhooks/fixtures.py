@@ -265,6 +265,169 @@ def subscription_gift_card_status_changed_webhook(subscription_webhook):
     )
 
 
+MENU_DETAILS_FRAGMENT = """
+    fragment MenuDetails on Menu{
+        id
+        name
+        slug
+        items {
+            id
+            name
+        }
+    }
+"""
+
+MENU_CREATED_SUBSCRIPTION_QUERY = (
+    MENU_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuCreated{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_CREATED
+    )
+
+
+MENU_UPDATED_SUBSCRIPTION_QUERY = (
+    MENU_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuUpdated{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_UPDATED
+    )
+
+
+MENU_DELETED_SUBSCRIPTION_QUERY = (
+    MENU_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuDeleted{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_DELETED
+    )
+
+
+MENU_ITEM_DETAILS_FRAGMENT = """
+    fragment MenuItemDetails on MenuItem{
+        id
+        name
+        menu {
+            id
+        }
+        page {
+            id
+        }
+    }
+"""
+
+MENU_ITEM_CREATED_SUBSCRIPTION_QUERY = (
+    MENU_ITEM_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuItemCreated{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_item_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_ITEM_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_CREATED
+    )
+
+
+MENU_ITEM_UPDATED_SUBSCRIPTION_QUERY = (
+    MENU_ITEM_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuItemUpdated{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_item_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_ITEM_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_UPDATED
+    )
+
+
+MENU_ITEM_DELETED_SUBSCRIPTION_QUERY = (
+    MENU_ITEM_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuItemDeleted{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_item_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_ITEM_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_DELETED
+    )
+
+
 SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{

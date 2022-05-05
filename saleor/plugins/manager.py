@@ -45,6 +45,7 @@ if TYPE_CHECKING:
     from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
+    from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
     from ..payment.interface import (
@@ -852,6 +853,36 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "gift_card_status_changed", default_value, gift_card
+        )
+
+    def menu_created(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_created", default_value, menu)
+
+    def menu_updated(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_updated", default_value, menu)
+
+    def menu_deleted(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_deleted", default_value, menu)
+
+    def menu_item_created(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_created", default_value, menu_item
+        )
+
+    def menu_item_updated(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_updated", default_value, menu_item
+        )
+
+    def menu_item_deleted(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_deleted", default_value, menu_item
         )
 
     def shipping_price_created(self, shipping_method: "ShippingMethod"):
