@@ -17,7 +17,7 @@ def resolve_page(info, global_page_id=None, slug=None):
     return page
 
 
-def resolve_pages(info, **_kwargs):
+def resolve_pages(info):
     requestor = get_user_or_app_from_context(info.context)
     return models.Page.objects.visible_to_user(requestor)
 
@@ -26,5 +26,5 @@ def resolve_page_type(id):
     return models.PageType.objects.filter(id=id).first()
 
 
-def resolve_page_types(info, **_kwargs):
+def resolve_page_types(_info):
     return models.PageType.objects.all()

@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
-    from ..discount.models import Sale
+    from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -54,6 +54,7 @@ if TYPE_CHECKING:
         PaymentData,
         PaymentGateway,
         TokenConfig,
+        TransactionActionData,
     )
     from ..product.models import (
         Category,
@@ -794,6 +795,17 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
 
+    def transaction_action_request(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_action_request",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
     def category_created(self, category: "Category"):
         default_value = None
         return self.__run_method_on_plugins("category_created", default_value, category)
@@ -883,6 +895,18 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "shipping_zone_deleted", default_value, shipping_zone
         )
+
+    def voucher_created(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
+
+    def voucher_updated(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
+
+    def voucher_deleted(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_deleted", default_value, voucher)
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str
@@ -1336,6 +1360,16 @@ class PluginsManager(PaymentInterface):
             info=info,
             data=data,
         )
+
+    def is_event_active_for_any_plugin(
+        self, event: str, channel_slug: Optional[str] = None
+    ) -> bool:
+        """Check if any plugin supports defined event."""
+        plugins = (
+            self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins
+        )
+        only_active_plugins = [plugin for plugin in plugins if plugin.active]
+        return any([plugin.is_event_active(event) for plugin in only_active_plugins])
 
 
 def get_plugins_manager(

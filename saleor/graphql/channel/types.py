@@ -33,9 +33,9 @@ class ChannelContextTypeForObjectType(graphene.ObjectType):
         return root.node.pk
 
     @staticmethod
-    def resolve_translation(root: ChannelContext, info, language_code):
+    def resolve_translation(root: ChannelContext, info, *, language_code):
         # Resolver for TranslationField; needs to be manually specified.
-        return resolve_translation(root.node, info, language_code)
+        return resolve_translation(root.node, info, language_code=language_code)
 
 
 class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
@@ -45,7 +45,7 @@ class ChannelContextType(ChannelContextTypeForObjectType, ModelObjectType):
         abstract = True
 
     @classmethod
-    def is_type_of(cls, root: Union[ChannelContext, Model], info):
+    def is_type_of(cls, root: Union[ChannelContext, Model], _info):
         # Unwrap node from ChannelContext if it didn't happen already
         if isinstance(root, ChannelContext):
             root = cast(Model, root.node)
@@ -82,7 +82,7 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
         return ObjectWithMetadata.resolve_metafield(root.node, info, key=key)
 
     @staticmethod
-    def resolve_metafields(root: ChannelContext, info, keys=None):
+    def resolve_metafields(root: ChannelContext, info, *, keys=None):
         # Used in metadata API to resolve metadata fields from an instance.
         return ObjectWithMetadata.resolve_metafields(root.node, info, keys=keys)
 
@@ -97,7 +97,7 @@ class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectTyp
         return ObjectWithMetadata.resolve_private_metafield(root.node, info, key=key)
 
     @staticmethod
-    def resolve_private_metafields(root: ChannelContext, info, keys=None):
+    def resolve_private_metafields(root: ChannelContext, info, *, keys=None):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metafields(root.node, info, keys=keys)
 

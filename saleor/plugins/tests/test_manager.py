@@ -1100,3 +1100,30 @@ def test_calculate_checkout_total_zero_default_value(
     # then
     assert "calculate_checkout_total" not in mocked_run_method.call_args_list
     assert taxed_total == zero_taxed_money(currency)
+
+
+def test_manager_is_event_active_for_any_plugin_with_inactive_plugin(channel_USD):
+    # given
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginInactive"]
+
+    manager = PluginsManager(plugins=plugins)
+
+    # when & then
+    assert not manager.is_event_active_for_any_plugin(
+        "authenticate_user", channel_USD.slug
+    )
+
+
+def test_manager_is_event_active_for_any_plugin(channel_USD):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+
+    # when & then
+    assert manager.is_event_active_for_any_plugin(
+        "calculate_checkout_total", channel_USD.slug
+    )

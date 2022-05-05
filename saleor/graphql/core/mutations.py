@@ -379,7 +379,7 @@ class BaseMutation(graphene.Mutation):
             return cls.handle_errors(e)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, _info, **data):
         pass
 
     @classmethod

@@ -40,6 +40,56 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
     }
 
 
+def event_transaction_capture_requested(
+    order_id: "UUID", reference: str, amount: Decimal, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.TRANSACTION_CAPTURE_REQUESTED,
+        user=user,
+        app=app,
+        parameters={
+            "amount": amount,
+            "reference": reference,
+        },
+    )
+
+
+def event_transaction_refund_requested(
+    order_id: "UUID", reference: str, amount: Decimal, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.TRANSACTION_REFUND_REQUESTED,
+        user=user,
+        app=app,
+        parameters={
+            "amount": amount,
+            "reference": reference,
+        },
+    )
+
+
+def event_transaction_void_requested(
+    order_id: "UUID", reference: str, user: UserType, app: AppType
+):
+    if not user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.TRANSACTION_VOID_REQUESTED,
+        user=user,
+        app=app,
+        parameters={
+            "reference": reference,
+        },
+    )
+
+
 def event_order_refunded_notification(
     order_id: "UUID", user_id: Optional[int], app_id: Optional[int], customer_email: str
 ):
@@ -426,6 +476,29 @@ def payment_failed_event(
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.PAYMENT_FAILED,
+        user=user,
+        app=app,
+        parameters=parameters,
+    )
+
+
+def transaction_event(
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+    reference: str,
+    status: str,
+    name: str
+) -> OrderEvent:
+
+    if not user_is_valid(user):
+        user = None
+
+    parameters = {"message": name, "reference": reference, "status": status}
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.TRANSACTION_EVENT,
         user=user,
         app=app,
         parameters=parameters,

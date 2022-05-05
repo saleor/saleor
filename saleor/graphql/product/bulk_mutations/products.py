@@ -539,7 +539,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
 
@@ -719,7 +719,7 @@ class ProductVariantStocksCreate(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         manager = info.context.plugins
         errors = defaultdict(list)
         stocks = data["stocks"]
@@ -795,7 +795,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         error_type_field = "bulk_stock_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         errors = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
@@ -866,7 +866,7 @@ class ProductVariantStocksDelete(BaseMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         manager = info.context.plugins
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant

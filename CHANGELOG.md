@@ -3,10 +3,21 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 # Unreleased
+- Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins
 - Fix for multiplied line prices passed to Avatax when shipping address or ship from has country code: GB - #9699 by @korycins
+- PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
+  - add fields:
+    - `order.transactions`
+    - `checkout.transactions`
+  - add mutations:
+    - `transactionCreate`
+    - `transactionUpdate`
+    - `transactionRequestAction`
+  - add new webhook event:
+    - `TRANSACTION_ACTION_REQUEST`
 
 # 3.3.1
 
@@ -21,6 +32,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Fix filtering product attributes by date range - #9543 by @IKarbowiak
+- Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Use fulltext search for products (#9344) (4b6f25964) by @patrys
 - Precise timestamps for publication dates - #9581 by @IKarbowiak
   - Change `publicationDate` fields to `publishedAt` date time fields.

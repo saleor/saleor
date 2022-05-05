@@ -37,7 +37,7 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
-from ....payment import TransactionKind
+from ....payment import TransactionAction, TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.base_plugin import ExcludedShippingMethod
 from ....plugins.manager import get_plugins_manager
@@ -4671,3 +4671,92 @@ def test_get_checkout_with_vatlayer_set(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+QUERY_CHECKOUT_TRANSACTIONS = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           transactions {
+               id
+           }
+        }
+    }
+    """
+
+
+def test_checkout_transactions_missing_permission(api_client, checkout):
+    # given
+    checkout.payment_transactions.create(
+        status="Authorized",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_TRANSACTIONS
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_transactions_with_manage_checkouts(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    transaction = checkout.payment_transactions.create(
+        status="Authorized",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_TRANSACTIONS
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkout"]["transactions"]) == 1
+    transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
+    assert transaction_id == graphene.Node.to_global_id(
+        "TransactionItem", transaction.id
+    )
+
+
+def test_checkout_transactions_with_handle_payments(
+    staff_api_client, checkout, permission_manage_payments
+):
+    # given
+    transaction = checkout.payment_transactions.create(
+        status="Authorized",
+        type="Credit card",
+        reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_TRANSACTIONS
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkout"]["transactions"]) == 1
+    transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
+    assert transaction_id == graphene.Node.to_global_id(
+        "TransactionItem", transaction.id
+    )

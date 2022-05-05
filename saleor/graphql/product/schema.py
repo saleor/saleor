@@ -298,15 +298,15 @@ class ProductQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_categories(_root, info: graphene.ResolveInfo, level=None, **kwargs):
-        qs = resolve_categories(info, level=level, **kwargs)
+    def resolve_categories(_root, info: graphene.ResolveInfo, *, level=None, **kwargs):
+        qs = resolve_categories(info, level=level)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
     @traced_resolver
     def resolve_category(
-        _root, _info: graphene.ResolveInfo, id=None, slug=None, **kwargs
+        _root, _info: graphene.ResolveInfo, *, id=None, slug=None, **kwargs
     ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
@@ -318,7 +318,7 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_collection(
-        _root, info: graphene.ResolveInfo, id=None, slug=None, channel=None
+        _root, info: graphene.ResolveInfo, *, id=None, slug=None, channel=None
     ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -342,7 +342,9 @@ class ProductQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_collections(_root, info: graphene.ResolveInfo, channel=None, **kwargs):
+    def resolve_collections(
+        _root, info: graphene.ResolveInfo, *, channel=None, **kwargs
+    ):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -355,7 +357,7 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
-    def resolve_digital_content(_root, _info: graphene.ResolveInfo, id):
+    def resolve_digital_content(_root, _info: graphene.ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, DigitalContent)
         return resolve_digital_content_by_id(id)
 
@@ -369,7 +371,7 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_product(
-        _root, info: graphene.ResolveInfo, id=None, slug=None, channel=None
+        _root, info: graphene.ResolveInfo, *, id=None, slug=None, channel=None
     ):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -393,7 +395,7 @@ class ProductQueries(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_products(_root, info: graphene.ResolveInfo, channel=None, **kwargs):
+    def resolve_products(_root, info: graphene.ResolveInfo, *, channel=None, **kwargs):
         if sort_field_from_kwargs(kwargs) == ProductOrderField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -414,19 +416,19 @@ class ProductQueries(graphene.ObjectType):
         )
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = resolve_products(info, requestor, channel_slug=channel, **kwargs)
+        qs = resolve_products(info, requestor, channel_slug=channel)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    def resolve_product_type(_root, _info: graphene.ResolveInfo, id):
+    def resolve_product_type(_root, _info: graphene.ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, ProductType)
         return resolve_product_type_by_id(id)
 
     @staticmethod
     def resolve_product_types(_root, info: graphene.ResolveInfo, **kwargs):
-        qs = resolve_product_types(info, **kwargs)
+        qs = resolve_product_types(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
@@ -435,6 +437,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variant(
         _root,
         info: graphene.ResolveInfo,
+        *,
         id=None,
         sku=None,
         channel=None,
@@ -468,7 +471,7 @@ class ProductQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_product_variants(
-        _root, info: graphene.ResolveInfo, ids=None, channel=None, **kwargs
+        _root, info: graphene.ResolveInfo, *, ids=None, channel=None, **kwargs
     ):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
@@ -492,7 +495,7 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_report_product_sales(
-        _root, info: graphene.ResolveInfo, period, channel, **kwargs
+        _root, info: graphene.ResolveInfo, *, period, channel, **kwargs
     ):
         qs = resolve_report_product_sales(period, channel_slug=channel)
         kwargs["channel"] = qs.channel_slug

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -280,12 +281,53 @@ def test_checkout_add_payment_no_checkout_email(
     assert data["errors"][0]["code"] == PaymentErrorCode.CHECKOUT_EMAIL_NOT_SET.name
 
 
-def test_checkout_add_payment_not_supported_gateways(
+@patch(
+    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin.CONFIGURATION_PER_CHANNEL",
+    False,
+)
+def test_checkout_add_payment_not_supported_currency(
     user_api_client, checkout_without_shipping_required, address
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
     checkout.currency = "EUR"
+    checkout.save(update_fields=["billing_address", "currency"])
+
+    variables = {
+        "token": checkout.token,
+        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token", "amount": "10.0"},
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    assert data["errors"][0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.name
+    assert data["errors"][0]["field"] == "gateway"
+
+
+def test_checkout_add_payment_not_existing_gateway(
+    user_api_client, checkout_without_shipping_required, address
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save(update_fields=["billing_address", "currency"])
+
+    variables = {
+        "token": checkout.token,
+        "input": {"gateway": "not.existing", "token": "sample-token", "amount": "10.0"},
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    assert data["errors"][0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.name
+    assert data["errors"][0]["field"] == "gateway"
+
+
+@patch("saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin.DEFAULT_ACTIVE", False)
+def test_checkout_add_payment_gateway_inactive(
+    user_api_client, checkout_without_shipping_required, address
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
     checkout.save(update_fields=["billing_address", "currency"])
 
     variables = {

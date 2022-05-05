@@ -11,6 +11,9 @@ from .mutations import (
     PaymentInitialize,
     PaymentRefund,
     PaymentVoid,
+    TransactionCreate,
+    TransactionRequestAction,
+    TransactionUpdate,
 )
 from .resolvers import resolve_payment_by_id, resolve_payments
 from .types import Payment, PaymentCountableConnection
@@ -36,11 +39,13 @@ class PaymentQueries(graphene.ObjectType):
         ],
     )
 
-    def resolve_payment(self, info, **data):
+    @staticmethod
+    def resolve_payment(_root, _info, **data):
         _, id = from_global_id_or_error(data["id"], Payment)
         return resolve_payment_by_id(id)
 
-    def resolve_payments(self, info, **kwargs):
+    @staticmethod
+    def resolve_payments(_root, info, **kwargs):
         qs = resolve_payments(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PaymentCountableConnection)
@@ -52,3 +57,7 @@ class PaymentMutations(graphene.ObjectType):
     payment_void = PaymentVoid.Field()
     payment_initialize = PaymentInitialize.Field()
     payment_check_balance = PaymentCheckBalance.Field()
+
+    transaction_create = TransactionCreate.Field()
+    transaction_update = TransactionUpdate.Field()
+    transaction_request_action = TransactionRequestAction.Field()

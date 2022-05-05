@@ -1,6 +1,4 @@
-# flake8: noqa
-
-from django.contrib.auth import get_user_model
+from typing import TYPE_CHECKING, Collection, Union
 
 from .auth_filters import (
     AuthorizationFilters,
@@ -37,6 +35,40 @@ from .enums import (
     get_permissions_from_names,
     split_permission_codename,
 )
+
+__all__ = [
+    "PERMISSIONS_ENUMS",
+    "is_app",
+    "is_staff_user",
+    "is_user",
+    "AppPermission",
+    "ChannelPermissions",
+    "CheckoutPermissions",
+    "DiscountPermissions",
+    "GiftcardPermissions",
+    "MenuPermissions",
+    "OrderPermissions",
+    "PagePermissions",
+    "PageTypePermissions",
+    "PaymentPermissions",
+    "PluginsPermissions",
+    "ProductPermissions",
+    "ProductTypePermissions",
+    "ShippingPermissions",
+    "SitePermissions",
+    "get_permission_names",
+    "get_permissions",
+    "get_permissions_codename",
+    "get_permissions_enum_dict",
+    "get_permissions_enum_list",
+    "get_permissions_from_codenames",
+    "get_permissions_from_names",
+    "split_permission_codename",
+]
+
+if TYPE_CHECKING:
+    from ...account.models import User
+    from ...app.models import App
 
 
 def one_of_permissions_or_auth_filter_required(context, permissions):
@@ -84,8 +116,11 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
     return granted_by_permissions or granted_by_authorization_filters
 
 
-def permission_required(requestor, perms):
-    User = get_user_model()
+def permission_required(
+    requestor: Union["User", "App"], perms: Collection[BasePermissionEnum]
+) -> bool:
+    from ...account.models import User
+
     if isinstance(requestor, User):
         return requestor.has_perms(perms)
     else:
@@ -95,7 +130,9 @@ def permission_required(requestor, perms):
         return requestor.has_perms(perms)
 
 
-def has_one_of_permissions(requestor, permissions=None):
+def has_one_of_permissions(
+    requestor: Union["User", "App"], permissions: Collection[BasePermissionEnum]
+) -> bool:
     if not permissions:
         return True
     for perm in permissions:
@@ -104,6 +141,8 @@ def has_one_of_permissions(requestor, permissions=None):
     return False
 
 
-def message_one_of_permissions_required(permissions):
+def message_one_of_permissions_required(
+    permissions: Collection[BasePermissionEnum],
+) -> str:
     permission_msg = ", ".join([p.name for p in permissions])
     return f"\n\nRequires one of the following permissions: {permission_msg}."

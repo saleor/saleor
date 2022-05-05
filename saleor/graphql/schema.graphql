@@ -1466,8 +1466,18 @@ enum WebhookEventTypeEnum {
 
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
+  TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+
+  """A new voucher created."""
+  VOUCHER_CREATED
+
+  """A voucher is updated."""
+  VOUCHER_UPDATED
+
+  """A voucher is deleted."""
+  VOUCHER_DELETED
   PAYMENT_AUTHORIZE
   PAYMENT_CAPTURE
   PAYMENT_CONFIRM
@@ -1665,8 +1675,18 @@ enum WebhookEventTypeAsyncEnum {
 
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
+  TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+
+  """A new voucher created."""
+  VOUCHER_CREATED
+
+  """A voucher is updated."""
+  VOUCHER_UPDATED
+
+  """A voucher is deleted."""
+  VOUCHER_DELETED
 }
 
 """Represents app data."""
@@ -1945,6 +1965,9 @@ enum AppExtensionMountEnum {
   NAVIGATION_DISCOUNTS
   NAVIGATION_TRANSLATIONS
   NAVIGATION_PAGES
+  ORDER_DETAILS_MORE_ACTIONS
+  ORDER_OVERVIEW_CREATE
+  ORDER_OVERVIEW_MORE_ACTIONS
 }
 
 """
@@ -2173,8 +2196,12 @@ enum WebhookSampleEventTypeEnum {
   SHIPPING_ZONE_CREATED
   SHIPPING_ZONE_UPDATED
   SHIPPING_ZONE_DELETED
+  TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+  VOUCHER_CREATED
+  VOUCHER_UPDATED
+  VOUCHER_DELETED
 }
 
 """Represents warehouse."""
@@ -7094,6 +7121,15 @@ type Checkout implements Node & ObjectWithMetadata {
 
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
+
+  """
+  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactions: [TransactionItem!]
 }
 
 """
@@ -7390,6 +7426,132 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 """
 union DeliveryMethod = Warehouse | ShippingMethod
 
+"""
+Represents a payment transaction.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionItem implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  createdAt: DateTime!
+  modifiedAt: DateTime!
+
+  """
+  List of actions that can be performed in the current state of a payment.
+  """
+  actions: [TransactionActionEnum!]!
+
+  """Total amount authorized for this payment."""
+  authorizedAmount: Money!
+
+  """Total amount refunded for this payment."""
+  refundedAmount: Money!
+
+  """Total amount voided for this payment."""
+  voidedAmount: Money!
+
+  """Total amount captured for this payment."""
+  capturedAmount: Money!
+
+  """Status of transaction."""
+  status: String!
+
+  """Type of transaction."""
+  type: String!
+
+  """Reference of transaction."""
+  reference: String!
+
+  """List of all transaction's events."""
+  events: [TransactionEvent!]!
+}
+
+"""
+Represents possible actions on payment transaction.
+
+    The following actions are possible:
+    CAPTURE - Represents the capture action.
+    REFUND - Represents a refund action.
+    VOID - Represents a void action.
+"""
+enum TransactionActionEnum {
+  CAPTURE
+  REFUND
+  VOID
+}
+
+"""Represents transaction's event."""
+type TransactionEvent implements Node {
+  """The ID of the object."""
+  id: ID!
+  createdAt: DateTime!
+
+  """Status of transaction's event."""
+  status: TransactionStatus!
+
+  """Reference of transaction's event."""
+  reference: String!
+
+  """Name of the transaction's event."""
+  name: String
+}
+
+"""An enumeration."""
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILURE
+}
+
 type GiftCardCountableConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -7544,6 +7706,15 @@ type Order implements Node & ObjectWithMetadata {
 
   """User-friendly payment status."""
   paymentStatusDisplay: String!
+
+  """
+  List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactions: [TransactionItem!]!
 
   """List of payments for the order."""
   payments: [Payment!]!
@@ -8120,7 +8291,7 @@ type OrderEvent implements Node {
   """Amount of money."""
   amount: Float
 
-  """The payment ID from the payment gateway."""
+  """The payment reference from the payment provider."""
   paymentId: String
 
   """The payment gateway of the payment."""
@@ -8161,6 +8332,12 @@ type OrderEvent implements Node {
 
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
+
+  """The status of payment's transaction."""
+  status: TransactionStatus
+
+  """The reference of payment's transaction."""
+  reference: String
 }
 
 """An enumeration."""
@@ -8193,6 +8370,10 @@ enum OrderEventsEnum {
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
   PAYMENT_FAILED
+  TRANSACTION_EVENT
+  TRANSACTION_CAPTURE_REQUESTED
+  TRANSACTION_REFUND_REQUESTED
+  TRANSACTION_VOID_REQUESTED
   INVOICE_REQUESTED
   INVOICE_GENERATED
   INVOICE_UPDATED
@@ -8347,6 +8528,7 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
 }
 
 """An enumeration."""
@@ -10735,6 +10917,64 @@ type Mutation {
   ): PaymentCheckBalance
 
   """
+  Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionCreate(
+    """The ID of the checkout or order."""
+    id: ID!
+
+    """Input data required to create a new transaction object."""
+    transaction: TransactionCreateInput!
+
+    """Data that defines a transaction event."""
+    transactionEvent: TransactionEventInput
+  ): TransactionCreate
+
+  """
+  Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionUpdate(
+    """The ID of the transaction."""
+    id: ID!
+
+    """Input data required to create a new transaction object."""
+    transaction: TransactionUpdateInput
+
+    """Data that defines a transaction transaction."""
+    transactionEvent: TransactionEventInput
+  ): TransactionUpdate
+
+  """
+  Request an action for payment transaction.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  """
+  transactionRequestAction(
+    """Determines the action type."""
+    actionType: TransactionActionEnum!
+
+    """
+    Transaction request amount. If empty for refund or capture, maximal possible amount will be used.
+    """
+    amount: PositiveDecimal
+
+    """The ID of the transaction."""
+    id: ID!
+  ): TransactionRequestAction
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -12193,13 +12433,11 @@ type Mutation {
   ): CheckoutLanguageCodeUpdate
 
   """
-  Create new order from existing checkout.
+  Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
   
   Added in Saleor 3.2.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
-  
-  Requires one of the following permissions: HANDLE_CHECKOUTS.
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
@@ -15452,6 +15690,192 @@ input MoneyInput {
 }
 
 """
+Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionCreate {
+  transaction: TransactionItem
+  errors: [TransactionCreateError!]!
+}
+
+type TransactionCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionCreateErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionCreateErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_CURRENCY
+  METADATA_KEY_REQUIRED
+}
+
+input TransactionCreateInput {
+  """Status of the transaction."""
+  status: String!
+
+  """Payment type used for this transaction."""
+  type: String!
+
+  """Reference of the transaction."""
+  reference: String
+
+  """List of all possible actions for the transaction"""
+  availableActions: [TransactionActionEnum!]
+
+  """Amount authorized by this transaction."""
+  amountAuthorized: MoneyInput
+
+  """Amount captured by this transaction."""
+  amountCaptured: MoneyInput
+
+  """Amount refunded by this transaction."""
+  amountRefunded: MoneyInput
+
+  """Amount voided by this transaction."""
+  amountVoided: MoneyInput
+
+  """Payment public metadata."""
+  metadata: [MetadataInput!]
+
+  """Payment private metadata."""
+  privateMetadata: [MetadataInput!]
+}
+
+input MetadataInput {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String!
+}
+
+input TransactionEventInput {
+  """Current status of the payment transaction."""
+  status: TransactionStatus!
+
+  """Reference of the transaction."""
+  reference: String
+
+  """Name of the transaction."""
+  name: String
+}
+
+"""
+Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionUpdate {
+  transaction: TransactionItem
+  errors: [TransactionUpdateError!]!
+}
+
+type TransactionUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionUpdateErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_CURRENCY
+  METADATA_KEY_REQUIRED
+}
+
+input TransactionUpdateInput {
+  """Status of the transaction."""
+  status: String
+
+  """Payment type used for this transaction."""
+  type: String
+
+  """Reference of the transaction."""
+  reference: String
+
+  """List of all possible actions for the transaction"""
+  availableActions: [TransactionActionEnum!]
+
+  """Amount authorized by this transaction."""
+  amountAuthorized: MoneyInput
+
+  """Amount captured by this transaction."""
+  amountCaptured: MoneyInput
+
+  """Amount refunded by this transaction."""
+  amountRefunded: MoneyInput
+
+  """Amount voided by this transaction."""
+  amountVoided: MoneyInput
+
+  """Payment public metadata."""
+  metadata: [MetadataInput!]
+
+  """Payment private metadata."""
+  privateMetadata: [MetadataInput!]
+}
+
+"""
+Request an action for payment transaction.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+"""
+type TransactionRequestAction {
+  transaction: TransactionItem
+  errors: [TransactionRequestActionError!]!
+}
+
+type TransactionRequestActionError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionRequestActionErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionRequestActionErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
 Creates a new page. 
 
 Requires one of the following permissions: MANAGE_PAGES.
@@ -16422,14 +16846,6 @@ type UpdateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MetadataError!]!
   item: ObjectWithMetadata
-}
-
-input MetadataInput {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String!
 }
 
 """
@@ -18067,13 +18483,11 @@ type CheckoutLanguageCodeUpdate {
 }
 
 """
-Create new order from existing checkout.
+Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
 
 Added in Saleor 3.2.
 
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
-
-Requires one of the following permissions: HANDLE_CHECKOUTS.
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderCreateFromCheckout {
   """Placed order."""
@@ -19556,7 +19970,7 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted
 
 type CategoryCreated {
   """
@@ -20271,6 +20685,34 @@ type ShippingZoneDeleted {
   ): ShippingZone
 }
 
+type TransactionActionRequest {
+  """
+  Look up a transaction.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transaction: TransactionItem
+
+  """
+  Requested action data.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  action: TransactionAction!
+}
+
+type TransactionAction {
+  """Determines the action type."""
+  actionType: TransactionActionEnum!
+
+  """Transaction request amount. Null when action type is VOID."""
+  amount: PositiveDecimal
+}
+
 type TranslationCreated {
   """
   Look up a translation.
@@ -20293,6 +20735,48 @@ type TranslationUpdated {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   translation: TranslationTypes
+}
+
+type VoucherCreated {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+type VoucherUpdated {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+type VoucherDeleted {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
 }
 
 """An enumeration."""

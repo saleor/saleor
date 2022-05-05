@@ -21,6 +21,7 @@ from ..payment.interface import (
     InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
+    TransactionActionData,
 )
 from .models import PluginConfiguration
 
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
-    from ..discount import DiscountInfo
+    from ..discount import DiscountInfo, Voucher
     from ..discount.models import Sale
     from ..giftcard.models import GiftCard
     from ..graphql.discount.mutations import NodeCatalogueInfo
@@ -554,6 +555,8 @@ class BasePlugin:
 
     process_payment: Callable[["PaymentData", Any], Any]
 
+    transaction_action_request: Callable[["TransactionActionData", None], None]
+
     #  Trigger when product is created.
     #
     #  Overwrite this method if you need to trigger specific logic after a product is
@@ -653,6 +656,24 @@ class BasePlugin:
     tracking_number_updated: Callable[["Fulfillment", Any], Any]
 
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when voucher is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher is
+    #  created.
+    voucher_created: Callable[["Voucher", None], None]
+
+    #  Trigger when voucher is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher is
+    #  deleted.
+    voucher_deleted: Callable[["Voucher", None], None]
+
+    #  Trigger when voucher is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a voucher is
+    #  updated.
+    voucher_updated: Callable[["Voucher", None], None]
 
     #  Handle received http request.
     #

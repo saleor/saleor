@@ -50,7 +50,7 @@ if TYPE_CHECKING:
     from ..discount.models import Sale
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
-    from ..payment.interface import PaymentData
+    from ..payment.interface import PaymentData, TransactionActionData
     from ..payment.models import Payment
     from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
@@ -1099,5 +1099,62 @@ def generate_excluded_shipping_methods_for_checkout_payload(
             _generate_payload_for_shipping_method(shipping_method)
             for shipping_method in available_shipping_methods
         ],
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+@traced_payload_generator
+def generate_transaction_action_request_payload(
+    transaction_data: "TransactionActionData",
+    requestor: Optional["RequestorOrLazyObject"] = None,
+) -> str:
+    transaction = transaction_data.transaction
+
+    action_value = (
+        quantize_price(transaction_data.action_value, transaction.currency)
+        if transaction_data.action_value
+        else None
+    )
+
+    order_id = transaction.order_id
+    graphql_order_id = (
+        graphene.Node.to_global_id("Order", order_id) if order_id else None
+    )
+
+    checkout_id = transaction.checkout_id
+    graphql_checkout_id = (
+        graphene.Node.to_global_id("Checkout", checkout_id) if checkout_id else None
+    )
+
+    payload = {
+        "action": {
+            "type": transaction_data.action_type,
+            "value": action_value,
+            "currency": transaction.currency,
+        },
+        "transaction": {
+            "status": transaction.status,
+            "type": transaction.type,
+            "reference": transaction.reference,
+            "available_actions": transaction.available_actions,
+            "currency": transaction.currency,
+            "captured_value": quantize_price(
+                transaction.captured_value, transaction.currency
+            ),
+            "authorized_value": quantize_price(
+                transaction.authorized_value, transaction.currency
+            ),
+            "refunded_value": quantize_price(
+                transaction.refunded_value, transaction.currency
+            ),
+            "voided_value": quantize_price(
+                transaction.voided_value, transaction.currency
+            ),
+            "order_id": graphql_order_id,
+            "checkout_id": graphql_checkout_id,
+            "created_at": transaction.created_at,
+            "modified_at": transaction.modified_at,
+        },
+        "meta": generate_meta(requestor_data=generate_requestor(requestor)),
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
