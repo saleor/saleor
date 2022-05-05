@@ -1,277 +1,8 @@
-
-FRAGMENT_PRICE = """
-    fragment Price on TaxedMoney {
-      currency
-      gross {
-        amount
-      }
-      net {
-        amount
-      }
-    }
-"""
-
-FRAGMENT_PRODUCT_VARIANT = """
-        fragment ProductVariant on ProductVariant {
-          id
-          name
-          product {
-            id
-            name
-          }
-        }
-    """
-
-FRAGMENT_CHECKOUT_LINE = (
-    FRAGMENT_PRODUCT_VARIANT
-    + """
-        fragment CheckoutLine on CheckoutLine {
-          id
-          quantity
-          totalPrice {
-            ...Price
-          }
-          variant {
-            ...ProductVariant
-          }
-          quantity
-        }
-    """
-)
-
-FRAGMENT_ADDRESS = """
-    fragment Address on Address {
-      id
-      firstName
-      lastName
-      companyName
-      streetAddress1
-      streetAddress2
-      city
-      postalCode
-      country {
-        code
-        country
-      }
-      countryArea
-      phone
-      isDefaultBillingAddress
-      isDefaultShippingAddress
-    }
-"""
+from ..queries import fragments
 
 
-FRAGMENT_SHIPPING_METHOD_DETAILS = """
-    fragment ShippingMethodDetails on ShippingMethodType {
-        id
-        name
-        price {
-            amount
-        }
-    }
-"""
-
-FRAGMENT_COLLECTION_POINT = """
-   fragment CollectionPoint on Warehouse {
-        id
-        name
-        isPrivate
-        clickAndCollectOption
-        address {
-             streetAddress1
-          }
-     }
-"""
-
-
-FRAGMENT_CHECKOUT = (
-        FRAGMENT_CHECKOUT_LINE
-        + FRAGMENT_ADDRESS
-        + FRAGMENT_SHIPPING_METHOD_DETAILS
-        + """
-        fragment Checkout on Checkout {
-          availablePaymentGateways {
-            id
-            name
-            config {
-              field
-              value
-            }
-          }
-          token
-          id
-          totalPrice {
-            ...Price
-          }
-          subtotalPrice {
-            ...Price
-          }
-          billingAddress {
-            ...Address
-          }
-          shippingAddress {
-            ...Address
-          }
-          email
-          availableShippingMethods {
-            ...ShippingMethod
-          }
-          shippingMethod {
-            ...ShippingMethod
-          }
-          shippingPrice {
-            ...Price
-          }
-          lines {
-            ...CheckoutLine
-          }
-          stockReservationExpires
-          isShippingRequired
-          discount {
-            currency
-            amount
-          }
-          discountName
-          translatedDiscountName
-          voucherCode
-        }
-    """
-)
-
-FRAGMENT_CHECKOUT_FOR_CC = (
-        FRAGMENT_CHECKOUT_LINE
-        + FRAGMENT_ADDRESS
-        + FRAGMENT_SHIPPING_METHOD_DETAILS
-        + FRAGMENT_COLLECTION_POINT
-        + """
-        fragment Checkout on Checkout {
-          availablePaymentGateways {
-            id
-            name
-            config {
-              field
-              value
-            }
-          }
-          token
-          id
-          totalPrice {
-            ...Price
-          }
-          subtotalPrice {
-            ...Price
-          }
-          billingAddress {
-            ...Address
-          }
-          shippingAddress {
-            ...Address
-          }
-          email
-          availableShippingMethods {
-            ...ShippingMethod
-          }
-          availableCollectionPoints {
-            ...CollectionPoint
-          }
-          deliveryMethod {
-            __typename
-            ... on ShippingMethod {
-              ...ShippingMethod
-            }
-            ... on Warehouse {
-              ...CollectionPoint
-            }
-          }
-          shippingPrice {
-            ...Price
-          }
-          lines {
-            ...CheckoutLine
-          }
-          isShippingRequired
-          discount {
-            currency
-            amount
-          }
-          discountName
-          translatedDiscountName
-          voucherCode
-        }
-    """
-)
-
-
-MUTATION_CHECKOUT_CREATE = (
-    FRAGMENT_CHECKOUT
-    + """
-        mutation CreateCheckout($checkoutInput: CheckoutCreateInput!) {
-            checkoutCreate(input: $checkoutInput) {
-                errors {
-                    field
-                    message
-                }
-                checkout {
-                    ...Checkout
-                }
-            }
-        }
-    """
-)
-
-
-# DETAILS FRAGMENTS
-PRICING_DETAILS_FRAGMENT = """
-fragment PricingDetails on Pricing {
-  price {
-    gross {
-      amount
-      currency
-    }
-  }
-  discount{
-    currency
-    gross
-    net
-  }
-}
-"""
-
-
-CATEGORY_DETAILS_FRAGMENT = """
-fragment CategoryDetails on Category {
-  id
-  name
-  ancestors(first: 20) {
-    edges {
-      node {
-        name
-      }
-    }
-  }
-  children(first: 20) {
-    edges {
-      node {
-        name
-      }
-    }
-  }
-  products(first: 10 channel: "main") {
-    edges {
-      node {
-        id
-        name
-      }
-    }
-  }
-}
-"""
-
-
-# QUERIES
-
-CATEGORY_CREATED_SUBSCRIPTION_QUERY = (
-    CATEGORY_DETAILS_FRAGMENT + """
+CATEGORY_CREATED = (
+    fragments.CATEGORY_DETAILS + """
     subscription{
       event{
         ...on CategoryCreated{
@@ -284,8 +15,8 @@ CATEGORY_CREATED_SUBSCRIPTION_QUERY = (
     """
 )
 
-CATEGORY_UPDATED_SUBSCRIPTION_QUERY = (
-    CATEGORY_DETAILS_FRAGMENT + """
+CATEGORY_UPDATED = (
+    fragments.CATEGORY_DETAILS + """
     subscription{
       event{
         ...on CategoryUpdated{
@@ -298,22 +29,7 @@ CATEGORY_UPDATED_SUBSCRIPTION_QUERY = (
     """
 )
 
-CATEGORY_DELETED_SUBSCRIPTION_QUERY = (
-    CATEGORY_DETAILS_FRAGMENT + """
-    subscription{
-      event{
-        ...on CategoryUpdated{
-          category{
-            ...CategoryDetails
-          }
-        }
-      }
-    }
-    """
-)
-
-
-CATEGORY_DELETED_SUBSCRIPTION_QUERY = """
+CATEGORY_DELETED = """
     subscription{
       event{
         ...on CategoryDeleted{
@@ -326,19 +42,13 @@ CATEGORY_DELETED_SUBSCRIPTION_QUERY = """
 """
 
 
-
-SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
+SHIPPING_PRICE_CREATED = (
+    fragments.SHIPPING_METHOD_DETAILS + """
     subscription{
       event{
         ...on ShippingPriceCreated{
           shippingMethod{
-            id
-            name
-            channelListings {
-              channel {
-                name
-              }
-            }
+            ...ShippingMethodDetails
           }
           shippingZone{
             id
@@ -348,21 +58,15 @@ SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
       }
     }
 """
+)
 
-
-
-SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
+SHIPPING_PRICE_UPDATED_UPDATED = (
+    fragments.SHIPPING_METHOD_DETAILS + """
     subscription{
       event{
         ...on ShippingPriceUpdated{
           shippingMethod{
-            id
-            name
-            channelListings {
-              channel {
-                name
-              }
-            }
+            ...ShippingMethodDetails
           }
           shippingZone{
             id
@@ -372,10 +76,9 @@ SHIPPING_PRICE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
       }
     }
 """
+)
 
-
-
-SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY = """
+SHIPPING_PRICE_DELETED = """
     subscription{
       event{
         ...on ShippingPriceDeleted{
@@ -388,9 +91,7 @@ SHIPPING_PRICE_DELETED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-
-SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY = """
+SHIPPING_ZONE_CREATED = """
     subscription{
       event{
         ...on ShippingZoneCreated{
@@ -409,9 +110,7 @@ SHIPPING_ZONE_CREATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-
-SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
+SHIPPING_ZONE_UPDATED_UPDATED = """
     subscription{
       event{
         ...on ShippingZoneUpdated{
@@ -430,8 +129,7 @@ SHIPPING_ZONE_UPDATED_UPDATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY = """
+SHIPPING_ZONE_DELETED = """
     subscription{
       event{
         ...on ShippingZoneDeleted{
@@ -444,7 +142,7 @@ SHIPPING_ZONE_DELETED_SUBSCRIPTION_QUERY = """
     }
 """
 
-PRODUCT_UPDATED_SUBSCRIPTION_QUERY = """
+PRODUCT_UPDATED = """
     subscription{
       event{
         ...on ProductUpdated{
@@ -456,9 +154,7 @@ PRODUCT_UPDATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-
-PRODUCT_CREATED_SUBSCRIPTION_QUERY = """
+PRODUCT_CREATED = """
     subscription{
       event{
         ...on ProductCreated{
@@ -470,9 +166,7 @@ PRODUCT_CREATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-
-PRODUCT_DELETED_SUBSCRIPTION_QUERY = """
+PRODUCT_DELETED = """
     subscription{
       event{
         ...on ProductDeleted{
@@ -484,8 +178,7 @@ PRODUCT_DELETED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-PRODUCT_VARIANT_CREATED_SUBSCRIPTION_QUERY = """
+PRODUCT_VARIANT_CREATED = """
     subscription{
       event{
         ...on ProductVariantCreated{
@@ -497,25 +190,20 @@ PRODUCT_VARIANT_CREATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-PRODUCT_VARIANT_UPDATED_SUBSCRIPTION_QUERY = (
-    PRICING_DETAILS_FRAGMENT
-    + """
+PRODUCT_VARIANT_UPDATED = """
     subscription{
       event{
         ...on ProductVariantUpdated{
           productVariant{
-          pricing{
-            ...PricingDetails
-          }
             id
           }
         }
       }
     }
 """
-)
 
-PRODUCT_VARIANT_DELETED_SUBSCRIPTION_QUERY = """
+
+PRODUCT_VARIANT_DELETED = """
     subscription{
       event{
         ...on ProductVariantDeleted{
@@ -527,7 +215,7 @@ PRODUCT_VARIANT_DELETED_SUBSCRIPTION_QUERY = """
     }
 """
 
-PRODUCT_VARIANT_OUT_OF_STOCK_SUBSCRIPTION_QUERY = """
+PRODUCT_VARIANT_OUT_OF_STOCK = """
     subscription{
       event{
         ...on ProductVariantOutOfStock{
@@ -539,7 +227,7 @@ PRODUCT_VARIANT_OUT_OF_STOCK_SUBSCRIPTION_QUERY = """
     }
 """
 
-PRODUCT_VARIANT_BACK_IN_STOCK_SUBSCRIPTION_QUERY = """
+PRODUCT_VARIANT_BACK_IN_STOCK = """
     subscription{
       event{
         ...on ProductVariantBackInStock{
@@ -551,9 +239,7 @@ PRODUCT_VARIANT_BACK_IN_STOCK_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-
-ORDER_CREATED_SUBSCRIPTION_QUERY = """
+ORDER_CREATED = """
     subscription{
       event{
         ...on OrderCreated{
@@ -565,8 +251,7 @@ ORDER_CREATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-ORDER_UPDATED_SUBSCRIPTION_QUERY = """
+ORDER_UPDATED = """
     subscription{
       event{
         ...on OrderUpdated{
@@ -578,7 +263,7 @@ ORDER_UPDATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-ORDER_CONFIRMED_SUBSCRIPTION_QUERY = """
+ORDER_CONFIRMED = """
     subscription{
       event{
         ...on OrderConfirmed{
@@ -590,8 +275,7 @@ ORDER_CONFIRMED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-ORDER_FULLY_PAID_SUBSCRIPTION_QUERY = """
+ORDER_FULLY_PAID = """
     subscription{
       event{
         ...on OrderFullyPaid{
@@ -603,7 +287,7 @@ ORDER_FULLY_PAID_SUBSCRIPTION_QUERY = """
     }
 """
 
-ORDER_CANCELLED_SUBSCRIPTION_QUERY = """
+ORDER_CANCELLED = """
     subscription{
       event{
         ...on OrderCancelled{
@@ -615,8 +299,7 @@ ORDER_CANCELLED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-ORDER_FULFILLED_SUBSCRIPTION_QUERY = """
+ORDER_FULFILLED = """
     subscription{
       event{
         ...on OrderFulfilled{
@@ -628,8 +311,7 @@ ORDER_FULFILLED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-DRAFT_ORDER_CREATED_SUBSCRIPTION_QUERY = """
+DRAFT_ORDER_CREATED = """
     subscription{
       event{
         ...on DraftOrderCreated{
@@ -641,7 +323,7 @@ DRAFT_ORDER_CREATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-DRAFT_ORDER_UPDATED_SUBSCRIPTION_QUERY = """
+DRAFT_ORDER_UPDATED = """
     subscription{
       event{
         ...on DraftOrderUpdated{
@@ -653,8 +335,7 @@ DRAFT_ORDER_UPDATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-DRAFT_ORDER_DELETED_SUBSCRIPTION_QUERY = """
+DRAFT_ORDER_DELETED = """
     subscription{
       event{
         ...on DraftOrderDeleted{
@@ -666,56 +347,50 @@ DRAFT_ORDER_DELETED_SUBSCRIPTION_QUERY = """
     }
 """
 
-
-
-SALE_CREATED_SUBSCRIPTION_QUERY = """
+SALE_CREATED = (
+    fragments.SALE_DETAILS + """
     subscription{
       event{
         ...on SaleCreated{
           sale{
-            id
+            ...SaleDetails
           }
         }
       }
     }
 """
+)
 
-
-SALE_UPDATED_SUBSCRIPTION_QUERY = """
+SALE_UPDATED = (
+    fragments.SALE_DETAILS + """
     subscription{
       event{
         ...on SaleUpdated{
           sale{
-            id
+            ...SaleDetails
           }
         }
       }
     }
 """
+)
 
-SALE_DELETED_SUBSCRIPTION_QUERY = """
+SALE_DELETED = (
+    fragments.SALE_DETAILS + """
     subscription{
       event{
         ...on SaleDeleted{
           sale{
-            id
+            ...SaleDetails
           }
         }
       }
     }
 """
+)
 
-FRAGMENT_INVOICE_DETAILS = """
-fragment InvoiceDetails on Invoice {
-  id
-  status
-  number
-}
-"""
-
-
-INVOICE_REQUESTED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_INVOICE_DETAILS + """
+INVOICE_REQUESTED = (
+    fragments.INVOICE_DETAILS + """
     subscription{
       event{
         ...on InvoiceRequested{
@@ -728,9 +403,8 @@ INVOICE_REQUESTED_SUBSCRIPTION_QUERY = (
 """
 )
 
-
-INVOICE_DELETED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_INVOICE_DETAILS + """
+INVOICE_DELETED = (
+    fragments.INVOICE_DETAILS + """
     subscription{
       event{
         ...on InvoiceDeleted{
@@ -743,9 +417,8 @@ INVOICE_DELETED_SUBSCRIPTION_QUERY = (
 """
 )
 
-
-INVOICE_SENT_SUBSCRIPTION_QUERY = (
-    FRAGMENT_INVOICE_DETAILS + """
+INVOICE_SENT = (
+    fragments.INVOICE_DETAILS + """
     subscription{
       event{
         ...on InvoiceSent{
@@ -758,88 +431,8 @@ INVOICE_SENT_SUBSCRIPTION_QUERY = (
 """
 )
 
-FRAGMENT_SHIPPING_METHOD_TYPE = """
-fragment ShippingMethodType on ShippingMethodType{
-  id
-  name
-  type
-  maximumOrderPrice{
-    amount
-  }
-  minimumOrderPrice {
-    amount
-  }
-  maximumOrderWeight {
-    value
-    unit
-  }
-  maximumOrderWeight {
-    value
-    unit
-  }
-
-}
-"""
-FRAGMENT_SHIPPING_ZONE_DETAILS = (
-    FRAGMENT_SHIPPING_METHOD_TYPE + """
-fragment ShippingZoneDetails on ShippingZone {
-  id
-  countries {
-    code
-    country
-    }
-  shippingMethods {
-    ...ShippingMethodType
-    }
-}
-"""
-)
-
-FRAGMENT_WAREHOUSE_DETAILS = (
-    FRAGMENT_SHIPPING_ZONE_DETAILS + """
-fragment WarehouseDetails on Warehouse {
-  id
-  name
-  companyName
-  shippingZones {
-    edges {
-      node {
-        ...ShippingZoneDetails
-      }
-    }
-  }
-}
-""")
-
-
-FRAGMENT_FULFILLMENT_DETAILS = (
-    FRAGMENT_PRODUCT_VARIANT
-    + FRAGMENT_PRICE
-    + """
-fragment FulfillmentDetails on Fulfillment {
-  id
-  fulfillmentOrder
-  trackingNumber
-  status
-  lines {
-    id
-    quantity
-    orderLine {
-        variant {
-          ...ProductVariant
-        }
-        unitPrice {
-          currency
-          ...Price
-        }
-    }
-  }
-}
-"""
-)
-
-FULFILLMENT_CREATED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_FULFILLMENT_DETAILS + """
+FULFILLMENT_CREATED = (
+    fragments.FULFILLMENT_DETAILS + """
     subscription{
       event{
         ...on FulfillmentCreated{
@@ -851,9 +444,8 @@ FULFILLMENT_CREATED_SUBSCRIPTION_QUERY = (
     }
 """)
 
-
-FULFILLMENT_CANCELED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_FULFILLMENT_DETAILS + """
+FULFILLMENT_CANCELED = (
+    fragments.FULFILLMENT_DETAILS + """
     subscription{
       event{
         ...on FulfillmentCanceled{
@@ -865,48 +457,8 @@ FULFILLMENT_CANCELED_SUBSCRIPTION_QUERY = (
     }
 """)
 
-FRAGMENT_ADDRESS_DETAILS = """
-fragment AddressDetails on Address {
-    firstName
-    lastName
-    companyName
-    streetAddress1
-    streetAddress2
-    city
-    cityArea
-    postalCode
-    countryArea
-    phone
-    country {
-      code
-    }
-}
-    """
-# TODO orders frament
-FRAGMENT_USER_DETAILS = (
-    FRAGMENT_ADDRESS_DETAILS + """
-fragment UserDetails on User {
-  email
-  firstName
-  lastName
-  isStaff
-  isActive
-  addresses {
-    id
-  }
-  languageCode
-  defaultShippingAddress {
-    ...AddressDetails
-  }
-  defaultBillingAddress {
-    ...AddressDetails
-  }
-}
-"""
-)
-
-CUSTOMER_CREATED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_USER_DETAILS + """
+CUSTOMER_CREATED = (
+    fragments.USER_DETAILS + """
     subscription{
       event{
         ...on CustomerCreated{
@@ -919,10 +471,8 @@ CUSTOMER_CREATED_SUBSCRIPTION_QUERY = (
 """
 )
 
-
-
-CUSTOMER_UPDATED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_USER_DETAILS + """
+CUSTOMER_UPDATED = (
+    fragments.USER_DETAILS + """
     subscription{
       event{
         ...on CustomerUpdated{
@@ -934,44 +484,8 @@ CUSTOMER_UPDATED_SUBSCRIPTION_QUERY = (
     }
 """)
 
-FRAGMENT_BASIC_PRODUCT_FIELDS = """
-fragment BasicProductFields on Product {
-  id
-  name
-  thumbnail {
-    url
-    alt
-  }
-  thumbnail2x: thumbnail(size: 510) {
-    url
-  }
-}
-"""
-
-
-FRAGMENT_PRODUCT_DETAILS = """
-"""
-# TODO products fragment
-FRAGMENT_COLLECTION = (
-    FRAGMENT_BASIC_PRODUCT_FIELDS + """
-    fragment CollectionDetails on Collection {
-      id
-      name
-      slug
-      channel
-      products(first: 10) {
-        edges {
-            node {
-                ...BasicProductFields
-            }
-        }
-      }
-    }
-    """
-)
-
-COLLECTION_CREATED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_COLLECTION + """
+COLLECTION_CREATED = (
+    fragments.COLLECTION + """
     subscription{
       event{
         ...on CollectionCreated{
@@ -984,9 +498,8 @@ COLLECTION_CREATED_SUBSCRIPTION_QUERY = (
     """
 )
 
-
-COLLECTION_UPDATED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_COLLECTION + """
+COLLECTION_UPDATED = (
+    fragments.COLLECTION + """
     subscription{
       event{
         ...on CollectionUpdated{
@@ -999,9 +512,8 @@ COLLECTION_UPDATED_SUBSCRIPTION_QUERY = (
     """
 )
 
-
-COLLECTION_DELETED_SUBSCRIPTION_QUERY =(
-    FRAGMENT_COLLECTION + """
+COLLECTION_DELETED = (
+    fragments.COLLECTION + """
     subscription{
       event{
         ...on CollectionDeleted{
@@ -1014,25 +526,20 @@ COLLECTION_DELETED_SUBSCRIPTION_QUERY =(
     """
 )
 
-# TODO
-FRAGMENT_CHECKOUT_FOR_SUBSCRIPTION = """
 
-"""
-CHECKOUT_CREATED_SUBSCRIPTION_QUERY = (
-    FRAGMENT_CHECKOUT + """
+CHECKOUT_CREATED = """
     subscription{
       event{
         ...on CheckoutCreated{
           checkout{
-            ...Checkout
+            id
           }
         }
       }
     }
 """
-)
 
-CHECKOUT_UPDATED_SUBSCRIPTION_QUERY = """
+CHECKOUT_UPDATED = """
     subscription{
       event{
         ...on CheckoutUpdated{
@@ -1044,55 +551,22 @@ CHECKOUT_UPDATED_SUBSCRIPTION_QUERY = """
     }
 """
 
-PAGE_DETAILS_FRAGMENT = """
-fragment PageDetails on Page{
-  id
-  title
-  content
-  slug
-  isPublished
-  publicationDate
-  pageType {
-    id
-  }
-    attributes {
-    attribute {
-      slug
-    }
-    values {
-      slug
-      name
-      reference
-      date
-      dateTime
-      file {
-        url
-        contentType
-      }
-    }
-  }
-}
-
-"""
-
-
-PAGE_CREATED_SUBSCRIPTION_QUERY = (
-    PAGE_DETAILS_FRAGMENT + """
-        subscription{
-          event{
-            ...on PageCreated{
-              page{
-                ...PageDetails
-              }
-            }
+PAGE_CREATED = (
+    fragments.PAGE_DETAILS + """
+    subscription{
+      event{
+        ...on PageCreated{
+          page{
+            ...PageDetails
           }
         }
-    """
+      }
+    }
+"""
 )
 
-
-PAGE_UPDATED_SUBSCRIPTION_QUERY = (
-    PAGE_DETAILS_FRAGMENT + """
+PAGE_UPDATED = (
+    fragments.PAGE_DETAILS + """
     subscription{
       event{
         ...on PageUpdated{
@@ -1105,9 +579,8 @@ PAGE_UPDATED_SUBSCRIPTION_QUERY = (
 """
 )
 
-
-PAGE_DELETED_SUBSCRIPTION_QUERY = (
-    PAGE_DETAILS_FRAGMENT + """
+PAGE_DELETED = (
+    fragments.PAGE_DETAILS + """
     subscription{
       event{
         ...on PageDeleted{
@@ -1120,8 +593,7 @@ PAGE_DELETED_SUBSCRIPTION_QUERY = (
 """
 )
 
-
-MULTIPLE_EVENTS_SUBSCRIPTION_QUERY = """
+MULTIPLE_EVENTS = """
 subscription{
   event{
     ...on ProductCreated{
@@ -1143,8 +615,7 @@ subscription{
 }
 """
 
-
-TRANSLATION_CREATED_SUBSCRIPTION_QUERY = """
+TRANSLATION_CREATED = """
 subscription {
   event {
     ... on TranslationCreated {
@@ -1188,8 +659,7 @@ subscription {
 }
 """
 
-
-TRANSLATION_UPDATED_SUBSCRIPTION_QUERY = """
+TRANSLATION_UPDATED = """
 subscription {
   event {
     ... on TranslationUpdated {
@@ -1231,4 +701,107 @@ subscription {
     }
   }
 }
+"""
+
+TEST_VALID_SUBSCRIPTION = """
+    subscription{
+      event{
+        ...on ProductUpdated{
+          product{
+            id
+          }
+        }
+      }
+    }
+"""
+
+TEST_INVALID_MULTIPLE_SUBSCRIPTION = """
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+      }
+    }
+  }
+}
+subscription{
+  event{
+    ...on ProductCreated{
+      product{
+        id
+      }
+    }
+  }
+}
+"""
+
+
+TEST_INVALID_SUBSCRIPTION_AND_QUERY = """
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+      }
+    }
+  }
+}
+query{
+  products(first:100){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}
+"""
+
+TEST_INVALID_QUERY_AND_SUBSCRIPTION = """
+query{
+  products(first:100){
+    edges{
+      node{
+        id
+      }
+    }
+  }
+}
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+      }
+    }
+  }
+}"""
+
+TEST_VALID_SUBSCRIPTION_QUERY_WITH_FRAGMENT = """
+fragment productFragment on Product{
+  name
+}
+subscription{
+  event{
+    ...on ProductUpdated{
+      product{
+        id
+        ...productFragment
+      }
+    }
+  }
+}
+"""
+
+TEST_VALID_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ProductUpdated{
+          product{
+            id
+          }
+        }
+      }
+    }
 """
