@@ -147,7 +147,12 @@ def test_generate_order_payload(
             "name": order.shipping_method.name,
             "type": order.shipping_method.type,
             "currency": shipping_method_channel_listing.currency,
-            "price_amount": str(shipping_method_channel_listing.price_amount),
+            "price_amount": str(
+                quantize_price(
+                    shipping_method_channel_listing.price_amount,
+                    shipping_method_channel_listing.currency,
+                )
+            ),
         },
         "payments": [
             {
@@ -1189,7 +1194,12 @@ def test_generate_checkout_payload(
             "name": checkout.shipping_method.name,
             "type": checkout.shipping_method.type,
             "currency": shipping_method_channel_listing.currency,
-            "price_amount": str(shipping_method_channel_listing.price_amount),
+            "price_amount": str(
+                quantize_price(
+                    shipping_method_channel_listing.price_amount,
+                    shipping_method_channel_listing.currency,
+                )
+            ),
         },
         "lines": serialize_checkout_lines(checkout),
         "collection_point": json.loads(

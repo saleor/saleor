@@ -224,7 +224,10 @@ def _generate_shipping_method_payload(shipping_method, channel):
         fields=shipping_method_fields,
         extra_dict_data={
             "currency": shipping_method_channel_listing.currency,
-            "price_amount": shipping_method_channel_listing.price_amount,
+            "price_amount": quantize_price(
+                shipping_method_channel_listing.price_amount,
+                shipping_method_channel_listing.currency,
+            ),
         },
     )
 
