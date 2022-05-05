@@ -52,7 +52,7 @@ class SaleChannelListing(ModelObjectType):
         interfaces = [relay.Node]
 
     @staticmethod
-    def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
+    def resolve_channel(root: models.SaleChannelListing, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
@@ -118,16 +118,16 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_categories(root: ChannelContext[models.Sale], info, *_args, **kwargs):
+    def resolve_categories(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.categories.all()
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Sale], info):
         return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **kwargs):
+    def resolve_collections(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.collections.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
@@ -147,7 +147,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_discount_value(root: ChannelContext[models.Sale], info):
         if not root.channel_slug:
             return None
 
@@ -162,7 +162,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_currency(root: ChannelContext[models.Sale], info):
         if not root.channel_slug:
             return None
 
@@ -195,7 +195,7 @@ class VoucherChannelListing(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):
+    def resolve_channel(root: models.VoucherChannelListing, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
@@ -274,16 +274,12 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Voucher
 
     @staticmethod
-    def resolve_categories(
-        root: ChannelContext[models.Voucher], info, *_args, **kwargs
-    ):
+    def resolve_categories(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.categories.all()
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
-    def resolve_collections(
-        root: ChannelContext[models.Voucher], info, *_args, **kwargs
-    ):
+    def resolve_collections(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.collections.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
@@ -303,14 +299,14 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_countries(root: ChannelContext[models.Voucher], *_args, **_kwargs):
+    def resolve_countries(root: ChannelContext[models.Voucher], _info):
         return [
             types.CountryDisplay(code=country.code, country=country.name)
             for country in root.node.countries
         ]
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_discount_value(root: ChannelContext[models.Voucher], info):
         if not root.channel_slug:
             return None
 
@@ -325,7 +321,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_currency(root: ChannelContext[models.Voucher], info):
         if not root.channel_slug:
             return None
 
@@ -340,7 +336,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_min_spent(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_min_spent(root: ChannelContext[models.Voucher], info):
         if not root.channel_slug:
             return None
 
@@ -355,7 +351,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Voucher], info):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
 
 

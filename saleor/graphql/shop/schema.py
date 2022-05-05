@@ -38,10 +38,10 @@ class ShopQueries(graphene.ObjectType):
     def resolve_shop(self, _info):
         return Shop()
 
-    def resolve_order_settings(self, info, *args, **_kwargs):
+    def resolve_order_settings(self, info):
         return info.context.site.settings
 
-    def resolve_gift_card_settings(self, info, *args, **_kwargs):
+    def resolve_gift_card_settings(self, info):
         return info.context.site.settings
 
 

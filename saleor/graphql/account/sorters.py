@@ -20,7 +20,7 @@ class UserSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_order_count(queryset: QuerySet, **_kwargs) -> QuerySet:
+    def qs_with_order_count(queryset: QuerySet, *, channel_slug=None) -> QuerySet:
         return queryset.annotate(order_count=Count("orders__id"))
 
 

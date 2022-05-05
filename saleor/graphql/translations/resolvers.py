@@ -39,7 +39,7 @@ TYPE_TO_TRANSLATION_LOADER_MAP = {
 }
 
 
-def resolve_translation(instance, info, language_code):
+def resolve_translation(instance, info, *, language_code):
     """Get translation object from instance based on language code."""
 
     loader = TYPE_TO_TRANSLATION_LOADER_MAP.get(type(instance))
@@ -48,11 +48,11 @@ def resolve_translation(instance, info, language_code):
     raise TypeError(f"No dataloader found to {type(instance)}")
 
 
-def resolve_shipping_methods(info):
+def resolve_shipping_methods(_info):
     return shipping_models.ShippingMethod.objects.all()
 
 
-def resolve_attribute_values(info):
+def resolve_attribute_values(_info):
     return attribute_models.AttributeValue.objects.all()
 
 

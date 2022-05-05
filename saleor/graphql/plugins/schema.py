@@ -33,12 +33,14 @@ class PluginsQueries(graphene.ObjectType):
         ],
     )
 
+    @staticmethod
     @traced_resolver
-    def resolve_plugin(self, info, **data):
+    def resolve_plugin(_root, info, **data):
         return resolve_plugin(data.get("id"), info.context.plugins)
 
+    @staticmethod
     @traced_resolver
-    def resolve_plugins(self, info, **kwargs):
+    def resolve_plugins(_root, info, **kwargs):
         qs = resolve_plugins(info.context.plugins, **kwargs)
         return create_connection_slice(qs, info, kwargs, PluginCountableConnection)
 

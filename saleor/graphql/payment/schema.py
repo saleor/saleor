@@ -39,11 +39,13 @@ class PaymentQueries(graphene.ObjectType):
         ],
     )
 
-    def resolve_payment(self, info, **data):
+    @staticmethod
+    def resolve_payment(_root, _info, **data):
         _, id = from_global_id_or_error(data["id"], Payment)
         return resolve_payment_by_id(id)
 
-    def resolve_payments(self, info, **kwargs):
+    @staticmethod
+    def resolve_payments(_root, info, **kwargs):
         qs = resolve_payments(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, PaymentCountableConnection)

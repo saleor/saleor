@@ -212,7 +212,7 @@ class ProductVariantBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_product_variant(root, info, channel=None):
+    def resolve_product_variant(root, _info, channel=None):
         _, variant = root
         return ChannelContext(node=variant, channel_slug=channel)
 
@@ -254,7 +254,7 @@ class ProductVariantBackInStock(ObjectType, ProductVariantBase):
     )
 
     @staticmethod
-    def resolve_product_variant(root, info, channel=None):
+    def resolve_product_variant(root, _info, channel=None):
         _, stock = root
         variant = stock.product_variant
         return ChannelContext(node=variant, channel_slug=channel)
@@ -366,7 +366,7 @@ class CollectionBase(AbstractType):
     )
 
     @staticmethod
-    def resolve_collection(root, info, channel=None):
+    def resolve_collection(root, _info, channel=None):
         _, collection = root
         return ChannelContext(node=collection, channel_slug=channel)
 

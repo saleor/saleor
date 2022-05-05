@@ -34,11 +34,13 @@ class ChannelQueries(graphene.ObjectType):
         ],
     )
 
-    def resolve_channel(self, info, id=None, **kwargs):
+    @staticmethod
+    def resolve_channel(_root, _info, *, id=None, **kwargs):
         _, id = from_global_id_or_error(id, Channel)
         return resolve_channel(id)
 
-    def resolve_channels(self, _info, **kwargs):
+    @staticmethod
+    def resolve_channels(_root, _info, **kwargs):
         return resolve_channels()
 
 
