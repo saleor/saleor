@@ -245,6 +245,10 @@ class VoucherCreate(ModelMutation):
             error.code = DiscountErrorCode.INVALID.value
             raise ValidationError({"end_date": error})
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.voucher_created(instance)
+
 
 class VoucherUpdate(VoucherCreate):
     class Arguments:
@@ -260,6 +264,10 @@ class VoucherUpdate(VoucherCreate):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.voucher_updated(instance)
 
 
 class VoucherDelete(ModelDeleteMutation):
@@ -279,6 +287,10 @@ class VoucherDelete(ModelDeleteMutation):
         instance = ChannelContext(node=instance, channel_slug=None)
         response = super().success_response(instance)
         return response
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.voucher_deleted(instance)
 
 
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
@@ -316,7 +328,12 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )
-        cls.add_catalogues_to_node(voucher, data.get("input"))
+        input_data = data.get("input", {})
+        cls.add_catalogues_to_node(voucher, input_data)
+
+        if input_data:
+            info.context.plugins.voucher_updated(voucher)
+
         return VoucherAddCatalogues(voucher=voucher)
 
 
@@ -332,7 +349,12 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
         voucher = cls.get_node_or_error(
             info, data.get("id"), only_type=Voucher, field="voucher_id"
         )
-        cls.remove_catalogues_from_node(voucher, data.get("input"))
+        input_data = data.get("input", {})
+        cls.remove_catalogues_from_node(voucher, input_data)
+
+        if input_data:
+            info.context.plugins.voucher_updated(voucher)
+
         return VoucherRemoveCatalogues(voucher=voucher)
 
 
@@ -516,6 +538,8 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(voucher, cleaned_input)
+        info.context.plugins.voucher_updated(voucher)
+
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)
         )

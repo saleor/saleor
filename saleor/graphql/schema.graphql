@@ -1469,6 +1469,15 @@ enum WebhookEventTypeEnum {
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+
+  """A new voucher created."""
+  VOUCHER_CREATED
+
+  """A voucher is updated."""
+  VOUCHER_UPDATED
+
+  """A voucher is deleted."""
+  VOUCHER_DELETED
   PAYMENT_AUTHORIZE
   PAYMENT_CAPTURE
   PAYMENT_CONFIRM
@@ -1669,6 +1678,15 @@ enum WebhookEventTypeAsyncEnum {
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+
+  """A new voucher created."""
+  VOUCHER_CREATED
+
+  """A voucher is updated."""
+  VOUCHER_UPDATED
+
+  """A voucher is deleted."""
+  VOUCHER_DELETED
 }
 
 """Represents app data."""
@@ -2181,6 +2199,9 @@ enum WebhookSampleEventTypeEnum {
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+  VOUCHER_CREATED
+  VOUCHER_UPDATED
+  VOUCHER_DELETED
 }
 
 """Represents warehouse."""
@@ -19949,7 +19970,7 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated
+union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted
 
 type CategoryCreated {
   """
@@ -20714,6 +20735,48 @@ type TranslationUpdated {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   translation: TranslationTypes
+}
+
+type VoucherCreated {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+type VoucherUpdated {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+type VoucherDeleted {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
 }
 
 """An enumeration."""

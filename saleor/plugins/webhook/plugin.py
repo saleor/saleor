@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from ...account.models import User
     from ...channel.models import Channel
     from ...checkout.models import Checkout
-    from ...discount.models import Sale
+    from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
@@ -749,6 +749,32 @@ class WebhookPlugin(BasePlugin):
             trigger_webhooks_async(
                 translation_data, event_type, webhooks, translation, self.requestor
             )
+
+    def _trigger_voucher_event(self, event_type, voucher):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Voucher", voucher.id),
+                "name": voucher.name,
+                "code": voucher.code,
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, voucher, self.requestor
+            )
+
+    def voucher_created(self, voucher: "Voucher", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_CREATED, voucher)
+
+    def voucher_updated(self, voucher: "Voucher", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_UPDATED, voucher)
+
+    def voucher_deleted(self, voucher: "Voucher", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_DELETED, voucher)
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
         if not self.active:

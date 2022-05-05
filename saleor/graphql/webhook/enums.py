@@ -41,6 +41,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.GIFT_CARD_UPDATED: "A gift card is updated.",
     WebhookEventAsyncType.GIFT_CARD_DELETED: "A gift card is deleted.",
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: "A gift card status is changed.",
+    WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
+    WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
+    WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
     WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
     WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
     WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,
@@ -65,9 +68,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.SHIPPING_ZONE_CREATED: "A new shipping zone is created.",
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: "A shipping zone is updated.",
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: "A shipping zone is deleted.",
-    WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
-    WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
-    WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
+    WebhookEventAsyncType.VOUCHER_CREATED: "A new voucher created.",
+    WebhookEventAsyncType.VOUCHER_UPDATED: "A voucher is updated.",
+    WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.ANY: "All the events.",
 }
 
