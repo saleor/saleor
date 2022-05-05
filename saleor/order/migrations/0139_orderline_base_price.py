@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("sites", "0002_alter_domain_unique"),
         ("site", "0034_sitesettings_limit_quantity_per_checkout"),
-        ("order", "0137_auto_20220427_0822"),
+        ("order", "0138_auto_20220427_0822"),
     ]
 
     operations = [
