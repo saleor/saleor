@@ -262,7 +262,8 @@ class User(ModelObjectType):
         "saleor.graphql.order.types.OrderCountableConnection",
         description=(
             "List of user's orders. Requires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_STAFF}, {AuthorizationFilters.OWNER}"
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     user_permissions = NonNullList(

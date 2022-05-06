@@ -18,7 +18,7 @@ class WebhookQueries(graphene.ObjectType):
         ),
         description=(
             "Look up a webhook by ID. Requires one of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}"
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     webhook_events = PermissionsField(
