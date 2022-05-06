@@ -9,7 +9,7 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
@@ -817,6 +817,20 @@ class ProductMedia(SortableModel):
 
     def get_ordering_queryset(self):
         return self.product.media.all()
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        super(SortableModel, self).delete(*args, **kwargs)
+
+    @transaction.atomic
+    def set_to_remove(self):
+        self.to_remove = True
+        self.save(update_fields=["to_remove"])
+        if self.sort_order is not None:
+            qs = self.get_ordering_queryset()
+            qs.filter(sort_order__gt=self.sort_order).update(
+                sort_order=F("sort_order") - 1
+            )
 
 
 class VariantMedia(models.Model):
