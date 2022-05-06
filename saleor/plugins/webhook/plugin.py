@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from ...giftcard.models import GiftCard
     from ...graphql.discount.mutations import NodeCatalogueInfo
     from ...invoice.models import Invoice
+    from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
     from ...payment.interface import (
@@ -214,6 +215,61 @@ class WebhookPlugin(BasePlugin):
             trigger_webhooks_async(
                 order_data, event_type, webhooks, order, self.requestor
             )
+
+    def _trigger_menu_event(self, event_type, menu):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Menu", menu.id),
+                "slug": menu.slug,
+            }
+            trigger_webhooks_async(payload, event_type, webhooks, menu, self.requestor)
+
+    def menu_created(self, menu: "Menu", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_menu_event(WebhookEventAsyncType.MENU_CREATED, menu)
+
+    def menu_updated(self, menu: "Menu", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_menu_event(WebhookEventAsyncType.MENU_UPDATED, menu)
+
+    def menu_deleted(self, menu: "Menu", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_menu_event(WebhookEventAsyncType.MENU_DELETED, menu)
+
+    def __trigger_menu_item_event(self, event_type, menu_item):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("MenuItem", menu_item.id),
+                "name": menu_item.name,
+                "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, menu_item, self.requestor
+            )
+
+    def menu_item_created(self, menu_item: "MenuItem", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self.__trigger_menu_item_event(
+            WebhookEventAsyncType.MENU_ITEM_CREATED, menu_item
+        )
+
+    def menu_item_updated(self, menu_item: "MenuItem", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self.__trigger_menu_item_event(
+            WebhookEventAsyncType.MENU_ITEM_UPDATED, menu_item
+        )
+
+    def menu_item_deleted(self, menu_item: "MenuItem", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self.__trigger_menu_item_event(
+            WebhookEventAsyncType.MENU_ITEM_DELETED, menu_item
+        )
 
     def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:

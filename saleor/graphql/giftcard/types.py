@@ -73,15 +73,16 @@ class GiftCardEvent(ModelObjectType):
         "saleor.graphql.account.types.User",
         description=(
             "User who performed the action. Requires one of the following "
-            f"permissions: {AccountPermissions.MANAGE_USERS}, "
-            f"{AccountPermissions.MANAGE_STAFF}, {AuthorizationFilters.OWNER}."
+            f"permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     app = graphene.Field(
         App,
         description=(
             "App that performed the action. Requires one of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     message = graphene.String(description="Content of the event.")
@@ -237,8 +238,8 @@ class GiftCard(ModelObjectType):
     code = graphene.String(
         description=(
             "Gift card code. Can be fetched by a staff member with "
-            f"{GiftcardPermissions.MANAGE_GIFT_CARD} when gift card wasn't yet used "
-            "and by the gift card owner."
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name} when gift card wasn't yet "
+            "used and by the gift card owner."
         ),
         required=True,
     )
@@ -262,7 +263,8 @@ class GiftCard(ModelObjectType):
             + ADDED_IN_31
             + PREVIEW_FEATURE
             + "\n\nRequires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS}, {AuthorizationFilters.OWNER}."
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     used_by_email = graphene.String(
@@ -282,7 +284,7 @@ class GiftCard(ModelObjectType):
             + ADDED_IN_31
             + PREVIEW_FEATURE
             + "\n\nRequires one of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     product = graphene.Field(
