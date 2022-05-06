@@ -8,7 +8,7 @@ import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
 from django.db import transaction
-from django.db.models import Exists, F, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
