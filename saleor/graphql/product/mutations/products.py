@@ -1806,8 +1806,7 @@ class ProductMediaDelete(BaseMutation):
                 }
             )
         media_id = media_obj.id
-        media_obj.to_remove = True
-        media_obj.save(update_fields=["to_remove"])
+        media_obj.set_to_remove()
         delete_product_media_task.delay(media_id)
         media_obj.id = media_id
         product = models.Product.objects.prefetched_for_webhook().get(
