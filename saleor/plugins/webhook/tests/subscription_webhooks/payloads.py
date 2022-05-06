@@ -2,6 +2,8 @@ import json
 
 import graphene
 
+from saleor.product.models import Product
+
 
 def generate_taxed_money_payload(taxed_money):
     return {
@@ -161,6 +163,8 @@ def generate_invoice_payload(invoice):
 
 
 def generate_category_payload(category):
+    tree = category.get_descendants(include_self=True)
+    products = Product.objects.all().filter(category__in=tree)
     return {
         "category": {
             "id": graphene.Node.to_global_id("Category", category.id),
@@ -175,7 +179,7 @@ def generate_category_payload(category):
                             "name": product.name,
                         }
                     }
-                    for product in category.products.all()
+                    for product in products
                 ]
             },
         },
