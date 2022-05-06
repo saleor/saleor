@@ -1,8 +1,191 @@
 from ..queries import fragments
 
+GIFT_CARD_CREATED = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardCreated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+GIFT_CARD_UPDATED = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardUpdated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+GIFT_CARD_DELETED = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardDeleted{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+GIFT_CARD_STATUS_CHANGED = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardStatusChanged{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+SHIPPING_PRICE_CREATED = """
+    subscription{
+      event{
+        ...on ShippingPriceCreated{
+          shippingMethod{
+            id
+            name
+            channelListings {
+              channel {
+                name
+              }
+            }
+          }
+          shippingZone{
+            id
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+VOUCHER_CREATED = (
+    fragments.VOUCHER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherCreated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+VOUCHER_UPDATED = (
+    fragments.VOUCHER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherUpdated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+VOUCHER_DELETED = (
+    fragments.VOUCHER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherDeleted{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+CHANNEL_CREATED = """
+    subscription{
+      event{
+        ...on ChannelCreated{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+CHANNEL_UPDATED = """
+    subscription{
+      event{
+        ...on ChannelUpdated{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+CHANNEL_DELETED = """
+    subscription{
+      event{
+        ...on ChannelDeleted{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+CHANNEL_STATUS_CHANGED = """
+    subscription{
+      event{
+        ...on ChannelStatusChanged{
+          channel{
+            id
+            isActive
+          }
+        }
+      }
+    }
+"""
+
 
 CATEGORY_CREATED = (
-    fragments.CATEGORY_DETAILS + """
+    fragments.CATEGORY_DETAILS
+    + """
     subscription{
       event{
         ...on CategoryCreated{
@@ -16,7 +199,8 @@ CATEGORY_CREATED = (
 )
 
 CATEGORY_UPDATED = (
-    fragments.CATEGORY_DETAILS + """
+    fragments.CATEGORY_DETAILS
+    + """
     subscription{
       event{
         ...on CategoryUpdated{
@@ -43,7 +227,8 @@ CATEGORY_DELETED = """
 
 
 SHIPPING_PRICE_CREATED = (
-    fragments.SHIPPING_METHOD_DETAILS + """
+    fragments.SHIPPING_METHOD_DETAILS
+    + """
     subscription{
       event{
         ...on ShippingPriceCreated{
@@ -61,7 +246,8 @@ SHIPPING_PRICE_CREATED = (
 )
 
 SHIPPING_PRICE_UPDATED_UPDATED = (
-    fragments.SHIPPING_METHOD_DETAILS + """
+    fragments.SHIPPING_METHOD_DETAILS
+    + """
     subscription{
       event{
         ...on ShippingPriceUpdated{
@@ -348,7 +534,8 @@ DRAFT_ORDER_DELETED = """
 """
 
 SALE_CREATED = (
-    fragments.SALE_DETAILS + """
+    fragments.SALE_DETAILS
+    + """
     subscription{
       event{
         ...on SaleCreated{
@@ -362,7 +549,8 @@ SALE_CREATED = (
 )
 
 SALE_UPDATED = (
-    fragments.SALE_DETAILS + """
+    fragments.SALE_DETAILS
+    + """
     subscription{
       event{
         ...on SaleUpdated{
@@ -376,7 +564,8 @@ SALE_UPDATED = (
 )
 
 SALE_DELETED = (
-    fragments.SALE_DETAILS + """
+    fragments.SALE_DETAILS
+    + """
     subscription{
       event{
         ...on SaleDeleted{
@@ -390,7 +579,8 @@ SALE_DELETED = (
 )
 
 INVOICE_REQUESTED = (
-    fragments.INVOICE_DETAILS + """
+    fragments.INVOICE_DETAILS
+    + """
     subscription{
       event{
         ...on InvoiceRequested{
@@ -404,7 +594,8 @@ INVOICE_REQUESTED = (
 )
 
 INVOICE_DELETED = (
-    fragments.INVOICE_DETAILS + """
+    fragments.INVOICE_DETAILS
+    + """
     subscription{
       event{
         ...on InvoiceDeleted{
@@ -418,7 +609,8 @@ INVOICE_DELETED = (
 )
 
 INVOICE_SENT = (
-    fragments.INVOICE_DETAILS + """
+    fragments.INVOICE_DETAILS
+    + """
     subscription{
       event{
         ...on InvoiceSent{
@@ -432,7 +624,8 @@ INVOICE_SENT = (
 )
 
 FULFILLMENT_CREATED = (
-    fragments.FULFILLMENT_DETAILS + """
+    fragments.FULFILLMENT_DETAILS
+    + """
     subscription{
       event{
         ...on FulfillmentCreated{
@@ -442,10 +635,12 @@ FULFILLMENT_CREATED = (
         }
       }
     }
-""")
+"""
+)
 
 FULFILLMENT_CANCELED = (
-    fragments.FULFILLMENT_DETAILS + """
+    fragments.FULFILLMENT_DETAILS
+    + """
     subscription{
       event{
         ...on FulfillmentCanceled{
@@ -455,10 +650,12 @@ FULFILLMENT_CANCELED = (
         }
       }
     }
-""")
+"""
+)
 
 CUSTOMER_CREATED = (
-    fragments.USER_DETAILS + """
+    fragments.USER_DETAILS
+    + """
     subscription{
       event{
         ...on CustomerCreated{
@@ -472,7 +669,8 @@ CUSTOMER_CREATED = (
 )
 
 CUSTOMER_UPDATED = (
-    fragments.USER_DETAILS + """
+    fragments.USER_DETAILS
+    + """
     subscription{
       event{
         ...on CustomerUpdated{
@@ -482,10 +680,12 @@ CUSTOMER_UPDATED = (
         }
       }
     }
-""")
+"""
+)
 
 COLLECTION_CREATED = (
-    fragments.COLLECTION + """
+    fragments.COLLECTION
+    + """
     subscription{
       event{
         ...on CollectionCreated{
@@ -499,7 +699,8 @@ COLLECTION_CREATED = (
 )
 
 COLLECTION_UPDATED = (
-    fragments.COLLECTION + """
+    fragments.COLLECTION
+    + """
     subscription{
       event{
         ...on CollectionUpdated{
@@ -513,7 +714,8 @@ COLLECTION_UPDATED = (
 )
 
 COLLECTION_DELETED = (
-    fragments.COLLECTION + """
+    fragments.COLLECTION
+    + """
     subscription{
       event{
         ...on CollectionDeleted{
@@ -552,7 +754,8 @@ CHECKOUT_UPDATED = """
 """
 
 PAGE_CREATED = (
-    fragments.PAGE_DETAILS + """
+    fragments.PAGE_DETAILS
+    + """
     subscription{
       event{
         ...on PageCreated{
@@ -566,7 +769,8 @@ PAGE_CREATED = (
 )
 
 PAGE_UPDATED = (
-    fragments.PAGE_DETAILS + """
+    fragments.PAGE_DETAILS
+    + """
     subscription{
       event{
         ...on PageUpdated{
@@ -580,7 +784,8 @@ PAGE_UPDATED = (
 )
 
 PAGE_DELETED = (
-    fragments.PAGE_DETAILS + """
+    fragments.PAGE_DETAILS
+    + """
     subscription{
       event{
         ...on PageDeleted{

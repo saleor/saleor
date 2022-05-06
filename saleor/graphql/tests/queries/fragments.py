@@ -149,7 +149,8 @@ fragment ShippingMethodType on ShippingMethodType{
 
 
 SHIPPING_ZONE_DETAILS = (
-    SHIPPING_METHOD_TYPE + """
+    SHIPPING_METHOD_TYPE
+    + """
 fragment ShippingZoneDetails on ShippingZone {
   id
   countries {
@@ -164,7 +165,8 @@ fragment ShippingZoneDetails on ShippingZone {
 )
 
 WAREHOUSE_DETAILS = (
-    SHIPPING_ZONE_DETAILS + """
+    SHIPPING_ZONE_DETAILS
+    + """
 fragment WarehouseDetails on Warehouse {
   id
   name
@@ -177,7 +179,8 @@ fragment WarehouseDetails on Warehouse {
     }
   }
 }
-""")
+"""
+)
 
 
 FULFILLMENT_DETAILS = (
@@ -227,7 +230,8 @@ fragment AddressDetails on Address {
 
 
 USER_DETAILS = (
-    ADDRESS_DETAILS + """
+    ADDRESS_DETAILS
+    + """
 fragment UserDetails on User {
   email
   firstName
@@ -258,7 +262,8 @@ fragment BasicProductFields on Product {
 
 
 COLLECTION = (
-    BASIC_PRODUCT_FIELDS + """
+    BASIC_PRODUCT_FIELDS
+    + """
     fragment CollectionDetails on Collection {
       id
       name
@@ -283,7 +288,7 @@ fragment PageDetails on Page{
   content
   slug
   isPublished
-  publicationDate
+  publishedAt
   pageType {
     id
   }
@@ -322,4 +327,25 @@ fragment SaleDetails on Sale {
     }
   }
 }
+"""
+
+GIFT_CARD_DETAILS = """
+    fragment GiftCardDetails on GiftCard{
+        id
+        isActive
+        code
+        createdBy {
+            email
+        }
+    }
+"""
+
+
+VOUCHER_DETAILS = """
+    fragment VoucherDetails on Voucher{
+        id
+        name
+        code
+        usageLimit
+    }
 """

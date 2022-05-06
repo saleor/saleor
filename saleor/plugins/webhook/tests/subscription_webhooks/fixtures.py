@@ -23,234 +23,80 @@ def subscription_webhook(webhook_app):
 @pytest.fixture
 def subscription_category_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CATEGORY_CREATED,
-        WebhookEventAsyncType.CATEGORY_CREATED
+        subscription_queries.CATEGORY_CREATED, WebhookEventAsyncType.CATEGORY_CREATED
     )
 
 
 @pytest.fixture
 def subscription_category_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CATEGORY_UPDATED,
-        WebhookEventAsyncType.CATEGORY_UPDATED
+        subscription_queries.CATEGORY_UPDATED, WebhookEventAsyncType.CATEGORY_UPDATED
     )
 
 
 @pytest.fixture
 def subscription_category_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CATEGORY_DELETED,
-        WebhookEventAsyncType.CATEGORY_DELETED
+        subscription_queries.CATEGORY_DELETED, WebhookEventAsyncType.CATEGORY_DELETED
     )
-
-
-CHANNEL_CREATED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on ChannelCreated{
-          channel{
-            id
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
 def subscription_channel_created_webhook(subscription_webhook):
     return subscription_webhook(
-        CHANNEL_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_CREATED
+        subscription_queries.CHANNEL_CREATED, WebhookEventAsyncType.CHANNEL_CREATED
     )
-
-
-CHANNEL_UPDATED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on ChannelUpdated{
-          channel{
-            id
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
 def subscription_channel_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        CHANNEL_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_UPDATED
+        subscription_queries.CHANNEL_UPDATED, WebhookEventAsyncType.CHANNEL_UPDATED
     )
-
-
-CHANNEL_DELETED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on ChannelDeleted{
-          channel{
-            id
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
 def subscription_channel_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        CHANNEL_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_DELETED
+        subscription_queries.CHANNEL_DELETED, WebhookEventAsyncType.CHANNEL_DELETED
     )
-
-
-CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on ChannelStatusChanged{
-          channel{
-            id
-            isActive
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
 def subscription_channel_status_changed_webhook(subscription_webhook):
     return subscription_webhook(
-        CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        subscription_queries.CHANNEL_STATUS_CHANGED,
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
     )
-
-
-GIFT_CARD_DETAILS_FRAGMENT = """
-    fragment GiftCardDetails on GiftCard{
-        id
-        isActive
-        code
-        createdBy {
-            email
-        }
-    }
-"""
-
-GIFT_CARD_CREATED_SUBSCRIPTION_QUERY = (
-    GIFT_CARD_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on GiftCardCreated{
-          giftCard{
-            ...GiftCardDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_gift_card_created_webhook(subscription_webhook):
     return subscription_webhook(
-        GIFT_CARD_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_CREATED
+        subscription_queries.GIFT_CARD_CREATED, WebhookEventAsyncType.GIFT_CARD_CREATED
     )
-
-
-GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY = (
-    GIFT_CARD_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on GiftCardUpdated{
-          giftCard{
-            ...GiftCardDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_gift_card_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_UPDATED
+        subscription_queries.GIFT_CARD_UPDATED, WebhookEventAsyncType.GIFT_CARD_UPDATED
     )
-
-
-GIFT_CARD_DELETED_SUBSCRIPTION_QUERY = (
-    GIFT_CARD_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on GiftCardDeleted{
-          giftCard{
-            ...GiftCardDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_gift_card_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        GIFT_CARD_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_DELETED
+        subscription_queries.GIFT_CARD_DELETED, WebhookEventAsyncType.GIFT_CARD_DELETED
     )
-
-
-GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
-    GIFT_CARD_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on GiftCardStatusChanged{
-          giftCard{
-            ...GiftCardDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_gift_card_status_changed_webhook(subscription_webhook):
     return subscription_webhook(
-        GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        subscription_queries.GIFT_CARD_STATUS_CHANGED,
         WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
     )
-
-
-SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on ShippingPriceCreated{
-          shippingMethod{
-            id
-            name
-            channelListings {
-              channel {
-                name
-              }
-            }
-          }
-          shippingZone{
-            id
-            name
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
@@ -304,24 +150,21 @@ def subscription_shipping_zone_deleted_webhook(subscription_webhook):
 @pytest.fixture
 def subscription_product_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.PRODUCT_UPDATED,
-        WebhookEventAsyncType.PRODUCT_UPDATED
+        subscription_queries.PRODUCT_UPDATED, WebhookEventAsyncType.PRODUCT_UPDATED
     )
 
 
 @pytest.fixture
 def subscription_product_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.PRODUCT_CREATED,
-        WebhookEventAsyncType.PRODUCT_CREATED
+        subscription_queries.PRODUCT_CREATED, WebhookEventAsyncType.PRODUCT_CREATED
     )
 
 
 @pytest.fixture
 def subscription_product_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.PRODUCT_DELETED,
-        WebhookEventAsyncType.PRODUCT_DELETED
+        subscription_queries.PRODUCT_DELETED, WebhookEventAsyncType.PRODUCT_DELETED
     )
 
 
@@ -368,47 +211,42 @@ def subscription_product_variant_back_in_stock_webhook(subscription_webhook):
 @pytest.fixture
 def subscription_order_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.ORDER_CREATED,
-        WebhookEventAsyncType.ORDER_CREATED
+        subscription_queries.ORDER_CREATED, WebhookEventAsyncType.ORDER_CREATED
     )
 
 
 @pytest.fixture
 def subscription_order_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.ORDER_UPDATED,
-        WebhookEventAsyncType.ORDER_UPDATED
+        subscription_queries.ORDER_UPDATED, WebhookEventAsyncType.ORDER_UPDATED
     )
 
 
 @pytest.fixture
 def subscription_order_confirmed_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.ORDER_CONFIRMED,
-        WebhookEventAsyncType.ORDER_CONFIRMED
+        subscription_queries.ORDER_CONFIRMED, WebhookEventAsyncType.ORDER_CONFIRMED
     )
 
 
 @pytest.fixture
 def subscription_order_fully_paid_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.ORDER_FULLY_PAID,
-        WebhookEventAsyncType.ORDER_FULLY_PAID
+        subscription_queries.ORDER_FULLY_PAID, WebhookEventAsyncType.ORDER_FULLY_PAID
     )
+
 
 @pytest.fixture
 def subscription_order_cancelled_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.ORDER_CANCELLED,
-        WebhookEventAsyncType.ORDER_CANCELLED
+        subscription_queries.ORDER_CANCELLED, WebhookEventAsyncType.ORDER_CANCELLED
     )
 
 
 @pytest.fixture
 def subscription_order_fulfilled_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.ORDER_FULFILLED,
-        WebhookEventAsyncType.ORDER_FULFILLED
+        subscription_queries.ORDER_FULFILLED, WebhookEventAsyncType.ORDER_FULFILLED
     )
 
 
@@ -427,6 +265,7 @@ def subscription_draft_order_updated_webhook(subscription_webhook):
         WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
     )
 
+
 @pytest.fixture
 def subscription_draft_order_deleted_webhook(subscription_webhook):
     return subscription_webhook(
@@ -438,48 +277,42 @@ def subscription_draft_order_deleted_webhook(subscription_webhook):
 @pytest.fixture
 def subscription_sale_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.SALE_CREATED,
-        WebhookEventAsyncType.SALE_CREATED
+        subscription_queries.SALE_CREATED, WebhookEventAsyncType.SALE_CREATED
     )
 
 
 @pytest.fixture
 def subscription_sale_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.SALE_UPDATED,
-        WebhookEventAsyncType.SALE_UPDATED
+        subscription_queries.SALE_UPDATED, WebhookEventAsyncType.SALE_UPDATED
     )
+
 
 @pytest.fixture
 def subscription_sale_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.SALE_DELETED,
-        WebhookEventAsyncType.SALE_DELETED
+        subscription_queries.SALE_DELETED, WebhookEventAsyncType.SALE_DELETED
     )
-
 
 
 @pytest.fixture
 def subscription_invoice_requested_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.INVOICE_REQUESTED,
-        WebhookEventAsyncType.INVOICE_REQUESTED
+        subscription_queries.INVOICE_REQUESTED, WebhookEventAsyncType.INVOICE_REQUESTED
     )
 
 
 @pytest.fixture
 def subscription_invoice_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.INVOICE_DELETED,
-        WebhookEventAsyncType.INVOICE_DELETED
+        subscription_queries.INVOICE_DELETED, WebhookEventAsyncType.INVOICE_DELETED
     )
 
 
 @pytest.fixture
 def subscription_invoice_sent_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.INVOICE_SENT,
-        WebhookEventAsyncType.INVOICE_SENT
+        subscription_queries.INVOICE_SENT, WebhookEventAsyncType.INVOICE_SENT
     )
 
 
@@ -491,7 +324,6 @@ def subscription_fulfillment_created_webhook(subscription_webhook):
     )
 
 
-
 @pytest.fixture
 def subscription_fulfillment_canceled_webhook(subscription_webhook):
     return subscription_webhook(
@@ -500,27 +332,25 @@ def subscription_fulfillment_canceled_webhook(subscription_webhook):
     )
 
 
-
 @pytest.fixture
 def subscription_customer_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CUSTOMER_CREATED,
-        WebhookEventAsyncType.CUSTOMER_CREATED
+        subscription_queries.CUSTOMER_CREATED, WebhookEventAsyncType.CUSTOMER_CREATED
     )
 
 
 @pytest.fixture
 def subscription_customer_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CUSTOMER_UPDATED,
-        WebhookEventAsyncType.CUSTOMER_UPDATED
+        subscription_queries.CUSTOMER_UPDATED, WebhookEventAsyncType.CUSTOMER_UPDATED
     )
+
 
 @pytest.fixture
 def subscription_collection_created_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.COLLECTION_CREATED,
-        WebhookEventAsyncType.COLLECTION_CREATED
+        WebhookEventAsyncType.COLLECTION_CREATED,
     )
 
 
@@ -528,40 +358,36 @@ def subscription_collection_created_webhook(subscription_webhook):
 def subscription_collection_updated_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.COLLECTION_UPDATED,
-        WebhookEventAsyncType.COLLECTION_UPDATED
+        WebhookEventAsyncType.COLLECTION_UPDATED,
     )
-
 
 
 @pytest.fixture
 def subscription_collection_deleted_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.COLLECTION_DELETED,
-        WebhookEventAsyncType.COLLECTION_DELETED
+        WebhookEventAsyncType.COLLECTION_DELETED,
     )
 
 
 @pytest.fixture
 def subscription_checkout_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CHECKOUT_CREATED,
-        WebhookEventAsyncType.CHECKOUT_CREATED
+        subscription_queries.CHECKOUT_CREATED, WebhookEventAsyncType.CHECKOUT_CREATED
     )
 
 
 @pytest.fixture
 def subscription_checkout_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.CHECKOUT_UPDATED,
-        WebhookEventAsyncType.CHECKOUT_UPDATED
+        subscription_queries.CHECKOUT_UPDATED, WebhookEventAsyncType.CHECKOUT_UPDATED
     )
 
 
 @pytest.fixture
 def subscription_page_created_webhook(subscription_webhook):
     return subscription_webhook(
-        subscription_queries.PAGE_CREATED,
-        WebhookEventAsyncType.PAGE_CREATED
+        subscription_queries.PAGE_CREATED, WebhookEventAsyncType.PAGE_CREATED
     )
 
 
@@ -605,79 +431,22 @@ def subscription_translation_updated_webhook(subscription_webhook):
     )
 
 
-VOUCHER_DETAILS_FRAGMENT = """
-    fragment VoucherDetails on Voucher{
-        id
-        name
-        code
-        usageLimit
-    }
-"""
-
-VOUCHER_CREATED_SUBSCRIPTION_QUERY = (
-    VOUCHER_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on VoucherCreated{
-          voucher{
-            ...VoucherDetails
-          }
-        }
-      }
-    }
-"""
-)
-
-
 @pytest.fixture
 def subscription_voucher_created_webhook(subscription_webhook):
     return subscription_webhook(
-        VOUCHER_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_CREATED
+        subscription_queries.VOUCHER_CREATED, WebhookEventAsyncType.VOUCHER_CREATED
     )
-
-
-VOUCHER_UPDATED_SUBSCRIPTION_QUERY = (
-    VOUCHER_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on VoucherUpdated{
-          voucher{
-            ...VoucherDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_voucher_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        VOUCHER_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_UPDATED
+        subscription_queries.VOUCHER_UPDATED, WebhookEventAsyncType.VOUCHER_UPDATED
     )
-
-
-VOUCHER_DELETED_SUBSCRIPTION_QUERY = (
-    VOUCHER_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on VoucherDeleted{
-          voucher{
-            ...VoucherDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_voucher_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        VOUCHER_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_DELETED
+        subscription_queries.VOUCHER_DELETED, WebhookEventAsyncType.VOUCHER_DELETED
     )
