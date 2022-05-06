@@ -23,7 +23,7 @@ from .payloads import (
     generate_page_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
-    generate_voucher_payload,
+    generate_voucher_payload, generate_menu_payload, generate_menu_item_payload,
 )
 
 
@@ -254,26 +254,6 @@ def test_gift_card_status_changed(
     assert deliveries[0].webhook == webhooks[0]
 
 
-def generate_expected_payload_for_menu(menu, menu_global_id):
-    return json.dumps(
-        {
-            "menu": {
-                "id": menu_global_id,
-                "name": menu.name,
-                "slug": menu.slug,
-                "items": [
-                    {
-                        "id": graphene.Node.to_global_id(item.id, "MenuItem"),
-                        "name": item.name,
-                    }
-                    for item in menu.items.all()
-                ],
-            },
-            "meta": None,
-        }
-    )
-
-
 def test_menu_created(menu, subscription_menu_created_webhook):
     # given
     webhooks = [subscription_menu_created_webhook]
@@ -284,7 +264,7 @@ def test_menu_created(menu, subscription_menu_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_menu(menu, menu_id)
+    expected_payload = json.dumps(generate_menu_payload(menu, menu_id))
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -300,7 +280,7 @@ def test_menu_updated(menu, subscription_menu_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_menu(menu, menu_id)
+    expected_payload = json.dumps(generate_menu_payload(menu, menu_id))
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -323,29 +303,11 @@ def test_menu_deleted(menu, subscription_menu_deleted_webhook):
     )
 
     # then
-    expected_payload = generate_expected_payload_for_menu(menu, menu_id)
+    expected_payload = json.dumps(generate_menu_payload(menu, menu_id))
     assert menu_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
-
-
-def generate_expected_payload_for_menu_item(menu_item, menu_item_global_id):
-    return json.dumps(
-        {
-            "menuItem": {
-                "id": menu_item_global_id,
-                "name": menu_item.name,
-                "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)}
-                if menu_item.menu_id
-                else None,
-                "page": {"id": graphene.Node.to_global_id("Page", menu_item.page_id)}
-                if menu_item.page_id
-                else None,
-            },
-            "meta": None,
-        }
-    )
 
 
 def test_menu_item_created(menu_item, subscription_menu_item_created_webhook):
@@ -358,7 +320,7 @@ def test_menu_item_created(menu_item, subscription_menu_item_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu_item, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_menu_item(menu_item, menu_item_id)
+    expected_payload = json.dumps(generate_menu_item_payload(menu_item, menu_item_id))
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -374,7 +336,7 @@ def test_menu_item_updated(menu_item, subscription_menu_item_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu_item, webhooks)
 
     # then
-    expected_payload = generate_expected_payload_for_menu_item(menu_item, menu_item_id)
+    expected_payload = json.dumps(generate_menu_item_payload(menu_item, menu_item_id))
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -397,9 +359,9 @@ def test_menu_item_deleted(menu_item, subscription_menu_item_deleted_webhook):
     )
 
     # then
-    expected_payload = generate_expected_payload_for_menu_item(
+    expected_payload = json.dumps(generate_menu_item_payload(
         menu_item_instances[0], menu_item_id
-    )
+    ))
     assert menu_item_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)

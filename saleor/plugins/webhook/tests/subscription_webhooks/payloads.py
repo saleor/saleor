@@ -260,3 +260,37 @@ def generate_gift_card_payload(gift_card, card_global_id):
             "meta": None,
         }
     )
+
+
+def generate_menu_payload(menu, menu_global_id):
+    return {
+        "menu": {
+            "id": menu_global_id,
+            "name": menu.name,
+            "slug": menu.slug,
+            "items": [
+                {
+                    "id": graphene.Node.to_global_id(item.id, "MenuItem"),
+                    "name": item.name,
+                }
+                for item in menu.items.all()
+            ],
+        },
+        "meta": None,
+    }
+
+
+def generate_menu_item_payload(menu_item, menu_item_global_id):
+    return {
+        "menuItem": {
+            "id": menu_item_global_id,
+            "name": menu_item.name,
+            "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)}
+            if menu_item.menu_id
+            else None,
+            "page": {"id": graphene.Node.to_global_id("Page", menu_item.page_id)}
+            if menu_item.page_id
+            else None,
+        },
+        "meta": None,
+    }
