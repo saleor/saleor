@@ -81,7 +81,8 @@ class MenuItem(ChannelContextTypeWithMetadata, ModelObjectType):
         Page,
         description=(
             "A page associated with this menu item. Requires one of the following "
-            f"permissions to include unpublished items: {PagePermissions.MANAGE_PAGES}."
+            f"permissions to include unpublished items: "
+            f"{PagePermissions.MANAGE_PAGES.name}."
         ),
     )
     level = graphene.Int(required=True)
