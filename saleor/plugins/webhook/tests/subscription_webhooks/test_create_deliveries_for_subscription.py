@@ -35,9 +35,7 @@ def test_category_created(
     webhooks = [subscription_category_created_webhook]
     event_type = WebhookEventAsyncType.CATEGORY_CREATED
     expected_payload = generate_category_payload(parent_category)
-    import ipdb
 
-    ipdb.set_trace()
     # when
     deliveries = create_deliveries_for_subscriptions(
         event_type, parent_category, webhooks
@@ -924,9 +922,7 @@ def test_voucher_created(voucher, subscription_voucher_created_webhook):
     webhooks = [subscription_voucher_created_webhook]
     event_type = WebhookEventAsyncType.VOUCHER_CREATED
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    import ipdb
 
-    ipdb.set_trace()
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
 
