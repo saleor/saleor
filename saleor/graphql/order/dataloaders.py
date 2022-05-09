@@ -128,11 +128,36 @@ class FulfillmentLinesByIdLoader(DataLoader):
         return [fulfillment_lines.get(line_id) for line_id in keys]
 
 
+class FulfillmentLinesByFulfillmentIdLoader(DataLoader):
+    context_key = "fulfillment_lines_by_fulfillment_id"
+
+    def batch_load(self, keys):
+        fulfillment_lines = (
+            FulfillmentLine.objects.using(self.database_connection_name)
+            .filter(fulfillment_id__in=keys)
+            .order_by("pk")
+        )
+        fulfillment_lines_map = defaultdict(list)
+
+        for fulfillment_line in fulfillment_lines:
+            fulfillment_lines_map[fulfillment_line.fulfillment_id].append(
+                fulfillment_line
+            )
+
+        return [
+            fulfillment_lines_map.get(fulfillment_id, []) for fulfillment_id in keys
+        ]
+
+
 class TransactionItemsByOrderIDLoader(DataLoader):
     context_key = "transaction_items_by_order_id"
 
     def batch_load(self, keys):
-        transactions = TransactionItem.objects.filter(order_id__in=keys).order_by("pk")
+        transactions = (
+            TransactionItem.objects.using(self.database_connection_name)
+            .filter(order_id__in=keys)
+            .order_by("pk")
+        )
         transactions_map = defaultdict(list)
         for transaction in transactions:
             transactions_map[transaction.order_id].append(transaction)

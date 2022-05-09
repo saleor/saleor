@@ -105,6 +105,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByFulfillmentIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -479,8 +480,8 @@ class Fulfillment(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_lines(root: models.Fulfillment, _info):
-        return root.lines.all()
+    def resolve_lines(root: models.Fulfillment, info):
+        return FulfillmentLinesByFulfillmentIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_status_display(root: models.Fulfillment, _info):
