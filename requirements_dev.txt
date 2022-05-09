@@ -113,7 +113,7 @@ maxminddb==2.2.0; python_version >= "3.6"
 mccabe==0.6.1; python_version >= "3.6" and python_full_version >= "3.6.2"
 measurement==3.2.0
 micawber==0.5.4
-mock==1.0.1
+mock==4.0.3
 mpmath==1.2.1; python_version >= "3.7"
 multidict==6.0.2; python_version >= "3.7"
 mypy-extensions==0.4.3; python_full_version >= "3.6.2" and python_version >= "3.6"
