@@ -1,6 +1,7 @@
 import graphene
 
 from saleor.graphql.core.connection import CountableDjangoObjectType
+from saleor.graphql.meta.types import ObjectWithMetadata
 from saleor.graphql.warehouse.types import Warehouse
 from saleor.graphql.product.types import ProductVariant
 from .. import models
