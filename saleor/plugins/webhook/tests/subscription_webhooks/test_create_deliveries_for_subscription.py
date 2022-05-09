@@ -20,10 +20,12 @@ from .payloads import (
     generate_fulfillment_payload,
     generate_gift_card_payload,
     generate_invoice_payload,
+    generate_menu_item_payload,
+    generate_menu_payload,
     generate_page_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
-    generate_voucher_payload, generate_menu_payload, generate_menu_item_payload,
+    generate_voucher_payload,
 )
 
 
@@ -359,9 +361,9 @@ def test_menu_item_deleted(menu_item, subscription_menu_item_deleted_webhook):
     )
 
     # then
-    expected_payload = json.dumps(generate_menu_item_payload(
-        menu_item_instances[0], menu_item_id
-    ))
+    expected_payload = json.dumps(
+        generate_menu_item_payload(menu_item_instances[0], menu_item_id)
+    )
     assert menu_item_instances[0].id is not None
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
