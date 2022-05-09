@@ -11,7 +11,7 @@ documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
   python = "~3.9"
-  babel = ">=2.8,<2.10"
+  babel = ">=2.8,<2.11"
   boto3 = "^1.22"
   braintree = ">=4.2,<4.16"
   dj-database-url = "^0"
@@ -64,7 +64,7 @@ documentation = "https://docs.saleor.io/"
   sendgrid = "^6.7.1"
   micawber = "^0.5.2"
   django-celery-beat = "^2.2.1"
-  posuto = "^2022.3.0"
+  posuto = "^2022.5.0"
   cryptography = "^36.0.0"
   graphene = "<3.0"
   uvicorn = {extras = ["standard"], version = "^0.17.5"}
