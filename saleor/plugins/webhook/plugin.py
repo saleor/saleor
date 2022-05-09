@@ -93,6 +93,35 @@ class WebhookPlugin(BasePlugin):
         super().__init__(*args, **kwargs)
         self.active = True
 
+    def _trigger_app_event(self, event_type, app):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("App", app.id),
+                "is_active": app.is_active,
+                "name": app.name,
+            }
+            trigger_webhooks_async(payload, event_type, webhooks, app, self.requestor)
+
+    def app_created(self, app: "App", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_app_event(WebhookEventAsyncType.APP_CREATED, app)
+
+    def app_updated(self, app: "App", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_app_event(WebhookEventAsyncType.APP_UPDATED, app)
+
+    def app_deleted(self, app: "App", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_app_event(WebhookEventAsyncType.APP_DELETED, app)
+
+    def app_status_changed(self, app: "App", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_app_event(WebhookEventAsyncType.APP_STATUS_CHANGED, app)
+
     def category_created(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value

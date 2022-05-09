@@ -19,6 +19,109 @@ def subscription_webhook(webhook_app):
     return fun
 
 
+APP_DETAILS_FRAGMENT = """
+    fragment AppDetails on App{
+        id
+        isActive
+        name
+        appUrl
+    }
+"""
+
+
+APP_CREATED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppCreated{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_CREATED
+    )
+
+
+APP_UPDATED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppUpdated{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_UPDATED
+    )
+
+
+APP_DELETED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppDeleted{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_DELETED
+    )
+
+
+APP_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppStatusChanged{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_status_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+    )
+
+
 CATEGORY_CREATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{

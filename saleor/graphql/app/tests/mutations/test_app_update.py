@@ -1,7 +1,11 @@
+from unittest import mock
+
 import graphene
+from django.utils.functional import SimpleLazyObject
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App, AppToken
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core.enums import PermissionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -69,6 +73,57 @@ def test_app_update_mutation(
         permission_manage_products,
         permission_manage_users,
     }
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_app_update_trigger_mutation(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    app_with_token,
+    permission_manage_apps,
+    permission_manage_products,
+    permission_manage_users,
+    staff_api_client,
+    staff_user,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
+    app_global_id = graphene.Node.to_global_id("App", app_with_token.id)
+
+    variables = {
+        "id": app_global_id,
+        "permissions": [
+            PermissionEnum.MANAGE_PRODUCTS.name,
+            PermissionEnum.MANAGE_USERS.name,
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_UPDATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+    app_with_token.refresh_from_db()
+
+    # then
+    assert content["data"]["appUpdate"]["app"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "is_active": app_with_token.is_active,
+            "name": app_with_token.name,
+        },
+        WebhookEventAsyncType.APP_UPDATED,
+        [any_webhook],
+        app_with_token,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_app_update_mutation_for_app(
