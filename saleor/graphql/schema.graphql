@@ -1321,13 +1321,13 @@ enum WebhookEventTypeEnum {
   """A new app created."""
   APP_CREATED
 
-  """A app updated."""
+  """An app updated."""
   APP_UPDATED
 
-  """A app deleted."""
+  """An app deleted."""
   APP_DELETED
 
-  """A app status is changed."""
+  """An app status is changed."""
   APP_STATUS_CHANGED
 
   """A new category created."""
@@ -1560,13 +1560,13 @@ enum WebhookEventTypeAsyncEnum {
   """A new app created."""
   APP_CREATED
 
-  """A app updated."""
+  """An app updated."""
   APP_UPDATED
 
-  """A app deleted."""
+  """An app deleted."""
   APP_DELETED
 
-  """A app status is changed."""
+  """An app status is changed."""
   APP_STATUS_CHANGED
 
   """A new category created."""
