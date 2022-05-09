@@ -5,12 +5,14 @@ import graphene
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
+from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
+from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
@@ -29,6 +31,20 @@ def has_required_permission(app: models.App, context):
         raise PermissionDenied(
             permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
         )
+
+
+def has_access_to_app_public_meta(root, info) -> bool:
+    auth_token = info.context.decoded_auth_token or {}
+    if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
+        _, app_id = from_global_id_or_error(auth_token["app"], "App")
+    else:
+        app_id = info.context.app.id if info.context.app else None
+    if app_id is not None and int(app_id) == root.id:
+        return True
+    requester = get_user_or_app_from_context(info.context)
+    if not requester.has_perm(AppPermission.MANAGE_APPS):
+        return False
+    return True
 
 
 class AppManifestExtension(graphene.ObjectType):
@@ -183,9 +199,19 @@ class App(ModelObjectType):
     )
     name = graphene.String(description="Name of the app.")
     type = AppTypeEnum(description="Type of the app.")
-    tokens = NonNullList(AppToken, description="Last 4 characters of the tokens.")
+    tokens = NonNullList(
+        AppToken,
+        description=(
+            "Last 4 characters of the tokens. Requires one of the following "
+            f"permissions: {AppPermission.MANAGE_APPS}"
+        ),
+    )
     webhooks = NonNullList(
-        Webhook, description="List of webhooks assigned to this app."
+        Webhook,
+        description=(
+            "List of webhooks assigned to this app. Requires one of the following "
+            f"permissions: {AppPermission.MANAGE_APPS}"
+        ),
     )
 
     about_app = graphene.String(description="Description of this app.")
@@ -240,7 +266,6 @@ class App(ModelObjectType):
 
     @staticmethod
     def resolve_access_token(root: models.App, info):
-        has_required_permission(root, info.context)
         return resolve_access_token_for_app(info, root)
 
     @staticmethod
@@ -258,6 +283,33 @@ class App(ModelObjectType):
             qs = resolve_apps(info)
 
         return resolve_federation_references(App, roots, qs)
+
+    @staticmethod
+    def resolve_metadata(root: models.App, info):
+        has_access = has_access_to_app_public_meta(root, info)
+        if not has_access:
+            raise PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
+        return ObjectWithMetadata.resolve_metadata(root, info)
+
+    @staticmethod
+    def resolve_metafield(root: models.App, info, *, key: str):
+        has_access = has_access_to_app_public_meta(root, info)
+        if not has_access:
+            raise PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
+        return ObjectWithMetadata.resolve_metafield(root, info, key=key)
+
+    @staticmethod
+    def resolve_metafields(root: models.App, info, *, keys=None):
+        has_access = has_access_to_app_public_meta(root, info)
+        if not has_access:
+            raise PermissionDenied(
+                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
+        return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 
 
 class AppCountableConnection(CountableConnection):
