@@ -330,8 +330,10 @@ class TransactionItemsByCheckoutIDLoader(DataLoader):
     context_key = "transaction_items_by_checkout_id"
 
     def batch_load(self, keys):
-        transactions = TransactionItem.objects.filter(checkout_id__in=keys).order_by(
-            "pk"
+        transactions = (
+            TransactionItem.objects.using(self.database_connection_name)
+            .filter(checkout_id__in=keys)
+            .order_by("pk")
         )
         transactions_map = defaultdict(list)
         for transaction in transactions:
