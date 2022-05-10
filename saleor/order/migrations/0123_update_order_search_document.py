@@ -10,7 +10,7 @@ def update_order_search_document_values(apps, _schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         set_order_search_document_values.delay()
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

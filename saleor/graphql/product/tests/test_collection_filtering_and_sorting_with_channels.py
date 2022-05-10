@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+import pytz
 
 from ....product.models import Collection, CollectionChannelListing
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
@@ -21,50 +22,50 @@ def collections_for_sorting_with_channels(channel_USD, channel_PLN):
         [
             CollectionChannelListing(
                 collection=collections[0],
-                publication_date=None,
+                published_at=None,
                 is_published=True,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[1],
-                publication_date=None,
+                published_at=None,
                 is_published=False,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[2],
-                publication_date=datetime.date(2004, 1, 1),
+                published_at=datetime.datetime(2004, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[3],
-                publication_date=datetime.date(2003, 1, 1),
+                published_at=datetime.datetime(2003, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_USD,
             ),
             # second channel
             CollectionChannelListing(
                 collection=collections[0],
-                publication_date=None,
+                published_at=None,
                 is_published=False,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[1],
-                publication_date=None,
+                published_at=None,
                 is_published=True,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[2],
-                publication_date=datetime.date(2002, 1, 1),
+                published_at=datetime.datetime(2002, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[4],
-                publication_date=datetime.date(2001, 1, 1),
+                published_at=datetime.datetime(2001, 1, 1, tzinfo=pytz.UTC),
                 is_published=False,
                 channel=channel_PLN,
             ),
@@ -95,7 +96,7 @@ QUERY_COLLECTIONS_WITH_SORTING_AND_FILTERING = """
     "sort_by",
     [
         {"field": "AVAILABILITY", "direction": "ASC"},
-        {"field": "PUBLICATION_DATE", "direction": "DESC"},
+        {"field": "PUBLISHED_AT", "direction": "DESC"},
     ],
 )
 def test_collections_with_sorting_and_without_channel(
@@ -130,11 +131,11 @@ def test_collections_with_sorting_and_without_channel(
             ["Collection1", "Collection4", "Collection3", "Collection2"],
         ),
         (
-            {"field": "PUBLICATION_DATE", "direction": "ASC"},
+            {"field": "PUBLISHED_AT", "direction": "ASC"},
             ["Collection4", "Collection3", "Collection1", "Collection2"],
         ),
         (
-            {"field": "PUBLICATION_DATE", "direction": "DESC"},
+            {"field": "PUBLISHED_AT", "direction": "DESC"},
             ["Collection2", "Collection1", "Collection3", "Collection4"],
         ),
     ],
@@ -177,11 +178,11 @@ def test_collections_with_sorting_and_channel_USD(
             ["Collection2", "Collection5", "Collection3", "Collection1"],
         ),
         (
-            {"field": "PUBLICATION_DATE", "direction": "ASC"},
+            {"field": "PUBLISHED_AT", "direction": "ASC"},
             ["Collection5", "Collection3", "Collection1", "Collection2"],
         ),
         (
-            {"field": "PUBLICATION_DATE", "direction": "DESC"},
+            {"field": "PUBLISHED_AT", "direction": "DESC"},
             ["Collection2", "Collection1", "Collection3", "Collection5"],
         ),
     ],
@@ -217,7 +218,7 @@ def test_collections_with_sorting_and_channel_PLN(
     "sort_by",
     [
         {"field": "AVAILABILITY", "direction": "ASC"},
-        {"field": "PUBLICATION_DATE", "direction": "ASC"},
+        {"field": "PUBLISHED_AT", "direction": "ASC"},
     ],
 )
 def test_collections_with_sorting_and_not_existing_channel_asc(
@@ -247,7 +248,7 @@ def test_collections_with_sorting_and_not_existing_channel_asc(
     "sort_by",
     [
         {"field": "AVAILABILITY", "direction": "DESC"},
-        {"field": "PUBLICATION_DATE", "direction": "DESC"},
+        {"field": "PUBLISHED_AT", "direction": "DESC"},
     ],
 )
 def test_collections_with_sorting_and_not_existing_channel_desc(

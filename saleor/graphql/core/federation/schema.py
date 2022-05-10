@@ -157,7 +157,7 @@ def create_service_sdl_resolver(schema):
             + federated_schema_sdl[type_fields_open:]
         )
 
-    def resolve_service_sdl(*_args):
+    def resolve_service_sdl(_root, _info):
         return {"sdl": federated_schema_sdl}
 
     return resolve_service_sdl

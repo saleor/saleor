@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Protocol, Union, cast
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 
+from ..account.models import User
 from ..app.models import App, AppToken
 from ..core.auth import get_token_from_request
 from .api import API_PATH
@@ -15,6 +16,15 @@ def get_context_value(request):
     set_app_on_context(request)
     set_auth_on_context(request)
     return request
+
+
+UserType = Union[User, AnonymousUser]
+
+
+class RequestWithUser(Protocol):
+    _cached_user: UserType
+    app: Optional[App]
+    user: Union[UserType, SimpleLazyObject]
 
 
 def get_app(raw_auth_token) -> Optional[App]:
@@ -37,13 +47,13 @@ def set_app_on_context(request):
             request.app = SimpleLazyObject(lambda: get_app(auth_token))
 
 
-def get_user(request):
+def get_user(request: RequestWithUser) -> Optional[UserType]:
     if not hasattr(request, "_cached_user"):
-        request._cached_user = authenticate(request=request)
+        request._cached_user = cast(UserType, authenticate(request=request))
     return request._cached_user
 
 
-def set_auth_on_context(request):
+def set_auth_on_context(request: RequestWithUser):
     if hasattr(request, "app") and request.app:
         request.user = AnonymousUser()
         return request
@@ -51,4 +61,4 @@ def set_auth_on_context(request):
     def user():
         return get_user(request) or AnonymousUser()
 
-    request.user = SimpleLazyObject(lambda: user())
+    request.user = SimpleLazyObject(user)

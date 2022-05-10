@@ -33,3 +33,6 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
+    MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
+        "missing_transaction_action_request_webhook"
+    )

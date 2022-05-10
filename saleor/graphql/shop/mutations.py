@@ -39,11 +39,11 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Enable automatic fulfillment for all digital products."
     )
     fulfillment_auto_approve = graphene.Boolean(
-        description=f"{ADDED_IN_31} Enable automatic approval of all new fulfillments."
+        description="Enable automatic approval of all new fulfillments." + ADDED_IN_31
     )
     fulfillment_allow_unpaid = graphene.Boolean(
         description=(
-            f"{ADDED_IN_31} Enable ability to approve fulfillments which are unpaid."
+            "Enable ability to approve fulfillments which are unpaid." + ADDED_IN_31
         )
     )
     default_digital_max_downloads = graphene.Int(
@@ -63,21 +63,23 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     reserve_stock_duration_anonymous_user = graphene.Int(
         description=(
-            f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
-            "anonymous checkout. Enter 0 or null to disable."
+            "Default number of minutes stock will be reserved for "
+            "anonymous checkout. Enter 0 or null to disable." + ADDED_IN_31
         )
     )
     reserve_stock_duration_authenticated_user = graphene.Int(
         description=(
-            f"{ADDED_IN_31} Default number of minutes stock will be reserved for "
-            "authenticated checkout. Enter 0 or null to disable."
+            "Default number of minutes stock will be reserved for "
+            "authenticated checkout. Enter 0 or null to disable." + ADDED_IN_31
         )
     )
     limit_quantity_per_checkout = graphene.Int(
         description=(
-            f"{ADDED_IN_31} Default number of maximum line quantity "
+            "Default number of maximum line quantity "
             "in single checkout. Minimum possible value is 1, default "
-            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}. {PREVIEW_FEATURE}"
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         )
     )
 

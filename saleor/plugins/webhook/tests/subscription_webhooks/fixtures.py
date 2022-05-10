@@ -19,6 +19,109 @@ def subscription_webhook(webhook_app):
     return fun
 
 
+APP_DETAILS_FRAGMENT = """
+    fragment AppDetails on App{
+        id
+        isActive
+        name
+        appUrl
+    }
+"""
+
+
+APP_CREATED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppCreated{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_CREATED
+    )
+
+
+APP_UPDATED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppUpdated{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_UPDATED
+    )
+
+
+APP_DELETED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppDeleted{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_DELETED
+    )
+
+
+APP_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
+    APP_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on AppStatusChanged{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_app_status_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        APP_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+    )
+
+
 CATEGORY_CREATED_SUBSCRIPTION_QUERY = """
     subscription{
       event{
@@ -76,6 +179,355 @@ CATEGORY_DELETED_SUBSCRIPTION_QUERY = """
 def subscription_category_deleted_webhook(subscription_webhook):
     return subscription_webhook(
         CATEGORY_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CATEGORY_DELETED
+    )
+
+
+CHANNEL_CREATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelCreated{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_CREATED
+    )
+
+
+CHANNEL_UPDATED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelUpdated{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_UPDATED
+    )
+
+
+CHANNEL_DELETED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelDeleted{
+          channel{
+            id
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.CHANNEL_DELETED
+    )
+
+
+CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY = """
+    subscription{
+      event{
+        ...on ChannelStatusChanged{
+          channel{
+            id
+            isActive
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.fixture
+def subscription_channel_status_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        CHANNEL_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
+    )
+
+
+GIFT_CARD_DETAILS_FRAGMENT = """
+    fragment GiftCardDetails on GiftCard{
+        id
+        isActive
+        code
+        createdBy {
+            email
+        }
+    }
+"""
+
+GIFT_CARD_CREATED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardCreated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_CREATED
+    )
+
+
+GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardUpdated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_UPDATED
+    )
+
+
+GIFT_CARD_DELETED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardDeleted{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.GIFT_CARD_DELETED
+    )
+
+
+GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
+    GIFT_CARD_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on GiftCardStatusChanged{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_gift_card_status_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        GIFT_CARD_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
+    )
+
+
+MENU_DETAILS_FRAGMENT = """
+    fragment MenuDetails on Menu{
+        id
+        name
+        slug
+        items {
+            id
+            name
+        }
+    }
+"""
+
+MENU_CREATED_SUBSCRIPTION_QUERY = (
+    MENU_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuCreated{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_CREATED
+    )
+
+
+MENU_UPDATED_SUBSCRIPTION_QUERY = (
+    MENU_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuUpdated{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_UPDATED
+    )
+
+
+MENU_DELETED_SUBSCRIPTION_QUERY = (
+    MENU_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuDeleted{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_DELETED
+    )
+
+
+MENU_ITEM_DETAILS_FRAGMENT = """
+    fragment MenuItemDetails on MenuItem{
+        id
+        name
+        menu {
+            id
+        }
+        page {
+            id
+        }
+    }
+"""
+
+MENU_ITEM_CREATED_SUBSCRIPTION_QUERY = (
+    MENU_ITEM_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuItemCreated{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_item_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_ITEM_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_CREATED
+    )
+
+
+MENU_ITEM_UPDATED_SUBSCRIPTION_QUERY = (
+    MENU_ITEM_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuItemUpdated{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_item_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_ITEM_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_UPDATED
+    )
+
+
+MENU_ITEM_DELETED_SUBSCRIPTION_QUERY = (
+    MENU_ITEM_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on MenuItemDeleted{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_menu_item_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        MENU_ITEM_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_DELETED
     )
 
 
@@ -1087,4 +1539,82 @@ def subscription_translation_updated_webhook(subscription_webhook):
     return subscription_webhook(
         TRANSLATION_UPDATED_SUBSCRIPTION_QUERY,
         WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+
+
+VOUCHER_DETAILS_FRAGMENT = """
+    fragment VoucherDetails on Voucher{
+        id
+        name
+        code
+        usageLimit
+    }
+"""
+
+VOUCHER_CREATED_SUBSCRIPTION_QUERY = (
+    VOUCHER_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on VoucherCreated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_voucher_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        VOUCHER_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_CREATED
+    )
+
+
+VOUCHER_UPDATED_SUBSCRIPTION_QUERY = (
+    VOUCHER_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on VoucherUpdated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_voucher_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        VOUCHER_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_UPDATED
+    )
+
+
+VOUCHER_DELETED_SUBSCRIPTION_QUERY = (
+    VOUCHER_DETAILS_FRAGMENT
+    + """
+    subscription{
+      event{
+        ...on VoucherDeleted{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+@pytest.fixture
+def subscription_voucher_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        VOUCHER_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.VOUCHER_DELETED
     )

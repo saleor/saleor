@@ -46,6 +46,15 @@ FRAGMENT_ORDER_DETAILS = (
         canFinalize
         isShippingRequired
         id
+        giftCards {
+          id
+        }
+        invoices {
+          id
+        }
+        payments {
+          id
+        }
         number
         shippingAddress {
           ...Address

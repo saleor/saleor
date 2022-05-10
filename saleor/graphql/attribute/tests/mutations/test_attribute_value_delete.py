@@ -87,10 +87,6 @@ def test_delete_attribute_value_product_search_document_updated(
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
 
-    product.refresh_from_db()
-    assert product.search_document
-    assert name.lower() not in product.search_document
-
 
 def test_delete_attribute_value_product_search_document_updated_variant_attribute(
     staff_api_client,
@@ -121,7 +117,3 @@ def test_delete_attribute_value_product_search_document_updated_variant_attribut
     # then
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
-
-    product.refresh_from_db()
-    assert product.search_document
-    assert name.lower() not in product.search_document
