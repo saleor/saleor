@@ -73,15 +73,16 @@ class GiftCardEvent(ModelObjectType):
         "saleor.graphql.account.types.User",
         description=(
             "User who performed the action. Requires one of the following "
-            f"permissions: {AccountPermissions.MANAGE_USERS}, "
-            f"{AccountPermissions.MANAGE_STAFF}, {AuthorizationFilters.OWNER}."
+            f"permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     app = graphene.Field(
         App,
         description=(
             "App that performed the action. Requires one of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     message = graphene.String(description="Content of the event.")
@@ -237,8 +238,8 @@ class GiftCard(ModelObjectType):
     code = graphene.String(
         description=(
             "Gift card code. Can be fetched by a staff member with "
-            f"{GiftcardPermissions.MANAGE_GIFT_CARD} when gift card wasn't yet used "
-            "and by the gift card owner."
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name} when gift card wasn't yet "
+            "used and by the gift card owner."
         ),
         required=True,
     )
@@ -262,7 +263,8 @@ class GiftCard(ModelObjectType):
             + ADDED_IN_31
             + PREVIEW_FEATURE
             + "\n\nRequires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS}, {AuthorizationFilters.OWNER}."
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     used_by_email = graphene.String(
@@ -282,7 +284,7 @@ class GiftCard(ModelObjectType):
             + ADDED_IN_31
             + PREVIEW_FEATURE
             + "\n\nRequires one of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     product = graphene.Field(
@@ -352,11 +354,11 @@ class GiftCard(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_last_4_code_chars(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_last_4_code_chars(root: models.GiftCard, _info):
         return root.display_code
 
     @staticmethod
-    def resolve_code(root: models.GiftCard, info, **_kwargs):
+    def resolve_code(root: models.GiftCard, info):
         def _resolve_code(user):
             requestor = get_user_or_app_from_context(info.context)
             # Gift card code can be fetched by the staff user and app
@@ -552,11 +554,11 @@ class GiftCard(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_end_date(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_end_date(root: models.GiftCard, _info):
         return root.expiry_date
 
     @staticmethod
-    def resolve_start_date(root: models.GiftCard, *_args, **_kwargs):
+    def resolve_start_date(_root: models.GiftCard, _info):
         return None
 
 

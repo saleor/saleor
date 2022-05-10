@@ -183,29 +183,23 @@ class BaseMutation(graphene.Mutation):
         Whether by using the provided query set object or by calling type's get_node().
         """
         if qs is not None:
-            if str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE:
-                return cls._get_node_for_types_with_double_id(pk, qs, graphene_type)
-            return qs.filter(pk=pk).first()
+            lookup = Q(pk=pk)
+            if pk is not None and str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE:
+                # This is temporary solution that allows fetching objects with use of
+                # new and old id.
+                try:
+                    UUID(str(pk))
+                except ValueError:
+                    lookup = (
+                        Q(number=pk) & Q(use_old_id=True)
+                        if str(graphene_type) == "Order"
+                        else Q(old_id=pk) & Q(old_id__isnull=False)
+                    )
+            return qs.filter(lookup).first()
         get_node = getattr(graphene_type, "get_node", None)
         if get_node:
             return get_node(info, pk)
         return None
-
-    @classmethod
-    def _get_node_for_types_with_double_id(cls, pk: Union[int, str], qs, graphene_type):
-        # This is temporary method that allows fetching objects with use of
-        # new and old id.
-        lookup = Q(pk=pk)
-        if pk is not None:
-            try:
-                UUID(str(pk))
-            except ValueError:
-                lookup = (
-                    Q(number=pk) & Q(use_old_id=True)
-                    if str(graphene_type) == "Order"
-                    else Q(old_id=pk) & Q(old_id__isnull=False)
-                )
-        return qs.filter(lookup).first()
 
     @classmethod
     def get_global_id_or_error(
@@ -389,7 +383,7 @@ class BaseMutation(graphene.Mutation):
             return cls.handle_errors(e)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, _info, **data):
         pass
 
     @classmethod

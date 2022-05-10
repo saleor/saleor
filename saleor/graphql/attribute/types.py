@@ -69,7 +69,7 @@ class AttributeValue(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_input_type(root: models.AttributeValue, info, *_args):
+    def resolve_input_type(root: models.AttributeValue, info):
         return (
             AttributesByAttributeId(info.context)
             .load(root.attribute_id)
@@ -77,13 +77,13 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_file(root: models.AttributeValue, *_args):
+    def resolve_file(root: models.AttributeValue, _info):
         if not root.file_url:
             return
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
-    def resolve_reference(root: models.AttributeValue, info, **_kwargs):
+    def resolve_reference(root: models.AttributeValue, info):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
@@ -105,7 +105,7 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_date_time(root: models.AttributeValue, info, **_kwargs):
+    def resolve_date_time(root: models.AttributeValue, info):
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE_TIME:
                 return root.date_time
@@ -118,7 +118,7 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_date(root: models.AttributeValue, info, **_kwargs):
+    def resolve_date(root: models.AttributeValue, info):
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE:
                 return root.date_time
@@ -159,60 +159,60 @@ class Attribute(ModelObjectType):
     value_required = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.VALUE_REQUIRED} Requires one of the following "
-            f"permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     visible_in_storefront = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.VISIBLE_IN_STOREFRONT} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     filterable_in_storefront = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.FILTERABLE_IN_STOREFRONT} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     filterable_in_dashboard = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     available_in_grid = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.AVAILABLE_IN_GRID} Requires one of the following "
-            f"permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     storefront_search_position = graphene.Int(
         description=(
             f"{AttributeDescriptions.STOREFRONT_SEARCH_POSITION} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
@@ -253,36 +253,36 @@ class Attribute(ModelObjectType):
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_value_required(root: models.Attribute, *_args):
+    def resolve_value_required(root: models.Attribute, _info):
         return root.value_required
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_visible_in_storefront(root: models.Attribute, *_args):
+    def resolve_visible_in_storefront(root: models.Attribute, _info):
         return root.visible_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_storefront(root: models.Attribute, *_args):
+    def resolve_filterable_in_storefront(root: models.Attribute, _info):
         return root.filterable_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
+    def resolve_filterable_in_dashboard(root: models.Attribute, _info):
         return root.filterable_in_dashboard
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_storefront_search_position(root: models.Attribute, *_args):
+    def resolve_storefront_search_position(root: models.Attribute, _info):
         return root.storefront_search_position
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_available_in_grid(root: models.Attribute, *_args):
+    def resolve_available_in_grid(root: models.Attribute, _info):
         return root.available_in_grid
 
     @staticmethod
-    def resolve_with_choices(root: models.Attribute, *_args):
+    def resolve_with_choices(root: models.Attribute, _info):
         return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
 
     @staticmethod

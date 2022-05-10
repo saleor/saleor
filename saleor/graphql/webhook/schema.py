@@ -18,7 +18,7 @@ class WebhookQueries(graphene.ObjectType):
         ),
         description=(
             "Look up a webhook by ID. Requires one of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {AuthorizationFilters.OWNER}"
+            f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     webhook_events = PermissionsField(
@@ -44,15 +44,15 @@ class WebhookQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_webhook_sample_payload(_, info, **data):
+    def resolve_webhook_sample_payload(_root, info, **data):
         return resolve_sample_payload(info, data["event_type"])
 
     @staticmethod
-    def resolve_webhook(_, info, **data):
+    def resolve_webhook(_root, info, **data):
         return resolve_webhook(info, data["id"])
 
     @staticmethod
-    def resolve_webhook_events(_, *_args, **_data):
+    def resolve_webhook_events(_root, _info):
         return resolve_webhook_events()
 
 

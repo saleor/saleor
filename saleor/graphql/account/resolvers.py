@@ -38,7 +38,7 @@ USER_SEARCH_FIELDS = (
 )
 
 
-def resolve_customers(info, **_kwargs):
+def resolve_customers(_info):
     return models.User.objects.customers()
 
 
@@ -46,11 +46,11 @@ def resolve_permission_group(id):
     return auth_models.Group.objects.filter(id=id).first()
 
 
-def resolve_permission_groups(info, **_kwargs):
+def resolve_permission_groups(_info):
     return auth_models.Group.objects.all()
 
 
-def resolve_staff_users(info, **_kwargs):
+def resolve_staff_users(_info):
     return models.User.objects.staff()
 
 

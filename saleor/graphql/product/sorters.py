@@ -21,7 +21,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
 from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
 
@@ -78,11 +78,19 @@ class CollectionSortField(graphene.Enum):
 
     @property
     def description(self):
+        descrption_extras = {
+            CollectionSortField.AVAILABILITY.name: [CHANNEL_REQUIRED],
+            CollectionSortField.PUBLICATION_DATE.name: [
+                CHANNEL_REQUIRED,
+                DEPRECATED_IN_3X_INPUT,
+            ],
+            CollectionSortField.PUBLISHED_AT.name: [CHANNEL_REQUIRED],
+        }
         if self.name in CollectionSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             description = f"Sort collections by {sort_name}."
-            if self.name == "PUBLICATION_DATE":
-                description += DEPRECATED_IN_3X_INPUT
+            if extras := descrption_extras.get(self.name):
+                description += "".join(extras)
             return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 
@@ -145,25 +153,30 @@ class ProductOrderField(graphene.Enum):
             ProductOrderField.COLLECTION.name: (
                 "collection. Note: "
                 "This option is available only for the `Collection.products` query."
+                + CHANNEL_REQUIRED
             ),
             ProductOrderField.RANK.name: (
                 "rank. Note: This option is available only with the `search` filter."
             ),
             ProductOrderField.NAME.name: "name.",
-            ProductOrderField.PRICE.name: "price.",
+            ProductOrderField.PRICE.name: ("price." + CHANNEL_REQUIRED),
             ProductOrderField.TYPE.name: "type.",
             ProductOrderField.MINIMAL_PRICE.name: (
-                "a minimal price of a product's variant."
+                "a minimal price of a product's variant." + CHANNEL_REQUIRED
             ),
             ProductOrderField.DATE.name: f"update date. {DEPRECATED_IN_3X_INPUT}",
-            ProductOrderField.PUBLISHED.name: "publication status.",
+            ProductOrderField.PUBLISHED.name: (
+                "publication status." + CHANNEL_REQUIRED
+            ),
             ProductOrderField.PUBLICATION_DATE.name: (
-                f"publication date. {DEPRECATED_IN_3X_INPUT}"
+                "publication date." + CHANNEL_REQUIRED + DEPRECATED_IN_3X_INPUT
             ),
             ProductOrderField.LAST_MODIFIED.name: (
                 f"update date. {DEPRECATED_IN_3X_INPUT}"
             ),
-            ProductOrderField.PUBLISHED_AT.name: "publication date.",
+            ProductOrderField.PUBLISHED_AT.name: (
+                "publication date." + CHANNEL_REQUIRED
+            ),
             ProductOrderField.LAST_MODIFIED_AT.name: "update date.",
             ProductOrderField.RATING.name: "rating.",
         }

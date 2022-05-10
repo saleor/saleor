@@ -108,7 +108,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         return AppByIdLoader(info.context).load(app_id)
 
     @staticmethod
-    def resolve_permissions(root: models.AppExtension, _info, **_kwargs):
+    def resolve_permissions(root: models.AppExtension, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
@@ -167,7 +167,7 @@ class AppToken(graphene.ObjectType):
             return None
 
     @staticmethod
-    def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
+    def resolve_auth_token(root: models.AppToken, _info):
         return root.token_last_4
 
 
@@ -222,14 +222,14 @@ class App(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_permissions(root: models.App, _info, **_kwargs):
+    def resolve_permissions(root: models.App, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_tokens(root: models.App, info, **_kwargs):
+    def resolve_tokens(root: models.App, info):
         has_required_permission(root, info.context)
         return root.tokens.all()
 
@@ -248,7 +248,7 @@ class App(ModelObjectType):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info, **_kwargs):
+    def __resolve_references(roots: List["App"], info):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)

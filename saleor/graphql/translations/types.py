@@ -51,7 +51,7 @@ class BaseTranslationType(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_language(root, *_args):
+    def resolve_language(root, _info):
         try:
             language = next(
                 language[1]

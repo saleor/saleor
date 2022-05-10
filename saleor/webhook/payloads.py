@@ -208,6 +208,32 @@ def _generate_collection_point_payload(warehouse: "Warehouse"):
     return collection_point_data
 
 
+def _generate_shipping_method_payload(shipping_method, channel):
+    if not shipping_method:
+        return None
+
+    serializer = PayloadSerializer()
+    shipping_method_fields = ("name", "type")
+
+    shipping_method_channel_listing = shipping_method.channel_listings.filter(
+        channel=channel,
+    ).first()
+
+    payload = serializer.serialize(
+        [shipping_method],
+        fields=shipping_method_fields,
+        extra_dict_data={
+            "currency": shipping_method_channel_listing.currency,
+            "price_amount": quantize_price(
+                shipping_method_channel_listing.price_amount,
+                shipping_method_channel_listing.currency,
+            ),
+        },
+    )
+
+    return json.loads(payload)[0]
+
+
 @traced_payload_generator
 def generate_order_payload(
     order: "Order",
@@ -235,7 +261,6 @@ def generate_order_payload(
     discount_price_fields = ("amount_value",)
 
     channel_fields = ("slug", "currency_code")
-    shipping_method_fields = ("name", "type", "currency", "price_amount")
 
     lines = order.lines.all()
     fulfillments = order.fulfillments.all()
@@ -276,6 +301,9 @@ def generate_order_payload(
         if order.collection_point
         else None,
         "payments": json.loads(_generate_order_payment_payload(payments)),
+        "shipping_method": _generate_shipping_method_payload(
+            order.shipping_method, order.channel
+        ),
     }
     if with_meta:
         extra_dict_data["meta"] = generate_meta(
@@ -287,7 +315,6 @@ def generate_order_payload(
         fields=ORDER_FIELDS,
         additional_fields={
             "channel": (lambda o: o.channel, channel_fields),
-            "shipping_method": (lambda o: o.shipping_method, shipping_method_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "discounts": (lambda _: discounts, discount_fields),
@@ -458,7 +485,6 @@ def generate_checkout_payload(
     quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
     channel_fields = ("slug", "currency_code")
-    shipping_method_fields = ("name", "type", "currency", "price_amount")
 
     discounts = fetch_active_discounts()
     lines_dict_data = serialize_checkout_lines(checkout, discounts)
@@ -479,7 +505,6 @@ def generate_checkout_payload(
             "user": (lambda c: c.user, user_fields),
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
-            "shipping_method": (lambda c: c.shipping_method, shipping_method_fields),
             "warehouse_address": (
                 lambda c: warehouse.address if warehouse else None,
                 ADDRESS_FIELDS,
@@ -487,6 +512,9 @@ def generate_checkout_payload(
         },
         extra_dict_data={
             # Casting to list to make it json-serializable
+            "shipping_method": _generate_shipping_method_payload(
+                checkout.shipping_method, checkout.channel
+            ),
             "lines": list(lines_dict_data),
             "collection_point": json.loads(
                 _generate_collection_point_payload(checkout.collection_point)

@@ -105,6 +105,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByFulfillmentIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -216,8 +217,8 @@ class OrderEvent(ModelObjectType):
         App,
         description=(
             "App that performed the action. Requires of of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     message = graphene.String(description="Content of the event.")
@@ -479,8 +480,8 @@ class Fulfillment(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_lines(root: models.Fulfillment, _info):
-        return root.lines.all()
+    def resolve_lines(root: models.Fulfillment, info):
+        return FulfillmentLinesByFulfillmentIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_status_display(root: models.Fulfillment, _info):
@@ -701,8 +702,9 @@ class Order(ModelObjectType):
         description=(
             "User who placed the order. This field is set only for orders placed by "
             "authenticated users. Requires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS}, {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     tracking_client_id = graphene.String(required=True)
@@ -710,16 +712,16 @@ class Order(ModelObjectType):
         "saleor.graphql.account.types.Address",
         description=(
             "Billing address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
             "Shipping address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_method_name = graphene.String()
@@ -762,7 +764,7 @@ class Order(ModelObjectType):
         Invoice,
         description=(
             "List of order invoices. Requires one of the following permissions: "
-            f"{OrderPermissions.MANAGE_ORDERS}, {AuthorizationFilters.OWNER}."
+            f"{OrderPermissions.MANAGE_ORDERS.name}, {AuthorizationFilters.OWNER.name}."
         ),
         required=True,
     )
@@ -863,8 +865,8 @@ class Order(ModelObjectType):
     user_email = graphene.String(
         description=(
             "Email address of the customer. Requires the following permissions to "
-            f"access the full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}"
+            f"access the full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
         required=False,
     )
@@ -1398,18 +1400,18 @@ class Order(ModelObjectType):
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
     @staticmethod
-    def resolve_language_code_enum(root: models.Order, _info, **_kwargs):
+    def resolve_language_code_enum(root: models.Order, _info):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
 
     @staticmethod
-    def resolve_original(root: models.Order, _info, **_kwargs):
+    def resolve_original(root: models.Order, _info):
         if not root.original_id:
             return None
         return graphene.Node.to_global_id("Order", root.original_id)
 
     @staticmethod
     @traced_resolver
-    def resolve_errors(root: models.Order, info, **_kwargs):
+    def resolve_errors(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
             try:

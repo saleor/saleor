@@ -71,7 +71,7 @@ class OrderCreateFromCheckout(BaseMutation):
         return False
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         checkout_id = data.get("id")
         checkout = cls.get_node_or_error(
             info,

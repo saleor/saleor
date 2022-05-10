@@ -6,7 +6,7 @@ schema {
 
 type Query {
   """
-  Look up a webhook by ID. Requires one of the following permissions: AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER
+  Look up a webhook by ID. Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   webhook(
     """ID of the webhook."""
@@ -1077,7 +1077,7 @@ type Query {
   ): AppCountableConnection
 
   """
-  Look up an app by ID. If ID is not provided, return the currently authenticated app. Requires one of the following permissions: AuthorizationFilters.OWNER, AppPermission.MANAGE_APPS.
+  Look up an app by ID. If ID is not provided, return the currently authenticated app. Requires one of the following permissions: OWNER, MANAGE_APPS.
   """
   app(
     """ID of the app."""
@@ -1318,6 +1318,18 @@ enum WebhookEventTypeEnum {
   """All the events."""
   ANY_EVENTS
 
+  """A new app created."""
+  APP_CREATED
+
+  """An app updated."""
+  APP_UPDATED
+
+  """An app deleted."""
+  APP_DELETED
+
+  """An app status is changed."""
+  APP_STATUS_CHANGED
+
   """A new category created."""
   CATEGORY_CREATED
 
@@ -1350,6 +1362,24 @@ enum WebhookEventTypeEnum {
 
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
+
+  """A new menu created."""
+  MENU_CREATED
+
+  """A menu is updated."""
+  MENU_UPDATED
+
+  """A menu is deleted."""
+  MENU_DELETED
+
+  """A new menu item created."""
+  MENU_ITEM_CREATED
+
+  """A menu item is updated."""
+  MENU_ITEM_UPDATED
+
+  """A menu item is deleted."""
+  MENU_ITEM_DELETED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1469,6 +1499,15 @@ enum WebhookEventTypeEnum {
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+
+  """A new voucher created."""
+  VOUCHER_CREATED
+
+  """A voucher is updated."""
+  VOUCHER_UPDATED
+
+  """A voucher is deleted."""
+  VOUCHER_DELETED
   PAYMENT_AUTHORIZE
   PAYMENT_CAPTURE
   PAYMENT_CONFIRM
@@ -1518,6 +1557,18 @@ enum WebhookEventTypeAsyncEnum {
   """All the events."""
   ANY_EVENTS
 
+  """A new app created."""
+  APP_CREATED
+
+  """An app updated."""
+  APP_UPDATED
+
+  """An app deleted."""
+  APP_DELETED
+
+  """An app status is changed."""
+  APP_STATUS_CHANGED
+
   """A new category created."""
   CATEGORY_CREATED
 
@@ -1550,6 +1601,24 @@ enum WebhookEventTypeAsyncEnum {
 
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
+
+  """A new menu created."""
+  MENU_CREATED
+
+  """A menu is updated."""
+  MENU_UPDATED
+
+  """A menu is deleted."""
+  MENU_DELETED
+
+  """A new menu item created."""
+  MENU_ITEM_CREATED
+
+  """A menu item is updated."""
+  MENU_ITEM_UPDATED
+
+  """A menu item is deleted."""
+  MENU_ITEM_DELETED
 
   """A new order is placed."""
   ORDER_CREATED
@@ -1669,6 +1738,15 @@ enum WebhookEventTypeAsyncEnum {
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+
+  """A new voucher created."""
+  VOUCHER_CREATED
+
+  """A voucher is updated."""
+  VOUCHER_UPDATED
+
+  """A voucher is deleted."""
+  VOUCHER_DELETED
 }
 
 """Represents app data."""
@@ -1947,6 +2025,9 @@ enum AppExtensionMountEnum {
   NAVIGATION_DISCOUNTS
   NAVIGATION_TRANSLATIONS
   NAVIGATION_PAGES
+  ORDER_DETAILS_MORE_ACTIONS
+  ORDER_OVERVIEW_CREATE
+  ORDER_OVERVIEW_MORE_ACTIONS
 }
 
 """
@@ -2122,6 +2203,10 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum {
+  APP_CREATED
+  APP_UPDATED
+  APP_DELETED
+  APP_STATUS_CHANGED
   CATEGORY_CREATED
   CATEGORY_UPDATED
   CATEGORY_DELETED
@@ -2133,6 +2218,12 @@ enum WebhookSampleEventTypeEnum {
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
   GIFT_CARD_STATUS_CHANGED
+  MENU_CREATED
+  MENU_UPDATED
+  MENU_DELETED
+  MENU_ITEM_CREATED
+  MENU_ITEM_UPDATED
+  MENU_ITEM_DELETED
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -2178,6 +2269,9 @@ enum WebhookSampleEventTypeEnum {
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
+  VOUCHER_CREATED
+  VOUCHER_UPDATED
+  VOUCHER_DELETED
 }
 
 """Represents warehouse."""
@@ -3828,32 +3922,32 @@ type Attribute implements Node & ObjectWithMetadata {
   ): AttributeValueCountableConnection
 
   """
-  Whether the attribute requires values to be passed or not. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Whether the attribute requires values to be passed or not. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   valueRequired: Boolean!
 
   """
-  Whether the attribute should be visible or not in storefront. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Whether the attribute should be visible or not in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   visibleInStorefront: Boolean!
 
   """
-  Whether the attribute can be filtered in storefront. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   filterableInStorefront: Boolean!
 
   """
-  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   filterableInDashboard: Boolean!
 
   """
-  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   availableInGrid: Boolean!
 
   """
-  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: PagePermissions.MANAGE_PAGES, PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES, ProductPermissions.MANAGE_PRODUCTS, ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   storefrontSearchPosition: Int!
 
@@ -5344,10 +5438,18 @@ enum ProductOrderField {
   """
   RANK
 
-  """Sort products by price."""
+  """
+  Sort products by price.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PRICE
 
-  """Sort products by a minimal price of a product's variant."""
+  """
+  Sort products by a minimal price of a product's variant.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   MINIMAL_PRICE
 
   """Sort products by update date."""
@@ -5359,13 +5461,25 @@ enum ProductOrderField {
   """Sort products by type."""
   TYPE
 
-  """Sort products by publication status."""
+  """
+  Sort products by publication status.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PUBLISHED
 
-  """Sort products by publication date."""
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PUBLICATION_DATE
 
-  """Sort products by publication date."""
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   PUBLISHED_AT
 
   """Sort products by update date."""
@@ -5373,6 +5487,8 @@ enum ProductOrderField {
 
   """
   Sort products by collection. Note: This option is available only for the `Collection.products` query.
+  
+  This option requires a channel filter to work as the values can vary between channels.
   """
   COLLECTION
 
@@ -6340,7 +6456,7 @@ type MenuItem implements Node & ObjectWithMetadata {
   collection: Collection
 
   """
-  A page associated with this menu item. Requires one of the following permissions to include unpublished items: PagePermissions.MANAGE_PAGES.
+  A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
   """
   page: Page
   level: Int!
@@ -6915,7 +7031,7 @@ type User implements Node & ObjectWithMetadata {
   note: String
 
   """
-  List of user's orders. Requires one of the following permissions: AccountPermissions.MANAGE_STAFF, AuthorizationFilters.OWNER
+  List of user's orders. Requires one of the following permissions: MANAGE_STAFF, OWNER.
   """
   orders(
     """Return the elements in the list that come before the specified cursor."""
@@ -7167,7 +7283,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   last4CodeChars: String!
 
   """
-  Gift card code. Can be fetched by a staff member with GiftcardPermissions.MANAGE_GIFT_CARD when gift card wasn't yet used and by the gift card owner.
+  Gift card code. Can be fetched by a staff member with MANAGE_GIFT_CARD when gift card wasn't yet used and by the gift card owner.
   """
   code: String!
   created: DateTime!
@@ -7197,7 +7313,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER.
+  Requires one of the following permissions: MANAGE_USERS, OWNER.
   """
   createdByEmail: String
 
@@ -7219,7 +7335,7 @@ type GiftCard implements Node & ObjectWithMetadata {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER.
+  Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   app: App
 
@@ -7296,12 +7412,12 @@ type GiftCardEvent implements Node {
   type: GiftCardEventsEnum
 
   """
-  User who performed the action. Requires one of the following permissions: AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF, AuthorizationFilters.OWNER.
+  User who performed the action. Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
   """
   user: User
 
   """
-  App that performed the action. Requires one of the following permissions: AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER.
+  App that performed the action. Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   app: App
 
@@ -7616,18 +7732,18 @@ type Order implements Node & ObjectWithMetadata {
   status: OrderStatus!
 
   """
-  User who placed the order. This field is set only for orders placed by authenticated users. Requires one of the following permissions: AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  User who placed the order. This field is set only for orders placed by authenticated users. Requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, OWNER.
   """
   user: User
   trackingClientId: String!
 
   """
-  Billing address. Requires one of the following permissions to view the full data: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  Billing address. Requires one of the following permissions to view the full data: MANAGE_ORDERS, OWNER.
   """
   billingAddress: Address
 
   """
-  Shipping address. Requires one of the following permissions to view the full data: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  Shipping address. Requires one of the following permissions to view the full data: MANAGE_ORDERS, OWNER.
   """
   shippingAddress: Address
   shippingMethodName: String
@@ -7661,7 +7777,7 @@ type Order implements Node & ObjectWithMetadata {
   availableCollectionPoints: [Warehouse!]!
 
   """
-  List of order invoices. Requires one of the following permissions: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  List of order invoices. Requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   invoices: [Invoice!]!
 
@@ -7745,7 +7861,7 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
 
   """
-  Email address of the customer. Requires the following permissions to access the full data: OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER
+  Email address of the customer. Requires the following permissions to access the full data: MANAGE_ORDERS, OWNER.
   """
   userEmail: String
 
@@ -8251,7 +8367,7 @@ type OrderEvent implements Node {
   user: User
 
   """
-  App that performed the action. Requires of of the following permissions: AppPermission.MANAGE_APPS, OrderPermissions.MANAGE_ORDERS, AuthorizationFilters.OWNER.
+  App that performed the action. Requires of of the following permissions: MANAGE_APPS, MANAGE_ORDERS, OWNER.
   """
   app: App
 
@@ -8762,7 +8878,11 @@ enum CollectionSortField {
   """Sort collections by name."""
   NAME
 
-  """Sort collections by availability."""
+  """
+  Sort collections by availability.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   AVAILABILITY
 
   """Sort collections by product count."""
@@ -8771,14 +8891,14 @@ enum CollectionSortField {
   """
   Sort collections by publication date.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.
+  This option requires a channel filter to work as the values can vary between channels.
   """
   PUBLICATION_DATE
 
   """
   Sort collections by publication date.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.
+  This option requires a channel filter to work as the values can vary between channels.
   """
   PUBLISHED_AT
 }
@@ -9339,7 +9459,11 @@ enum SaleSortField {
   """Sort sales by end date."""
   END_DATE
 
-  """Sort sales by value."""
+  """
+  Sort sales by value.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   VALUE
 
   """Sort sales by type."""
@@ -9409,7 +9533,11 @@ enum VoucherSortField {
   """Sort vouchers by end date."""
   END_DATE
 
-  """Sort vouchers by value."""
+  """
+  Sort vouchers by value.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   VALUE
 
   """Sort vouchers by type."""
@@ -9418,7 +9546,11 @@ enum VoucherSortField {
   """Sort vouchers by usage limit."""
   USAGE_LIMIT
 
-  """Sort vouchers by minimum spent amount."""
+  """
+  Sort vouchers by minimum spent amount.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
   MINIMUM_SPENT_AMOUNT
 }
 
@@ -9459,12 +9591,12 @@ type ExportEvent implements Node {
   type: ExportEventsEnum!
 
   """
-  User who performed the action. Requires one of the following permissions: AuthorizationFilters.OWNER, AccountPermissions.MANAGE_STAFF.
+  User who performed the action. Requires one of the following permissions: OWNER, MANAGE_STAFF.
   """
   user: User
 
   """
-  App which performed the action. Requires one of the following permissions: AuthorizationFilters.OWNER, AppPermission.MANAGE_APPS.
+  App which performed the action. Requires one of the following permissions: OWNER, MANAGE_APPS.
   """
   app: App
 
@@ -19946,7 +20078,51 @@ type Subscription {
   event: Event
 }
 
-union Event = CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated
+union Event = AppCreated | AppUpdated | AppDeleted | AppStatusChanged | CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | MenuCreated | MenuUpdated | MenuDeleted | MenuItemCreated | MenuItemUpdated | MenuItemDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted
+
+type AppCreated {
+  """
+  Look up a app.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  app: App
+}
+
+type AppUpdated {
+  """
+  Look up a app.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  app: App
+}
+
+type AppDeleted {
+  """
+  Look up a app.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  app: App
+}
+
+type AppStatusChanged {
+  """
+  Look up a app.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  app: App
+}
 
 type CategoryCreated {
   """
@@ -20067,6 +20243,90 @@ type GiftCardStatusChanged {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   giftCard: GiftCard
+}
+
+type MenuCreated {
+  """
+  Look up a menu.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  menu(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Menu
+}
+
+type MenuUpdated {
+  """
+  Look up a menu.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  menu(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Menu
+}
+
+type MenuDeleted {
+  """
+  Look up a menu.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  menu(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Menu
+}
+
+type MenuItemCreated {
+  """
+  Look up a menu item.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  menuItem(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): MenuItem
+}
+
+type MenuItemUpdated {
+  """
+  Look up a menu item.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  menuItem(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): MenuItem
+}
+
+type MenuItemDeleted {
+  """
+  Look up a menu item.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  menuItem(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): MenuItem
 }
 
 type OrderCreated {
@@ -20711,6 +20971,48 @@ type TranslationUpdated {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   translation: TranslationTypes
+}
+
+type VoucherCreated {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+type VoucherUpdated {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+type VoucherDeleted {
+  """
+  Look up a voucher.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
 }
 
 """An enumeration."""

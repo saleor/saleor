@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -906,9 +908,10 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     def add_lines_to_order(
         order, lines_to_add, user, app, manager, settings, discounts
     ):
+        added_lines: List[Tuple[int, OrderLine]] = []
         try:
-            return [
-                add_variant_to_order(
+            for quantity, variant in lines_to_add:
+                line = add_variant_to_order(
                     order,
                     variant,
                     quantity,
@@ -919,13 +922,13 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
-                for quantity, variant in lines_to_add
-            ]
+                added_lines.append((quantity, line))
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),
                 code=OrderErrorCode.TAX_ERROR.value,
             )
+        return added_lines
 
     @classmethod
     @traced_atomic_transaction()
@@ -936,7 +939,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variants = [line[1] for line in lines_to_add]
         cls.validate_variants(order, variants)
 
-        lines = cls.add_lines_to_order(
+        added_lines = cls.add_lines_to_order(
             order,
             lines_to_add,
             info.context.user,
@@ -951,8 +954,10 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             order=order,
             user=info.context.user,
             app=info.context.app,
-            order_lines=lines_to_add,
+            order_lines=added_lines,
         )
+
+        lines = [line for _, line in added_lines]
 
         recalculate_order(order)
         update_order_search_document(order)

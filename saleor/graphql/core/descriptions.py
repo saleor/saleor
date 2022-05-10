@@ -21,3 +21,8 @@ PREVIEW_FEATURE = (
     "\n\nNote: this API is currently in Feature Preview and can be subject to "
     "changes at later point."
 )
+
+CHANNEL_REQUIRED = (
+    "\n\nThis option requires a channel filter to work as the values can vary "
+    "between channels."
+)

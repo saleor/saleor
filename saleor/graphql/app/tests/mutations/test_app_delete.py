@@ -1,7 +1,11 @@
+from unittest import mock
+
 import graphene
+from django.utils.functional import SimpleLazyObject
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
+from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import get_graphql_content
 
 APP_DELETE_MUTATION = """
@@ -42,6 +46,50 @@ def test_app_delete(
     assert data["app"]
     assert not data["errors"]
     assert not App.objects.filter(id=app.id)
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_app_delete_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    staff_user,
+    app,
+    permission_manage_orders,
+    permission_manage_apps,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    app.permissions.add(permission_manage_orders)
+    staff_user.user_permissions.add(permission_manage_orders)
+    app_global_id = graphene.Node.to_global_id("App", app.id)
+
+    variables = {"id": app_global_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_DELETE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["appDelete"]["app"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": app_global_id,
+            "is_active": app.is_active,
+            "name": app.name,
+        },
+        WebhookEventAsyncType.APP_DELETED,
+        [any_webhook],
+        app,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_app_delete_for_app(

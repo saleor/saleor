@@ -72,7 +72,7 @@ class AppQueries(graphene.ObjectType):
         description=(
             "Look up an app by ID. If ID is not provided, return the currently "
             "authenticated app. Requires one of the following permissions: "
-            f"{AuthorizationFilters.OWNER}, {AppPermission.MANAGE_APPS}."
+            f"{AuthorizationFilters.OWNER.name}, {AppPermission.MANAGE_APPS.name}."
         ),
     )
     app_extensions = FilterConnectionField(
@@ -98,28 +98,33 @@ class AppQueries(graphene.ObjectType):
         ],
     )
 
-    def resolve_apps_installations(self, info, **kwargs):
+    @staticmethod
+    def resolve_apps_installations(_root, info, **kwargs):
         return resolve_apps_installations(info, **kwargs)
 
-    def resolve_apps(self, info, **kwargs):
-        qs = resolve_apps(info, **kwargs)
+    @staticmethod
+    def resolve_apps(_root, info, **kwargs):
+        qs = resolve_apps(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, AppCountableConnection)
 
-    def resolve_app(self, info, id=None):
+    @staticmethod
+    def resolve_app(_root, info, *, id=None):
         app = info.context.app
         if not id and app:
             return app
         return resolve_app(info, id)
 
-    def resolve_app_extensions(self, info, **kwargs):
+    @staticmethod
+    def resolve_app_extensions(_root, info, **kwargs):
         qs = resolve_app_extensions(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
             qs, info, kwargs, AppExtensionCountableConnection
         )
 
-    def resolve_app_extension(self, info, id):
+    @staticmethod
+    def resolve_app_extension(_root, info, *, id):
         def app_is_active(app_extension):
             def is_active(app):
                 if app.is_active:

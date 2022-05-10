@@ -91,7 +91,22 @@ The current production-ready version is 3.0 (beta) and you should use this versi
 
 - Saleor: https://github.com/saleor/saleor/releases/
 - Dashboard: https://github.com/saleor/saleor-dashboard/releases/
-- Storefront: https://github.com/saleor/saleor-storefront/releases/
+- Storefront: https://github.com/saleor/react-storefront/releases/
+
+### Saleor Cloud
+The fastest way to develop with Saleor are free developer accounts in [Saleor Cloud](https://cloud.saleor.io).
+
+Register [here](https://cloud.saleor.io/register) or install our [CLI tool](https://github.com/saleor/saleor-cli):
+
+`npm i -g saleor@latest`
+
+and run the following command:
+
+`saleor register`
+
+Bootstrap your first [storefront](https://github.com/saleor/react-storefront) with:
+
+`saleor storefront create --demo`
 
 ## Documentation
 
