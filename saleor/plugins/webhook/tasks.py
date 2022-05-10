@@ -320,8 +320,14 @@ def send_webhook_request_async(self, event_delivery_id):
     except EventDelivery.DoesNotExist:
         logger.error("Event delivery id: %r not found", event_delivery_id)
         return
-    data = delivery.payload.payload
+
+    if not delivery.webhook.is_active:
+        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
+        return
+
     webhook = delivery.webhook
+    data = delivery.payload.payload
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
