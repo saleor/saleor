@@ -159,60 +159,60 @@ class Attribute(ModelObjectType):
     value_required = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.VALUE_REQUIRED} Requires one of the following "
-            f"permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     visible_in_storefront = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.VISIBLE_IN_STOREFRONT} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     filterable_in_storefront = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.FILTERABLE_IN_STOREFRONT} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     filterable_in_dashboard = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     available_in_grid = graphene.Boolean(
         description=(
             f"{AttributeDescriptions.AVAILABLE_IN_GRID} Requires one of the following "
-            f"permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )
     storefront_search_position = graphene.Int(
         description=(
             f"{AttributeDescriptions.STOREFRONT_SEARCH_POSITION} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES}."
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
     )

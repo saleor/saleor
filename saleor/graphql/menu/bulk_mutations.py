@@ -21,6 +21,13 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
         error_type_class = MenuError
         error_type_field = "menu_errors"
 
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        menus = list(queryset)
+        queryset.delete()
+        for menu in menus:
+            info.context.plugins.menu_deleted(menu)
+
 
 class MenuItemBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
@@ -35,3 +42,10 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        menu_items = list(queryset)
+        queryset.delete()
+        for menu_item in menu_items:
+            info.context.plugins.menu_item_deleted(menu_item)

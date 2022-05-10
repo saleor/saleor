@@ -1,9 +1,11 @@
 from ..core.permissions import (
     AccountPermissions,
+    AppPermission,
     ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
     GiftcardPermissions,
+    MenuPermissions,
     OrderPermissions,
     PagePermissions,
     PaymentPermissions,
@@ -15,6 +17,11 @@ from ..core.permissions import (
 
 class WebhookEventAsyncType:
     ANY = "any_events"
+
+    APP_CREATED = "app_created"
+    APP_UPDATED = "app_updated"
+    APP_DELETED = "app_deleted"
+    APP_STATUS_CHANGED = "app_status_changed"
 
     CATEGORY_CREATED = "category_created"
     CATEGORY_UPDATED = "category_updated"
@@ -29,6 +36,13 @@ class WebhookEventAsyncType:
     GIFT_CARD_UPDATED = "gift_card_updated"
     GIFT_CARD_DELETED = "gift_card_deleted"
     GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
+
+    MENU_CREATED = "menu_created"
+    MENU_UPDATED = "menu_updated"
+    MENU_DELETED = "menu_deleted"
+    MENU_ITEM_CREATED = "menu_item_created"
+    MENU_ITEM_UPDATED = "menu_item_updated"
+    MENU_ITEM_DELETED = "menu_item_deleted"
 
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
@@ -98,6 +112,10 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        APP_CREATED: "App created",
+        APP_UPDATED: "App updated",
+        APP_DELETED: "App deleted",
+        APP_STATUS_CHANGED: "App status changed",
         CATEGORY_CREATED: "Category created",
         CATEGORY_UPDATED: "Category updated",
         CATEGORY_DELETED: "Category deleted",
@@ -109,6 +127,12 @@ class WebhookEventAsyncType:
         GIFT_CARD_UPDATED: "Gift card updated",
         GIFT_CARD_DELETED: "Gift card deleted",
         GIFT_CARD_STATUS_CHANGED: "Gift card status changed",
+        MENU_CREATED: "Menu created",
+        MENU_UPDATED: "Menu updated",
+        MENU_DELETED: "Menu deleted",
+        MENU_ITEM_CREATED: "Menu item created",
+        MENU_ITEM_UPDATED: "Menu item updated",
+        MENU_ITEM_DELETED: "Menu item deleted",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
         ORDER_FULLY_PAID: "Order paid",
@@ -161,6 +185,10 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (APP_CREATED, DISPLAY_LABELS[APP_CREATED]),
+        (APP_UPDATED, DISPLAY_LABELS[APP_UPDATED]),
+        (APP_DELETED, DISPLAY_LABELS[APP_DELETED]),
+        (APP_STATUS_CHANGED, DISPLAY_LABELS[APP_STATUS_CHANGED]),
         (CATEGORY_CREATED, DISPLAY_LABELS[CATEGORY_CREATED]),
         (CATEGORY_UPDATED, DISPLAY_LABELS[CATEGORY_UPDATED]),
         (CATEGORY_DELETED, DISPLAY_LABELS[CATEGORY_DELETED]),
@@ -172,6 +200,12 @@ class WebhookEventAsyncType:
         (GIFT_CARD_UPDATED, DISPLAY_LABELS[GIFT_CARD_UPDATED]),
         (GIFT_CARD_DELETED, DISPLAY_LABELS[GIFT_CARD_DELETED]),
         (GIFT_CARD_STATUS_CHANGED, DISPLAY_LABELS[GIFT_CARD_STATUS_CHANGED]),
+        (MENU_CREATED, DISPLAY_LABELS[MENU_CREATED]),
+        (MENU_UPDATED, DISPLAY_LABELS[MENU_UPDATED]),
+        (MENU_DELETED, DISPLAY_LABELS[MENU_DELETED]),
+        (MENU_ITEM_CREATED, DISPLAY_LABELS[MENU_ITEM_CREATED]),
+        (MENU_ITEM_UPDATED, DISPLAY_LABELS[MENU_ITEM_UPDATED]),
+        (MENU_ITEM_DELETED, DISPLAY_LABELS[MENU_ITEM_DELETED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
@@ -225,6 +259,10 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        APP_CREATED: AppPermission.MANAGE_APPS,
+        APP_UPDATED: AppPermission.MANAGE_APPS,
+        APP_DELETED: AppPermission.MANAGE_APPS,
+        APP_STATUS_CHANGED: AppPermission.MANAGE_APPS,
         CATEGORY_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CATEGORY_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -236,6 +274,12 @@ class WebhookEventAsyncType:
         GIFT_CARD_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_DELETED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_STATUS_CHANGED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        MENU_CREATED: MenuPermissions.MANAGE_MENUS,
+        MENU_UPDATED: MenuPermissions.MANAGE_MENUS,
+        MENU_DELETED: MenuPermissions.MANAGE_MENUS,
+        MENU_ITEM_CREATED: MenuPermissions.MANAGE_MENUS,
+        MENU_ITEM_UPDATED: MenuPermissions.MANAGE_MENUS,
+        MENU_ITEM_DELETED: MenuPermissions.MANAGE_MENUS,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
@@ -359,6 +403,10 @@ class WebhookEventSyncType:
 
 
 SUBSCRIBABLE_EVENTS = [
+    WebhookEventAsyncType.APP_CREATED,
+    WebhookEventAsyncType.APP_UPDATED,
+    WebhookEventAsyncType.APP_DELETED,
+    WebhookEventAsyncType.APP_STATUS_CHANGED,
     WebhookEventAsyncType.CATEGORY_CREATED,
     WebhookEventAsyncType.CATEGORY_UPDATED,
     WebhookEventAsyncType.CATEGORY_DELETED,
@@ -370,6 +418,12 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.GIFT_CARD_UPDATED,
     WebhookEventAsyncType.GIFT_CARD_DELETED,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
+    WebhookEventAsyncType.MENU_CREATED,
+    WebhookEventAsyncType.MENU_UPDATED,
+    WebhookEventAsyncType.MENU_DELETED,
+    WebhookEventAsyncType.MENU_ITEM_CREATED,
+    WebhookEventAsyncType.MENU_ITEM_UPDATED,
+    WebhookEventAsyncType.MENU_ITEM_DELETED,
     WebhookEventAsyncType.ORDER_CREATED,
     WebhookEventAsyncType.ORDER_UPDATED,
     WebhookEventAsyncType.ORDER_CONFIRMED,

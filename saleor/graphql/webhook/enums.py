@@ -23,6 +23,10 @@ order_updated_event_enum_description = (
 
 
 WEBHOOK_EVENT_DESCRIPTION = {
+    WebhookEventAsyncType.APP_CREATED: "A new app created.",
+    WebhookEventAsyncType.APP_UPDATED: "An app updated.",
+    WebhookEventAsyncType.APP_DELETED: "An app deleted.",
+    WebhookEventAsyncType.APP_STATUS_CHANGED: "An app status is changed.",
     WebhookEventAsyncType.CATEGORY_CREATED: "A new category created.",
     WebhookEventAsyncType.CATEGORY_UPDATED: "A category is updated.",
     WebhookEventAsyncType.CATEGORY_DELETED: "A category is deleted.",
@@ -44,6 +48,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
     WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
     WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
+    WebhookEventAsyncType.MENU_CREATED: "A new menu created.",
+    WebhookEventAsyncType.MENU_UPDATED: "A menu is updated.",
+    WebhookEventAsyncType.MENU_DELETED: "A menu is deleted.",
+    WebhookEventAsyncType.MENU_ITEM_CREATED: "A new menu item created.",
+    WebhookEventAsyncType.MENU_ITEM_UPDATED: "A menu item is updated.",
+    WebhookEventAsyncType.MENU_ITEM_DELETED: "A menu item is deleted.",
     WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
     WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
     WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,

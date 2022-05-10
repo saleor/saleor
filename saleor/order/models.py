@@ -427,6 +427,9 @@ class OrderLineQueryset(models.QuerySet):
 
 
 class OrderLine(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
         Order,
         related_name="lines",
@@ -589,7 +592,7 @@ class OrderLine(models.Model):
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:
-        ordering = ("pk",)
+        ordering = ("created_at",)
 
     def __str__(self):
         return (
@@ -676,7 +679,9 @@ class Fulfillment(ModelWithMetadata):
 
 class FulfillmentLine(models.Model):
     order_line = models.ForeignKey(
-        OrderLine, related_name="fulfillment_lines", on_delete=models.CASCADE
+        OrderLine,
+        related_name="fulfillment_lines",
+        on_delete=models.CASCADE,
     )
     fulfillment = models.ForeignKey(
         Fulfillment, related_name="lines", on_delete=models.CASCADE

@@ -105,6 +105,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByFulfillmentIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
@@ -216,8 +217,8 @@ class OrderEvent(ModelObjectType):
         App,
         description=(
             "App that performed the action. Requires of of the following permissions: "
-            f"{AppPermission.MANAGE_APPS}, {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"{AppPermission.MANAGE_APPS.name}, {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     message = graphene.String(description="Content of the event.")
@@ -361,11 +362,11 @@ class OrderEvent(ModelObjectType):
         for entry in raw_lines:
             line_pk = entry.get("line_pk", None)
             if line_pk:
-                line_pks.append(line_pk)
+                line_pks.append(UUID(line_pk))
 
         def _resolve_lines(lines):
             results = []
-            lines_dict = {line.pk: line for line in lines if line}
+            lines_dict = {str(line.pk): line for line in lines if line}
             for raw_line in raw_lines:
                 line_pk = raw_line.get("line_pk")
                 line_object = lines_dict.get(line_pk)
@@ -479,8 +480,8 @@ class Fulfillment(ModelObjectType):
         return root.created_at
 
     @staticmethod
-    def resolve_lines(root: models.Fulfillment, _info):
-        return root.lines.all()
+    def resolve_lines(root: models.Fulfillment, info):
+        return FulfillmentLinesByFulfillmentIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_status_display(root: models.Fulfillment, _info):
@@ -701,8 +702,9 @@ class Order(ModelObjectType):
         description=(
             "User who placed the order. This field is set only for orders placed by "
             "authenticated users. Requires one of the following permissions: "
-            f"{AccountPermissions.MANAGE_USERS}, {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     tracking_client_id = graphene.String(required=True)
@@ -710,16 +712,16 @@ class Order(ModelObjectType):
         "saleor.graphql.account.types.Address",
         description=(
             "Billing address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
             "Shipping address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}."
+            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_method_name = graphene.String()
@@ -762,7 +764,7 @@ class Order(ModelObjectType):
         Invoice,
         description=(
             "List of order invoices. Requires one of the following permissions: "
-            f"{OrderPermissions.MANAGE_ORDERS}, {AuthorizationFilters.OWNER}."
+            f"{OrderPermissions.MANAGE_ORDERS.name}, {AuthorizationFilters.OWNER.name}."
         ),
         required=True,
     )
@@ -863,8 +865,8 @@ class Order(ModelObjectType):
     user_email = graphene.String(
         description=(
             "Email address of the customer. Requires the following permissions to "
-            f"access the full data: {OrderPermissions.MANAGE_ORDERS}, "
-            f"{AuthorizationFilters.OWNER}"
+            f"access the full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
         ),
         required=False,
     )

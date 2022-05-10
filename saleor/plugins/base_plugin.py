@@ -28,6 +28,7 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from ..giftcard.models import GiftCard
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
+    from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
     from ..product.models import (
@@ -130,6 +132,30 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
+
+    #  Trigger when app is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an app is
+    #  created.
+    app_created: Callable[["App", None], None]
+
+    #  Trigger when app is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an app is
+    #  deleted.
+    app_deleted: Callable[["App", None], None]
+
+    #  Trigger when app is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an app is
+    #  updated.
+    app_updated: Callable[["App", None], None]
+
+    #  Trigger when channel status is changed.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an app
+    #  status is changed.
+    app_status_changed: Callable[["App", None], None]
 
     #  Apply taxes to the product price based on the customer country.
     #
@@ -479,6 +505,42 @@ class BasePlugin:
     invoice_sent: Callable[["Invoice", str, Any], Any]
 
     list_payment_sources: Callable[[str, Any], List["CustomerSource"]]
+
+    #  Trigger when menu is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a menu is
+    #  created.
+    menu_created: Callable[["Menu", None], None]
+
+    #  Trigger when menu is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a menu is
+    #  deleted.
+    menu_deleted: Callable[["Menu", None], None]
+
+    #  Trigger when menu is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a menu is
+    #  updated.
+    menu_updated: Callable[["Menu", None], None]
+
+    #  Trigger when menu item is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a menu item is
+    #  created.
+    menu_item_created: Callable[["MenuItem", None], None]
+
+    #  Trigger when menu item is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a menu item is
+    #  deleted.
+    menu_item_deleted: Callable[["MenuItem", None], None]
+
+    #  Trigger when menu item is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a menu item is
+    #  updated.
+    menu_item_updated: Callable[["MenuItem", None], None]
 
     #  Handle notification request.
     #

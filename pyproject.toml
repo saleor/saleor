@@ -11,7 +11,7 @@ documentation = "https://docs.saleor.io/"
 
   [tool.poetry.dependencies]
   python = "~3.9"
-  babel = ">=2.8,<2.10"
+  babel = ">=2.8,<2.11"
   boto3 = "^1.22"
   braintree = ">=4.2,<4.16"
   dj-database-url = "^0"
@@ -65,13 +65,13 @@ documentation = "https://docs.saleor.io/"
   micawber = "^0.5.2"
   django-celery-beat = "^2.2.1"
   posuto = "^2022.3.0"
-  cryptography = "^36.0.0"
+  cryptography = "^37.0.2"
   graphene = "<3.0"
   uvicorn = {extras = ["standard"], version = "^0.17.5"}
   Authlib = "^1.0.0"
 
     [tool.poetry.dependencies.celery]
-    version = "5.2.4"
+    version = ">=4.4.5,<6.0.0"
     extras = [ "redis" ]
 
     [tool.poetry.dependencies.django-storages]
@@ -108,7 +108,7 @@ documentation = "https://docs.saleor.io/"
   pytest-recording = "^0.12.0"
   pytest-xdist = "^2.2.1"
   tox = "^3.23.1"
-  mypy = "^0.942"
+  mypy = "^0.950"
   pywatchman = "^1.4.1"
   types-requests = "^2.25.0"
   types-pytz = "^2021.1.0"

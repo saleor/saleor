@@ -72,7 +72,7 @@ class AppQueries(graphene.ObjectType):
         description=(
             "Look up an app by ID. If ID is not provided, return the currently "
             "authenticated app. Requires one of the following permissions: "
-            f"{AuthorizationFilters.OWNER}, {AppPermission.MANAGE_APPS}."
+            f"{AuthorizationFilters.OWNER.name}, {AppPermission.MANAGE_APPS.name}."
         ),
     )
     app_extensions = FilterConnectionField(
