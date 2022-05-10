@@ -42,7 +42,6 @@ def resolve_access_token_for_app_extension(info, root):
     return None
 
 
-# @permission_required(AppPermission.MANAGE_APPS)
 def resolve_app(_info, id):
     if not id:
         return None

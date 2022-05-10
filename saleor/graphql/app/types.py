@@ -33,6 +33,14 @@ def has_required_permission(app: models.App, context):
         )
 
 
+def check_permission_for_acess_to_meta(app: models.App, info):
+    has_access = has_access_to_app_public_meta(app, info)
+    if not has_access:
+        raise PermissionDenied(
+            permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+        )
+
+
 def has_access_to_app_public_meta(root, info) -> bool:
     auth_token = info.context.decoded_auth_token or {}
     if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
@@ -42,9 +50,7 @@ def has_access_to_app_public_meta(root, info) -> bool:
     if app_id is not None and int(app_id) == root.id:
         return True
     requester = get_user_or_app_from_context(info.context)
-    if not requester.has_perm(AppPermission.MANAGE_APPS):
-        return False
-    return True
+    return requester.has_perm(AppPermission.MANAGE_APPS)
 
 
 class AppManifestExtension(graphene.ObjectType):
@@ -286,29 +292,17 @@ class App(ModelObjectType):
 
     @staticmethod
     def resolve_metadata(root: models.App, info):
-        has_access = has_access_to_app_public_meta(root, info)
-        if not has_access:
-            raise PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
-            )
+        check_permission_for_acess_to_meta(root, info)
         return ObjectWithMetadata.resolve_metadata(root, info)
 
     @staticmethod
     def resolve_metafield(root: models.App, info, *, key: str):
-        has_access = has_access_to_app_public_meta(root, info)
-        if not has_access:
-            raise PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
-            )
+        check_permission_for_acess_to_meta(root, info)
         return ObjectWithMetadata.resolve_metafield(root, info, key=key)
 
     @staticmethod
     def resolve_metafields(root: models.App, info, *, keys=None):
-        has_access = has_access_to_app_public_meta(root, info)
-        if not has_access:
-            raise PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
-            )
+        check_permission_for_acess_to_meta(root, info)
         return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 
 
