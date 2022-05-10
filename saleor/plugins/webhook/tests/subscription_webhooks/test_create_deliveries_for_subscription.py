@@ -6,13 +6,13 @@ import pytest
 
 from .....channel.models import Channel
 from .....giftcard.models import GiftCard
-from . import subscription_queries
 from .....graphql.webhook.subscription_payload import validate_subscription_query
 from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
 from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
+from . import subscription_queries
 from .payloads import (
     generate_category_payload,
     generate_collection_payload,

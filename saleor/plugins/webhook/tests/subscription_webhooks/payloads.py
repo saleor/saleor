@@ -169,7 +169,7 @@ def generate_category_payload(category):
     tree = category.get_descendants(include_self=True)
     products = sorted(
         Product.objects.all().filter(category__in=tree),
-        key=lambda product: product.name
+        key=lambda product: product.name,
     )
     return {
         "category": {
@@ -208,8 +208,7 @@ def generate_shipping_method_payload(shipping_method):
             "id": shipping_method_id,
             "name": shipping_method.name,
             "channelListings": [
-                {"channel": {"name": sl.channel.name}}
-                for sl in channel_listings
+                {"channel": {"name": sl.channel.name}} for sl in channel_listings
             ],
         },
         "shippingZone": {
@@ -291,10 +290,16 @@ def generate_menu_payload(menu, menu_global_id):
 
 
 def generate_menu_item_payload(menu_item, menu_item_global_id):
-    menu = {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)} \
-        if menu_item.menu_id else None
-    page = {"id": graphene.Node.to_global_id("Page",menu_item.page_id)} \
-        if menu_item.page_id else None
+    menu = (
+        {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)}
+        if menu_item.menu_id
+        else None
+    )
+    page = (
+        {"id": graphene.Node.to_global_id("Page", menu_item.page_id)}
+        if menu_item.page_id
+        else None
+    )
     return {
         "menuItem": {
             "id": menu_item_global_id,

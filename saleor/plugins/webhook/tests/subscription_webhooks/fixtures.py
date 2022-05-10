@@ -1,8 +1,8 @@
 import pytest
 
-from . import subscription_queries
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.models import Webhook
+from . import subscription_queries
 
 
 @pytest.fixture
