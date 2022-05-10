@@ -54,18 +54,15 @@ def parse_list_shipping_methods_response(
 
 
 def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
-    """Compare two string of order payloads.
-
-    Compare them while ignoring excluded_keys.
-    """
-    EXCLUDED_KEYS = ["weight", "meta"]
+    """Compare two strings of order payloads ignoring meta."""
+    EXCLUDED_KEY = "meta"
     try:
         order_payload = json.loads(payload)["order"]
         cached_order_payload = json.loads(cached_payload)["order"]
     except:  # noqa
         return False
-    return {k: v for k, v in order_payload.items() if k not in EXCLUDED_KEYS} == {
-        k: v for k, v in cached_order_payload.items() if k not in EXCLUDED_KEYS
+    return {k: v for k, v in order_payload.items() if k != EXCLUDED_KEY} == {
+        k: v for k, v in cached_order_payload.items() if k != EXCLUDED_KEY
     }
 
 

@@ -4,7 +4,7 @@ from django.db.models import Exists, OuterRef, Q
 from ...attribute import models
 from ...core.permissions import PageTypePermissions
 from ...product import models as product_models
-from ...product.search import update_products_search_document
+from ...product.search import update_products_search_vector
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
 from ..utils import resolve_global_ids_to_primary_keys
@@ -26,13 +26,13 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(cls, root, info, ids, **data):
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
-        response = super().perform_mutation(_root, info, ids, **data)
-        update_products_search_document(
+        response = super().perform_mutation(root, info, ids, **data)
+        update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
         return response
@@ -80,13 +80,13 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(cls, root, info, ids, **data):
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
-        response = super().perform_mutation(_root, info, ids, **data)
-        update_products_search_document(
+        response = super().perform_mutation(root, info, ids, **data)
+        update_products_search_vector(
             product_models.Product.objects.filter(id__in=product_ids)
         )
         return response

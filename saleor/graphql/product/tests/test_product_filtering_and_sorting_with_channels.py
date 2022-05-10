@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal
 
 import pytest
+import pytz
 from freezegun import freeze_time
 
 from ....product import ProductTypeKind
@@ -64,28 +65,28 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 channel=channel_USD,
                 is_published=True,
                 discounted_price_amount=Decimal(5),
-                publication_date=datetime.date(2002, 1, 1),
+                published_at=datetime.datetime(2002, 1, 1, tzinfo=pytz.UTC),
             ),
             ProductChannelListing(
                 product=products[1],
                 channel=channel_USD,
                 is_published=True,
                 discounted_price_amount=Decimal(15),
-                publication_date=datetime.date(2000, 1, 1),
+                published_at=datetime.datetime(2000, 1, 1, tzinfo=pytz.UTC),
             ),
             ProductChannelListing(
                 product=products[2],
                 channel=channel_USD,
                 is_published=False,
                 discounted_price_amount=Decimal(4),
-                publication_date=datetime.date(1999, 1, 1),
+                published_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
             ),
             ProductChannelListing(
                 product=products[3],
                 channel=channel_USD,
                 is_published=True,
                 discounted_price_amount=Decimal(7),
-                publication_date=datetime.date(2001, 1, 1),
+                published_at=datetime.datetime(2001, 1, 1, tzinfo=pytz.UTC),
             ),
             # Second channel
             ProductChannelListing(
@@ -93,28 +94,28 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 channel=channel_PLN,
                 is_published=False,
                 discounted_price_amount=Decimal(15),
-                publication_date=datetime.date(2003, 1, 1),
+                published_at=datetime.datetime(2003, 1, 1, tzinfo=pytz.UTC),
             ),
             ProductChannelListing(
                 product=products[1],
                 channel=channel_PLN,
                 is_published=True,
                 discounted_price_amount=Decimal(4),
-                publication_date=datetime.date(1999, 1, 1),
+                published_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
             ),
             ProductChannelListing(
                 product=products[2],
                 channel=channel_PLN,
                 is_published=True,
                 discounted_price_amount=Decimal(5),
-                publication_date=datetime.date(2000, 1, 1),
+                published_at=datetime.datetime(2000, 1, 1, tzinfo=pytz.UTC),
             ),
             ProductChannelListing(
                 product=products[4],
                 channel=channel_PLN,
                 is_published=True,
                 discounted_price_amount=Decimal(7),
-                publication_date=datetime.date(1998, 1, 1),
+                published_at=datetime.datetime(1998, 1, 1, tzinfo=pytz.UTC),
             ),
         ]
     )
@@ -243,7 +244,7 @@ QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
         {"field": "PUBLISHED", "direction": "ASC"},
         {"field": "PRICE", "direction": "DESC"},
         {"field": "MINIMAL_PRICE", "direction": "DESC"},
-        {"field": "PUBLICATION_DATE", "direction": "DESC"},
+        {"field": "PUBLISHED_AT", "direction": "DESC"},
     ],
 )
 def test_products_with_sorting_and_without_channel(

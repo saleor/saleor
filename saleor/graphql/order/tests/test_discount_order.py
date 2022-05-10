@@ -557,7 +557,7 @@ def test_update_order_line_discount(
     assert len(lines) == 1
 
     line_data = lines[0]
-    assert line_data.get("line_pk") == line_to_discount.pk
+    assert line_data.get("line_pk") == str(line_to_discount.pk)
     discount_data = line_data.get("discount")
 
     assert discount_data["value"] == str(value)
@@ -640,7 +640,7 @@ def test_update_order_line_discount_line_with_discount(
     assert len(lines) == 1
 
     line_data = lines[0]
-    assert line_data.get("line_pk") == line_to_discount.pk
+    assert line_data.get("line_pk") == str(line_to_discount.pk)
     discount_data = line_data.get("discount")
 
     assert discount_data["value"] == str(value)
@@ -760,7 +760,7 @@ def test_delete_discount_from_order_line(
     assert len(lines) == 1
 
     line_data = lines[0]
-    assert line_data.get("line_pk") == line.pk
+    assert line_data.get("line_pk") == str(line.pk)
 
 
 def test_delete_order_line_discount_order_is_not_draft(

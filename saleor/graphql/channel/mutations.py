@@ -2,6 +2,7 @@ import datetime
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
@@ -9,6 +10,7 @@ from ...channel import models
 from ...checkout.models import Checkout
 from ...core.permissions import ChannelPermissions
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..account.enums import CountryCodeEnum
@@ -32,9 +34,9 @@ class ChannelCreateInput(ChannelInput):
     )
     default_country = CountryCodeEnum(
         description=(
-            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided."
+            "when the country was not explicitly provided." + ADDED_IN_31
         ),
         required=True,
     )
@@ -80,15 +82,19 @@ class ChannelCreate(ModelMutation):
         if shipping_zones:
             instance.shipping_zones.add(*shipping_zones)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.channel_created(instance)
+
 
 class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
     slug = graphene.String(description="Slug of the channel.")
     default_country = CountryCodeEnum(
         description=(
-            f"{ADDED_IN_31} Default country for the channel. Default country can be "
+            "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided."
+            "when the country was not explicitly provided." + ADDED_IN_31
         )
     )
     add_shipping_zones = NonNullList(
@@ -154,6 +160,10 @@ class ChannelUpdate(ModelMutation):
             drop_invalid_shipping_methods_relations_for_given_channels.delay(
                 shipping_method_ids, [instance.id]
             )
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.channel_updated(instance)
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
@@ -239,6 +249,10 @@ class ChannelDelete(ModelDeleteMutation):
                 }
             )
         cls.delete_checkouts(origin_channel.id)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.channel_deleted(instance)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -337,12 +351,38 @@ class BaseChannelListingMutation(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def clean_publication_date(cls, cleaned_input, input_source="add_channels"):
+    def clean_publication_date(
+        cls, errors, error_code_enum, cleaned_input, input_source="add_channels"
+    ):
+        invalid_channels = []
         for add_channel in cleaned_input.get(input_source, []):
-            is_published = add_channel.get("is_published")
+            # should update errors dict
+            if "publication_date" in add_channel and "published_at" in add_channel:
+                invalid_channels.append(add_channel["channel_id"])
+                continue
             publication_date = add_channel.get("publication_date")
+            publication_date = (
+                convert_to_utc_date_time(publication_date)
+                if publication_date
+                else add_channel.get("published_at")
+            )
+            is_published = add_channel.get("is_published")
             if is_published and not publication_date:
-                add_channel["publication_date"] = datetime.date.today()
+                add_channel["published_at"] = datetime.datetime.now(pytz.UTC)
+            elif "publication_date" in add_channel or "published_at" in add_channel:
+                add_channel["published_at"] = publication_date
+        if invalid_channels:
+            error_msg = (
+                "Only one of argument: publicationDate or publishedAt "
+                "must be specified."
+            )
+            errors["publication_date"].append(
+                ValidationError(
+                    error_msg,
+                    code=error_code_enum.INVALID.value,
+                    params={"channels": invalid_channels},
+                )
+            )
 
 
 class ChannelActivate(BaseMutation):
@@ -375,7 +415,7 @@ class ChannelActivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = True
         channel.save(update_fields=["is_active"])
-
+        info.context.plugins.channel_status_changed(channel)
         return ChannelActivate(channel=channel)
 
 
@@ -409,5 +449,5 @@ class ChannelDeactivate(BaseMutation):
         cls.clean_channel_availability(channel)
         channel.is_active = False
         channel.save(update_fields=["is_active"])
-
+        info.context.plugins.channel_status_changed(channel)
         return ChannelDeactivate(channel=channel)

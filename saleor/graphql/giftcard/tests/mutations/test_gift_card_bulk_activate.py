@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from unittest import mock
 
 import graphene
 
@@ -180,3 +181,42 @@ def test_gift_card_bulk_activate_expired_cards(
     ]
     for error in errors:
         assert error in expected_errors
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_gift_card_bulk_activate_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    permission_manage_gift_card,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    gift_card.is_active = False
+    gift_card_expiry_date.is_active = False
+    gift_cards = [gift_card, gift_card_expiry_date]
+    GiftCard.objects.bulk_update(gift_cards, ["is_active"])
+
+    ids = [graphene.Node.to_global_id("GiftCard", card.pk) for card in gift_cards]
+    variables = {"ids": ids}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_GIFT_CARD_BULK_ACTIVATE,
+        variables,
+        permissions=(permission_manage_gift_card,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardBulkActivate"]
+
+    assert data["count"] == len(ids)
+    assert mocked_webhook_trigger.call_count == len(ids)

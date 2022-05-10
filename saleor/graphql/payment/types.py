@@ -7,15 +7,21 @@ from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31
-from ..core.fields import JSONString
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.fields import JSONString, PermissionsField
 from ..core.types import ModelObjectType, Money, NonNullList
-from ..decorators import permission_required
 from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
-from .enums import OrderAction, PaymentChargeStatusEnum, TransactionKindEnum
+from .dataloaders import TransactionEventByTransactionIdLoader
+from .enums import (
+    OrderAction,
+    PaymentChargeStatusEnum,
+    TransactionActionEnum,
+    TransactionKindEnum,
+    TransactionStatusEnum,
+)
 
 
 class Transaction(ModelObjectType):
@@ -77,8 +83,9 @@ class PaymentSource(graphene.ObjectType):
         MetadataItem,
         required=True,
         description=(
-            f"{ADDED_IN_31} List of public metadata items. "
-            "Can be accessed without permissions."
+            "List of public metadata items."
+            + ADDED_IN_31
+            + "\n\nCan be accessed without permissions."
         ),
     )
 
@@ -93,29 +100,44 @@ class Payment(ModelObjectType):
     checkout = graphene.Field("saleor.graphql.checkout.types.Checkout")
     order = graphene.Field("saleor.graphql.order.types.Order")
     payment_method_type = graphene.String(required=True)
-    customer_ip_address = graphene.String()
+    customer_ip_address = PermissionsField(
+        graphene.String,
+        description="IP address of the user who created the payment.",
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
     charge_status = PaymentChargeStatusEnum(
         description="Internal payment status.", required=True
     )
-    actions = NonNullList(
-        OrderAction,
+    actions = PermissionsField(
+        NonNullList(OrderAction),
         description=(
             "List of actions that can be performed in the current state of a payment."
         ),
         required=True,
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     total = graphene.Field(Money, description="Total amount of the payment.")
     captured_amount = graphene.Field(
         Money, description="Total amount captured for this payment."
     )
-    transactions = NonNullList(
-        Transaction, description="List of all transactions within this payment."
+    transactions = PermissionsField(
+        NonNullList(Transaction),
+        description="List of all transactions within this payment.",
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
-    available_capture_amount = graphene.Field(
-        Money, description="Maximum amount of money that can be captured."
+    available_capture_amount = PermissionsField(
+        Money,
+        description="Maximum amount of money that can be captured.",
+        permissions=[OrderPermissions.MANAGE_ORDERS],
     )
-    available_refund_amount = graphene.Field(
-        Money, description="Maximum amount of money that can be refunded."
+    available_refund_amount = PermissionsField(
+        Money,
+        description="Maximum amount of money that can be refunded.",
+        permissions=[OrderPermissions.MANAGE_ORDERS],
     )
     credit_card = graphene.Field(
         CreditCard, description="The details of the card used for this payment."
@@ -135,12 +157,10 @@ class Payment(ModelObjectType):
         return root.modified_at
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_customer_ip_address(root: models.Payment, _info):
         return root.customer_ip_address
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_actions(root: models.Payment, _info):
         actions = []
         if root.can_capture():
@@ -161,19 +181,16 @@ class Payment(ModelObjectType):
         return root.get_captured_amount()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_available_refund_amount(root: models.Payment, _info):
         if not root.can_refund():
             return None
         return root.get_captured_amount()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_available_capture_amount(root: models.Payment, _info):
         if not root.can_capture():
             return None
@@ -222,3 +239,82 @@ class PaymentInitialized(graphene.ObjectType):
     gateway = graphene.String(description="ID of a payment gateway.", required=True)
     name = graphene.String(description="Payment gateway name.", required=True)
     data = JSONString(description="Initialized data by gateway.", required=False)
+
+
+class TransactionEvent(ModelObjectType):
+    created_at = graphene.DateTime(required=True)
+    status = graphene.Field(
+        TransactionStatusEnum,
+        description="Status of transaction's event.",
+        required=True,
+    )
+    reference = graphene.String(
+        description="Reference of transaction's event.", required=True
+    )
+    name = graphene.String(description="Name of the transaction's event.")
+
+    class Meta:
+        description = "Represents transaction's event."
+        interfaces = [relay.Node]
+        model = models.TransactionEvent
+
+
+class TransactionItem(ModelObjectType):
+    created_at = graphene.DateTime(required=True)
+    modified_at = graphene.DateTime(required=True)
+    actions = NonNullList(
+        TransactionActionEnum,
+        description=(
+            "List of actions that can be performed in the current state of a payment."
+        ),
+        required=True,
+    )
+    authorized_amount = graphene.Field(
+        Money, required=True, description="Total amount authorized for this payment."
+    )
+    refunded_amount = graphene.Field(
+        Money, required=True, description="Total amount refunded for this payment."
+    )
+    voided_amount = graphene.Field(
+        Money, required=True, description="Total amount voided for this payment."
+    )
+    captured_amount = graphene.Field(
+        Money, description="Total amount captured for this payment.", required=True
+    )
+    status = graphene.String(description="Status of transaction.", required=True)
+    type = graphene.String(description="Type of transaction.", required=True)
+    reference = graphene.String(description="Reference of transaction.", required=True)
+    events = NonNullList(
+        TransactionEvent, required=True, description="List of all transaction's events."
+    )
+
+    class Meta:
+        description = (
+            "Represents a payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
+        interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.TransactionItem
+
+    @staticmethod
+    def resolve_actions(root: models.TransactionItem, _info):
+        return root.available_actions
+
+    @staticmethod
+    def resolve_captured_amount(root: models.TransactionItem, _info):
+        return root.amount_captured
+
+    @staticmethod
+    def resolve_authorized_amount(root: models.TransactionItem, _info):
+        return root.amount_authorized
+
+    @staticmethod
+    def resolve_voided_amount(root: models.TransactionItem, _info):
+        return root.amount_voided
+
+    @staticmethod
+    def resolve_refunded_amount(root: models.TransactionItem, _info):
+        return root.amount_refunded
+
+    @staticmethod
+    def resolve_events(root: models.TransactionItem, info):
+        return TransactionEventByTransactionIdLoader(info.context).load(root.id)

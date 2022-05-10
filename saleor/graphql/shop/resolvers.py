@@ -12,7 +12,7 @@ from .utils import get_countries_codes_list
 
 
 @traced_resolver
-def resolve_available_shipping_methods(info, channel_slug: str, address):
+def resolve_available_shipping_methods(_info, *, channel_slug: str, address):
     instances = []
     available = ShippingMethod.objects.for_channel(channel_slug)
     if address and address.country:

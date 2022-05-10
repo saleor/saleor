@@ -92,7 +92,7 @@ class PluginUpdate(BaseMutation):
         return {"plugin": plugin, "data": input_data, "channel_slug": channel_slug}
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         cleaned_data = cls.clean_input(info, data)
         plugin_id = cleaned_data["plugin"].PLUGIN_ID
         channel_slug = cleaned_data["channel_slug"]

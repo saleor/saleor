@@ -39,11 +39,14 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..app.models import App
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
-    from ..discount.models import Sale
+    from ..discount.models import Sale, Voucher
+    from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
+    from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
     from ..payment.interface import (
@@ -53,6 +56,7 @@ if TYPE_CHECKING:
         PaymentData,
         PaymentGateway,
         TokenConfig,
+        TransactionActionData,
     )
     from ..product.models import (
         Category,
@@ -787,6 +791,33 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
 
+    def transaction_action_request(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_action_request",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def app_created(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_created", default_value, app)
+
+    def app_updated(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_updated", default_value, app)
+
+    def app_deleted(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_deleted", default_value, app)
+
+    def app_status_changed(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_status_changed", default_value, app)
+
     def category_created(self, category: "Category"):
         default_value = None
         return self.__run_method_on_plugins("category_created", default_value, category)
@@ -798,6 +829,78 @@ class PluginsManager(PaymentInterface):
     def category_deleted(self, category: "Category"):
         default_value = None
         return self.__run_method_on_plugins("category_deleted", default_value, category)
+
+    def channel_created(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_created", default_value, channel)
+
+    def channel_updated(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_updated", default_value, channel)
+
+    def channel_deleted(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_deleted", default_value, channel)
+
+    def channel_status_changed(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "channel_status_changed", default_value, channel
+        )
+
+    def gift_card_created(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_created", default_value, gift_card
+        )
+
+    def gift_card_updated(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_updated", default_value, gift_card
+        )
+
+    def gift_card_deleted(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_deleted", default_value, gift_card
+        )
+
+    def gift_card_status_changed(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_status_changed", default_value, gift_card
+        )
+
+    def menu_created(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_created", default_value, menu)
+
+    def menu_updated(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_updated", default_value, menu)
+
+    def menu_deleted(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_deleted", default_value, menu)
+
+    def menu_item_created(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_created", default_value, menu_item
+        )
+
+    def menu_item_updated(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_updated", default_value, menu_item
+        )
+
+    def menu_item_deleted(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_deleted", default_value, menu_item
+        )
 
     def shipping_price_created(self, shipping_method: "ShippingMethod"):
         default_value = None
@@ -834,6 +937,18 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "shipping_zone_deleted", default_value, shipping_zone
         )
+
+    def voucher_created(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
+
+    def voucher_updated(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
+
+    def voucher_deleted(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_deleted", default_value, voucher)
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str
@@ -1287,6 +1402,16 @@ class PluginsManager(PaymentInterface):
             info=info,
             data=data,
         )
+
+    def is_event_active_for_any_plugin(
+        self, event: str, channel_slug: Optional[str] = None
+    ) -> bool:
+        """Check if any plugin supports defined event."""
+        plugins = (
+            self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins
+        )
+        only_active_plugins = [plugin for plugin in plugins if plugin.active]
+        return any([plugin.is_event_active(event) for plugin in only_active_plugins])
 
 
 def get_plugins_manager(

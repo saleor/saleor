@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 import graphene
+from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 
 from ....channel.error_codes import ChannelErrorCode
+from ....webhook.event_types import WebhookEventAsyncType
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_UPDATE_MUTATION = """
@@ -406,3 +408,49 @@ def test_channel_update_mutation_duplicated_shipping_zone(
     assert errors[0]["field"] == "shippingZones"
     assert errors[0]["code"] == ChannelErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["shippingZones"] == [add_shipping_zone]
+
+
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_channel_update_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    name = "newName"
+    slug = "new_slug"
+    default_country = "FR"
+    variables = {
+        "id": channel_id,
+        "input": {"name": name, "slug": slug, "defaultCountry": default_country},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    assert data["channel"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        {"id": channel_id},
+        WebhookEventAsyncType.CHANNEL_UPDATED,
+        [any_webhook],
+        channel_USD,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )

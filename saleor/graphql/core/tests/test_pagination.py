@@ -1,3 +1,4 @@
+import base64
 import math
 
 import graphene
@@ -20,7 +21,8 @@ class BookTypeCountableConnection(CountableConnection):
 class Query(graphene.ObjectType):
     books = ConnectionField(BookTypeCountableConnection)
 
-    def resolve_books(self, info, **kwargs):
+    @staticmethod
+    def resolve_books(_root, info, **kwargs):
         qs = Book.objects.all()
         return create_connection_slice(qs, info, kwargs, BookTypeCountableConnection)
 
@@ -235,6 +237,17 @@ def test_pagination_invalid_cursor(books):
     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
 
     assert result.errors
+    assert len(result.errors) == 1
+    assert str(result.errors[0]) == "Received cursor is invalid."
+
+
+def test_pagination_invalid_cursor_and_valid_base64(books):
+    """This cursor should have int value, in this test we pass string value."""
+    cursor = base64.b64encode(str.encode(f"{['Test']}")).decode("utf-8")
+    variables = {"first": 5, "after": cursor}
+
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
     assert len(result.errors) == 1
     assert str(result.errors[0]) == "Received cursor is invalid."
 

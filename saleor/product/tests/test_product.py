@@ -329,7 +329,9 @@ def test_digital_product_increment_download(
     assert download_event.type == account_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
     assert download_event.user == expected_user
     assert download_event.order == digital_content_url.line.order
-    assert download_event.parameters == {"order_line_pk": digital_content_url.line.pk}
+    assert download_event.parameters == {
+        "order_line_pk": str(digital_content_url.line.pk)
+    }
 
 
 def test_digital_product_view_url_downloaded_max_times(client, digital_content):

@@ -257,7 +257,7 @@ def test_retrieve_channel_listings(
               node {
                 id
                 channelListings {
-                  publicationDate
+                  publishedAt
                   isPublished
                   channel{
                     slug
@@ -283,7 +283,7 @@ def test_retrieve_channel_listings(
                     stop
                   }
                   isAvailableForPurchase
-                  availableForPurchase
+                  availableForPurchaseAt
                   pricing {
                     priceRangeUndiscounted {
                       start {

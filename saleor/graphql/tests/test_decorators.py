@@ -48,7 +48,7 @@ def test_permission_required_with_limited_permissions(
     request.user = staff_user
     request.app = None
     requestor = get_user_or_app_from_context(request)
-    has_perms = core_permission_required(permissions_required, requestor)
+    has_perms = core_permission_required(requestor, permissions_required)
     assert has_perms == access_granted
 
 
@@ -84,5 +84,5 @@ def test_permission_required(
     request.user = staff_user
     request.app = None
     requestor = get_user_or_app_from_context(request)
-    has_perms = core_permission_required(permissions_required, requestor)
+    has_perms = core_permission_required(requestor, permissions_required)
     assert has_perms == access_granted
