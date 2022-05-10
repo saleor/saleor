@@ -1057,6 +1057,23 @@ def test_send_webhook_request_async(
     assert delivery.status == EventDeliveryStatus.SUCCESS
 
 
+@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
+def test_send_webhook_request_async_when_webhook_is_disabled(
+    mocked_clear_delivery, event_delivery
+):
+    # given
+    event_delivery.webhook.is_active = False
+    event_delivery.webhook.save(update_fields=["is_active"])
+
+    # when
+    send_webhook_request_async(event_delivery.pk)
+    event_delivery.refresh_from_db()
+
+    # then
+    mocked_clear_delivery.not_called()
+    assert event_delivery.status == EventDeliveryStatus.FAILED
+
+
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_send_webhook_request_async_when_delivery_attempt_failed(
     mocked_send_response,
