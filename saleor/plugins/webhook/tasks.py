@@ -323,7 +323,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
     if not delivery.webhook.is_active:
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-        logger.error("Event delivery id: %r webhook is disabled.", event_delivery_id)
+        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
         return
 
     webhook = delivery.webhook
