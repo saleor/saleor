@@ -9,7 +9,7 @@ from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 
 from ..core.enums import PermissionEnum
-from ..core.types import Permission
+from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
@@ -94,9 +94,9 @@ def get_nodes(
     elif model is not None:
         qs = model.objects
 
-    is_order_object_type = str(graphene_type) == "Order"
-    if is_order_object_type:
-        nodes = _get_nodes_for_order(qs, pks)
+    is_object_type_with_double_id = str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE
+    if is_object_type_with_double_id:
+        nodes = _get_node_for_types_with_double_id(qs, pks, graphene_type)
     else:
         nodes = list(qs.filter(pk__in=pks))
         nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
@@ -105,8 +105,9 @@ def get_nodes(
         raise GraphQLError(ERROR_COULD_NO_RESOLVE_GLOBAL_ID % ids)
 
     nodes_pk_list = [str(node.pk) for node in nodes]
-    if is_order_object_type:
-        nodes_pk_list.extend([str(node.number) for node in nodes])
+    if is_object_type_with_double_id:
+        old_id_field = "number" if str(graphene_type) == "Order" else "old_id"
+        nodes_pk_list.extend([str(getattr(node, old_id_field)) for node in nodes])
     for pk in pks:
         assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
             graphene_type, pk
@@ -114,20 +115,27 @@ def get_nodes(
     return nodes
 
 
-def _get_nodes_for_order(qs, pks):
+def _get_node_for_types_with_double_id(qs, pks, graphene_type):
     uuid_pks = []
     old_pks = []
+    is_order_type = str(graphene_type) == "Order"
 
     for pk in pks:
         try:
             uuid_pks.append(UUID(str(pk)))
         except ValueError:
             old_pks.append(pk)
-    nodes = list(
-        qs.filter(Q(id__in=uuid_pks) | (Q(use_old_id=True) & Q(number__in=old_pks)))
-    )
+    if is_order_type:
+        lookup = Q(id__in=uuid_pks) | (Q(use_old_id=True) & Q(number__in=old_pks))
+    else:
+        lookup = Q(id__in=uuid_pks) | (Q(old_id__isnull=False) & Q(old_id__in=old_pks))
+    nodes = list(qs.filter(lookup))
+    old_id_field = "number" if is_order_type else "old_id"
     return sorted(
-        nodes, key=lambda e: pks.index(str(e.pk) if e.pk in uuid_pks else str(e.number))
+        nodes,
+        key=lambda e: pks.index(
+            str(e.pk) if e.pk in uuid_pks else str(getattr(e, old_id_field))
+        ),
     )  # preserve order in pks
 
 

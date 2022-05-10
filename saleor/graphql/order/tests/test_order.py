@@ -1997,11 +1997,11 @@ def test_draft_order_create(
 
     order_lines = list(order.lines.all())
     assert event_parameters["lines"][0]["item"] == str(order_lines[0])
-    assert event_parameters["lines"][0]["line_pk"] == order_lines[0].pk
+    assert event_parameters["lines"][0]["line_pk"] == str(order_lines[0].pk)
     assert event_parameters["lines"][0]["quantity"] == 2
 
     assert event_parameters["lines"][1]["item"] == str(order_lines[1])
-    assert event_parameters["lines"][1]["line_pk"] == order_lines[1].pk
+    assert event_parameters["lines"][1]["line_pk"] == str(order_lines[1].pk)
     assert event_parameters["lines"][1]["quantity"] == 1
 
 
@@ -4260,7 +4260,7 @@ def test_order_lines_create(
     assert len(event.parameters["lines"]) == 1
     line = OrderLine.objects.last()
     assert event.parameters["lines"] == [
-        {"item": str(line), "line_pk": line.pk, "quantity": quantity}
+        {"item": str(line), "line_pk": str(line.pk), "quantity": quantity}
     ]
 
     content = get_graphql_content(response)
@@ -4827,7 +4827,9 @@ def test_order_line_update(
     assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
-        "lines": [{"quantity": removed_quantity, "line_pk": line.pk, "item": str(line)}]
+        "lines": [
+            {"quantity": removed_quantity, "line_pk": str(line.pk), "item": str(line)}
+        ]
     }
 
     # mutation should fail when quantity is lower than 1
@@ -4880,7 +4882,9 @@ def test_order_line_update_without_sku(
     assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
-        "lines": [{"quantity": removed_quantity, "line_pk": line.pk, "item": str(line)}]
+        "lines": [
+            {"quantity": removed_quantity, "line_pk": str(line.pk), "item": str(line)}
+        ]
     }
 
     line.refresh_from_db()

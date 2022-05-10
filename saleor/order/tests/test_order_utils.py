@@ -49,6 +49,7 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
+
     line_info = OrderLineInfo(
         line=line,
         quantity=line.quantity,
@@ -84,9 +85,14 @@ def test_change_quantity_generates_proper_event(
     new_event = OrderEvent.objects.last()  # type: OrderEvent
     assert new_event.type == expected_type
     assert new_event.user == staff_user
+    expected_line_pk = None if new_quantity == 0 else str(line.pk)
     assert new_event.parameters == {
         "lines": [
-            {"quantity": expected_quantity, "line_pk": line.pk, "item": str(line)}
+            {
+                "quantity": expected_quantity,
+                "line_pk": expected_line_pk,
+                "item": str(line),
+            }
         ]
     }
 
