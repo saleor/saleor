@@ -112,10 +112,10 @@ def test_app_query(
     else:
         assert app_data["accessToken"] is None
 
-    assert app_data["metadata"]["key"] == "test"
-    assert app_data["metadata"]["value"] == "123"
-    assert app_data["metafield"] == {"test": "123"}
-    assert app_data["metadields"] == [{"test": "123"}]
+    assert app_data["metadata"][0]["key"] == "test"
+    assert app_data["metadata"][0]["value"] == "123"
+    assert app_data["metafield"] == "123"
+    assert app_data["metafields"] == {"test": "123"}
 
 
 def test_app_query_no_permission(
