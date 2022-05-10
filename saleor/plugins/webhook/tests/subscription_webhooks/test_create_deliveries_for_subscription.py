@@ -14,6 +14,94 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 
 
+def generate_expected_payload_for_app(app, app_global_id):
+    return json.dumps(
+        {
+            "app": {
+                "id": app_global_id,
+                "isActive": app.is_active,
+                "name": app.name,
+                "appUrl": app.app_url,
+            },
+            "meta": None,
+        }
+    )
+
+
+def test_app_created(app, subscription_app_created_webhook):
+    # given
+    webhooks = [subscription_app_created_webhook]
+    event_type = WebhookEventAsyncType.APP_CREATED
+    app_id = graphene.Node.to_global_id("App", app.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
+
+    # then
+    expected_payload = generate_expected_payload_for_app(app, app_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_app_updated(app, subscription_app_updated_webhook):
+    # given
+    webhooks = [subscription_app_updated_webhook]
+    event_type = WebhookEventAsyncType.APP_UPDATED
+    gift_card_id = graphene.Node.to_global_id("App", app.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
+
+    # then
+    expected_payload = generate_expected_payload_for_app(app, gift_card_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_app_deleted(app, subscription_app_deleted_webhook):
+    # given
+    webhooks = [subscription_app_deleted_webhook]
+
+    id = app.id
+    app.delete()
+    app.id = id
+
+    event_type = WebhookEventAsyncType.APP_DELETED
+    app_id = graphene.Node.to_global_id("App", app.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
+
+    # then
+    expected_payload = generate_expected_payload_for_app(app, app_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+@pytest.mark.parametrize("status", [True, False])
+def test_app_status_changed(status, app, subscription_app_status_changed_webhook):
+    # given
+    webhooks = [subscription_app_status_changed_webhook]
+
+    app.is_active = status
+    app.save(update_fields=["is_active"])
+
+    event_type = WebhookEventAsyncType.APP_STATUS_CHANGED
+    app_id = graphene.Node.to_global_id("App", app.id)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
+
+    # then
+    expected_payload = generate_expected_payload_for_app(app, app_id)
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_category_created(category, subscription_category_created_webhook):
     # given
     webhooks = [subscription_category_created_webhook]

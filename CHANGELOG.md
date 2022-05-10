@@ -18,6 +18,11 @@ All notable, unreleased changes to this project will be documented in this file.
   - add new webhook event:
     - `TRANSACTION_ACTION_REQUEST`
 
+#### Saleor Apps
+- Add webhooks `MENU_CREATED`, `MENU_UPDATED`, `MENU_DELETED`, `MENU_ITEM_CREATED`, `MENU_ITEM_UPDATED`, `MENU_ITEM_DELETED` - #9651 by @SzymJ
+- Add webhooks `VOUCHER_CREATED`, `VOUCHER_UPDATED`, `VOUCHER_DELETED` - #9657 by @SzymJ
+- Add webhooks `APP_CREATED`, `APP_UPDATED`, `APP_DELETED`, `APP_STATUS_CHANGED` - #9698 by @SzymJ
+
 # 3.3.1
 
 - Drop manual calls to emit post_migrate in migrations (#9647) (b32308802)
@@ -66,8 +71,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Optimize stock warehouse resolver performance (955489bff) by @tomaszszymanski129
 - Improve shipping zone filters performance (#9540) (7841ec536) by @tomaszszymanski129
 
-#### Saleor Apps
-- Add webhooks `MENU_CREATED`, `MENU_UPDATED`, `MENU_DELETED`, `MENU_ITEM_CREATED`, `MENU_ITEM_UPDATED`, `MENU_ITEM_DELETED` - #9651 by @SzymJ
 
 # 3.2.0
 
