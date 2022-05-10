@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # Unreleased
 
+### Other changes
+
+- Fix sending webhook request in Celery task when webhook is disabled.
+
 # 3.3.0
 
 ### Breaking changes
