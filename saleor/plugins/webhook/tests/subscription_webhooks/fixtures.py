@@ -1,6 +1,6 @@
 import pytest
 
-from .....graphql.tests.queries import subscription_queries
+from . import subscription_queries
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.models import Webhook
 

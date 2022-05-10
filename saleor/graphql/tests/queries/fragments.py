@@ -22,50 +22,28 @@ PRODUCT_VARIANT = """
 """
 
 
-ADDRESS = """
-    fragment Address on Address {
-      id
-      firstName
-      lastName
-      companyName
-      streetAddress1
-      streetAddress2
-      city
-      postalCode
-      country {
-        code
-        country
-      }
-      countryArea
-      phone
-      isDefaultBillingAddress
-      isDefaultShippingAddress
-    }
-"""
-
-
 SHIPPING_METHOD_DETAILS = """
     fragment ShippingMethodDetails on ShippingMethodType {
-        id
-        name
-        channelListings {
-          channel {
-            name
-          }
+      id
+      name
+      channelListings {
+        channel {
+          name
         }
+      }
     }
 """
 
 COLLECTION_POINT = """
    fragment CollectionPoint on Warehouse {
-        id
-        name
-        isPrivate
-        clickAndCollectOption
-        address {
-             streetAddress1
-          }
-     }
+    id
+    name
+    isPrivate
+    clickAndCollectOption
+    address {
+      streetAddress1
+    }
+ }
 """
 
 PRICING_DETAILS = """
@@ -212,19 +190,19 @@ fragment FulfillmentDetails on Fulfillment {
 
 ADDRESS_DETAILS = """
 fragment AddressDetails on Address {
-    firstName
-    lastName
-    companyName
-    streetAddress1
-    streetAddress2
-    city
-    cityArea
-    postalCode
-    countryArea
-    phone
-    country {
-      code
-    }
+  firstName
+  lastName
+  companyName
+  streetAddress1
+  streetAddress2
+  city
+  cityArea
+  postalCode
+  countryArea
+  phone
+  country {
+    code
+  }
 }
     """
 
@@ -271,9 +249,9 @@ COLLECTION = (
       channel
       products(first: 10) {
         edges {
-            node {
-                ...BasicProductFields
-            }
+          node {
+            ...BasicProductFields
+          }
         }
       }
     }
@@ -319,8 +297,8 @@ fragment SaleDetails on Sale {
   startDate
   endDate
   categories(first:10){
-  edges {
-    node {
+    edges {
+      node {
         id
         name
       }
@@ -330,22 +308,22 @@ fragment SaleDetails on Sale {
 """
 
 GIFT_CARD_DETAILS = """
-    fragment GiftCardDetails on GiftCard{
-        id
-        isActive
-        code
-        createdBy {
-            email
-        }
-    }
+fragment GiftCardDetails on GiftCard{
+  id
+  isActive
+  code
+  createdBy {
+    email
+  }
+}
 """
 
 
 VOUCHER_DETAILS = """
-    fragment VoucherDetails on Voucher{
-        id
-        name
-        code
-        usageLimit
-    }
+fragment VoucherDetails on Voucher{
+  id
+  name
+  code
+  usageLimit
+}
 """

@@ -6,7 +6,7 @@ import pytest
 
 from .....channel.models import Channel
 from .....giftcard.models import GiftCard
-from .....graphql.tests.queries import subscription_queries
+from . import subscription_queries
 from .....graphql.webhook.subscription_payload import validate_subscription_query
 from .....menu.models import Menu, MenuItem
 from .....product.models import Category

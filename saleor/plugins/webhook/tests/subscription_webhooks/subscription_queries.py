@@ -1,4 +1,4 @@
-from ..queries import fragments
+from .....graphql.tests.queries import fragments
 
 GIFT_CARD_CREATED = (
     fragments.GIFT_CARD_DETAILS
@@ -62,27 +62,27 @@ GIFT_CARD_STATUS_CHANGED = (
 """
 )
 
-SHIPPING_PRICE_CREATED = """
-    subscription{
-      event{
-        ...on ShippingPriceCreated{
-          shippingMethod{
-            id
-            name
-            channelListings {
-              channel {
-                name
-              }
-            }
-          }
-          shippingZone{
-            id
-            name
-          }
-        }
-      }
-    }
-"""
+# SHIPPING_PRICE_CREATED = """
+#     subscription{
+#       event{
+#         ...on ShippingPriceCreated{
+#           shippingMethod{
+#             id
+#             name
+#             channelListings {
+#               channel {
+#                 name
+#               }
+#             }
+#           }
+#           shippingZone{
+#             id
+#             name
+#           }
+#         }
+#       }
+#     }
+# """
 
 
 VOUCHER_CREATED = (

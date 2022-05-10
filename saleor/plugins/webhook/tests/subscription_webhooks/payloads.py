@@ -26,6 +26,7 @@ def generate_variant_payload(variant):
 
 def generate_fulfillment_lines_payload(fulfillment):
     lines = fulfillment.lines.all()
+    lines = sorted(lines, key=lambda d: d.pk)
     return [
         {
             "id": graphene.Node.to_global_id("FulfillmentLine", line.pk),
@@ -70,6 +71,7 @@ def generate_address_payload(address):
 
 
 def generate_customer_payload(customer):
+    addresses = sorted(customer.addresses.all(), key=lambda address: address.pk)
     return {
         "user": {
             "email": customer.email,
@@ -79,7 +81,7 @@ def generate_customer_payload(customer):
             "isActive": customer.is_active,
             "addresses": [
                 {"id": graphene.Node.to_global_id("Address", address.pk)}
-                for address in customer.addresses.all()
+                for address in addresses
             ],
             "languageCode": customer.language_code.upper(),
             "defaultShippingAddress": (
@@ -95,6 +97,7 @@ def generate_customer_payload(customer):
 
 def generate_collection_payload(collection):
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    products = sorted(collection.products.all(), key=lambda product: product.name)
     products_node = [
         {
             "node": {
@@ -102,7 +105,7 @@ def generate_collection_payload(collection):
                 "name": product.name,
             }
         }
-        for product in collection.products.all()
+        for product in products
     ]
     return {
         "collection": {
@@ -164,7 +167,10 @@ def generate_invoice_payload(invoice):
 
 def generate_category_payload(category):
     tree = category.get_descendants(include_self=True)
-    products = Product.objects.all().filter(category__in=tree)
+    products = sorted(
+        Product.objects.all().filter(category__in=tree),
+        key=lambda product: product.name
+    )
     return {
         "category": {
             "id": graphene.Node.to_global_id("Category", category.id),
@@ -194,13 +200,16 @@ def generate_shipping_method_payload(shipping_method):
     shipping_zone_id = graphene.Node.to_global_id(
         "ShippingZone", shipping_method.shipping_zone.id
     )
+    channel_listings = sorted(
+        shipping_method.channel_listings.all(), key=lambda cl: cl.pk
+    )
     return {
         "shippingMethod": {
             "id": shipping_method_id,
             "name": shipping_method.name,
             "channelListings": [
                 {"channel": {"name": sl.channel.name}}
-                for sl in shipping_method.channel_listings.all()
+                for sl in channel_listings
             ],
         },
         "shippingZone": {
@@ -263,6 +272,7 @@ def generate_gift_card_payload(gift_card, card_global_id):
 
 
 def generate_menu_payload(menu, menu_global_id):
+    menu_items = sorted(menu.items.all(), key=lambda key: key.pk)
     return {
         "menu": {
             "id": menu_global_id,
@@ -273,7 +283,7 @@ def generate_menu_payload(menu, menu_global_id):
                     "id": graphene.Node.to_global_id(item.id, "MenuItem"),
                     "name": item.name,
                 }
-                for item in menu.items.all()
+                for item in menu_items
             ],
         },
         "meta": None,
@@ -281,16 +291,16 @@ def generate_menu_payload(menu, menu_global_id):
 
 
 def generate_menu_item_payload(menu_item, menu_item_global_id):
+    menu = {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)} \
+        if menu_item.menu_id else None
+    page = {"id": graphene.Node.to_global_id("Page",menu_item.page_id)} \
+        if menu_item.page_id else None
     return {
         "menuItem": {
             "id": menu_item_global_id,
             "name": menu_item.name,
-            "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)}
-            if menu_item.menu_id
-            else None,
-            "page": {"id": graphene.Node.to_global_id("Page", menu_item.page_id)}
-            if menu_item.page_id
-            else None,
+            "menu": menu,
+            "page": page,
         },
         "meta": None,
     }
