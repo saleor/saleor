@@ -7,7 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins
-- Fix for multiplied line prices passed to Avatax when shipping address or ship from has country code: GB - #9699 by @korycins
+- Fix for multiplied line prices passed to Avatax - #9699 by @korycins
 - PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
   - add fields:
     - `order.transactions`
