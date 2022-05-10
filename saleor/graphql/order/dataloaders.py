@@ -65,7 +65,7 @@ class OrderLinesByOrderIdLoader(DataLoader):
         lines = (
             OrderLine.objects.using(self.database_connection_name)
             .filter(order_id__in=keys)
-            .order_by("pk")
+            .order_by("created_at")
         )
         line_map = defaultdict(list)
         for line in lines.iterator():

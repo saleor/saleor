@@ -47,6 +47,10 @@ from ..enums import (
 from ..scalars import PositiveDecimal
 from .money import VAT
 
+# deprecated - this is temporary constant that contains the graphql types
+# which has double id available - uuid and old int id
+TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine"]
+
 
 class NonNullList(graphene.List):
     """A list type that automatically adds non-null constraint on contained items."""
