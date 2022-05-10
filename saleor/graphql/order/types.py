@@ -83,7 +83,9 @@ from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
+from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
 from ..giftcard.types import GiftCard
+from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
@@ -1221,8 +1223,8 @@ class Order(ModelObjectType):
         return Promise.all([transactions, payments]).then(_resolve_payment_status)
 
     @staticmethod
-    def resolve_payments(root: models.Order, _info):
-        return root.payments.all()
+    def resolve_payments(root: models.Order, info):
+        return PaymentsByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     @one_of_permissions_required(
@@ -1375,15 +1377,15 @@ class Order(ModelObjectType):
         check_is_owner_or_has_one_of_perms(
             requester, root.user, OrderPermissions.MANAGE_ORDERS
         )
-        return root.invoices.all()
+        return InvoicesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
         return root.is_shipping_required()
 
     @staticmethod
-    def resolve_gift_cards(root: models.Order, _info):
-        return root.gift_cards.all()
+    def resolve_gift_cards(root: models.Order, info):
+        return GiftCardsByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_voucher(root: models.Order, info):
