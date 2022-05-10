@@ -2146,16 +2146,21 @@ def test_fulfillment_query(
     warehouse,
     permission_manage_orders,
 ):
+    # given
     order = fulfilled_order
     order_line_1, order_line_2 = order.lines.all()
     order_id = graphene.Node.to_global_id("Order", order.pk)
     order_line_1_id = graphene.Node.to_global_id("OrderLine", order_line_1.pk)
     order_line_2_id = graphene.Node.to_global_id("OrderLine", order_line_2.pk)
     warehose_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_orders)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        QUERY_FULFILLMENT, variables, permissions=[permission_manage_orders]
-    )
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_FULFILLMENT, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["order"]["fulfillments"]
     assert len(data) == 1
