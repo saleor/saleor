@@ -4,8 +4,8 @@ from ...invoice.models import Invoice
 from ..core.dataloaders import DataLoader
 
 
-class InvoicesByOrderLoader(DataLoader):
-    context_key = "invoices_by_order"
+class InvoicesByOrderIdLoader(DataLoader):
+    context_key = "invoices_by_order_id"
 
     def batch_load(self, keys):
         invoices = Invoice.objects.using(self.database_connection_name).filter(

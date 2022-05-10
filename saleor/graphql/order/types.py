@@ -83,9 +83,9 @@ from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
-from ..giftcard.dataloaders import GiftCardsByOrderLoader
+from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
 from ..giftcard.types import GiftCard
-from ..invoice.dataloaders import InvoicesByOrderLoader
+from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
@@ -1377,7 +1377,7 @@ class Order(ModelObjectType):
         check_is_owner_or_has_one_of_perms(
             requester, root.user, OrderPermissions.MANAGE_ORDERS
         )
-        return InvoicesByOrderLoader(info.context).load(root.id)
+        return InvoicesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
@@ -1385,7 +1385,7 @@ class Order(ModelObjectType):
 
     @staticmethod
     def resolve_gift_cards(root: models.Order, info):
-        return GiftCardsByOrderLoader(info.context).load(root.id)
+        return GiftCardsByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_voucher(root: models.Order, info):

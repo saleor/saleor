@@ -52,8 +52,8 @@ class GiftCardTagsByGiftCardIdLoader(DataLoader):
         return [tags_map.get(gift_card_id, []) for gift_card_id in keys]
 
 
-class GiftCardsByOrderLoader(DataLoader):
-    context_key = "gift_cards_by_order"
+class GiftCardsByOrderIdLoader(DataLoader):
+    context_key = "gift_cards_by_order_id"
 
     def batch_load(self, keys):
         gift_card_orders = Order.gift_cards.through.objects.using(
