@@ -205,11 +205,26 @@ class WarehouseDelete(ModelDeleteMutation):
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+
+        if instance:
+            cls.clean_instance(info, instance)
+
         stocks = (stock for stock in instance.stock_set.only("product_variant"))
-        result = super(WarehouseDelete, cls).perform_mutation(_root, info, **data)
+        address_id = instance.address_id
+        address = instance.address
+
+        db_id = instance.id
+        instance.delete()
+
+        instance.id = db_id
+        address.id = address_id
+        instance.address = address
+        instance.from_delete_view = True
+
+        cls.post_save_action(info, instance, None)
         for stock in stocks:
             transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
-        return result
+        return cls.success_response(instance)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):

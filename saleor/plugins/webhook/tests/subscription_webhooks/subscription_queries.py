@@ -1020,22 +1020,17 @@ WAREHOUSE_UPDATED = (
 """
 )
 
-WAREHOUSE_DELETED = """
+WAREHOUSE_DELETED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
     subscription{
       event{
         ...on WarehouseDeleted{
           warehouse{
-            id
-            name
-            shippingZones (first: 10) {
-              edges {
-                node {
-                  id
-                }
-              }
-            }
+            ...WarehouseDetails
           }
         }
       }
     }
 """
+)

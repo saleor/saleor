@@ -1163,6 +1163,7 @@ def test_warehouse_deleted(warehouse, subscription_warehouse_deleted_webhook):
     warehouse_id = warehouse.id
     warehouse.delete()
     warehouse.id = warehouse_id
+    warehouse.from_delete_view = True
 
     event_type = WebhookEventAsyncType.WAREHOUSE_DELETED
     warehouse_global_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
@@ -1171,9 +1172,7 @@ def test_warehouse_deleted(warehouse, subscription_warehouse_deleted_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, warehouse, webhooks)
 
     # then
-    expected_payload = generate_warehouse_payload(
-        warehouse, warehouse_global_id, is_delete=True
-    )
+    expected_payload = generate_warehouse_payload(warehouse, warehouse_global_id)
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)

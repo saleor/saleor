@@ -311,28 +311,26 @@ def generate_menu_item_payload(menu_item, menu_item_global_id):
     }
 
 
-def generate_warehouse_payload(warehouse, warehouse_global_id, is_delete=False):
-    payload = {
-        "warehouse": {
-            "id": warehouse_global_id,
-            "name": warehouse.name,
-            "shippingZones": {
-                "edges": [
-                    {
-                        "node": {
-                            "id": graphene.Node.to_global_id("ShippingZone", zone.id)
+def generate_warehouse_payload(warehouse, warehouse_global_id):
+    return json.dumps(
+        {
+            "warehouse": {
+                "id": warehouse_global_id,
+                "name": warehouse.name,
+                "shippingZones": {
+                    "edges": [
+                        {
+                            "node": {
+                                "id": graphene.Node.to_global_id(
+                                    "ShippingZone", zone.id
+                                )
+                            }
                         }
-                    }
-                    for zone in warehouse.shipping_zones.all()
-                ]
+                        for zone in warehouse.shipping_zones.all()
+                    ]
+                },
+                "address": {"companyName": warehouse.address.company_name},
             },
-        },
-        "meta": None,
-    }
-
-    if not is_delete:
-        payload["warehouse"]["address"] = {
-            "companyName": warehouse.address.company_name
+            "meta": None,
         }
-
-    return json.dumps(payload)
+    )
