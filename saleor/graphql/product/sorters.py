@@ -2,7 +2,7 @@ import graphene
 from django.db.models import (
     BooleanField,
     Count,
-    DateField,
+    DateTimeField,
     ExpressionWrapper,
     F,
     IntegerField,
@@ -113,7 +113,7 @@ class CollectionSortField(graphene.Enum):
             ).values_list("published_at")[:1]
         )
         return queryset.annotate(
-            published_at=ExpressionWrapper(subquery, output_field=DateField())
+            published_at=ExpressionWrapper(subquery, output_field=DateTimeField())
         )
 
 
@@ -213,7 +213,7 @@ class ProductOrderField(graphene.Enum):
             ).values_list("published_at")[:1]
         )
         return queryset.annotate(
-            published_at=ExpressionWrapper(subquery, output_field=DateField())
+            published_at=ExpressionWrapper(subquery, output_field=DateTimeField())
         )
 
     @staticmethod
