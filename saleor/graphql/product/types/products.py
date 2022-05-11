@@ -860,8 +860,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Product
 
     @staticmethod
-    def resolve_created(root: models.Product, _info):
-        return root.created_at
+    def resolve_created(root: ChannelContext[models.Product], _info):
+        created_at = root.node.created_at
+        return created_at
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], _info):
