@@ -2580,7 +2580,11 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   """Shipping method name."""
   name: String!
 
-  """Shipping method description."""
+  """
+  Shipping method description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Type of the shipping method."""
@@ -2654,6 +2658,12 @@ type ShippingMethodTranslation implements Node {
   """Translation language."""
   language: LanguageDisplay!
   name: String
+
+  """
+  Translated description of the shipping method.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 }
 
@@ -3570,6 +3580,12 @@ type Product implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   name: String!
+
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
   productType: ProductType!
   slug: String!
@@ -3586,7 +3602,11 @@ type Product implements Node & ObjectWithMetadata {
   """
   channel: String
 
-  """Description of the product (JSON)."""
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
   """The main thumbnail for a product."""
@@ -4090,7 +4110,11 @@ type AttributeValue implements Node {
   """Represents file URL and content type (if attribute value is a file)."""
   file: File
 
-  """Represents the text (JSON) of the attribute value."""
+  """
+  Represents the text of the attribute value, includes formatting.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   richText: JSONString
 
   """Represents the boolean value of the attribute value."""
@@ -4109,6 +4133,12 @@ type AttributeValueTranslation implements Node {
   """Translation language."""
   language: LanguageDisplay!
   name: String!
+
+  """
+  Attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   richText: JSONString
 }
 
@@ -4295,12 +4325,22 @@ type Category implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   name: String!
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
   slug: String!
   parent: Category
   level: Int!
 
-  """Description of the category (JSON)."""
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
   """List of ancestors of the category."""
@@ -4398,9 +4438,19 @@ type CategoryTranslation implements Node {
   seoTitle: String
   seoDescription: String
   name: String
+
+  """
+  Translated description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
-  """Translated description of the product (JSON)."""
+  """
+  Translated description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
@@ -5264,6 +5314,12 @@ type Collection implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   name: String!
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
   slug: String!
 
@@ -5272,7 +5328,11 @@ type Collection implements Node & ObjectWithMetadata {
   """
   channel: String
 
-  """Description of the collection (JSON)."""
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
   """List of products in this collection."""
@@ -5500,9 +5560,19 @@ type CollectionTranslation implements Node {
   seoTitle: String
   seoDescription: String
   name: String
+
+  """
+  Translated description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
-  """Translated description of the product (JSON)."""
+  """
+  Translated description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
@@ -5529,9 +5599,19 @@ type ProductTranslation implements Node {
   seoTitle: String
   seoDescription: String
   name: String
+
+  """
+  Translated description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
-  """Translated description of the product (JSON)."""
+  """
+  Translated description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
@@ -5596,9 +5676,19 @@ type ProductTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
+
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
-  """Description of the product (JSON)."""
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
   """Returns translated product fields for the given language code."""
@@ -5617,6 +5707,12 @@ type ProductTranslatableContent implements Node {
 type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
+
+  """
+  Attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   richText: JSONString
 
   """Returns translated attribute value fields for the given language code."""
@@ -5634,9 +5730,19 @@ type CollectionTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
-  """Description of the collection (JSON)."""
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
   """Returns translated collection fields for the given language code."""
@@ -5654,9 +5760,19 @@ type CategoryTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
-  """Description of the category (JSON)."""
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 
   """Returns translated category fields for the given language code."""
@@ -5705,9 +5821,19 @@ type PageTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   title: String!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   content: JSONString
 
-  """Content of the page (JSON)."""
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
 
   """Returns translated page fields for the given language code."""
@@ -5733,9 +5859,19 @@ type PageTranslation implements Node {
   seoTitle: String
   seoDescription: String
   title: String
+
+  """
+  Translated content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   content: JSONString
 
-  """Translated description of the page (JSON)."""
+  """
+  Translated description of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
 }
 
@@ -5794,7 +5930,11 @@ type Page implements Node & ObjectWithMetadata {
   seoDescription: String
   title: String!
 
-  """Content of the page (JSON)."""
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   content: JSONString
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -5809,7 +5949,11 @@ type Page implements Node & ObjectWithMetadata {
   pageType: PageType!
   created: DateTime!
 
-  """Content of the page (JSON)."""
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   contentJson: JSONString! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
 
   """Returns translated page fields for the given language code."""
@@ -5911,6 +6055,12 @@ type PageType implements Node & ObjectWithMetadata {
 type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
+
+  """
+  Description of the shipping method.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Returns translated shipping method fields for the given language code."""
@@ -6856,7 +7006,11 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   """Shipping method name."""
   name: String!
 
-  """Shipping method description (JSON)."""
+  """
+  Shipping method description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Maximum delivery days for this shipping method."""
@@ -14091,7 +14245,11 @@ type ShippingPriceTranslate {
 input ShippingPriceTranslationInput {
   name: String
 
-  """Translated shipping method description (JSON)."""
+  """
+  Translated shipping method description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 }
 
@@ -14343,7 +14501,11 @@ type CategoryCreate {
 }
 
 input CategoryInput {
-  """Category description (JSON)."""
+  """
+  Category description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Category name."""
@@ -14424,6 +14586,12 @@ input TranslationInput {
   seoTitle: String
   seoDescription: String
   name: String
+
+  """
+  Translated description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 }
 
@@ -14487,7 +14655,11 @@ input CollectionCreateInput {
   """Slug of the collection."""
   slug: String
 
-  """Description of the collection (JSON)."""
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Background image file."""
@@ -14588,7 +14760,11 @@ input CollectionInput {
   """Slug of the collection."""
   slug: String
 
-  """Description of the collection (JSON)."""
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Background image file."""
@@ -14707,7 +14883,11 @@ input ProductCreateInput {
   """List of IDs of collections that the product belongs to."""
   collections: [ID!]
 
-  """Product description (JSON)."""
+  """
+  Product description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Product name."""
@@ -14810,7 +14990,11 @@ input ProductInput {
   """List of IDs of collections that the product belongs to."""
   collections: [ID!]
 
-  """Product description (JSON)."""
+  """
+  Product description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   description: JSONString
 
   """Product name."""
@@ -16027,7 +16211,11 @@ input PageCreateInput {
   """Page title."""
   title: String
 
-  """Page content in JSON format."""
+  """
+  Page content.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   content: JSONString
 
   """List of attributes."""
@@ -16110,7 +16298,11 @@ input PageInput {
   """Page title."""
   title: String
 
-  """Page content in JSON format."""
+  """
+  Page content.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   content: JSONString
 
   """List of attributes."""
@@ -16152,6 +16344,12 @@ input PageTranslationInput {
   seoTitle: String
   seoDescription: String
   title: String
+
+  """
+  Translated page content.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   content: JSONString
 }
 
@@ -18857,7 +19055,11 @@ input AttributeValueCreateInput {
   """
   value: String
 
-  """Represents the text (JSON) of the attribute value."""
+  """
+  Represents the text of the attribute value, includes formatting.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   richText: JSONString
 
   """URL of the file attribute. Every time, a new value is created."""
@@ -18938,7 +19140,11 @@ input AttributeValueUpdateInput {
   """
   value: String
 
-  """Represents the text (JSON) of the attribute value."""
+  """
+  Represents the text of the attribute value, includes formatting.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   richText: JSONString
 
   """URL of the file attribute. Every time, a new value is created."""
@@ -19038,6 +19244,12 @@ type AttributeValueTranslate {
 
 input AttributeValueTranslationInput {
   name: String
+
+  """
+  Translated text.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
   richText: JSONString
 }
 
