@@ -275,6 +275,35 @@ def _mutate_checkout_add_promo_code(client, variables):
     return content["data"]["checkoutAddPromoCode"]
 
 
+def test_checkout_add_voucher_for_entire_order(api_client, checkout_with_item, voucher):
+    # given
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    taxed_total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+        discounts=[],
+    )
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    checkout_with_item.refresh_from_db()
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    total_price_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    assert (
+        total_price_gross_amount
+        == taxed_total.gross.amount - checkout_with_item.discount_amount
+    )
+
+
 def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, voucher):
     variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
     data = _mutate_checkout_add_promo_code(api_client, variables)
