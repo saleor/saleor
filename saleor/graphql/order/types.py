@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 import graphene
@@ -26,7 +26,10 @@ from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
-from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
+from ...graphql.warehouse.dataloaders import (
+    WarehouseByIdLoader,
+    WarehouseByStockIdLoader,
+)
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -490,9 +493,21 @@ class Fulfillment(ModelObjectType):
         return root.get_status_display()
 
     @staticmethod
-    def resolve_warehouse(root: models.Fulfillment, _info):
-        line = root.lines.first()
-        return line.stock.warehouse if line and line.stock else None
+    def resolve_warehouse(root: models.Fulfillment, info):
+        def _resolve_warehouse(fulfillment_lines: List[models.FulfillmentLine]):
+            try:
+                line = fulfillment_lines[0]
+            except IndexError:
+                return None
+
+            if stock_id := line.stock_id:
+                return WarehouseByStockIdLoader(info.context).load(stock_id)
+
+        return (
+            FulfillmentLinesByFulfillmentIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_warehouse)
+        )
 
 
 class OrderLine(ModelObjectType):
