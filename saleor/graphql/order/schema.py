@@ -79,13 +79,10 @@ class OrderQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
     )
-    order = PermissionsField(
+    order = graphene.Field(
         Order,
         description="Look up an order by ID.",
         id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
-        permissions=[
-            OrderPermissions.MANAGE_ORDERS,
-        ],
     )
     orders = FilterConnectionField(
         OrderCountableConnection,

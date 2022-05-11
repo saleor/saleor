@@ -526,11 +526,7 @@ type Query {
     last: Int
   ): OrderEventCountableConnection
 
-  """
-  Look up an order by ID.
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
+  """Look up an order by ID."""
   order(
     """ID of an order."""
     id: ID!
@@ -7732,18 +7728,18 @@ type Order implements Node & ObjectWithMetadata {
   status: OrderStatus!
 
   """
-  User who placed the order. This field is set only for orders placed by authenticated users. Requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, OWNER.
+  User who placed the order. This field is set only for orders placed by authenticated users. Can be fetched for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, OWNER.
   """
   user: User
   trackingClientId: String!
 
   """
-  Billing address. Requires one of the following permissions to view the full data: MANAGE_ORDERS, OWNER.
+  Billing address. The full data can be access for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   billingAddress: Address
 
   """
-  Shipping address. Requires one of the following permissions to view the full data: MANAGE_ORDERS, OWNER.
+  Shipping address. The full data can be access for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   shippingAddress: Address
   shippingMethodName: String
@@ -7777,7 +7773,7 @@ type Order implements Node & ObjectWithMetadata {
   availableCollectionPoints: [Warehouse!]!
 
   """
-  List of order invoices. Requires one of the following permissions: MANAGE_ORDERS, OWNER.
+  List of order invoices. Can be fetched for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   invoices: [Invoice!]!
 
@@ -7861,7 +7857,7 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
 
   """
-  Email address of the customer. Requires the following permissions to access the full data: MANAGE_ORDERS, OWNER.
+  Email address of the customer. The full data can be access for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   userEmail: String
 
