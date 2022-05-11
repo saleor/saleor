@@ -40,6 +40,10 @@ class ReadOnlyMiddleware:
             if root_email and user_email == root_email:
                 return next_(root, info, **kwargs)
 
+        # Bypass authenticated app as to create an app, root user is required
+        if request.app:
+            return next_(root, info, **kwargs)
+
         for selection in info.operation.selection_set.selections:
             selection_name = str(selection.name.value)
             blocked = selection_name not in ReadOnlyMiddleware.ALLOWED_MUTATIONS
