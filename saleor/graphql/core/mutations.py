@@ -3,9 +3,11 @@ import secrets
 from enum import Enum
 from itertools import chain
 from typing import Iterable, Tuple, Union
+from urllib.parse import urljoin
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,
@@ -762,8 +764,15 @@ class FileUpload(BaseMutation):
         hash = secrets.token_hex(nbytes=4)
         new_name = f"file_upload/{file_name}_{hash}{format}"
 
-        path = default_storage.save(new_name, file_data.file)
+        default_storage.save(new_name, file_data.file)
+
+        # if default_storage is S3MediaStorage or GCSMediaStorage, return the URL on the
+        # cloud service, otherwise return a URL the file served locally
+        try:
+            url = default_storage.url(new_name)
+        except NotImplementedError:
+            url = urljoin(settings.MEDIA_URL, default_storage.path(new_name))
 
         return FileUpload(
-            uploaded_file=File(url=path, content_type=file_data.content_type)
+            uploaded_file=File(url=url, content_type=file_data.content_type)
         )

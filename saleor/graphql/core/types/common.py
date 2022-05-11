@@ -1,7 +1,4 @@
-from urllib.parse import urljoin
-
 import graphene
-from django.conf import settings
 
 from ....core.tracing import traced_resolver
 from ....product.product_images import get_thumbnail
@@ -435,7 +432,7 @@ class File(graphene.ObjectType):
 
     @staticmethod
     def resolve_url(root, info):
-        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+        return info.context.build_absolute_uri(root.url)
 
 
 class PriceInput(graphene.InputObjectType):

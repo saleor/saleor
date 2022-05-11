@@ -1,7 +1,9 @@
 import os
+from unittest.mock import patch
 from urllib.parse import urlparse
 
 from django.core.files.storage import default_storage
+from django.test import override_settings
 
 from ....product.tests.utils import create_image
 from ...tests.utils import (
@@ -152,3 +154,34 @@ def test_file_upload_file_with_the_same_name_already_exists(
     assert file_url != "http://testserver/media/" + image_file._name
     assert file_url != "http://testserver/media/" + path
     assert default_storage.exists(file_url.replace("http://testserver/media/", ""))
+
+
+@patch("storages.backends.s3boto3.S3Boto3Storage.save")
+@override_settings(
+    DEFAULT_FILE_STORAGE="saleor.core.storages.S3MediaStorage",
+    AWS_MEDIA_BUCKET_NAME="s3-bucket",
+    AWS_MEDIA_CUSTOM_DOMAIN="s3-bucket.example.org",
+)
+def test_file_upload_with_cloud_storage(mock_save, staff_api_client):
+    # given
+    image_file, image_name = create_image()
+    variables = {"image": image_name}
+    body = get_multipart_request_body(
+        FILE_UPLOAD_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["fileUpload"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["uploadedFile"]["contentType"] == "image/png"
+    file_name, format = os.path.splitext(image_file._name)
+    returned_url = urlparse(data["uploadedFile"]["url"])
+    assert returned_url.path.startswith(f"/file_upload/{file_name}")
+    assert returned_url.path.endswith(format)
+    assert returned_url.hostname == "s3-bucket.example.org"
