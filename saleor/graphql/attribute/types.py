@@ -1,6 +1,8 @@
 from typing import cast
+from urllib.parse import urljoin
 
 import graphene
+from django.conf import settings
 from django.db.models import QuerySet
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
@@ -80,7 +82,10 @@ class AttributeValue(ModelObjectType):
     def resolve_file(root: models.AttributeValue, _info):
         if not root.file_url:
             return
-        return File(url=root.file_url, content_type=root.content_type)
+        return File(
+            url=urljoin(settings.MEDIA_URL, root.file_url),
+            content_type=root.content_type,
+        )
 
     @staticmethod
     def resolve_reference(root: models.AttributeValue, info):
