@@ -408,13 +408,18 @@ QUERY_ORDER_PUBLIC_META = """
 
 def test_query_public_meta_for_order_as_anonymous_user(api_client, order):
     # given
+    order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
     response = api_client.post_graphql(QUERY_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_order_as_customer(user_api_client, order):
@@ -426,9 +431,12 @@ def test_query_public_meta_for_order_as_customer(user_api_client, order):
 
     # when
     response = user_api_client.post_graphql(QUERY_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_order_as_staff(
@@ -493,13 +501,18 @@ QUERY_DRAFT_ORDER_PUBLIC_META = """
 
 def test_query_public_meta_for_draft_order_as_anonymous_user(api_client, draft_order):
     # given
+    draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    draft_order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
     response = api_client.post_graphql(QUERY_DRAFT_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_draft_order_as_customer(user_api_client, draft_order):
@@ -511,9 +524,12 @@ def test_query_public_meta_for_draft_order_as_customer(user_api_client, draft_or
 
     # when
     response = user_api_client.post_graphql(QUERY_DRAFT_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_draft_order_as_staff(

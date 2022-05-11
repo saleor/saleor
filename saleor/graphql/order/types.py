@@ -703,7 +703,8 @@ class Order(ModelObjectType):
         User,
         description=(
             "User who placed the order. This field is set only for orders placed by "
-            "authenticated users. Requires one of the following permissions: "
+            "authenticated users. Can be fetched for orders created in Saleor 3.2 "
+            "and later, for other orders requires one of the following permissions: "
             f"{AccountPermissions.MANAGE_USERS.name}, "
             f"{OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
@@ -713,16 +714,18 @@ class Order(ModelObjectType):
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
-            "Billing address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            "Billing address. The full data can be access for orders created "
+            "in Saleor 3.2 and later, for other orders requires one of the following "
+            f"permissions: {OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
     shipping_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
-            "Shipping address. Requires one of the following permissions to view the "
-            f"full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            "Shipping address. The full data can be access for orders created "
+            "in Saleor 3.2 and later, for other orders requires one of the following "
+            f"permissions: {OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
@@ -765,7 +768,8 @@ class Order(ModelObjectType):
     invoices = NonNullList(
         Invoice,
         description=(
-            "List of order invoices. Requires one of the following permissions: "
+            "List of order invoices. Can be fetched for orders created in Saleor 3.2 "
+            "and later, for other orders requires one of the following permissions: "
             f"{OrderPermissions.MANAGE_ORDERS.name}, {AuthorizationFilters.OWNER.name}."
         ),
         required=True,
@@ -866,8 +870,9 @@ class Order(ModelObjectType):
     )
     user_email = graphene.String(
         description=(
-            "Email address of the customer. Requires the following permissions to "
-            f"access the full data: {OrderPermissions.MANAGE_ORDERS.name}, "
+            "Email address of the customer. The full data can be access for orders "
+            "created in Saleor 3.2 and later, for other orders requires one of "
+            f"the following permissions: {OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),
         required=False,
@@ -1005,7 +1010,7 @@ class Order(ModelObjectType):
                 user, address = data
 
             requester = get_user_or_app_from_context(info.context)
-            if is_owner_or_has_one_of_perms(
+            if root.use_old_id is False or is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
@@ -1034,7 +1039,7 @@ class Order(ModelObjectType):
             else:
                 user, address = data
             requester = get_user_or_app_from_context(info.context)
-            if is_owner_or_has_one_of_perms(
+            if root.use_old_id is False or is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return address
@@ -1252,7 +1257,7 @@ class Order(ModelObjectType):
     def resolve_user_email(root: models.Order, info):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
-            if is_owner_or_has_one_of_perms(
+            if root.use_old_id is False or is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
                 return user.email if user else root.user_email
@@ -1374,9 +1379,10 @@ class Order(ModelObjectType):
     @staticmethod
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
-        check_is_owner_or_has_one_of_perms(
-            requester, root.user, OrderPermissions.MANAGE_ORDERS
-        )
+        if root.use_old_id is True:
+            check_is_owner_or_has_one_of_perms(
+                requester, root.user, OrderPermissions.MANAGE_ORDERS
+            )
         return InvoicesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
