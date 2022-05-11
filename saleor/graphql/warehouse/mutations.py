@@ -98,6 +98,10 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
         address_form = cls.validate_address_form(cleaned_data["address"])
         return address_form.save()
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.warehouse_created(instance)
+
 
 class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
@@ -177,6 +181,10 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
         address_form = cls.validate_address_form(address_data, instance=address)
         return address_form.save()
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.warehouse_updated(instance)
+
 
 class WarehouseDelete(ModelDeleteMutation):
     class Meta:
@@ -202,3 +210,7 @@ class WarehouseDelete(ModelDeleteMutation):
         for stock in stocks:
             transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
         return result
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        transaction.on_commit(lambda: info.context.plugins.warehouse_deleted(instance))

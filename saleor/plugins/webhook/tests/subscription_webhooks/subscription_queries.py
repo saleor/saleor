@@ -988,3 +988,54 @@ TEST_VALID_SUBSCRIPTION_QUERY = """
       }
     }
 """
+
+
+WAREHOUSE_CREATED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on WarehouseCreated{
+          warehouse{
+            ...WarehouseDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+WAREHOUSE_UPDATED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on WarehouseUpdated{
+          warehouse{
+            ...WarehouseDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+WAREHOUSE_DELETED = """
+    subscription{
+      event{
+        ...on WarehouseDeleted{
+          warehouse{
+            id
+            name
+            shippingZones (first: 10) {
+              edges {
+                node {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+"""
