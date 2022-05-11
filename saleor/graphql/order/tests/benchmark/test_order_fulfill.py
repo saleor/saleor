@@ -26,7 +26,7 @@ ORDER_FULFILL_QUERY = """
 
 
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+@patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill(
     mock_create_fulfillments,
     staff_api_client,
@@ -68,7 +68,7 @@ def test_order_fulfill(
 
 @pytest.mark.count_queries(autouse=False)
 @patch("saleor.giftcard.utils.send_gift_card_notification")
-@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+@patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill_with_gift_cards(
     mock_create_fulfillments,
     mock_send_notification,
