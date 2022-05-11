@@ -11677,6 +11677,87 @@ def test_categories_query_with_filter(
     assert content["data"]["categories"]["totalCount"] == count
 
 
+QUERY_PAGINATED_SORTED_COLLECTIONS = """
+    query (
+        $first: Int, $sort_by: CollectionSortingInput!, $after: String, $channel: String
+    ) {
+        collections(first: $first, sortBy: $sort_by, after: $after, channel: $channel) {
+                edges{
+                    node{
+                        slug
+                    }
+                }
+                pageInfo{
+                    startCursor
+                    endCursor
+                    hasNextPage
+                    hasPreviousPage
+                }
+            }
+        }
+"""
+
+
+def test_pagination_for_sorting_collections_by_published_at_date(
+    api_client, channel_USD
+):
+    """Ensure that using the cursor in sorting collections by published at date works
+    properly."""
+    # given
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
+        ]
+    )
+    now = datetime.now(pytz.UTC)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD,
+                collection=collection,
+                is_published=True,
+                published_at=now - timedelta(days=num),
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+
+    first = 2
+    variables = {
+        "sort_by": {"direction": "DESC", "field": "PUBLISHED_AT"},
+        "channel": channel_USD.slug,
+        "first": first,
+    }
+
+    # first request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_COLLECTIONS, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]
+    assert len(data["edges"]) == first
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        collection.slug for collection in collections[:first]
+    ]
+    end_cursor = data["pageInfo"]["endCursor"]
+
+    variables["after"] = end_cursor
+
+    # when
+    # second request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_COLLECTIONS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]
+    expected_count = len(collections) - first
+    assert len(data["edges"]) == expected_count
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        collection.slug for collection in collections[first:]
+    ]
+
+
 QUERY_CATEGORIES_WITH_SORT = """
     query ($sort_by: CategorySortingInput!) {
         categories(first:5, sortBy: $sort_by) {
