@@ -561,6 +561,24 @@ class OrderLine(models.Model):
         currency="currency",
     )
 
+    base_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    base_unit_price = MoneyField(
+        amount_field="base_unit_price_amount", currency_field="currency"
+    )
+
+    undiscounted_base_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_base_unit_price = MoneyField(
+        amount_field="undiscounted_base_unit_price_amount", currency_field="currency"
+    )
+
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
