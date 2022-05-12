@@ -30,8 +30,8 @@ from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxType, zero_taxed_money
-from ..discount import DiscountInfo
+from ..core.taxes import TaxType, zero_money, zero_taxed_money
+from ..discount import DiscountInfo, VoucherType
 from ..order.interface import OrderTaxedPricesData
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -263,7 +263,7 @@ class PluginsManager(PaymentInterface):
                 line_info,
                 address,
                 discounts,
-            ).price_with_sale
+            ).price_with_discounts
             for line_info in lines
         ]
         currency = checkout_info.checkout.currency
@@ -447,8 +447,14 @@ class PluginsManager(PaymentInterface):
         product: "Product",
     ) -> OrderTaxedPricesData:
         default_value = OrderTaxedPricesData(
-            undiscounted_price=order_line.undiscounted_unit_price,
-            price_with_discounts=order_line.unit_price,
+            undiscounted_price=TaxedMoney(
+                order_line.undiscounted_base_unit_price,
+                order_line.undiscounted_base_unit_price,
+            ),
+            price_with_discounts=TaxedMoney(
+                order_line.base_unit_price,
+                order_line.base_unit_price,
+            ),
         )
         currency = order_line.currency
         line_unit = self.__run_method_on_plugins(

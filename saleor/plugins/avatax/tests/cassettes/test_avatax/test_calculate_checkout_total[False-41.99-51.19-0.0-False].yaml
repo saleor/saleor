@@ -2,14 +2,14 @@ interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "PS081282", "taxIncluded":
-      false, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
-      "10.000", "taxCode": "FR000000", "taxIncluded": false, "itemCode": "Shipping",
-      "description": null}], "code": "1303fe32-1414-4736-af9c-e638e516ab3c", "date":
-      "2021-12-20", "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa
-      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
-      "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
-      "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
-      "USD", "email": ""}}'
+      false, "itemCode": "123", "description": "Test product", "ref1": "123"}, {"quantity":
+      1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded": false, "itemCode":
+      "Shipping", "description": null}], "code": "61a9094c-272c-4844-9ea4-a504e0cdde93",
+      "date": "2022-05-05", "customerCode": 0, "addresses": {"shipFrom": {"line1":
+      "Teczowa 7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL",
+      "postalCode": "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "",
+      "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-105"}},
+      "commit": false, "currencyCode": "USD", "email": "user@email.com"}}'
     headers:
       Accept:
       - '*/*'
@@ -20,68 +20,33 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '759'
+      - '788'
       User-Agent:
-      - python-requests/2.26.0
+      - python-requests/2.27.1
     method: POST
     uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
-      string: !!binary |
-        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
-        +Y7puOKe7zzN4mKA0Sv9vDwH
+      string: '{"id":0,"code":"61a9094c-272c-4844-9ea4-a504e0cdde93","companyId":242975,"date":"2022-05-05","paymentDate":"2022-05-05","status":"Temporary","type":"SalesOrder","batchCode":"","currencyCode":"USD","exchangeRateCurrencyCode":"USD","customerUsageType":"","entityUseCode":"","customerVendorCode":"0","customerCode":"0","exemptNo":"","reconciled":false,"locationCode":"","reportingLocationCode":"","purchaseOrderNo":"","referenceCode":"","salespersonCode":"","totalAmount":40.0,"totalExempt":0.0,"totalDiscount":0.0,"totalTax":9.2,"totalTaxable":40.0,"totalTaxCalculated":9.2,"adjustmentReason":"NotAdjusted","locked":false,"version":1,"exchangeRateEffectiveDate":"2022-05-05","exchangeRate":1.0,"email":"user@email.com","modifiedDate":"2022-05-05T09:28:09.7031909Z","modifiedUserId":283192,"taxDate":"2022-05-05","lines":[{"id":0,"transactionId":0,"lineNumber":"1","customerUsageType":"","entityUseCode":"","description":"Test
+        product","discountAmount":0.0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"itemCode":"123","lineAmount":30.0,"quantity":3.0,"ref1":"123","ref2":"","reportingDate":"2022-05-05","tax":6.9,"taxableAmount":30.0,"taxCalculated":6.9,"taxCode":"PS081282","taxCodeId":28918,"taxDate":"2022-05-05","taxIncluded":false,"details":[{"id":0,"transactionLineId":0,"transactionId":0,"country":"PL","region":"PL","exemptAmount":0.0,"jurisCode":"PL","jurisName":"POLAND","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"rate":0.230000,"tax":6.9,"taxableAmount":30.0,"taxType":"Output","taxSubTypeId":"O","taxName":"Standard
+        Rate","taxAuthorityTypeId":45,"taxCalculated":6.9,"rateType":"Standard","rateTypeCode":"S","unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":30.0,"reportingNonTaxableUnits":0.0,"reportingExemptUnits":0.0,"reportingTax":6.9,"reportingTaxCalculated":6.9,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230CPL","vatNumberTypeId":0},{"id":0,"transactionId":0,"lineNumber":"2","customerUsageType":"","entityUseCode":"","discountAmount":0.0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"itemCode":"Shipping","lineAmount":10.0,"quantity":1.0,"ref1":"","ref2":"","reportingDate":"2022-05-05","tax":2.3,"taxableAmount":10.0,"taxCalculated":2.3,"taxCode":"FR000000","taxCodeId":4779,"taxDate":"2022-05-05","taxIncluded":false,"details":[{"id":0,"transactionLineId":0,"transactionId":0,"country":"PL","region":"PL","exemptAmount":0.0,"jurisCode":"PL","jurisName":"POLAND","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"rate":0.230000,"tax":2.3,"taxableAmount":10.0,"taxType":"Output","taxSubTypeId":"O","taxName":"Standard
+        Rate","taxAuthorityTypeId":45,"taxCalculated":2.3,"rateType":"Standard","rateTypeCode":"S","unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":10.0,"reportingNonTaxableUnits":0.0,"reportingExemptUnits":0.0,"reportingTax":2.3,"reportingTaxCalculated":2.3,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230FPL","vatNumberTypeId":0}],"addresses":[{"id":0,"transactionId":0,"boundaryLevel":"Zip5","line1":"Olawska
+        10","line2":"","line3":"","city":"WROCLAW","region":"","postalCode":"53-105","country":"PL","taxRegionId":205102,"latitude":"","longitude":""},{"id":0,"transactionId":0,"boundaryLevel":"Zip5","line1":"Teczowa
+        7","line2":"","line3":"","city":"Wroclaw","region":"","postalCode":"53-601","country":"PL","taxRegionId":205102,"latitude":"","longitude":""}],"summary":[{"country":"PL","region":"PL","jurisType":"Country","jurisCode":"PL","jurisName":"POLAND","taxAuthorityType":45,"stateAssignedNo":"","taxType":"Output","taxSubType":"O","taxName":"Standard
+        Rate","rateType":"Standard","taxable":40.0,"rate":0.230000,"tax":9.2,"taxCalculated":9.2,"nonTaxable":0.0,"exemption":0.0}]}'
     headers:
       Connection:
       - keep-alive
-      Content-Encoding:
-      - br
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 20 Dec 2021 16:56:41 GMT
+      - Thu, 05 May 2022 09:28:09 GMT
       Location:
       - /api/v2/companies/242975/transactions/0
       ServerDuration:
-      - '00:00:00.0164025'
+      - '00:00:00.0161581'
       Transfer-Encoding:
       - chunked
-      Vary:
-      - Accept-Encoding
       X-Content-Type-Options:
       - nosniff
       referrer-policy:
@@ -89,9 +54,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubdomains
       x-avalara-uid:
-      - 7eb99eb9-9e37-44fa-b281-2c538a68a279
+      - bdcee0cd-5bca-43c5-ad84-84d3be528cd6
       x-correlation-id:
-      - 7eb99eb9-9e37-44fa-b281-2c538a68a279
+      - bdcee0cd-5bca-43c5-ad84-84d3be528cd6
       x-frame-options:
       - sameorigin
       x-permitted-cross-domain-policies:
