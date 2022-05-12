@@ -11,6 +11,7 @@ from ...checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine
+from ...discount import VoucherType
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
@@ -96,12 +97,17 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     voucher_info = voucher_infos_map.get(checkout.voucher_code)
                     if not voucher_info:
                         continue
-                    apply_voucher_to_checkout_line(
-                        voucher_info=voucher_info,
-                        checkout=checkout,
-                        lines_info=lines_info_map[checkout.pk],
-                        discounts=self.context.discounts,
-                    )
+                    voucher = voucher_info.voucher
+                    if (
+                        voucher.type == VoucherType.SPECIFIC_PRODUCT
+                        or voucher.apply_once_per_order
+                    ):
+                        apply_voucher_to_checkout_line(
+                            voucher_info=voucher_info,
+                            checkout=checkout,
+                            lines_info=lines_info_map[checkout.pk],
+                            discounts=self.context.discounts,
+                        )
                 return [lines_info_map[key] for key in keys]
 
             variants = ProductVariantByIdLoader(self.context).load_many(variants_pks)
