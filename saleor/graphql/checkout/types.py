@@ -131,6 +131,7 @@ class CheckoutLine(ModelObjectType):
                     checkout_info,
                     lines,
                 ) = data
+                line_info = None
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         address = (
@@ -143,7 +144,7 @@ class CheckoutLine(ModelObjectType):
                             checkout_line_info=line_info,
                             address=address,
                             discounts=discounts,
-                        ).price_with_discounts
+                        ).price_with_sale
                 return None
 
             return Promise.all(
