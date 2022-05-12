@@ -110,6 +110,8 @@ class WebhookEventAsyncType:
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
 
+    OBSERVABILITY = "observability"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         APP_CREATED: "App created",
@@ -181,6 +183,7 @@ class WebhookEventAsyncType:
         VOUCHER_CREATED: "Voucher created",
         VOUCHER_UPDATED: "Voucher updated",
         VOUCHER_DELETED: "Voucher deleted",
+        OBSERVABILITY: "Observability",
     }
 
     CHOICES = [
@@ -254,6 +257,7 @@ class WebhookEventAsyncType:
         (VOUCHER_CREATED, DISPLAY_LABELS[VOUCHER_CREATED]),
         (VOUCHER_UPDATED, DISPLAY_LABELS[VOUCHER_UPDATED]),
         (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
+        (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -328,6 +332,7 @@ class WebhookEventAsyncType:
         VOUCHER_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
+        OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
     }
 
 

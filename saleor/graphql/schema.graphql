@@ -1504,6 +1504,9 @@ enum WebhookEventTypeEnum {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
+
+  """A observability event is created."""
+  OBSERVABILITY
   PAYMENT_AUTHORIZE
   PAYMENT_CAPTURE
   PAYMENT_CONFIRM
@@ -1743,6 +1746,9 @@ enum WebhookEventTypeAsyncEnum {
 
   """A voucher is deleted."""
   VOUCHER_DELETED
+
+  """A observability event is created."""
+  OBSERVABILITY
 }
 
 """Represents app data."""
@@ -2269,6 +2275,7 @@ enum WebhookSampleEventTypeEnum {
   VOUCHER_CREATED
   VOUCHER_UPDATED
   VOUCHER_DELETED
+  OBSERVABILITY
 }
 
 """Represents warehouse."""
