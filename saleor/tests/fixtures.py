@@ -3128,6 +3128,8 @@ def order_line(order, variant):
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3157,6 +3159,8 @@ def gift_card_non_shippable_order_line(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3188,6 +3192,8 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3202,11 +3208,11 @@ def order_line_JPY(order_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    base_price = variant.get_price(product, [], channel, channel_listing)
+    currency = base_price.currency
+    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
-    unit_price = TaxedMoney(net=net, gross=gross)
+    unit_price = TaxedMoney(net=base_price, gross=gross)
     return order_JPY.lines.create(
         product_name=str(product),
         variant_name=str(variant),
@@ -3219,6 +3225,8 @@ def order_line_JPY(order_JPY, product_in_channel_JPY):
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=base_price,
+        undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3259,6 +3267,8 @@ def order_line_with_allocation_in_many_stocks(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3314,6 +3324,8 @@ def order_line_with_one_allocation(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3547,11 +3559,11 @@ def order_with_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(product, [], channel_USD, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = base_price.currency
+    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
-    unit_price = TaxedMoney(net=net, gross=gross)
+    unit_price = TaxedMoney(net=base_price, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
@@ -3565,6 +3577,8 @@ def order_with_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=base_price,
+        undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3615,6 +3629,8 @@ def order_with_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3800,6 +3816,8 @@ def order_with_lines_channel_PLN(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3849,6 +3867,8 @@ def order_with_lines_channel_PLN(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3901,6 +3921,8 @@ def order_with_line_without_inventory_tracking(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3956,6 +3978,8 @@ def order_with_preorder_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     PreorderAllocation.objects.create(

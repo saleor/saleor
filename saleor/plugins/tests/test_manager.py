@@ -262,7 +262,11 @@ def test_manager_calculates_order_line_total(order_line, plugins):
     expected_total = (
         TaxedMoney(Money("1.0", currency), Money("1.0", currency))
         if plugins
-        else quantize_price(order_line.unit_price * order_line.quantity, currency)
+        else quantize_price(
+            TaxedMoney(order_line.base_unit_price, order_line.base_unit_price)
+            * order_line.quantity,
+            currency,
+        )
     )
     taxed_total = (
         PluginsManager(plugins=plugins)

@@ -719,14 +719,14 @@ def _get_new_order_line(order, variant, channel, discounts):
         or variant.preorder_global_threshold
         or 5,
     )
-    unit_price = variant.get_price(
+    untaxed_unit_price = variant.get_price(
         product,
         product.collections.all(),
         channel,
         variant_channel_listing,
         discounts,
     )
-    unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+    unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     total_price = unit_price * quantity
     return OrderLine(
         order=order,
@@ -742,6 +742,8 @@ def _get_new_order_line(order, variant, channel, discounts):
         total_price=total_price,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=total_price,
+        base_unit_price=untaxed_unit_price,
+        undiscounted_base_unit_price=untaxed_unit_price,
         tax_rate=0,
     )
 
