@@ -72,6 +72,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 voucher_infos_map = {
                     voucher_info.voucher.code: voucher_info
                     for voucher_info in voucher_infos
+                    if voucher_info
                 }
                 for checkout, lines in zip(checkouts, checkout_lines):
                     lines_info_map[checkout.pk].extend(
@@ -94,6 +95,8 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     if not checkout.voucher_code:
                         continue
                     voucher_info = voucher_infos_map.get(checkout.voucher_code)
+                    if not voucher_info:
+                        continue
                     apply_voucher_to_checkout_line(
                         voucher_info=voucher_info,
                         checkout=checkout,

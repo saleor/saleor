@@ -356,7 +356,6 @@ def get_order_lines_data(
         append_line_to_data(
             **append_line_to_data_kwargs,
             amount=price_with_discounts_amount,
-            # ref1=line.variant.sku,
         )
 
     discount_amount = get_total_order_discount(order)

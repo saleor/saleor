@@ -6,8 +6,7 @@ def set_order_line_base_prices(apps, schema_editor):
     SiteSettings = apps.get_model("site", "SiteSettings")
     OrderLine = apps.get_model("order", "OrderLine")
     site_settings = SiteSettings.objects.first()
-
-    included_taxes = site_settings.include_taxes_in_prices
+    included_taxes = site_settings.include_taxes_in_prices if site_settings else None
     if not included_taxes:
         OrderLine.objects.all().update(
             undiscounted_base_unit_price_amount=F("undiscounted_unit_price_net_amount"),

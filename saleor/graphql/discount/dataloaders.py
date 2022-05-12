@@ -157,22 +157,31 @@ class VoucherInfoByVoucherCodeLoader(DataLoader):
     def batch_load(self, keys):
         vouchers_map = (
             Voucher.objects.using(self.database_connection_name)
+            .prefetch_related("channel_listings")
             .filter(code__in=keys)
             .in_bulk(field_name="code")
         )
         vouchers = vouchers_map.values()
-        voucher_products = Voucher.products.through.objects.filter(
-            voucher__in=vouchers
-        ).values_list("voucher_id", "product_id")
-        voucher_variants = Voucher.variants.through.objects.filter(
-            voucher__in=vouchers
-        ).values_list("voucher_id", "productvariant_id")
-        voucher_collections = Voucher.collections.through.objects.filter(
-            voucher__in=vouchers
-        ).values_list("voucher_id", "collection_id")
-        voucher_categories = Voucher.categories.through.objects.filter(
-            voucher__in=vouchers
-        ).values_list("voucher_id", "category_id")
+        voucher_products = (
+            Voucher.products.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "product_id")
+        )
+        voucher_variants = (
+            Voucher.variants.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "productvariant_id")
+        )
+        voucher_collections = (
+            Voucher.collections.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "collection_id")
+        )
+        voucher_categories = (
+            Voucher.categories.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "category_id")
+        )
         product_pks_map = defaultdict(list)
         variant_pks_map = defaultdict(list)
         category_pks_map = defaultdict(list)
@@ -189,6 +198,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader):
         for code in keys:
             voucher = vouchers_map.get(code)
             if not voucher:
+                voucher_infos.append(None)
                 continue
             voucher_infos.append(
                 VoucherInfo(

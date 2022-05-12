@@ -356,7 +356,6 @@ def apply_voucher_to_checkout_line(
         if cheapest_line:
             discounted_lines_by_voucher.append(cheapest_line)
     else:
-        voucher_info = fetch_voucher_info(voucher)
         discounted_lines_by_voucher.extend(
             get_discounted_lines(lines_info, voucher_info)
         )
