@@ -45,12 +45,6 @@ from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...core.utils import to_global_id_or_none
-from ...order.mutations.orders import (
-    clean_order_cancel,
-    clean_order_capture,
-    clean_refund_payment,
-    try_payment_action,
-)
 from ...payment.enums import TransactionStatusEnum
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -58,6 +52,10 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..mutations.order_cancel import clean_order_cancel
+from ..mutations.order_capture import clean_order_capture
+from ..mutations.order_refund import clean_refund_payment
+from ..mutations.utils import try_payment_action
 from ..utils import validate_draft_order
 from .utils import assert_order_and_payment_ids
 
@@ -2434,7 +2432,7 @@ def test_draft_order_create_variant_with_0_price(
     assert created_draft_event.parameters == {}
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_order")
+@patch("saleor.graphql.order.mutations.draft_order_create.add_variant_to_order")
 def test_draft_order_create_tax_error(
     add_variant_to_order_mock,
     staff_api_client,
@@ -3160,7 +3158,7 @@ def test_draft_order_update_with_non_draft_order(
     assert error["code"] == OrderErrorCode.INVALID.name
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
+@patch("saleor.graphql.order.mutations.draft_order_create.update_order_prices")
 def test_draft_order_update_tax_error(
     update_order_prices_mock,
     staff_api_client,
@@ -5670,8 +5668,8 @@ mutation cancelOrder($id: ID!) {
 """
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -5695,8 +5693,8 @@ def test_order_cancel(
     )
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel_as_app(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -5720,8 +5718,8 @@ def test_order_cancel_as_app(
     )
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel_with_bought_gift_cards(
     mock_clean_order_cancel,
     mock_cancel_order,

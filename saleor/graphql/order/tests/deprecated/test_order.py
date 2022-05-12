@@ -224,7 +224,7 @@ ORDER_FULFILL_QUERY = """
 
 
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
-@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+@patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill_old_line_id(
     mock_create_fulfillments,
     fulfillment_auto_approve,
