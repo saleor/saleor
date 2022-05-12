@@ -74,8 +74,8 @@ class AppQueries(graphene.ObjectType):
         description=(
             "Look up an app by ID. If ID is not provided, return the currently "
             "authenticated app. \n\nRequires one of the following permissions: "
-            f"{AuthorizationFilters.AUTHENTICATED_STAFF_USER} "
-            f"{AuthorizationFilters.AUTHENTICATED_APP}. The authenticated app has "
+            f"{AuthorizationFilters.AUTHENTICATED_STAFF_USER.name} "
+            f"{AuthorizationFilters.AUTHENTICATED_APP.name}. The authenticated app has "
             f"access to its resources. Fetching different apps requires "
             f"{AppPermission.MANAGE_APPS.name} permission."
         ),
