@@ -1,13 +1,12 @@
 interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
-      "lines": [{"quantity": 1, "amount": "0.000", "taxCode": "FR000000", "taxIncluded":
-      true, "itemCode": "Shipping", "description": null}], "code": "2abe606d-5745-4f19-ad22-10cbb2318061",
-      "date": "2021-12-20", "customerCode": 0, "addresses": {"shipFrom": {"line1":
-      "Teczowa 7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL",
-      "postalCode": "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "",
-      "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-105"}},
-      "commit": false, "currencyCode": "USD", "email": ""}}'
+      "lines": [], "code": "13a89b41-b30b-41a0-862d-ed5490e37ca9", "date": "2022-05-05",
+      "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
+      null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
+      "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
+      "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
+      "USD", "email": "user@email.com"}}'
     headers:
       Accept:
       - '*/*'
@@ -18,57 +17,28 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '626'
+      - '517'
       User-Agent:
-      - python-requests/2.26.0
+      - python-requests/2.27.1
     method: POST
     uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
-      string: !!binary |
-        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
-        g4fRa/08Pwc=
+      string: '{"error":{"code":"MissingLine","message":"Transactions must have at
+        least one line.","target":"HttpRequestHeaders","details":[{"code":"MissingLine","number":311,"message":"Transactions
+        must have at least one line.","description":"The CreateTransactionModel object
+        must have an element called ''lines'', with at least one valid line record.","faultCode":"Client","helpLink":"http://developer.avalara.com/avatax/errors/MissingLine","severity":"Error"}]}}'
     headers:
       Connection:
       - keep-alive
-      Content-Encoding:
-      - br
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 20 Dec 2021 16:56:42 GMT
-      Location:
-      - /api/v2/companies/242975/transactions/0
+      - Thu, 05 May 2022 09:28:10 GMT
       ServerDuration:
-      - '00:00:00.0117864'
+      - '00:00:00.0007413'
       Transfer-Encoding:
       - chunked
-      Vary:
-      - Accept-Encoding
       X-Content-Type-Options:
       - nosniff
       referrer-policy:
@@ -76,9 +46,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubdomains
       x-avalara-uid:
-      - 0bb04487-af18-49c4-b7ad-d7a170d6c420
+      - ec2a57cc-993f-4654-be50-27cf2a447760
       x-correlation-id:
-      - 0bb04487-af18-49c4-b7ad-d7a170d6c420
+      - ec2a57cc-993f-4654-be50-27cf2a447760
       x-frame-options:
       - sameorigin
       x-permitted-cross-domain-policies:
@@ -86,6 +56,6 @@ interactions:
       x-xss-protection:
       - 1; mode=block
     status:
-      code: 201
-      message: Created
+      code: 400
+      message: Bad Request
 version: 1

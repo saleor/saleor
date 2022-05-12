@@ -269,11 +269,9 @@ def get_checkout_lines_data(
 
         if tax_included:
             undiscounted_amount = prices_data.undiscounted_price.gross.amount
-            price_amount = prices_data.price_with_sale.gross.amount
             price_with_discounts_amount = prices_data.price_with_discounts.gross.amount
         else:
             undiscounted_amount = prices_data.undiscounted_price.net.amount
-            price_amount = prices_data.price_with_sale.net.amount
             price_with_discounts_amount = prices_data.price_with_discounts.net.amount
 
         append_line_to_data_kwargs = {
@@ -289,22 +287,12 @@ def get_checkout_lines_data(
             "name": name,
             "tax_included": tax_included,
         }
+
         append_line_to_data(
             **append_line_to_data_kwargs,
-            amount=undiscounted_amount,
+            amount=price_with_discounts_amount,
+            ref1=line_info.variant.sku,
         )
-        if undiscounted_amount != price_amount:
-            append_line_to_data(
-                **append_line_to_data_kwargs,
-                amount=price_amount,
-                ref1=line_info.variant.sku,
-            )
-        if price_amount != price_with_discounts_amount:
-            append_line_to_data(
-                **append_line_to_data_kwargs,
-                amount=price_with_discounts_amount,
-                ref2=line_info.variant.sku,
-            )
 
     delivery_method = checkout_info.delivery_method_info.delivery_method
     if delivery_method:
@@ -365,25 +353,10 @@ def get_order_lines_data(
             "name": line.variant.product.name,
             "tax_included": tax_included,
         }
-        if not invoice_transaction_type:
-            append_line_to_data(
-                **append_line_to_data_kwargs,
-                amount=undiscounted_amount,
-            )
-
-            # for invoice transaction we want to include only final price
-            if undiscounted_amount != price_with_discounts_amount:
-                append_line_to_data(
-                    **append_line_to_data_kwargs,
-                    amount=price_with_discounts_amount,
-                    ref1=line.variant.sku,
-                )
-        else:
-            append_line_to_data(
-                **append_line_to_data_kwargs,
-                amount=price_with_discounts_amount,
-                ref1=line.variant.sku,
-            )
+        append_line_to_data(
+            **append_line_to_data_kwargs,
+            amount=price_with_discounts_amount,
+        )
 
     discount_amount = get_total_order_discount(order)
     if discount_amount:

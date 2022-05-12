@@ -5,13 +5,13 @@ interactions:
       Accept:
       - '*/*'
       Accept-Encoding:
-      - gzip, deflate
+      - gzip, deflate, br
       Authorization:
       - Basic Og==
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.25.1
+      - python-requests/2.27.1
     method: GET
     uri: https://sandbox-rest.avatax.com/api/v2/definitions/taxcodes
   response:
@@ -28,9 +28,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Mar 2021 07:44:27 GMT
+      - Thu, 05 May 2022 09:28:14 GMT
       X-Content-Type-Options:
       - nosniff
+      x-avalara-uid:
+      - d12a5812-2f8d-4508-95a5-76c96b208313
+      x-correlation-id:
+      - d12a5812-2f8d-4508-95a5-76c96b208313
     status:
       code: 401
       message: Unauthorized
