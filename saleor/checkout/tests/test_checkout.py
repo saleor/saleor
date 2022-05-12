@@ -381,7 +381,7 @@ def test_get_discount_for_checkout_specific_products_voucher(
         (10, DiscountValueType.PERCENTAGE, 1),
     ],
 )
-def test_get_discount_for_checkout_specific_products_voucher_applu_only_once(
+def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
     checkout_with_items,
     product_list,
     discount_value,
