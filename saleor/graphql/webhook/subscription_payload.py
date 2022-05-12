@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
+from django.core.exceptions import ValidationError
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
@@ -10,6 +11,8 @@ from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
+from ...webhook.error_codes import WebhookErrorCode
+
 
 logger = get_task_logger(__name__)
 
@@ -25,6 +28,21 @@ def validate_subscription_query(query: str) -> bool:
     if not check_document_is_single_subscription(document):
         return False
     return True
+
+
+def validate_query(query, required=False):
+    if not query and not required:
+        return
+    is_valid = validate_subscription_query(query)
+    if not is_valid:
+        raise ValidationError(
+            {
+                "query": ValidationError(
+                    "Subscription query is not valid",
+                    code=WebhookErrorCode.INVALID.value,
+                )
+            }
+        )
 
 
 def check_document_is_single_subscription(document: GraphQLDocument) -> bool:

@@ -8,12 +8,12 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from ..webhook.enums import WebhookEventTypeEnum
+from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
 from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
@@ -126,15 +126,32 @@ class AppExtensionCountableConnection(CountableConnection):
 
 
 class AppManifestWebhook(graphene.ObjectType):
-    name = graphene.String(required=True)
-    events = NonNullList(WebhookEventTypeEnum, required=True)
-    query = graphene.String(required=True)
-    target_url = graphene.String(required=True)
-    is_active = graphene.Boolean(required=True)
+    name = graphene.String(description="The name of the webhook.", required=True)
+    async_events = NonNullList(
+        WebhookEventTypeAsyncEnum,
+        description="The asynchronous events that webhook wants to subscribe.",
+    )
+    sync_events = NonNullList(
+        WebhookEventTypeSyncEnum,
+        description="The synchronous events that webhook wants to subscribe.",
+    )
+    query = graphene.String(
+        description="Subscription query of a webhook", required=True
+    )
+    target_url = graphene.String(
+        description="The url to receive the payload.", required=True
+    )
+    is_active = graphene.Boolean(
+        description="Determine if webhook will be set active or not.", required=True
+    )
 
     @staticmethod
-    def resolve_events(root, info):
-        return [WebhookEventTypeEnum[name] for name in root["events"]]
+    def resolve_async_events(root, info):
+        return [WebhookEventTypeAsyncEnum[name] for name in root.get("asyncEvents", [])]
+
+    @staticmethod
+    def resolve_sync_events(root, info):
+        return [WebhookEventTypeSyncEnum[name] for name in root.get("syncEvents", [])]
 
     @staticmethod
     def resolve_target_url(root, info):
@@ -159,7 +176,11 @@ class Manifest(graphene.ObjectType):
     homepage_url = graphene.String()
     support_url = graphene.String()
     extensions = NonNullList(AppManifestExtension, required=True)
-    webhooks = NonNullList(AppManifestWebhook, required=True)
+    webhooks = NonNullList(
+        AppManifestWebhook,
+        description="List of the app's webhooks." + ADDED_IN_34 + PREVIEW_FEATURE,
+        required=True,
+    )
 
     class Meta:
         description = "The manifest definition."
@@ -230,7 +251,7 @@ class App(ModelObjectType):
     )
     extensions = NonNullList(
         AppExtension,
-        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description=f"App's dashboard extensions.{ADDED_IN_31}{PREVIEW_FEATURE}",
         required=True,
     )
 
