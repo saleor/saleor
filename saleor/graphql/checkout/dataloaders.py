@@ -6,13 +6,15 @@ from promise import Promise
 from ...checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
+    apply_voucher_to_checkout_line,
     get_delivery_method_info,
     update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine
+from ...discount import VoucherType
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
-from ..discount.dataloaders import VoucherByCodeLoader
+from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -56,6 +58,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                     product_types,
                     collections,
                     channel_listings,
+                    voucher_infos,
                 ) = results
                 variants_map = dict(zip(variants_pks, variants))
                 products_map = dict(zip(variants_pks, products))
@@ -66,6 +69,11 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 )
 
                 lines_info_map = defaultdict(list)
+                voucher_infos_map = {
+                    voucher_info.voucher.code: voucher_info
+                    for voucher_info in voucher_infos
+                    if voucher_info
+                }
                 for checkout, lines in zip(checkouts, checkout_lines):
                     lines_info_map[checkout.pk].extend(
                         [
@@ -82,6 +90,24 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                             for line in lines
                         ]
                     )
+
+                for checkout in checkouts:
+                    if not checkout.voucher_code:
+                        continue
+                    voucher_info = voucher_infos_map.get(checkout.voucher_code)
+                    if not voucher_info:
+                        continue
+                    voucher = voucher_info.voucher
+                    if (
+                        voucher.type == VoucherType.SPECIFIC_PRODUCT
+                        or voucher.apply_once_per_order
+                    ):
+                        apply_voucher_to_checkout_line(
+                            voucher_info=voucher_info,
+                            checkout=checkout,
+                            lines_info=lines_info_map[checkout.pk],
+                            discounts=self.context.discounts,
+                        )
                 return [lines_info_map[key] for key in keys]
 
             variants = ProductVariantByIdLoader(self.context).load_many(variants_pks)
@@ -91,6 +117,13 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             )
             collections = CollectionsByVariantIdLoader(self.context).load_many(
                 variants_pks
+            )
+
+            voucher_codes = {
+                checkout.voucher_code for checkout in checkouts if checkout.voucher_code
+            }
+            voucher_infos = VoucherInfoByVoucherCodeLoader(self.context).load_many(
+                voucher_codes
             )
 
             variant_ids_channel_ids = []
@@ -103,7 +136,14 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 self.context
             ).load_many(variant_ids_channel_ids)
             return Promise.all(
-                [variants, products, product_types, collections, channel_listings]
+                [
+                    variants,
+                    products,
+                    product_types,
+                    collections,
+                    channel_listings,
+                    voucher_infos,
+                ]
             ).then(with_variants_products_collections)
 
         checkouts = CheckoutByTokenLoader(self.context).load_many(keys)

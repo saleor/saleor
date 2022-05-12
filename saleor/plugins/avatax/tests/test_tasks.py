@@ -21,7 +21,6 @@ def test_api_post_request_task_sends_request(
 
     site_settings.company_address = address_usa
     site_settings.save()
-
     config = AvataxConfiguration(
         username_or_account="",
         password_or_license="",
