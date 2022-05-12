@@ -16,26 +16,10 @@ class VoucherInfo:
 
 
 def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
-    product_pks = list(
-        Voucher.products.through.objects.filter(voucher_id=voucher.id).values_list(
-            "product_id", flat=True
-        )
-    )
-    variant_pks = list(
-        Voucher.variants.through.objects.filter(voucher_id=voucher.id).values_list(
-            "productvariant_id", flat=True
-        )
-    )
-    collection_pks = list(
-        Voucher.collections.through.objects.filter(voucher_id=voucher.id).values_list(
-            "collection_id", flat=True
-        )
-    )
-    category_pks = list(
-        Voucher.categories.through.objects.filter(voucher_id=voucher.id).values_list(
-            "category_id", flat=True
-        )
-    )
+    variant_pks = list(variant.id for variant in voucher.variants.all())
+    product_pks = list(product.id for product in voucher.products.all())
+    category_pks = list(category.id for category in voucher.categories.all())
+    collection_pks = list(collection.id for collection in voucher.collections.all())
 
     return VoucherInfo(
         voucher=voucher,
