@@ -1398,28 +1398,6 @@ def test_checkout_shipping_price_setter():
     assert checkout.shipping_price.tax == gross - net
 
 
-def test_checkout_line_unit_price_setter():
-    # given
-    currency = "USD"
-    net_amount = Decimal(10)
-    net = Money(net_amount, currency)
-    gross_amount = Decimal(15)
-    gross = Money(gross_amount, currency)
-
-    # when
-    price = TaxedMoney(net=net, gross=gross)
-    checkout_line = CheckoutLine()
-    checkout_line.unit_price = price
-
-    # then
-    assert checkout_line.currency == currency
-    assert checkout_line.unit_price_net_amount == net_amount
-    assert checkout_line.unit_price.net == net
-    assert checkout_line.unit_price_gross_amount == gross_amount
-    assert checkout_line.unit_price.gross == gross
-    assert checkout_line.unit_price.tax == gross - net
-
-
 def test_checkout_line_total_price_setter():
     # given
     currency = "USD"

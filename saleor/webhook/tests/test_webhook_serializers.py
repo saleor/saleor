@@ -142,16 +142,12 @@ def test_serialize_checkout_lines_for_tax_calculation(
         variant = line.variant
         product = variant.product
 
-        unit_price = (
-            line.unit_price_gross_amount
-            if taxes_included
-            else line.unit_price_net_amount
-        )
         total_price = (
             line.total_price_gross_amount
             if taxes_included
             else line.total_price_net_amount
         )
+        unit_price = total_price / line.quantity
 
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),

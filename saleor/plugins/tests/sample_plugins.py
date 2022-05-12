@@ -10,7 +10,6 @@ from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...checkout.interface import CheckoutTaxedPricesData
 from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...order.interface import OrderTaxedPricesData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
@@ -34,32 +33,20 @@ def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
     unit_gross = Decimal("12.30")
     lines = [
         TaxLineData(
-            id=line.pk,
-            currency="USD",
-            unit_net_amount=unit,
-            unit_gross_amount=unit_gross,
             total_net_amount=unit * 3,
             total_gross_amount=unit_gross * 3,
             tax_rate=Decimal("0.23"),
         )
-        for line in obj_with_lines.lines.all()
+        for _ in obj_with_lines.lines.all()
     ]
-
-    subtotal = sum(line.total_net_amount for line in lines)
-    subtotal_gross = sum(line.total_gross_amount for line in lines)
 
     shipping = Decimal("50.00")
     shipping_gross = Decimal("63.20")
 
     return TaxData(
-        currency="USD",
-        subtotal_net_amount=subtotal,
-        subtotal_gross_amount=subtotal_gross,
         shipping_price_net_amount=shipping,
         shipping_price_gross_amount=shipping_gross,
         shipping_tax_rate=Decimal("0.23"),
-        total_net_amount=subtotal + shipping,
-        total_gross_amount=subtotal_gross + shipping_gross,
         lines=lines,
     )
 
@@ -135,17 +122,13 @@ class PluginSample(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: CheckoutTaxedPricesData,
+        previous_value: TaxedMoney,
     ):
         # See if delivery method doesn't trigger infinite recursion
         bool(checkout_info.delivery_method_info.delivery_method)
 
         price = Money("1.0", currency=checkout_info.checkout.currency)
-        return CheckoutTaxedPricesData(
-            price_with_sale=TaxedMoney(price, price),
-            price_with_discounts=TaxedMoney(price, price),
-            undiscounted_price=TaxedMoney(price, price),
-        )
+        return TaxedMoney(price, price)
 
     def calculate_order_line_total(
         self,
@@ -168,15 +151,11 @@ class PluginSample(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: CheckoutTaxedPricesData,
+        previous_value: TaxedMoney,
     ):
         currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
-        return CheckoutTaxedPricesData(
-            price_with_sale=TaxedMoney(price, price),
-            price_with_discounts=TaxedMoney(price, price),
-            undiscounted_price=TaxedMoney(price, price),
-        )
+        return TaxedMoney(price, price)
 
     def calculate_order_line_unit(
         self,

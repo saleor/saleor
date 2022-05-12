@@ -127,7 +127,7 @@ class CheckoutLine(ModelObjectType):
                             lines=lines,
                             checkout_line_info=line_info,
                             discounts=discounts,
-                        ).price_with_sale
+                        )
                 return None
 
             return Promise.all(

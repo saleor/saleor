@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import Literal, Union
+from typing import List, Literal, Union
 from unittest.mock import Mock, patch, sentinel
 
 import pytest
@@ -7,10 +8,38 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
+from ...core.taxes import TaxError, zero_taxed_money
+
+# from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from .. import OrderStatus, calculations
 from ..interface import OrderTaxedPricesData
+
+
+# TODO In separate PR:
+#  Remove it after order refactoring
+@dataclass
+class TaxLineData:
+    id: int
+    currency: str
+    tax_rate: Decimal
+    unit_net_amount: Decimal
+    unit_gross_amount: Decimal
+    total_gross_amount: Decimal
+    total_net_amount: Decimal
+
+
+@dataclass
+class TaxData:
+    currency: str
+    total_net_amount: Decimal
+    total_gross_amount: Decimal
+    subtotal_net_amount: Decimal
+    subtotal_gross_amount: Decimal
+    shipping_price_gross_amount: Decimal
+    shipping_price_net_amount: Decimal
+    shipping_tax_rate: Decimal
+    lines: List[TaxLineData]
 
 
 @pytest.fixture

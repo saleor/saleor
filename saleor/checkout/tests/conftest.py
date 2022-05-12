@@ -22,17 +22,8 @@ def priced_checkout_factory():
 
             line.total_price = manager.calculate_checkout_line_total(
                 checkout_info, lines, line_info, None, []
-            ).price_with_sale
-            line.unit_price = manager.calculate_checkout_line_unit_price(
-                checkout_info,
-                lines,
-                line_info,
-                None,
-                [],
-            ).price_with_sale
-
+            )
             line.total_price_gross_amount *= tax
-            line.unit_price_gross_amount *= tax
 
             line.save()
 

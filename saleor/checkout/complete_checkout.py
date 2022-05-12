@@ -216,9 +216,13 @@ def _create_line_for_order(
     if checkout_line_info.voucher:
         voucher_code = checkout_line_info.voucher.code
 
-    discount_price_data = (
-        unit_price_data.undiscounted_price - unit_price_data.price_with_discounts
-    )
+    # TODO In separate PR:
+    # Calculate line discount
+    # Maybe line_info.voucher.get_discount_amount_for(unit_price, channel=channel),
+    # discount_price_data = (
+    #     unit_price_data.undiscounted_price - unit_price_data.price_with_discounts
+    # )
+    discount_price_data = zero_taxed_money(checkout_info.checkout.currency)
     if taxes_included_in_prices:
         discount_amount = discount_price_data.gross
     else:
@@ -233,6 +237,8 @@ def _create_line_for_order(
         else:
             unit_discount_reason = f"Voucher code: {voucher_code}"
 
+    # TODO In separate PR:
+    # Clear OrderLine Types from useless types or change to untaxed.
     line = OrderLine(
         product_name=product_name,
         variant_name=variant_name,
@@ -244,12 +250,10 @@ def _create_line_for_order(
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price_data.price_with_discounts,  # type: ignore
-        undiscounted_unit_price=unit_price_data.undiscounted_price,  # type: ignore
-        undiscounted_total_price=(
-            total_line_price_data.undiscounted_price  # type: ignore
-        ),
-        total_price=total_line_price_data.price_with_discounts,  # type: ignore
+        unit_price=unit_price_data,  # type: ignore
+        undiscounted_unit_price=unit_price_data,  # type: ignore
+        undiscounted_total_price=(total_line_price_data),  # type: ignore
+        total_price=total_line_price_data,  # type: ignore
         tax_rate=tax_rate,
         sale_id=graphene.Node.to_global_id("Sale", sale_id) if sale_id else None,
         voucher_code=voucher_code,

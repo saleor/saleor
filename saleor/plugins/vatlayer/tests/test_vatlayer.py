@@ -624,7 +624,7 @@ def test_calculate_checkout_line_total(
         checkout_line_info,
         address,
         [],
-    ).price_with_sale
+    )
 
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD") * line.quantity,
@@ -664,7 +664,7 @@ def test_calculate_checkout_line_total_from_origin_country(
         checkout_line_info,
         address,
         [],
-    ).price_with_sale
+    )
 
     # make sure that we applied DE taxes (19%)
     assert line_price == TaxedMoney(
@@ -703,7 +703,7 @@ def test_calculate_checkout_line_total_with_excluded_country(
         checkout_line_info,
         address,
         [],
-    ).price_with_sale
+    )
 
     assert line_price == TaxedMoney(
         net=Money("10.00", "USD") * line.quantity,
@@ -779,7 +779,7 @@ def test_calculate_checkout_line_unit_price(
         checkout_line_info,
         address,
         [],
-    ).price_with_sale
+    )
 
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")

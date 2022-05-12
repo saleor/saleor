@@ -13,7 +13,6 @@ from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 from promise.promise import Promise
 
-from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
 from ..payment.interface import (
     CustomerSource,
@@ -164,7 +163,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             TaxedMoney,
         ],
-        CheckoutTaxedPricesData,
+        TaxedMoney,
     ]
 
     #  Calculate checkout line unit price.
@@ -177,7 +176,7 @@ class BasePlugin:
             Iterable["DiscountInfo"],
             Any,
         ],
-        CheckoutTaxedPricesData,
+        TaxedMoney,
     ]
 
     #  Calculate the shipping costs for checkout.

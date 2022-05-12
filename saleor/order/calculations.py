@@ -6,8 +6,12 @@ from django.db.models import prefetch_related_objects
 from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxError, zero_taxed_money
+from ..core.taxes import TaxError, zero_taxed_money
 from ..discount import OrderDiscountType
+
+# TODO in separete PR:
+# use Tax data from ..core.taxes
+from ..order.tests.test_calculations import TaxData
 from ..plugins.manager import PluginsManager
 from . import ORDER_EDITABLE_STATUS, utils
 from .interface import OrderTaxedPricesData
@@ -145,7 +149,9 @@ def fetch_order_prices_if_expired(
 
     with transaction.atomic(savepoint=False):
         if tax_data:
-            _apply_tax_data(order, lines, tax_data)
+            # TODO in separete PR:
+            # Remove type ignore after refactore order tax interface
+            _apply_tax_data(order, lines, tax_data)  # type: ignore
 
         _recalculate_order_discounts(order, lines)
 

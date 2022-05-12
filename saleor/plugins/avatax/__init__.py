@@ -204,6 +204,8 @@ def append_line_to_data(
     item_code: str,
     name: str = None,
     tax_included: Optional[bool] = None,
+    # TODO In separate PR:
+    # Remove it in order changes
     ref1: Optional[str] = None,
     ref2: Optional[str] = None,
 ):
@@ -261,15 +263,11 @@ def get_checkout_lines_data(
         item_code = line_info.variant.sku or line_info.variant.get_global_id()
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        prices_data = base_calculations.calculate_base_line_total_price(
+        price_data = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
             discounts,
         )
-
-        undiscounted_amount = prices_data.undiscounted_price.amount
-        price_amount = prices_data.price_with_sale.amount
-        price_with_discounts_amount = prices_data.price_with_discounts.amount
 
         append_line_to_data_kwargs = {
             "data": data,
@@ -279,27 +277,15 @@ def get_checkout_lines_data(
             # standard tax_code, Avatax will raise an exception: "When shipping
             # cross-border into CIF countries, Tax Included is not supported with mixed
             # positive and negative line amounts."
-            "tax_code": tax_code if undiscounted_amount else DEFAULT_TAX_CODE,
+            "tax_code": tax_code if price_data.amount else DEFAULT_TAX_CODE,
             "item_code": item_code,
             "name": name,
             "tax_included": tax_included,
         }
         append_line_to_data(
             **append_line_to_data_kwargs,
-            amount=undiscounted_amount,
+            amount=price_data.amount,
         )
-        if undiscounted_amount != price_amount:
-            append_line_to_data(
-                **append_line_to_data_kwargs,
-                amount=price_amount,
-                ref1=line_info.variant.sku,
-            )
-        if price_amount != price_with_discounts_amount:
-            append_line_to_data(
-                **append_line_to_data_kwargs,
-                amount=price_with_discounts_amount,
-                ref2=line_info.variant.sku,
-            )
 
     delivery_method = checkout_info.delivery_method_info.delivery_method
     if delivery_method:

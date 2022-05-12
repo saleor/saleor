@@ -8,7 +8,6 @@ from prices import Money, TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
-from .interface import CheckoutTaxedPricesData
 from .models import Checkout
 
 if TYPE_CHECKING:
@@ -48,7 +47,7 @@ def checkout_shipping_tax_rate(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> Decimal:
+) -> Optional[str]:
     """Return checkout shipping tax rate.
 
     It takes in account all plugins.
@@ -155,7 +154,7 @@ def checkout_line_total(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo] = [],
-) -> "CheckoutTaxedPricesData":
+) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -170,15 +169,7 @@ def checkout_line_total(
         discounts=discounts,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
-    return CheckoutTaxedPricesData(
-        undiscounted_price=quantize_price(
-            checkout_line.undiscounted_total_price, currency
-        ),
-        price_with_sale=quantize_price(checkout_line.total_price, currency),
-        price_with_discounts=quantize_price(
-            checkout_line.total_price_with_discounts, currency
-        ),
-    )
+    return quantize_price(checkout_line.total_price, currency)
 
 
 def checkout_line_unit_price(
@@ -188,7 +179,7 @@ def checkout_line_unit_price(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
-) -> "CheckoutTaxedPricesData":
+) -> TaxedMoney:
     """Return the unit price of provided line, taxes included.
 
     It takes in account all plugins.
@@ -203,15 +194,8 @@ def checkout_line_unit_price(
         discounts=discounts,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
-    return CheckoutTaxedPricesData(
-        undiscounted_price=quantize_price(
-            checkout_line.undiscounted_unit_price, currency
-        ),
-        price_with_sale=quantize_price(checkout_line.unit_price, currency),
-        price_with_discounts=quantize_price(
-            checkout_line.unit_price_with_discounts, currency
-        ),
-    )
+    unit_price = checkout_line.total_price / checkout_line.quantity
+    return quantize_price(unit_price, currency)
 
 
 def checkout_line_tax_rate(
@@ -221,7 +205,7 @@ def checkout_line_tax_rate(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
-) -> Decimal:
+) -> Optional[str]:
     """Return the tax rate of provided line.
 
     It takes in account all plugins.
@@ -268,7 +252,7 @@ def fetch_checkout_prices_if_expired(
         lines,
     )
     if tax_data:
-        _apply_tax_data(checkout, lines, tax_data)
+        _apply_tax_data_from_app(checkout, lines, tax_data)
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
@@ -292,18 +276,8 @@ def fetch_checkout_prices_if_expired(
     checkout.lines.bulk_update(
         [line_info.line for line_info in lines],
         [
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "undiscounted_unit_price_net_amount",
-            "undiscounted_unit_price_gross_amount",
-            "unit_price_with_discounts_net_amount",
-            "unit_price_with_discounts_gross_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
-            "undiscounted_total_price_net_amount",
-            "undiscounted_total_price_gross_amount",
-            "total_price_with_discounts_net_amount",
-            "total_price_with_discounts_gross_amount",
             "tax_rate",
         ],
     )
@@ -311,45 +285,51 @@ def fetch_checkout_prices_if_expired(
     return checkout_info, lines
 
 
-def _apply_tax_data(
+def _calculate_checkout_total(checkout, currency):
+    # TODO In separate PR:
+    # FIX, Voucher should be included in ShippingPrice or Subtotal, depends on voucher
+    # type
+    total = checkout.subtotal + checkout.shipping_price - checkout.discount
+    return quantize_price(
+        total,
+        currency,
+    )
+
+
+def _calculate_checkout_subtotal(lines, currency):
+    line_totals = [line_info.line.total_price for line_info in lines]
+    total = sum(line_totals, zero_taxed_money(currency))
+    return quantize_price(
+        total,
+        currency,
+    )
+
+
+def _apply_tax_data_from_app(
     checkout: "Checkout", lines: Iterable["CheckoutLineInfo"], tax_data: TaxData
 ) -> None:
+    currency = checkout.currency
+
     def create_quantized_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
-        currency = checkout.currency
         return quantize_price(
             TaxedMoney(net=Money(net, currency), gross=Money(gross, currency)), currency
         )
 
-    checkout.total = create_quantized_taxed_money(
-        net=tax_data.total_net_amount,
-        gross=tax_data.total_gross_amount,
-    )
-    checkout.subtotal = create_quantized_taxed_money(
-        net=tax_data.subtotal_net_amount, gross=tax_data.subtotal_gross_amount
-    )
-    checkout.shipping_price = create_quantized_taxed_money(
-        net=tax_data.shipping_price_net_amount,
-        gross=tax_data.shipping_price_gross_amount,
-    )
-    checkout.shipping_tax_rate = tax_data.shipping_tax_rate
-
-    tax_lines_data = {
-        tax_line_data.id: tax_line_data for tax_line_data in tax_data.lines
-    }
-    zipped_checkout_and_tax_lines = (
-        (line_info, tax_lines_data[line_info.line.id]) for line_info in lines
-    )
-
-    for (line_info, tax_line_data) in zipped_checkout_and_tax_lines:
+    for (line_info, tax_line_data) in zip(lines, tax_data.lines):
         line = line_info.line
 
-        line.unit_price = create_quantized_taxed_money(
-            net=tax_line_data.unit_net_amount, gross=tax_line_data.unit_gross_amount
-        )
         line.total_price = create_quantized_taxed_money(
             net=tax_line_data.total_net_amount, gross=tax_line_data.total_gross_amount
         )
         line.tax_rate = tax_line_data.tax_rate
+
+    checkout.shipping_tax_rate = tax_data.shipping_tax_rate
+    checkout.shipping_price = create_quantized_taxed_money(
+        net=tax_data.shipping_price_net_amount,
+        gross=tax_data.shipping_price_gross_amount,
+    )
+    checkout.subtotal = _calculate_checkout_subtotal(lines, currency)
+    checkout.total = _calculate_checkout_total(checkout, currency)
 
 
 def _apply_tax_data_from_plugins(
@@ -373,9 +353,7 @@ def _apply_tax_data_from_plugins(
             address,
             discounts,
         )
-        line.undiscounted_total_price = total_price_data.undiscounted_price
-        line.total_price = total_price_data.price_with_sale
-        line.total_price_with_discounts = total_price_data.price_with_discounts
+        line.total_price = total_price_data
 
         unit_price_data = manager.calculate_checkout_line_unit_price(
             checkout_info,
@@ -384,9 +362,6 @@ def _apply_tax_data_from_plugins(
             address,
             discounts,
         )
-        line.undiscounted_unit_price = unit_price_data.undiscounted_price
-        line.unit_price = unit_price_data.price_with_sale
-        line.unit_price_with_discounts = unit_price_data.price_with_discounts
 
         line.tax_rate = manager.get_checkout_line_tax_rate(
             checkout_info,
@@ -394,7 +369,7 @@ def _apply_tax_data_from_plugins(
             line_info,
             address,
             discounts,
-            line.unit_price,
+            unit_price_data,
         )
 
     checkout.shipping_price = manager.calculate_checkout_shipping(

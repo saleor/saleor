@@ -13,7 +13,6 @@ from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
-from .interface import CheckoutPricesData, CheckoutTaxedPricesData
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -26,18 +25,11 @@ def calculate_base_line_unit_price(
     line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> CheckoutPricesData:
-    """Calculate line unit prices including discounts and vouchers.
+) -> Money:
+    """Calculate line unit price.
 
-    Returns a three money values. Undiscounted price, price and price with voucher.
-    Voucher is added to 'price_with_discounts' when line's product matches to products
-    applicable for voucher.
-    For voucher with 'apply once per order', the price will be reduced in calculation
-    of total price.
-    'price' includes discount from sale if any valid exists.
-    'price_with_discounts' includes voucher discount and sale discount if any valid
-    exists.
-    'undiscounted_price' is a price without any sale and voucher.
+    Unit price includes discount from sale and voucher A voucher is added to the unit
+    price when line's product matches to products applicable for the voucher.
     """
     variant = line_info.variant
     variant_price = variant.get_price(
@@ -49,92 +41,45 @@ def calculate_base_line_unit_price(
         line_info.line.price_override,
     )
 
-    if not discounts:
-        undiscounted_variant_price = variant_price
-    else:
-        undiscounted_variant_price = variant.get_price(
-            line_info.product,
-            line_info.collections,
-            channel,
-            line_info.channel_listing,
-            [],
-            line_info.line.price_override,
-        )
-
+    # TODO IN separate PR:
+    # We should include apply_once_per_order into unit price.
     if line_info.voucher and not line_info.voucher.apply_once_per_order:
-        price_with_discounts = max(
+        unit_price = max(
             variant_price
             - line_info.voucher.get_discount_amount_for(variant_price, channel=channel),
             zero_money(variant_price.currency),
         )
     else:
-        price_with_discounts = variant_price
+        unit_price = variant_price
 
-    return CheckoutPricesData(
-        undiscounted_price=quantize_price(
-            undiscounted_variant_price, undiscounted_variant_price.currency
-        ),
-        price_with_sale=quantize_price(variant_price, variant_price.currency),
-        price_with_discounts=quantize_price(
-            price_with_discounts, price_with_discounts.currency
-        ),
-    )
+    return quantize_price(unit_price, unit_price.currency)
 
 
 def calculate_base_line_total_price(
     line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> CheckoutPricesData:
-    """Calculate line total prices including discounts and vouchers.
-
-    Returns a three money values. Undiscounted price, price and price with voucher.
-    It calculates a unit prices and adds a voucher to line if voucher is applicable
-    only once per order.
-    'price' includes discount from sale if any valid exists.
-    'price_with_discounts' includes voucher discount and sale discount if any valid
-    exists.
-    'undiscounted_price' is a price without any sale and voucher.
-    """
-    prices_data = calculate_base_line_unit_price(
+) -> Money:
+    """Calculate line total prices including sales and specific products vouchers."""
+    unit_price = calculate_base_line_unit_price(
         line_info=line_info, channel=channel, discounts=discounts
     )
     if line_info.voucher and line_info.voucher.apply_once_per_order:
         variant_price_with_discounts = max(
-            prices_data.price_with_sale
-            - line_info.voucher.get_discount_amount_for(
-                prices_data.price_with_sale, channel=channel
-            ),
-            zero_money(prices_data.price_with_sale.currency),
+            unit_price
+            - line_info.voucher.get_discount_amount_for(unit_price, channel=channel),
+            zero_money(unit_price.currency),
         )
         # we add -1 as we handle a case when voucher is applied only to single line
         # of the cheapest line
         quantity_without_voucher = line_info.line.quantity - 1
-        prices_data = CheckoutPricesData(
-            price_with_discounts=(
-                prices_data.price_with_sale * quantity_without_voucher
-                + variant_price_with_discounts
-            ),
-            price_with_sale=prices_data.price_with_sale * line_info.line.quantity,
-            undiscounted_price=prices_data.undiscounted_price * line_info.line.quantity,
+        total_price = (
+            unit_price * quantity_without_voucher + variant_price_with_discounts
         )
     else:
-        prices_data = CheckoutPricesData(
-            price_with_sale=prices_data.price_with_sale * line_info.line.quantity,
-            price_with_discounts=prices_data.price_with_discounts
-            * line_info.line.quantity,
-            undiscounted_price=prices_data.undiscounted_price * line_info.line.quantity,
-        )
-    prices_data.price_with_sale = quantize_price(
-        prices_data.price_with_sale, prices_data.price_with_sale.currency
-    )
-    prices_data.undiscounted_price = quantize_price(
-        prices_data.undiscounted_price, prices_data.undiscounted_price.currency
-    )
-    prices_data.price_with_discounts = quantize_price(
-        prices_data.price_with_discounts, prices_data.price_with_discounts.currency
-    )
-    return prices_data
+        total_price = unit_price * line_info.line.quantity
+
+    return quantize_price(total_price, total_price.currency)
 
 
 def base_checkout_delivery_price(checkout_info: "CheckoutInfo", lines=None) -> Money:
@@ -186,6 +131,9 @@ def base_checkout_total(
 ) -> TaxedMoney:
     """Return the total cost of the checkout."""
     zero = zero_taxed_money(currency)
+    # TODO In separate PR:
+    # FIX, Voucher should be included in ShippingPrice or Subtotal, depends on voucher
+    # type
     total = subtotal + shipping_price - discount
     # Discount is subtracted from both gross and net values, which may cause negative
     # net value if we are having a discount that covers whole price.
@@ -207,7 +155,7 @@ def base_checkout_subtotal(
             line,
             channel,
             discounts,
-        ).price_with_sale
+        )
         for line in checkout_lines
     ]
 
@@ -218,21 +166,10 @@ def base_checkout_line_total(
     checkout_line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-) -> CheckoutTaxedPricesData:
+) -> Money:
     """Return the total price of this line."""
-    prices_data = calculate_base_line_total_price(
+    return calculate_base_line_total_price(
         line_info=checkout_line_info, channel=channel, discounts=discounts
-    )
-    return CheckoutTaxedPricesData(
-        price_with_sale=TaxedMoney(
-            net=prices_data.price_with_sale, gross=prices_data.price_with_sale
-        ),
-        price_with_discounts=TaxedMoney(
-            net=prices_data.price_with_discounts, gross=prices_data.price_with_discounts
-        ),
-        undiscounted_price=TaxedMoney(
-            net=prices_data.undiscounted_price, gross=prices_data.undiscounted_price
-        ),
     )
 
 
@@ -256,18 +193,7 @@ def base_checkout_line_unit_price(
     checkout_line_info: "CheckoutLineInfo",
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
-):
-    prices_data = calculate_base_line_unit_price(
+) -> Money:
+    return calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=channel, discounts=discounts
-    )
-    return CheckoutTaxedPricesData(
-        price_with_sale=TaxedMoney(
-            net=prices_data.price_with_sale, gross=prices_data.price_with_sale
-        ),
-        price_with_discounts=TaxedMoney(
-            net=prices_data.price_with_discounts, gross=prices_data.price_with_discounts
-        ),
-        undiscounted_price=TaxedMoney(
-            net=prices_data.undiscounted_price, gross=prices_data.undiscounted_price
-        ),
     )

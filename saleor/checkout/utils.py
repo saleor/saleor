@@ -466,7 +466,7 @@ def get_prices_of_discounted_specific_product(
             line_info,
             checkout_info.channel,
             discounts,
-        ).price_with_sale
+        )
         line_prices.extend([line_unit_price] * line.quantity)
 
     return line_prices

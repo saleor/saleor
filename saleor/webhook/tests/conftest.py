@@ -16,20 +16,11 @@ def checkout_with_prices(
 ):
     lines = checkout_with_items.lines.all()
     for i, line in enumerate(lines, start=1):
-        line.undiscounted_unit_price_net_amount = Decimal("9.000") + Decimal(i)
-        line.undiscounted_unit_price_gross_amount = Decimal("9.000") + Decimal(
-            i
-        ) * Decimal("1.100")
-        line.unit_price_net_amount = Decimal("10.000") + Decimal(i)
-        line.unit_price_gross_amount = Decimal("10.000") + Decimal(i) * Decimal("1.100")
-        line.unit_price_with_discounts_net_amount = (
-            Decimal("10.000") + Decimal(i) - Decimal("0.300")
-        )
-        line.unit_price_with_discounts_gross_amount = (
-            Decimal("10.000") + Decimal(i) * Decimal("1.100") - Decimal("0.300")
-        )
-        line.total_price_gross_amount = line.unit_price_gross_amount * line.quantity
-        line.total_price_net_amount = line.unit_price_net_amount * line.quantity
+
+        unit_price_net_amount = Decimal("10.000") + Decimal(i)
+        unit_price_gross_amount = Decimal("10.000") + Decimal(i) * Decimal("1.100")
+        line.total_price_gross_amount = unit_price_gross_amount * line.quantity
+        line.total_price_net_amount = unit_price_net_amount * line.quantity
 
     checkout_with_items.discount_amount = Decimal("5.000")
     checkout_with_items.discount_name = "Voucher 5 USD"
@@ -50,12 +41,6 @@ def checkout_with_prices(
     checkout_with_items.lines.bulk_update(
         lines,
         [
-            "undiscounted_unit_price_net_amount",
-            "undiscounted_unit_price_gross_amount",
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "unit_price_with_discounts_net_amount",
-            "unit_price_with_discounts_gross_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
         ],

@@ -60,25 +60,16 @@ class TaxType:
     description: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class TaxLineData:
-    id: int
-    currency: str
-    tax_rate: Decimal
-    unit_net_amount: Decimal
-    unit_gross_amount: Decimal
+    tax_rate: str
     total_gross_amount: Decimal
     total_net_amount: Decimal
 
 
-@dataclass
+@dataclass(frozen=True)
 class TaxData:
-    currency: str
-    total_net_amount: Decimal
-    total_gross_amount: Decimal
-    subtotal_net_amount: Decimal
-    subtotal_gross_amount: Decimal
     shipping_price_gross_amount: Decimal
     shipping_price_net_amount: Decimal
-    shipping_tax_rate: Decimal
+    shipping_tax_rate: str
     lines: List[TaxLineData]

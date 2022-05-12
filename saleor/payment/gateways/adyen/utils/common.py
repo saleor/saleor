@@ -276,7 +276,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
             lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
-        ).price_with_sale
+        )
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
         tax_amount = unit_price.tax.amount
