@@ -26,6 +26,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add webhooks `MENU_CREATED`, `MENU_UPDATED`, `MENU_DELETED`, `MENU_ITEM_CREATED`, `MENU_ITEM_UPDATED`, `MENU_ITEM_DELETED` - #9651 by @SzymJ
 - Add webhooks `VOUCHER_CREATED`, `VOUCHER_UPDATED`, `VOUCHER_DELETED` - #9657 by @SzymJ
 - Add webhooks `APP_CREATED`, `APP_UPDATED`, `APP_DELETED`, `APP_STATUS_CHANGED` - #9698 by @SzymJ
+- Migrate checkout line id from int to UUID - #9675 by @IKarbowiak
+  - Changed the checkout line `id` from `int` to `UUID`, the old ids still can be used
+  for old checkout lines.
 
 # 3.3.1
 

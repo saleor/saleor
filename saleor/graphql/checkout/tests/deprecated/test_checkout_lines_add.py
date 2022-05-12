@@ -60,7 +60,7 @@ def test_checkout_lines_add_by_checkout_id(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
