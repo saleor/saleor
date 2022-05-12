@@ -12,7 +12,7 @@ from ..core.permissions import (
     get_permissions_enum_list,
     split_permission_codename,
 )
-from ..graphql.webhook.mutations import validate_query
+from ..graphql.webhook.subscription_payload import validate_query
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
@@ -183,13 +183,13 @@ def clean_extensions(manifest_data, app_permissions, errors):
 def clean_webhooks(manifest_data, app_permissions, errors):
     webhooks = manifest_data.get("webhooks", [])
     for webhook in webhooks:
-        validate_query(webhook["query"])
+        validate_query(webhook["query"], required=True)
 
 
 def validate_required_fields(manifest_data, errors):
     manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
     extension_required_fields = {"label", "url", "mount"}
-    webhook_required_fields = {"name", "targetUrl", "isActive", "events", "query"}
+    webhook_required_fields = {"name", "targetUrl", "isActive", "query"}
 
     if manifest_missing_fields := manifest_required_fields.difference(manifest_data):
         for missing_field in manifest_missing_fields:

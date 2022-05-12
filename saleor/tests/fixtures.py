@@ -5718,7 +5718,7 @@ def app_manifest():
 def app_manifest_webhook():
     return {
         "name": "webhook",
-        "events": [
+        "asyncEvents": [
             "ORDER_CREATED",
             "ORDER_FULLY_PAID",
             "CUSTOMER_CREATED",

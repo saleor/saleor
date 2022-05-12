@@ -77,7 +77,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             WebhookEvent.objects.bulk_create(
                 [
                     WebhookEvent(webhook=webhook, event_type=event)
-                    for event in webhook_data["events"]
+                    for event in (webhook_data.get("asyncEvents", []) + webhook_data.get("syncEvents", []))
                 ]
             )
 
