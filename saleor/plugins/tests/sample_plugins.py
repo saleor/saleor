@@ -118,7 +118,7 @@ class PluginSample(BasePlugin):
         variant: "ProductVariant",
         product: "Product",
         previous_value: OrderTaxedPricesData,
-    ) -> OrderTaxedPricesData:
+    ) -> TaxedMoney:
         price = Money("1.0", currency=order.currency)
         return OrderTaxedPricesData(
             price_with_discounts=TaxedMoney(price, price),
