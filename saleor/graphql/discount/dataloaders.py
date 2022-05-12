@@ -157,6 +157,10 @@ class VoucherInfoByVoucherCodeLoader(DataLoader):
     def batch_load(self, keys):
         vouchers_map = (
             Voucher.objects.using(self.database_connection_name)
+            # FIXME dataloader should not operate on prefetched data. The channel
+            #  listings are used in Voucher's model to calculate a discount amount.
+            #  This is a workaround that we should solve by fetching channel_listings
+            #  via data loader and passing it to calculate a discount amount.
             .prefetch_related("channel_listings")
             .filter(code__in=keys)
             .in_bulk(field_name="code")
