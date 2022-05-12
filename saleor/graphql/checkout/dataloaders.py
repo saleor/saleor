@@ -11,8 +11,8 @@ from ...checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine
-from ...payment.models import TransactionItem
 from ...discount import VoucherType
+from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
