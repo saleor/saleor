@@ -241,9 +241,19 @@ def base_checkout_line_total(
 
 def base_order_line_total(order_line: "OrderLine") -> OrderTaxedPricesData:
     quantity = order_line.quantity
+    price_with_discounts = (
+        TaxedMoney(order_line.base_unit_price, order_line.base_unit_price) * quantity
+    )
+    undiscounted_price = (
+        TaxedMoney(
+            order_line.undiscounted_base_unit_price,
+            order_line.undiscounted_base_unit_price,
+        )
+        * quantity
+    )
     return OrderTaxedPricesData(
-        undiscounted_price=order_line.undiscounted_unit_price * quantity,
-        price_with_discounts=order_line.unit_price * quantity,
+        undiscounted_price=undiscounted_price,
+        price_with_discounts=price_with_discounts,
     )
 
 
