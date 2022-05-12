@@ -12,6 +12,7 @@ class ReadOnlyMiddleware:
         "checkoutCreate",
         "checkoutCustomerAttach",
         "checkoutCustomerDetach",
+        "checkoutDeliveryMethodUpdate",
         "checkoutEmailUpdate",
         "checkoutLineDelete",
         "checkoutLinesAdd",
