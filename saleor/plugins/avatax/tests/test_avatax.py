@@ -545,6 +545,7 @@ def test_calculate_order_line_total(
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
+    order_line.base_unit_price = unit_price.gross
     order_line.save()
 
     total = manager.calculate_order_line_total(
@@ -600,6 +601,7 @@ def test_calculate_order_line_without_sku_total(
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
+    order_line.base_unit_price = unit_price.gross
     order_line.save()
 
     total = manager.calculate_order_line_total(
@@ -657,6 +659,7 @@ def test_calculate_order_line_total_with_discount(
     order_line.undiscounted_unit_price = undiscounted_unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
+    order_line.base_unit_price = unit_price.gross
     order_line.undiscounted_total_price = undiscounted_unit_price * order_line.quantity
     order_line.save()
 
@@ -1193,6 +1196,7 @@ def test_calculate_order_line_unit(
     order_line.unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
+    order_line.base_unit_price = order_line.unit_price.gross
     order_line.undiscounted_unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
@@ -1278,6 +1282,8 @@ def test_calculate_order_line_unit_with_discount(
     manager = get_plugins_manager()
     unit_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("10.00", "USD"))
     order_line.unit_price = unit_price
+    order_line.base_unit_price = unit_price.gross
+
     currency = order_line.currency
     discount_amount = Decimal("2.5")
     order_line.unit_discount = Money(discount_amount, currency)
@@ -2696,7 +2702,7 @@ def test_plugin_uses_configuration_from_db(
 ):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     configuration = plugin_configuration(
-        username="2000134479", password="697932CFCBDE505B", sandbox=False
+        username="test", password="test", sandbox=False
     )
     manager = get_plugins_manager()
 
