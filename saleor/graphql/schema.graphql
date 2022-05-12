@@ -8439,6 +8439,7 @@ enum OrderEventsEnum {
   OVERSOLD_ITEMS
   CANCELED
   ORDER_MARKED_AS_PAID
+  ORDER_MARKED_AS_SETTLED
   ORDER_FULLY_PAID
   ORDER_REPLACEMENT_CREATED
   ORDER_DISCOUNT_ADDED
@@ -11545,6 +11546,20 @@ type Mutation {
     """The external transaction reference."""
     transactionReference: String
   ): OrderMarkAsPaid
+
+  """
+  Mark order as settled.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderMarkAsSettled(
+    """ID of the order to mark settled."""
+    id: ID!
+  ): OrderMarkAsSettled
 
   """
   Refund an order. 
@@ -16824,6 +16839,42 @@ type OrderMarkAsPaid {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+"""
+Mark order as settled.
+
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderMarkAsSettled {
+  """Order marked as settled."""
+  order: Order
+  orderErrors: [OrderMarkAsSettledError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [OrderMarkAsSettledError!]!
+}
+
+type OrderMarkAsSettledError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderMarkAsSettledErrorCode!
+}
+
+"""An enumeration."""
+enum OrderMarkAsSettledErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
 }
 
 """

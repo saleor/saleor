@@ -361,6 +361,22 @@ def order_canceled_event(*, order: Order, user: UserType, app: AppType) -> Order
         order=order, type=OrderEvents.CANCELED, user=user, app=app
     )
 
+def order_marked_as_settled_event(
+    *,
+    order: Order,
+    user: UserType,
+    app: AppType,
+) -> OrderEvent:
+    if not user_is_valid(user):
+        user = None
+    parameters = {}  # type: ignore
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.ORDER_MARKED_AS_SETTLED,
+        user=user,
+        app=app,
+        parameters=parameters,
+    )
 
 def order_manually_marked_as_paid_event(
     *,

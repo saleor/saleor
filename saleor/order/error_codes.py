@@ -36,3 +36,9 @@ class OrderErrorCode(Enum):
     MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
         "missing_transaction_action_request_webhook"
     )
+
+
+class OrderMarkAsSettledErrorCode(Enum):
+    INVALID = "invalid"
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"

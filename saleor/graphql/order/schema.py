@@ -1,5 +1,6 @@
 import graphene
 
+from .mutations.order_mark_as_settled import OrderMarkAsSettled
 from ...core.permissions import OrderPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
@@ -181,6 +182,7 @@ class OrderMutations(graphene.ObjectType):
     order_line_discount_remove = OrderLineDiscountRemove.Field()
 
     order_mark_as_paid = OrderMarkAsPaid.Field()
+    order_mark_as_settled = OrderMarkAsSettled.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()

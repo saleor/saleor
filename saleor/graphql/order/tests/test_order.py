@@ -9315,3 +9315,119 @@ def test_order_by_token_query_payment_details_available_fields_with_permissions(
     content = get_graphql_content(response)
 
     assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+ORDER_MARK_AS_SETTLED_MUTATION = """
+    mutation markSettled($id: ID!) {
+        orderMarkAsSettled(id: $id) {
+            errors {
+                field
+            }
+            order {
+                isPaid
+                transactions{
+                    id
+                    capturedAmount{
+                        amount
+                    }
+                    refundedAmount{
+                        amount
+                    }
+                    status
+                }
+            }
+        }
+    }
+"""
+
+def test_order_mark_as_settled_without_any_captured_value(order_with_lines, staff_api_client, permission_manage_orders):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_MARK_AS_SETTLED_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderMarkAsSettled"]["errors"]
+    order_data = content["data"]["orderMarkAsSettled"]["order"]
+    assert order_data["isPaid"] is True
+    transactions = order_data["transactions"]
+    assert len(transactions) == 1
+    transaction = transactions[0]
+    captured_amount = quantize_price(Decimal(transaction["capturedAmount"]["amount"]), order_with_lines.currency)
+    order_total = quantize_price(order_with_lines.total.gross.amount, order_with_lines.currency)
+    assert captured_amount == order_total
+
+def test_order_mark_as_settled_with_partial_captured_amount(order_with_lines, staff_api_client, permission_manage_orders):
+    # given
+    partial_paid_value = Decimal(2.0)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order_with_lines.payment_transactions.create(
+        status="Captured",
+        type="credit card",
+        available_actions=[],
+        currency=order_with_lines.currency,
+        captured_value=partial_paid_value
+    )
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_MARK_AS_SETTLED_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderMarkAsSettled"]["errors"]
+    order_data = content["data"]["orderMarkAsSettled"]["order"]
+    assert order_data["isPaid"] is True
+    transactions = order_data["transactions"]
+    assert len(transactions) == 2
+    transaction = transactions[1]
+    captured_amount = quantize_price(Decimal(transaction["capturedAmount"]["amount"]), order_with_lines.currency)
+    order_total = quantize_price(order_with_lines.total.gross.amount, order_with_lines.currency)
+    assert captured_amount == order_total - partial_paid_value
+
+
+def test_order_mark_as_settled_with_overpaid_order(order_with_lines, staff_api_client, permission_manage_orders):
+    # given
+    overpaid_value = Decimal(2.0)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order_with_lines.payment_transactions.create(
+        status="Captured",
+        type="credit card",
+        available_actions=[],
+        currency=order_with_lines.currency,
+        captured_value=order_with_lines.total.gross.amount + overpaid_value
+    )
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_MARK_AS_SETTLED_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderMarkAsSettled"]["errors"]
+    order_data = content["data"]["orderMarkAsSettled"]["order"]
+    assert order_data["isPaid"] is True
+    transactions = order_data["transactions"]
+    assert len(transactions) == 2
+    transaction = transactions[1]
+    refunded_amount = quantize_price(Decimal(transaction["refundedAmount"]["amount"]), order_with_lines.currency)
+    assert refunded_amount == overpaid_value
+
+
+def test_order_mark_as_settled_no_permission(order_with_lines, staff_api_client, permission_manage_orders):
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_MARK_AS_SETTLED_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)},
+    )
+
+    # then
+    assert_no_permission(response)
+

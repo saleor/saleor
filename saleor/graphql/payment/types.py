@@ -3,6 +3,7 @@ from graphene import relay
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import OrderPermissions
+from ...core.prices import quantize_price
 from ...core.tracing import traced_resolver
 from ...payment import models
 from ..checkout.dataloaders import CheckoutByTokenLoader
@@ -301,19 +302,19 @@ class TransactionItem(ModelObjectType):
 
     @staticmethod
     def resolve_captured_amount(root: models.TransactionItem, _info):
-        return root.amount_captured
+        return quantize_price(root.amount_captured, root.currency)
 
     @staticmethod
     def resolve_authorized_amount(root: models.TransactionItem, _info):
-        return root.amount_authorized
+        return quantize_price(root.amount_authorized, root.currency)
 
     @staticmethod
     def resolve_voided_amount(root: models.TransactionItem, _info):
-        return root.amount_voided
+        return quantize_price(root.amount_voided, root.currency)
 
     @staticmethod
     def resolve_refunded_amount(root: models.TransactionItem, _info):
-        return root.amount_refunded
+        return quantize_price(root.amount_refunded, root.currency)
 
     @staticmethod
     def resolve_events(root: models.TransactionItem, info):

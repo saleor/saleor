@@ -27,7 +27,7 @@ from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
-from ...order import OrderStatus, models
+from ...order import OrderStatus, models, OrderOrigin
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
     get_order_country,
@@ -1203,6 +1203,12 @@ class Order(ModelObjectType):
             if transactions:
                 return get_payment_status_for_order(root, transactions)
             last_payment = get_last_payment(payments)
+
+            # Only order created from orderCreateFromCheckout doesn't have last payment
+            # when origin == checkout
+            if root.origin == OrderOrigin.CHECKOUT and not last_payment:
+                return ChargeStatus.PENDING
+
             if not last_payment:
                 return ChargeStatus.NOT_CHARGED
             return last_payment.charge_status

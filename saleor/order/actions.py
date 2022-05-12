@@ -4,13 +4,14 @@ from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 from uuid import UUID
-
+from prices import Money
 from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
+from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..giftcard import GiftCardLineData
@@ -470,6 +471,62 @@ def approve_fulfillment(
         )
 
     return fulfillment
+
+@traced_atomic_transaction()
+def mark_order_as_settled(
+        order: "Order",
+        request_user: "User",
+        app: Optional["App"],
+        manager: "PluginsManager"
+):
+    """Mark order as settled.
+
+    Allows creating a new TransactionItem for an order. The transaction's amount will
+    be calculated to match the order.total.
+    - If the current order's transactions have a bigger captured amount than
+    order.total, the function will create a new transaction with a refund amount to
+    match captured amount to the order.total.
+    - If the current order's transactions have less captured amount than the order
+    total, the function will create a new transaction with a captured amount to match
+    the order.total.
+    - If the order doesn't have any transaction, the function will create a transaction
+    with a captured amount equal to the order.total.
+    """
+
+    captured_money = Money(Decimal(0), order.currency)
+    refunded_money = Money(Decimal(0), order.currency)
+
+    transactions = order.payment_transactions.all()
+
+    for transaction_item in transactions:
+        captured_money += transaction_item.amount_captured
+        refunded_money += transaction_item.amount_refunded
+    total_captured = captured_money - refunded_money
+    total_gross = order.total.gross
+
+    transaction_data = {}
+    if total_gross == total_captured:
+        return
+    elif total_gross > total_captured:
+        transaction_data["captured_value"] = quantize_price((total_gross - total_captured).amount, order.currency)
+    elif total_gross < total_captured:
+        transaction_data["refunded_value"] = quantize_price((total_captured - total_gross).amount, order.currency)
+
+    order.payment_transactions.create(
+        status="settled",
+        type="settled",
+        available_actions=[],
+        currency=order.currency,
+        **transaction_data,
+
+    )
+    transaction.on_commit(lambda: events.order_marked_as_settled_event(
+        order=order,
+        user=request_user,
+        app=app,
+    ))
+    transaction.on_commit(lambda: manager.order_fully_paid(order))
+    transaction.on_commit(lambda: manager.order_updated(order))
 
 
 @traced_atomic_transaction()

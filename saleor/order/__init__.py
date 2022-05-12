@@ -87,6 +87,7 @@ class OrderEvents:
     CANCELED = "canceled"
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
+    ORDER_MARKED_AS_SETTLED = "order_marked_as_settled"
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_REPLACEMENT_CREATED = "order_replacement_created"
 
@@ -145,6 +146,7 @@ class OrderEvents:
         (OVERSOLD_ITEMS, "The draft order was placed with oversold items"),
         (CANCELED, "The order was canceled"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
+        (ORDER_MARKED_AS_SETTLED, "Ther order was manuall marked as settled"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
         (ORDER_DISCOUNT_ADDED, "New order discount applied to this order."),
