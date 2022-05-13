@@ -1,3 +1,6 @@
+from ..core.descriptions import RICH_CONTENT
+
+
 class AttributeDescriptions:
     INPUT_TYPE = "The input type to use for entering attribute values in the dashboard."
     ENTITY_TYPE = "The entity type which can be used as a reference."
@@ -39,7 +42,10 @@ class AttributeValueDescriptions:
         "The date range that the returned values should be in. "
         "In case of date/time attributes, the UTC midnight of the given date is used."
     )
-    RICH_TEXT = "Represents the text (JSON) of the attribute value."
+    RICH_TEXT = (
+        "Represents the text of the attribute value, includes formatting."
+        + RICH_CONTENT
+    )
     BOOLEAN = "Represents the boolean value of the attribute value."
     DATE = "Represents the date value of the attribute value."
     DATE_TIME = "Represents the date/time value of the attribute value."
