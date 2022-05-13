@@ -43,10 +43,10 @@ def generate_expected_payload_for_app(app, app_global_id):
     )
 
 
-def test_app_created(app, subscription_app_created_webhook):
+def test_app_installed(app, subscription_app_installed_webhook):
     # given
-    webhooks = [subscription_app_created_webhook]
-    event_type = WebhookEventAsyncType.APP_CREATED
+    webhooks = [subscription_app_installed_webhook]
+    event_type = WebhookEventAsyncType.APP_INSTALLED
     app_id = graphene.Node.to_global_id("App", app.id)
 
     # when

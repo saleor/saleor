@@ -105,7 +105,7 @@ def test_app_create_trigger_webhook(
             "is_active": app.is_active,
             "name": app.name,
         },
-        WebhookEventAsyncType.APP_CREATED,
+        WebhookEventAsyncType.APP_INSTALLED,
         [any_webhook],
         app,
         SimpleLazyObject(lambda: staff_api_client.user),

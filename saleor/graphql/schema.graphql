@@ -1314,8 +1314,8 @@ enum WebhookEventTypeEnum {
   """All the events."""
   ANY_EVENTS
 
-  """A new app created."""
-  APP_CREATED
+  """A new app installed."""
+  APP_INSTALLED
 
   """An app updated."""
   APP_UPDATED
@@ -1553,8 +1553,8 @@ enum WebhookEventTypeAsyncEnum {
   """All the events."""
   ANY_EVENTS
 
-  """A new app created."""
-  APP_CREATED
+  """A new app installed."""
+  APP_INSTALLED
 
   """An app updated."""
   APP_UPDATED
@@ -2199,7 +2199,7 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum {
-  APP_CREATED
+  APP_INSTALLED
   APP_UPDATED
   APP_DELETED
   APP_STATUS_CHANGED
@@ -20074,9 +20074,9 @@ type Subscription {
   event: Event
 }
 
-union Event = AppCreated | AppUpdated | AppDeleted | AppStatusChanged | CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | MenuCreated | MenuUpdated | MenuDeleted | MenuItemCreated | MenuItemUpdated | MenuItemDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted
+union Event = AppInstalled | AppUpdated | AppDeleted | AppStatusChanged | CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | MenuCreated | MenuUpdated | MenuDeleted | MenuItemCreated | MenuItemUpdated | MenuItemDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted
 
-type AppCreated {
+type AppInstalled {
   """
   Look up a app.
   
