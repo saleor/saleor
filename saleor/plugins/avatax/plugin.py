@@ -240,14 +240,6 @@ class AvataxPlugin(BasePlugin):
         taxed_total.price_with_sale += shipping_price
         taxed_total.price_with_discounts += shipping_price
 
-        voucher_value = checkout_info.checkout.discount
-        # if price with voucher and without is the same it means that we didn't apply
-        # any voucher for specifc product. The rest of the vouchers is applied to total
-        if (
-            voucher_value
-            and taxed_total.price_with_sale == taxed_total.price_with_discounts
-        ):
-            taxed_total.price_with_discounts -= voucher_value
         return max(
             taxed_total.price_with_discounts,
             zero_taxed_money(taxed_total.price_with_discounts.currency),
@@ -261,6 +253,7 @@ class AvataxPlugin(BasePlugin):
         for line in lines:
             if line["itemCode"] == "Shipping":
                 shipping_net = Decimal(line["lineAmount"])
+                discount_amount = Decimal(line.get("discountAmount", 0.0))
                 shipping_tax = Decimal(line["tax"])
                 break
 
@@ -269,12 +262,13 @@ class AvataxPlugin(BasePlugin):
         )
         if currency == "JPY" and tax_included():
             shipping_gross = Money(
-                amount=shipping_price.gross.amount, currency=currency
+                amount=shipping_price.gross.amount - discount_amount, currency=currency
             )
             shipping_net = Money(
                 amount=shipping_gross.amount - shipping_tax, currency=currency
             )
         else:
+            shipping_net -= discount_amount
             shipping_gross = Money(
                 amount=shipping_net + shipping_tax, currency=currency
             )
@@ -432,12 +426,16 @@ class AvataxPlugin(BasePlugin):
                 continue
 
             tax = Decimal(line.get("tax", 0.0))
+            discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
 
             if currency == "JPY" and tax_included():
-                line_gross = base_value.price_with_sale.gross
+                line_gross = Money(
+                    base_value.price_with_sale.gross.amount - discount_amount, currency
+                )
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
+                net -= discount_amount
                 line_gross = Money(amount=net + tax, currency=currency)
                 line_net = Money(amount=net, currency=currency)
 

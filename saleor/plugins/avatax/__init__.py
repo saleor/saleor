@@ -16,6 +16,7 @@ from requests.auth import HTTPBasicAuth
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
+from ...discount import VoucherType
 from ...order.utils import get_total_order_discount
 from ...shipping.models import ShippingMethodChannelListing
 
@@ -204,6 +205,7 @@ def append_line_to_data(
     item_code: str,
     name: str = None,
     tax_included: Optional[bool] = None,
+    discounted: Optional[bool] = False,
     ref1: Optional[str] = None,
     ref2: Optional[str] = None,
 ):
@@ -215,6 +217,7 @@ def append_line_to_data(
         "taxCode": tax_code,
         "taxIncluded": tax_included,
         "itemCode": item_code,
+        "discounted": discounted,
         "description": name,
     }
 
@@ -229,6 +232,8 @@ def append_shipping_to_data(
     data: List[Dict],
     shipping_price_amount: Optional[Decimal],
     shipping_tax_code: str,
+    # TODO: change into required after updating the order
+    discounted: Optional[bool] = False,
 ):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
@@ -240,6 +245,7 @@ def append_shipping_to_data(
             amount=shipping_price_amount,
             tax_code=shipping_tax_code,
             item_code="Shipping",
+            discounted=discounted,
         )
 
 
@@ -252,6 +258,10 @@ def get_checkout_lines_data(
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
     tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+    voucher = checkout_info.voucher
+    is_entire_order_discount = (
+        voucher.type == VoucherType.ENTIRE_ORDER if voucher else False
+    )
     for line_info in lines_info:
         if not line_info.product.charge_taxes:
             continue
@@ -286,6 +296,7 @@ def get_checkout_lines_data(
             "item_code": item_code,
             "name": name,
             "tax_included": tax_included,
+            "discounted": is_entire_order_discount,
         }
 
         append_line_to_data(
@@ -297,10 +308,14 @@ def get_checkout_lines_data(
     delivery_method = checkout_info.delivery_method_info.delivery_method
     if delivery_method:
         price = getattr(delivery_method, "price", None)
+        is_shipping_discount = (
+            voucher.type == VoucherType.SHIPPING if voucher else False
+        )
         append_shipping_to_data(
             data,
             price.amount if price else None,
             config.shipping_tax_code,
+            is_shipping_discount,
         )
 
     return data
@@ -382,6 +397,7 @@ def generate_request_data(
     customer_email: str,
     config: AvataxConfiguration,
     currency: str,
+    discount: Optional[Decimal] = None,
 ):
     data = {
         "companyCode": config.company_name,
@@ -391,6 +407,8 @@ def generate_request_data(
         "date": str(date.today()),
         # https://developer.avalara.com/avatax/dev-guide/transactions/simple-transaction/
         "customerCode": 0,
+        # https://developer.avalara.com/avatax/dev-guide/discounts-and-overrides/discounts/
+        "discount": str(discount) if discount else None,
         "addresses": {
             "shipFrom": {
                 "line1": config.from_street_address,
@@ -436,6 +454,7 @@ def generate_request_data_from_checkout(
         transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
         customer_email=customer_email,
+        discount=checkout_info.checkout.discount.amount,
         config=config,
         currency=currency,
     )

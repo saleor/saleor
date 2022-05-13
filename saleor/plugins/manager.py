@@ -219,15 +219,11 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
+
         default_value = base_calculations.base_checkout_total(
-            subtotal=self.calculate_checkout_subtotal(
-                checkout_info, lines, address, discounts
-            ),
-            shipping_price=self.calculate_checkout_shipping(
-                checkout_info, lines, address, discounts
-            ),
-            discount=checkout_info.checkout.discount,
-            currency=currency,
+            checkout_info,
+            discounts,
+            lines,
         )
 
         if default_value <= zero_taxed_money(currency):
