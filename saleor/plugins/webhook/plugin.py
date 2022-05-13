@@ -102,10 +102,10 @@ class WebhookPlugin(BasePlugin):
             }
             trigger_webhooks_async(payload, event_type, webhooks, app, self.requestor)
 
-    def app_created(self, app: "App", previous_value: None) -> None:
+    def app_installed(self, app: "App", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        self._trigger_app_event(WebhookEventAsyncType.APP_CREATED, app)
+        self._trigger_app_event(WebhookEventAsyncType.APP_INSTALLED, app)
 
     def app_updated(self, app: "App", previous_value: None) -> None:
         if not self.active:

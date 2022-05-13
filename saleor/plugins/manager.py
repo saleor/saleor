@@ -808,9 +808,9 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
-    def app_created(self, app: "App"):
+    def app_installed(self, app: "App"):
         default_value = None
-        return self.__run_method_on_plugins("app_created", default_value, app)
+        return self.__run_method_on_plugins("app_installed", default_value, app)
 
     def app_updated(self, app: "App"):
         default_value = None

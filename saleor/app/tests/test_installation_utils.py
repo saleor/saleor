@@ -67,7 +67,7 @@ def test_install_app_created_app_trigger_webhook(
             "is_active": app.is_active,
             "name": app.name,
         },
-        WebhookEventAsyncType.APP_CREATED,
+        WebhookEventAsyncType.APP_INSTALLED,
         [any_webhook],
         app,
         None,
