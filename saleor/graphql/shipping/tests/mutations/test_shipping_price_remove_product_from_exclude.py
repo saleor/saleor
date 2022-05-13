@@ -1,9 +1,9 @@
 from unittest import mock
 
-import freezegun
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -111,7 +111,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
     assert excluded_product_ids == expected_product_ids
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @pytest.mark.parametrize("requestor", ["staff", "app"])
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")

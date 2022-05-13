@@ -1,11 +1,11 @@
 import os
 from unittest.mock import Mock, patch
 
-import freezegun
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
+from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....product.error_codes import ProductErrorCode
@@ -448,7 +448,7 @@ def test_category_create_mutation(
     assert data["category"]["parent"]["id"] == parent_id
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_create_trigger_webhook(
@@ -677,7 +677,7 @@ def test_category_update_mutation(
     assert data["category"]["backgroundImage"]["alt"] == image_alt
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_category_update_trigger_webhook(
@@ -1006,7 +1006,7 @@ def test_category_delete_mutation(
     delete_versatile_image_mock.assert_not_called()
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.product.signals.delete_versatile_image")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")

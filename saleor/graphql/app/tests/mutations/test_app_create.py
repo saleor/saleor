@@ -1,8 +1,8 @@
 from unittest import mock
 
-import freezegun
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
@@ -69,7 +69,7 @@ def test_app_create_mutation(
     assert default_token[-4:] == app.tokens.get().token_last_4
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_create_trigger_webhook(

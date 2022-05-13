@@ -1,8 +1,8 @@
 from unittest import mock
 
-import freezegun
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
@@ -233,7 +233,7 @@ def test_channel_delete_mutation_as_anonymous(
     assert Channel.objects.filter(slug=channel_USD.slug).exists()
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_channel_delete_mutation_trigger_webhook(

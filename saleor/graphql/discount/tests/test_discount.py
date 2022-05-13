@@ -1,7 +1,6 @@
 from datetime import timedelta
 from unittest.mock import ANY, patch
 
-import freezegun
 import graphene
 import pytest
 from django.utils import timezone
@@ -497,7 +496,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.usage_limit == 3
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_voucher_trigger_webhook(
@@ -711,7 +710,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["minCheckoutItemsQuantity"] == 10
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_voucher_trigger_webhook(
@@ -790,7 +789,7 @@ def test_voucher_delete_mutation(
         voucher.refresh_from_db()
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_delete_mutation_trigger_webhook(
@@ -891,7 +890,7 @@ def test_voucher_add_catalogues(
     assert set(product_variant_list) == set(voucher.variants.all())
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_add_catalogues_trigger_webhook(

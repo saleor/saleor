@@ -1,11 +1,11 @@
 import json
 from unittest import mock
 
-import freezegun
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....menu.error_codes import MenuErrorCode
 from ....menu.models import Menu, MenuItem
@@ -634,7 +634,7 @@ def test_create_menu(
     assert content["data"]["menuCreate"]["menu"]["slug"] == "test-menu"
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_menu_trigger_webhook(
@@ -801,7 +801,7 @@ def test_update_menu_with_slug(staff_api_client, menu, permission_manage_menus):
     assert content["data"]["menuUpdate"]["menu"]["slug"] == "new-slug"
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_menu_trigger_webhook(
@@ -895,7 +895,7 @@ def test_delete_menu(staff_api_client, menu, permission_manage_menus):
         menu.refresh_from_db()
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_menu_trigger_webhook(
@@ -969,7 +969,7 @@ def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
     assert data["menu"]["name"] == menu.name
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_menu_item_trigger_webhook(
@@ -1047,7 +1047,7 @@ def test_update_menu_item(
     assert data["page"]["id"] == page_id
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_menu_item_trigger_webhook(
@@ -1122,7 +1122,7 @@ def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
         menu_item.refresh_from_db()
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_menu_item_trigger_webhook(

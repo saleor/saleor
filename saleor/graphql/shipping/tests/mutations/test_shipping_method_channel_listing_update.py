@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-import freezegun
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....shipping.error_codes import ShippingErrorCode
 from .....shipping.models import ShippingMethodChannelListing
@@ -105,7 +105,7 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     )
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_shipping_method_channel_listing_create_trigger_webhook(

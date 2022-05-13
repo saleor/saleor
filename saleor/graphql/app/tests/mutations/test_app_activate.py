@@ -1,8 +1,8 @@
 from unittest import mock
 
-import freezegun
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....app.models import App
 from .....webhook.event_types import WebhookEventAsyncType
@@ -48,7 +48,7 @@ def test_activate_app(app, staff_api_client, permission_manage_apps):
     assert app.is_active
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_activate_app_trigger_webhook(

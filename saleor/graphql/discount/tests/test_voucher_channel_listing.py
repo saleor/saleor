@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
-import freezegun
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
@@ -124,7 +124,7 @@ def test_voucher_channel_listing_update_as_customer(
     assert_no_permission(response)
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_channel_listing_update_trigger_webhook(

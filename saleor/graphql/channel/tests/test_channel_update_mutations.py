@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
-import freezegun
 import graphene
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
+from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
@@ -412,7 +412,7 @@ def test_channel_update_mutation_duplicated_shipping_zone(
     assert errors[0]["shippingZones"] == [add_shipping_zone]
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_channel_update_mutation_trigger_webhook(

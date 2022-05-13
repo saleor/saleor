@@ -1,10 +1,10 @@
 from datetime import date, timedelta
 from unittest import mock
 
-import freezegun
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
@@ -198,7 +198,7 @@ def test_gift_card_add_note_expired_card(
     assert event.parameters == {"message": message}
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_gift_card_add_note_trigger_webhook(

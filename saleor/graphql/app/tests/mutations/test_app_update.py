@@ -1,8 +1,8 @@
 from unittest import mock
 
-import freezegun
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App, AppToken
@@ -77,7 +77,7 @@ def test_app_update_mutation(
     }
 
 
-@freezegun.freeze_time("2022-05-12 12:00:00")
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_update_trigger_mutation(
