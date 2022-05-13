@@ -26,6 +26,7 @@ from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS
+from ...webhook.observability.utils import report_webhook_event_delivery
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
@@ -337,6 +338,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 data,
             )
         attempt_update(attempt, response)
+        report_webhook_event_delivery(attempt)
         if response.status == EventDeliveryStatus.FAILED:
             task_logger.info(
                 "[Webhook ID: %r] Failed request to %r: %r for event: %r."
