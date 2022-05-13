@@ -112,7 +112,6 @@ def test_transaction_refund_action_request(
             "actionType": "REFUND",
             "amount": quantize_price(action_value, "USD"),
         },
-        "meta": None,
     }
 
 
@@ -175,7 +174,6 @@ def test_transaction_charge_action_request(
             "actionType": "CHARGE",
             "amount": quantize_price(action_value, "USD"),
         },
-        "meta": None,
     }
 
 
@@ -234,5 +232,4 @@ def test_transaction_void_action_request(
             "reference": "PSP ref",
         },
         "action": {"actionType": "VOID", "amount": None},
-        "meta": None,
     }

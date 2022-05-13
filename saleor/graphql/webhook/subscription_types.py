@@ -1,7 +1,13 @@
+from enum import Enum
+
 import graphene
+from django.contrib.auth.models import AnonymousUser
+from django.utils import timezone
 from graphene import AbstractType, ObjectType, Union
 from rx import Observable
 
+from ... import __version__
+from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
@@ -38,7 +44,80 @@ TRANSLATIONS_TYPES_MAP = {
 }
 
 
-class AppBase(AbstractType):
+class IssuingPrincipalType(Enum):
+    APP = "app"
+    USER = "user"
+
+
+class IssuingPrincipal(ObjectType):
+    id = graphene.String(
+        description="Issuing principal id" + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+    type = graphene.String(
+        description="Issuing principal type." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_id(_root, info):
+        if isinstance(info.context.requestor, (User, AnonymousUser)):
+            return graphene.Node.to_global_id("User", info.context.requestor.id)
+        return info.context.requestor.name
+
+    @staticmethod
+    def resolve_type(_root, info):
+        if isinstance(info.context.requestor, (User, AnonymousUser)):
+            return IssuingPrincipalType.USER.value
+        return IssuingPrincipalType.APP.value
+
+
+class Meta(ObjectType):
+    issued_at = graphene.DateTime(
+        description="Time of generating the event." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+    version = graphene.String(
+        description="Saleor version." + ADDED_IN_34 + PREVIEW_FEATURE
+    )
+    issuing_principal = graphene.Field(
+        IssuingPrincipal,
+        description="Look up a issuing principal." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+    app = graphene.Field(
+        "saleor.graphql.app.types.App",
+        description="Look up a recipient of the webhook."
+        + ADDED_IN_34
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_issued_at(_root, _info):
+        return timezone.now()
+
+    @staticmethod
+    def resolve_version(_root, _info):
+        return __version__
+
+    @staticmethod
+    def resolve_issuing_principal(_root, info):
+        if not info.context.requestor:
+            return None
+        return IssuingPrincipal()
+
+    @staticmethod
+    def resolve_app(_root, info):
+        return info.context.app
+
+
+class AbstractTypeWithMetaField(AbstractType):
+    meta = graphene.Field(
+        Meta, description="Look up a meta." + ADDED_IN_34 + PREVIEW_FEATURE
+    )
+
+    @staticmethod
+    def resolve_meta(_root, _info):
+        return Meta()
+
+
+class AppBase(AbstractTypeWithMetaField):
     app = graphene.Field(
         "saleor.graphql.app.types.App",
         description="Look up a app." + ADDED_IN_34 + PREVIEW_FEATURE,
@@ -66,7 +145,7 @@ class AppStatusChanged(ObjectType, AppBase):
     ...
 
 
-class CategoryBase(AbstractType):
+class CategoryBase(AbstractTypeWithMetaField):
     category = graphene.Field(
         "saleor.graphql.product.types.Category",
         description="Look up a category." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -90,7 +169,7 @@ class CategoryDeleted(ObjectType, CategoryBase):
     ...
 
 
-class ChannelBase(AbstractType):
+class ChannelBase(AbstractTypeWithMetaField):
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
         description="Look up a channel." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -118,7 +197,7 @@ class ChannelStatusChanged(ObjectType, ChannelBase):
     ...
 
 
-class OrderBase(AbstractType):
+class OrderBase(AbstractTypeWithMetaField):
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
         description="Look up an order." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -166,7 +245,7 @@ class DraftOrderDeleted(ObjectType, OrderBase):
     ...
 
 
-class GiftCardBase(AbstractType):
+class GiftCardBase(AbstractTypeWithMetaField):
     gift_card = graphene.Field(
         "saleor.graphql.giftcard.types.GiftCard",
         description="Look up a gift card." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -194,7 +273,7 @@ class GiftCardStatusChanged(ObjectType, GiftCardBase):
     ...
 
 
-class MenuBase(AbstractType):
+class MenuBase(AbstractTypeWithMetaField):
     menu = graphene.Field(
         "saleor.graphql.menu.types.Menu",
         channel=graphene.String(
@@ -221,7 +300,7 @@ class MenuDeleted(ObjectType, MenuBase):
     ...
 
 
-class MenuItemBase(AbstractType):
+class MenuItemBase(AbstractTypeWithMetaField):
     menu_item = graphene.Field(
         "saleor.graphql.menu.types.MenuItem",
         channel=graphene.String(
@@ -248,7 +327,7 @@ class MenuItemDeleted(ObjectType, MenuItemBase):
     ...
 
 
-class ProductBase(AbstractType):
+class ProductBase(AbstractTypeWithMetaField):
     product = graphene.Field(
         "saleor.graphql.product.types.Product",
         channel=graphene.String(
@@ -284,7 +363,7 @@ class ProductDeleted(ObjectType, ProductBase):
     ...
 
 
-class ProductVariantBase(AbstractType):
+class ProductVariantBase(AbstractTypeWithMetaField):
     product_variant = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
         channel=graphene.String(
@@ -347,7 +426,7 @@ class ProductVariantBackInStock(ObjectType, ProductVariantBase):
         return stock.warehouse
 
 
-class SaleBase(AbstractType):
+class SaleBase(AbstractTypeWithMetaField):
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
         channel=graphene.String(
@@ -374,7 +453,7 @@ class SaleDeleted(ObjectType, SaleBase):
     ...
 
 
-class InvoiceBase(AbstractType):
+class InvoiceBase(AbstractTypeWithMetaField):
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
         description="Look up an Invoice." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -398,7 +477,7 @@ class InvoiceSent(ObjectType, InvoiceBase):
     ...
 
 
-class FulfillmentBase(AbstractType):
+class FulfillmentBase(AbstractTypeWithMetaField):
     fulfillment = graphene.Field(
         "saleor.graphql.order.types.Fulfillment",
         description="Look up a Fulfillment." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -418,7 +497,7 @@ class FulfillmentCanceled(ObjectType, FulfillmentBase):
     ...
 
 
-class UserBase(AbstractType):
+class UserBase(AbstractTypeWithMetaField):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="Look up a user." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -438,7 +517,7 @@ class CustomerUpdated(ObjectType, UserBase):
     ...
 
 
-class CollectionBase(AbstractType):
+class CollectionBase(AbstractTypeWithMetaField):
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
         channel=graphene.String(
@@ -465,7 +544,7 @@ class CollectionDeleted(ObjectType, CollectionBase):
     ...
 
 
-class CheckoutBase(AbstractType):
+class CheckoutBase(AbstractTypeWithMetaField):
     checkout = graphene.Field(
         "saleor.graphql.checkout.types.Checkout",
         description="Look up a Checkout." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -485,7 +564,7 @@ class CheckoutUpdated(ObjectType, CheckoutBase):
     ...
 
 
-class PageBase(AbstractType):
+class PageBase(AbstractTypeWithMetaField):
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
         description="Look up a page." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -509,7 +588,7 @@ class PageDeleted(ObjectType, PageBase):
     ...
 
 
-class ShippingPriceBase(AbstractType):
+class ShippingPriceBase(AbstractTypeWithMetaField):
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethodType",
         channel=graphene.String(
@@ -548,7 +627,7 @@ class ShippingPriceDeleted(ObjectType, ShippingPriceBase):
     ...
 
 
-class ShippingZoneBase(AbstractType):
+class ShippingZoneBase(AbstractTypeWithMetaField):
     shipping_zone = graphene.Field(
         "saleor.graphql.shipping.types.ShippingZone",
         channel=graphene.String(
@@ -575,7 +654,7 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
     ...
 
 
-class TransactionAction(ObjectType):
+class TransactionAction(ObjectType, AbstractTypeWithMetaField):
     action_type = graphene.Field(
         TransactionActionEnum,
         required=True,
@@ -592,7 +671,7 @@ class TransactionAction(ObjectType):
         return None
 
 
-class TransactionActionRequest(ObjectType):
+class TransactionActionRequest(ObjectType, AbstractTypeWithMetaField):
     transaction = graphene.Field(
         TransactionItem,
         description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
@@ -629,7 +708,7 @@ class TranslationTypes(Union):
         return super(TranslationTypes, cls).resolve_type(instance, info)
 
 
-class TranslationBase(AbstractType):
+class TranslationBase(AbstractTypeWithMetaField):
     translation = graphene.Field(
         TranslationTypes,
         description="Look up a translation." + ADDED_IN_32 + PREVIEW_FEATURE,
@@ -649,7 +728,7 @@ class TranslationUpdated(ObjectType, TranslationBase):
     ...
 
 
-class WarehouseBase(AbstractType):
+class WarehouseBase(AbstractTypeWithMetaField):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse",
         description="Look up a warehouse." + ADDED_IN_34 + PREVIEW_FEATURE,
@@ -673,7 +752,7 @@ class WarehouseDeleted(ObjectType, WarehouseBase):
     ...
 
 
-class VoucherBase(AbstractType):
+class VoucherBase(AbstractTypeWithMetaField):
     voucher = graphene.Field(
         "saleor.graphql.discount.types.Voucher",
         channel=graphene.String(

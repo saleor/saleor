@@ -20329,6 +20329,15 @@ union Event = AppInstalled | AppUpdated | AppDeleted | AppStatusChanged | Catego
 
 type AppInstalled {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a app.
   
   Added in Saleor 3.4.
@@ -20338,7 +20347,74 @@ type AppInstalled {
   app: App
 }
 
+type Meta {
+  """
+  Time of generating the event.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  issuedAt: DateTime
+
+  """
+  Saleor version.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  version: String
+
+  """
+  Look up a issuing principal.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  issuingPrincipal: IssuingPrincipal
+
+  """
+  Look up a recipient of the webhook.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  app: App
+}
+
+type IssuingPrincipal {
+  """
+  Issuing principal id
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  id: String
+
+  """
+  Issuing principal type.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  type: String
+}
+
 type AppUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a app.
   
@@ -20351,6 +20427,15 @@ type AppUpdated {
 
 type AppDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a app.
   
   Added in Saleor 3.4.
@@ -20361,6 +20446,15 @@ type AppDeleted {
 }
 
 type AppStatusChanged {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a app.
   
@@ -20373,6 +20467,15 @@ type AppStatusChanged {
 
 type CategoryCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a category.
   
   Added in Saleor 3.2.
@@ -20383,6 +20486,15 @@ type CategoryCreated {
 }
 
 type CategoryUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a category.
   
@@ -20395,6 +20507,15 @@ type CategoryUpdated {
 
 type CategoryDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a category.
   
   Added in Saleor 3.2.
@@ -20405,6 +20526,15 @@ type CategoryDeleted {
 }
 
 type ChannelCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a channel.
   
@@ -20417,6 +20547,15 @@ type ChannelCreated {
 
 type ChannelUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a channel.
   
   Added in Saleor 3.2.
@@ -20427,6 +20566,15 @@ type ChannelUpdated {
 }
 
 type ChannelDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a channel.
   
@@ -20439,6 +20587,15 @@ type ChannelDeleted {
 
 type ChannelStatusChanged {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a channel.
   
   Added in Saleor 3.2.
@@ -20449,6 +20606,15 @@ type ChannelStatusChanged {
 }
 
 type GiftCardCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a gift card.
   
@@ -20461,6 +20627,15 @@ type GiftCardCreated {
 
 type GiftCardUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a gift card.
   
   Added in Saleor 3.2.
@@ -20471,6 +20646,15 @@ type GiftCardUpdated {
 }
 
 type GiftCardDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a gift card.
   
@@ -20483,6 +20667,15 @@ type GiftCardDeleted {
 
 type GiftCardStatusChanged {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a gift card.
   
   Added in Saleor 3.2.
@@ -20493,6 +20686,15 @@ type GiftCardStatusChanged {
 }
 
 type MenuCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a menu.
   
@@ -20508,6 +20710,15 @@ type MenuCreated {
 
 type MenuUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a menu.
   
   Added in Saleor 3.4.
@@ -20521,6 +20732,15 @@ type MenuUpdated {
 }
 
 type MenuDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a menu.
   
@@ -20536,6 +20756,15 @@ type MenuDeleted {
 
 type MenuItemCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a menu item.
   
   Added in Saleor 3.4.
@@ -20549,6 +20778,15 @@ type MenuItemCreated {
 }
 
 type MenuItemUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a menu item.
   
@@ -20564,6 +20802,15 @@ type MenuItemUpdated {
 
 type MenuItemDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a menu item.
   
   Added in Saleor 3.4.
@@ -20578,6 +20825,15 @@ type MenuItemDeleted {
 
 type OrderCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an order.
   
   Added in Saleor 3.2.
@@ -20588,6 +20844,15 @@ type OrderCreated {
 }
 
 type OrderUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up an order.
   
@@ -20600,6 +20865,15 @@ type OrderUpdated {
 
 type OrderConfirmed {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an order.
   
   Added in Saleor 3.2.
@@ -20610,6 +20884,15 @@ type OrderConfirmed {
 }
 
 type OrderFullyPaid {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up an order.
   
@@ -20622,6 +20905,15 @@ type OrderFullyPaid {
 
 type OrderCancelled {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an order.
   
   Added in Saleor 3.2.
@@ -20632,6 +20924,15 @@ type OrderCancelled {
 }
 
 type OrderFulfilled {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up an order.
   
@@ -20644,6 +20945,15 @@ type OrderFulfilled {
 
 type DraftOrderCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an order.
   
   Added in Saleor 3.2.
@@ -20654,6 +20964,15 @@ type DraftOrderCreated {
 }
 
 type DraftOrderUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up an order.
   
@@ -20666,6 +20985,15 @@ type DraftOrderUpdated {
 
 type DraftOrderDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an order.
   
   Added in Saleor 3.2.
@@ -20676,6 +21004,15 @@ type DraftOrderDeleted {
 }
 
 type ProductCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a product.
   
@@ -20700,6 +21037,15 @@ type ProductCreated {
 
 type ProductUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a product.
   
   Added in Saleor 3.2.
@@ -20722,6 +21068,15 @@ type ProductUpdated {
 }
 
 type ProductDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a product.
   
@@ -20746,6 +21101,15 @@ type ProductDeleted {
 
 type ProductVariantCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a product variant.
   
   Added in Saleor 3.2.
@@ -20760,6 +21124,15 @@ type ProductVariantCreated {
 
 type ProductVariantUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a product variant.
   
   Added in Saleor 3.2.
@@ -20773,6 +21146,15 @@ type ProductVariantUpdated {
 }
 
 type ProductVariantOutOfStock {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a product variant.
   
@@ -20797,6 +21179,15 @@ type ProductVariantOutOfStock {
 
 type ProductVariantBackInStock {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a product variant.
   
   Added in Saleor 3.2.
@@ -20820,6 +21211,15 @@ type ProductVariantBackInStock {
 
 type ProductVariantDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a product variant.
   
   Added in Saleor 3.2.
@@ -20833,6 +21233,15 @@ type ProductVariantDeleted {
 }
 
 type SaleCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a sale.
   
@@ -20848,6 +21257,15 @@ type SaleCreated {
 
 type SaleUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a sale.
   
   Added in Saleor 3.2.
@@ -20861,6 +21279,15 @@ type SaleUpdated {
 }
 
 type SaleDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a sale.
   
@@ -20876,6 +21303,15 @@ type SaleDeleted {
 
 type InvoiceRequested {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an Invoice.
   
   Added in Saleor 3.2.
@@ -20886,6 +21322,15 @@ type InvoiceRequested {
 }
 
 type InvoiceDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up an Invoice.
   
@@ -20898,6 +21343,15 @@ type InvoiceDeleted {
 
 type InvoiceSent {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up an Invoice.
   
   Added in Saleor 3.2.
@@ -20908,6 +21362,15 @@ type InvoiceSent {
 }
 
 type FulfillmentCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a Fulfillment.
   
@@ -20920,6 +21383,15 @@ type FulfillmentCreated {
 
 type FulfillmentCanceled {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a Fulfillment.
   
   Added in Saleor 3.2.
@@ -20930,6 +21402,15 @@ type FulfillmentCanceled {
 }
 
 type CustomerCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a user.
   
@@ -20942,6 +21423,15 @@ type CustomerCreated {
 
 type CustomerUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a user.
   
   Added in Saleor 3.2.
@@ -20952,6 +21442,15 @@ type CustomerUpdated {
 }
 
 type CollectionCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a collection.
   
@@ -20967,6 +21466,15 @@ type CollectionCreated {
 
 type CollectionUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a collection.
   
   Added in Saleor 3.2.
@@ -20980,6 +21488,15 @@ type CollectionUpdated {
 }
 
 type CollectionDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a collection.
   
@@ -20995,6 +21512,15 @@ type CollectionDeleted {
 
 type CheckoutCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a Checkout.
   
   Added in Saleor 3.2.
@@ -21005,6 +21531,15 @@ type CheckoutCreated {
 }
 
 type CheckoutUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a Checkout.
   
@@ -21017,6 +21552,15 @@ type CheckoutUpdated {
 
 type PageCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a page.
   
   Added in Saleor 3.2.
@@ -21027,6 +21571,15 @@ type PageCreated {
 }
 
 type PageUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a page.
   
@@ -21039,6 +21592,15 @@ type PageUpdated {
 
 type PageDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a page.
   
   Added in Saleor 3.2.
@@ -21049,6 +21611,15 @@ type PageDeleted {
 }
 
 type ShippingPriceCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a shipping method.
   
@@ -21076,6 +21647,15 @@ type ShippingPriceCreated {
 
 type ShippingPriceUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a shipping method.
   
   Added in Saleor 3.2.
@@ -21101,6 +21681,15 @@ type ShippingPriceUpdated {
 }
 
 type ShippingPriceDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a shipping method.
   
@@ -21128,6 +21717,15 @@ type ShippingPriceDeleted {
 
 type ShippingZoneCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a shipping zone.
   
   Added in Saleor 3.2.
@@ -21141,6 +21739,15 @@ type ShippingZoneCreated {
 }
 
 type ShippingZoneUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a shipping zone.
   
@@ -21156,6 +21763,15 @@ type ShippingZoneUpdated {
 
 type ShippingZoneDeleted {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a shipping zone.
   
   Added in Saleor 3.2.
@@ -21169,6 +21785,15 @@ type ShippingZoneDeleted {
 }
 
 type TransactionActionRequest {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a transaction.
   
@@ -21189,6 +21814,15 @@ type TransactionActionRequest {
 }
 
 type TransactionAction {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """Determines the action type."""
   actionType: TransactionActionEnum!
 
@@ -21197,6 +21831,15 @@ type TransactionAction {
 }
 
 type TranslationCreated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a translation.
   
@@ -21210,6 +21853,15 @@ type TranslationCreated {
 union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
 
 type TranslationUpdated {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a translation.
   
@@ -21255,6 +21907,15 @@ type WarehouseDeleted {
 
 type VoucherCreated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a voucher.
   
   Added in Saleor 3.4.
@@ -21269,6 +21930,15 @@ type VoucherCreated {
 
 type VoucherUpdated {
   """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
+  """
   Look up a voucher.
   
   Added in Saleor 3.4.
@@ -21282,6 +21952,15 @@ type VoucherUpdated {
 }
 
 type VoucherDeleted {
+  """
+  Look up a meta.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  meta: Meta
+
   """
   Look up a voucher.
   

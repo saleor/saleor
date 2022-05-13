@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import ANY, patch
 
+import freezegun
 import graphene
 import pytest
 from django.utils import timezone
@@ -14,6 +15,7 @@ from ....discount.models import Sale, SaleChannelListing, Voucher
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -495,6 +497,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.usage_limit == 3
 
 
+@freezegun.freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_voucher_trigger_webhook(
@@ -538,6 +541,11 @@ def test_create_voucher_trigger_webhook(
             "id": graphene.Node.to_global_id("Voucher", voucher.id),
             "name": voucher.name,
             "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.VOUCHER_CREATED,
         [any_webhook],
@@ -703,6 +711,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["minCheckoutItemsQuantity"] == 10
 
 
+@freezegun.freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_voucher_trigger_webhook(
@@ -736,6 +745,11 @@ def test_update_voucher_trigger_webhook(
             "id": variables["id"],
             "name": voucher.name,
             "code": variables["code"],
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.VOUCHER_UPDATED,
         [any_webhook],
@@ -776,6 +790,7 @@ def test_voucher_delete_mutation(
         voucher.refresh_from_db()
 
 
+@freezegun.freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_delete_mutation_trigger_webhook(
@@ -806,6 +821,11 @@ def test_voucher_delete_mutation_trigger_webhook(
             "id": variables["id"],
             "name": voucher.name,
             "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.VOUCHER_DELETED,
         [any_webhook],
@@ -871,6 +891,7 @@ def test_voucher_add_catalogues(
     assert set(product_variant_list) == set(voucher.variants.all())
 
 
+@freezegun.freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_add_catalogues_trigger_webhook(
@@ -924,6 +945,11 @@ def test_voucher_add_catalogues_trigger_webhook(
             "id": variables["id"],
             "name": voucher.name,
             "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.VOUCHER_UPDATED,
         [any_webhook],
