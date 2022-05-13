@@ -87,6 +87,13 @@ class CheckoutLine(ModelObjectType):
         "saleor.graphql.product.types.ProductVariant", required=True
     )
     quantity = graphene.Int(required=True)
+    unit_price = graphene.Field(
+        TaxedMoney,
+        description=(
+            "The unit price of the checkout line, with taxes and discounts included."
+        ),
+        required=True,
+    )
     total_price = graphene.Field(
         TaxedMoney,
         description="The sum of the checkout line price, taxes and discounts.",
@@ -109,6 +116,55 @@ class CheckoutLine(ModelObjectType):
 
         return Promise.all([variant, channel]).then(
             lambda data: ChannelContext(node=data[0], channel_slug=data[1].slug)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_unit_price(root, info):
+        def with_checkout(checkout):
+            discounts = DiscountsByDateTimeLoader(info.context).load(
+                info.context.request_time
+            )
+            checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
+                checkout.token
+            )
+            lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
+                checkout.token
+            )
+
+            def calculate_line_unit_price(data):
+                (
+                    discounts,
+                    checkout_info,
+                    lines,
+                ) = data
+                for line_info in lines:
+                    if line_info.line.pk == root.pk:
+                        address = (
+                            checkout_info.shipping_address
+                            or checkout_info.billing_address
+                        )
+                        return info.context.plugins.calculate_checkout_line_unit_price(
+                            checkout_info=checkout_info,
+                            lines=lines,
+                            checkout_line_info=line_info,
+                            address=address,
+                            discounts=discounts,
+                        ).price_with_discounts
+                return None
+
+            return Promise.all(
+                [
+                    discounts,
+                    checkout_info,
+                    lines,
+                ]
+            ).then(calculate_line_unit_price)
+
+        return (
+            CheckoutByTokenLoader(info.context)
+            .load(root.checkout_id)
+            .then(with_checkout)
         )
 
     @staticmethod
