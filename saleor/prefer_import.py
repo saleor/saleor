@@ -3,7 +3,9 @@ from saleor.graphql import api as core_api
 
 def patch_schema():
     from graphene_federation import build_schema
-    from stock_notification.graphql import schema
+    # from stock_notification.graphql.schema import (
+    #     TransferStockMutations
+    # )
 
     class Query(
         core_api.Query,
@@ -13,7 +15,7 @@ def patch_schema():
 
     class Mutation(
         core_api.Mutation,
-        schema.TransferStockMutations
+        # TransferStockMutations
     ):
         pass
 

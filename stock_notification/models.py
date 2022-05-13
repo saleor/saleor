@@ -16,9 +16,9 @@ class StockNotify(ModelWithMetadata):
                                        related_name="next_warehouse")
     quantity_request = models.IntegerField(null=True, blank=True, default=0)
 
-    product_variant = models.ManyToManyField(ProductVariant,
-                                             related_name="product_variant")
-    status = models.BooleanField(default=False, blank=True)
+    product_variant = models.ForeignKey(ProductVariant,
+                                             related_name="product_variant", on_delete=models.CASCADE)
+    status = models.BooleanField(default=False, blank=True, null=True)
 
     def __str__(self):
         return self.user.name

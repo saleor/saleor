@@ -1,24 +1,34 @@
 import graphene
 from saleor.warehouse import models
-from saleor.graphql.warehouse.mutations import WarehouseMixin
-from saleor.graphql.core.mutations import ModelDeleteMutation, ModelMutation
+from saleor.graphql.core.mutations import ModelMutation
 from .. import models
 from ..error_codes import TransferStockError
 from saleor.warehouse.models import Stock
 
 
-def check_stock_product_variant_available(source, quantity, product_variant):
-    source_warehouse = Stock.objects.filter(warehouse=source,
+def check_stock_product_variant_available(source, quantity_requested, product_variant):
+    warehouse_stock_source = Stock.objects.filter(warehouse=source,
                                             product_variant=product_variant).first()
-    if source_warehouse.quatity - source_warehouse.quatity_allocated < quantity:
+    if warehouse_stock_source.annotate_available_quantity() < quantity_requested:
         raise TransferStockError
 
 
 class CreateTransferStockInput(graphene.InputObjectType):
-    source_warehouse = graphene.ID()
-    next_warehouse = graphene.ID()
-    product_variant = graphene.String()
-    quantity_request = graphene.Int()
+    source_warehouse = graphene.ID(
+        required=True,
+        description="Warehouse send product"
+    )
+    next_warehouse = graphene.ID(
+        required=True,
+        description="Warehouse recipe product")
+    product_variant = graphene.ID(
+        required=True,
+        description="Product variant sent"
+    )
+    quantity_request = graphene.Int(
+        required=True,
+        description="Quantity of product sent"
+    )
 
 
 class CreateTransferStock(ModelMutation):
@@ -69,6 +79,8 @@ class CreateTransferStock(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         # source_warehouse = data.get("source_warehouse")
         # next_warehouse = data.get("next_warehouse")
-        super(CreateTransferStock, self).perform_mutation()
+        # super(cls, CreateTransferStock).perform_mutation()
+        res = super().perform_mutation(_root, info, **data)
+        return res
 
 
