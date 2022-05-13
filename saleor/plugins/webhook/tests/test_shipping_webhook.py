@@ -117,7 +117,8 @@ def test_excluded_shipping_methods_for_order(
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         shipping_app,
-        EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        subscribable_object=order_with_lines,
+        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
@@ -196,13 +197,15 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         shipping_app,
-        EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        subscribable_object=order_with_lines,
+        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     mocked_webhook.assert_any_call(
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
         payload,
         second_shipping_app,
-        EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        subscribable_object=order_with_lines,
+        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(order_with_lines.id)
 
@@ -462,7 +465,8 @@ def test_excluded_shipping_methods_for_checkout(
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
         shipping_app,
-        EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        subscribable_object=checkout_with_items,
+        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)
@@ -542,13 +546,15 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
         shipping_app,
-        EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        subscribable_object=checkout_with_items,
+        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
     mocked_webhook.assert_any_call(
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
         payload,
         second_shipping_app,
-        EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
+        subscribable_object=checkout_with_items,
+        timeout=EXCLUDED_SHIPPING_REQUEST_TIMEOUT,
     )
 
     expected_cache_key = CACHE_EXCLUDED_SHIPPING_KEY + str(checkout_with_items.token)

@@ -20074,7 +20074,7 @@ type Subscription {
   event: Event
 }
 
-union Event = AppCreated | AppUpdated | AppDeleted | AppStatusChanged | CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | MenuCreated | MenuUpdated | MenuDeleted | MenuItemCreated | MenuItemUpdated | MenuItemDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted
+union Event = AppCreated | AppUpdated | AppDeleted | AppStatusChanged | CategoryCreated | CategoryUpdated | CategoryDeleted | ChannelCreated | ChannelUpdated | ChannelDeleted | ChannelStatusChanged | GiftCardCreated | GiftCardUpdated | GiftCardDeleted | GiftCardStatusChanged | MenuCreated | MenuUpdated | MenuDeleted | MenuItemCreated | MenuItemUpdated | MenuItemDeleted | OrderCreated | OrderUpdated | OrderConfirmed | OrderFullyPaid | OrderCancelled | OrderFulfilled | DraftOrderCreated | DraftOrderUpdated | DraftOrderDeleted | ProductCreated | ProductUpdated | ProductDeleted | ProductVariantCreated | ProductVariantUpdated | ProductVariantOutOfStock | ProductVariantBackInStock | ProductVariantDeleted | SaleCreated | SaleUpdated | SaleDeleted | InvoiceRequested | InvoiceDeleted | InvoiceSent | FulfillmentCreated | FulfillmentCanceled | CustomerCreated | CustomerUpdated | CollectionCreated | CollectionUpdated | CollectionDeleted | CheckoutCreated | CheckoutUpdated | PageCreated | PageUpdated | PageDeleted | ShippingPriceCreated | ShippingPriceUpdated | ShippingPriceDeleted | ShippingZoneCreated | ShippingZoneUpdated | ShippingZoneDeleted | TransactionActionRequest | TranslationCreated | TranslationUpdated | VoucherCreated | VoucherUpdated | VoucherDeleted | PaymentAuthorize | PaymentCaptureEvent | PaymentRefundEvent | PaymentVoidEvent | PaymentConfirmEvent | PaymentProcessEvent | PaymentListGateways | ShippingListMethodsForCheckout | CheckoutFilterShippingMethods | OrderFilterShippingMethods
 
 type AppCreated {
   """
@@ -21009,6 +21009,116 @@ type VoucherDeleted {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Voucher
+}
+
+type PaymentAuthorize {
+  """
+  Look up a payment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  payment: Payment
+}
+
+type PaymentCaptureEvent {
+  """
+  Look up a payment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  payment: Payment
+}
+
+type PaymentRefundEvent {
+  """
+  Look up a payment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  payment: Payment
+}
+
+type PaymentVoidEvent {
+  """
+  Look up a payment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  payment: Payment
+}
+
+type PaymentConfirmEvent {
+  """
+  Look up a payment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  payment: Payment
+}
+
+type PaymentProcessEvent {
+  """
+  Look up a payment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  payment: Payment
+}
+
+type PaymentListGateways {
+  """
+  Look up a Checkout.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkout: Checkout
+}
+
+type ShippingListMethodsForCheckout {
+  """
+  Look up a Checkout.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkout: Checkout
+}
+
+type CheckoutFilterShippingMethods {
+  """
+  Look up a Checkout.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkout: Checkout
+}
+
+type OrderFilterShippingMethods {
+  """
+  Look up an order.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 """An enumeration."""

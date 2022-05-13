@@ -15,7 +15,7 @@ from ...product.models import (
     ProductVariantTranslation,
 )
 from ...shipping.models import ShippingMethodTranslation
-from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..channel import ChannelContext
 from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, PREVIEW_FEATURE
 from ..core.scalars import PositiveDecimal
@@ -676,6 +676,58 @@ class VoucherDeleted(ObjectType, VoucherBase):
     ...
 
 
+class PaymentBase(AbstractType):
+    payment = graphene.Field(
+        "saleor.graphql.payment.types.Payment",
+        description="Look up a payment." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_payment(root, _info):
+        _, payment = root
+        return payment
+
+
+class PaymentAuthorize(ObjectType, PaymentBase):
+    ...
+
+
+class PaymentCaptureEvent(ObjectType, PaymentBase):
+    ...
+
+
+class PaymentRefundEvent(ObjectType, PaymentBase):
+    ...
+
+
+class PaymentVoidEvent(ObjectType, PaymentBase):
+    ...
+
+
+class PaymentConfirmEvent(ObjectType, PaymentBase):
+    ...
+
+
+class PaymentProcessEvent(ObjectType, PaymentBase):
+    ...
+
+
+class PaymentListGateways(ObjectType, CheckoutBase):
+    ...
+
+
+class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
+    ...
+
+
+class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
+    ...
+
+
+class OrderFilterShippingMethods(ObjectType, OrderBase):
+    ...
+
+
 class Event(Union):
     class Meta:
         types = (
@@ -747,6 +799,16 @@ class Event(Union):
             VoucherCreated,
             VoucherUpdated,
             VoucherDeleted,
+            PaymentAuthorize,
+            PaymentCaptureEvent,
+            PaymentRefundEvent,
+            PaymentVoidEvent,
+            PaymentConfirmEvent,
+            PaymentProcessEvent,
+            PaymentListGateways,
+            ShippingListMethodsForCheckout,
+            CheckoutFilterShippingMethods,
+            OrderFilterShippingMethods,
         )
 
     @classmethod
@@ -824,6 +886,22 @@ class Event(Union):
             WebhookEventAsyncType.VOUCHER_CREATED: VoucherCreated,
             WebhookEventAsyncType.VOUCHER_UPDATED: VoucherUpdated,
             WebhookEventAsyncType.VOUCHER_DELETED: VoucherDeleted,
+            WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
+            WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
+            WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
+            WebhookEventSyncType.PAYMENT_VOID: PaymentVoidEvent,
+            WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
+            WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
+            WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
+                ShippingListMethodsForCheckout
+            ),
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
+                CheckoutFilterShippingMethods
+            ),
+            WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (
+                OrderFilterShippingMethods
+            ),
         }
         return types.get(object_type)
 
