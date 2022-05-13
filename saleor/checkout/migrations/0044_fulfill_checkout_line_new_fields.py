@@ -19,9 +19,7 @@ def set_checkout_line_token_and_created_at(apps, _schema_editor):
         )
         for checkout_line in checkout_lines:
             checkout = checkout_in_bulk.get(checkout_line.checkout_id)
-            checkout_line.created_at = checkout.created_at.replace(
-                second=checkout_line.pk
-            )
+            checkout_line.created_at = checkout.created_at
             checkout_line.token = uuid.uuid4()
 
         CheckoutLine.objects.bulk_update(checkout_lines, ["token", "created_at"])
