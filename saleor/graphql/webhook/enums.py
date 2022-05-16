@@ -82,6 +82,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_UPDATED: "A voucher is updated.",
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.ANY: "All the events.",
+    WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
 }
 
 
