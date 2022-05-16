@@ -1,7 +1,7 @@
 adyen==4.0.0
 amqp==5.1.1; python_version >= "3.7"
 aniso8601==7.0.0
-anyio==3.5.0; python_version >= "3.7" and python_full_version >= "3.6.2"
+anyio==3.6.1; python_version >= "3.7" and python_full_version >= "3.6.2"
 asgiref==3.5.1; python_version >= "3.7"
 async-timeout==4.0.2; python_version >= "3.7"
 authlib==1.0.1
