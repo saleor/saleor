@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
@@ -9,8 +10,10 @@ from urllib.parse import urlparse, urlunparse
 import boto3
 import requests
 from botocore.exceptions import ClientError
-from celery.exceptions import MaxRetriesExceededError
+from celery import group
+from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
@@ -25,8 +28,13 @@ from ...graphql.webhook.subscription_payload import (
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
-from ...webhook.event_types import SUBSCRIBABLE_EVENTS
-from ...webhook.observability.utils import report_webhook_event_delivery
+from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
+from ...webhook.observability.buffers import get_buffer
+from ...webhook.observability.utils import (
+    get_buffer_name,
+    report_webhook_event_delivery,
+    task_next_retry_date,
+)
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
@@ -338,7 +346,6 @@ def send_webhook_request_async(self, event_delivery_id):
                 data,
             )
         attempt_update(attempt, response)
-        report_webhook_event_delivery(attempt)
         if response.status == EventDeliveryStatus.FAILED:
             task_logger.info(
                 "[Webhook ID: %r] Failed request to %r: %r for event: %r."
@@ -352,6 +359,10 @@ def send_webhook_request_async(self, event_delivery_id):
             try:
                 countdown = self.retry_backoff * (2**self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
+            except Retry as retry_error:
+                next_retry = task_next_retry_date(retry_error)
+                report_webhook_event_delivery(attempt, next_retry)
+                raise retry_error
             except MaxRetriesExceededError:
                 task_logger.warning(
                     "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
@@ -374,6 +385,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+    report_webhook_event_delivery(attempt)
     clear_successful_delivery(delivery)
 
 
@@ -448,9 +460,88 @@ def send_webhook_request_sync(
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
+    report_webhook_event_delivery(attempt)
     clear_successful_delivery(delivery)
 
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
+
+
+@app.task
+def observability_send_events():
+    events = get_buffer().pop_events(get_buffer_name())
+    if not events:
+        return
+    domain = Site.objects.get_current().domain
+    event_type = WebhookEventAsyncType.OBSERVABILITY
+    for webhook in get_webhooks_for_event(event_type):
+        scheme = urlparse(webhook.target_url).scheme.lower()
+        try:
+            if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
+                for event_num, event in enumerate(events):
+                    response = send_webhook_using_scheme_method(
+                        webhook.target_url,
+                        domain,
+                        webhook.secret_key,
+                        event_type,
+                        json.dumps(event),
+                    )
+                    if response.status == EventDeliveryStatus.FAILED:
+                        task_logger.warning(
+                            "Observability webhook ID: %r failed request to %r "
+                            "(%s/%s events delivered): %r.",
+                            webhook.id,
+                            webhook.target_url,
+                            event_num,
+                            len(events),
+                            response.content,
+                        )
+                        break
+                else:
+                    logger.debug(
+                        "Observability successful delivered %s events to %r.",
+                        len(events),
+                        webhook.target_url,
+                    )
+            else:
+                response = send_webhook_using_scheme_method(
+                    webhook.target_url,
+                    domain,
+                    webhook.secret_key,
+                    event_type,
+                    json.dumps(events),
+                )
+                if response.status == EventDeliveryStatus.SUCCESS:
+                    logger.debug(
+                        "Observability successful delivered %s events to %r.",
+                        len(events),
+                        webhook.target_url,
+                    )
+                else:
+                    task_logger.warning(
+                        "Observability webhook ID: %r failed request to %r: %r.",
+                        webhook.id,
+                        webhook.target_url,
+                        response.content,
+                    )
+        except ValueError:
+            logger.error(
+                "Observability webhook ID: %r unknown webhook scheme: %r",
+                webhook.id,
+                scheme,
+            )
+
+
+@app.task
+def observability_reporter_task():
+    buffer_size = get_buffer().size(get_buffer_name())
+    batch_count = math.ceil(buffer_size / settings.OBSERVABILITY_BUFFER_BATCH_SIZE)
+    if batch_count <= 1:
+        observability_send_events()
+        return
+    tasks = [observability_send_events.s() for _ in range(batch_count)]
+    if tasks:
+        expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+        group(tasks).apply_async(expires=expiration)
 
 
 # DEPRECATED
