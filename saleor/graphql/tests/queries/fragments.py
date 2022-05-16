@@ -142,23 +142,22 @@ fragment ShippingZoneDetails on ShippingZone {
 """
 )
 
-WAREHOUSE_DETAILS = (
-    SHIPPING_ZONE_DETAILS
-    + """
+WAREHOUSE_DETAILS = """
 fragment WarehouseDetails on Warehouse {
   id
   name
-  companyName
-  shippingZones {
+  shippingZones (first: 10) {
     edges {
       node {
-        ...ShippingZoneDetails
+        id
       }
     }
   }
+  address {
+    companyName
+  }
 }
 """
-)
 
 
 FULFILLMENT_DETAILS = (

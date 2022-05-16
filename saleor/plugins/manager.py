@@ -68,7 +68,7 @@ if TYPE_CHECKING:
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..translation.models import Translation
-    from ..warehouse.models import Stock
+    from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
@@ -942,6 +942,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "shipping_zone_deleted", default_value, shipping_zone
+        )
+
+    def warehouse_created(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_created", default_value, warehouse
+        )
+
+    def warehouse_updated(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_updated", default_value, warehouse
+        )
+
+    def warehouse_deleted(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_deleted", default_value, warehouse
         )
 
     def voucher_created(self, voucher: "Voucher"):
