@@ -571,11 +571,11 @@ OBSERVABILITY_BUFFER_BATCH_SIZE = int(
 OBSERVABILITY_REPORT_PERIOD = timedelta(
     seconds=parse(os.environ.get("OBSERVABILITY_REPORT_PERIOD", "20 seconds"))
 )
-# if OBSERVABILITY_ACTIVE:
-#     CELERY_BEAT_SCHEDULE["observability-reporter"] = {
-#         "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
-#         "schedule": OBSERVABILITY_REPORT_PERIOD,
-#     }
+if OBSERVABILITY_ACTIVE:
+    CELERY_BEAT_SCHEDULE["observability-reporter"] = {
+        "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
+        "schedule": OBSERVABILITY_REPORT_PERIOD,
+    }
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
