@@ -70,7 +70,7 @@ if TYPE_CHECKING:
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
     from ...translation.models import Translation
-    from ...warehouse.models import Stock
+    from ...warehouse.models import Stock, Warehouse
 
 logger = logging.getLogger(__name__)
 
@@ -834,6 +834,37 @@ class WebhookPlugin(BasePlugin):
             trigger_webhooks_async(
                 translation_data, event_type, webhooks, translation, self.requestor
             )
+
+    def _trigger_warehouse_event(self, event_type, warehouse):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
+                "name": warehouse.name,
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, warehouse, self.requestor
+            )
+
+    def warehouse_created(self, warehouse: "Warehouse", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_warehouse_event(
+            WebhookEventAsyncType.WAREHOUSE_CREATED, warehouse
+        )
+
+    def warehouse_updated(self, warehouse: "Warehouse", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_warehouse_event(
+            WebhookEventAsyncType.WAREHOUSE_UPDATED, warehouse
+        )
+
+    def warehouse_deleted(self, warehouse: "Warehouse", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_warehouse_event(
+            WebhookEventAsyncType.WAREHOUSE_DELETED, warehouse
+        )
 
     def _trigger_voucher_event(self, event_type, voucher):
         if webhooks := get_webhooks_for_event(event_type):

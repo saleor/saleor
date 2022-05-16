@@ -734,6 +734,27 @@ def subscription_translation_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_warehouse_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.WAREHOUSE_CREATED, WebhookEventAsyncType.WAREHOUSE_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_warehouse_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.WAREHOUSE_UPDATED, WebhookEventAsyncType.WAREHOUSE_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_warehouse_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.WAREHOUSE_DELETED, WebhookEventAsyncType.WAREHOUSE_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_voucher_created_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.VOUCHER_CREATED, WebhookEventAsyncType.VOUCHER_CREATED

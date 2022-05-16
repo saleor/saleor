@@ -98,6 +98,10 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
         address_form = cls.validate_address_form(cleaned_data["address"])
         return address_form.save()
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.warehouse_created(instance)
+
 
 class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
@@ -177,6 +181,10 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
         address_form = cls.validate_address_form(address_data, instance=address)
         return address_form.save()
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.warehouse_updated(instance)
+
 
 class WarehouseDelete(ModelDeleteMutation):
     class Meta:
@@ -197,8 +205,35 @@ class WarehouseDelete(ModelDeleteMutation):
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
+
+        if instance:
+            cls.clean_instance(info, instance)
+
         stocks = (stock for stock in instance.stock_set.only("product_variant"))
-        result = super(WarehouseDelete, cls).perform_mutation(_root, info, **data)
+        address_id = instance.address_id
+        address = instance.address
+
+        db_id = instance.id
+        instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        # Additionally, assign copy of deleted Address object to allow fetching address
+        # data on success response or in subscription webhook query.
+        instance.id = db_id
+        address.id = address_id
+        instance.address = address
+
+        # Set `is_object_deleted` attribute to use it in Warehouse object type
+        # resolvers and for example decide if we should use Dataloader to resolve
+        # address or return object directly.
+        instance.is_object_deleted = True
+
+        cls.post_save_action(info, instance, None)
         for stock in stocks:
             transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
-        return result
+        return cls.success_response(instance)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        transaction.on_commit(lambda: info.context.plugins.warehouse_deleted(instance))

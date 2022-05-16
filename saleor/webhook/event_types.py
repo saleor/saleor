@@ -106,6 +106,10 @@ class WebhookEventAsyncType:
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
+    WAREHOUSE_CREATED = "warehouse_created"
+    WAREHOUSE_UPDATED = "warehouse_updated"
+    WAREHOUSE_DELETED = "warehouse_deleted"
+
     VOUCHER_CREATED = "voucher_created"
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
@@ -180,6 +184,9 @@ class WebhookEventAsyncType:
         TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
+        WAREHOUSE_CREATED: "Warehouse created",
+        WAREHOUSE_UPDATED: "Warehouse updated",
+        WAREHOUSE_DELETED: "Warehouse deleted",
         VOUCHER_CREATED: "Voucher created",
         VOUCHER_UPDATED: "Voucher updated",
         VOUCHER_DELETED: "Voucher deleted",
@@ -254,6 +261,9 @@ class WebhookEventAsyncType:
         (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
+        (WAREHOUSE_CREATED, DISPLAY_LABELS[WAREHOUSE_CREATED]),
+        (WAREHOUSE_UPDATED, DISPLAY_LABELS[WAREHOUSE_UPDATED]),
+        (WAREHOUSE_DELETED, DISPLAY_LABELS[WAREHOUSE_DELETED]),
         (VOUCHER_CREATED, DISPLAY_LABELS[VOUCHER_CREATED]),
         (VOUCHER_UPDATED, DISPLAY_LABELS[VOUCHER_UPDATED]),
         (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
@@ -329,6 +339,9 @@ class WebhookEventAsyncType:
         TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
+        WAREHOUSE_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        WAREHOUSE_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        WAREHOUSE_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         VOUCHER_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
@@ -473,6 +486,9 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST,
     WebhookEventAsyncType.TRANSLATION_CREATED,
     WebhookEventAsyncType.TRANSLATION_UPDATED,
+    WebhookEventAsyncType.WAREHOUSE_CREATED,
+    WebhookEventAsyncType.WAREHOUSE_UPDATED,
+    WebhookEventAsyncType.WAREHOUSE_DELETED,
     WebhookEventAsyncType.VOUCHER_CREATED,
     WebhookEventAsyncType.VOUCHER_UPDATED,
     WebhookEventAsyncType.VOUCHER_DELETED,

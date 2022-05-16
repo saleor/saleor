@@ -5155,12 +5155,14 @@ def webhook_app(
     permission_manage_gift_card,
     permission_manage_discounts,
     permission_manage_menus,
+    permission_manage_products,
 ):
     app = App.objects.create(name="Sample app objects", is_active=True)
     app.permissions.add(permission_manage_shipping)
     app.permissions.add(permission_manage_gift_card)
     app.permissions.add(permission_manage_discounts)
     app.permissions.add(permission_manage_menus)
+    app.permissions.add(permission_manage_products)
     return app
 
 
