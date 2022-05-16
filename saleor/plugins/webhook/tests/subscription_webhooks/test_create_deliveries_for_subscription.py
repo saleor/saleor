@@ -1163,7 +1163,7 @@ def test_warehouse_deleted(warehouse, subscription_warehouse_deleted_webhook):
     warehouse_id = warehouse.id
     warehouse.delete()
     warehouse.id = warehouse_id
-    warehouse.from_delete_view = True
+    warehouse.is_object_deleted = True
 
     event_type = WebhookEventAsyncType.WAREHOUSE_DELETED
     warehouse_global_id = graphene.Node.to_global_id("Warehouse", warehouse.id)

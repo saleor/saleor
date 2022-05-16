@@ -216,10 +216,18 @@ class WarehouseDelete(ModelDeleteMutation):
         db_id = instance.id
         instance.delete()
 
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        # Additionally, assign copy of deleted Address object to allow fetching address
+        # data on success response or in subscription webhook query.
         instance.id = db_id
         address.id = address_id
         instance.address = address
-        instance.from_delete_view = True
+
+        # Set `is_object_deleted` attribute to use it in Warehouse object type
+        # resolvers and for example decide if we should use Dataloader to resolve
+        # address or return object directly.
+        instance.is_object_deleted = True
 
         cls.post_save_action(info, instance, None)
         for stock in stocks:

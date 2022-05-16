@@ -108,7 +108,7 @@ class Warehouse(ModelObjectType):
 
     @staticmethod
     def resolve_address(root, info):
-        if hasattr(root, "from_delete_view") and root.from_delete_view:
+        if hasattr(root, "is_object_deleted") and root.is_object_deleted:
             return root.address
 
         return AddressByIdLoader(info.context).load(root.address_id)
