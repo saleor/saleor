@@ -1,8 +1,8 @@
 from decimal import Decimal
-from django.contrib.auth.models import AnonymousUser
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from prices import Money, TaxedMoney
 
 from ...order.fetch import OrderLineInfo, fetch_order_info
@@ -22,7 +22,8 @@ from ..actions import (
     fulfill_order_lines,
     handle_fully_paid_order,
     mark_order_as_paid,
-    order_refunded, mark_order_as_settled,
+    mark_order_as_settled,
+    order_refunded,
 )
 from ..models import Fulfillment
 from ..notifications import (
@@ -135,9 +136,12 @@ def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order)
     assert event.type == OrderEvents.ORDER_FULLY_PAID
     assert not mock_send_payment_confirmation.called
 
+
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_mark_order_as_settled_order_without_any_captured_amount(mocked_order_updated,mocked_order_fully_paid, admin_user, order_with_lines):
+def test_mark_order_as_settled_order_without_any_captured_amount(
+    mocked_order_updated, mocked_order_fully_paid, admin_user, order_with_lines
+):
     # given
     manager = get_plugins_manager()
 
@@ -147,7 +151,7 @@ def test_mark_order_as_settled_order_without_any_captured_amount(mocked_order_up
     # then
     flush_post_commit_hooks()
     order_with_lines.refresh_from_db()
-    transactions =order_with_lines.payment_transactions.all()
+    transactions = order_with_lines.payment_transactions.all()
     assert len(transactions) == 1
     transaction = transactions[0]
     assert transaction.captured_value == order_with_lines.total.gross.amount
@@ -164,7 +168,9 @@ def test_mark_order_as_settled_order_without_any_captured_amount(mocked_order_up
 
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_mark_order_as_settled_order_when_order_is_overpaid(mocked_order_updated,mocked_order_fully_paid, admin_user, order_with_lines):
+def test_mark_order_as_settled_order_when_order_is_overpaid(
+    mocked_order_updated, mocked_order_fully_paid, admin_user, order_with_lines
+):
     # given
     overpaid_value = Decimal(2)
     manager = get_plugins_manager()
@@ -173,7 +179,7 @@ def test_mark_order_as_settled_order_when_order_is_overpaid(mocked_order_updated
         type="credit card",
         available_actions=[],
         currency=order_with_lines.currency,
-        captured_value=order_with_lines.total.gross.amount + overpaid_value
+        captured_value=order_with_lines.total.gross.amount + overpaid_value,
     )
     # when
     mark_order_as_settled(order_with_lines, admin_user, None, manager)
@@ -199,7 +205,9 @@ def test_mark_order_as_settled_order_when_order_is_overpaid(mocked_order_updated
 
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_mark_order_as_settled_order_when_order_is_partially_paid(mocked_order_updated,mocked_order_fully_paid, app,  order_with_lines):
+def test_mark_order_as_settled_order_when_order_is_partially_paid(
+    mocked_order_updated, mocked_order_fully_paid, app, order_with_lines
+):
     # given
     partial_paid_value = Decimal(2)
     manager = get_plugins_manager()
@@ -208,10 +216,12 @@ def test_mark_order_as_settled_order_when_order_is_partially_paid(mocked_order_u
         type="credit card",
         available_actions=[],
         currency=order_with_lines.currency,
-        captured_value=partial_paid_value
+        captured_value=partial_paid_value,
     )
     # when
-    mark_order_as_settled(order_with_lines, AnonymousUser(), app, manager) # type: ignore
+    mark_order_as_settled(
+        order_with_lines, AnonymousUser(), app, manager  # type: ignore
+    )
 
     # then
     flush_post_commit_hooks()
@@ -219,7 +229,10 @@ def test_mark_order_as_settled_order_when_order_is_partially_paid(mocked_order_u
     transactions = order_with_lines.payment_transactions.all()
     assert len(transactions) == 2
     transaction = transactions[1]
-    assert transaction.captured_value == order_with_lines.total.gross.amount - partial_paid_value
+    assert (
+        transaction.captured_value
+        == order_with_lines.total.gross.amount - partial_paid_value
+    )
     assert transaction.status == "settled"
     assert transaction.type == "settled"
     assert transaction.available_actions == []
@@ -229,7 +242,6 @@ def test_mark_order_as_settled_order_when_order_is_partially_paid(mocked_order_u
     assert event.type == OrderEvents.ORDER_MARKED_AS_SETTLED
     mocked_order_updated.assert_called_once_with(order_with_lines)
     mocked_order_fully_paid.assert_called_once_with(order_with_lines)
-
 
 
 def test_mark_as_paid(admin_user, draft_order):

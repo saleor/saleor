@@ -361,6 +361,7 @@ def order_canceled_event(*, order: Order, user: UserType, app: AppType) -> Order
         order=order, type=OrderEvents.CANCELED, user=user, app=app
     )
 
+
 def order_marked_as_settled_event(
     *,
     order: Order,
@@ -377,6 +378,7 @@ def order_marked_as_settled_event(
         app=app,
         parameters=parameters,
     )
+
 
 def order_manually_marked_as_paid_event(
     *,

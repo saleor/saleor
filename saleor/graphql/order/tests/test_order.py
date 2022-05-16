@@ -9340,7 +9340,10 @@ ORDER_MARK_AS_SETTLED_MUTATION = """
     }
 """
 
-def test_order_mark_as_settled_without_any_captured_value(order_with_lines, staff_api_client, permission_manage_orders):
+
+def test_order_mark_as_settled_without_any_captured_value(
+    order_with_lines, staff_api_client, permission_manage_orders
+):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_orders)
 
@@ -9358,11 +9361,18 @@ def test_order_mark_as_settled_without_any_captured_value(order_with_lines, staf
     transactions = order_data["transactions"]
     assert len(transactions) == 1
     transaction = transactions[0]
-    captured_amount = quantize_price(Decimal(transaction["capturedAmount"]["amount"]), order_with_lines.currency)
-    order_total = quantize_price(order_with_lines.total.gross.amount, order_with_lines.currency)
+    captured_amount = quantize_price(
+        Decimal(transaction["capturedAmount"]["amount"]), order_with_lines.currency
+    )
+    order_total = quantize_price(
+        order_with_lines.total.gross.amount, order_with_lines.currency
+    )
     assert captured_amount == order_total
 
-def test_order_mark_as_settled_with_partial_captured_amount(order_with_lines, staff_api_client, permission_manage_orders):
+
+def test_order_mark_as_settled_with_partial_captured_amount(
+    order_with_lines, staff_api_client, permission_manage_orders
+):
     # given
     partial_paid_value = Decimal(2.0)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -9371,7 +9381,7 @@ def test_order_mark_as_settled_with_partial_captured_amount(order_with_lines, st
         type="credit card",
         available_actions=[],
         currency=order_with_lines.currency,
-        captured_value=partial_paid_value
+        captured_value=partial_paid_value,
     )
     # when
     response = staff_api_client.post_graphql(
@@ -9387,12 +9397,18 @@ def test_order_mark_as_settled_with_partial_captured_amount(order_with_lines, st
     transactions = order_data["transactions"]
     assert len(transactions) == 2
     transaction = transactions[1]
-    captured_amount = quantize_price(Decimal(transaction["capturedAmount"]["amount"]), order_with_lines.currency)
-    order_total = quantize_price(order_with_lines.total.gross.amount, order_with_lines.currency)
+    captured_amount = quantize_price(
+        Decimal(transaction["capturedAmount"]["amount"]), order_with_lines.currency
+    )
+    order_total = quantize_price(
+        order_with_lines.total.gross.amount, order_with_lines.currency
+    )
     assert captured_amount == order_total - partial_paid_value
 
 
-def test_order_mark_as_settled_with_overpaid_order(order_with_lines, staff_api_client, permission_manage_orders):
+def test_order_mark_as_settled_with_overpaid_order(
+    order_with_lines, staff_api_client, permission_manage_orders
+):
     # given
     overpaid_value = Decimal(2.0)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -9401,7 +9417,7 @@ def test_order_mark_as_settled_with_overpaid_order(order_with_lines, staff_api_c
         type="credit card",
         available_actions=[],
         currency=order_with_lines.currency,
-        captured_value=order_with_lines.total.gross.amount + overpaid_value
+        captured_value=order_with_lines.total.gross.amount + overpaid_value,
     )
     # when
     response = staff_api_client.post_graphql(
@@ -9417,11 +9433,15 @@ def test_order_mark_as_settled_with_overpaid_order(order_with_lines, staff_api_c
     transactions = order_data["transactions"]
     assert len(transactions) == 2
     transaction = transactions[1]
-    refunded_amount = quantize_price(Decimal(transaction["refundedAmount"]["amount"]), order_with_lines.currency)
+    refunded_amount = quantize_price(
+        Decimal(transaction["refundedAmount"]["amount"]), order_with_lines.currency
+    )
     assert refunded_amount == overpaid_value
 
 
-def test_order_mark_as_settled_no_permission(order_with_lines, staff_api_client, permission_manage_orders):
+def test_order_mark_as_settled_no_permission(
+    order_with_lines, staff_api_client, permission_manage_orders
+):
     # when
     response = staff_api_client.post_graphql(
         ORDER_MARK_AS_SETTLED_MUTATION,
@@ -9430,4 +9450,3 @@ def test_order_mark_as_settled_no_permission(order_with_lines, staff_api_client,
 
     # then
     assert_no_permission(response)
-

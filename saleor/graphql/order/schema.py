@@ -1,6 +1,5 @@
 import graphene
 
-from .mutations.order_mark_as_settled import OrderMarkAsSettled
 from ...core.permissions import OrderPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
@@ -35,6 +34,7 @@ from .mutations.order_line_discount_update import OrderLineDiscountUpdate
 from .mutations.order_line_update import OrderLineUpdate
 from .mutations.order_lines_create import OrderLinesCreate
 from .mutations.order_mark_as_paid import OrderMarkAsPaid
+from .mutations.order_mark_as_settled import OrderMarkAsSettled
 from .mutations.order_refund import OrderRefund
 from .mutations.order_update import OrderUpdate
 from .mutations.order_update_shipping import OrderUpdateShipping

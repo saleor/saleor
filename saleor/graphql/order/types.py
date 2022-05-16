@@ -27,7 +27,7 @@ from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
-from ...order import OrderStatus, models, OrderOrigin
+from ...order import OrderOrigin, OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
     get_order_country,

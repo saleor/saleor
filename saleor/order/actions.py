@@ -4,9 +4,10 @@ from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 from uuid import UUID
-from prices import Money
+
 from django.contrib.sites.models import Site
 from django.db import transaction
+from prices import Money
 
 from ..account.models import User
 from ..core import analytics
@@ -472,12 +473,13 @@ def approve_fulfillment(
 
     return fulfillment
 
+
 @traced_atomic_transaction()
 def mark_order_as_settled(
-        order: "Order",
-        request_user: "User",
-        app: Optional["App"],
-        manager: "PluginsManager"
+    order: "Order",
+    request_user: "User",
+    app: Optional["App"],
+    manager: "PluginsManager",
 ):
     """Mark order as settled.
 
@@ -508,9 +510,13 @@ def mark_order_as_settled(
     if total_gross == total_captured:
         return
     elif total_gross > total_captured:
-        transaction_data["captured_value"] = quantize_price((total_gross - total_captured).amount, order.currency)
+        transaction_data["captured_value"] = quantize_price(
+            (total_gross - total_captured).amount, order.currency
+        )
     elif total_gross < total_captured:
-        transaction_data["refunded_value"] = quantize_price((total_captured - total_gross).amount, order.currency)
+        transaction_data["refunded_value"] = quantize_price(
+            (total_captured - total_gross).amount, order.currency
+        )
 
     order.payment_transactions.create(
         status="settled",
@@ -518,13 +524,14 @@ def mark_order_as_settled(
         available_actions=[],
         currency=order.currency,
         **transaction_data,
-
     )
-    transaction.on_commit(lambda: events.order_marked_as_settled_event(
-        order=order,
-        user=request_user,
-        app=app,
-    ))
+    transaction.on_commit(
+        lambda: events.order_marked_as_settled_event(
+            order=order,
+            user=request_user,
+            app=app,
+        )
+    )
     transaction.on_commit(lambda: manager.order_fully_paid(order))
     transaction.on_commit(lambda: manager.order_updated(order))
 

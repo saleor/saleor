@@ -24,6 +24,7 @@ from ..enums import (
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
+    OrderMarkAsSettledErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
@@ -42,7 +43,7 @@ from ..enums import (
     UploadErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
-    WeightUnitsEnum, OrderMarkAsSettledErrorCode,
+    WeightUnitsEnum,
 )
 from ..scalars import PositiveDecimal
 from .money import VAT
@@ -222,6 +223,7 @@ class OrderError(Error):
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
+
 
 class OrderMarkAsSettledError(Error):
     code = OrderMarkAsSettledErrorCode(description="The error code.", required=True)
