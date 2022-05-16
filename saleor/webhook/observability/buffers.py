@@ -16,8 +16,9 @@ class BaseBuffer:
     _compressor_preset = 6
     _pickle_version = 5
 
-    def __init__(self, broker_url: str, max_size: int, batch_size: int):
+    def __init__(self, broker_url: str, key: KEY_TYPE, max_size: int, batch_size: int):
         self.broker_url = broker_url
+        self.key = key
         self.max_size = max_size
         self.batch_size = batch_size
 
@@ -29,12 +30,12 @@ class BaseBuffer:
             pickle.dumps(value, self._pickle_version), self._compressor_preset
         )
 
-    def put_event(self, key: KEY_TYPE, event: Any):
+    def put_event(self, event: Any):
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a put_event() method"
         )
 
-    def put_events(self, key: KEY_TYPE, events: List[Any]) -> int:
+    def put_events(self, events: List[Any]) -> int:
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a put_events() method"
         )
@@ -46,22 +47,22 @@ class BaseBuffer:
             "subclasses of BaseBuffer must provide a put_events_multi_buffer() method"
         )
 
-    def pop_event(self, key: KEY_TYPE) -> Any:
+    def pop_event(self) -> Any:
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a pop_events() method"
         )
 
-    def pop_events(self, key: KEY_TYPE) -> List[Any]:
+    def pop_events(self) -> List[Any]:
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a pop_events() method"
         )
 
-    def clear(self, key: KEY_TYPE):
+    def clear(self):
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a clear() method"
         )
 
-    def size(self, key: KEY_TYPE) -> int:
+    def size(self) -> int:
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a size() method"
         )
@@ -93,22 +94,23 @@ class RedisBuffer(BaseBuffer):
         return self._client
 
     def _put_events(
-        self, key: KEY_TYPE, events: List[bytes], client: Optional[Redis] = None
+        self, key: KEY_TYPE, events: List[Any], client: Optional[Redis] = None
     ):
+        start_index = -self.max_size
+        events_data = [self.encode(event) for event in events[start_index:]]
         if client is None:
             client = self.client
-        client.lpush(key, *events)
+        client.lpush(key, *events_data)
         client.ltrim(key, 0, max(0, self.max_size - 1))
 
-    def put_events(self, key: KEY_TYPE, events: List[Any]) -> int:
-        events_data = [self.encode(event) for event in events]
+    def put_events(self, events: List[Any]) -> int:
         with self.client.pipeline(transaction=False) as pipe:
-            self._put_events(key, events_data, client=pipe)
+            self._put_events(self.key, events, client=pipe)
             result = pipe.execute()
         return max(0, result[0] - self.max_size)
 
-    def put_event(self, key: KEY_TYPE, event: Any):
-        self.put_events(key, [event])
+    def put_event(self, event: Any):
+        self.put_events([event])
 
     def put_multi_key_events(
         self, events_dict: Dict[KEY_TYPE, List[Any]]
@@ -119,8 +121,7 @@ class RedisBuffer(BaseBuffer):
             return trimmed
         with self.client.pipeline(transaction=False) as pipe:
             for key in keys:
-                events_data = [self.encode(event) for event in events_dict[key]]
-                self._put_events(key, events_data, client=pipe)
+                self._put_events(key, events_dict[key], client=pipe)
             result = pipe.execute()
         for key in keys:
             buffer_len, _ = result.pop(0), result.pop(0)
@@ -139,41 +140,38 @@ class RedisBuffer(BaseBuffer):
             events.append(self.decode(elem))
         return events
 
-    def pop_event(self, key: KEY_TYPE) -> Any:
-        events = self._pop_events(key, batch_size=1)
+    def pop_event(self) -> Any:
+        events = self._pop_events(self.key, batch_size=1)
         return events[0] if events else None
 
-    def pop_events(self, key: KEY_TYPE) -> List[Any]:
-        return self._pop_events(key, self.batch_size)
+    def pop_events(self) -> List[Any]:
+        return self._pop_events(self.key, self.batch_size)
 
-    def clear(self, key: KEY_TYPE) -> int:
+    def clear(self) -> int:
         with self.client.pipeline(transaction=False) as pipe:
-            pipe.llen(key)
-            pipe.delete(key)
+            pipe.llen(self.key)
+            pipe.delete(self.key)
             result = pipe.execute()
         return result[0]
 
-    def size(self, key: KEY_TYPE) -> int:
-        return self.client.llen(key)
+    def size(self) -> int:
+        return self.client.llen(self.key)
 
 
-def buffer_factory(broker_url: str, max_size: int, batch_size: int) -> BaseBuffer:
-    return RedisBuffer(broker_url, max_size, batch_size)
+def buffer_factory(
+    broker_url: str, key: KEY_TYPE, max_size: int, batch_size: int
+) -> BaseBuffer:
+    return RedisBuffer(broker_url, key, max_size, batch_size)
 
 
-def get_buffer() -> BaseBuffer:
-    attr_name = "observability_buffer"
-    if hasattr(_local, attr_name):
-        return _local.observability_buffer
-    try:
-        return getattr(_local, "observability_buffer")
-    except AttributeError:
-        pass
+def get_buffer(key: KEY_TYPE) -> BaseBuffer:
+    if buffer := getattr(_local, key, None):
+        return buffer
     if not settings.OBSERVABILITY_BROKER_URL:
         raise ConnectionNotConfigured("The observability broker url not set")
     broker_url = settings.OBSERVABILITY_BROKER_URL
     max_size = settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
     batch_size = settings.OBSERVABILITY_BUFFER_BATCH_SIZE
-    buffer = buffer_factory(broker_url, max_size, batch_size)
-    setattr(_local, attr_name, buffer)
+    buffer = buffer_factory(broker_url, key, max_size, batch_size)
+    setattr(_local, key, buffer)
     return buffer
