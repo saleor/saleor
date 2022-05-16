@@ -18,6 +18,7 @@ class AccountPermissions(BasePermissionEnum):
 
 class AppPermission(BasePermissionEnum):
     MANAGE_APPS = "app.manage_apps"
+    MANAGE_OBSERVABILITY = "app.manage_observability"
 
 
 class ChannelPermissions(BasePermissionEnum):
