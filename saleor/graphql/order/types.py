@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 import graphene
@@ -26,7 +26,7 @@ from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
-from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
+from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -104,7 +104,7 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
-from ..warehouse.types import Allocation, Warehouse
+from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     FulfillmentLinesByFulfillmentIdLoader,
@@ -490,9 +490,28 @@ class Fulfillment(ModelObjectType):
         return root.get_status_display()
 
     @staticmethod
-    def resolve_warehouse(root: models.Fulfillment, _info):
-        line = root.lines.first()
-        return line.stock.warehouse if line and line.stock else None
+    def resolve_warehouse(root: models.Fulfillment, info):
+        def _resolve_stock_warehouse(stock: Stock):
+            return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
+
+        def _resolve_stock(fulfillment_lines: List[models.FulfillmentLine]):
+            try:
+                line = fulfillment_lines[0]
+            except IndexError:
+                return None
+
+            if stock_id := line.stock_id:
+                return (
+                    StockByIdLoader(info.context)
+                    .load(stock_id)
+                    .then(_resolve_stock_warehouse)
+                )
+
+        return (
+            FulfillmentLinesByFulfillmentIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_stock)
+        )
 
 
 class OrderLine(ModelObjectType):
