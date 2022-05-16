@@ -468,9 +468,10 @@ def send_webhook_request_sync(
 
 @app.task
 def observability_send_events():
-    events = get_buffer().pop_events(get_buffer_name())
-    if not events:
+    events_data = get_buffer().pop_events(get_buffer_name())
+    if not events_data:
         return
+    events = [json.loads(event) for event in events_data]
     domain = Site.objects.get_current().domain
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in get_webhooks_for_event(event_type):

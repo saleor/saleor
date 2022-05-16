@@ -1,5 +1,6 @@
 import json
 import uuid
+from collections.abc import Mapping
 from datetime import datetime
 from enum import Enum
 from json.encoder import ESCAPE_ASCII, ESCAPE_DCT  # type: ignore
@@ -9,6 +10,7 @@ import graphene
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
+from graphene.utils.str_converters import to_camel_case
 from graphql import get_operation_ast
 
 from .. import traced_payload_generator
@@ -250,6 +252,18 @@ def serialize_gql_operation_results(
     return payloads
 
 
+def payload_to_camel_case(d: Mapping) -> Dict:
+    data = {}
+    for k, v in d.items():
+        if isinstance(v, Mapping):
+            v = payload_to_camel_case(v)
+        elif isinstance(v, list):
+            v = [payload_to_camel_case(i) for i in v]
+        new_key = to_camel_case(k)
+        data[new_key] = v
+    return data
+
+
 @traced_payload_generator
 def generate_api_call_payload(
     request: HttpRequest,
@@ -292,7 +306,7 @@ def generate_api_call_payload(
         )
     except ValueError:
         pass
-    return _json_serialize(payload)
+    return _json_serialize(payload_to_camel_case(payload))
 
 
 @traced_payload_generator
@@ -378,4 +392,4 @@ def generate_event_delivery_attempt_payload(
         _json_serialize(payload, True), remaining_bytes
     )
     data["event_delivery"]["payload"]["body"] = trunc_payload
-    return _json_serialize(data)
+    return _json_serialize(payload_to_camel_case(data))
