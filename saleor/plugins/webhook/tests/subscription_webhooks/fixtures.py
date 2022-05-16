@@ -30,12 +30,12 @@ APP_DETAILS_FRAGMENT = """
 """
 
 
-APP_CREATED_SUBSCRIPTION_QUERY = (
+APP_INSTALLED_SUBSCRIPTION_QUERY = (
     APP_DETAILS_FRAGMENT
     + """
     subscription{
       event{
-        ...on AppCreated{
+        ...on AppInstalled{
           app{
             ...AppDetails
           }
@@ -47,9 +47,9 @@ APP_CREATED_SUBSCRIPTION_QUERY = (
 
 
 @pytest.fixture
-def subscription_app_created_webhook(subscription_webhook):
+def subscription_app_installed_webhook(subscription_webhook):
     return subscription_webhook(
-        APP_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_CREATED
+        APP_INSTALLED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_INSTALLED
     )
 
 

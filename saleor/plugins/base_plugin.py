@@ -133,11 +133,11 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
-    #  Trigger when app is created.
+    #  Trigger when app is installed.
     #
     #  Overwrite this method if you need to trigger specific logic after an app is
-    #  created.
-    app_created: Callable[["App", None], None]
+    #  installed.
+    app_installed: Callable[["App", None], None]
 
     #  Trigger when app is deleted.
     #

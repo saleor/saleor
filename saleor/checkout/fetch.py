@@ -17,6 +17,7 @@ from django.utils.encoding import smart_text
 from django.utils.functional import SimpleLazyObject
 
 from ..discount import DiscountInfo, VoucherType
+from ..discount.interface import fetch_voucher_info
 from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -30,6 +31,7 @@ from ..warehouse.models import Warehouse
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
+    from ..discount.interface import VoucherInfo
     from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
@@ -269,7 +271,11 @@ def fetch_checkout_lines(
             # discount from voucher
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
-            _apply_voucher_on_product(voucher, checkout, lines_info)
+            discounts = fetch_active_discounts()
+            voucher_info = fetch_voucher_info(voucher)
+            apply_voucher_to_checkout_line(
+                voucher_info, checkout, lines_info, discounts
+            )
     return lines_info, unavailable_variant_pks
 
 
@@ -316,14 +322,22 @@ def _get_product_channel_listing(
     return product_channel_listing
 
 
-def _apply_voucher_on_product(
-    voucher: "Voucher", checkout: "Checkout", lines_info: Iterable[CheckoutLineInfo]
+def apply_voucher_to_checkout_line(
+    voucher_info: "VoucherInfo",
+    checkout: "Checkout",
+    lines_info: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
 ):
+    """Attach voucher to valid checkout lines info.
+
+    Apply a voucher to checkout line info when the voucher has the type
+    SPECIFIC_PRODUCTS or is applied only to the cheapest line.
+    """
     from .utils import get_discounted_lines
 
+    voucher = voucher_info.voucher
     discounted_lines_by_voucher: List[CheckoutLineInfo] = []
     if voucher.apply_once_per_order:
-        discounts = fetch_active_discounts()
         channel = checkout.channel
         cheapest_line_price = None
         cheapest_line = None
@@ -342,7 +356,9 @@ def _apply_voucher_on_product(
         if cheapest_line:
             discounted_lines_by_voucher.append(cheapest_line)
     else:
-        discounted_lines_by_voucher.extend(get_discounted_lines(lines_info, voucher))
+        discounted_lines_by_voucher.extend(
+            get_discounted_lines(lines_info, voucher_info)
+        )
     for line_info in lines_info:
         if line_info in discounted_lines_by_voucher:
             line_info.voucher = voucher

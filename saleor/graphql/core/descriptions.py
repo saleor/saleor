@@ -26,3 +26,5 @@ CHANNEL_REQUIRED = (
     "\n\nThis option requires a channel filter to work as the values can vary "
     "between channels."
 )
+
+RICH_CONTENT = "\n\nRich text format. For reference see https://editorjs.io/"

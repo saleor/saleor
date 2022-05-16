@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.db.models import F
 
 from ...discount import DiscountInfo
+from ...discount.interface import VoucherInfo
 from ...discount.models import (
     OrderDiscount,
     Sale,
@@ -148,6 +149,71 @@ class VoucherChannelListingByVoucherIdLoader(DataLoader):
         return [
             voucher_channel_listings_by_voucher_map[voucher_id] for voucher_id in keys
         ]
+
+
+class VoucherInfoByVoucherCodeLoader(DataLoader):
+    context_key = "voucher_info_by_voucher_code"
+
+    def batch_load(self, keys):
+        vouchers_map = (
+            Voucher.objects.using(self.database_connection_name)
+            # FIXME dataloader should not operate on prefetched data. The channel
+            #  listings are used in Voucher's model to calculate a discount amount.
+            #  This is a workaround that we should solve by fetching channel_listings
+            #  via data loader and passing it to calculate a discount amount.
+            .prefetch_related("channel_listings")
+            .filter(code__in=keys)
+            .in_bulk(field_name="code")
+        )
+        vouchers = vouchers_map.values()
+        voucher_products = (
+            Voucher.products.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "product_id")
+        )
+        voucher_variants = (
+            Voucher.variants.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "productvariant_id")
+        )
+        voucher_collections = (
+            Voucher.collections.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "collection_id")
+        )
+        voucher_categories = (
+            Voucher.categories.through.objects.using(self.database_connection_name)
+            .filter(voucher__in=vouchers)
+            .values_list("voucher_id", "category_id")
+        )
+        product_pks_map = defaultdict(list)
+        variant_pks_map = defaultdict(list)
+        category_pks_map = defaultdict(list)
+        collection_pks_map = defaultdict(list)
+        for voucher_id, product_id in voucher_products:
+            product_pks_map[voucher_id].append(product_id)
+        for voucher_id, variant_id in voucher_variants:
+            variant_pks_map[voucher_id].append(variant_id)
+        for voucher_id, category_id in voucher_categories:
+            category_pks_map[voucher_id].append(category_id)
+        for voucher_id, collection_id in voucher_collections:
+            collection_pks_map[voucher_id].append(collection_id)
+        voucher_infos = []
+        for code in keys:
+            voucher = vouchers_map.get(code)
+            if not voucher:
+                voucher_infos.append(None)
+                continue
+            voucher_infos.append(
+                VoucherInfo(
+                    voucher=voucher,
+                    product_pks=product_pks_map.get(voucher.id, []),
+                    variant_pks=variant_pks_map.get(voucher.id, []),
+                    category_pks=category_pks_map.get(voucher.id, []),
+                    collection_pks=collection_pks_map.get(voucher.id, []),
+                )
+            )
+        return voucher_infos
 
 
 class OrderDiscountsByOrderIDLoader(DataLoader):

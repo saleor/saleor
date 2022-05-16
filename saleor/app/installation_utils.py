@@ -68,5 +68,5 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     except requests.RequestException as e:
         app.delete()
         raise e
-    PluginsManager(plugins=settings.PLUGINS).app_created(app)
+    PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     return app, token

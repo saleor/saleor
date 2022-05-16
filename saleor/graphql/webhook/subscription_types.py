@@ -50,7 +50,7 @@ class AppBase(AbstractType):
         return app
 
 
-class AppCreated(ObjectType, AppBase):
+class AppInstalled(ObjectType, AppBase):
     ...
 
 
@@ -679,7 +679,7 @@ class VoucherDeleted(ObjectType, VoucherBase):
 class Event(Union):
     class Meta:
         types = (
-            AppCreated,
+            AppInstalled,
             AppUpdated,
             AppDeleted,
             AppStatusChanged,
@@ -752,7 +752,7 @@ class Event(Union):
     @classmethod
     def get_type(cls, object_type: str):
         types = {
-            WebhookEventAsyncType.APP_CREATED: AppCreated,
+            WebhookEventAsyncType.APP_INSTALLED: AppInstalled,
             WebhookEventAsyncType.APP_UPDATED: AppUpdated,
             WebhookEventAsyncType.APP_DELETED: AppDeleted,
             WebhookEventAsyncType.APP_STATUS_CHANGED: AppStatusChanged,

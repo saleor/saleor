@@ -12,7 +12,7 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
@@ -98,7 +98,7 @@ class Page(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String(required=True)
-    content = JSONString(description="Content of the page (JSON).")
+    content = JSONString(description="Content of the page." + RICH_CONTENT)
     publication_date = graphene.Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
@@ -113,7 +113,7 @@ class Page(ModelObjectType):
     page_type = graphene.Field(PageType, required=True)
     created = graphene.DateTime(required=True)
     content_json = JSONString(
-        description="Content of the page (JSON).",
+        description="Content of the page." + RICH_CONTENT,
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
         required=True,
     )
