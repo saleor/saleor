@@ -6,7 +6,11 @@ from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
-from ...core.permissions import AppPermission, AuthorizationFilters
+from ...core.permissions import (
+    AppPermission,
+    AuthorizationFilters,
+    message_one_of_permissions_required,
+)
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
@@ -33,7 +37,7 @@ def has_required_permission(app: models.App, context):
         )
 
 
-def check_permission_for_acess_to_meta(app: models.App, info):
+def check_permission_for_access_to_meta(app: models.App, info):
     has_access = has_access_to_app_public_meta(app, info)
     if not has_access:
         raise PermissionDenied(
@@ -208,15 +212,23 @@ class App(ModelObjectType):
     tokens = NonNullList(
         AppToken,
         description=(
-            "Last 4 characters of the tokens. Requires one of the following "
-            f"permissions: {AppPermission.MANAGE_APPS}"
+            f"""Last 4 characters of the tokens.{
+                message_one_of_permissions_required(
+                    [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+                )
+            }
+            """
         ),
     )
     webhooks = NonNullList(
         Webhook,
         description=(
-            "List of webhooks assigned to this app. Requires one of the following "
-            f"permissions: {AppPermission.MANAGE_APPS}"
+            f"""List of webhooks assigned to this app.{
+                message_one_of_permissions_required(
+                    [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+                )
+            }
+            """
         ),
     )
 
@@ -292,17 +304,17 @@ class App(ModelObjectType):
 
     @staticmethod
     def resolve_metadata(root: models.App, info):
-        check_permission_for_acess_to_meta(root, info)
+        check_permission_for_access_to_meta(root, info)
         return ObjectWithMetadata.resolve_metadata(root, info)
 
     @staticmethod
     def resolve_metafield(root: models.App, info, *, key: str):
-        check_permission_for_acess_to_meta(root, info)
+        check_permission_for_access_to_meta(root, info)
         return ObjectWithMetadata.resolve_metafield(root, info, key=key)
 
     @staticmethod
     def resolve_metafields(root: models.App, info, *, keys=None):
-        check_permission_for_acess_to_meta(root, info)
+        check_permission_for_access_to_meta(root, info)
         return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 
 

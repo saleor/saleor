@@ -1077,7 +1077,7 @@ type Query {
   ): AppCountableConnection
 
   """
-  Look up an app by ID. If ID is not provided, return the currently authenticated app. 
+  Look up an app by ID. If ID is not provided, return the currently authenticated app.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER AUTHENTICATED_APP. The authenticated app has access to its resources. Fetching different apps requires MANAGE_APPS permission.
   """
@@ -1793,12 +1793,16 @@ type App implements Node & ObjectWithMetadata {
   type: AppTypeEnum
 
   """
-  Last 4 characters of the tokens. Requires one of the following permissions: AppPermission.MANAGE_APPS
+  Last 4 characters of the tokens.
+  
+  Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   tokens: [AppToken!]
 
   """
-  List of webhooks assigned to this app. Requires one of the following permissions: AppPermission.MANAGE_APPS
+  List of webhooks assigned to this app.
+  
+  Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   webhooks: [Webhook!]
 

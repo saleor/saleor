@@ -73,7 +73,7 @@ class AppQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the app.", required=False),
         description=(
             "Look up an app by ID. If ID is not provided, return the currently "
-            "authenticated app. \n\nRequires one of the following permissions: "
+            "authenticated app.\n\nRequires one of the following permissions: "
             f"{AuthorizationFilters.AUTHENTICATED_STAFF_USER.name} "
             f"{AuthorizationFilters.AUTHENTICATED_APP.name}. The authenticated app has "
             f"access to its resources. Fetching different apps requires "
