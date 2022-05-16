@@ -45,6 +45,8 @@ BUFFER_KEY = "observability_buffer"
 WEBHOOKS_KEY = "observability_webhooks"
 _IS_ACTIVE_CACHE: Dict[str, Tuple[bool, float]] = {}
 _context = Local()
+_api_call_attr = "api_call"
+_gql_operation_attr = "gql_operation"
 
 
 class WebhookData(TypedDict):

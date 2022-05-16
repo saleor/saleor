@@ -1,8 +1,15 @@
 import functools
 
-from .utils import report_api_call, report_gql_operation
+from .buffers import get_buffer
+from .utils import get_observability_webhooks, report_api_call, report_gql_operation
 
-__all__ = ["report_api_call", "report_gql_operation", "dispatch_decorator"]
+__all__ = [
+    "report_api_call",
+    "report_gql_operation",
+    "dispatch_decorator",
+    "get_buffer",
+    "get_observability_webhooks",
+]
 
 
 def dispatch_decorator(method):

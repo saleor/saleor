@@ -2,7 +2,7 @@ class ObservabilityError(Exception):
     pass
 
 
-class ConnectionDoesNotExist(ObservabilityError):
+class ConnectionNotConfigured(ObservabilityError):
     pass
 
 
