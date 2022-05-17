@@ -5029,11 +5029,7 @@ def description_json():
                         "built with GraphQL, Django, and ReactJS."
                     )
                 },
-                "text": (
-                    "A modular, high performance e-commerce storefront "
-                    "built with GraphQL, Django, and ReactJS."
-                ),
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5042,7 +5038,7 @@ def description_json():
                 "key": "",
                 "data": {},
                 "text": "",
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5060,16 +5056,7 @@ def description_json():
                         "open source e-commerce."
                     ),
                 },
-                "text": (
-                    "Saleor is a rapidly-growing open source e-commerce platform "
-                    "that has served high-volume companies from branches "
-                    "like publishing and apparel since 2012. Based on Python "
-                    "and Django, the latest major update introduces a modular "
-                    "front end with a GraphQL API and storefront and dashboard "
-                    "written in React to make Saleor a full-functionality "
-                    "open source e-commerce."
-                ),
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5077,8 +5064,7 @@ def description_json():
             {
                 "key": "",
                 "data": {"text": ""},
-                "text": "",
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5088,8 +5074,7 @@ def description_json():
                 "data": {
                     "text": "Get Saleor today!",
                 },
-                "text": "Get Saleor today!",
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [{"key": 0, "length": 17, "offset": 0}],
                 "inlineStyleRanges": [],
@@ -5128,11 +5113,7 @@ def other_description_json():
                         "top of Python 3 and a Django 2 framework."
                     ),
                 },
-                "text": (
-                    "Saleor is powered by a GraphQL server running on "
-                    "top of Python 3 and a Django 2 framework."
-                ),
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
