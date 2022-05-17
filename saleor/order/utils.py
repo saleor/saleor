@@ -815,6 +815,22 @@ def get_total_order_discount(order: Order) -> Money:
     return total_order_discount
 
 
+def get_total_order_discount_excluding_shipping(order: Order) -> Money:
+    """Return total discounts assigned to the order excluding shipping discounts."""
+    # If the order has an assigned shipping voucher we want to exclude the corresponding
+    # order discount from the calculation.
+    # The calculation is based on assumption that an order can have only one voucher.
+    all_discounts = order.discounts.all()
+    if order.voucher_id and order.voucher.type == VoucherType.SHIPPING:  # type: ignore
+        all_discounts = all_discounts.exclude(type=OrderDiscountType.VOUCHER)
+    total_order_discount = Money(
+        sum([discount.amount_value for discount in all_discounts]),
+        currency=order.currency,
+    )
+    total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
+    return total_order_discount
+
+
 def get_order_discounts(order: Order) -> List[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
     return list(order.discounts.filter(type=OrderDiscountType.MANUAL))

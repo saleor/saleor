@@ -497,12 +497,17 @@ class AvataxPlugin(BasePlugin):
                 continue
 
             tax = Decimal(line.get("tax", 0.0))
+            discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
 
             if currency == "JPY" and tax_included():
-                line_gross = base_value.price_with_discounts.gross
+                line_gross = Money(
+                    base_value.price_with_discounts.gross.amount - discount_amount,
+                    currency,
+                )
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
+                net -= discount_amount
                 line_gross = Money(amount=net + tax, currency=currency)
                 line_net = Money(amount=net, currency=currency)
 

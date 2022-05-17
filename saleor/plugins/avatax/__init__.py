@@ -17,7 +17,10 @@ from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
 from ...discount import VoucherType
-from ...order.utils import get_total_order_discount
+from ...order.utils import (
+    get_total_order_discount_excluding_shipping,
+    get_voucher_discount_assigned_to_order,
+)
 from ...shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
@@ -238,7 +241,7 @@ def append_shipping_to_data(
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
-    if charge_taxes_on_shipping and shipping_price_amount:
+    if charge_taxes_on_shipping and shipping_price_amount is not None:
         append_line_to_data(
             data,
             quantity=1,
@@ -322,7 +325,7 @@ def get_checkout_lines_data(
 
 
 def get_order_lines_data(
-    order: "Order", config: AvataxConfiguration, invoice_transaction_type: bool = False
+    order: "Order", config: AvataxConfiguration, discounted: bool
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     lines = order.lines.prefetch_related(
@@ -359,31 +362,32 @@ def get_order_lines_data(
             "item_code": line.variant.sku or line.variant.get_global_id(),
             "name": line.variant.product.name,
             "tax_included": tax_included,
+            "discounted": discounted,
         }
         append_line_to_data(
             **append_line_to_data_kwargs,
             amount=price_with_discounts_amount,
         )
 
-    discount_amount = get_total_order_discount(order)
-    if discount_amount:
-        append_line_to_data(
-            data=data,
-            quantity=1,
-            amount=discount_amount.amount * -1,
-            tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
-            item_code="Voucher",
-            name="Order discount",
-            tax_included=True,  # Voucher should be always applied as a gross amount
-        )
-
     shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method=order.shipping_method_id, channel=order.channel_id
     ).first()
     if shipping_method_channel_listing:
+        shipping_discount_amount = Decimal("0")
+        if (
+            order.voucher_id
+            and order.voucher.type == VoucherType.SHIPPING  # type: ignore
+        ):
+            shipping_discount = get_voucher_discount_assigned_to_order(order)
+            if shipping_discount:
+                shipping_discount_amount = shipping_discount.amount_value
+        shipping_price = max(
+            shipping_method_channel_listing.price.amount - shipping_discount_amount,
+            Decimal("0"),
+        )
         append_shipping_to_data(
             data,
-            shipping_method_channel_listing.price.amount,
+            shipping_price,
             config.shipping_tax_code,
         )
     return data
@@ -520,8 +524,9 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
         if not (order.is_draft() or order.is_unconfirmed())
         else TransactionType.ORDER
     )
-    is_invoice_transaction = transaction == TransactionType.INVOICE
-    lines = get_order_lines_data(order, config, is_invoice_transaction)
+    discount_amount = get_total_order_discount_excluding_shipping(order).amount
+    discounted_lines = discount_amount != Decimal("0")
+    lines = get_order_lines_data(order, config, discounted=discounted_lines)
     data = generate_request_data(
         transaction_type=transaction,
         lines=lines,
@@ -530,6 +535,7 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
         customer_email=order.user_email,
         config=config,
         currency=order.currency,
+        discount=discount_amount,
     )
     return data
 
