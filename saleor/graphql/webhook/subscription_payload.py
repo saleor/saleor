@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
@@ -54,10 +55,11 @@ def initialize_context() -> HttpRequest:
     return: HttpRequest
     """
     handler = BaseHandler()
-    context = RequestFactory().request()
+    context = RequestFactory().request(**{"SERVER_NAME": settings.ALLOWED_HOSTS[-1]})
     handler.load_middleware()
     response = handler.get_response(context)
-    assert response.status_code == 200
+    if not response.status_code == 200:
+        raise Exception("Unable to initialize context for webhook.")
     return context
 
 
