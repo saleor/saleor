@@ -1,7 +1,6 @@
 import graphene
 
 from saleor.graphql.core.fields import FilterInputConnectionField
-from .mutations import CreateTransferStock
 from .types import StockNotify
 
 
@@ -13,4 +12,5 @@ class TransferStockQueries(graphene.ObjectType):
 
 
 class TransferStockMutations(graphene.ObjectType):
+    from .mutations import CreateTransferStock
     create_transfer_stock = CreateTransferStock.Field()

@@ -1,4 +1,6 @@
 import graphene
+
+from saleor.graphql.core.types.common import StockError
 from saleor.warehouse import models
 from saleor.graphql.core.mutations import ModelMutation
 from .. import models
@@ -51,7 +53,7 @@ class CreateTransferStock(ModelMutation):
         description = "Creates new transfer stock."
         model = models.StockNotify
         # permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = TransferStockError
+        error_type_class = StockError
         error_type_field = "transfer_stock_error"
 
     @classmethod

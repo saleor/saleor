@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.conf.urls import include, url
+from stock_notification.prefer_import import patch_schema # noqa
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
 
 from .core.views import jwks
 from .graphql.api import schema
-from . import prefer_import  # noqa
 from .graphql.views import GraphQLView
 from .plugins.views import (
     handle_global_plugin_webhook,
