@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
+from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLDocument, get_default_backend, parse
 from graphql.error import GraphQLSyntaxError
 from graphql.language.ast import FragmentDefinition, OperationDefinition
@@ -55,7 +56,9 @@ def initialize_context() -> HttpRequest:
     return: HttpRequest
     """
     handler = BaseHandler()
-    context = RequestFactory().request(**{"SERVER_NAME": settings.ALLOWED_HOSTS[-1]})
+    context = RequestFactory().request(
+        **{"SERVER_NAME": SimpleLazyObject(lambda: settings.ALLOWED_HOSTS[0])}
+    )
     handler.load_middleware()
     response = handler.get_response(context)
     if not response.status_code == 200:
