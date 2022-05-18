@@ -21,6 +21,7 @@ JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
 PERMISSIONS_FIELD = "permissions"
+USER_PERMISSION_FIELD = "user_permissions"
 JWT_SALEOR_OWNER_NAME = "saleor"
 JWT_OWNER_FIELD = "owner"
 
@@ -170,6 +171,7 @@ def _create_access_token_for_third_party_actions(
     additional_payload = {
         object_payload_key: graphene.Node.to_global_id(type, object_id),
         PERMISSIONS_FIELD: list(app_permission_enums & user_permission_enums),
+        USER_PERMISSION_FIELD: list(user_permission_enums),
     }
 
     payload = jwt_user_payload(
