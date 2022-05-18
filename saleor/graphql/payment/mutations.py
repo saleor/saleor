@@ -827,7 +827,7 @@ class TransactionCreate(BaseMutation):
                 )
         transaction = cls.create_transaction(transaction_data)
         if order_id := transaction_data.get("order_id"):
-            cls.add_amounts_to_for_order(order_id, transaction_data)
+            cls.add_amounts_to_order(order_id, transaction_data)
 
         if transaction_event_data:
             cls.create_transaction_event(transaction_event_data, transaction)
