@@ -38,10 +38,8 @@ class TransactionItem(ModelWithMetadata):
 
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
 
-    amount_captured = MoneyField(
-        amount_field="captured_value", currency_field="currency"
-    )
-    captured_value = models.DecimalField(
+    amount_charged = MoneyField(amount_field="charged_value", currency_field="currency")
+    charged_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),

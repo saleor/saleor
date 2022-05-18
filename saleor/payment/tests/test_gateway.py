@@ -14,7 +14,7 @@ from .. import (
     TransactionKind,
     gateway,
 )
-from ..gateway import request_capture_action, request_refund_action, request_void_action
+from ..gateway import request_charge_action, request_refund_action, request_void_action
 from ..interface import GatewayResponse, TransactionActionData
 from ..models import TransactionItem
 from ..utils import create_payment_information
@@ -347,10 +347,10 @@ def test_request_capture_action_missing_active_event(
 
     # when & then
     with pytest.raises(PaymentError):
-        request_capture_action(
+        request_charge_action(
             transaction=transaction,
             manager=get_plugins_manager(),
-            capture_value=action_value,
+            charge_value=action_value,
             channel_slug=order.channel.slug,
             user=staff_user,
             app=None,
@@ -376,10 +376,10 @@ def test_request_capture_action_on_order(
     action_value = Decimal("5.00")
 
     # when
-    request_capture_action(
+    request_charge_action(
         transaction=transaction,
         manager=get_plugins_manager(),
-        capture_value=action_value,
+        charge_value=action_value,
         channel_slug=order.channel.slug,
         user=staff_user,
         app=None,
@@ -390,7 +390,7 @@ def test_request_capture_action_on_order(
     mocked_transaction_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
+            action_type=TransactionAction.CHARGE,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
@@ -422,10 +422,10 @@ def test_request_capture_action_by_app(
     action_value = Decimal("5.00")
 
     # when
-    request_capture_action(
+    request_charge_action(
         transaction=transaction,
         manager=get_plugins_manager(),
-        capture_value=action_value,
+        charge_value=action_value,
         channel_slug=order.channel.slug,
         user=AnonymousUser(),  # type: ignore
         app=app,
@@ -436,7 +436,7 @@ def test_request_capture_action_by_app(
     mocked_transaction_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
+            action_type=TransactionAction.CHARGE,
             action_value=action_value,
         ),
         channel_slug=order.channel.slug,
@@ -468,10 +468,10 @@ def test_request_capture_action_on_checkout(
     action_value = Decimal("5.00")
 
     # when
-    request_capture_action(
+    request_charge_action(
         transaction=transaction,
         manager=get_plugins_manager(),
-        capture_value=action_value,
+        charge_value=action_value,
         channel_slug=checkout.channel.slug,
         user=staff_user,
         app=None,
@@ -482,7 +482,7 @@ def test_request_capture_action_on_checkout(
     mocked_transaction_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
+            action_type=TransactionAction.CHARGE,
             action_value=action_value,
         ),
         channel_slug=checkout.channel.slug,
@@ -501,7 +501,7 @@ def test_request_refund_action_missing_active_event(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
     mocked_is_active.return_value = False
     action_value = Decimal("5.00")
@@ -531,7 +531,7 @@ def test_request_refund_action_on_order(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
     mocked_is_active.return_value = True
     action_value = Decimal("5.00")
@@ -577,7 +577,7 @@ def test_request_refund_action_by_app(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
     mocked_is_active.return_value = True
     action_value = Decimal("5.00")
@@ -624,7 +624,7 @@ def test_request_refund_action_on_checkout(
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
     mocked_is_active.return_value = True
     action_value = Decimal("5.00")
