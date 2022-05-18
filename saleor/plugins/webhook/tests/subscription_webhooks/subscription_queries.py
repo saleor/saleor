@@ -147,21 +147,27 @@ VOUCHER_CREATED_WITH_META = (
     + """
     subscription{
       event{
+        __typename
+        issuedAt
+        version
+        issuingPrincipal{
+          __typename
+          ...on App{
+            id
+            name
+          }
+          ...on User{
+            id
+            email
+          }
+        }
+        recipient{
+          id
+          name
+        }
         ...on VoucherCreated{
           voucher{
             ...VoucherDetails
-          }
-          meta{
-            issuedAt
-            version
-            issuingPrincipal{
-              id
-              type
-            }
-            app{
-              id
-              name
-            }
           }
         }
       }

@@ -1,9 +1,10 @@
 import json
 
 import graphene
+from django.utils import timezone
 
+from ..... import __version__
 from .....product.models import Product
-from .....webhook.payloads import generate_meta, generate_requestor
 
 
 def generate_app_payload(app, app_global_id):
@@ -261,26 +262,41 @@ def generate_voucher_payload(voucher, voucher_global_id):
     )
 
 
-def generate_voucher_payload_with_meta(
-    voucher, voucher_global_id, requestor, webhook_app
+def generate_voucher_created_payload_with_meta(
+    voucher, voucher_global_id, requestor, requestor_type, webhook_app
 ):
-    meta = generate_meta(requestor_data=generate_requestor(requestor), camel_case=True)
-    meta["app"] = {
-        "id": graphene.Node.to_global_id("App", webhook_app.id),
-        "name": webhook_app.name,
+    data = {
+        "__typename": "VoucherCreated",
+        "issuedAt": timezone.now().isoformat(),
+        "version": __version__,
+        "issuingPrincipal": None,
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", webhook_app.id),
+            "name": webhook_app.name,
+        },
+        "voucher": {
+            "id": voucher_global_id,
+            "name": voucher.name,
+            "code": voucher.code,
+            "usageLimit": voucher.usage_limit,
+        },
     }
 
-    return json.dumps(
-        {
-            "voucher": {
-                "id": voucher_global_id,
-                "name": voucher.name,
-                "code": voucher.code,
-                "usageLimit": voucher.usage_limit,
-            },
-            "meta": meta,
+    if requestor_type == "user":
+        data["issuingPrincipal"] = {
+            "__typename": "User",
+            "id": graphene.Node.to_global_id("User", requestor.id),
+            "email": requestor.email,
         }
-    )
+
+    if requestor_type == "app":
+        data["issuingPrincipal"] = {
+            "__typename": "App",
+            "id": graphene.Node.to_global_id("App", requestor.id),
+            "name": requestor.name,
+        }
+
+    return json.dumps(data)
 
 
 def generate_gift_card_payload(gift_card, card_global_id):

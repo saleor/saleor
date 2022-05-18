@@ -27,29 +27,37 @@ from .payloads import (
     generate_page_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
+    generate_voucher_created_payload_with_meta,
     generate_voucher_payload,
-    generate_voucher_payload_with_meta,
     generate_warehouse_payload,
 )
 
 
 @freeze_time("2022-05-12 12:00:00")
+@pytest.mark.parametrize("requestor_type", ["user", "app", None])
 def test_subscription_query_with_meta(
-    voucher, staff_user, subscription_voucher_webhook_with_meta
+    requestor_type, voucher, staff_user, app, subscription_voucher_webhook_with_meta
 ):
     # given
+    requestor_map = {"user": staff_user, "app": app, None: None}
     webhooks = [subscription_voucher_webhook_with_meta]
     event_type = WebhookEventAsyncType.VOUCHER_CREATED
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
 
+    requestor = requestor_map[requestor_type]
+
     # when
     deliveries = create_deliveries_for_subscriptions(
-        event_type, voucher, webhooks, staff_user
+        event_type, voucher, webhooks, requestor
     )
 
     # then
-    expected_payload = generate_voucher_payload_with_meta(
-        voucher, voucher_id, staff_user, subscription_voucher_webhook_with_meta.app
+    expected_payload = generate_voucher_created_payload_with_meta(
+        voucher,
+        voucher_id,
+        requestor,
+        requestor_type,
+        subscription_voucher_webhook_with_meta.app,
     )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
