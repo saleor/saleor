@@ -57,7 +57,7 @@ def initialize_context() -> HttpRequest:
     """
     handler = BaseHandler()
     context = RequestFactory().request(
-        **{"SERVER_NAME": SimpleLazyObject(lambda: settings.ALLOWED_HOSTS[0])}
+        SERVER_NAME=SimpleLazyObject(lambda: settings.ALLOWED_HOSTS[0])
     )
     handler.load_middleware()
     response = handler.get_response(context)
