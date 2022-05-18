@@ -26,7 +26,7 @@ PRODUCT_FIELDS_TO_PREFETCH = [
 
 
 def update_products_search_vector(products: "QuerySet"):
-    batch_size = 50
+    batch_size = 300
     last_id = 0
     while True:
         products_batch = list(

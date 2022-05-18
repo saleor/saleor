@@ -15,7 +15,7 @@ from ..product.search import (
 
 task_logger = get_task_logger(__name__)
 
-BATCH_SIZE = 1000
+BATCH_SIZE = 500
 
 
 @app.task
