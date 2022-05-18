@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from typing import List, Optional, Union
 
@@ -16,6 +17,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
+from ...order.utils import add_to_order_total_authorized_and_total_charged
 from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
 from ...payment import models as payment_models
 from ...payment.error_codes import (
@@ -789,6 +791,19 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
+    def add_amounts_to_order(cls, order_id: uuid.UUID, transaction_data: dict):
+        authorized_amount = transaction_data.get("authorized_value", 0)
+        charged_amount = transaction_data.get("captured_value", 0)
+        if not authorized_amount and not charged_amount:
+            return
+        add_to_order_total_authorized_and_total_charged(
+            order_id=order_id,
+            authorized_amount_to_add=transaction_data.get("authorized_value", 0),
+            # FIXME after changing captured value into charged value
+            charged_amount_to_add=transaction_data.get("captured_value", 0),
+        )
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
@@ -811,6 +826,9 @@ class TransactionCreate(BaseMutation):
                     name=transaction_event_data.get("name", ""),
                 )
         transaction = cls.create_transaction(transaction_data)
+        if order_id := transaction_data.get("order_id"):
+            cls.add_amounts_to_for_order(order_id, transaction_data)
+
         if transaction_event_data:
             cls.create_transaction_event(transaction_event_data, transaction)
         return TransactionCreate(transaction=transaction)
@@ -865,6 +883,34 @@ class TransactionUpdate(TransactionCreate):
         )
 
     @classmethod
+    def update_amounts_for_order(
+        cls,
+        transaction: payment_models.TransactionItem,
+        order_id: uuid.UUID,
+        transaction_data: dict,
+    ):
+        current_authorized_amount = transaction.authorized_value
+        updated_authorized_amount = transaction_data.get(
+            "authorized_value", current_authorized_amount
+        )
+        authorized_amount_to_add = updated_authorized_amount - current_authorized_amount
+
+        # FIXME rename to charged
+        current_charged_amount = transaction.captured_value
+        updated_charged_amount = transaction_data.get(
+            "captured_value", current_charged_amount
+        )
+        charged_amount_to_add = updated_charged_amount - current_charged_amount
+
+        if not authorized_amount_to_add and not charged_amount_to_add:
+            return
+        add_to_order_total_authorized_and_total_charged(
+            order_id=order_id,
+            authorized_amount_to_add=authorized_amount_to_add,
+            charged_amount_to_add=charged_amount_to_add,
+        )
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         instance = cls.get_node_or_error(info, instance_id, only_type=TransactionItem)
@@ -875,6 +921,9 @@ class TransactionUpdate(TransactionCreate):
             cls.cleanup_metadata_data(transaction_data)
             instance = cls.construct_instance(instance, transaction_data)
             instance.save()
+
+        if order_id := instance.order_id and transaction_data:
+            cls.update_amounts_for_order(instance, order_id, transaction_data)
 
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)

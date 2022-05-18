@@ -492,13 +492,13 @@ def test_order_queryset_to_ship(settings, channel_USD):
         Order.objects.create(
             status=OrderStatus.UNFULFILLED,
             total=total,
-            total_paid_amount=total.gross.amount,
+            total_charged_amount=total.gross.amount,
             channel=channel_USD,
         ),
         Order.objects.create(
             status=OrderStatus.PARTIALLY_FULFILLED,
             total=total,
-            total_paid_amount=total.gross.amount,
+            total_charged_amount=total.gross.amount,
             channel=channel_USD,
         ),
     ]

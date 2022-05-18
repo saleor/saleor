@@ -118,6 +118,8 @@ from .dataloaders import (
 )
 from .enums import (
     FulfillmentStatusEnum,
+    OrderAuthorizeStatusEnum,
+    OrderChargeStatusEnum,
     OrderEventsEmailsEnum,
     OrderEventsEnum,
     OrderOriginEnum,
@@ -809,6 +811,12 @@ class Order(ModelObjectType):
     payment_status_display = graphene.String(
         description="User-friendly payment status.", required=True
     )
+    authorize_status = OrderAuthorizeStatusEnum(
+        description="The authorize status of the order.", required=True
+    )
+    charge_status = OrderChargeStatusEnum(
+        description="The charge status of the order.", required=True
+    )
     transactions = NonNullList(
         TransactionItem,
         description=(
@@ -1145,7 +1153,7 @@ class Order(ModelObjectType):
                 for transaction in transactions:
                     captured_money += transaction.amount_captured
                 return quantize_price(captured_money, root.currency)
-            return root.total_paid
+            return root.total_charged
 
         return (
             TransactionItemsByOrderIDLoader(info.context)
@@ -1229,6 +1237,30 @@ class Order(ModelObjectType):
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
         payments = PaymentsByOrderIdLoader(info.context).load(root.id)
         return Promise.all([transactions, payments]).then(_resolve_payment_status)
+
+    @staticmethod
+    def resolve_authorize_status(root: models.Order, info):
+        total_covered = quantize_price(
+            root.total_authorized_amount + root.total_charged_amount, root.currency
+        )
+        total_gross = quantize_price(root.total_gross_amount, root.currency)
+        if total_covered == 0:
+            return OrderAuthorizeStatusEnum.NONE
+        if total_covered >= total_gross:
+            return OrderAuthorizeStatusEnum.FULL
+        return OrderAuthorizeStatusEnum.PARTIAL
+
+    @staticmethod
+    def resolve_charge_status(root: models.Order, info):
+        total_charged = quantize_price(root.total_charged_amount, root.currency)
+        total_gross = quantize_price(root.total_gross_amount, root.currency)
+        if total_charged <= 0:
+            return OrderChargeStatusEnum.NONE
+        if total_charged < total_gross:
+            return OrderChargeStatusEnum.PARTIAL
+        if total_charged == total_gross:
+            return OrderChargeStatusEnum.FULL
+        return OrderChargeStatusEnum.OVERCHARGED
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):

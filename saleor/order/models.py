@@ -61,7 +61,7 @@ class OrderQueryset(models.QuerySet):
         return self.filter(
             Exists(payments.filter(order_id=OuterRef("id"))),
             status__in=statuses,
-            total_gross_amount__lte=F("total_paid_amount"),
+            total_gross_amount__lte=F("total_charged_amount"),
         )
 
     def ready_to_capture(self):
@@ -237,12 +237,22 @@ class Order(ModelWithMetadata):
         currency_field="currency",
     )
 
-    total_paid_amount = models.DecimalField(
+    total_charged_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
-    total_paid = MoneyField(amount_field="total_paid_amount", currency_field="currency")
+    total_authorized_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    total_authorized = MoneyField(
+        amount_field="total_authorized_amount", currency_field="currency"
+    )
+    total_charged = MoneyField(
+        amount_field="total_charged_amount", currency_field="currency"
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
@@ -281,19 +291,34 @@ class Order(ModelWithMetadata):
         ]
 
     def is_fully_paid(self):
-        return self.total_paid >= self.total.gross
+        return self.total_charged >= self.total.gross
 
     def is_partly_paid(self):
-        return self.total_paid_amount > 0
+        return self.total_charged_amount > 0
 
     def get_customer_email(self):
         return self.user.email if self.user_id else self.user_email
 
-    def update_total_paid(self):
-        self.total_paid_amount = (
+    def update_total_charged(self, with_save=True):
+        self.total_charged_amount = (
             sum(self.payments.values_list("captured_amount", flat=True)) or 0
         )
-        self.save(update_fields=["total_paid_amount", "updated_at"])
+        self.total_charged_amount += (
+            sum(self.payment_transactions.values_list("captured_value", flat=True)) or 0
+        )
+        if with_save:
+            self.save(update_fields=["total_charged_amount", "updated_at"])
+
+    def update_total_authorized(self, with_save=True):
+        self.total_authorized_amount = get_total_authorized(
+            self.payments.all(), self.currency
+        ).amount
+        self.total_authorized_amount += (
+            sum(self.payment_transactions.values_list("authorized_value", flat=True))
+            or 0
+        )
+        if with_save:
+            self.save(update_fields=["total_authorized_amount", "updated_at"])
 
     def _index_billing_phone(self):
         return self.billing_address.phone
@@ -397,16 +422,8 @@ class Order(ModelWithMetadata):
         return len(payments) == 0
 
     @property
-    def total_authorized(self):
-        return get_total_authorized(self.payments.all(), self.currency)
-
-    @property
-    def total_captured(self):
-        return self.total_paid
-
-    @property
     def total_balance(self):
-        return self.total_captured - self.total.gross
+        return self.total_charged - self.total.gross
 
     def get_total_weight(self, _lines=None):
         return self.weight

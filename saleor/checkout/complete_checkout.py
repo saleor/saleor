@@ -536,7 +536,8 @@ def _create_order(
     order.metadata = checkout.metadata
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
-    order.update_total_paid()
+    order.update_total_authorized(with_save=False)
+    order.update_total_charged(with_save=False)
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
@@ -1064,6 +1065,8 @@ def _create_order_from_checkout(
     checkout_info.checkout.payment_transactions.update(order=order, checkout_id=None)
 
     # order search
+    order.update_total_authorized(with_save=False)
+    order.update_total_charged(with_save=False)
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 

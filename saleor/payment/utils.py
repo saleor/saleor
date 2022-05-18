@@ -424,7 +424,6 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
     changed_fields = changed_fields or []
 
     transaction_kind = transaction.kind
-
     if transaction_kind in {
         TransactionKind.CAPTURE,
         TransactionKind.REFUND_REVERSED,
@@ -472,8 +471,10 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
-    if "captured_amount" in changed_fields and payment.order:
-        payment.order.update_total_paid()
+    if "captured_amount" in changed_fields and payment.order_id:
+        payment.order.update_total_charged()
+    if transaction_kind == TransactionKind.AUTH and payment.order_id:
+        payment.order.update_total_authorized()
 
 
 def fetch_customer_id(user: User, gateway: str):

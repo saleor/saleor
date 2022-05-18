@@ -1,10 +1,12 @@
 import copy
+import uuid
 from decimal import Decimal
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.conf import settings
+from django.db.models import F
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
@@ -1009,4 +1011,15 @@ def remove_discount_from_order_line(
             "total_price_gross_amount",
             "tax_rate",
         ]
+    )
+
+
+def add_to_order_total_authorized_and_total_charged(
+    order_id: uuid.UUID,
+    authorized_amount_to_add: Decimal,
+    charged_amount_to_add: Decimal,
+):
+    Order.objects.filter(id=order_id).update(
+        total_authorized_amount=F("total_authorized_amount") + authorized_amount_to_add,
+        total_charged_amount=F("total_charged_amount") + charged_amount_to_add,
     )

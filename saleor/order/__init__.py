@@ -214,6 +214,55 @@ class OrderEventsEmails:
     ]
 
 
+class OrderAuthorizeStatus:
+    """Determine a current authorize status for order.
+
+    NONE - the funds are not authorized
+    PARTIAL - the funds that are authorized or charged don't cover fully the order's
+    total
+    FULL - the funds that are authorized or charged fully cover the order's total
+    """
+
+    NONE = "none"
+    PARTIAL = "partial"
+    FULL = "full"
+
+    CHOICES = [
+        (NONE, "The funds are not authorized"),
+        (
+            PARTIAL,
+            "The funds that are authorized or charged don't cover fully the order's "
+            "total",
+        ),
+        (
+            FULL,
+            "The funds that are authorized or charged fully cover the order's total",
+        ),
+    ]
+
+
+class OrderChargeStatus:
+    """Determine the current charge status for the order.
+
+    NONE - the funds are not charged.
+    PARTIAL - the funds that are charged don't cover the order's total
+    FULL - the funds that are charged fully cover the order's total
+    OVERPAID - the charged funds are bigger than order's total
+    """
+
+    NONE = "none"
+    PARTIAL = "partial"
+    FULL = "full"
+    OVERCHARGED = "overcharged"
+
+    CHOICES = [
+        (NONE, "The funds are not charged."),
+        (PARTIAL, "The funds that are charged, don't cover the order's total"),
+        (FULL, "The funds that are charged fully cover the order's total"),
+        (OVERCHARGED, "The charged funds are bigger than order's total"),
+    ]
+
+
 @dataclass
 class FulfillmentLineData:
     line: "FulfillmentLine"

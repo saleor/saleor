@@ -7988,6 +7988,12 @@ type Order implements Node & ObjectWithMetadata {
   """User-friendly payment status."""
   paymentStatusDisplay: String!
 
+  """The authorize status of the order."""
+  authorizeStatus: OrderAuthorizeStatusEnum!
+
+  """The charge status of the order."""
+  chargeStatus: OrderChargeStatusEnum!
+
   """
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
   
@@ -8388,6 +8394,35 @@ enum PaymentChargeStatusEnum {
   FULLY_REFUNDED
   REFUSED
   CANCELLED
+}
+
+"""
+Determine a current authorize status for order.
+
+    NONE - the funds are not authorized
+    PARTIAL - the funds that are authorized or charged don't cover fully the order's
+    total
+    FULL - the funds that are authorized or charged fully cover the order's total
+"""
+enum OrderAuthorizeStatusEnum {
+  NONE
+  PARTIAL
+  FULL
+}
+
+"""
+Determine the current charge status for the order.
+
+    NONE - the funds are not charged.
+    PARTIAL - the funds that are charged don't cover the order's total
+    FULL - the funds that are charged fully cover the order's total
+    OVERPAID - the charged funds are bigger than order's total
+"""
+enum OrderChargeStatusEnum {
+  NONE
+  PARTIAL
+  FULL
+  OVERCHARGED
 }
 
 """Represents a payment of a given type."""
