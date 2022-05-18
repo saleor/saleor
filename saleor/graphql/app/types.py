@@ -212,23 +212,19 @@ class App(ModelObjectType):
     tokens = NonNullList(
         AppToken,
         description=(
-            f"""Last 4 characters of the tokens.{
-                message_one_of_permissions_required(
-                    [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
-                )
-            }
-            """
+            "Last 4 characters of the tokens."
+            + message_one_of_permissions_required(
+                [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
         ),
     )
     webhooks = NonNullList(
         Webhook,
         description=(
-            f"""List of webhooks assigned to this app.{
-                message_one_of_permissions_required(
-                    [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
-                )
-            }
-            """
+            "List of webhooks assigned to this app."
+            + message_one_of_permissions_required(
+                [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
         ),
     )
 
