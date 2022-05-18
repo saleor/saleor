@@ -1050,7 +1050,7 @@ type Query {
   """
   List of the apps.
   
-  Requires one of the following permissions: MANAGE_APPS.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, MANAGE_APPS.
   """
   apps(
     """Filtering options for apps."""
@@ -1073,7 +1073,9 @@ type Query {
   ): AppCountableConnection
 
   """
-  Look up an app by ID. If ID is not provided, return the currently authenticated app. Requires one of the following permissions: OWNER, MANAGE_APPS.
+  Look up an app by ID. If ID is not provided, return the currently authenticated app.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER AUTHENTICATED_APP. The authenticated app has access to its resources. Fetching different apps requires MANAGE_APPS permission.
   """
   app(
     """ID of the app."""
@@ -1834,10 +1836,18 @@ type App implements Node & ObjectWithMetadata {
   """Type of the app."""
   type: AppTypeEnum
 
-  """Last 4 characters of the tokens."""
+  """
+  Last 4 characters of the tokens.
+  
+  Requires one of the following permissions: MANAGE_APPS, OWNER.
+  """
   tokens: [AppToken!]
 
-  """List of webhooks assigned to this app."""
+  """
+  List of webhooks assigned to this app.
+  
+  Requires one of the following permissions: MANAGE_APPS, OWNER.
+  """
   webhooks: [Webhook!]
 
   """Description of this app."""

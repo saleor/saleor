@@ -9,12 +9,14 @@ from django.utils.functional import SimpleLazyObject
 from ..account.models import User
 from ..app.models import App, AppToken
 from ..core.auth import get_token_from_request
+from ..core.jwt import jwt_decode_with_exception_handler
 from .api import API_PATH
 
 
 def get_context_value(request):
     set_app_on_context(request)
     set_auth_on_context(request)
+    set_decoded_auth_token(request)
     return request
 
 
@@ -37,6 +39,12 @@ def get_app(raw_auth_token) -> Optional[App]:
     return App.objects.filter(
         Exists(tokens.filter(id__in=token_ids, app_id=OuterRef("pk"))), is_active=True
     ).first()
+
+
+def set_decoded_auth_token(request):
+    token = get_token_from_request(request)
+    decoded_auth_token = jwt_decode_with_exception_handler(token)
+    request.decoded_auth_token = decoded_auth_token
 
 
 def set_app_on_context(request):
