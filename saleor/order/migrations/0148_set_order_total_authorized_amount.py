@@ -38,17 +38,16 @@ def set_total_authorized_amount(apps, _schema_editor):
         )
     ).values("total_authorized")
 
-    transaction_items_total_captured_amount = transaction_items.annotate(
-        total_captured=models.Sum("captured_value", output_field=models.DecimalField())
-    ).values("total_captured")
+    transaction_items_total_charged_amount = transaction_items.annotate(
+        total_charged=models.Sum("charged_value", output_field=models.DecimalField())
+    ).values("total_charged")
     order_ids = TransactionItem.objects.all().values_list("order_id", flat=True)
 
-    # FIXME after rename of capture_amount to charged_amount will be merged
     Order.objects.filter(id__in=order_ids).update(
         total_authorized_amount=models.F("total_authorized_amount")
         + models.Subquery(transaction_items_total_authorized_amount),
         total_charged_amount=models.F("total_charged_amount")
-        + models.Subquery(transaction_items_total_captured_amount),
+        + models.Subquery(transaction_items_total_charged_amount),
     )
 
 
@@ -56,7 +55,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("order", "0147_add_total_charged_and_total_authorized"),
-        ("payment", "0035_auto_20220421_0615"),
+        ("payment", "0036_auto_20220518_0732"),
     ]
 
     operations = [

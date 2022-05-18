@@ -7780,8 +7780,8 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """Total amount voided for this payment."""
   voidedAmount: Money!
 
-  """Total amount captured for this payment."""
-  capturedAmount: Money!
+  """Total amount charged for this payment."""
+  chargedAmount: Money!
 
   """Status of transaction."""
   status: String!
@@ -7800,12 +7800,12 @@ type TransactionItem implements Node & ObjectWithMetadata {
 Represents possible actions on payment transaction.
 
     The following actions are possible:
-    CAPTURE - Represents the capture action.
+    CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
     VOID - Represents a void action.
 """
 enum TransactionActionEnum {
-  CAPTURE
+  CHARGE
   REFUND
   VOID
 }
@@ -16101,8 +16101,8 @@ input TransactionCreateInput {
   """Amount authorized by this transaction."""
   amountAuthorized: MoneyInput
 
-  """Amount captured by this transaction."""
-  amountCaptured: MoneyInput
+  """Amount charged by this transaction."""
+  amountCharged: MoneyInput
 
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
@@ -16186,8 +16186,8 @@ input TransactionUpdateInput {
   """Amount authorized by this transaction."""
   amountAuthorized: MoneyInput
 
-  """Amount captured by this transaction."""
-  amountCaptured: MoneyInput
+  """Amount charged by this transaction."""
+  amountCharged: MoneyInput
 
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput

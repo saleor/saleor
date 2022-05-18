@@ -357,7 +357,7 @@ query OrdersQuery {
                         currency
                         amount
                     }
-                    capturedAmount{
+                    chargedAmount{
                         currency
                         amount
                     }
@@ -604,7 +604,7 @@ def test_order_query_with_transactions_details(
                 reference="123",
                 currency="USD",
                 authorized_value=Decimal("15"),
-                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
             ),
             TransactionItem(
                 order_id=order.id,
@@ -613,7 +613,7 @@ def test_order_query_with_transactions_details(
                 reference="321",
                 currency="USD",
                 authorized_value=Decimal("10"),
-                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
             ),
             TransactionItem(
                 order_id=order.id,
@@ -621,7 +621,7 @@ def test_order_query_with_transactions_details(
                 type="Credit card",
                 reference="321",
                 currency="USD",
-                captured_value=Decimal("15"),
+                charged_value=Decimal("15"),
                 available_actions=[TransactionAction.REFUND],
             ),
         ]
@@ -5834,7 +5834,7 @@ def test_order_capture(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_order_capture_with_transaction_action_request(
+def test_order_charge_with_transaction_action_request(
     mocked_transaction_action_request,
     mocked_is_active,
     staff_api_client,
@@ -5846,16 +5846,16 @@ def test_order_capture_with_transaction_action_request(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
     )
-    capture_value = Decimal(5.0)
+    charge_value = Decimal(5.0)
     mocked_is_active.return_value = True
     order_id = to_global_id_or_none(order)
 
-    variables = {"id": order_id, "amount": capture_value}
+    variables = {"id": order_id, "amount": charge_value}
 
     # when
     response = staff_api_client.post_graphql(
@@ -5871,15 +5871,15 @@ def test_order_capture_with_transaction_action_request(
     mocked_transaction_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
-            action_value=capture_value,
+            action_type=TransactionAction.CHARGE,
+            action_value=charge_value,
         ),
         channel_slug=order.channel.slug,
     )
 
     event = order.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
-    assert Decimal(event.parameters["amount"]) == capture_value
+    assert Decimal(event.parameters["amount"]) == charge_value
     assert event.parameters["reference"] == transaction.reference
 
 
@@ -6312,7 +6312,7 @@ def test_order_refund_with_transaction_action_request_missing_event(
     mocked_is_active, staff_api_client, permission_manage_orders, order
 ):
     # given
-    captured_value = Decimal("10")
+    authorized_value = Decimal("10")
     TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
@@ -6320,12 +6320,12 @@ def test_order_refund_with_transaction_action_request_missing_event(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        authorized_value=captured_value,
+        authorized_value=authorized_value,
     )
     mocked_is_active.return_value = False
 
     order_id = to_global_id_or_none(order)
-    variables = {"id": order_id, "amount": captured_value}
+    variables = {"id": order_id, "amount": authorized_value}
 
     # when
     response = staff_api_client.post_graphql(

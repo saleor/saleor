@@ -1312,7 +1312,7 @@ def test_generate_meta(app, rf):
 @pytest.mark.parametrize(
     "action_type, action_value",
     [
-        (TransactionAction.CAPTURE, Decimal("5.000")),
+        (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
         (TransactionAction.VOID, None),
     ],
@@ -1364,7 +1364,7 @@ def test_generate_transaction_action_request_payload_for_order(
             "reference": transaction.reference,
             "available_actions": transaction.available_actions,
             "currency": currency,
-            "captured_value": str(quantize_price(transaction.captured_value, currency)),
+            "charged_value": str(quantize_price(transaction.charged_value, currency)),
             "authorized_value": str(
                 quantize_price(transaction.authorized_value, currency)
             ),
@@ -1388,7 +1388,7 @@ def test_generate_transaction_action_request_payload_for_order(
 @pytest.mark.parametrize(
     "action_type, action_value",
     [
-        (TransactionAction.CAPTURE, Decimal("5.000")),
+        (TransactionAction.CHARGE, Decimal("5.000")),
         (TransactionAction.REFUND, Decimal("9.000")),
         (TransactionAction.VOID, None),
     ],
@@ -1440,7 +1440,7 @@ def test_generate_transaction_action_request_payload_for_checkout(
             "reference": transaction.reference,
             "available_actions": transaction.available_actions,
             "currency": currency,
-            "captured_value": str(quantize_price(transaction.captured_value, currency)),
+            "charged_value": str(quantize_price(transaction.charged_value, currency)),
             "authorized_value": str(
                 quantize_price(transaction.authorized_value, currency)
             ),

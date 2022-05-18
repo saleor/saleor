@@ -10912,15 +10912,11 @@
       "background_image_alt": "",
       "description": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+            "data": {
+                "text": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader."
+            },
+            "type": "paragraph"
+        }]
       }
     }
   },

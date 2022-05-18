@@ -1105,7 +1105,7 @@ def test_transaction_action_request(
     action_value = Decimal("5.00")
     transaction_action_data = TransactionActionData(
         transaction=transaction,
-        action_type=TransactionAction.CAPTURE,
+        action_type=TransactionAction.CHARGE,
         action_value=action_value,
     )
 

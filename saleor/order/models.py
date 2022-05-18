@@ -304,7 +304,7 @@ class Order(ModelWithMetadata):
             sum(self.payments.values_list("captured_amount", flat=True)) or 0
         )
         self.total_charged_amount += (
-            sum(self.payment_transactions.values_list("captured_value", flat=True)) or 0
+            sum(self.payment_transactions.values_list("charged_value", flat=True)) or 0
         )
         if with_save:
             self.save(update_fields=["total_charged_amount", "updated_at"])
