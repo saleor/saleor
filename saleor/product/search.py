@@ -26,13 +26,23 @@ PRODUCT_FIELDS_TO_PREFETCH = [
 
 
 def update_products_search_vector(products: "QuerySet"):
-    products = products.prefetch_related(*PRODUCT_FIELDS_TO_PREFETCH)
-    for product in products:
-        product.search_vector = prepare_product_search_vector_value(
-            product, already_prefetched=True
+    batch_size = 50
+    last_id = 0
+    while True:
+        products_batch = list(
+            products.order_by("id").filter(id__gt=last_id)[:batch_size]
         )
+        if not products_batch:
+            break
+        last_id = products_batch[-1].id
 
-    Product.objects.bulk_update(products, ["search_vector", "updated_at"])
+        prefetch_related_objects(products_batch, *PRODUCT_FIELDS_TO_PREFETCH)
+        for product in products_batch:
+            product.search_vector = prepare_product_search_vector_value(
+                product, already_prefetched=True
+            )
+
+        Product.objects.bulk_update(products_batch, ["search_vector", "updated_at"])
 
 
 def update_product_search_vector(product: "Product"):
