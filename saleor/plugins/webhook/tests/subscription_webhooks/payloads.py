@@ -370,7 +370,6 @@ def generate_warehouse_payload(warehouse, warehouse_global_id):
                     ]
                 },
                 "address": {"companyName": warehouse.address.company_name},
-            },
-            "meta": None,
+            }
         }
     )

@@ -140,6 +140,9 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.VOUCHER_CREATED: VoucherCreated,
             WebhookEventAsyncType.VOUCHER_UPDATED: VoucherUpdated,
             WebhookEventAsyncType.VOUCHER_DELETED: VoucherDeleted,
+            WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,
+            WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
+            WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
         }
         return types.get(object_type)
 
@@ -182,6 +185,7 @@ class AppBase(AbstractType):
 class AppInstalled(ObjectType, AppBase):
     class Meta:
         interfaces = (Event,)
+
 
 class AppUpdated(ObjectType, AppBase):
     class Meta:
@@ -848,31 +852,6 @@ class TranslationUpdated(ObjectType, TranslationBase):
         interfaces = (Event,)
 
 
-class WarehouseBase(AbstractType):
-    warehouse = graphene.Field(
-        "saleor.graphql.warehouse.types.Warehouse",
-        description="Look up a warehouse." + ADDED_IN_34 + PREVIEW_FEATURE,
-    )
-
-    @staticmethod
-    def resolve_warehouse(root, _info):
-        _, warehouse = root
-        return warehouse
-
-
-class WarehouseCreated(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-
-class WarehouseUpdated(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-
-class WarehouseDeleted(ObjectType, WarehouseBase):
-    class Meta:
-        interfaces = (Event,)
-
-
 class VoucherBase(AbstractType):
     voucher = graphene.Field(
         "saleor.graphql.discount.types.Voucher",
@@ -899,6 +878,33 @@ class VoucherUpdated(ObjectType, VoucherBase):
 
 
 class VoucherDeleted(ObjectType, VoucherBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class WarehouseBase(AbstractType):
+    warehouse = graphene.Field(
+        "saleor.graphql.warehouse.types.Warehouse",
+        description="Look up a warehouse." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_warehouse(root, _info):
+        _, warehouse = root
+        return warehouse
+
+
+class WarehouseCreated(ObjectType, WarehouseBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class WarehouseUpdated(ObjectType, WarehouseBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class WarehouseDeleted(ObjectType, WarehouseBase):
     class Meta:
         interfaces = (Event,)
 
@@ -986,4 +992,7 @@ SUBSCRIPTION_EVENTS_TYPES = [
     VoucherCreated,
     VoucherUpdated,
     VoucherDeleted,
+    WarehouseCreated,
+    WarehouseUpdated,
+    WarehouseDeleted,
 ]
