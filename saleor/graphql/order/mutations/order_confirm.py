@@ -8,7 +8,7 @@ from ....order.actions import order_captured, order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, gateway
-from ....payment.gateway import request_capture_action
+from ....payment.gateway import request_charge_action
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ..types import Order
@@ -66,10 +66,10 @@ class OrderConfirm(ModelMutation):
                 # We use the last transaction as we don't have a possibility to
                 # provide way of handling multiple transaction here
                 payment_transaction = payment_transactions[-1]
-                request_capture_action(
+                request_charge_action(
                     transaction=payment_transaction,
                     manager=info.context.plugins,
-                    capture_value=payment_transaction.captured_value,
+                    charge_value=payment_transaction.authorized_value,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
                     app=info.context.app,

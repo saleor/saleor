@@ -357,7 +357,7 @@ query OrdersQuery {
                         currency
                         amount
                     }
-                    capturedAmount{
+                    chargedAmount{
                         currency
                         amount
                     }
@@ -604,7 +604,7 @@ def test_order_query_with_transactions_details(
                 reference="123",
                 currency="USD",
                 authorized_value=Decimal("15"),
-                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
             ),
             TransactionItem(
                 order_id=order.id,
@@ -613,7 +613,7 @@ def test_order_query_with_transactions_details(
                 reference="321",
                 currency="USD",
                 authorized_value=Decimal("10"),
-                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
             ),
             TransactionItem(
                 order_id=order.id,
@@ -621,7 +621,7 @@ def test_order_query_with_transactions_details(
                 type="Credit card",
                 reference="321",
                 currency="USD",
-                captured_value=Decimal("15"),
+                charged_value=Decimal("15"),
                 available_actions=[TransactionAction.REFUND],
             ),
         ]
@@ -5871,7 +5871,7 @@ def test_order_capture_with_transaction_action_request(
     mocked_transaction_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
+            action_type=TransactionAction.CHARGE,
             action_value=capture_value,
         ),
         channel_slug=order.channel.slug,
@@ -6312,7 +6312,7 @@ def test_order_refund_with_transaction_action_request_missing_event(
     mocked_is_active, staff_api_client, permission_manage_orders, order
 ):
     # given
-    captured_value = Decimal("10")
+    authorized_value = Decimal("10")
     TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
@@ -6320,12 +6320,12 @@ def test_order_refund_with_transaction_action_request_missing_event(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        authorized_value=captured_value,
+        authorized_value=authorized_value,
     )
     mocked_is_active.return_value = False
 
     order_id = to_global_id_or_none(order)
-    variables = {"id": order_id, "amount": captured_value}
+    variables = {"id": order_id, "amount": authorized_value}
 
     # when
     response = staff_api_client.post_graphql(

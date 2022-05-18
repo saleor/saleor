@@ -147,17 +147,17 @@ class TransactionAction:
     """Represents possible actions on payment transaction.
 
     The following actions are possible:
-    CAPTURE - Represents the capture action.
+    CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
     VOID - Represents a void action.
     """
 
-    CAPTURE = "capture"
+    CHARGE = "charge"
     REFUND = "refund"
     VOID = "void"
 
     CHOICES = [
-        (CAPTURE, "Capture payment"),
+        (CHARGE, "Charge payment"),
         (REFUND, "Refund payment"),
         (VOID, "Void payment"),
     ]

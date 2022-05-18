@@ -39,7 +39,7 @@ mutation TransactionRequestAction(
                     currency
                     amount
                 }
-                capturedAmount{
+                chargedAmount{
                     currency
                     amount
                 }
@@ -59,7 +59,7 @@ mutation TransactionRequestAction(
 
 
 @pytest.mark.parametrize(
-    "capture_amount, expected_called_capture_amount",
+    "charge_amount, expected_called_charge_amount",
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
@@ -68,11 +68,11 @@ mutation TransactionRequestAction(
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_transaction_request_capture_action_for_order(
+def test_transaction_request_charge_action_for_order(
     mocked_payment_action_request,
     mocked_is_active,
-    capture_amount,
-    expected_called_capture_amount,
+    charge_amount,
+    expected_called_charge_amount,
     order_with_lines,
     app_api_client,
     permission_manage_payments,
@@ -84,7 +84,7 @@ def test_transaction_request_capture_action_for_order(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -92,8 +92,8 @@ def test_transaction_request_capture_action_for_order(
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "action_type": TransactionActionEnum.CAPTURE.name,
-        "amount": capture_amount,
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": charge_amount,
     }
 
     # when
@@ -110,15 +110,15 @@ def test_transaction_request_capture_action_for_order(
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
-            action_value=expected_called_capture_amount,
+            action_type=TransactionAction.CHARGE,
+            action_value=expected_called_charge_amount,
         ),
         channel_slug=order_with_lines.channel.slug,
     )
 
     event = order_with_lines.events.first()
     assert event.type == OrderEvents.TRANSACTION_CAPTURE_REQUESTED
-    assert Decimal(event.parameters["amount"]) == expected_called_capture_amount
+    assert Decimal(event.parameters["amount"]) == expected_called_charge_amount
     assert event.parameters["reference"] == transaction.reference
 
 
@@ -151,7 +151,7 @@ def test_transaction_request_refund_action_for_order(
         available_actions=["refund"],
         currency="USD",
         order_id=order_with_lines.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
 
     variables = {
@@ -202,7 +202,7 @@ def test_transaction_request_void_action_for_order(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -253,7 +253,7 @@ def test_transaction_request_void_action_for_checkout(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -285,7 +285,7 @@ def test_transaction_request_void_action_for_checkout(
 
 
 @pytest.mark.parametrize(
-    "capture_amount, expected_called_capture_amount",
+    "charge_amount, expected_called_charge_amount",
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
@@ -294,11 +294,11 @@ def test_transaction_request_void_action_for_checkout(
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_transaction_request_capture_action_for_checkout(
+def test_transaction_request_charge_action_for_checkout(
     mocked_payment_action_request,
     mocked_is_active,
-    capture_amount,
-    expected_called_capture_amount,
+    charge_amount,
+    expected_called_charge_amount,
     checkout,
     app_api_client,
     permission_manage_payments,
@@ -310,7 +310,7 @@ def test_transaction_request_capture_action_for_checkout(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -318,8 +318,8 @@ def test_transaction_request_capture_action_for_checkout(
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
-        "action_type": TransactionActionEnum.CAPTURE.name,
-        "amount": capture_amount,
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": charge_amount,
     }
 
     # when
@@ -336,8 +336,8 @@ def test_transaction_request_capture_action_for_checkout(
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
-            action_value=expected_called_capture_amount,
+            action_type=TransactionAction.CHARGE,
+            action_value=expected_called_charge_amount,
         ),
         channel_slug=checkout.channel.slug,
     )
@@ -372,7 +372,7 @@ def test_transaction_request_refund_action_for_checkout(
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
 
     variables = {
@@ -421,7 +421,7 @@ def test_transaction_request_uses_handle_payment_permission(
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
     refund_amount = Decimal("1")
     variables = {
@@ -470,7 +470,7 @@ def test_transaction_request_uses_manage_orders_permission(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        captured_value=Decimal("10"),
+        charged_value=Decimal("10"),
     )
     refund_amount = Decimal("1")
     variables = {
@@ -509,7 +509,7 @@ def test_transaction_request_action_missing_permission(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -538,7 +538,7 @@ def test_transaction_request_action_missing_event(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorization_value,

@@ -32,7 +32,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_amount_to_refund(
-        cls, order, amount_to_refund, captured_value, cleaned_input
+        cls, order, amount_to_refund, charged_value, cleaned_input
     ):
         if amount_to_refund is not None:
             if order_has_gift_card_lines(order):
@@ -48,7 +48,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     }
                 )
 
-            if amount_to_refund > captured_value:
+            if amount_to_refund > charged_value:
                 raise ValidationError(
                     {
                         "amount_to_refund": ValidationError(
