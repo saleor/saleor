@@ -17,7 +17,8 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations, calculations
 from ...checkout.interface import CheckoutTaxedPricesData
-from ...core.taxes import TaxType
+from ...core.taxes import TaxType, zero_money
+from ...discount import VoucherType
 from ...order.interface import OrderTaxedPricesData
 from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
@@ -27,6 +28,7 @@ from . import (
     DEFAULT_TAX_RATE_NAME,
     VatlayerConfiguration,
     apply_tax_to_price,
+    calculate_checkout_line_discount_amount,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
@@ -174,22 +176,18 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         manager = get_plugins_manager()
-        return (
-            calculations.checkout_subtotal(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                discounts=discounts,
-            )
-            + calculations.checkout_shipping_price(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                discounts=discounts,
-            )
-            - checkout_info.checkout.discount
+        return calculations.checkout_subtotal(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=address,
+            discounts=discounts,
+        ) + calculations.checkout_shipping_price(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            address=address,
+            discounts=discounts,
         )
 
     def _get_taxes_for_country(self, country: Country):
@@ -245,6 +243,16 @@ class VatlayerPlugin(BasePlugin):
         shipping_price = getattr(
             checkout_info.delivery_method_info.delivery_method, "price", previous_value
         )
+        voucher = checkout_info.voucher
+        is_shipping_discount = (
+            voucher.type == VoucherType.SHIPPING if voucher else False
+        )
+        if is_shipping_discount:
+            shipping_price = max(
+                shipping_price - checkout_info.checkout.discount,
+                zero_money(shipping_price.currency),
+            )
+
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
@@ -274,6 +282,8 @@ class VatlayerPlugin(BasePlugin):
         previous_value: CheckoutTaxedPricesData,
     ) -> CheckoutTaxedPricesData:
         unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
+            checkout_info,
+            lines,
             checkout_line_info,
             checkout_info.channel,
             discounts,
@@ -316,13 +326,15 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: List["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
         previous_value: CheckoutTaxedPricesData,
     ) -> CheckoutTaxedPricesData:
         unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
+            checkout_info,
+            lines,
             checkout_line_info,
             checkout_info.channel,
             discounts,
@@ -333,6 +345,8 @@ class VatlayerPlugin(BasePlugin):
 
     def __calculate_checkout_line_unit_price(
         self,
+        checkout_info: "CheckoutInfo",
+        lines: List["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         channel: "Channel",
         discounts: Iterable["DiscountInfo"],
@@ -346,6 +360,18 @@ class VatlayerPlugin(BasePlugin):
             checkout_line_info,
             channel,
             discounts,
+        )
+
+        discount_amount = calculate_checkout_line_discount_amount(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            discounts,
+            prices_data.price_with_discounts,
+        )
+        prices_data.price_with_discounts = Money(
+            prices_data.price_with_discounts.amount - discount_amount,
+            prices_data.price_with_discounts.currency,
         )
 
         country = address.country if address else None
