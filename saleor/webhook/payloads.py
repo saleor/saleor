@@ -1166,8 +1166,8 @@ def generate_transaction_action_request_payload(
             "reference": transaction.reference,
             "available_actions": transaction.available_actions,
             "currency": transaction.currency,
-            "captured_value": quantize_price(
-                transaction.captured_value, transaction.currency
+            "charged_value": quantize_price(
+                transaction.charged_value, transaction.currency
             ),
             "authorized_value": quantize_price(
                 transaction.authorized_value, transaction.currency

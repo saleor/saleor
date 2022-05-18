@@ -32,7 +32,7 @@ subscription{
           currency
           amount
         }
-        capturedAmount{
+        chargedAmount{
           currency
           amount
         }
@@ -58,7 +58,7 @@ def test_transaction_refund_action_request(
     order, webhook_app, permission_manage_payments
 ):
     # given
-    captured_value = Decimal("10")
+    charged_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Captured",
@@ -67,7 +67,7 @@ def test_transaction_refund_action_request(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        captured_value=captured_value,
+        charged_value=charged_value,
     )
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -99,9 +99,9 @@ def test_transaction_refund_action_request(
             "authorizedAmount": {"currency": "USD", "amount": 0.0},
             "refundedAmount": {"currency": "USD", "amount": 0.0},
             "voidedAmount": {"currency": "USD", "amount": 0.0},
-            "capturedAmount": {
+            "chargedAmount": {
                 "currency": "USD",
-                "amount": quantize_price(captured_value, "USD"),
+                "amount": quantize_price(charged_value, "USD"),
             },
             "events": [],
             "status": "Captured",
@@ -117,7 +117,7 @@ def test_transaction_refund_action_request(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_transaction_capture_action_request(
+def test_transaction_charge_action_request(
     order, webhook_app, permission_manage_payments
 ):
     # given
@@ -127,7 +127,7 @@ def test_transaction_capture_action_request(
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture"],
+        available_actions=["charge"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorized_value,
@@ -145,7 +145,7 @@ def test_transaction_capture_action_request(
     action_value = Decimal("5.00")
     transaction_data = TransactionActionData(
         transaction=transaction,
-        action_type=TransactionAction.CAPTURE,
+        action_type=TransactionAction.CHARGE,
         action_value=action_value,
     )
     # when
@@ -158,21 +158,21 @@ def test_transaction_capture_action_request(
         "transaction": {
             "id": transaction_id,
             "createdAt": "2020-03-18T12:00:00+00:00",
-            "actions": ["CAPTURE"],
+            "actions": ["CHARGE"],
             "authorizedAmount": {
                 "currency": "USD",
                 "amount": quantize_price(authorized_value, "USD"),
             },
             "refundedAmount": {"currency": "USD", "amount": 0.0},
             "voidedAmount": {"currency": "USD", "amount": 0.0},
-            "capturedAmount": {"currency": "USD", "amount": 0.0},
+            "chargedAmount": {"currency": "USD", "amount": 0.0},
             "events": [],
             "status": "Authorized",
             "type": "Credit card",
             "reference": "PSP ref",
         },
         "action": {
-            "actionType": "CAPTURE",
+            "actionType": "CHARGE",
             "amount": quantize_price(action_value, "USD"),
         },
         "meta": None,
@@ -227,7 +227,7 @@ def test_transaction_void_action_request(
             },
             "refundedAmount": {"currency": "USD", "amount": 0.0},
             "voidedAmount": {"currency": "USD", "amount": 0.0},
-            "capturedAmount": {"currency": "USD", "amount": 0.0},
+            "chargedAmount": {"currency": "USD", "amount": 0.0},
             "events": [],
             "status": "Captured",
             "type": "Credit card",

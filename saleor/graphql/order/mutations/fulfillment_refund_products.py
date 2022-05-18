@@ -93,12 +93,12 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         if transactions:
             # For know we handle refunds only for last transaction. We need to add an
             # interface to process a refund requests on multiple transactions
-            captured_value = transactions[-1].captured_value
+            charged_value = transactions[-1].charged_value
         else:
             cls.clean_order_payment(payment, cleaned_input)
-            captured_value = payment.captured_amount
+            charged_value = payment.captured_amount
         cls.clean_amount_to_refund(
-            order, amount_to_refund, captured_value, cleaned_input
+            order, amount_to_refund, charged_value, cleaned_input
         )
 
         cleaned_input.update(

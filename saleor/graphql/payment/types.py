@@ -278,8 +278,8 @@ class TransactionItem(ModelObjectType):
     voided_amount = graphene.Field(
         Money, required=True, description="Total amount voided for this payment."
     )
-    captured_amount = graphene.Field(
-        Money, description="Total amount captured for this payment.", required=True
+    charged_amount = graphene.Field(
+        Money, description="Total amount charged for this payment.", required=True
     )
     status = graphene.String(description="Status of transaction.", required=True)
     type = graphene.String(description="Type of transaction.", required=True)
@@ -300,8 +300,8 @@ class TransactionItem(ModelObjectType):
         return root.available_actions
 
     @staticmethod
-    def resolve_captured_amount(root: models.TransactionItem, _info):
-        return root.amount_captured
+    def resolve_charged_amount(root: models.TransactionItem, _info):
+        return root.amount_charged
 
     @staticmethod
     def resolve_authorized_amount(root: models.TransactionItem, _info):
