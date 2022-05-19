@@ -7988,10 +7988,22 @@ type Order implements Node & ObjectWithMetadata {
   """User-friendly payment status."""
   paymentStatusDisplay: String!
 
-  """The authorize status of the order."""
+  """
+  The authorize status of the order.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   authorizeStatus: OrderAuthorizeStatusEnum!
 
-  """The charge status of the order."""
+  """
+  The charge status of the order.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   chargeStatus: OrderChargeStatusEnum!
 
   """

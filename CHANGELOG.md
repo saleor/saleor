@@ -8,6 +8,15 @@ All notable, unreleased changes to this project will be documented in this file.
   for old order lines.
 - Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
 - Fix sorting by publication date with pagination - #9741 by IKarbowiak
+- Add new fields to `Order` type to show authorize/charge status #9795
+  - Add new fields to Order type:
+    - `totalAuthorized`
+    - `totalCharged`
+    - `authorizeStatus`
+    - `chargeStatus`
+  - Add filters to `Order`:
+    - `authorizeStatus`
+    - `chargeStatus`
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins

@@ -804,10 +804,14 @@ class Order(ModelObjectType):
         description="User-friendly payment status.", required=True
     )
     authorize_status = OrderAuthorizeStatusEnum(
-        description="The authorize status of the order.", required=True
+        description=(
+            "The authorize status of the order." + ADDED_IN_34 + PREVIEW_FEATURE
+        ),
+        required=True,
     )
     charge_status = OrderChargeStatusEnum(
-        description="The charge status of the order.", required=True
+        description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
+        required=True,
     )
     transactions = NonNullList(
         TransactionItem,
