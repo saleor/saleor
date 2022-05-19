@@ -12,7 +12,6 @@ from ...checkout.fetch import (
 )
 from ...checkout.models import Checkout, CheckoutLine
 from ...discount import VoucherType
-from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
@@ -364,18 +363,3 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader):
         for line in lines.iterator():
             line_map[line.checkout_id].append(line)
         return [line_map.get(checkout_id, []) for checkout_id in keys]
-
-
-class TransactionItemsByCheckoutIDLoader(DataLoader):
-    context_key = "transaction_items_by_checkout_id"
-
-    def batch_load(self, keys):
-        transactions = (
-            TransactionItem.objects.using(self.database_connection_name)
-            .filter(checkout_id__in=keys)
-            .order_by("pk")
-        )
-        transactions_map = defaultdict(list)
-        for transaction in transactions:
-            transactions_map[transaction.checkout_id].append(transaction)
-        return [transactions_map[checkout_id] for checkout_id in keys]

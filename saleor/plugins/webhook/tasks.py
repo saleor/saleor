@@ -328,6 +328,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
     webhook = delivery.webhook
     data = delivery.payload.payload
+
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
