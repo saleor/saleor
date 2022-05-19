@@ -844,7 +844,7 @@ def create_fake_sale():
             sale=sale,
             discount_value=random.choice([10, 20, 30, 40, 50]),
         )
-    for product in Product.objects.all().order_by("?")[:4]:
+    for product in Product.objects.all().order_by("?")[:2]:
         sale.products.add(product)
 
     for variant in ProductVariant.objects.all().order_by("?")[:2]:
