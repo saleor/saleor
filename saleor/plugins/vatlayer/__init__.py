@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
@@ -9,10 +8,12 @@ from ...checkout import base_calculations
 from ...core.prices import quantize_price
 from ...core.taxes import charge_taxes_on_shipping, include_taxes_in_prices
 from ...discount import VoucherType
+from ...order.utils import get_total_order_discount_excluding_shipping
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...discount import DiscountInfo
+    from ...order.models import Order, OrderLine
 
 DEFAULT_TAX_RATE_NAME = "standard"
 
@@ -99,58 +100,129 @@ def get_taxed_shipping_price(shipping_price, taxes):
     return apply_tax_to_price(taxes, DEFAULT_TAX_RATE_NAME, shipping_price)
 
 
-def calculate_checkout_line_discount_amount(
+def apply_checkout_discount_on_checkout_line(
     checkout_info: "CheckoutInfo",
     lines: List["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable["DiscountInfo"],
     line_price: Money,
 ):
-    """Calculate the checkout line discount amount from checkout voucher."""
+    """Calculate the checkout line price with discounts.
 
+    Include the entire order voucher discount.
+    """
     voucher = checkout_info.voucher
     if not voucher or voucher.type == VoucherType.SHIPPING:
-        return Decimal("0")
+        return line_price
 
+    line_quantity = checkout_line_info.line.quantity
     total_discount_amount = checkout_info.checkout.discount_amount
+    line_total_price = line_price * line_quantity
+    currency = checkout_info.checkout.currency
 
     # if the checkout has only one line, the hole discount amount will be applied
     # to this line
     if len(lines) == 1:
-        return total_discount_amount
+        return (
+            line_total_price - Money(total_discount_amount, currency)
+        ) / line_quantity
 
     # if the checkout has more lines we need to propagate the discount amount
-    # proportionally to unit prices of items
-    lines_unit_prices = [
+    # proportionally to total prices of items
+    lines_total_prices = [
         base_calculations.calculate_base_line_unit_price(
             line_info,
             checkout_info.channel,
             discounts,
         ).price_with_discounts.amount
+        * line_info.line.quantity
         for line_info in lines
         if line_info.line.id != checkout_line_info.line.id
     ]
-    total_lines_unit_price = sum(lines_unit_prices) + line_price.amount
 
-    currency = checkout_info.checkout.currency
+    total_price = sum(lines_total_prices) + line_total_price.amount
+
     last_element = lines[-1].line.id == checkout_line_info.line.id
     if last_element:
-        # if the given line is last on the list we should calculate the discount by
-        # difference between total discount amount and sum of discounts applied
-        # to rest of the lines, otherwise the sum of discounts won't be equal
-        # to the discount amount
-        sum_of_discounts_other_elements = sum(
-            [
-                quantize_price(
-                    unit_price / total_lines_unit_price * total_discount_amount,
-                    currency,
-                )
-                for unit_price in lines_unit_prices
-            ]
+        discount_amount = _calculate_discount_for_last_element_in_qs(
+            lines_total_prices, total_price, total_discount_amount, currency
         )
-        return quantize_price(
-            total_discount_amount - sum_of_discounts_other_elements, currency
+    else:
+        discount_amount = quantize_price(
+            line_total_price.amount / total_price * total_discount_amount, currency
         )
     return quantize_price(
-        line_price.amount / total_lines_unit_price * total_discount_amount, currency
+        (line_total_price - Money(discount_amount, currency)) / line_quantity, currency
     )
+
+
+def apply_order_discount_to_order_unit_price(
+    order: "Order",
+    order_line: "OrderLine",
+):
+    """Calculate the order line price with discounts.
+
+    Include the entire order voucher discount.
+    """
+    if (
+        not order.voucher_id
+        or order.voucher.type == VoucherType.SHIPPING  # type: ignore
+    ):
+        return order_line.base_unit_price
+
+    currency = order.currency
+    total_discount_amount = get_total_order_discount_excluding_shipping(order).amount
+    line_total_price = order_line.base_unit_price * order_line.quantity
+
+    # if the order has only one line, the hole discount amount will be applied
+    # to this line
+    if order.lines.count() == 1:
+        return (
+            line_total_price - Money(total_discount_amount, currency)
+        ) / order_line.quantity
+
+    order_lines = order.lines.all()
+
+    # if the order has more lines we need to propagate the discount amount
+    # proportionally to total prices of items
+    lines_total_prices = [
+        line.base_unit_price.amount * line.quantity
+        for line in order_lines
+        if line.id != order_line.id
+    ]
+    total_price = sum(lines_total_prices) + line_total_price.amount
+
+    last_element = order_lines.last().pk == order_line.pk  # type: ignore
+    if last_element:
+        discount_amount = _calculate_discount_for_last_element_in_qs(
+            lines_total_prices, total_price, total_discount_amount, currency
+        )
+    else:
+        discount_amount = quantize_price(
+            line_total_price.amount / total_price * total_discount_amount, currency
+        )
+    return quantize_price(
+        (line_total_price - Money(discount_amount, currency)) / order_line.quantity,
+        currency,
+    )
+
+
+def _calculate_discount_for_last_element_in_qs(
+    lines_total_prices, total_price, total_discount_amount, currency
+):
+    """Calculate the discount for last element of query set.
+
+    If the given line is last on the list we should calculate the discount by difference
+    between total discount amount and sum of discounts applied to rest of the lines,
+    otherwise the sum of discounts won't be equal to the discount amount.
+    """
+    sum_of_discounts_other_elements = sum(
+        [
+            quantize_price(
+                line_total_price / total_price * total_discount_amount,
+                currency,
+            )
+            for line_total_price in lines_total_prices
+        ]
+    )
+    return total_discount_amount - sum_of_discounts_other_elements

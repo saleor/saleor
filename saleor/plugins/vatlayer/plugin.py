@@ -17,9 +17,10 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations, calculations
 from ...checkout.interface import CheckoutTaxedPricesData
-from ...core.taxes import TaxType, zero_money
+from ...core.taxes import TaxType, zero_money, zero_taxed_money
 from ...discount import VoucherType
 from ...order.interface import OrderTaxedPricesData
+from ...order.utils import get_voucher_discount_assigned_to_order
 from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -27,8 +28,9 @@ from ..manager import get_plugins_manager
 from . import (
     DEFAULT_TAX_RATE_NAME,
     VatlayerConfiguration,
+    apply_checkout_discount_on_checkout_line,
+    apply_order_discount_to_order_unit_price,
     apply_tax_to_price,
-    calculate_checkout_line_discount_amount,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
@@ -267,9 +269,24 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
+
         shipping_price = order.shipping_method.channel_listings.get(
             channel_id=order.channel_id
         ).price
+
+        if (
+            order.voucher_id
+            and order.voucher.type == VoucherType.SHIPPING  # type: ignore
+        ):
+            shipping_discount = get_voucher_discount_assigned_to_order(order)
+            if shipping_discount:
+                shipping_price = Money(
+                    max(
+                        shipping_price.amount - shipping_discount.amount_value,
+                        Decimal("0"),
+                    ),
+                    shipping_price.currency,
+                )
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_checkout_line_total(
@@ -362,16 +379,12 @@ class VatlayerPlugin(BasePlugin):
             discounts,
         )
 
-        discount_amount = calculate_checkout_line_discount_amount(
+        prices_data.price_with_discounts = apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
             checkout_line_info,
             discounts,
             prices_data.price_with_discounts,
-        )
-        prices_data.price_with_discounts = Money(
-            prices_data.price_with_discounts.amount - discount_amount,
-            prices_data.price_with_discounts.currency,
         )
 
         country = address.country if address else None
@@ -416,12 +429,17 @@ class VatlayerPlugin(BasePlugin):
         country = address.country if address else None
         if not variant:
             return
+
+        price_with_discounts = apply_order_discount_to_order_unit_price(
+            order, order_line
+        )
+
         taxed_prices_data = OrderTaxedPricesData(
             undiscounted_price=self.__apply_taxes_to_product(
-                product, order_line.undiscounted_unit_price, country
+                product, order_line.undiscounted_base_unit_price, country
             ),
             price_with_discounts=self.__apply_taxes_to_product(
-                product, order_line.unit_price, country
+                product, price_with_discounts, country
             ),
         )
         return taxed_prices_data

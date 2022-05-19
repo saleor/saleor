@@ -235,7 +235,6 @@ def append_shipping_to_data(
     data: List[Dict],
     shipping_price_amount: Optional[Decimal],
     shipping_tax_code: str,
-    # TODO: change into required after updating the order
     discounted: Optional[bool] = False,
 ):
     charge_taxes_on_shipping = (
