@@ -1,14 +1,29 @@
 import functools
 
 from .buffers import get_buffer
-from .utils import get_observability_webhooks, report_api_call, report_gql_operation
+from .exceptions import ObservabilityError
+from .payloads import dump_payload
+from .utils import (
+    WebhookData,
+    get_buffer_name,
+    get_observability_webhooks,
+    report_api_call,
+    report_gql_operation,
+    report_webhook_event_delivery,
+    task_next_retry_date,
+)
 
 __all__ = [
+    "get_buffer",
+    "ObservabilityError",
+    "dump_payload",
+    "WebhookData",
+    "get_buffer_name",
+    "get_observability_webhooks",
     "report_api_call",
     "report_gql_operation",
-    "dispatch_decorator",
-    "get_buffer",
-    "get_observability_webhooks",
+    "report_webhook_event_delivery",
+    "task_next_retry_date",
 ]
 
 

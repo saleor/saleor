@@ -1,19 +1,10 @@
 import logging
-import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    TypedDict,
-)
+from time import monotonic
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Tuple
 
 import opentracing
 import opentracing.tags
@@ -28,7 +19,6 @@ from pytimeparse import parse
 from ..event_types import WebhookEventAsyncType
 from ..utils import get_webhooks_for_event
 from .buffers import get_buffer
-from .exceptions import ObservabilityError
 from .payloads import generate_api_call_payload, generate_event_delivery_attempt_payload
 
 if TYPE_CHECKING:
@@ -39,20 +29,19 @@ if TYPE_CHECKING:
     from ...core.models import EventDeliveryAttempt
 
 logger = logging.getLogger(__name__)
-OBSERVABILITY_EVENT_TYPE = WebhookEventAsyncType.OBSERVABILITY
-WEBHOOKS_CACHE_TIMEOUT = parse("5 minutes")
+CACHE_TIMEOUT = parse("2 minutes")
 BUFFER_KEY = "observability_buffer"
 WEBHOOKS_KEY = "observability_webhooks"
-_IS_ACTIVE_CACHE: Dict[str, Tuple[bool, float]] = {}
+_webhooks_active_cache: Dict[str, Tuple[bool, float]] = {}
 _context = Local()
-_api_call_attr = "api_call"
-_gql_operation_attr = "gql_operation"
 
 
-class WebhookData(TypedDict):
+@dataclass
+class WebhookData:
+    id: int
     saleor_domain: str
     target_url: str
-    secret_key: Optional[str]
+    secret_key: Optional[str] = None
 
 
 def get_buffer_name() -> str:
@@ -60,31 +49,38 @@ def get_buffer_name() -> str:
 
 
 def get_observability_webhooks() -> List[WebhookData]:
-    webhooks_data = cache.get(WEBHOOKS_KEY)
-    if webhooks_data is None:
-        webhooks_data = []
-        if webhooks := get_webhooks_for_event(OBSERVABILITY_EVENT_TYPE):
-            domain = Site.objects.get_current().domain
-            for webhook in webhooks:
-                webhooks_data.append(
-                    WebhookData(
-                        saleor_domain=domain,
-                        target_url=webhook.target_url,
-                        secret_key=webhook.secret_key,
+    with opentracing.global_tracer().start_active_span(
+        "get_observability_webhooks"
+    ) as scope:
+        scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
+        webhooks_data = cache.get(WEBHOOKS_KEY)
+        if webhooks_data is None:
+            webhooks_data = []
+            event_type = WebhookEventAsyncType.OBSERVABILITY
+            if webhooks := get_webhooks_for_event(event_type):
+                domain = Site.objects.get_current().domain
+                for webhook in webhooks:
+                    webhooks_data.append(
+                        WebhookData(
+                            id=webhook.id,
+                            saleor_domain=domain,
+                            target_url=webhook.target_url,
+                            secret_key=webhook.secret_key,
+                        )
                     )
-                )
-        cache.set(WEBHOOKS_KEY, webhooks_data, timeout=WEBHOOKS_CACHE_TIMEOUT)
-    return webhooks_data
+            cache.set(WEBHOOKS_KEY, webhooks_data, timeout=CACHE_TIMEOUT)
+        return webhooks_data
 
 
-def is_observability_active(timeout=WEBHOOKS_CACHE_TIMEOUT) -> bool:
+def observability_webhooks_active(timeout=CACHE_TIMEOUT) -> bool:
     key = get_buffer_name()
-    if (cached := _IS_ACTIVE_CACHE.get(key, None)) is not None:
+    cached = _webhooks_active_cache.get(key, None)
+    if cached is not None:
         is_active, check_time = cached
-        if time.monotonic() - check_time <= timeout:
+        if monotonic() - check_time <= timeout:
             return is_active
     is_active = bool(get_observability_webhooks())
-    _IS_ACTIVE_CACHE[key] = (is_active, time.monotonic())
+    _webhooks_active_cache[key] = (is_active, monotonic())
     return is_active
 
 
@@ -96,15 +92,11 @@ def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
     return None
 
 
-def put_to_buffer(event_payload: Callable[[], str], sync=True):
-    if not sync:
-        raise NotImplementedError(
-            "[Observability] Async upload to buffer not implemented"
-        )
+def put_to_buffer(payload_generator: Callable[[], Any]):
     try:
-        payload = event_payload()
-        get_buffer().put_event(get_buffer_name(), payload)
-    except ObservabilityError:
+        payload = payload_generator()
+        get_buffer(get_buffer_name()).put_event(payload)
+    except Exception:
         logger.error("[Observability] Event dropped", exc_info=True)
 
 
@@ -135,13 +127,14 @@ class ApiCallContext:
         ):
             return
         self._reported = True
-        tracer = opentracing.global_tracer()
-        with tracer.start_active_span("observability_report_api_call") as scope:
+        with opentracing.global_tracer().start_active_span(
+            "observability_report_api_call"
+        ) as scope:
             scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
             if self.response is None:
                 logger.error("[Observability] HttpResponse not provided, event dropped")
                 return
-            if is_observability_active():
+            if observability_webhooks_active():
                 put_to_buffer(
                     partial(
                         generate_api_call_payload,
@@ -181,12 +174,11 @@ def report_webhook_event_delivery(
 ):
     if not settings.OBSERVABILITY_ACTIVE:
         return
-    tracer = opentracing.global_tracer()
-    with tracer.start_active_span(
+    with opentracing.global_tracer().start_active_span(
         "observability_report_event_delivery_attempt"
     ) as scope:
         scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
-        if is_observability_active():
+        if observability_webhooks_active():
             if attempt.delivery is None:
                 logger.error(
                     "[Observability] Event delivery not assigned to attempt: %r. "

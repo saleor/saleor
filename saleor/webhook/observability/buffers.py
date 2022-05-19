@@ -1,3 +1,4 @@
+import math
 import pickle
 import zlib
 from typing import Any, Dict, List, Optional
@@ -16,11 +17,19 @@ class BaseBuffer:
     _compressor_preset = 6
     _pickle_version = 5
 
-    def __init__(self, broker_url: str, key: KEY_TYPE, max_size: int, batch_size: int):
+    def __init__(
+        self,
+        broker_url: str,
+        key: KEY_TYPE,
+        max_size: int,
+        batch_size: int,
+        connection_timeout=10.0,
+    ):
         self.broker_url = broker_url
         self.key = key
         self.max_size = max_size
         self.batch_size = batch_size
+        self.connection_timeout = connection_timeout
 
     def decode(self, value: bytes) -> Any:
         return pickle.loads(zlib.decompress(value))
@@ -67,16 +76,24 @@ class BaseBuffer:
             "subclasses of BaseBuffer must provide a size() method"
         )
 
+    def batch_count(self) -> int:
+        return math.ceil(self.size() / self.batch_size)
+
 
 class RedisBuffer(BaseBuffer):
     _pools: Dict[str, ConnectionPool] = {}
+    _socket_connect_timeout = 0.25
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._client: Optional[Redis] = None
 
     def get_connection_pool(self):
-        return ConnectionPool.from_url(self.broker_url)
+        return ConnectionPool.from_url(
+            self.broker_url,
+            socket_connect_timeout=self._socket_connect_timeout,
+            socket_timeout=self.connection_timeout,
+        )
 
     def get_or_create_connection_pool(self):
         if self.broker_url not in self._pools:
@@ -158,20 +175,21 @@ class RedisBuffer(BaseBuffer):
         return self.client.llen(self.key)
 
 
-def buffer_factory(
-    broker_url: str, key: KEY_TYPE, max_size: int, batch_size: int
-) -> BaseBuffer:
-    return RedisBuffer(broker_url, key, max_size, batch_size)
-
-
-def get_buffer(key: KEY_TYPE) -> BaseBuffer:
-    if buffer := getattr(_local, key, None):
-        return buffer
+def buffer_factory(key: KEY_TYPE) -> BaseBuffer:
     if not settings.OBSERVABILITY_BROKER_URL:
         raise ConnectionNotConfigured("The observability broker url not set")
     broker_url = settings.OBSERVABILITY_BROKER_URL
     max_size = settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
     batch_size = settings.OBSERVABILITY_BUFFER_BATCH_SIZE
-    buffer = buffer_factory(broker_url, key, max_size, batch_size)
+    connection_timeout = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+    return RedisBuffer(
+        broker_url, key, max_size, batch_size, connection_timeout=connection_timeout
+    )
+
+
+def get_buffer(key: KEY_TYPE) -> BaseBuffer:
+    if buffer := getattr(_local, key, None):
+        return buffer
+    buffer = buffer_factory(key)
     setattr(_local, key, buffer)
     return buffer

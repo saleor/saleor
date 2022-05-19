@@ -6,9 +6,5 @@ class ConnectionNotConfigured(ObservabilityError):
     pass
 
 
-class ConnectionInterrupted(ObservabilityError):
-    pass
-
-
-class CompressorError(ObservabilityError):
+class TruncationError(ObservabilityError):
     pass

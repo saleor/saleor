@@ -34,16 +34,16 @@ def patch_redis(redis_server):
 
 @pytest.fixture
 def buffer(patch_redis):
-    buffer = buffer_factory(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
+    buffer = RedisBuffer(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
     yield buffer
     buffer.client.flushall()
 
 
-def test_buffer_factory():
-    max_size, batch_size = 10, 10
-    buffer = buffer_factory(BROKER_URL, KEY, max_size=max_size, batch_size=batch_size)
+def test_buffer_factory(redis_server, settings):
+    buffer = buffer_factory(KEY)
     assert isinstance(buffer, RedisBuffer)
-    assert (buffer.max_size, buffer.batch_size) == (max_size, batch_size)
+    assert buffer.max_size == settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
+    assert buffer.batch_size == settings.OBSERVABILITY_BUFFER_BATCH_SIZE
 
 
 def test_get_buffer_when_no_configured(settings):
@@ -52,8 +52,7 @@ def test_get_buffer_when_no_configured(settings):
         get_buffer(KEY)
 
 
-def test_get_buffer(settings):
-    settings.OBSERVABILITY_BROKER_URL = "redis://fake-redis"
+def test_get_buffer(redis_server, settings):
     buffer = get_buffer(KEY)
     buffer_bis = get_buffer(KEY)
     assert id(buffer) == id(buffer_bis)

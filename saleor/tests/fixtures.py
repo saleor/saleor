@@ -1786,6 +1786,11 @@ def permission_manage_apps():
 
 
 @pytest.fixture
+def permission_manage_observability():
+    return Permission.objects.get(codename="manage_observability")
+
+
+@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
@@ -5249,6 +5254,21 @@ def shipping_app(db, permission_manage_shipping):
             ]
         ]
     )
+    return app
+
+
+@pytest.fixture
+def observability_app(db, permission_manage_observability):
+    app = App.objects.create(name="Observability App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_observability)
+
+    webhook = Webhook.objects.create(
+        name="observability-webhook-1",
+        app=app,
+        target_url="https://observability-app.com/api/",
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.OBSERVABILITY)
     return app
 
 

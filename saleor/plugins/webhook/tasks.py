@@ -1,6 +1,5 @@
 import json
 import logging
-import math
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
@@ -29,9 +28,12 @@ from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
-from ...webhook.observability.buffers import get_buffer
-from ...webhook.observability.utils import (
+from ...webhook.observability import (
+    WebhookData,
+    dump_payload,
+    get_buffer,
     get_buffer_name,
+    get_observability_webhooks,
     report_webhook_event_delivery,
     task_next_retry_date,
 )
@@ -466,83 +468,84 @@ def send_webhook_request_sync(
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
 
-@app.task
-def observability_send_events():
-    events_data = get_buffer().pop_events(get_buffer_name())
-    if not events_data:
-        return
-    events = [json.loads(event) for event in events_data]
+def _send_observability_events(webhooks: List[WebhookData], events: List[Any]):
     domain = Site.objects.get_current().domain
     event_type = WebhookEventAsyncType.OBSERVABILITY
-    for webhook in get_webhooks_for_event(event_type):
+    for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()
+        failed = 0
         try:
             if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
-                for event_num, event in enumerate(events):
+                for event in events:
                     response = send_webhook_using_scheme_method(
                         webhook.target_url,
                         domain,
                         webhook.secret_key,
                         event_type,
-                        json.dumps(event),
+                        dump_payload(event),
                     )
                     if response.status == EventDeliveryStatus.FAILED:
-                        task_logger.warning(
-                            "Observability webhook ID: %r failed request to %r "
-                            "(%s/%s events delivered): %r.",
-                            webhook.id,
-                            webhook.target_url,
-                            event_num,
-                            len(events),
-                            response.content,
-                        )
-                        break
-                else:
-                    logger.debug(
-                        "Observability successful delivered %s events to %r.",
-                        len(events),
-                        webhook.target_url,
-                    )
+                        failed += 1
             else:
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
                     domain,
                     webhook.secret_key,
                     event_type,
-                    json.dumps(events),
+                    dump_payload(events),
                 )
-                if response.status == EventDeliveryStatus.SUCCESS:
-                    logger.debug(
-                        "Observability successful delivered %s events to %r.",
-                        len(events),
-                        webhook.target_url,
-                    )
-                else:
-                    task_logger.warning(
-                        "Observability webhook ID: %r failed request to %r: %r.",
-                        webhook.id,
-                        webhook.target_url,
-                        response.content,
-                    )
+                if response.status == EventDeliveryStatus.FAILED:
+                    failed = len(events)
         except ValueError:
             logger.error(
-                "Observability webhook ID: %r unknown webhook scheme: %r",
+                "[Observability] Webhook ID: %r unknown webhook scheme: %r",
                 webhook.id,
                 scheme,
             )
+            continue
+        if failed:
+            task_logger.warning(
+                "[Observability] Webhook ID: %r failed request to %r "
+                "(%s/%s events dropped): %r.",
+                webhook.id,
+                webhook.target_url,
+                failed,
+                len(events),
+                response.content,
+            )
+            continue
+        logger.debug(
+            "[Observability] Successful delivered %s events to %r.",
+            len(events),
+            webhook.target_url,
+        )
+
+
+@app.task
+def observability_send_events():
+    try:
+        if webhooks := get_observability_webhooks():
+            if events := get_buffer(get_buffer_name()).pop_events():
+                _send_observability_events(webhooks, events)
+    except Exception:
+        logger.error("[Observability] Reporter failed - Could not pop events")
 
 
 @app.task
 def observability_reporter_task():
-    buffer_size = get_buffer().size(get_buffer_name())
-    batch_count = math.ceil(buffer_size / settings.OBSERVABILITY_BUFFER_BATCH_SIZE)
-    if batch_count <= 1:
-        observability_send_events()
-        return
-    tasks = [observability_send_events.s() for _ in range(batch_count)]
-    if tasks:
-        expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
-        group(tasks).apply_async(expires=expiration)
+    try:
+        if webhooks := get_observability_webhooks():
+            buffer = get_buffer(get_buffer_name())
+            batch_count = buffer.batch_count()
+            if batch_count == 1:
+                events = buffer.pop_events()
+                _send_observability_events(webhooks, events)
+            elif batch_count > 1:
+                tasks = [observability_send_events.s() for _ in range(batch_count)]
+                expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+                group(tasks).apply_async(expires=expiration)
+    except Exception:
+        logger.error("[Observability] Reporter failed", exc_info=True)
 
 
 # DEPRECATED

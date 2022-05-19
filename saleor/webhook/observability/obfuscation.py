@@ -181,13 +181,13 @@ def anonymize_gql_operation_response(
 def anonymize_event_payload(
     subscription_query: Optional[str],
     event_type: str,  # pylint: disable=unused-argument
-    payload: List,
+    payload: Any,
     sensitive_fields: SensitiveFieldsMap,
-) -> List:
+) -> Any:
     if not subscription_query:
         return payload
     graphql_backend = get_default_backend()
     document = graphql_backend.document_from_string(schema, subscription_query)
     if _contain_sensitive_field(document, sensitive_fields):
-        return [MASK]
+        return MASK
     return payload
