@@ -207,9 +207,12 @@ def create_collections(data, placeholder_dir):
     for collection in data:
         pk = collection["pk"]
         defaults = collection["fields"]
-        image_name = COLLECTION_IMAGES[pk]
-        background_image = get_image(placeholder_dir, image_name)
-        defaults["background_image"] = background_image
+        image_name = (
+            COLLECTION_IMAGES[pk] if pk in COLLECTION_IMAGES else None
+        )
+        if image_name:
+            background_image = get_image(placeholder_dir, image_name)
+            defaults["background_image"] = background_image
         Collection.objects.update_or_create(pk=pk, defaults=defaults)
         create_collection_background_image_thumbnails.delay(pk)
 
@@ -350,7 +353,7 @@ def assign_attributes_to_products(product_attributes):
         defaults = value["fields"]
         defaults["product_id"] = defaults.pop("product")
         defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values")
+        assigned_values = defaults.pop("values", [])
         assoc, created = AssignedProductAttribute.objects.update_or_create(
             pk=pk, defaults=defaults
         )
@@ -364,7 +367,7 @@ def assign_attributes_to_variants(variant_attributes):
         defaults = value["fields"]
         defaults["variant_id"] = defaults.pop("variant")
         defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values")
+        assigned_values = defaults.pop("values", [])
         assoc, created = AssignedVariantAttribute.objects.update_or_create(
             pk=pk, defaults=defaults
         )
@@ -899,20 +902,23 @@ def _create_staff_user(staff_password, email=None, superuser=False):
     if not email:
         email = get_email(first_name, last_name)
 
-    staff_user = User.objects.create_user(
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        password=staff_password,
-        default_billing_address=address,
-        default_shipping_address=address,
-        is_staff=True,
-        is_active=True,
-        is_superuser=superuser,
-        search_document=_prepare_search_document_value(
-            User(email=email, first_name=first_name, last_name=last_name), address
-        ),
-    )
+    staff_user = User.objects.filter(email=email).first()
+
+    if not staff_user:
+        staff_user = User.objects.create_user(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password=staff_password,
+            default_billing_address=address,
+            default_shipping_address=address,
+            is_staff=True,
+            is_active=True,
+            is_superuser=superuser,
+            search_document=_prepare_search_document_value(
+                User(email=email, first_name=first_name, last_name=last_name), address
+            ),
+        )
     return staff_user
 
 
@@ -934,13 +940,6 @@ def create_orders(how_many=10):
     discounts = fetch_discounts(timezone.now())
     for _ in range(how_many):
         order = create_fake_order(discounts)
-        yield "Order: %s" % (order,)
-
-
-def create_preorder_orders(how_many=1):
-    discounts = fetch_discounts(timezone.now())
-    for _ in range(how_many):
-        order = create_fake_order(discounts, create_preorder_lines=True)
         yield "Order: %s" % (order,)
 
 
@@ -1417,7 +1416,9 @@ def create_vouchers():
 
 
 def create_gift_cards(how_many=5):
-    product_pk = Product.objects.get(name="Gift card").pk
+    product_pk = Product.objects.get(name="Gift card 100").pk
+    if not product_pk:
+        return
     tag, _ = GiftCardTag.objects.get_or_create(name="issued-gift-cards")
     for i in range(how_many):
         staff_user = User.objects.filter(is_staff=True).order_by("?").first()
