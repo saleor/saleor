@@ -608,7 +608,7 @@ def serialize_product_channel_listing_payload(channel_listings):
     serializer = PayloadSerializer()
     fields = (
         "published_at",
-        "id_published",
+        "is_published",
         "visible_in_listings",
         "available_for_purchase_at",
     )
