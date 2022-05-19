@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix sending webhook request in Celery task when webhook is disabled.
 - Fix for multiplied line prices passed to Avatax - #9699 by @korycins
 - Fix max_length for voucher_code in Checkout model - #9794 by @SzymJ
+- Fix creating dummy context for subscription webhooks - #9798 by @SzymJ
 
 # 3.3.0
 
