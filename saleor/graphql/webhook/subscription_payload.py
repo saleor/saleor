@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
@@ -12,6 +11,7 @@ from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
+from ...settings import get_host
 
 logger = get_task_logger(__name__)
 
@@ -56,9 +56,7 @@ def initialize_context() -> HttpRequest:
     return: HttpRequest
     """
     handler = BaseHandler()
-    context = RequestFactory().request(
-        SERVER_NAME=SimpleLazyObject(lambda: settings.ALLOWED_HOSTS[0])
-    )
+    context = RequestFactory().request(SERVER_NAME=SimpleLazyObject(get_host))
     handler.load_middleware()
     response = handler.get_response(context)
     if not response.status_code == 200:

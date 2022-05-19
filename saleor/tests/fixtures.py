@@ -261,6 +261,7 @@ def site_settings(db, settings) -> SiteSettings:
         default_mail_sender_address="mirumee@example.com",
     )[0]
     settings.SITE_ID = site.pk
+    settings.ALLOWED_HOSTS += [site.domain]
 
     main_menu = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["top_menu_name"],
