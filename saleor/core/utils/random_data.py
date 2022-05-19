@@ -80,7 +80,7 @@ from ...product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
-from ...product.search import update_products_search_document
+from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
@@ -472,7 +472,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
     all_products_qs = Product.objects.all()
-    update_products_search_document(all_products_qs)
+    update_products_search_vector(all_products_qs)
     update_products_discounted_prices(all_products_qs)
 
 
@@ -719,14 +719,14 @@ def _get_new_order_line(order, variant, channel, discounts):
         or variant.preorder_global_threshold
         or 5,
     )
-    unit_price = variant.get_price(
+    untaxed_unit_price = variant.get_price(
         product,
         product.collections.all(),
         channel,
         variant_channel_listing,
         discounts,
     )
-    unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+    unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     total_price = unit_price * quantity
     return OrderLine(
         order=order,
@@ -742,6 +742,8 @@ def _get_new_order_line(order, variant, channel, discounts):
         total_price=total_price,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=total_price,
+        base_unit_price=untaxed_unit_price,
+        undiscounted_base_unit_price=untaxed_unit_price,
         tax_rate=0,
     )
 

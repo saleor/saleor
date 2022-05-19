@@ -408,7 +408,7 @@ class Order(ModelWithMetadata):
     def total_balance(self):
         return self.total_captured - self.total.gross
 
-    def get_total_weight(self, *_args):
+    def get_total_weight(self, _lines=None):
         return self.weight
 
 
@@ -427,6 +427,9 @@ class OrderLineQueryset(models.QuerySet):
 
 
 class OrderLine(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
         Order,
         related_name="lines",
@@ -558,6 +561,24 @@ class OrderLine(models.Model):
         currency="currency",
     )
 
+    base_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    base_unit_price = MoneyField(
+        amount_field="base_unit_price_amount", currency_field="currency"
+    )
+
+    undiscounted_base_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_base_unit_price = MoneyField(
+        amount_field="undiscounted_base_unit_price_amount", currency_field="currency"
+    )
+
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
@@ -571,7 +592,7 @@ class OrderLine(models.Model):
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:
-        ordering = ("pk",)
+        ordering = ("created_at",)
 
     def __str__(self):
         return (
@@ -658,7 +679,9 @@ class Fulfillment(ModelWithMetadata):
 
 class FulfillmentLine(models.Model):
     order_line = models.ForeignKey(
-        OrderLine, related_name="fulfillment_lines", on_delete=models.CASCADE
+        OrderLine,
+        related_name="fulfillment_lines",
+        on_delete=models.CASCADE,
     )
     fulfillment = models.ForeignKey(
         Fulfillment, related_name="lines", on_delete=models.CASCADE

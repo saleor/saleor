@@ -14,6 +14,6 @@ def delete_digital_content_file(sender, instance, **kwargs):
 
 def delete_product_all_media(sender, instance, **kwargs):
     if all_media := instance.media.all():
-        all_media.update(to_remove=True)
         for media in all_media:
+            media.set_to_remove()
             delete_product_media_task.delay(media.id)

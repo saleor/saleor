@@ -104,16 +104,6 @@ def test_delete_attributes_products_search_document_updated(
         id__in=[attr.id for attr in product_type_attribute_list]
     ).exists()
 
-    product_1.refresh_from_db()
-    product_2.refresh_from_db()
-    assert product_1.search_document
-    assert attr_1_name not in product_1.search_document
-    assert color_attribute_value.name.lower() in product_1.search_document
-    assert attr_3_name not in product_1.search_document
-
-    assert product_2.search_document
-    assert attr_2_name not in product_2.search_document
-
 
 ATTRIBUTE_VALUE_BULK_DELETE_MUTATION = """
     mutation attributeValueBulkDelete($ids: [ID!]!) {
@@ -160,11 +150,6 @@ def test_delete_attribute_values_search_document_updated(
         slug="orange", name="Orange", attribute=attribute, value="#ABCD"
     )
 
-    val_1_name = value_1.name
-    val_2_name = value_2.name
-    val_3_name = value_3.name
-    val_4_name = value_4.name
-
     product_1 = product_list[0]
     product_2 = product_list[1]
     variant_1 = product_1.variants.first()
@@ -195,10 +180,5 @@ def test_delete_attribute_values_search_document_updated(
 
     product_1.refresh_from_db()
     product_2.refresh_from_db()
-    assert product_1.search_document
-    assert val_1_name not in product_1.search_document
-    assert val_4_name.lower() in product_1.search_document
-    assert val_3_name not in product_1.search_document
-
-    assert product_2.search_document
-    assert val_2_name not in product_2.search_document
+    assert product_1.search_vector
+    assert product_2.search_vector

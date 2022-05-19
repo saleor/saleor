@@ -58,7 +58,7 @@ class AppTokenCreate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, input_data)
@@ -122,7 +122,7 @@ class AppTokenVerify(BaseMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, _info, **data):
         token = data.get("token")
         tokens = models.AppToken.objects.filter(
             app__is_active=True, token_last_4=token[-4:]
@@ -177,6 +177,7 @@ class AppCreate(ModelMutation):
         cls._save_m2m(info, instance, cleaned_input)
         response = cls.success_response(instance)
         response.auth_token = auth_token
+        info.context.plugins.app_installed(instance)
         return response
 
     @classmethod
@@ -220,6 +221,10 @@ class AppUpdate(ModelMutation):
             ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.app_updated(instance)
+
 
 class AppDelete(ModelDeleteMutation):
     class Arguments:
@@ -243,6 +248,10 @@ class AppDelete(ModelDeleteMutation):
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.app_deleted(instance)
+
 
 class AppActivate(ModelMutation):
     class Arguments:
@@ -257,10 +266,11 @@ class AppActivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         app = cls.get_instance(info, **data)
         app.is_active = True
         cls.save(info, app, cleaned_input=None)
+        info.context.plugins.app_status_changed(app)
         return cls.success_response(app)
 
 
@@ -277,10 +287,11 @@ class AppDeactivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         app = cls.get_instance(info, **data)
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
+        info.context.plugins.app_status_changed(app)
         return cls.success_response(app)
 
 
@@ -336,7 +347,7 @@ class AppRetryInstall(ModelMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         activate_after_installation = data.get("activate_after_installation")
         app_installation = cls.get_instance(info, **data)
         cls.clean_instance(info, app_installation)
@@ -483,7 +494,7 @@ class AppFetchManifest(BaseMutation):
             ]
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
         manifest_data = cls.fetch_manifest(manifest_url)

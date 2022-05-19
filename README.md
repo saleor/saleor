@@ -82,16 +82,31 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ## Installation
 
-[See the Saleor docs](https://docs.saleor.io/docs/3.0/developer/installation) for step-by-step installation and deployment instructions.
+[See the Saleor docs](https://docs.saleor.io/docs/3.x/developer/installation) for step-by-step installation and deployment instructions.
 
 Note:
 The `main` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/saleor/saleor/releases/) page or switch to a release tag.
 
-The current production-ready version is 3.0 (beta) and you should use this version for all three components:
+The current production-ready version is 3.x and you should use this version for all three components:
 
 - Saleor: https://github.com/saleor/saleor/releases/
 - Dashboard: https://github.com/saleor/saleor-dashboard/releases/
-- Storefront: https://github.com/saleor/saleor-storefront/releases/
+- Storefront: https://github.com/saleor/react-storefront/releases/
+
+### Saleor Cloud
+The fastest way to develop with Saleor are free developer accounts in [Saleor Cloud](https://cloud.saleor.io).
+
+Register [here](https://cloud.saleor.io/register) or install our [CLI tool](https://github.com/saleor/saleor-cli):
+
+`npm i -g saleor@latest`
+
+and run the following command:
+
+`saleor register`
+
+Bootstrap your first [storefront](https://github.com/saleor/react-storefront) with:
+
+`saleor storefront create --demo`
 
 ## Documentation
 

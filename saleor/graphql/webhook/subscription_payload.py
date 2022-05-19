@@ -4,12 +4,14 @@ from celery.utils.log import get_task_logger
 from django.core.handlers.base import BaseHandler
 from django.http import HttpRequest
 from django.test.client import RequestFactory
+from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLDocument, get_default_backend, parse
 from graphql.error import GraphQLSyntaxError
 from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
+from ...settings import get_host
 
 logger = get_task_logger(__name__)
 
@@ -54,10 +56,11 @@ def initialize_context() -> HttpRequest:
     return: HttpRequest
     """
     handler = BaseHandler()
-    context = RequestFactory().request()
+    context = RequestFactory().request(SERVER_NAME=SimpleLazyObject(get_host))
     handler.load_middleware()
     response = handler.get_response(context)
-    assert response.status_code == 200
+    if not response.status_code == 200:
+        raise Exception("Unable to initialize context for webhook.")
     return context
 
 

@@ -127,9 +127,6 @@ def test_update_attribute_value_product_search_document_updated(
         value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
     ]
 
-    product.refresh_from_db()
-    assert name.lower() in product.search_document
-
 
 def test_update_attribute_value_product_search_document_updated_variant_attribute(
     staff_api_client,
@@ -166,9 +163,6 @@ def test_update_attribute_value_product_search_document_updated_variant_attribut
     assert name in [
         value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
     ]
-
-    product.refresh_from_db()
-    assert name.lower() in product.search_document
 
 
 def test_update_swatch_attribute_value(

@@ -1,11 +1,12 @@
 import graphene
 
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.payment import TransactionKind
-from saleor.payment.models import ChargeStatus
+from .....payment import TransactionKind
+from .....payment.models import ChargeStatus
+from ....core.enums import PaymentErrorCode
+from ....tests.utils import get_graphql_content
 
 REFUND_QUERY = """
-    mutation PaymentRefund($paymentId: ID!, $amount: PositiveDecimal!) {
+    mutation PaymentRefund($paymentId: ID!, $amount: PositiveDecimal) {
         paymentRefund(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -14,6 +15,7 @@ REFUND_QUERY = """
             errors {
                 field
                 message
+                code
             }
         }
     }
@@ -78,7 +80,13 @@ def test_payment_refund_error(
     content = get_graphql_content(response)
     data = content["data"]["paymentRefund"]
 
-    assert data["errors"] == [{"field": None, "message": "Unable to process refund"}]
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": "Unable to process refund",
+            "code": PaymentErrorCode.PAYMENT_ERROR.name,
+        }
+    ]
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
