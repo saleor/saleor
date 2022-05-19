@@ -7,7 +7,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
   for old order lines.
 - Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
-- Fix sorting by publication date with pagination - #9741 by IKarbowiak
+- Fix sorting by publication date with pagination - #9741 by @IKarbowiak
+- Fix max_length for voucher_code in Checkout model - #9791 by @SzymJ
 - Add new fields to `Order` type to show authorize/charge status #9795
   - Add new fields to Order type:
     - `totalAuthorized`
