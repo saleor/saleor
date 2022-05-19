@@ -217,6 +217,295 @@ def test_transaction_update_amounts(
     assert getattr(transaction, db_field_name) == value
 
 
+def test_transaction_update_for_order_increases_order_total_authorized(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    transaction,
+):
+    # given
+    previously_authorized_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    )
+    order_with_lines.update_total_authorized()
+    assert (
+        order_with_lines.total_authorized_amount
+        == previously_authorized_value + transaction.authorized_value
+    )
+
+    authorized_value = transaction.authorized_value + Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert (
+        order_with_lines.total_authorized_amount
+        == previously_authorized_value + authorized_value
+    )
+    assert authorized_value == transaction.authorized_value
+
+
+def test_transaction_update_for_order_reduces_order_total_authorized(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    transaction,
+):
+    # given
+    previously_authorized_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    )
+    order_with_lines.update_total_authorized()
+    assert (
+        order_with_lines.total_authorized_amount
+        == previously_authorized_value + transaction.authorized_value
+    )
+
+    authorized_value = transaction.authorized_value - Decimal("5")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert (
+        order_with_lines.total_authorized_amount
+        == previously_authorized_value + authorized_value
+    )
+    assert authorized_value == transaction.authorized_value
+
+
+def test_transaction_update_for_order_reduces_transaction_authorized_amount_to_zero(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    transaction,
+):
+    # given
+    previously_authorized_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        authorized_value=previously_authorized_value, currency=order_with_lines.currency
+    )
+    order_with_lines.update_total_authorized()
+    assert (
+        order_with_lines.total_authorized_amount
+        == previously_authorized_value + transaction.authorized_value
+    )
+
+    authorized_value = Decimal("0")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert order_with_lines.total_authorized_amount == previously_authorized_value
+    assert authorized_value == transaction.authorized_value
+
+
+def test_transaction_update_for_order_increases_order_total_charged(
+    order_with_lines, permission_manage_payments, app_api_client, transaction
+):
+    # given
+    previously_charged_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        charged_value=previously_charged_value, currency=order_with_lines.currency
+    )
+
+    order_with_lines.update_total_charged()
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + transaction.charged_value
+    )
+
+    charged_value = transaction.charged_value + Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["chargedAmount"]["amount"] == charged_value
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + charged_value
+    )
+    assert charged_value == transaction.charged_value
+
+
+def test_transaction_update_for_order_reduces_order_total_charged(
+    order_with_lines, permission_manage_payments, app_api_client, transaction
+):
+    # given
+    previously_charged_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        charged_value=previously_charged_value, currency=order_with_lines.currency
+    )
+    transaction.charged_value = Decimal("30")
+    transaction.save()
+
+    order_with_lines.update_total_charged()
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + transaction.charged_value
+    )
+
+    charged_value = transaction.charged_value - Decimal("5")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["chargedAmount"]["amount"] == charged_value
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + charged_value
+    )
+    assert charged_value == transaction.charged_value
+
+
+def test_transaction_update_for_order_reduces_transaction_charged_amount_to_zero(
+    order_with_lines, permission_manage_payments, app_api_client, transaction
+):
+    # given
+    previously_charged_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        charged_value=previously_charged_value, currency=order_with_lines.currency
+    )
+    transaction.charged_value = Decimal("30")
+    transaction.save()
+
+    order_with_lines.update_total_charged()
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + transaction.charged_value
+    )
+
+    charged_value = Decimal("0")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["chargedAmount"]["amount"] == charged_value
+    assert order_with_lines.total_charged_amount == previously_charged_value
+    assert charged_value == transaction.charged_value
+
+
 def test_transaction_update_multiple_amounts_provided(
     transaction, permission_manage_payments, app_api_client
 ):

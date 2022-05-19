@@ -52,6 +52,7 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
 from ..mutations.order_cancel import clean_order_cancel
 from ..mutations.order_capture import clean_order_capture
 from ..mutations.order_refund import clean_refund_payment
@@ -372,6 +373,8 @@ query OrdersQuery {
                        createdAt
                     }
                 }
+                authorizeStatus
+                chargeStatus
                 subtotal {
                     net {
                         amount
@@ -572,6 +575,83 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert order_data["deliveryMethod"]["id"] == order_data["shippingMethod"]["id"]
+
+
+@pytest.mark.parametrize(
+    "total_authorized, total_charged, expected_status",
+    [
+        (Decimal("98.40"), Decimal("0"), OrderAuthorizeStatusEnum.FULL.name),
+        (Decimal("0"), Decimal("98.40"), OrderAuthorizeStatusEnum.FULL.name),
+        (Decimal("10"), Decimal("88.40"), OrderAuthorizeStatusEnum.FULL.name),
+        (Decimal("0"), Decimal("0"), OrderAuthorizeStatusEnum.NONE.name),
+        (Decimal("11"), Decimal("0"), OrderAuthorizeStatusEnum.PARTIAL.name),
+        (Decimal("0"), Decimal("50.00"), OrderAuthorizeStatusEnum.PARTIAL.name),
+        (Decimal("10"), Decimal("40.40"), OrderAuthorizeStatusEnum.PARTIAL.name),
+    ],
+)
+def test_order_query_authorize_status(
+    total_authorized,
+    total_charged,
+    expected_status,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    assert fulfilled_order.total.gross.amount == Decimal("98.40")
+    fulfilled_order.total_authorized_amount = total_authorized
+    fulfilled_order.total_charged_amount = total_charged
+    fulfilled_order.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["authorizeStatus"] == expected_status
+
+
+@pytest.mark.parametrize(
+    "total_authorized, total_charged, expected_status",
+    [
+        (Decimal("10.40"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
+        (Decimal("98.40"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
+        (Decimal("0"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
+        (Decimal("0"), Decimal("11.00"), OrderChargeStatusEnum.PARTIAL.name),
+        (Decimal("88.40"), Decimal("10.00"), OrderChargeStatusEnum.PARTIAL.name),
+        (Decimal("0"), Decimal("98.40"), OrderChargeStatusEnum.FULL.name),
+    ],
+)
+def test_order_query_charge_status(
+    total_authorized,
+    total_charged,
+    expected_status,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    assert fulfilled_order.total.gross.amount == Decimal("98.40")
+    fulfilled_order.total_authorized_amount = total_authorized
+    fulfilled_order.total_charged_amount = total_charged
+    fulfilled_order.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["chargeStatus"] == expected_status
 
 
 def test_order_query_with_transactions_details(

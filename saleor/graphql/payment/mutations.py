@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import F
 
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
@@ -17,7 +18,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
-from ...order.utils import add_to_order_total_authorized_and_total_charged
+from ...order.models import Order
 from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
 from ...payment import models as payment_models
 from ...payment.error_codes import (
@@ -53,6 +54,17 @@ from ..utils import get_user_or_app_from_context
 from .enums import TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
+
+
+def add_to_order_total_authorized_and_total_charged(
+    order_id: uuid.UUID,
+    authorized_amount_to_add: Decimal,
+    charged_amount_to_add: Decimal,
+):
+    Order.objects.filter(id=order_id).update(
+        total_authorized_amount=F("total_authorized_amount") + authorized_amount_to_add,
+        total_charged_amount=F("total_charged_amount") + charged_amount_to_add,
+    )
 
 
 def description(enum):
@@ -917,11 +929,12 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_transaction_input(instance, transaction_data)
             cls.cleanup_money_data(transaction_data)
             cls.cleanup_metadata_data(transaction_data)
+            if instance.order_id:
+                cls.update_amounts_for_order(
+                    instance, instance.order_id, transaction_data
+                )
             instance = cls.construct_instance(instance, transaction_data)
             instance.save()
-
-        if order_id := instance.order_id and transaction_data:
-            cls.update_amounts_for_order(instance, order_id, transaction_data)
 
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
