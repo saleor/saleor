@@ -223,6 +223,7 @@ INSTALLED_APPS = [
     "saleor.site",
     "saleor.page",
     "saleor.payment",
+    "saleor.tax",
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.app",
