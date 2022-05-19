@@ -27,10 +27,17 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal, get_total_authorized
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
+from . import (
+    FulfillmentStatus,
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderStatus,
+)
 
 
 class OrderQueryset(models.QuerySet):
@@ -98,6 +105,14 @@ class Order(ModelWithMetadata):
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
+    )
+    authorize_status = models.CharField(
+        max_length=32,
+        default=OrderAuthorizeStatus.NONE,
+        choices=OrderAuthorizeStatus.CHOICES,
+    )
+    charge_status = models.CharField(
+        max_length=32, default=OrderChargeStatus.NONE, choices=OrderChargeStatus.CHOICES
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -288,6 +303,11 @@ class Order(ModelWithMetadata):
                 fields=["user_email"],
                 opclasses=["gin_trgm_ops"],
             ),
+            GinIndex(
+                name="order_authorize_status",
+                fields=["authorize_status"],
+            ),
+            GinIndex(name="order_charge_status", fields=["charge_status"]),
         ]
 
     def is_fully_paid(self):
@@ -298,27 +318,6 @@ class Order(ModelWithMetadata):
 
     def get_customer_email(self):
         return self.user.email if self.user_id else self.user_email
-
-    def update_total_charged(self, with_save=True):
-        self.total_charged_amount = (
-            sum(self.payments.values_list("captured_amount", flat=True)) or 0
-        )
-        self.total_charged_amount += (
-            sum(self.payment_transactions.values_list("charged_value", flat=True)) or 0
-        )
-        if with_save:
-            self.save(update_fields=["total_charged_amount", "updated_at"])
-
-    def update_total_authorized(self, with_save=True):
-        self.total_authorized_amount = get_total_authorized(
-            self.payments.all(), self.currency
-        ).amount
-        self.total_authorized_amount += (
-            sum(self.payment_transactions.values_list("authorized_value", flat=True))
-            or 0
-        )
-        if with_save:
-            self.save(update_fields=["total_authorized_amount", "updated_at"])
 
     def _index_billing_phone(self):
         return self.billing_address.phone

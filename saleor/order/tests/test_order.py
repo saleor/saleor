@@ -47,6 +47,8 @@ from ..utils import (
     get_voucher_discount_for_order,
     recalculate_order,
     restock_fulfillment_lines,
+    update_order_authorize_data,
+    update_order_charge_data,
     update_order_prices,
     update_order_status,
 )
@@ -1326,14 +1328,14 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
     )
 
 
-def test_order_update_total_authorized_with_payment(
+def test_order_update_total_authorize_data_with_payment(
     order_with_lines, payment_txn_preauth
 ):
     # given
     authorized_amount = payment_txn_preauth.transactions.first().amount
 
     # when
-    order_with_lines.update_total_authorized()
+    update_order_authorize_data(order_with_lines)
 
     # then
     order_with_lines.refresh_from_db()
@@ -1342,7 +1344,7 @@ def test_order_update_total_authorized_with_payment(
     )
 
 
-def test_order_update_total_authorized_with_transaction_item(order_with_lines):
+def test_order_update_total_authorize_data_with_transaction_item(order_with_lines):
     # given
     first_authorized_amount = Decimal(10)
     order_with_lines.payment_transactions.create(
@@ -1358,7 +1360,7 @@ def test_order_update_total_authorized_with_transaction_item(order_with_lines):
     )
 
     # when
-    order_with_lines.update_total_authorized()
+    update_order_authorize_data(order_with_lines)
 
     # then
     order_with_lines.refresh_from_db()
@@ -1367,7 +1369,7 @@ def test_order_update_total_authorized_with_transaction_item(order_with_lines):
     )
 
 
-def test_order_update_total_authorized_with_transaction_item_and_payment(
+def test_order_update_total_authorize_data_with_transaction_item_and_payment(
     order_with_lines, payment_txn_preauth
 ):
     # given
@@ -1381,7 +1383,7 @@ def test_order_update_total_authorized_with_transaction_item_and_payment(
     )
 
     # when
-    order_with_lines.update_total_authorized()
+    update_order_authorize_data(order_with_lines)
 
     # then
     order_with_lines.refresh_from_db()
@@ -1390,14 +1392,12 @@ def test_order_update_total_authorized_with_transaction_item_and_payment(
     )
 
 
-def test_order_update_total_charged_with_payment(
-    order_with_lines, payment_txn_captured
-):
+def test_order_update_charge_data_with_payment(order_with_lines, payment_txn_captured):
     # given
     charged_amount = payment_txn_captured.transactions.first().amount
 
     # when
-    order_with_lines.update_total_charged()
+    update_order_charge_data(order_with_lines)
 
     # then
     order_with_lines.refresh_from_db()
@@ -1406,7 +1406,7 @@ def test_order_update_total_charged_with_payment(
     )
 
 
-def test_order_update_total_charged_with_transaction_item(order_with_lines):
+def test_order_update_charge_data_with_transaction_item(order_with_lines):
     # given
     first_charged_amount = Decimal(10)
     order_with_lines.payment_transactions.create(
@@ -1422,7 +1422,7 @@ def test_order_update_total_charged_with_transaction_item(order_with_lines):
     )
 
     # when
-    order_with_lines.update_total_charged()
+    update_order_charge_data(order_with_lines)
 
     # then
     order_with_lines.refresh_from_db()
@@ -1431,7 +1431,7 @@ def test_order_update_total_charged_with_transaction_item(order_with_lines):
     )
 
 
-def test_order_update_total_charged_with_transaction_item_and_payment(
+def test_order_update_charge_data_with_transaction_item_and_payment(
     order_with_lines, payment_txn_captured
 ):
     # given
@@ -1444,7 +1444,7 @@ def test_order_update_total_charged_with_transaction_item_and_payment(
     )
 
     # when
-    order_with_lines.update_total_charged()
+    update_order_charge_data(order_with_lines)
 
     # then
     order_with_lines.refresh_from_db()

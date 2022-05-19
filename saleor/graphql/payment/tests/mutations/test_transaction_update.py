@@ -4,6 +4,7 @@ import graphene
 import pytest
 
 from .....order import OrderEvents
+from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionItem
@@ -228,7 +229,9 @@ def test_transaction_update_for_order_increases_order_total_authorized(
     old_transaction = order_with_lines.payment_transactions.create(
         authorized_value=previously_authorized_value, currency=order_with_lines.currency
     )
-    order_with_lines.update_total_authorized()
+    update_order_authorize_data(
+        order_with_lines,
+    )
     assert (
         order_with_lines.total_authorized_amount
         == previously_authorized_value + transaction.authorized_value
@@ -278,7 +281,7 @@ def test_transaction_update_for_order_reduces_order_total_authorized(
     old_transaction = order_with_lines.payment_transactions.create(
         authorized_value=previously_authorized_value, currency=order_with_lines.currency
     )
-    order_with_lines.update_total_authorized()
+    update_order_authorize_data(order_with_lines)
     assert (
         order_with_lines.total_authorized_amount
         == previously_authorized_value + transaction.authorized_value
@@ -328,7 +331,7 @@ def test_transaction_update_for_order_reduces_transaction_authorized_amount_to_z
     old_transaction = order_with_lines.payment_transactions.create(
         authorized_value=previously_authorized_value, currency=order_with_lines.currency
     )
-    order_with_lines.update_total_authorized()
+    update_order_authorize_data(order_with_lines)
     assert (
         order_with_lines.total_authorized_amount
         == previously_authorized_value + transaction.authorized_value
@@ -373,7 +376,7 @@ def test_transaction_update_for_order_increases_order_total_charged(
         charged_value=previously_charged_value, currency=order_with_lines.currency
     )
 
-    order_with_lines.update_total_charged()
+    update_order_charge_data(order_with_lines)
     assert (
         order_with_lines.total_charged_amount
         == previously_charged_value + transaction.charged_value
@@ -422,7 +425,7 @@ def test_transaction_update_for_order_reduces_order_total_charged(
     transaction.charged_value = Decimal("30")
     transaction.save()
 
-    order_with_lines.update_total_charged()
+    update_order_charge_data(order_with_lines)
     assert (
         order_with_lines.total_charged_amount
         == previously_charged_value + transaction.charged_value
@@ -471,7 +474,7 @@ def test_transaction_update_for_order_reduces_transaction_charged_amount_to_zero
     transaction.charged_value = Decimal("30")
     transaction.save()
 
-    order_with_lines.update_total_charged()
+    update_order_charge_data(order_with_lines)
     assert (
         order_with_lines.total_charged_amount
         == previously_charged_value + transaction.charged_value

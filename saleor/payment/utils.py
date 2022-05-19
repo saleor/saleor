@@ -15,6 +15,7 @@ from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order.models import Order
+from ..order.utils import update_order_authorize_data, update_order_charge_data
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -472,9 +473,9 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
     if "captured_amount" in changed_fields and payment.order_id:
-        payment.order.update_total_charged()
+        update_order_charge_data(payment.order)
     if transaction_kind == TransactionKind.AUTH and payment.order_id:
-        payment.order.update_total_authorized()
+        update_order_authorize_data(payment.order)
 
 
 def fetch_customer_id(user: User, gateway: str):

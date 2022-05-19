@@ -35,6 +35,7 @@ from ....order.search import (
     prepare_order_search_document_value,
     update_order_search_document,
 )
+from ....order.utils import update_order_authorize_data, update_order_charge_data
 from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
 from ....payment.interface import TransactionActionData
 from ....payment.models import Payment, TransactionEvent, TransactionItem
@@ -706,7 +707,8 @@ def test_order_query_with_transactions_details(
             ),
         ]
     )
-
+    update_order_authorize_data(order)
+    update_order_charge_data(order)
     event_status = TransactionStatus.FAILURE
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
@@ -8972,6 +8974,166 @@ def test_draft_orders_query_with_filter_search_by_number_with_hash(
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
+
+
+@pytest.mark.parametrize(
+    "transaction_data, statuses, expected_count",
+    [
+        (
+            {"authorized_value": Decimal("10")},
+            [OrderAuthorizeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"authorized_value": Decimal("00")},
+            [OrderAuthorizeStatusEnum.PARTIAL.name],
+            0,
+        ),
+        (
+            {"authorized_value": Decimal("100")},
+            [OrderAuthorizeStatusEnum.FULL.name],
+            2,
+        ),
+        (
+            {"authorized_value": Decimal("10")},
+            [OrderAuthorizeStatusEnum.FULL.name, OrderAuthorizeStatusEnum.PARTIAL.name],
+            2,
+        ),
+        (
+            {"authorized_value": Decimal("0")},
+            [OrderAuthorizeStatusEnum.FULL.name, OrderAuthorizeStatusEnum.NONE.name],
+            2,
+        ),
+        (
+            {"authorized_value": Decimal("10"), "charged_value": Decimal("90")},
+            [OrderAuthorizeStatusEnum.FULL.name],
+            2,
+        ),
+    ],
+)
+def test_orders_query_with_filter_authorize_status(
+    transaction_data,
+    statuses,
+    expected_count,
+    orders_query_with_filter,
+    order_with_lines,
+    order,
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+    channel_USD,
+):
+    # given
+    address = customer_user.default_billing_address.get_copy()
+    order = Order.objects.create(
+        billing_address=address,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+    order.payment_transactions.create(
+        currency=order.currency, authorized_value=Decimal("10")
+    )
+    update_order_charge_data(order)
+    update_order_authorize_data(order)
+
+    order_with_lines.payment_transactions.create(
+        currency=order.currency, **transaction_data
+    )
+    update_order_charge_data(order_with_lines)
+    update_order_authorize_data(order_with_lines)
+
+    variables = {"filter": {"authorizeStatus": statuses}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == expected_count
+
+
+@pytest.mark.parametrize(
+    "transaction_data, statuses, expected_count",
+    [
+        (
+            {"charged_value": Decimal("10")},
+            [OrderChargeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("00")},
+            [OrderChargeStatusEnum.PARTIAL.name],
+            0,
+        ),
+        (
+            {"charged_value": Decimal("98.40")},
+            [OrderChargeStatusEnum.FULL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("10")},
+            [OrderChargeStatusEnum.FULL.name, OrderChargeStatusEnum.PARTIAL.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("0")},
+            [OrderChargeStatusEnum.FULL.name, OrderChargeStatusEnum.NONE.name],
+            1,
+        ),
+        (
+            {"charged_value": Decimal("98.40")},
+            [OrderChargeStatusEnum.FULL.name, OrderChargeStatusEnum.OVERCHARGED.name],
+            2,
+        ),
+    ],
+)
+def test_orders_query_with_filter_charge_status(
+    transaction_data,
+    statuses,
+    expected_count,
+    orders_query_with_filter,
+    order_with_lines,
+    order,
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+    channel_USD,
+):
+    # given
+    address = customer_user.default_billing_address.get_copy()
+    order = Order.objects.create(
+        billing_address=address,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
+    )
+    order.payment_transactions.create(
+        currency=order.currency, charged_value=Decimal("10")
+    )
+    update_order_charge_data(order)
+
+    order_with_lines.payment_transactions.create(
+        currency=order.currency, **transaction_data
+    )
+    update_order_charge_data(order_with_lines)
+
+    variables = {"filter": {"chargeStatus": statuses}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == expected_count
 
 
 QUERY_GET_VARIANTS_FROM_ORDER = """

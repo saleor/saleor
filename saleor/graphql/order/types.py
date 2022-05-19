@@ -151,22 +151,14 @@ def get_order_discount_event(discount_obj: dict):
     )
 
 
-def get_payment_status_for_order(order, transactions):
+def get_payment_status_for_order(order):
     status = ChargeStatus.NOT_CHARGED
-    charged_money = prices.Money(Decimal(0), order.currency)
-    refunded_money = prices.Money(Decimal(0), order.currency)
-    for transaction in transactions:
-        charged_money += transaction.amount_charged
-        refunded_money += transaction.amount_refunded
+    charged_money = order.total_charged
 
     if charged_money >= order.total.gross:
         status = ChargeStatus.FULLY_CHARGED
     elif charged_money and charged_money < order.total.gross:
         status = ChargeStatus.PARTIALLY_CHARGED
-    if refunded_money >= order.total.gross:
-        status = ChargeStatus.FULLY_REFUNDED
-    elif refunded_money and refunded_money < order.total.gross:
-        status = ChargeStatus.PARTIALLY_REFUNDED
     return status
 
 
@@ -1228,7 +1220,7 @@ class Order(ModelObjectType):
         def _resolve_payment_status(data):
             transactions, payments = data
             if transactions:
-                return get_payment_status_for_order(root, transactions)
+                return get_payment_status_for_order(root)
             last_payment = get_last_payment(payments)
             if not last_payment:
                 return ChargeStatus.NOT_CHARGED
@@ -1267,7 +1259,7 @@ class Order(ModelObjectType):
         def _resolve_payment_status(data):
             transactions, payments = data
             if transactions:
-                status = get_payment_status_for_order(root, transactions)
+                status = get_payment_status_for_order(root)
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
