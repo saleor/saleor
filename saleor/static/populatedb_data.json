@@ -540,7 +540,6 @@
       "updated_at": "2022-05-19T09:20:18.453Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 324,
       "rating": 0.0
     }
   },
@@ -564,7 +563,6 @@
       "updated_at": "2022-05-13T20:11:18.993Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 325,
       "rating": 0.0
     }
   },
@@ -588,7 +586,6 @@
       "updated_at": "2022-05-13T20:39:54.551Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 332,
       "rating": 0.0
     }
   },
@@ -612,7 +609,6 @@
       "updated_at": "2022-05-13T20:47:18.902Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 335,
       "rating": 0.0
     }
   },
@@ -636,7 +632,6 @@
       "updated_at": "2022-05-13T21:15:21.592Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 340,
       "rating": 0.0
     }
   },
@@ -660,7 +655,6 @@
       "updated_at": "2022-05-13T21:10:33.993Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 345,
       "rating": 0.0
     }
   },
@@ -684,7 +678,6 @@
       "updated_at": "2022-05-16T16:40:43.118Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 346,
       "rating": 0.0
     }
   },
@@ -708,7 +701,6 @@
       "updated_at": "2022-05-13T21:14:28.328Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 347,
       "rating": 0.0
     }
   },
@@ -732,7 +724,6 @@
       "updated_at": "2022-05-15T09:38:17.179Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 348,
       "rating": 0.0
     }
   },
@@ -756,7 +747,6 @@
       "updated_at": "2022-05-14T21:37:02.094Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 353,
       "rating": 0.0
     }
   },
@@ -780,7 +770,6 @@
       "updated_at": "2022-05-14T21:36:42.372Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 358,
       "rating": 0.0
     }
   },
@@ -804,7 +793,6 @@
       "updated_at": "2022-05-14T21:36:18.923Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 361,
       "rating": 0.0
     }
   },
@@ -828,7 +816,6 @@
       "updated_at": "2022-05-14T21:36:31.780Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 364,
       "rating": 0.0
     }
   },
@@ -852,7 +839,6 @@
       "updated_at": "2022-05-14T21:33:36.545Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 368,
       "rating": 0.0
     }
   },
@@ -876,7 +862,6 @@
       "updated_at": "2022-05-14T21:33:04.263Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 370,
       "rating": 0.0
     }
   },
@@ -900,7 +885,6 @@
       "updated_at": "2022-05-14T21:25:09.229Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 371,
       "rating": 0.0
     }
   },
@@ -934,7 +918,6 @@
       "updated_at": "2022-05-19T09:15:38.806Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 372,
       "rating": 0.0
     }
   },
@@ -968,7 +951,6 @@
       "updated_at": "2022-05-19T09:19:50.290Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 375,
       "rating": 0.0
     }
   },
@@ -1004,7 +986,6 @@
       "updated_at": "2022-05-19T09:22:29.677Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 379,
       "rating": 0.0
     }
   },
@@ -1028,7 +1009,6 @@
       "updated_at": "2022-05-15T09:28:13.368Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 382,
       "rating": 0.0
     }
   },
@@ -1058,7 +1038,6 @@
       "updated_at": "2022-05-16T16:38:35.766Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 383,
       "rating": 0.0
     }
   },
@@ -1094,7 +1073,6 @@
       "updated_at": "2022-05-18T12:21:40.815Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 384,
       "rating": 0.0
     }
   },
@@ -1118,7 +1096,6 @@
       "updated_at": "2022-05-16T16:25:11.768Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 385,
       "rating": 0.0
     }
   },
@@ -1142,7 +1119,6 @@
       "updated_at": "2022-05-16T16:27:16.933Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 386,
       "rating": 0.0
     }
   },
@@ -1178,7 +1154,6 @@
       "updated_at": "2022-05-17T12:36:31.471Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 387,
       "rating": 0.0
     }
   },
@@ -1202,7 +1177,6 @@
       "updated_at": "2022-05-17T11:44:17.205Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 388,
       "rating": 0.0
     }
   },
@@ -1226,7 +1200,6 @@
       "updated_at": "2022-05-17T11:50:42.152Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 389,
       "rating": 0.0
     }
   },
@@ -1260,7 +1233,6 @@
       "updated_at": "2022-05-18T19:30:32.578Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 393,
       "rating": 0.0
     }
   },
@@ -1284,7 +1256,6 @@
       "updated_at": "2022-05-18T12:21:19.661Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 394,
       "rating": 0.0
     }
   },
@@ -1320,7 +1291,6 @@
       "updated_at": "2022-05-18T12:07:49.831Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 399,
       "rating": 0.0
     }
   },
@@ -1344,7 +1314,6 @@
       "updated_at": "2022-05-18T19:29:47.127Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 400,
       "rating": 0.0
     }
   },
@@ -1368,7 +1337,6 @@
       "updated_at": "2022-05-18T19:31:14.751Z",
       "charge_taxes": false,
       "weight": null,
-      "default_variant": 401,
       "rating": 0.0
     }
   },
@@ -2285,7 +2253,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-12T22:09:40.752Z",
       "updated_at": "2022-05-12T22:29:28.421Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2305,7 +2274,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T15:01:07.152Z",
       "updated_at": "2022-05-13T19:48:53.078Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2445,7 +2415,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:39:26.112Z",
       "updated_at": "2022-05-13T20:39:26.185Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2505,7 +2476,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:47:03.499Z",
       "updated_at": "2022-05-13T20:47:03.620Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2605,7 +2577,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:57:45.685Z",
       "updated_at": "2022-05-13T20:57:45.754Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2705,7 +2678,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:07:45.439Z",
       "updated_at": "2022-05-13T21:10:33.980Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2725,7 +2699,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:11:28.927Z",
       "updated_at": "2022-05-16T16:40:43.108Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2745,7 +2720,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:13:29.305Z",
       "updated_at": "2022-05-13T21:14:28.317Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2765,7 +2741,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:22:25.536Z",
       "updated_at": "2022-05-13T23:26:53.236Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2865,7 +2842,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:30:50.614Z",
       "updated_at": "2022-05-13T23:26:53.207Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -2965,7 +2943,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:38:56.282Z",
       "updated_at": "2022-05-13T23:26:53.164Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3025,7 +3004,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:42:43.229Z",
       "updated_at": "2022-05-13T23:26:53.217Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3085,7 +3065,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:44:58.194Z",
       "updated_at": "2022-05-13T23:26:53.194Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3145,7 +3126,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T23:50:16.869Z",
       "updated_at": "2022-05-14T21:33:36.523Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3165,7 +3147,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:10:01.587Z",
       "updated_at": "2022-05-14T21:33:04.241Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3185,7 +3168,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:24:57.904Z",
       "updated_at": "2022-05-14T21:25:09.225Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3205,7 +3189,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:55:45.910Z",
       "updated_at": "2022-05-14T21:55:45.938Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3265,7 +3250,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:05:27.383Z",
       "updated_at": "2022-05-15T09:05:27.419Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3345,7 +3331,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:21:06.168Z",
       "updated_at": "2022-05-15T09:21:06.190Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3385,7 +3372,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:28:13.324Z",
       "updated_at": "2022-05-15T09:28:13.363Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3405,7 +3393,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:32:27.397Z",
       "updated_at": "2022-05-16T16:38:35.759Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3425,7 +3414,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:19:51.191Z",
       "updated_at": "2022-05-18T12:21:40.806Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3445,7 +3435,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:25:11.701Z",
       "updated_at": "2022-05-16T16:25:11.757Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3465,7 +3456,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:27:16.900Z",
       "updated_at": "2022-05-16T16:27:16.924Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3485,7 +3477,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:28:15.149Z",
       "updated_at": "2022-05-17T12:36:31.454Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3505,7 +3498,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:44:17.115Z",
       "updated_at": "2022-05-17T11:44:17.201Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3525,7 +3519,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:50:09.662Z",
       "updated_at": "2022-05-17T11:50:09.694Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3565,7 +3560,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:57:19.386Z",
       "updated_at": "2022-05-18T19:30:32.573Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3585,7 +3581,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T12:03:59.123Z",
       "updated_at": "2022-05-17T12:03:59.178Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3685,7 +3682,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-18T12:06:54.246Z",
       "updated_at": "2022-05-18T12:07:49.819Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3705,7 +3703,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-18T19:29:35.277Z",
       "updated_at": "2022-05-18T19:29:47.123Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -3725,7 +3724,8 @@
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-18T19:31:14.677Z",
       "updated_at": "2022-05-18T19:31:14.745Z",
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
