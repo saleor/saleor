@@ -124,9 +124,9 @@ IMAGES_MAPPING = {
     133: ["saleor-white-hoodie.png"],
     134: ["saleor-ascii-shirt-front.png", "saleor-ascii-shirt-back.png"],
     135: ["saleor-team-tee-front.png", "saleor-team-tee-front.png"],
-    136: ["saleor-polo-shirt-front.png", "saleor-polo-shirt-dark.png"],
+    136: ["saleor-polo-shirt-front.png", "saleor-polo-shirt-back.png"],
     137: ["saleor-blue-polygon-tee-front.png", "saleor-blue-polygon-tee-back.png"],
-    138: ["saleor-dark-polygon-tee-front.pnh", "saleor-dark-polygon-tee-back.png"],
+    138: ["saleor-dark-polygon-tee-front.png", "saleor-dark-polygon-tee-back.png"],
     141: ["saleor-beanie-1.png", "saleor-beanie-2.png"],
     143: ["saleor-neck-warmer.png"],
     144: ["saleor-sunnies.png"],
@@ -141,11 +141,11 @@ IMAGES_MAPPING = {
     155: ["saleor-carrot-drink.png"],
     156: ["saleor-sunnies-dark.png"],
     157: ["saleor-monospace-white-tee-front.png", "saleor-monospace-white-tee-back.png"],
-    160: ["saloer-gift-100.png"],
+    160: ["saleor-gift-100.png"],
     161: ["saleor-white-cubes-tee-front.png", "saleor-white-cubes-tee-back.png"],
     162: ["saleor-white-parrot-cushion.png"],
-    163: ["saloer-gift-500.png"],
-    164: ["saloer-gift-50.png"]
+    163: ["saleor-gift-500.png"],
+    164: ["saleor-gift-50.png"]
 }
 
 CATEGORY_IMAGES = {
@@ -179,10 +179,11 @@ def create_categories(categories_data, placeholder_dir):
         defaults = category["fields"]
         parent = defaults["parent"]
         image_name = (
-            CATEGORY_IMAGES[pk] if pk in CATEGORY_IMAGES else CATEGORY_IMAGES[parent]
+            CATEGORY_IMAGES[pk] if pk in CATEGORY_IMAGES else None
         )
-        background_image = get_image(placeholder_dir, image_name)
-        defaults["background_image"] = background_image
+        if image_name:
+            background_image = get_image(placeholder_dir, image_name)
+            defaults["background_image"] = background_image
         if parent:
             defaults["parent"] = Category.objects.get(pk=parent)
         Category.objects.update_or_create(pk=pk, defaults=defaults)
