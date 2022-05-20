@@ -52,6 +52,7 @@ ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
 # (see saleor.demo.management.commands.populatedb).
 INSTALLED_APPS.remove("saleor.core")
 INSTALLED_APPS += ["saleor.demo", "saleor.core"]
+ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = False
 
 
 def _get_project_name_from_url(url: str) -> str:
