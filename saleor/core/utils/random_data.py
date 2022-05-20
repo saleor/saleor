@@ -120,7 +120,7 @@ IMAGES_MAPPING = {
         "saleor-blue-plimsolls-4.png",
     ],
     129: ["saleor-dash-force-1.png", "saleor-dash-force-2.png"],
-    130: ["saleor-pauls-blanace-420-1.png", "saleor-pauls-blanace-420-1.png"],
+    130: ["saleor-pauls-blanace-420-1.png", "saleor-pauls-blanace-420-2.png"],
     131: ["saleor-grey-hoodie.png"],
     132: ["saleor-blue-hoodie.png"],
     133: ["saleor-white-hoodie.png"],
