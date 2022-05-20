@@ -120,6 +120,16 @@ def test_pop_events(buffer):
     assert buffer.size() == MAX_SIZE - BATCH_SIZE
 
 
+def test_pop_events_get_size(buffer):
+    events = [{"event": f"data{i}"} for i in range(MAX_SIZE)]
+    buffer.put_events(events)
+    popped_events, size = buffer.pop_events_get_size()
+    assert len(popped_events) == BATCH_SIZE
+    assert popped_events == events[:BATCH_SIZE]
+    assert size == MAX_SIZE - BATCH_SIZE
+    assert buffer.size() == size
+
+
 def test_clear(buffer):
     events = [{"event": "data"}] * 2
     buffer.put_events(events)

@@ -34,7 +34,7 @@ from ...webhook.observability import (
     get_buffer,
     get_buffer_name,
     get_observability_webhooks,
-    report_webhook_event_delivery,
+    report_event_delivery_attempt,
     task_next_retry_date,
 )
 from ...webhook.utils import get_webhooks_for_event
@@ -363,7 +363,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except Retry as retry_error:
                 next_retry = task_next_retry_date(retry_error)
-                report_webhook_event_delivery(attempt, next_retry)
+                report_event_delivery_attempt(attempt, next_retry)
                 raise retry_error
             except MaxRetriesExceededError:
                 task_logger.warning(
@@ -387,7 +387,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-    report_webhook_event_delivery(attempt)
+    report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
 
@@ -462,7 +462,7 @@ def send_webhook_request_sync(
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
-    report_webhook_event_delivery(attempt)
+    report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
@@ -536,14 +536,14 @@ def observability_reporter_task():
     try:
         if webhooks := get_observability_webhooks():
             buffer = get_buffer(get_buffer_name())
-            batch_count = buffer.batch_count()
-            if batch_count == 1:
-                events = buffer.pop_events()
-                _send_observability_events(webhooks, events)
-            elif batch_count > 1:
+            events, remaining = buffer.pop_events_get_size()
+            batch_count = buffer.in_batches(remaining)
+            if batch_count > 0:
                 tasks = [observability_send_events.s() for _ in range(batch_count)]
                 expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
                 group(tasks).apply_async(expires=expiration)
+            if events:
+                _send_observability_events(webhooks, events)
     except Exception:
         logger.error("[Observability] Reporter failed", exc_info=True)
 

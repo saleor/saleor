@@ -1,7 +1,7 @@
 import math
 import pickle
 import zlib
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from asgiref.local import Local
 from django.conf import settings
@@ -66,6 +66,11 @@ class BaseBuffer:
             "subclasses of BaseBuffer must provide a pop_events() method"
         )
 
+    def pop_events_get_size(self) -> Tuple[List[Any], int]:
+        raise NotImplementedError(
+            "subclasses of BaseBuffer must provide a pop_events_get_size() method"
+        )
+
     def clear(self):
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a clear() method"
@@ -76,8 +81,11 @@ class BaseBuffer:
             "subclasses of BaseBuffer must provide a size() method"
         )
 
+    def in_batches(self, size: int) -> int:
+        return math.ceil(size / self.batch_size)
+
     def batch_count(self) -> int:
-        return math.ceil(self.size() / self.batch_size)
+        return self.in_batches(self.size())
 
 
 class RedisBuffer(BaseBuffer):
@@ -145,23 +153,29 @@ class RedisBuffer(BaseBuffer):
             trimmed[key] = max(0, buffer_len - self.max_size)
         return trimmed
 
-    def _pop_events(self, key: KEY_TYPE, batch_size: int) -> List[Any]:
+    def _pop_events(self, key: KEY_TYPE, batch_size: int) -> Tuple[List[Any], int]:
         events = []
         with self.client.pipeline(transaction=False) as pipe:
+            pipe.llen(key)
             for i in range(max(1, batch_size)):
                 pipe.rpop(key)
             result = pipe.execute()
+        size = result.pop(0)
         for elem in result:
             if elem is None:
                 break
             events.append(self.decode(elem))
-        return events
+        return events, size - len(events)
 
     def pop_event(self) -> Any:
-        events = self._pop_events(self.key, batch_size=1)
+        events, _ = self._pop_events(self.key, batch_size=1)
         return events[0] if events else None
 
     def pop_events(self) -> List[Any]:
+        events, _ = self._pop_events(self.key, self.batch_size)
+        return events
+
+    def pop_events_get_size(self) -> Tuple[List[Any], int]:
         return self._pop_events(self.key, self.batch_size)
 
     def clear(self) -> int:

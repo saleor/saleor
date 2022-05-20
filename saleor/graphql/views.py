@@ -101,7 +101,7 @@ class GraphQLView(View):
                 "Cannot import '%s' graphene middleware!" % middleware_name
             )
 
-    @observability.dispatch_decorator
+    @observability.report_view
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":

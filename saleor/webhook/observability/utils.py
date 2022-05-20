@@ -1,3 +1,4 @@
+import functools
 import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 CACHE_TIMEOUT = parse("2 minutes")
 BUFFER_KEY = "observability_buffer"
 WEBHOOKS_KEY = "observability_webhooks"
-_webhooks_active_cache: Dict[str, Tuple[bool, float]] = {}
+_active_webhooks_exists_cache: Dict[str, Tuple[bool, float]] = {}
 _context = Local()
 
 
@@ -72,15 +73,19 @@ def get_observability_webhooks() -> List[WebhookData]:
         return webhooks_data
 
 
-def observability_webhooks_active(timeout=CACHE_TIMEOUT) -> bool:
+def active_webhooks_exists_clear_cache():
+    _active_webhooks_exists_cache.clear()
+
+
+def active_webhooks_exists(timeout=CACHE_TIMEOUT) -> bool:
     key = get_buffer_name()
-    cached = _webhooks_active_cache.get(key, None)
+    cached = _active_webhooks_exists_cache.get(key, None)
     if cached is not None:
         is_active, check_time = cached
         if monotonic() - check_time <= timeout:
             return is_active
     is_active = bool(get_observability_webhooks())
-    _webhooks_active_cache[key] = (is_active, monotonic())
+    _active_webhooks_exists_cache[key] = (is_active, monotonic())
     return is_active
 
 
@@ -92,9 +97,9 @@ def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
     return None
 
 
-def put_to_buffer(payload_generator: Callable[[], Any]):
+def put_to_buffer(generate_payload: Callable[[], Any]):
     try:
-        payload = payload_generator()
+        payload = generate_payload()
         get_buffer(get_buffer_name()).put_event(payload)
     except Exception:
         logger.error("[Observability] Event dropped", exc_info=True)
@@ -109,7 +114,7 @@ class GraphQLOperationResponse:
     result_invalid: bool = False
 
 
-class ApiCallContext:
+class ApiCall:
     def __init__(self, request: "HttpRequest"):
         self.gql_operations: List[GraphQLOperationResponse] = []
         self.response: Optional["HttpResponse"] = None
@@ -117,24 +122,20 @@ class ApiCallContext:
         self.request = request
 
     def report(self):
-        if (
-            self._reported
-            or not settings.OBSERVABILITY_ACTIVE
-            or (
-                not getattr(self.request, "app", None)
-                and not settings.OBSERVABILITY_REPORT_ALL_API_CALLS
-            )
-        ):
+        if self._reported or not settings.OBSERVABILITY_ACTIVE:
+            return
+        only_app_api_call = not settings.OBSERVABILITY_REPORT_ALL_API_CALLS
+        if only_app_api_call and getattr(self.request, "app", None) is None:
+            return
+        if self.response is None:
+            logger.error("[Observability] HttpResponse not provided, event dropped")
             return
         self._reported = True
         with opentracing.global_tracer().start_active_span(
             "observability_report_api_call"
         ) as scope:
             scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
-            if self.response is None:
-                logger.error("[Observability] HttpResponse not provided, event dropped")
-                return
-            if observability_webhooks_active():
+            if active_webhooks_exists():
                 put_to_buffer(
                     partial(
                         generate_api_call_payload,
@@ -147,10 +148,10 @@ class ApiCallContext:
 
 
 @contextmanager
-def report_api_call(request: "HttpRequest") -> Generator[ApiCallContext, None, None]:
+def report_api_call(request: "HttpRequest") -> Generator[ApiCall, None, None]:
     root = False
     if not hasattr(_context, "api_call"):
-        _context.api_call, root = ApiCallContext(request), True
+        _context.api_call, root = ApiCall(request), True
     yield _context.api_call
     if root:
         _context.api_call.report()
@@ -169,23 +170,31 @@ def report_gql_operation() -> Generator[GraphQLOperationResponse, None, None]:
         del _context.gql_operation
 
 
-def report_webhook_event_delivery(
+def report_view(method):
+    @functools.wraps(method)
+    def wrapper(self, request, *args, **kwargs):
+        with report_api_call(request) as api_call:
+            response = method(self, request, *args, **kwargs)
+            api_call.response = response
+            return response
+
+    return wrapper
+
+
+def report_event_delivery_attempt(
     attempt: "EventDeliveryAttempt", next_retry: Optional["datetime"] = None
 ):
     if not settings.OBSERVABILITY_ACTIVE:
         return
+    if attempt.delivery is None:
+        logger.error(
+            "[Observability] %r not assigned to delivery. Event dropped", attempt
+        )
     with opentracing.global_tracer().start_active_span(
         "observability_report_event_delivery_attempt"
     ) as scope:
         scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
-        if observability_webhooks_active():
-            if attempt.delivery is None:
-                logger.error(
-                    "[Observability] Event delivery not assigned to attempt: %r. "
-                    "Event dropped",
-                    attempt,
-                )
-                return
+        if active_webhooks_exists():
             put_to_buffer(
                 partial(
                     generate_event_delivery_attempt_payload,
