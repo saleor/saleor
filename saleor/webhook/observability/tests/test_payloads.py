@@ -239,7 +239,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
             time=request.request_time.timestamp(),
             content_length=19,
             headers=[
-                ("Cookie", ""),
+                ("Cookie", "***"),
                 ("Content-Length", "19"),
                 ("Content-Type", "application/json"),
             ],

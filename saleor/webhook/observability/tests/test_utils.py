@@ -13,10 +13,8 @@ from ..payload_schema import JsonTruncText
 from ..payloads import CustomJsonEncoder
 from ..utils import (
     ApiCall,
-    WebhookData,
-    active_webhooks_exists,
-    active_webhooks_exists_clear_cache,
-    get_observability_webhooks,
+    get_webhooks,
+    get_webhooks_clear_mem_cache,
     report_api_call,
     report_gql_operation,
     task_next_retry_date,
@@ -29,54 +27,26 @@ def clear_cache():
     cache.clear()
 
 
-def test_get_observability_webhooks(clear_cache, observability_app):
-    webhook = observability_app.webhooks.first()
-    observability_webhooks = get_observability_webhooks()
-    assert observability_webhooks == [
-        WebhookData(
-            id=webhook.id,
-            saleor_domain="mirumee.com",
-            target_url=webhook.target_url,
-            secret_key=webhook.secret_key,
-        )
-    ]
-
-
+@patch("saleor.webhook.observability.utils.cache.get")
 @patch("saleor.webhook.observability.utils.get_webhooks_for_event")
-def test_get_observability_webhooks_cache(
-    mocked_get_webhooks_for_event, clear_cache, observability_app
+def test_get_webhooks(
+    mocked_get_webhooks_for_event,
+    mock_cache_get,
+    clear_cache,
+    observability_webhook,
+    observability_webhook_data,
 ):
-    webhook = observability_app.webhooks.first()
-    mocked_get_webhooks_for_event.return_value = [webhook]
-    get_observability_webhooks(), get_observability_webhooks()
+    get_webhooks_clear_mem_cache()
+    mocked_get_webhooks_for_event.return_value = [observability_webhook]
+    mock_cache_get.side_effect = [None, [observability_webhook_data]]
 
+    assert get_webhooks() == [observability_webhook_data]
+    get_webhooks_clear_mem_cache()
+    assert get_webhooks() == [observability_webhook_data]
+    assert get_webhooks() == [observability_webhook_data]
+    assert get_webhooks() == [observability_webhook_data]
+    assert mock_cache_get.call_count == 2
     mocked_get_webhooks_for_event.assert_called_once()
-
-
-def test_observability_webhooks_active(clear_cache, observability_app):
-    active_webhooks_exists_clear_cache()
-    assert active_webhooks_exists() is True
-
-
-def test_observability_webhooks_active_when_app_deactivated(
-    clear_cache, observability_app
-):
-    active_webhooks_exists_clear_cache()
-    observability_app.is_active = False
-    observability_app.save()
-
-    assert active_webhooks_exists() is False
-
-
-@patch("saleor.webhook.observability.utils.get_observability_webhooks")
-def test_observability_webhooks_active_cache(
-    mock_get_observability_webhooks, clear_cache, observability_app
-):
-    active_webhooks_exists_clear_cache()
-    mock_get_observability_webhooks.return_value = []
-    active_webhooks_exists(), active_webhooks_exists()
-
-    mock_get_observability_webhooks.assert_called_once()
 
 
 def test_custom_json_encoder_dumps_json_trunc_text():
@@ -178,35 +148,50 @@ def api_call(test_request):
 
 
 @patch("saleor.webhook.observability.utils.put_to_buffer")
-@patch("saleor.webhook.observability.utils.active_webhooks_exists")
+@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_report(
-    mock_active_webhooks_exists,
+    mock_get_webhooks,
     mock_put_to_buffer,
     observability_enabled,
     app,
     api_call,
     test_request,
+    observability_webhook_data,
 ):
-    mock_active_webhooks_exists.return_value = True
+    mock_get_webhooks.return_value = [observability_webhook_data]
     test_request.app = app
     api_call.report(), api_call.report()
 
     mock_put_to_buffer.assert_called_once()
 
 
-@patch("saleor.webhook.observability.utils.active_webhooks_exists")
+@patch("saleor.webhook.observability.utils.put_to_buffer")
+@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_response_report_when_observability_not_active(
-    mock_active_webhooks_exists, observability_disabled, api_call
+    mock_get_webhooks,
+    mock_put_to_buffer,
+    observability_disabled,
+    api_call,
+    observability_webhook_data,
 ):
+    mock_get_webhooks.return_value = [observability_webhook_data]
     api_call.report()
 
-    mock_active_webhooks_exists.assert_not_called()
+    mock_get_webhooks.assert_not_called()
+    mock_put_to_buffer.assert_not_called()
 
 
-@patch("saleor.webhook.observability.utils.active_webhooks_exists")
+@patch("saleor.webhook.observability.utils.put_to_buffer")
+@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_response_report_when_request_not_from_app(
-    mock_active_webhooks_exists, observability_enabled, api_call
+    mock_get_webhooks,
+    mock_put_to_buffer,
+    observability_enabled,
+    api_call,
+    observability_webhook_data,
 ):
+    mock_get_webhooks.return_value = [observability_webhook_data]
     api_call.report()
 
-    mock_active_webhooks_exists.assert_not_called()
+    mock_get_webhooks.assert_not_called()
+    mock_put_to_buffer.assert_not_called()

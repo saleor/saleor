@@ -3,8 +3,9 @@ from .exceptions import ObservabilityError
 from .payloads import dump_payload
 from .utils import (
     WebhookData,
+    buffer_pop_events,
     get_buffer_name,
-    get_observability_webhooks,
+    get_webhooks,
     report_api_call,
     report_event_delivery_attempt,
     report_gql_operation,
@@ -14,11 +15,12 @@ from .utils import (
 
 __all__ = [
     "get_buffer",
+    "buffer_pop_events",
     "ObservabilityError",
     "dump_payload",
     "WebhookData",
     "get_buffer_name",
-    "get_observability_webhooks",
+    "get_webhooks",
     "report_api_call",
     "report_gql_operation",
     "report_event_delivery_attempt",

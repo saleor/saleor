@@ -27,16 +27,10 @@ from ...graphql.webhook.subscription_payload import (
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
+from ...webhook import observability
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
-from ...webhook.observability import (
-    WebhookData,
-    dump_payload,
-    get_buffer,
-    get_buffer_name,
-    get_observability_webhooks,
-    report_event_delivery_attempt,
-    task_next_retry_date,
-)
+from ...webhook.observability import WebhookData
+from ...webhook.payloads import generate_meta, generate_requestor
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
@@ -362,8 +356,8 @@ def send_webhook_request_async(self, event_delivery_id):
                 countdown = self.retry_backoff * (2**self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
             except Retry as retry_error:
-                next_retry = task_next_retry_date(retry_error)
-                report_event_delivery_attempt(attempt, next_retry)
+                next_retry = observability.task_next_retry_date(retry_error)
+                observability.report_event_delivery_attempt(attempt, next_retry)
                 raise retry_error
             except MaxRetriesExceededError:
                 task_logger.warning(
@@ -387,7 +381,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-    report_event_delivery_attempt(attempt)
+    observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
 
@@ -462,14 +456,13 @@ def send_webhook_request_sync(
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
-    report_event_delivery_attempt(attempt)
+    observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
 
-def _send_observability_events(webhooks: List[WebhookData], events: List[Any]):
-    domain = Site.objects.get_current().domain
+def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
     event_type = WebhookEventAsyncType.OBSERVABILITY
     for webhook in webhooks:
         scheme = urlparse(webhook.target_url).scheme.lower()
@@ -479,20 +472,20 @@ def _send_observability_events(webhooks: List[WebhookData], events: List[Any]):
                 for event in events:
                     response = send_webhook_using_scheme_method(
                         webhook.target_url,
-                        domain,
+                        webhook.saleor_domain,
                         webhook.secret_key,
                         event_type,
-                        dump_payload(event),
+                        observability.dump_payload(event),
                     )
                     if response.status == EventDeliveryStatus.FAILED:
                         failed += 1
             else:
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
-                    domain,
+                    webhook.saleor_domain,
                     webhook.secret_key,
                     event_type,
-                    dump_payload(events),
+                    observability.dump_payload(events),
                 )
                 if response.status == EventDeliveryStatus.FAILED:
                     failed = len(events)
@@ -524,9 +517,10 @@ def _send_observability_events(webhooks: List[WebhookData], events: List[Any]):
 @app.task
 def observability_send_events():
     try:
-        if webhooks := get_observability_webhooks():
-            if events := get_buffer(get_buffer_name()).pop_events():
-                _send_observability_events(webhooks, events)
+        if webhooks := observability.get_webhooks():
+            events, _ = observability.buffer_pop_events()
+            if events:
+                send_observability_events(webhooks, events)
     except Exception:
         logger.error("[Observability] Reporter failed - Could not pop events")
 
@@ -534,16 +528,14 @@ def observability_send_events():
 @app.task
 def observability_reporter_task():
     try:
-        if webhooks := get_observability_webhooks():
-            buffer = get_buffer(get_buffer_name())
-            events, remaining = buffer.pop_events_get_size()
-            batch_count = buffer.in_batches(remaining)
+        if webhooks := observability.get_webhooks():
+            events, batch_count = observability.buffer_pop_events()
             if batch_count > 0:
                 tasks = [observability_send_events.s() for _ in range(batch_count)]
                 expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
                 group(tasks).apply_async(expires=expiration)
             if events:
-                _send_observability_events(webhooks, events)
+                send_observability_events(webhooks, events)
     except Exception:
         logger.error("[Observability] Reporter failed", exc_info=True)
 

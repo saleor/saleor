@@ -49,16 +49,27 @@ def get_buffer_name() -> str:
     return cache.make_key(BUFFER_KEY)
 
 
-def get_observability_webhooks() -> List[WebhookData]:
+_webhooks_mem_cache: Dict[str, Tuple[List[WebhookData], float]] = {}
+
+
+def get_webhooks_clear_mem_cache():
+    _webhooks_mem_cache.clear()
+
+
+def get_webhooks(timeout=CACHE_TIMEOUT) -> List[WebhookData]:
     with opentracing.global_tracer().start_active_span(
         "get_observability_webhooks"
     ) as scope:
         scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
+        buffer_name = get_buffer_name()
+        if cached := _webhooks_mem_cache.get(buffer_name, None):
+            webhooks_data, check_time = cached
+            if monotonic() - check_time <= timeout:
+                return webhooks_data
         webhooks_data = cache.get(WEBHOOKS_KEY)
         if webhooks_data is None:
             webhooks_data = []
-            event_type = WebhookEventAsyncType.OBSERVABILITY
-            if webhooks := get_webhooks_for_event(event_type):
+            if webhooks := get_webhooks_for_event(WebhookEventAsyncType.OBSERVABILITY):
                 domain = Site.objects.get_current().domain
                 for webhook in webhooks:
                     webhooks_data.append(
@@ -70,23 +81,8 @@ def get_observability_webhooks() -> List[WebhookData]:
                         )
                     )
             cache.set(WEBHOOKS_KEY, webhooks_data, timeout=CACHE_TIMEOUT)
+        _webhooks_mem_cache[buffer_name] = (webhooks_data, monotonic())
         return webhooks_data
-
-
-def active_webhooks_exists_clear_cache():
-    _active_webhooks_exists_cache.clear()
-
-
-def active_webhooks_exists(timeout=CACHE_TIMEOUT) -> bool:
-    key = get_buffer_name()
-    cached = _active_webhooks_exists_cache.get(key, None)
-    if cached is not None:
-        is_active, check_time = cached
-        if monotonic() - check_time <= timeout:
-            return is_active
-    is_active = bool(get_observability_webhooks())
-    _active_webhooks_exists_cache[key] = (is_active, monotonic())
-    return is_active
 
 
 def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
@@ -103,6 +99,13 @@ def put_to_buffer(generate_payload: Callable[[], Any]):
         get_buffer(get_buffer_name()).put_event(payload)
     except Exception:
         logger.error("[Observability] Event dropped", exc_info=True)
+
+
+def buffer_pop_events() -> Tuple[List[Any], int]:
+    buffer = get_buffer(get_buffer_name())
+    events, remaining = buffer.pop_events_get_size()
+    batch_count = buffer.in_batches(remaining)
+    return events, batch_count
 
 
 @dataclass
@@ -135,7 +138,7 @@ class ApiCall:
             "observability_report_api_call"
         ) as scope:
             scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
-            if active_webhooks_exists():
+            if get_webhooks():
                 put_to_buffer(
                     partial(
                         generate_api_call_payload,
@@ -194,7 +197,7 @@ def report_event_delivery_attempt(
         "observability_report_event_delivery_attempt"
     ) as scope:
         scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
-        if active_webhooks_exists():
+        if get_webhooks():
             put_to_buffer(
                 partial(
                     generate_event_delivery_attempt_payload,
