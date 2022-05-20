@@ -122,6 +122,7 @@ documentation = "https://docs.saleor.io/"
   types-freezegun = "^1.1.7"
   types-six = "^1.16.12"
   fakeredis = "^1.8"
+  types-redis = "^4.2.6"
 
 [tool.black]
 target_version = [ "py35", "py36", "py37", "py38" ]
