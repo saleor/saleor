@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Any, Optional
 
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from faker import Faker
 
@@ -48,8 +49,9 @@ class AnonymizePlugin(BasePlugin):
         order.save()
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
-
         customer.first_name = faker.first_name()
         customer.last_name = faker.last_name()
-        customer.email = f"{get_random_string(25)}@anonymous-demo-email"
+        timestamp = str(timezone.now())
+        email = f"{hash(timestamp + get_random_string(5))}@anonymous-demo-email"
+        customer.email = email
         customer.save()
