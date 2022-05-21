@@ -198,7 +198,7 @@ def create_categories(categories_data, placeholder_dir):
         pk = category["pk"]
         defaults = category["fields"]
         parent = defaults["parent"]
-        image_name = CATEGORY_IMAGES[pk] if pk in CATEGORY_IMAGES else None
+        image_name = CATEGORY_IMAGES.get(pk)
         if image_name:
             background_image = get_image(placeholder_dir, image_name)
             defaults["background_image"] = background_image
@@ -225,7 +225,7 @@ def create_collections(data, placeholder_dir):
     for collection in data:
         pk = collection["pk"]
         defaults = collection["fields"]
-        image_name = COLLECTION_IMAGES[pk] if pk in COLLECTION_IMAGES else None
+        image_name = COLLECTION_IMAGES.get(pk)
         if image_name:
             background_image = get_image(placeholder_dir, image_name)
             defaults["background_image"] = background_image
@@ -916,22 +916,23 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         email = get_email(first_name, last_name)
 
     staff_user = User.objects.filter(email=email).first()
+    if staff_user:
+        return staff_user
 
-    if not staff_user:
-        staff_user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password=staff_password,
-            default_billing_address=address,
-            default_shipping_address=address,
-            is_staff=True,
-            is_active=True,
-            is_superuser=superuser,
-            search_document=_prepare_search_document_value(
-                User(email=email, first_name=first_name, last_name=last_name), address
-            ),
-        )
+    staff_user = User.objects.create_user(
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        password=staff_password,
+        default_billing_address=address,
+        default_shipping_address=address,
+        is_staff=True,
+        is_active=True,
+        is_superuser=superuser,
+        search_document=_prepare_search_document_value(
+            User(email=email, first_name=first_name, last_name=last_name), address
+        ),
+    )
     return staff_user
 
 
@@ -1434,9 +1435,10 @@ def create_vouchers():
 
 
 def create_gift_cards(how_many=5):
-    product_pk = Product.objects.get(name="Gift card 100").pk
-    if not product_pk:
+    product = Product.objects.filter(name="Gift card 100").first()
+    if not product:
         return
+    product_pk = product.pk
     tag, _ = GiftCardTag.objects.get_or_create(name="issued-gift-cards")
     for i in range(how_many):
         staff_user = User.objects.filter(is_staff=True).order_by("?").first()
