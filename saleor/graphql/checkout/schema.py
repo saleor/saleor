@@ -39,6 +39,9 @@ class CheckoutQueries(graphene.ObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        alternative_channel=graphene.String(
+            description="Slug of a alternative channel for which the data should be returned."
+        ),
     )
     checkout_lines = PrefetchingConnectionField(
         CheckoutLine, description="List of checkout lines."

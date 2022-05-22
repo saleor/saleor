@@ -51,6 +51,13 @@ class Checkout(ModelWithMetadata):
         related_name="checkouts",
         on_delete=models.PROTECT,
     )
+    alternative_channel = models.ForeignKey(
+        Channel,
+        related_name="alternative_checkouts",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
     billing_address = models.ForeignKey(
         "account.Address",
         related_name="+",
