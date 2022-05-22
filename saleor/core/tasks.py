@@ -17,13 +17,15 @@ def delete_from_storage_task(path):
 @app.task
 def delete_event_payloads_task():
     event_payload_delete_period = timezone.now() - EVENT_PAYLOAD_DELETE_PERIOD
-    EventDeliveryAttempt.objects.filter(
-        created_at__lte=event_payload_delete_period
-    ).delete()
-    EventDelivery.objects.filter(created_at__lte=event_payload_delete_period).delete()
-    EventPayload.objects.filter(
-        deliveries__isnull=True, created_at__lte=event_payload_delete_period
-    ).delete()
+    time_filter = {"created_at__lte": event_payload_delete_period}
+    attempts_queryset = EventDeliveryAttempt.objects.filter(**time_filter)
+    deliveries_queryset = EventDelivery.objects.filter(**time_filter)
+    payloads_queryset = EventPayload.objects.filter(
+        deliveries__isnull=True, **time_filter
+    )
+    attempts_queryset._raw_delete(attempts_queryset.db)
+    deliveries_queryset._raw_delete(deliveries_queryset.db)
+    payloads_queryset._raw_delete(payloads_queryset.db)
 
 
 @app.task(
