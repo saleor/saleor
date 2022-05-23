@@ -25,7 +25,7 @@ from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
 from ...payment import TransactionAction
-from ...payment.interface import TransactionActionData
+from ...payment.interface import TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
 from ...plugins.webhook.utils import from_payment_app_id
@@ -769,6 +769,42 @@ def test_generate_payment_payload(dummy_webhook_app_payment_data):
     ).name
     expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
 
+    assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
+
+
+@freeze_time("1914-06-28 10:50")
+def test_generate_payment_with_transactions_payload(dummy_webhook_app_payment_data):
+    transaction_data = {
+        "token": "token",
+        "is_success": True,
+        "kind": "auth",
+        "gateway_response": {"status": "SUCCESS"},
+        "amount": {
+            "amount": str(
+                quantize_price(
+                    dummy_webhook_app_payment_data.amount,
+                    dummy_webhook_app_payment_data.currency,
+                )
+            ),
+            "currency": dummy_webhook_app_payment_data.currency,
+        },
+    }
+
+    dummy_webhook_app_payment_data.transactions = [TransactionData(**transaction_data)]
+
+    payload = generate_payment_payload(dummy_webhook_app_payment_data)
+    expected_payload = asdict(dummy_webhook_app_payment_data)
+
+    expected_payload["amount"] = Decimal(expected_payload["amount"]).quantize(
+        Decimal("0.01")
+    )
+    expected_payload["payment_method"] = from_payment_app_id(
+        dummy_webhook_app_payment_data.gateway
+    ).name
+
+    expected_payload["meta"] = generate_meta(requestor_data=generate_requestor())
+
+    assert expected_payload["transactions"]
     assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)
 
 
