@@ -12,6 +12,15 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
+class TransactionData:
+    token: str
+    is_success: bool
+    kind: str
+    gateway_response: JSONType
+    amount: Dict[str, str]
+
+
+@dataclass
 class PaymentMethodInfo:
     """Uniform way to represent payment method information."""
 
@@ -112,6 +121,7 @@ class PaymentData:
     order_id: Optional[int]
     customer_ip_address: Optional[str]
     customer_email: str
+    order_channel_slug: Optional[str] = None
     token: Optional[str] = None
     customer_id: Optional[str] = None  # stores payment gateway customer ID
     reuse_source: bool = False  # Note: this field will be removed in 4.0.
@@ -123,6 +133,7 @@ class PaymentData:
     payment_metadata: Dict[str, str] = field(default_factory=dict)
     psp_reference: Optional[str] = None
     refund_data: Optional[RefundData] = None
+    transactions: List[TransactionData] = field(default_factory=list)
     # Optional, lazy-evaluated gateway arguments
     _resolve_lines_data: InitVar[Callable[[], PaymentLinesData]] = None
 
