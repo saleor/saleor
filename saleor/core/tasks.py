@@ -20,7 +20,7 @@ def delete_event_payloads_task():
     delete_period = timezone.now() - EVENT_PAYLOAD_DELETE_PERIOD
     deliveries = EventDelivery.objects.filter(created_at__lte=delete_period)
     attempts = EventDeliveryAttempt.objects.filter(
-        Q(delivery__in=deliveries)
+        Q(delivery__created_at__lte=delete_period)
         | Q(delivery__isnull=True, created_at__lte=delete_period)
     )
     payloads = EventPayload.objects.filter(
