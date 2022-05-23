@@ -530,6 +530,9 @@ class OrderLine(models.Model):
     # Fulfilled when sale was applied to product in the line
     sale_id = models.CharField(max_length=255, null=True, blank=True)
 
+    original_product_sku = models.CharField(max_length=255, null=True, blank=True)
+    original_variant_id = models.IntegerField(blank=True, null=True)
+
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:

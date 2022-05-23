@@ -576,7 +576,8 @@ class ProductVariant(SortableModel, ModelWithMetadata):
 
     objects = models.Manager.from_queryset(ProductVariantQueryset)()
     translated = TranslationProxy()
-
+    original_sku = models.CharField(max_length=255, null=True, blank=True)
+    original_id = models.IntegerField(blank=True, null=True)
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
         app_label = "product"
