@@ -36,7 +36,7 @@ coverage==6.3.3; python_version >= "3.7"
 cryptography==37.0.2; python_version >= "3.6"
 cssselect2==0.6.0; python_version >= "3.7"
 deprecated==1.2.13; python_version >= "3.7" and python_full_version < "3.0.0" or python_version >= "3.7" and python_full_version >= "3.4.0"
-dill==0.3.4; python_full_version >= "3.6.2"
+dill==0.3.5.1; python_full_version >= "3.6.2"
 distlib==0.3.4; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 dj-database-url==0.5.0
 dj-email-url==1.0.5
