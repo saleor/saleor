@@ -1,12 +1,18 @@
 from typing import TYPE_CHECKING, Any, Optional
 
-from ...core.anonymize import obfuscate_address, obfuscate_email
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from faker import Faker
+
+from ...core.anonymize import obfuscate_address
 from ..base_plugin import BasePlugin
 from . import obfuscate_order
 
 if TYPE_CHECKING:
     from ...account.models import Address, User
     from ...order.models import Order
+
+faker = Faker()
 
 
 class AnonymizePlugin(BasePlugin):
@@ -43,5 +49,9 @@ class AnonymizePlugin(BasePlugin):
         order.save()
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
-        customer.email = obfuscate_email(customer.email)
+        customer.first_name = faker.first_name()
+        customer.last_name = faker.last_name()
+        timestamp = str(timezone.now())
+        email = f"{hash(timestamp + get_random_string(5))}@anonymous-demo-email"
+        customer.email = email
         customer.save()
