@@ -144,7 +144,7 @@ def apply_checkout_discount_on_checkout_line(
 
     last_element = lines[-1].line.id == checkout_line_info.line.id
     if last_element:
-        discount_amount = _calculate_discount_for_last_element_in_qs(
+        discount_amount = _calculate_discount_for_last_element(
             lines_total_prices, total_price, total_discount_amount, currency
         )
     else:
@@ -194,7 +194,7 @@ def apply_order_discount_to_order_unit_price(
 
     last_element = order_lines.last().pk == order_line.pk  # type: ignore
     if last_element:
-        discount_amount = _calculate_discount_for_last_element_in_qs(
+        discount_amount = _calculate_discount_for_last_element(
             lines_total_prices, total_price, total_discount_amount, currency
         )
     else:
@@ -207,10 +207,10 @@ def apply_order_discount_to_order_unit_price(
     )
 
 
-def _calculate_discount_for_last_element_in_qs(
+def _calculate_discount_for_last_element(
     lines_total_prices, total_price, total_discount_amount, currency
 ):
-    """Calculate the discount for last element of query set.
+    """Calculate the discount for last element.
 
     If the given line is last on the list we should calculate the discount by difference
     between total discount amount and sum of discounts applied to rest of the lines,
