@@ -73,8 +73,9 @@ def test_delete_product_media_task_product_media_to_remove(
 
 def test_delete_event_payloads_task(webhook, settings):
     delete_period = settings.EVENT_PAYLOAD_DELETE_PERIOD
-    before_delete_period = timezone.now() - delete_period - timedelta(hours=12)
-    after_delete_period = timezone.now() - delete_period + timedelta(hours=12)
+    start_time = timezone.now()
+    before_delete_period = start_time - delete_period - timedelta(seconds=1)
+    after_delete_period = start_time - delete_period + timedelta(seconds=1)
     for creation_time in [before_delete_period, after_delete_period]:
         with freeze_time(creation_time):
             payload = EventPayload.objects.create(payload='{"key": "data"}')
@@ -83,9 +84,11 @@ def test_delete_event_payloads_task(webhook, settings):
                 payload=payload,
                 webhook=webhook,
             )
+        with freeze_time(creation_time + timedelta(seconds=2)):
             EventDeliveryAttempt.objects.create(delivery=delivery)
 
-    delete_event_payloads_task()
+    with freeze_time(start_time):
+        delete_event_payloads_task()
 
     assert EventPayload.objects.count() == 1
     assert EventDelivery.objects.count() == 1
