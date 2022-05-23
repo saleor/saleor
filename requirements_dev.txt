@@ -95,7 +95,7 @@ html-to-draftjs==1.0.1
 html2text==2020.1.16; python_version >= "3.5"
 html5lib==1.1; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
 httptools==0.4.0; python_version >= "3.7" and python_full_version >= "3.5.0"
-identify==2.5.0; python_version >= "3.7"
+identify==2.5.1; python_version >= "3.7"
 idna==3.3; python_full_version >= "3.6.2" and python_version >= "3.7"
 importlib-metadata==4.11.3; python_version < "3.10" and python_version >= "3.7"
 iniconfig==1.1.1; python_version >= "3.7" and python_version < "4.0"
