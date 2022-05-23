@@ -24,13 +24,18 @@ PRODUCT_FIELDS_TO_PREFETCH = [
     "attributes__assignment__attribute",
 ]
 
+PRODUCTS_BATCH_SIZE = 300
+# Setting threshold to 300 results in about 350MB of memory usage
+# when testing locally. Should be adjusted after some time by running
+# update task on a large dataset and measureing the total time, memory usage
+# and time of a single SQL statement.
+
 
 def update_products_search_vector(products: "QuerySet"):
-    batch_size = 300
     last_id = 0
     while True:
         products_batch = list(
-            products.order_by("id").filter(id__gt=last_id)[:batch_size]
+            products.order_by("id").filter(id__gt=last_id)[:PRODUCTS_BATCH_SIZE]
         )
         if not products_batch:
             break
