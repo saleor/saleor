@@ -110,9 +110,13 @@ class Order(ModelWithMetadata):
         max_length=32,
         default=OrderAuthorizeStatus.NONE,
         choices=OrderAuthorizeStatus.CHOICES,
+        db_index=True,
     )
     charge_status = models.CharField(
-        max_length=32, default=OrderChargeStatus.NONE, choices=OrderChargeStatus.CHOICES
+        max_length=32,
+        default=OrderChargeStatus.NONE,
+        choices=OrderChargeStatus.CHOICES,
+        db_index=True,
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -303,11 +307,6 @@ class Order(ModelWithMetadata):
                 fields=["user_email"],
                 opclasses=["gin_trgm_ops"],
             ),
-            GinIndex(
-                name="order_authorize_status",
-                fields=["authorize_status"],
-            ),
-            GinIndex(name="order_charge_status", fields=["charge_status"]),
         ]
 
     def is_fully_paid(self):
