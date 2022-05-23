@@ -49,7 +49,7 @@ from .money import VAT
 
 # deprecated - this is temporary constant that contains the graphql types
 # which has double id available - uuid and old int id
-TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine", "CheckoutLine"]
+TYPES_WITH_DOUBLE_ID_AVAILABLE = ["Order", "OrderLine", "OrderDiscount", "CheckoutLine"]
 
 
 class NonNullList(graphene.List):

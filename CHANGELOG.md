@@ -9,6 +9,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
 - Fix sorting by publication date with pagination - #9741 by @IKarbowiak
 - Fix max_length for voucher_code in Checkout model - #9791 by @SzymJ
+- Fix sorting by publication date with pagination - #9741 by IKarbowiak
+- Migrate order discount id from int to UUID - #9729 by @IKarbowiak
+  - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
+  for old order discounts.
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins
