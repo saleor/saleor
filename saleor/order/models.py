@@ -531,6 +531,8 @@ class OrderLine(models.Model):
     sale_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = models.Manager.from_queryset(OrderLineQueryset)()
+    original_sku = models.CharField(max_length=255, null=True, blank=True)
+    original_variant_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)
