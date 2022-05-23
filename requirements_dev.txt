@@ -72,7 +72,7 @@ filelock==3.7.0; python_version >= "3.7" and python_full_version < "3.0.0" or py
 flake8==4.0.1; python_version >= "3.6"
 fonttools==4.33.3; python_version >= "3.7"
 freezegun==1.2.1; python_version >= "3.6"
-google-api-core==2.7.3; python_version >= "3.7"
+google-api-core==2.8.0; python_version >= "3.7"
 google-auth==2.6.6; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
 google-cloud-core==2.3.0; python_version >= "3.7"
 google-cloud-pubsub==2.12.1; python_version >= "3.6"
