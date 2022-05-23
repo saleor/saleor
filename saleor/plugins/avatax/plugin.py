@@ -252,6 +252,9 @@ class AvataxPlugin(BasePlugin):
         shipping_net = shipping_price.net.amount
         for line in lines:
             if line["itemCode"] == "Shipping":
+                # The lineAmount does not include the discountAmount,
+                # but tax is calculated for discounted net price, that
+                # take into account provided discount.
                 shipping_net = Decimal(line["lineAmount"])
                 discount_amount = Decimal(line.get("discountAmount", 0.0))
                 shipping_tax = Decimal(line["tax"])
@@ -425,6 +428,8 @@ class AvataxPlugin(BasePlugin):
             if line.get("itemCode") != item_code:
                 continue
 
+            # The lineAmount does not include the discountAmount, but tax is calculated
+            # for discounted net price, that take into account provided discount.
             tax = Decimal(line.get("tax", 0.0))
             discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
@@ -496,6 +501,8 @@ class AvataxPlugin(BasePlugin):
             if line.get("itemCode") != item_code:
                 continue
 
+            # The lineAmount does not include the discountAmount, but tax is calculated
+            # for discounted net price, that take into account provided discount.
             tax = Decimal(line.get("tax", 0.0))
             discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
