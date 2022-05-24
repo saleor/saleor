@@ -1,5 +1,6 @@
 from botocore.exceptions import ClientError
 from django.core.files.storage import default_storage
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ..celeryconf import app
@@ -16,14 +17,19 @@ def delete_from_storage_task(path):
 
 @app.task
 def delete_event_payloads_task():
-    event_payload_delete_period = timezone.now() - EVENT_PAYLOAD_DELETE_PERIOD
-    EventDeliveryAttempt.objects.filter(
-        created_at__lte=event_payload_delete_period
-    ).delete()
-    EventDelivery.objects.filter(created_at__lte=event_payload_delete_period).delete()
-    EventPayload.objects.filter(
-        deliveries__isnull=True, created_at__lte=event_payload_delete_period
-    ).delete()
+    delete_period = timezone.now() - EVENT_PAYLOAD_DELETE_PERIOD
+    deliveries = EventDelivery.objects.filter(created_at__lte=delete_period)
+    attempts = EventDeliveryAttempt.objects.filter(
+        Q(Exists(deliveries.filter(id=OuterRef("delivery_id"))))
+        | Q(delivery__isnull=True, created_at__lte=delete_period)
+    )
+    payloads = EventPayload.objects.filter(
+        deliveries__isnull=True, created_at__lte=delete_period
+    )
+
+    attempts._raw_delete(attempts.db)
+    deliveries._raw_delete(deliveries.db)
+    payloads._raw_delete(payloads.db)
 
 
 @app.task(
