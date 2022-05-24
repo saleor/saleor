@@ -15,7 +15,11 @@ from ..product.search import (
 
 task_logger = get_task_logger(__name__)
 
-BATCH_SIZE = 1000
+BATCH_SIZE = 500
+# Based on local testing, 500 should be a good ballance between performance
+# total time and memory usage. Should be tested after some time and adjusted by
+# running the task on different thresholds and measure memory usage, total time
+# and execution time of an single SQL statement.
 
 
 @app.task
