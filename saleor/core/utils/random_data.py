@@ -923,9 +923,6 @@ def create_group(name, permissions, users):
 
 
 def _create_staff_user(staff_password, email=None, superuser=False):
-    user = User.objects.filter(email=email).first()
-    if user:
-        return user
     address = create_address()
     first_name = address.first_name
     last_name = address.last_name
