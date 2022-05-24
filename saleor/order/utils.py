@@ -235,6 +235,7 @@ def update_taxes_for_order_lines(
 ):
     for line in lines:
         update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
+    manager.update_taxes_for_order_lines(order, lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -425,6 +426,8 @@ def add_variant_to_order(
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
+
+        manager.update_taxes_for_order_lines(order, list(order.lines.all()))
 
         unit_discount = line.undiscounted_unit_price - line.unit_price
         if unit_discount.gross:

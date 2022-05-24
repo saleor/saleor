@@ -8,12 +8,10 @@ from ...checkout import base_calculations
 from ...core.prices import quantize_price
 from ...core.taxes import charge_taxes_on_shipping, include_taxes_in_prices, zero_money
 from ...discount import VoucherType
-from ...order.utils import get_total_order_discount_excluding_shipping
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...discount import DiscountInfo
-    from ...order.models import Order, OrderLine
 
 DEFAULT_TAX_RATE_NAME = "standard"
 
@@ -127,7 +125,7 @@ def apply_checkout_discount_on_checkout_line(
     line_total_price = line_price * line_quantity
     currency = checkout_info.checkout.currency
 
-    # if the checkout has only one line, the hole discount amount will be applied
+    # if the checkout has a single line, the whole discount amount will be applied
     # to this line
     if len(lines) == 1:
         return max(
@@ -162,65 +160,6 @@ def apply_checkout_discount_on_checkout_line(
     return max(
         quantize_price(
             (line_total_price - Money(discount_amount, currency)) / line_quantity,
-            currency,
-        ),
-        zero_money(currency),
-    )
-
-
-def apply_order_discount_to_order_unit_price(
-    order: "Order",
-    order_line: "OrderLine",
-):
-    """Calculate the order line price with discounts.
-
-    Include the entire order voucher discount.
-
-    The discount amount is calculated for every line proportionally to
-    the rate of total line price to order total price.
-    """
-    if (
-        not order.voucher_id
-        or order.voucher.type == VoucherType.SHIPPING  # type: ignore
-    ):
-        return order_line.base_unit_price
-
-    currency = order.currency
-    total_discount_amount = get_total_order_discount_excluding_shipping(order).amount
-    line_total_price = order_line.base_unit_price * order_line.quantity
-
-    # if the order has only one line, the hole discount amount will be applied
-    # to this line
-    if order.lines.count() == 1:
-        return max(
-            (line_total_price - Money(total_discount_amount, currency))
-            / order_line.quantity,
-            zero_money(currency),
-        )
-
-    order_lines = order.lines.all()
-
-    # if the order has more lines we need to propagate the discount amount
-    # proportionally to total prices of items
-    lines_total_prices = [
-        line.base_unit_price.amount * line.quantity
-        for line in order_lines
-        if line.id != order_line.id
-    ]
-    total_price = sum(lines_total_prices) + line_total_price.amount
-
-    last_element = order_lines.last().pk == order_line.pk  # type: ignore
-    if last_element:
-        discount_amount = _calculate_discount_for_last_element(
-            lines_total_prices, total_price, total_discount_amount, currency
-        )
-    else:
-        discount_amount = quantize_price(
-            line_total_price.amount / total_price * total_discount_amount, currency
-        )
-    return max(
-        quantize_price(
-            (line_total_price - Money(discount_amount, currency)) / order_line.quantity,
             currency,
         ),
         zero_money(currency),

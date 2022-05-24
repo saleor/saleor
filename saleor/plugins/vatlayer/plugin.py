@@ -17,10 +17,14 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations, calculations
 from ...checkout.interface import CheckoutTaxedPricesData
+from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
 from ...discount import VoucherType
 from ...order.interface import OrderTaxedPricesData
-from ...order.utils import get_voucher_discount_assigned_to_order
+from ...order.utils import (
+    get_total_order_discount_excluding_shipping,
+    get_voucher_discount_assigned_to_order,
+)
 from ...plugins.error_codes import PluginErrorCode
 from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -29,7 +33,6 @@ from . import (
     DEFAULT_TAX_RATE_NAME,
     VatlayerConfiguration,
     apply_checkout_discount_on_checkout_line,
-    apply_order_discount_to_order_unit_price,
     apply_tax_to_price,
     get_taxed_shipping_price,
     get_taxes_for_country,
@@ -289,6 +292,81 @@ class VatlayerPlugin(BasePlugin):
                 )
         return get_taxed_shipping_price(shipping_price, taxes)
 
+    def update_taxes_for_order_lines(
+        self,
+        order: "Order",
+        lines: List["OrderLine"],
+        previous_value: List["OrderLine"],
+    ) -> List["OrderLine"]:
+        if self._skip_plugin(previous_value):
+            return previous_value
+
+        address = order.shipping_address or order.billing_address
+        country = address.country if address else None
+        currency = order.currency
+
+        total_discount_amount = get_total_order_discount_excluding_shipping(
+            order
+        ).amount
+        order_total_price = sum(
+            [line.base_unit_price.amount * line.quantity for line in lines]
+        )
+        total_line_discounts = 0
+        for line in lines:
+            variant = line.variant
+            if not variant:
+                continue
+            product = variant.product  # type: ignore
+
+            line_total_price = line.base_unit_price * line.quantity
+            price_with_discounts = line.base_unit_price
+            if total_discount_amount:
+                if line is lines[-1]:
+                    # for the last line applied remaining discount
+                    discount_amount = total_discount_amount - total_line_discounts
+                else:
+                    # calculate discount proportionally to the rate of total line price
+                    # to order total price.
+                    discount_amount = quantize_price(
+                        line_total_price.amount
+                        / order_total_price
+                        * total_discount_amount,
+                        currency,
+                    )
+                price_with_discounts = max(
+                    quantize_price(
+                        (line_total_price - Money(discount_amount, currency))
+                        / line.quantity,
+                        currency,
+                    ),
+                    zero_money(currency),
+                )
+                # sum already applied discounts
+                total_line_discounts += discount_amount
+
+            self._update_line_prices(line, price_with_discounts, product, country)
+
+        return lines
+
+    def _update_line_prices(
+        self,
+        line: "OrderLine",
+        price_with_discounts: Money,
+        product: "Product",
+        country: "Country",
+    ):
+        line.unit_price = self.__apply_taxes_to_product(
+            product, price_with_discounts, country
+        )
+        line.undiscounted_unit_price = self.__apply_taxes_to_product(
+            product, line.undiscounted_base_unit_price, country
+        )
+        line.total_price = line.unit_price * line.quantity
+        line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
+        line.tax_rate = (line.unit_price.tax / line.unit_price.net).quantize(
+            Decimal(".0001")
+        )
+
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
@@ -315,29 +393,6 @@ class VatlayerPlugin(BasePlugin):
             price_with_discounts=unit_taxed_prices_data.price_with_discounts * quantity,
             price_with_sale=unit_taxed_prices_data.price_with_sale * quantity,
             undiscounted_price=unit_taxed_prices_data.undiscounted_price * quantity,
-        )
-
-    def calculate_order_line_total(
-        self,
-        order: "Order",
-        order_line: "OrderLine",
-        variant: "ProductVariant",
-        product: "Product",
-        previous_value: OrderTaxedPricesData,
-    ) -> OrderTaxedPricesData:
-        unit_price_data = self.__calculate_order_line_unit(
-            order,
-            order_line,
-            variant,
-            product,
-            previous_value,
-        )
-        if unit_price_data is None:
-            return previous_value
-        quantity = order_line.quantity
-        return OrderTaxedPricesData(
-            undiscounted_price=unit_price_data.undiscounted_price * quantity,
-            price_with_discounts=unit_price_data.price_with_discounts * quantity,
         )
 
     def calculate_checkout_line_unit_price(
@@ -397,49 +452,6 @@ class VatlayerPlugin(BasePlugin):
             ),
             price_with_discounts=self.__apply_taxes_to_product(
                 checkout_line_info.product, prices_data.price_with_discounts, country
-            ),
-        )
-        return taxed_prices_data
-
-    def calculate_order_line_unit(
-        self,
-        order: "Order",
-        order_line: "OrderLine",
-        variant: "ProductVariant",
-        product: "Product",
-        previous_value: OrderTaxedPricesData,
-    ) -> OrderTaxedPricesData:
-        unit_price_data = self.__calculate_order_line_unit(
-            order, order_line, variant, product, previous_value
-        )
-        return unit_price_data if unit_price_data is not None else previous_value
-
-    def __calculate_order_line_unit(
-        self,
-        order: "Order",
-        order_line: "OrderLine",
-        variant: "ProductVariant",
-        product: "Product",
-        previous_value: OrderTaxedPricesData,
-    ):
-        if self._skip_plugin(previous_value):
-            return
-
-        address = order.shipping_address or order.billing_address
-        country = address.country if address else None
-        if not variant:
-            return
-
-        price_with_discounts = apply_order_discount_to_order_unit_price(
-            order, order_line
-        )
-
-        taxed_prices_data = OrderTaxedPricesData(
-            undiscounted_price=self.__apply_taxes_to_product(
-                product, order_line.undiscounted_base_unit_price, country
-            ),
-            price_with_discounts=self.__apply_taxes_to_product(
-                product, price_with_discounts, country
             ),
         )
         return taxed_prices_data

@@ -13,7 +13,6 @@ from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
 from ....discount import DiscountValueType, OrderDiscountType
-from ....order.models import OrderLine
 from ....product.models import Product
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
@@ -638,320 +637,6 @@ def test_calculate_order_shipping_free_shipping_voucher(
 
 
 @override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_settings):
-    manager = get_plugins_manager()
-
-    unit_price = Money("10.00", "USD")
-    order_line.unit_price = TaxedMoney(net=unit_price, gross=unit_price)
-    order_line.base_unit_price = unit_price
-    order_line.save()
-
-    order = order_line.order
-    method = shipping_zone.shipping_methods.get()
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
-    order.save()
-
-    variant = order_line.variant
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(product, "standard")
-    product.save()
-
-    line_price = manager.calculate_order_line_unit(
-        order, order_line, variant, product
-    ).price_with_discounts
-    line_price = quantize_price(line_price, line_price.currency)
-    assert line_price == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
-    )
-
-
-def test_calculate_order_line_unit_from_origin_country(
-    vatlayer_plugin, order_line, shipping_zone, site_settings
-):
-    vatlayer_plugin(
-        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
-    )
-    manager = get_plugins_manager()
-
-    unit_price = Money("10.00", "USD")
-    order_line.unit_price = TaxedMoney(net=unit_price, gross=unit_price)
-    order_line.base_unit_price = unit_price
-    order_line.save()
-
-    order = order_line.order
-    method = shipping_zone.shipping_methods.get()
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
-    order.save()
-
-    variant = order_line.variant
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(product, "standard")
-    product.save()
-
-    line_price = manager.calculate_order_line_unit(
-        order, order_line, variant, product
-    ).price_with_discounts
-    line_price = quantize_price(line_price, line_price.currency)
-
-    # make sure that we applied DE taxes (19%)
-    assert line_price == TaxedMoney(
-        net=Money("8.40", "USD"), gross=Money("10.00", "USD")
-    )
-
-
-def test_calculate_order_line_unit_with_excluded_country(
-    vatlayer_plugin, order_line, shipping_zone, site_settings
-):
-    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
-    manager = get_plugins_manager()
-
-    unit_price = Money("10.00", "USD")
-    order_line.unit_price = TaxedMoney(net=unit_price, gross=unit_price)
-    order_line.base_unit_price = unit_price
-    order_line.save()
-
-    order = order_line.order
-    method = shipping_zone.shipping_methods.get()
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
-    order.save()
-
-    variant = order_line.variant
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(product, "standard")
-    product.save()
-
-    line_price = manager.calculate_order_line_unit(
-        order, order_line, variant, product
-    ).price_with_discounts
-    line_price = quantize_price(line_price, line_price.currency)
-
-    assert line_price == TaxedMoney(
-        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
-    )
-
-
-@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_calculate_order_line_unit_entire_order_voucher_one_line(
-    vatlayer, order_line, shipping_zone, voucher
-):
-    # given
-    manager = get_plugins_manager()
-    unit_price = Money("10.00", "USD")
-    order_line.unit_price = TaxedMoney(net=unit_price, gross=unit_price)
-    order_line.base_unit_price = unit_price
-    order_line.save()
-
-    total_price = unit_price * order_line.quantity
-
-    order = order_line.order
-    currency = order.currency
-    method = shipping_zone.shipping_methods.get()
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
-    order.voucher = voucher
-    order.undiscounted_total = order_line.unit_price * order_line.quantity
-    order.save()
-
-    discount_amount = Decimal("5.0")
-    order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
-        value_type=DiscountValueType.FIXED,
-        value=discount_amount,
-        name=voucher.code,
-        currency=currency,
-        amount_value=discount_amount,
-    )
-
-    variant = order_line.variant
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(product, "standard")
-    product.save()
-
-    # when
-    line_price = manager.calculate_order_line_unit(
-        order, order_line, variant, product
-    ).price_with_discounts
-
-    # then
-    line_price = quantize_price(line_price, line_price.currency)
-    expected_gross_amount = (
-        Money(total_price.amount - discount_amount, currency) / order_line.quantity
-    )
-    assert line_price == TaxedMoney(
-        net=quantize_price(expected_gross_amount / Decimal("1.23"), currency),
-        gross=quantize_price(expected_gross_amount, currency),
-    )
-
-
-@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_calculate_order_line_unit_entire_order_voucher_multiple_lines(
-    vatlayer, order_line, shipping_zone, voucher
-):
-    # given
-    manager = get_plugins_manager()
-    base_unit_price = Money("10.00", "USD")
-    unit_price = TaxedMoney(net=base_unit_price, gross=base_unit_price)
-    order_line.unit_price = unit_price
-    order_line.base_unit_price = base_unit_price
-    order_line.save()
-
-    order = order_line.order
-    variant = order_line.variant
-
-    quantity = 3
-    second_order_line = OrderLine.objects.create(
-        order=order,
-        unit_price=unit_price,
-        base_unit_price=base_unit_price,
-        quantity=quantity,
-        is_shipping_required=True,
-        total_price=order_line.unit_price * quantity,
-        is_gift_card=False,
-        variant=variant,
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        product_variant_id=variant.get_global_id(),
-    )
-
-    currency = order.currency
-    method = shipping_zone.shipping_methods.get()
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
-    order.voucher = voucher
-    order.undiscounted_total = unit_price * order_line.quantity
-    order.save()
-
-    total_price = base_unit_price * order_line.quantity
-    total_unit_prices = (
-        base_unit_price * order_line.quantity
-        + base_unit_price * second_order_line.quantity
-    )
-
-    discount_amount = Decimal("10.0")
-    order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
-        value_type=DiscountValueType.FIXED,
-        value=discount_amount,
-        name=voucher.code,
-        currency=currency,
-        amount_value=discount_amount,
-    )
-
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(product, "standard")
-    product.save()
-
-    # when
-    line_price = manager.calculate_order_line_unit(
-        order, order_line, variant, product
-    ).price_with_discounts
-
-    # then
-    line_price = quantize_price(line_price, line_price.currency)
-    discount_amount = quantize_price(
-        total_price / total_unit_prices * discount_amount, currency
-    )
-    unit_gross = quantize_price(
-        (total_price - Money(discount_amount, currency)) / order_line.quantity, currency
-    )
-    assert line_price == TaxedMoney(
-        net=quantize_price(unit_gross / Decimal("1.23"), currency),
-        gross=quantize_price(unit_gross, currency),
-    )
-
-
-@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_calculate_order_line_unit_entire_order_voucher_multiple_lines_last_line(
-    vatlayer, order_line, shipping_zone, voucher
-):
-    # given
-    manager = get_plugins_manager()
-    base_unit_price = Money("10.00", "USD")
-    unit_price = TaxedMoney(net=base_unit_price, gross=base_unit_price)
-    order_line.unit_price = unit_price
-    order_line.base_unit_price = base_unit_price
-    order_line.save()
-
-    order = order_line.order
-    variant = order_line.variant
-
-    quantity = 3
-    second_order_line = OrderLine.objects.create(
-        order=order,
-        unit_price=unit_price,
-        base_unit_price=base_unit_price,
-        quantity=quantity,
-        is_shipping_required=True,
-        total_price=order_line.unit_price * quantity,
-        is_gift_card=False,
-        variant=variant,
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        product_variant_id=variant.get_global_id(),
-    )
-
-    currency = order.currency
-    method = shipping_zone.shipping_methods.get()
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
-    order.voucher = voucher
-    order.undiscounted_total = unit_price * second_order_line.quantity
-    order.save()
-
-    total_line_price = base_unit_price * second_order_line.quantity
-    total_unit_prices = (
-        base_unit_price * order_line.quantity
-        + base_unit_price * second_order_line.quantity
-    )
-
-    discount_amount = Decimal("10.0")
-    order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
-        value_type=DiscountValueType.FIXED,
-        value=discount_amount,
-        name=voucher.code,
-        currency=currency,
-        amount_value=discount_amount,
-    )
-
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(product, "standard")
-    product.save()
-
-    # when
-    line_price = manager.calculate_order_line_unit(
-        order, second_order_line, variant, product
-    ).price_with_discounts
-
-    # then
-    line_price = quantize_price(line_price, line_price.currency)
-    discount_amount = discount_amount - quantize_price(
-        (total_unit_prices - total_line_price) / total_unit_prices * discount_amount,
-        currency,
-    )
-    unit_gross = quantize_price(
-        (total_line_price - Money(discount_amount, currency))
-        / second_order_line.quantity,
-        currency,
-    )
-    assert line_price == TaxedMoney(
-        net=quantize_price(unit_gross / Decimal("1.23"), currency),
-        gross=quantize_price(unit_gross, currency),
-    )
-
-
-@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
 def test_calculate_checkout_line_total(
     vatlayer, checkout_with_item, shipping_zone, address, site_settings
 ):
@@ -1120,72 +805,47 @@ def test_calculate_checkout_line_total_with_excluded_country(
 
 
 @override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_calculate_order_line_total(vatlayer, order_line, site_settings):
+def test_update_taxes_for_order_lines(vatlayer, order_with_lines):
+    # given
+    currency = order_with_lines.currency
     manager = get_plugins_manager()
 
-    assert order_line.quantity > 1
-
-    variant = order_line.variant
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(variant.product, "standard")
-    product.save()
-
-    channel = order_line.order.channel
-    channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
-    unit_price = TaxedMoney(net=net, gross=net)
-    order_line.unit_price = unit_price
-    order_line.base_unit_price = net
-    total_price = unit_price * order_line.quantity
-    order_line.total_price = total_price
-    order_line.save()
-
-    line_price = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
-    ).price_with_discounts
-
-    total_price_amount = total_price.net.amount
-    currency = total_price.currency
-    expected_price = quantize_price(
-        TaxedMoney(
-            net=Money(total_price_amount / Decimal("1.23"), currency),
-            gross=Money(total_price_amount, currency),
-        ),
-        currency,
+    # when
+    lines = manager.update_taxes_for_order_lines(
+        order_with_lines, list(order_with_lines.lines.all())
     )
-    assert line_price == expected_price
+
+    # then
+    for line in lines:
+        assert line.unit_price == TaxedMoney(
+            net=quantize_price(line.base_unit_price / Decimal("1.23"), currency),
+            gross=line.base_unit_price,
+        )
+        assert line.undiscounted_unit_price == line.unit_price
+        assert line.total_price == TaxedMoney(
+            net=quantize_price(
+                line.base_unit_price / Decimal("1.23") * line.quantity, currency
+            ),
+            gross=line.base_unit_price * line.quantity,
+        )
+        assert line.undiscounted_total_price == line.total_price
+        assert line.tax_rate == Decimal("0.23")
 
 
 @override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_calculate_order_line_total_entire_order_voucher(vatlayer, order_line, voucher):
+def test_update_taxes_for_order_lines_voucher_on_entire_order(
+    vatlayer, order_with_lines, voucher
+):
     # given
+    order = order_with_lines
+    currency = order.currency
     manager = get_plugins_manager()
 
-    assert order_line.quantity > 1
-
-    variant = order_line.variant
-    product = variant.product
-    manager.assign_tax_code_to_object_meta(variant.product, "standard")
-    product.save()
-
-    channel = order_line.order.channel
-    channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
-    unit_price = TaxedMoney(net=net, gross=net)
-    order_line.unit_price = unit_price
-    order_line.base_unit_price = net
-    order_line.total_price = unit_price * order_line.quantity
-    order_line.save()
-
-    total_price = net * order_line.quantity
-    currency = total_price.currency
-    order = order_line.order
-
     order.voucher = voucher
-    order.undiscounted_total = order_line.total_price
+    lines = list(order.lines.all())
+    total_amount = sum([line.base_unit_price.amount * line.quantity for line in lines])
+    order.undiscounted_total_gross_amount = total_amount
+    order.undiscounted_total_net_amount = total_amount
     order.save(
         update_fields=[
             "voucher",
@@ -1194,33 +854,102 @@ def test_calculate_order_line_total_entire_order_voucher(vatlayer, order_line, v
         ]
     )
 
-    discount_amount = Decimal("5.0")
+    order_discount_amount = Decimal("5.0")
     order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
-        value=discount_amount,
+        value=order_discount_amount,
         name=voucher.code,
         currency=currency,
-        amount_value=discount_amount,
+        amount_value=order_discount_amount,
     )
 
     # when
-    line_price = manager.calculate_order_line_total(
-        order_line.order,
-        order_line,
-        variant,
-        product,
-    ).price_with_discounts
+    lines = manager.update_taxes_for_order_lines(order, lines)
 
     # then
-    total_gross = Money(total_price.amount - discount_amount, currency)
-    unit_net = quantize_price(
-        total_gross / order_line.quantity / Decimal("1.23"), currency
+    for line in lines:
+        total_line_price = line.base_unit_price * line.quantity
+        discount_amount = quantize_price(
+            total_line_price.amount / total_amount * order_discount_amount, currency
+        )
+        unit_gross = (
+            total_line_price - Money(discount_amount, currency)
+        ) / line.quantity
+        assert line.unit_price == TaxedMoney(
+            net=quantize_price(unit_gross / Decimal("1.23"), currency),
+            gross=quantize_price(unit_gross, currency),
+        )
+        assert line.undiscounted_unit_price == TaxedMoney(
+            net=quantize_price(line.base_unit_price / Decimal("1.23"), currency),
+            gross=line.base_unit_price,
+        )
+        assert line.total_price == TaxedMoney(
+            net=quantize_price(unit_gross / Decimal("1.23"), currency) * line.quantity,
+            gross=quantize_price(unit_gross, currency) * line.quantity,
+        )
+        assert line.undiscounted_total_price == TaxedMoney(
+            net=quantize_price(line.base_unit_price / Decimal("1.23"), currency)
+            * line.quantity,
+            gross=quantize_price(line.base_unit_price * line.quantity, currency),
+        )
+        assert line.tax_rate == (line.unit_price.tax / line.unit_price.net).quantize(
+            Decimal(".0001")
+        )
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_update_taxes_for_order_lines_voucher_on_shipping(
+    vatlayer, order_with_lines, voucher_shipping_type
+):
+    # given
+    order = order_with_lines
+    currency = order_with_lines.currency
+    manager = get_plugins_manager()
+
+    order.voucher = voucher_shipping_type
+    lines = list(order.lines.all())
+    total_amount = sum([line.base_unit_price.amount * line.quantity for line in lines])
+    order.undiscounted_total_gross_amount = total_amount
+    order.undiscounted_total_net_amount = total_amount
+    order.save(
+        update_fields=[
+            "voucher",
+            "undiscounted_total_gross_amount",
+            "undiscounted_total_net_amount",
+        ]
     )
-    assert line_price == TaxedMoney(
-        net=quantize_price(unit_net * order_line.quantity, currency),
-        gross=quantize_price(total_gross, currency),
+
+    order_discount_amount = Decimal("5.0")
+    order.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=order_discount_amount,
+        name=voucher_shipping_type.code,
+        currency=currency,
+        amount_value=order_discount_amount,
     )
+
+    # when
+    lines = manager.update_taxes_for_order_lines(
+        order_with_lines, list(order_with_lines.lines.all())
+    )
+
+    # then
+    for line in lines:
+        assert line.unit_price == TaxedMoney(
+            net=quantize_price(line.base_unit_price / Decimal("1.23"), currency),
+            gross=line.base_unit_price,
+        )
+        assert line.undiscounted_unit_price == line.unit_price
+        assert line.total_price == TaxedMoney(
+            net=quantize_price(
+                line.base_unit_price / Decimal("1.23") * line.quantity, currency
+            ),
+            gross=line.base_unit_price * line.quantity,
+        )
+        assert line.undiscounted_total_price == line.total_price
+        assert line.tax_rate == Decimal("0.23")
 
 
 @override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
