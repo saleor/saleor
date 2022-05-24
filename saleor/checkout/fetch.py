@@ -331,7 +331,7 @@ def apply_voucher_to_checkout_line(
     """Attach voucher to valid checkout lines info.
 
     Apply a voucher to checkout line info when the voucher has the type
-    SPECIFIC_PRODUCTS or is applied only to the cheapest line.
+    SPECIFIC_PRODUCTS or is applied only to the cheapest item.
     """
     from .utils import get_discounted_lines
 

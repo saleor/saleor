@@ -37,6 +37,7 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
+from ....core.prices import quantize_price
 from ....payment import TransactionAction, TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.base_plugin import ExcludedShippingMethod
@@ -3914,12 +3915,11 @@ def test_checkout_prices_with_voucher_once_per_order(
     )
     assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
     line_total_price = line_total_prices.price_with_discounts
-    # TODO:
-    # fix it currently Voucher applied once per order are only calculated in line total
-    # assert (
-    #     data["lines"][0]["unitPrice"]["gross"]["amount"]
-    #     == line_total_price.gross.amount / line_info.line.quantity
-    # )
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
