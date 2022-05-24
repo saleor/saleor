@@ -315,7 +315,7 @@ def get_order_lines_data(
         "variant__product__collections",
         "variant__product__product_type",
     ).filter(variant__product__charge_taxes=True)
-    system_tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
     for line in lines:
         if not line.variant:
             continue
@@ -324,14 +324,6 @@ def get_order_lines_data(
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         prices_data = base_calculations.base_order_line_total(line)
-
-        # Confirm if line doesn't have included taxes in the price. If not then, we
-        # check if the current Saleor config doesn't assume that taxes are included in
-        # prices
-        line_has_included_taxes = (
-            line.unit_price_gross_amount != line.unit_price_net_amount
-        )
-        tax_included = line_has_included_taxes or system_tax_included
 
         if tax_included:
             undiscounted_amount = prices_data.undiscounted_price.gross.amount
