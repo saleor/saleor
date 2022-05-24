@@ -52,6 +52,6 @@ class AnonymizePlugin(BasePlugin):
         customer.first_name = faker.first_name()
         customer.last_name = faker.last_name()
         timestamp = str(timezone.now())
-        email = f"{hash(timestamp + get_random_string(5))}@anonymous-demo-email"
+        email = f"{hash(timestamp + get_random_string(5))}@anonymous-demo-email.com"
         customer.email = email
         customer.save()
