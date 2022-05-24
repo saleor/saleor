@@ -48,7 +48,7 @@ def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
     return len(subscriptions) == 1
 
 
-def initialize_context() -> HttpRequest:
+def initialize_context(requestor=None) -> HttpRequest:
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object and initialize middleware on it. It is required
@@ -57,6 +57,7 @@ def initialize_context() -> HttpRequest:
     """
     handler = BaseHandler()
     context = RequestFactory().request(SERVER_NAME=SimpleLazyObject(get_host))
+    context.requestor = requestor  # type: ignore
     handler.load_middleware()
     response = handler.get_response(context)
     if not response.status_code == 200:
@@ -77,7 +78,7 @@ def generate_payload_from_subscription(
     As an input it expects given event type and object and the query which will be
     used to resolve a payload.
     event_type: is a event which will be triggered.
-    subscribable_object: is a object which have a dedicated own type in Subscription
+    subscribable_object: is an object which have a dedicated own type in Subscription
     definition.
     subscription_query: query used to prepare a payload via graphql engine.
     context: A dummy request used to share context between apps in order to use

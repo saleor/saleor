@@ -4,8 +4,10 @@ import graphene
 import pytest
 import requests
 from django.core.exceptions import ValidationError
+from freezegun import freeze_time
 
 from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.payloads import generate_meta, generate_requestor
 from ..installation_utils import install_app
 from ..models import App
 from ..types import AppExtensionMount, AppExtensionTarget
@@ -32,6 +34,7 @@ def test_install_app_created_app(
     assert list(app.permissions.all()) == [permission_manage_products]
 
 
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_install_app_created_app_trigger_webhook(
@@ -66,6 +69,7 @@ def test_install_app_created_app_trigger_webhook(
             "id": graphene.Node.to_global_id("App", app.id),
             "is_active": app.is_active,
             "name": app.name,
+            "meta": generate_meta(requestor_data=generate_requestor()),
         },
         WebhookEventAsyncType.APP_INSTALLED,
         [any_webhook],

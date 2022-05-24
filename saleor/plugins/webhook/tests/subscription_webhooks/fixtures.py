@@ -20,120 +20,33 @@ def subscription_webhook(webhook_app):
     return fun
 
 
-APP_DETAILS_FRAGMENT = """
-    fragment AppDetails on App{
-        id
-        isActive
-        name
-        appUrl
-    }
-"""
-
-
-APP_INSTALLED_SUBSCRIPTION_QUERY = (
-    APP_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on AppInstalled{
-          app{
-            ...AppDetails
-          }
-        }
-      }
-    }
-"""
-)
-
-
 @pytest.fixture
 def subscription_app_installed_webhook(subscription_webhook):
     return subscription_webhook(
-        APP_INSTALLED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_INSTALLED
+        subscription_queries.APP_INSTALLED, WebhookEventAsyncType.APP_INSTALLED
     )
-
-
-APP_UPDATED_SUBSCRIPTION_QUERY = (
-    APP_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on AppUpdated{
-          app{
-            ...AppDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_app_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        APP_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_UPDATED
+        subscription_queries.APP_UPDATED, WebhookEventAsyncType.APP_UPDATED
     )
-
-
-APP_DELETED_SUBSCRIPTION_QUERY = (
-    APP_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on AppDeleted{
-          app{
-            ...AppDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_app_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        APP_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.APP_DELETED
+        subscription_queries.APP_DELETED, WebhookEventAsyncType.APP_DELETED
     )
-
-
-APP_STATUS_CHANGED_SUBSCRIPTION_QUERY = (
-    APP_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on AppStatusChanged{
-          app{
-            ...AppDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_app_status_changed_webhook(subscription_webhook):
     return subscription_webhook(
-        APP_STATUS_CHANGED_SUBSCRIPTION_QUERY,
+        subscription_queries.APP_STATUS_CHANGED,
         WebhookEventAsyncType.APP_STATUS_CHANGED,
     )
-
-
-CATEGORY_CREATED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on CategoryCreated{
-          category{
-            id
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
@@ -215,190 +128,46 @@ def subscription_gift_card_status_changed_webhook(subscription_webhook):
     )
 
 
-MENU_DETAILS_FRAGMENT = """
-    fragment MenuDetails on Menu{
-        id
-        name
-        slug
-        items {
-            id
-            name
-        }
-    }
-"""
-
-MENU_CREATED_SUBSCRIPTION_QUERY = (
-    MENU_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on MenuCreated{
-          menu{
-            ...MenuDetails
-          }
-        }
-      }
-    }
-"""
-)
-
-
 @pytest.fixture
 def subscription_menu_created_webhook(subscription_webhook):
     return subscription_webhook(
-        MENU_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_CREATED
+        subscription_queries.MENU_CREATED, WebhookEventAsyncType.MENU_CREATED
     )
-
-
-MENU_UPDATED_SUBSCRIPTION_QUERY = (
-    MENU_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on MenuUpdated{
-          menu{
-            ...MenuDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_menu_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        MENU_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_UPDATED
+        subscription_queries.MENU_UPDATED, WebhookEventAsyncType.MENU_UPDATED
     )
-
-
-MENU_DELETED_SUBSCRIPTION_QUERY = (
-    MENU_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on MenuDeleted{
-          menu{
-            ...MenuDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_menu_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        MENU_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_DELETED
+        subscription_queries.MENU_DELETED, WebhookEventAsyncType.MENU_DELETED
     )
-
-
-MENU_ITEM_DETAILS_FRAGMENT = """
-    fragment MenuItemDetails on MenuItem{
-        id
-        name
-        menu {
-            id
-        }
-        page {
-            id
-        }
-    }
-"""
-
-MENU_ITEM_CREATED_SUBSCRIPTION_QUERY = (
-    MENU_ITEM_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on MenuItemCreated{
-          menuItem{
-            ...MenuItemDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_menu_item_created_webhook(subscription_webhook):
     return subscription_webhook(
-        MENU_ITEM_CREATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_CREATED
+        subscription_queries.MENU_ITEM_CREATED, WebhookEventAsyncType.MENU_ITEM_CREATED
     )
-
-
-MENU_ITEM_UPDATED_SUBSCRIPTION_QUERY = (
-    MENU_ITEM_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on MenuItemUpdated{
-          menuItem{
-            ...MenuItemDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_menu_item_updated_webhook(subscription_webhook):
     return subscription_webhook(
-        MENU_ITEM_UPDATED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_UPDATED
+        subscription_queries.MENU_ITEM_UPDATED, WebhookEventAsyncType.MENU_ITEM_UPDATED
     )
-
-
-MENU_ITEM_DELETED_SUBSCRIPTION_QUERY = (
-    MENU_ITEM_DETAILS_FRAGMENT
-    + """
-    subscription{
-      event{
-        ...on MenuItemDeleted{
-          menuItem{
-            ...MenuItemDetails
-          }
-        }
-      }
-    }
-"""
-)
 
 
 @pytest.fixture
 def subscription_menu_item_deleted_webhook(subscription_webhook):
     return subscription_webhook(
-        MENU_ITEM_DELETED_SUBSCRIPTION_QUERY, WebhookEventAsyncType.MENU_ITEM_DELETED
+        subscription_queries.MENU_ITEM_DELETED, WebhookEventAsyncType.MENU_ITEM_DELETED
     )
-
-
-SHIPPING_PRICE_CREATED_SUBSCRIPTION_QUERY = """
-    subscription{
-      event{
-        ...on ShippingPriceCreated{
-          shippingMethod{
-            id
-            name
-            channelListings {
-              channel {
-                name
-              }
-            }
-          }
-          shippingZone{
-            id
-            name
-          }
-        }
-      }
-    }
-"""
 
 
 @pytest.fixture
@@ -772,4 +541,12 @@ def subscription_voucher_updated_webhook(subscription_webhook):
 def subscription_voucher_deleted_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.VOUCHER_DELETED, WebhookEventAsyncType.VOUCHER_DELETED
+    )
+
+
+@pytest.fixture
+def subscription_voucher_webhook_with_meta(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.VOUCHER_CREATED_WITH_META,
+        WebhookEventAsyncType.VOUCHER_CREATED,
     )

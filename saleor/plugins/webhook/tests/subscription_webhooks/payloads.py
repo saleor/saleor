@@ -1,8 +1,23 @@
 import json
 
 import graphene
+from django.utils import timezone
 
-from saleor.product.models import Product
+from ..... import __version__
+from .....product.models import Product
+
+
+def generate_app_payload(app, app_global_id):
+    return json.dumps(
+        {
+            "app": {
+                "id": app_global_id,
+                "isActive": app.is_active,
+                "name": app.name,
+                "appUrl": app.app_url,
+            }
+        }
+    )
 
 
 def generate_taxed_money_payload(taxed_money):
@@ -49,8 +64,7 @@ def generate_fulfillment_payload(fulfillment):
             "trackingNumber": fulfillment.tracking_number,
             "status": fulfillment.status.upper(),
             "lines": generate_fulfillment_lines_payload(fulfillment),
-        },
-        "meta": None,
+        }
     }
 
 
@@ -90,8 +104,7 @@ def generate_customer_payload(customer):
             "defaultBillingAddress": (
                 generate_address_payload(customer.default_billing_address)
             ),
-        },
-        "meta": None,
+        }
     }
 
 
@@ -114,8 +127,7 @@ def generate_collection_payload(collection):
             "slug": collection.slug,
             "channel": "main",
             "products": {"edges": products_node},
-        },
-        "meta": None,
+        }
     }
 
 
@@ -149,8 +161,7 @@ def generate_page_payload(page):
                 },
                 {"attribute": {"slug": page_attributes[1].slug}, "values": []},
             ],
-        },
-        "meta": None,
+        }
     }
 
 
@@ -160,8 +171,7 @@ def generate_invoice_payload(invoice):
             "id": graphene.Node.to_global_id("Invoice", invoice.pk),
             "status": invoice.status.upper(),
             "number": invoice.number,
-        },
-        "meta": None,
+        }
     }
 
 
@@ -188,8 +198,7 @@ def generate_category_payload(category):
                     for product in products
                 ]
             },
-        },
-        "meta": None,
+        }
     }
 
 
@@ -215,7 +224,6 @@ def generate_shipping_method_payload(shipping_method):
             "id": shipping_zone_id,
             "name": shipping_method.shipping_zone.name,
         },
-        "meta": None,
     }
 
 
@@ -237,8 +245,7 @@ def generate_sale_payload(sale):
                     for category in sale.categories.all()
                 ]
             },
-        },
-        "meta": None,
+        }
     }
 
 
@@ -250,10 +257,46 @@ def generate_voucher_payload(voucher, voucher_global_id):
                 "name": voucher.name,
                 "code": voucher.code,
                 "usageLimit": voucher.usage_limit,
-            },
-            "meta": None,
+            }
         }
     )
+
+
+def generate_voucher_created_payload_with_meta(
+    voucher, voucher_global_id, requestor, requestor_type, webhook_app
+):
+    data = {
+        "__typename": "VoucherCreated",
+        "issuedAt": timezone.now().isoformat(),
+        "version": __version__,
+        "issuingPrincipal": None,
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", webhook_app.id),
+            "name": webhook_app.name,
+        },
+        "voucher": {
+            "id": voucher_global_id,
+            "name": voucher.name,
+            "code": voucher.code,
+            "usageLimit": voucher.usage_limit,
+        },
+    }
+
+    if requestor_type == "user":
+        data["issuingPrincipal"] = {
+            "__typename": "User",
+            "id": graphene.Node.to_global_id("User", requestor.id),
+            "email": requestor.email,
+        }
+
+    if requestor_type == "app":
+        data["issuingPrincipal"] = {
+            "__typename": "App",
+            "id": graphene.Node.to_global_id("App", requestor.id),
+            "name": requestor.name,
+        }
+
+    return json.dumps(data)
 
 
 def generate_gift_card_payload(gift_card, card_global_id):
@@ -264,8 +307,7 @@ def generate_gift_card_payload(gift_card, card_global_id):
                 "isActive": gift_card.is_active,
                 "code": gift_card.code,
                 "createdBy": {"email": gift_card.created_by.email},
-            },
-            "meta": None,
+            }
         }
     )
 
@@ -284,8 +326,7 @@ def generate_menu_payload(menu, menu_global_id):
                 }
                 for item in menu_items
             ],
-        },
-        "meta": None,
+        }
     }
 
 
@@ -306,8 +347,7 @@ def generate_menu_item_payload(menu_item, menu_item_global_id):
             "name": menu_item.name,
             "menu": menu,
             "page": page,
-        },
-        "meta": None,
+        }
     }
 
 
@@ -330,7 +370,6 @@ def generate_warehouse_payload(warehouse, warehouse_global_id):
                     ]
                 },
                 "address": {"companyName": warehouse.address.company_name},
-            },
-            "meta": None,
+            }
         }
     )

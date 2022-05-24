@@ -3,9 +3,11 @@ from unittest.mock import patch
 import graphene
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
+from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_UPDATE_MUTATION = """
@@ -410,6 +412,7 @@ def test_channel_update_mutation_duplicated_shipping_zone(
     assert errors[0]["shippingZones"] == [add_shipping_zone]
 
 
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_channel_update_mutation_trigger_webhook(
@@ -448,7 +451,15 @@ def test_channel_update_mutation_trigger_webhook(
     assert data["channel"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": channel_id},
+        {
+            "id": channel_id,
+            "is_active": channel_USD.is_active,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.CHANNEL_UPDATED,
         [any_webhook],
         channel_USD,

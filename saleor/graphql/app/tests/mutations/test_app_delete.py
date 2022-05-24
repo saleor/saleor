@@ -2,10 +2,12 @@ from unittest import mock
 
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
 
 APP_DELETE_MUTATION = """
@@ -48,6 +50,7 @@ def test_app_delete(
     assert not App.objects.filter(id=app.id)
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_delete_trigger_webhook(
@@ -84,6 +87,11 @@ def test_app_delete_trigger_webhook(
             "id": app_global_id,
             "is_active": app.is_active,
             "name": app.name,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.APP_DELETED,
         [any_webhook],

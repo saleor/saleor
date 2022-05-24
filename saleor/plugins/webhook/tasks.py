@@ -26,7 +26,6 @@ from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS
-from ...webhook.payloads import generate_meta, generate_requestor
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
@@ -63,7 +62,7 @@ class WebhookResponse:
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, meta=None
+    event_type, subscribable_object, webhooks, requestor=None
 ) -> List[EventDelivery]:
     """Create webhook payload based on subscription query.
 
@@ -72,6 +71,7 @@ def create_deliveries_for_subscriptions(
 
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in SUBSCRIBABLE_EVENTS:
@@ -80,7 +80,8 @@ def create_deliveries_for_subscriptions(
         )
         return []
 
-    context = initialize_context()
+    context = initialize_context(requestor)
+
     event_payloads = []
     event_deliveries = []
     for webhook in webhooks:
@@ -97,7 +98,7 @@ def create_deliveries_for_subscriptions(
             )
             continue
 
-        event_payload = EventPayload(payload=json.dumps({**data, "meta": meta}))
+        event_payload = EventPayload(payload=json.dumps({**data}))
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -136,17 +137,12 @@ def trigger_webhooks_async(
             )
         )
     if subscription_webhooks:
-        meta = {}
-        if requestor:
-            meta = generate_meta(
-                requestor_data=generate_requestor(requestor), camel_case=True
-            )
         deliveries.extend(
             create_deliveries_for_subscriptions(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 webhooks=subscription_webhooks,
-                meta=meta,
+                requestor=requestor,
             )
         )
 
