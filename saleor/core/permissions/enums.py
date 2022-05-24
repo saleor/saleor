@@ -79,23 +79,28 @@ class SitePermissions(BasePermissionEnum):
     MANAGE_TRANSLATIONS = "site.manage_translations"
 
 
+class TaxPermissions(BasePermissionEnum):
+    MANAGE_TAXES = "tax.manage_taxes"
+
+
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
     ChannelPermissions,
+    CheckoutPermissions,
     DiscountPermissions,
-    PluginsPermissions,
     GiftcardPermissions,
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
     PaymentPermissions,
+    PluginsPermissions,
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
     SitePermissions,
-    CheckoutPermissions,
+    TaxPermissions,
 ]
 
 
