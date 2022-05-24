@@ -21,6 +21,8 @@ from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
+from saleor.attribute.models.product import AssignedProductAttributeValue
+from saleor.attribute.models.product_variant import AssignedVariantAttributeValue
 
 from ...account.models import Address, User
 from ...account.search import (
@@ -369,12 +371,16 @@ def assign_attributes_to_products(product_attributes):
         defaults = dict(value["fields"])
         defaults["product_id"] = defaults.pop("product")
         defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values", [])
-        assoc, created = AssignedProductAttribute.objects.update_or_create(
-            pk=pk, defaults=defaults
-        )
-        if created:
-            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
+        AssignedProductAttribute.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attribute_values_to_products(values):
+    for value in values:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["value_id"] = defaults.pop("value")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        AssignedProductAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def assign_attributes_to_variants(variant_attributes):
@@ -383,12 +389,16 @@ def assign_attributes_to_variants(variant_attributes):
         defaults = dict(value["fields"])
         defaults["variant_id"] = defaults.pop("variant")
         defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values", [])
-        assoc, created = AssignedVariantAttribute.objects.update_or_create(
-            pk=pk, defaults=defaults
-        )
-        if created:
-            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
+        AssignedVariantAttribute.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attribute_values_to_variants(variant_attribute_values):
+    for value in variant_attribute_values:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["value_id"] = defaults.pop("value")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        AssignedVariantAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def assign_attributes_to_pages(page_attributes):
@@ -420,6 +430,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     create_attributes(attributes_data=types["attribute.attribute"])
     create_attributes_values(values_data=types["attribute.attributevalue"])
+
     create_products(
         products_data=types["product.product"],
         placeholder_dir=placeholder_dir,
@@ -448,8 +459,14 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_attributes_to_products(
         product_attributes=types["attribute.assignedproductattribute"]
     )
+    assign_attribute_values_to_products(
+        types["attribute.assignedproductattributevalue"]
+    )
     assign_attributes_to_variants(
         variant_attributes=types["attribute.assignedvariantattribute"]
+    )
+    assign_attribute_values_to_variants(
+        types["attribute.assignedvariantattributevalue"]
     )
     assign_attributes_to_pages(page_attributes=types["attribute.assignedpageattribute"])
     create_collections(
