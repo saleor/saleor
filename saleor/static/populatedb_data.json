@@ -554,10 +554,22 @@
       "product_type": 18,
       "name": "White Plimsolls",
       "slug": "white-plimsolls",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425999878,
+        "blocks": [
+          {
+            "id": "zUV4oz05zN",
+            "data": {
+              "text": "<b>PE at school wouldn’t have been such a drag</b> with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
       "search_document": "",
-      "search_vector": "'39':4A,17B '40':6A,18B '41':8A,19B '42':10A,20B '43':12A,21B '44':14A,22B '45':16A,23B '918223582':3A '918223583':5A '918223584':7A '918223585':9A '918223586':11A '918223587':13A '918223588':15A 'plimsol':2A 'white':1A",
+      "search_vector": "'39':36A,49B '40':38A,50B '41':40A,51B '42':42A,52B '43':44A,53B '44':46A,54B '45':48A,55B '918223582':35A '918223583':37A '918223584':39A '918223585':41A '918223586':43A '918223587':45A '918223588':47A 'brand':27C 'drag':12C 'eleg':34C 'feet':17C 'pe':3C,29C 'plimsol':2A,28C 'pretti':33C 'saleor':26C 'school':5C 'slip':18C 'stand':31C 'stride':23C 'style':21C 'tall':24C 'white':1A 'wouldn':6C",
       "category": 28,
       "created_at": "2022-05-13T14:34:39.934Z",
       "updated_at": "2022-05-13T20:11:18.993Z",
@@ -577,10 +589,22 @@
       "product_type": 18,
       "name": "Blue Plimsolls",
       "slug": "blue-plimsolls",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653426057314,
+        "blocks": [
+          {
+            "id": "b8HYevCTpU",
+            "data": {
+              "text": "<b>Step into summer with Saleor.</b> Every time your head goes down, you see these beauties, and your mood bounces right back up."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "search_document": "",
-      "search_vector": "'40':4A,9B '41':6A,10B '42':8A,11B '818223582':3A '818223583':5A '818223584':7A 'blue':1A 'plimsol':2A",
+      "search_vector": "'40':25A,30B '41':27A,31B '42':29A,32B '818223582':24A '818223583':26A '818223584':28A 'back':23C 'beauti':17C 'blue':1A 'bounc':21C 'everi':8C 'goe':12C 'head':11C 'mood':20C 'plimsol':2A 'right':22C 'saleor':7C 'see':15C 'step':3C 'summer':5C 'time':9C",
       "category": 28,
       "created_at": "2022-05-13T20:14:01.299Z",
       "updated_at": "2022-05-13T20:39:54.551Z",
@@ -600,10 +624,22 @@
       "product_type": 18,
       "name": "Dash Force",
       "slug": "dash-force",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653426379418,
+        "blocks": [
+          {
+            "id": "N0VISDl8_2",
+            "data": {
+              "text": "<b>Step into summer with the right balance.</b>&nbsp;Every time your head goes down, you see these beauties, and your mood bounces right back up."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Step into summer with the right balance.&nbsp;Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "search_document": "",
-      "search_vector": "'39':4A,13B '40':6A,14B '41':8A,15B '42':10A,16B '43':12A,17B '618223581':3A '618223582':5A '618223583':7A '618223584':9A '618223585':11A 'dash':1A 'forc':2A",
+      "search_vector": "'118223581':28A '118223582':30A '118223583':32A '118223584':34A '118223585':36A '39':29A,38B '40':31A,39B '41':33A,40B '42':35A,41B '420':4A '45':37A,42B 'back':27C 'balanc':3A,11C 'beauti':21C 'bounc':25C 'everi':12C 'goe':16C 'head':15C 'mood':24C 'paul':1A 'right':10C,26C 'see':19C 'step':5C 'summer':7C 'time':13C",
       "category": 28,
       "created_at": "2022-05-13T20:44:05.403Z",
       "updated_at": "2022-05-13T20:47:18.902Z",
@@ -623,10 +659,22 @@
       "product_type": 18,
       "name": "Paul's Balance 420",
       "slug": "balance-trail-720",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653426379418,
+        "blocks": [
+          {
+            "id": "N0VISDl8_2",
+            "data": {
+              "text": "<b>Step into summer with the right balance.</b>&nbsp;Every time your head goes down, you see these beauties, and your mood bounces right back up."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Step into summer with the right balance.&nbsp;Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "search_document": "",
-      "search_vector": "'118223581':5A '118223582':7A '118223583':9A '118223584':11A '118223585':13A '39':6A,15B '40':8A,16B '41':10A,17B '42':12A,18B '420':4A '45':14A,19B 'balanc':3A 'paul':1A",
+      "search_vector": "'118223581':28A '118223582':30A '118223583':32A '118223584':34A '118223585':36A '39':29A,38B '40':31A,39B '41':33A,40B '42':35A,41B '420':4A '45':37A,42B 'back':27C 'balanc':3A,11C 'beauti':21C 'bounc':25C 'everi':12C 'goe':16C 'head':15C 'mood':24C 'paul':1A 'right':10C,26C 'see':19C 'step':5C 'summer':7C 'time':13C",
       "category": 28,
       "created_at": "2022-05-13T20:50:54.123Z",
       "updated_at": "2022-05-13T21:15:21.592Z",
@@ -715,10 +763,22 @@
       "product_type": 20,
       "name": "Monospace Tee",
       "slug": "ascii-tee",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425587889,
+        "blocks": [
+          {
+            "id": "HVJ8gMNIXY",
+            "data": {
+              "text": "<b>Your t-shirt is your second skin.</b> It’s the version of you that you show to the world. Wear the Monospace one that flows with your command line kung-fu moves!&nbsp;"
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear the Monospace one that flows with your command line kung-fu moves!&nbsp;",
       "search_document": "",
-      "search_vector": "'328223580':4A '328223581':5A '328223582':7A '328223583':9A '328223584':11A 'cotton':3B 'l':8A,14B 'm':6A,13B 'monospac':1A 'tee':2A 'xl':10A,15B 'xxl':12A,16B",
+      "search_vector": "'328223580':38A '328223581':39A '328223582':41A '328223583':43A '328223584':45A 'command':31C 'cotton':37B 'flow':28C 'fu':35C 'kung':34C 'kung-fu':33C 'l':42A,48B 'line':32C 'm':40A,47B 'monospac':1A,25C 'move':36C 'one':26C 'second':9C 'shirt':6C 'show':19C 'skin':10C 't-shirt':4C 'tee':2A 'version':14C 'wear':23C 'world':22C 'xl':44A,49B 'xxl':46A,50B",
       "category": 39,
       "created_at": "2022-05-13T21:20:59.727Z",
       "updated_at": "2022-05-15T09:38:17.179Z",
@@ -738,10 +798,22 @@
       "product_type": 20,
       "name": "Team Shirt",
       "slug": "team-shirt",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425391562,
+        "blocks": [
+          {
+            "id": "fMdfe0Bfpe",
+            "data": {
+              "text": "<b>One style fits all.</b> Get a look that works even when you are taking it easy. Relaxed wear for the fans."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the fans.",
       "search_document": "",
-      "search_vector": "'128223580':4A '128223581':5A '128223582':7A '128223583':9A '128223584':11A 'elastan':3B 'l':8A,14B 'm':6A,13B 'shirt':2A 'team':1A 'xl':10A,15B 'xxl':12A,16B",
+      "search_vector": "'128223580':25A '128223581':26A '128223582':28A '128223583':30A '128223584':32A 'easi':18C 'elastan':24B 'even':12C 'fan':23C 'fit':5C 'get':7C 'l':29A,35B 'look':9C 'm':27A,34B 'one':3C 'relax':19C 'shirt':2A 'style':4C 'take':16C 'team':1A 'wear':20C 'work':11C 'xl':31A,36B 'xxl':33A,37B",
       "category": 39,
       "created_at": "2022-05-13T21:29:38.009Z",
       "updated_at": "2022-05-14T21:37:02.094Z",
@@ -761,10 +833,22 @@
       "product_type": 20,
       "name": "Darko Polo",
       "slug": "darko-polo",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425959030,
+        "blocks": [
+          {
+            "id": "Bw6qwwACo6",
+            "data": {
+              "text": "<b>Ever have those days where you feel a bit geometric?</b>&nbsp;Can't quite shape yourself up right? Show your different sides with a Saleor styles."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Ever have those days where you feel a bit geometric?&nbsp;Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "search_document": "",
-      "search_vector": "'111223580':4A '111223581':5A '111223582':7A 'cotton':3B 'darko':1A 'm':6A,9B 'polo':2A 'xxl':8A,10B",
+      "search_vector": "'111223580':29A '111223581':30A '111223582':32A 'bit':11C 'cotton':28B 'darko':1A 'day':6C 'differ':22C 'ever':3C 'feel':9C 'geometr':12C 'm':31A,34B 'polo':2A 'quit':15C 'right':19C 'saleor':26C 'shape':16C 'show':20C 'side':23C 'style':27C 'xxl':33A,35B",
       "category": 40,
       "created_at": "2022-05-13T21:37:35.753Z",
       "updated_at": "2022-05-14T21:36:42.372Z",
@@ -784,10 +868,22 @@
       "product_type": 20,
       "name": "Blue Polygon Shirt",
       "slug": "blue-polygon-shirt",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425319677,
+        "blocks": [
+          {
+            "id": "sMEIn2NR8s",
+            "data": {
+              "text": "<b>Ever have those days where you feel a bit geometric?</b> Can't quite shape yourself up right? Show your different sides with a Saleor styles."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "search_document": "",
-      "search_vector": "'218223580':5A '218223581':7A '218223582':9A 'blue':1A 'cotton':4B 'l':8A,12B 'm':6A,11B 'polygon':2A 'shirt':3A 'xl':10A,13B",
+      "search_vector": "'218223580':30A '218223581':32A '218223582':34A 'bit':12C 'blue':1A 'cotton':29B 'day':7C 'differ':23C 'ever':4C 'feel':10C 'geometr':13C 'l':33A,37B 'm':31A,36B 'polygon':2A 'quit':16C 'right':20C 'saleor':27C 'shape':17C 'shirt':3A 'show':21C 'side':24C 'style':28C 'xl':35A,38B",
       "category": 39,
       "created_at": "2022-05-13T21:41:46.295Z",
       "updated_at": "2022-05-14T21:36:18.923Z",
@@ -807,10 +903,22 @@
       "product_type": 20,
       "name": "Dark Polygon Tee",
       "slug": "dark-polygon-tee",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425300293,
+        "blocks": [
+          {
+            "id": "DBlOMRDzk_",
+            "data": {
+              "text": "<b>Ever have those days where you feel a bit geometric?</b> Can't quite shape yourself up right? Show your different sides with a Saleor styles."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "search_document": "",
-      "search_vector": "'112223580':5A '112223581':6A '112223582':8A 'cotton':4B 'dark':1A 'l':9A,11B 'm':7A,10B 'polygon':2A 'tee':3A",
+      "search_vector": "'112223580':30A '112223581':31A '112223582':33A 'bit':12C 'cotton':29B 'dark':1A 'day':7C 'differ':23C 'ever':4C 'feel':10C 'geometr':13C 'l':34A,36B 'm':32A,35B 'polygon':2A 'quit':16C 'right':20C 'saleor':27C 'shape':17C 'show':21C 'side':24C 'style':28C 'tee':3A",
       "category": 39,
       "created_at": "2022-05-13T21:44:02.972Z",
       "updated_at": "2022-05-14T21:36:31.780Z",
@@ -1000,10 +1108,22 @@
       "product_type": 22,
       "name": "Mighty Mug",
       "slug": "mighty-mug",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425905079,
+        "blocks": [
+          {
+            "id": "2sjPP8KzGf",
+            "data": {
+              "text": "<b>Tonight, my love, let us take fat brushes</b> and paint the skies with the shades of nebula tides. Best for the darkest, moody shades of the coffee you can brew."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Best for the darkest, moody shades of the coffee you can brew.",
       "search_document": "",
-      "search_vector": "'mighti':1A 'mug':2A 'uhjvzhvjdfzhcmlhbnq6mzgy':3A",
+      "search_vector": "'best':21C 'brew':32C 'brush':10C 'coffe':29C 'darkest':24C 'fat':9C 'let':6C 'love':5C 'mighti':1A 'moodi':25C 'mug':2A 'nebula':19C 'paint':12C 'shade':17C,26C 'sky':14C 'take':8C 'tide':20C 'tonight':3C 'uhjvzhvjdfzhcmlhbnq6mzgy':33A 'us':7C",
       "category": 41,
       "created_at": "2022-05-15T09:28:13.067Z",
       "updated_at": "2022-05-15T09:28:13.368Z",
@@ -1024,15 +1144,21 @@
       "name": "The Dash Cushion",
       "slug": "the-dash-cushion",
       "description": {
-        "time": 1652719110298,
+        "time": 1653425717989,
         "blocks": [
-          { "id": "KL2jdkdLiu", "data": { "text": "" }, "type": "paragraph" }
+          {
+            "id": "KL2jdkdLiu",
+            "data": {
+              "text": "Minimalist interiors need simple, sleek soft furnishings. Set your own trends with Saleor designs."
+            },
+            "type": "paragraph"
+          }
         ],
-        "version": "2.24.3"
+        "version": "2.22.2"
       },
-      "description_plaintext": "",
+      "description_plaintext": "Minimalist interiors need simple, sleek soft furnishings. Set your own trends with Saleor designs.",
       "search_document": "",
-      "search_vector": "'cushion':3A 'dash':2A 'uhjvzhvjdfzhcmlhbnq6mzgz':4A",
+      "search_vector": "'cushion':3A 'dash':2A 'design':17C 'furnish':10C 'interior':5C 'minimalist':4C 'need':6C 'saleor':16C 'set':11C 'simpl':7C 'sleek':8C 'soft':9C 'trend':14C 'uhjvzhvjdfzhcmlhbnq6mzgz':18A",
       "category": 41,
       "created_at": "2022-05-15T09:32:27.163Z",
       "updated_at": "2022-05-16T16:38:35.766Z",
@@ -1053,17 +1179,17 @@
       "name": "Apple Juice",
       "slug": "apple-juice",
       "description": {
-        "time": 1652727409980,
+        "time": 1653425438149,
         "blocks": [
           {
             "id": "rGR983yNVl",
             "data": {
-              "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity."
+              "text": "<b>Fell straight from the tree</b>, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity."
             },
             "type": "paragraph"
           }
         ],
-        "version": "2.24.3"
+        "version": "2.22.2"
       },
       "description_plaintext": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
       "search_document": "",
@@ -1087,10 +1213,22 @@
       "product_type": 23,
       "name": "Bean Juice",
       "slug": "bean-juice",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425488999,
+        "blocks": [
+          {
+            "id": "QHFEWEGvaq",
+            "data": {
+              "text": "<b>Bean there, drunk that!</b> The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
       "search_document": "",
-      "search_vector": "'bean':1A,3B 'juic':2A 'uhjvzhvjdfzhcmlhbnq6mzg1':4A",
+      "search_vector": "'8':25C 'allot':20C 'bean':1A,3C,17C,27B 'bottl':22C 'brand':15C 'conscious':14C 'drink':9C 'drunk':5C 'energi':8C 'health':13C 'health-consci':12C 'hour':26C 'juic':2A,18C 'new':16C 'uhjvzhvjdfzhcmlhbnq6mzg1':28A",
       "category": 43,
       "created_at": "2022-05-16T16:25:11.442Z",
       "updated_at": "2022-05-16T16:25:11.768Z",
@@ -1110,10 +1248,22 @@
       "product_type": 23,
       "name": "Banana Juice",
       "slug": "banana-juice",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425465674,
+        "blocks": [
+          {
+            "id": "94R0GvrOck",
+            "data": {
+              "text": "<b>Build your protein the natural way</b>, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
       "search_document": "",
-      "search_vector": "'banana':1A,3B 'juic':2A 'uhjvzhvjdfzhcmlhbnq6mzg2':4A",
+      "search_vector": "'banana':1A,11C,27B 'build':3C 'exot':10C 'fruit':16C 'good':22C 'juic':2A,12C 'made':13C 'natur':7C 'pack':18C 'protein':5C 'ripe':15C 'sun':26C 'tropic':25C 'uhjvzhvjdfzhcmlhbnq6mzg2':28A 'way':8C",
       "category": 43,
       "created_at": "2022-05-16T16:27:16.648Z",
       "updated_at": "2022-05-16T16:27:16.933Z",
@@ -1191,10 +1341,22 @@
       "product_type": 20,
       "name": "Reversed Monotype Tee",
       "slug": "reversed-monotype-tee",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653425264795,
+        "blocks": [
+          {
+            "id": "CMRIgvbpUG",
+            "data": {
+              "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality Monospace Tee variant art with smart styling."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality Monospace Tee variant art with smart styling.",
       "search_document": "",
-      "search_vector": "'9182235820':4A '9182235821':6A 'monotyp':2A 'revers':1A 'tee':3A 'xl':5A,8B 'xxl':7A,9B",
+      "search_vector": "'9182235820':32A '9182235821':34A 'answer':20C 'art':28C 'good':10C 'look':8C 'monospac':25C 'monotyp':2A 'qualiti':24C 'revers':1A 'screen':18C 'smart':30C 'style':31C 'tee':3A,26C 'variant':27C 'wonder':4C 'xl':33A,36B 'xxl':35A,37B 'yes':22C",
       "category": 39,
       "created_at": "2022-05-17T11:48:18.537Z",
       "updated_at": "2022-05-17T11:50:42.152Z",
@@ -1247,10 +1409,22 @@
       "product_type": 20,
       "name": "Cubes Fountain Tee",
       "slug": "cubes-fountain-tee",
-      "description": null,
-      "description_plaintext": "",
+      "description": {
+        "time": 1653424009054,
+        "blocks": [
+          {
+            "id": "0n5N0DE7BU",
+            "data": {
+              "text": "<b>There is life in outer space.</b> This vibrant light speed cubes brings life to any surface. Goes on easy and dries at light speed."
+            },
+            "type": "paragraph"
+          }
+        ],
+        "version": "2.22.2"
+      },
+      "description_plaintext": "There is life in outer space. This vibrant light speed cubes brings life to any surface. Goes on easy and dries at light speed.",
       "search_document": "",
-      "search_vector": "'49182235820':5A '49182235821':6A '49182235822':8A '49182235823':10A '49182235824':12A 'cotton':4B 'cube':1A 'fountain':2A 'l':9A,15B 'm':7A,14B 'tee':3A 'xl':11A,16B 'xxl':13A,17B",
+      "search_vector": "'49182235820':29A '49182235821':30A '49182235822':32A '49182235823':34A '49182235824':36A 'bring':15C 'cotton':28B 'cube':1A,14C 'dri':24C 'easi':22C 'fountain':2A 'goe':20C 'l':33A,39B 'life':6C,16C 'light':12C,26C 'm':31A,38B 'outer':8C 'space':9C 'speed':13C,27C 'surfac':19C 'tee':3A 'vibrant':11C 'xl':35A,40B 'xxl':37A,41B",
       "category": 39,
       "created_at": "2022-05-17T12:02:44.850Z",
       "updated_at": "2022-05-18T12:21:19.661Z",
