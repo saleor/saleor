@@ -59,7 +59,7 @@ def initialize_context() -> HttpRequest:
     context = RequestFactory().request(SERVER_NAME=SimpleLazyObject(get_host))
     handler.load_middleware()
     response = handler.get_response(context)
-    if not response.status_code == 200:
+    if response.status_code not in [200, 301]:
         raise Exception("Unable to initialize context for webhook.")
     return context
 
