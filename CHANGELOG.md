@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix max_length for voucher_code in Checkout model - #9794 by @SzymJ
 - Fix creating dummy context for subscription webhooks - #9798 by @SzymJ
 - Missing fields added to payment webhooks events payload - #9825 by @SzymJ
+- Fix handling https protocol in initialize_context - #9840 by @SzymJ
 
 # 3.3.0
 
