@@ -5,11 +5,13 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....menu.error_codes import MenuErrorCode
 from ....menu.models import Menu, MenuItem
 from ....product.models import Category
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...menu.mutations import NavigationType, _validate_menu_item_instance
 from ...tests.utils import (
     assert_no_permission,
@@ -632,6 +634,7 @@ def test_create_menu(
     assert content["data"]["menuCreate"]["menu"]["slug"] == "test-menu"
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_menu_trigger_webhook(
@@ -675,6 +678,11 @@ def test_create_menu_trigger_webhook(
         {
             "id": graphene.Node.to_global_id("Menu", menu.id),
             "slug": menu.slug,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.MENU_CREATED,
         [any_webhook],
@@ -793,6 +801,7 @@ def test_update_menu_with_slug(staff_api_client, menu, permission_manage_menus):
     assert content["data"]["menuUpdate"]["menu"]["slug"] == "new-slug"
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_menu_trigger_webhook(
@@ -827,6 +836,11 @@ def test_update_menu_trigger_webhook(
         {
             "id": variables["id"],
             "slug": variables["slug"],
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.MENU_UPDATED,
         [any_webhook],
@@ -881,6 +895,7 @@ def test_delete_menu(staff_api_client, menu, permission_manage_menus):
         menu.refresh_from_db()
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_menu_trigger_webhook(
@@ -911,6 +926,11 @@ def test_delete_menu_trigger_webhook(
         {
             "id": variables["id"],
             "slug": menu.slug,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.MENU_DELETED,
         [any_webhook],
@@ -949,6 +969,7 @@ def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
     assert data["menu"]["name"] == menu.name
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_menu_item_trigger_webhook(
@@ -983,6 +1004,11 @@ def test_create_menu_item_trigger_webhook(
             "id": graphene.Node.to_global_id("MenuItem", menu_item.id),
             "name": menu_item.name,
             "menu": {"id": menu_id},
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.MENU_ITEM_CREATED,
         [any_webhook],
@@ -1021,6 +1047,7 @@ def test_update_menu_item(
     assert data["page"]["id"] == page_id
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_menu_item_trigger_webhook(
@@ -1058,6 +1085,11 @@ def test_update_menu_item_trigger_webhook(
             "id": menu_item_id,
             "name": menu_item.name,
             "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.MENU_ITEM_UPDATED,
         [any_webhook],
@@ -1090,6 +1122,7 @@ def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
         menu_item.refresh_from_db()
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_menu_item_trigger_webhook(
@@ -1121,6 +1154,11 @@ def test_delete_menu_item_trigger_webhook(
             "id": menu_item_id,
             "name": menu_item.name,
             "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.MENU_ITEM_DELETED,
         [any_webhook],

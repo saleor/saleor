@@ -2,10 +2,12 @@ from unittest import mock
 
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....shipping.error_codes import ShippingErrorCode
 from .....shipping.models import ShippingZone
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
 
 CREATE_SHIPPING_ZONE_MUTATION = """
@@ -84,6 +86,7 @@ def test_create_shipping_zone(
     assert zone["default"] is False
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_shipping_zone_trigger_webhook(
@@ -126,7 +129,14 @@ def test_create_shipping_zone_trigger_webhook(
     assert data["errors"] == []
 
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": data["shippingZone"]["id"]},
+        {
+            "id": data["shippingZone"]["id"],
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
         [any_webhook],
         shipping_zone,

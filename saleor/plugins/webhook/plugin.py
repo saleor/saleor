@@ -93,12 +93,16 @@ class WebhookPlugin(BasePlugin):
         super().__init__(*args, **kwargs)
         self.active = True
 
+    def _generate_meta(self):
+        return generate_meta(requestor_data=generate_requestor(self.requestor))
+
     def _trigger_app_event(self, event_type, app):
         if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id("App", app.id),
                 "is_active": app.is_active,
                 "name": app.name,
+                "meta": self._generate_meta(),
             }
             trigger_webhooks_async(payload, event_type, webhooks, app, self.requestor)
 
@@ -122,84 +126,70 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_app_event(WebhookEventAsyncType.APP_STATUS_CHANGED, app)
 
-    def category_created(self, category: "Category", previous_value: None) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.CATEGORY_CREATED
+    def __trigger_category_event(self, event_type, category):
         if webhooks := get_webhooks_for_event(event_type):
-            payload = {"id": graphene.Node.to_global_id("Category", category.id)}
+            payload = {
+                "id": graphene.Node.to_global_id("Category", category.id),
+                "meta": self._generate_meta(),
+            }
             trigger_webhooks_async(
                 payload, event_type, webhooks, category, self.requestor
             )
+
+    def category_created(self, category: "Category", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self.__trigger_category_event(WebhookEventAsyncType.CATEGORY_CREATED, category)
 
     def category_updated(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.CATEGORY_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {"id": graphene.Node.to_global_id("Category", category.id)}
-            trigger_webhooks_async(
-                payload, event_type, webhooks, category, self.requestor
-            )
+        self.__trigger_category_event(WebhookEventAsyncType.CATEGORY_UPDATED, category)
 
     def category_deleted(self, category: "Category", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.CATEGORY_DELETED
+        self.__trigger_category_event(WebhookEventAsyncType.CATEGORY_DELETED, category)
+
+    def __trigger_channel_event(self, event_type, channel):
         if webhooks := get_webhooks_for_event(event_type):
-            payload = {"id": graphene.Node.to_global_id("Category", category.id)}
+            payload = {
+                "id": graphene.Node.to_global_id("Channel", channel.id),
+                "is_active": channel.is_active,
+                "meta": self._generate_meta(),
+            }
             trigger_webhooks_async(
-                payload, event_type, webhooks, category, self.requestor
+                payload, event_type, webhooks, channel, self.requestor
             )
 
     def channel_created(self, channel: "Channel", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.CHANNEL_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {"id": graphene.Node.to_global_id("Channel", channel.id)}
-            trigger_webhooks_async(
-                payload, event_type, webhooks, channel, self.requestor
-            )
+        self.__trigger_channel_event(WebhookEventAsyncType.CHANNEL_CREATED, channel)
 
     def channel_updated(self, channel: "Channel", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.CHANNEL_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {"id": graphene.Node.to_global_id("Channel", channel.id)}
-            trigger_webhooks_async(
-                payload, event_type, webhooks, channel, self.requestor
-            )
+        self.__trigger_channel_event(WebhookEventAsyncType.CHANNEL_UPDATED, channel)
 
     def channel_deleted(self, channel: "Channel", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.CHANNEL_DELETED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {"id": graphene.Node.to_global_id("Channel", channel.id)}
-            trigger_webhooks_async(
-                payload, event_type, webhooks, channel, self.requestor
-            )
+        self.__trigger_channel_event(WebhookEventAsyncType.CHANNEL_DELETED, channel)
 
     def channel_status_changed(self, channel: "Channel", previous_value: None) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.CHANNEL_STATUS_CHANGED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {
-                "id": graphene.Node.to_global_id("Channel", channel.id),
-                "is_active": channel.is_active,
-            }
-            trigger_webhooks_async(
-                payload, event_type, webhooks, channel, self.requestor
-            )
+        self.__trigger_channel_event(
+            WebhookEventAsyncType.CHANNEL_STATUS_CHANGED, channel
+        )
 
     def _trigger_gift_card_event(self, event_type, gift_card):
         if webhooks := get_webhooks_for_event(event_type):
             payload = {
                 "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
                 "is_active": gift_card.is_active,
+                "meta": self._generate_meta(),
             }
             trigger_webhooks_async(
                 payload, event_type, webhooks, gift_card, self.requestor
@@ -250,6 +240,7 @@ class WebhookPlugin(BasePlugin):
             payload = {
                 "id": graphene.Node.to_global_id("Menu", menu.id),
                 "slug": menu.slug,
+                "meta": self._generate_meta(),
             }
             trigger_webhooks_async(payload, event_type, webhooks, menu, self.requestor)
 
@@ -274,6 +265,7 @@ class WebhookPlugin(BasePlugin):
                 "id": graphene.Node.to_global_id("MenuItem", menu_item.id),
                 "name": menu_item.name,
                 "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+                "meta": self._generate_meta(),
             }
             trigger_webhooks_async(
                 payload, event_type, webhooks, menu_item, self.requestor
@@ -719,39 +711,35 @@ class WebhookPlugin(BasePlugin):
                 page_data, event_type, webhooks, page, self.requestor
             )
 
+    def _trigger_shipping_price_event(self, event_type, shipping_method):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id(
+                    "ShippingMethodType", shipping_method.id
+                ),
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, shipping_method, self.requestor
+            )
+
     def shipping_price_created(
         self, shipping_method: "ShippingMethod", previous_value: None
     ) -> None:
         if not self.active:
             return previous_value
-
-        event_type = WebhookEventAsyncType.SHIPPING_PRICE_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {
-                "id": graphene.Node.to_global_id(
-                    "ShippingMethodType", shipping_method.id
-                )
-            }
-            trigger_webhooks_async(
-                payload, event_type, webhooks, shipping_method, self.requestor
-            )
+        self._trigger_shipping_price_event(
+            WebhookEventAsyncType.SHIPPING_PRICE_CREATED, shipping_method
+        )
 
     def shipping_price_updated(
         self, shipping_method: "ShippingMethod", previous_value: None
     ) -> None:
         if not self.active:
             return previous_value
-
-        event_type = WebhookEventAsyncType.SHIPPING_PRICE_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {
-                "id": graphene.Node.to_global_id(
-                    "ShippingMethodType", shipping_method.id
-                )
-            }
-            trigger_webhooks_async(
-                payload, event_type, webhooks, shipping_method, self.requestor
-            )
+        self._trigger_shipping_price_event(
+            WebhookEventAsyncType.SHIPPING_PRICE_UPDATED, shipping_method
+        )
 
     def shipping_price_deleted(
         self, shipping_method: "ShippingMethod", previous_value: None
@@ -759,15 +747,18 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        event_type = WebhookEventAsyncType.SHIPPING_PRICE_DELETED
+        self._trigger_shipping_price_event(
+            WebhookEventAsyncType.SHIPPING_PRICE_DELETED, shipping_method
+        )
+
+    def _trigger_shipping_zone_event(self, event_type, shipping_zone):
         if webhooks := get_webhooks_for_event(event_type):
             payload = {
-                "id": graphene.Node.to_global_id(
-                    "ShippingMethodType", shipping_method.id
-                )
+                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id),
+                "meta": self._generate_meta(),
             }
             trigger_webhooks_async(
-                payload, event_type, webhooks, shipping_method, self.requestor
+                payload, event_type, webhooks, shipping_zone, self.requestor
             )
 
     def shipping_zone_created(
@@ -775,45 +766,27 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-
-        event_type = WebhookEventAsyncType.SHIPPING_ZONE_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {
-                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
-            }
-            trigger_webhooks_async(
-                payload, event_type, webhooks, shipping_zone, self.requestor
-            )
+        self._trigger_shipping_zone_event(
+            WebhookEventAsyncType.SHIPPING_ZONE_CREATED, shipping_zone
+        )
 
     def shipping_zone_updated(
         self, shipping_zone: "ShippingZone", previous_value: None
     ) -> None:
         if not self.active:
             return previous_value
-
-        event_type = WebhookEventAsyncType.SHIPPING_ZONE_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {
-                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
-            }
-            trigger_webhooks_async(
-                payload, event_type, webhooks, shipping_zone, self.requestor
-            )
+        self._trigger_shipping_zone_event(
+            WebhookEventAsyncType.SHIPPING_ZONE_UPDATED, shipping_zone
+        )
 
     def shipping_zone_deleted(
         self, shipping_zone: "ShippingZone", previous_value: None
     ) -> None:
         if not self.active:
             return previous_value
-
-        event_type = WebhookEventAsyncType.SHIPPING_ZONE_DELETED
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = {
-                "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
-            }
-            trigger_webhooks_async(
-                payload, event_type, webhooks, shipping_zone, self.requestor
-            )
+        self._trigger_shipping_zone_event(
+            WebhookEventAsyncType.SHIPPING_ZONE_DELETED, shipping_zone
+        )
 
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:
@@ -872,6 +845,7 @@ class WebhookPlugin(BasePlugin):
                 "id": graphene.Node.to_global_id("Voucher", voucher.id),
                 "name": voucher.name,
                 "code": voucher.code,
+                "meta": self._generate_meta(),
             }
             trigger_webhooks_async(
                 payload, event_type, webhooks, voucher, self.requestor
