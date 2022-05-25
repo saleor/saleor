@@ -675,6 +675,8 @@ def customer_user(address):  # pylint: disable=W0613
         default_shipping_address=default_address,
         first_name="Leslie",
         last_name="Wade",
+        metadata={"key": "value"},
+        private_metadata={"secret_key": "secret_value"},
     )
     user.addresses.add(default_address)
     user._password = "password"
@@ -781,6 +783,8 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        metadata={"key": "value"},
+        private_metadata={"secret_key": "secret_value"},
     )
     return order
 
