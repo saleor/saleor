@@ -2,7 +2,6 @@ from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpRequest
 from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLDocument, get_default_backend, parse
@@ -55,21 +54,16 @@ def initialize_request() -> HttpRequest:
     return: HttpRequest
     """
 
-    environ = {
-        "REQUEST_METHOD": "GET",
-        "SERVER_NAME": SimpleLazyObject(get_host),
-        "REMOTE_ADDR": "127.0.0.1",
-        "SERVER_PORT": 80,
-        "PATH_INFO": "/graphql/",
-        "wsgi.input": b"",
-        "wsgi.multiprocess": True,
-        "wsgi.url_scheme": "http",
-    }
-
+    request = HttpRequest()
+    request.path = "/graphql/"
+    request.path_info = "/graphql/"
+    request.method = "GET"
+    request.META = {"SERVER_NAME": SimpleLazyObject(get_host), "SERVER_PORT": "80"}
     if settings.ENABLE_SSL:
-        environ["wsgi.url_scheme"] = "https"
+        request.META["HTTP_X_FORWARDED_PROTO"] = "https"
+        request.META["SERVER_PORT"] = "443"
 
-    return WSGIRequest(environ)
+    return request
 
 
 def generate_payload_from_subscription(
