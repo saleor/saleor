@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrate order discount id from int to UUID - #9729 by @IKarbowiak
   - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
   for old order discounts.
+- Add `unitPrice`, `undiscountedUnitPrice`, `undiscountedTotalPrice` fields to `CheckoutLine` type - #9821 by @fowczarek
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins

@@ -7691,16 +7691,17 @@ type CheckoutLine implements Node {
   variant: ProductVariant!
   quantity: Int!
 
-  """
-  The unit price of the checkout line, with taxes and discounts included.
-  """
+  """The unit price of the checkout line, with taxes and discounts."""
   unitPrice: TaxedMoney!
 
-  """The unit price of the checkout line, without discounts included."""
-  undiscountedUnitPice: Money!
+  """The unit price of the checkout line, without discounts."""
+  undiscountedUnitPrice: Money!
 
   """The sum of the checkout line price, taxes and discounts."""
   totalPrice: TaxedMoney!
+
+  """The sum of the checkout line price, without discounts."""
+  undiscountedTotalPrice: Money!
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
