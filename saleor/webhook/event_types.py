@@ -8,6 +8,7 @@ from ..core.permissions import (
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
+    PageTypePermissions,
     PaymentPermissions,
     ProductPermissions,
     ShippingPermissions,
@@ -93,6 +94,10 @@ class WebhookEventAsyncType:
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
 
+    PAGE_TYPE_CREATED = "page_type_created"
+    PAGE_TYPE_UPDATED = "page_type_updated"
+    PAGE_TYPE_DELETED = "page_type_deleted"
+
     SHIPPING_PRICE_CREATED = "shipping_price_created"
     SHIPPING_PRICE_UPDATED = "shipping_price_updated"
     SHIPPING_PRICE_DELETED = "shipping_price_deleted"
@@ -175,6 +180,9 @@ class WebhookEventAsyncType:
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
         PAGE_DELETED: "Page Deleted",
+        PAGE_TYPE_CREATED: "Page type created",
+        PAGE_TYPE_UPDATED: "Page type updated",
+        PAGE_TYPE_DELETED: "Page type deleted",
         SHIPPING_PRICE_CREATED: "Shipping price created",
         SHIPPING_PRICE_UPDATED: "Shipping price updated",
         SHIPPING_PRICE_DELETED: "Shipping price deleted",
@@ -252,6 +260,9 @@ class WebhookEventAsyncType:
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
+        (PAGE_TYPE_CREATED, DISPLAY_LABELS[PAGE_TYPE_CREATED]),
+        (PAGE_TYPE_UPDATED, DISPLAY_LABELS[PAGE_TYPE_UPDATED]),
+        (PAGE_TYPE_DELETED, DISPLAY_LABELS[PAGE_TYPE_DELETED]),
         (SHIPPING_PRICE_CREATED, DISPLAY_LABELS[SHIPPING_PRICE_CREATED]),
         (SHIPPING_PRICE_UPDATED, DISPLAY_LABELS[SHIPPING_PRICE_UPDATED]),
         (SHIPPING_PRICE_DELETED, DISPLAY_LABELS[SHIPPING_PRICE_DELETED]),
@@ -330,6 +341,9 @@ class WebhookEventAsyncType:
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
+        PAGE_TYPE_CREATED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        PAGE_TYPE_UPDATED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        PAGE_TYPE_DELETED: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         SHIPPING_PRICE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_PRICE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_PRICE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
@@ -477,6 +491,9 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.PAGE_CREATED,
     WebhookEventAsyncType.PAGE_UPDATED,
     WebhookEventAsyncType.PAGE_DELETED,
+    WebhookEventAsyncType.PAGE_TYPE_CREATED,
+    WebhookEventAsyncType.PAGE_TYPE_UPDATED,
+    WebhookEventAsyncType.PAGE_TYPE_DELETED,
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED,
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
     WebhookEventAsyncType.SHIPPING_PRICE_DELETED,

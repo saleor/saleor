@@ -130,6 +130,9 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.PAGE_CREATED: PageCreated,
             WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,
             WebhookEventAsyncType.PAGE_DELETED: PageDeleted,
+            WebhookEventAsyncType.PAGE_TYPE_CREATED: PageTypeCreated,
+            WebhookEventAsyncType.PAGE_TYPE_UPDATED: PageTypeUpdated,
+            WebhookEventAsyncType.PAGE_TYPE_DELETED: PageTypeDeleted,
             WebhookEventAsyncType.SHIPPING_PRICE_CREATED: ShippingPriceCreated,
             WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: ShippingPriceUpdated,
             WebhookEventAsyncType.SHIPPING_PRICE_DELETED: ShippingPriceDeleted,
@@ -730,6 +733,33 @@ class PageDeleted(ObjectType, PageBase):
         interfaces = (Event,)
 
 
+class PageTypeBase(AbstractType):
+    page_type = graphene.Field(
+        "saleor.graphql.page.types.PageType",
+        description="Look up a page type." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_page_type(root, _info):
+        _, page_type = root
+        return page_type
+
+
+class PageTypeCreated(ObjectType, PageTypeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class PageTypeUpdated(ObjectType, PageTypeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class PageTypeDeleted(ObjectType, PageTypeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
 class ShippingPriceBase(AbstractType):
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethodType",
@@ -1019,6 +1049,9 @@ SUBSCRIPTION_EVENTS_TYPES = [
     PageCreated,
     PageUpdated,
     PageDeleted,
+    PageTypeCreated,
+    PageTypeUpdated,
+    PageTypeDeleted,
     ShippingPriceCreated,
     ShippingPriceUpdated,
     ShippingPriceDeleted,

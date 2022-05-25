@@ -48,7 +48,7 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..page.models import Page
+    from ..page.models import Page, PageType
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
@@ -796,6 +796,24 @@ class PluginsManager(PaymentInterface):
     def page_deleted(self, page: "Page"):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
+
+    def page_type_created(self, page_type: "PageType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "page_type_created", default_value, page_type
+        )
+
+    def page_type_updated(self, page_type: "PageType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "page_type_updated", default_value, page_type
+        )
+
+    def page_type_deleted(self, page_type: "PageType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "page_type_deleted", default_value, page_type
+        )
 
     def transaction_action_request(
         self, payment_data: "TransactionActionData", channel_slug: str

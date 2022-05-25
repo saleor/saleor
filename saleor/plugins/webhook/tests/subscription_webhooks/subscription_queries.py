@@ -878,6 +878,53 @@ PAGE_DELETED = (
 """
 )
 
+
+PAGE_TYPE_CREATED = (
+    fragments.PAGE_TYPE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PageTypeCreated{
+          pageType{
+            ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PAGE_TYPE_UPDATED = (
+    fragments.PAGE_TYPE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PageTypeUpdated{
+          pageType{
+            ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PAGE_TYPE_DELETED = (
+    fragments.PAGE_TYPE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PageTypeDeleted{
+          pageType{
+            ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 MULTIPLE_EVENTS = """
 subscription{
   event{
