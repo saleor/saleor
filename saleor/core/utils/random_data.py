@@ -22,9 +22,6 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from saleor.attribute.models.product import AssignedProductAttributeValue
-from saleor.attribute.models.product_variant import AssignedVariantAttributeValue
-
 from ...account.models import Address, User
 from ...account.search import (
     generate_address_search_document_value,
@@ -34,7 +31,9 @@ from ...account.utils import store_user_address
 from ...attribute.models import (
     AssignedPageAttribute,
     AssignedProductAttribute,
+    AssignedProductAttributeValue,
     AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
     Attribute,
     AttributePage,
     AttributeProduct,
