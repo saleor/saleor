@@ -20,7 +20,7 @@ from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
 from ...graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
-    initialize_context,
+    initialize_request,
 )
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
@@ -110,7 +110,6 @@ def create_deliveries_for_subscriptions(
         )
         return []
 
-    context = initialize_context()
     event_payloads = []
     event_deliveries = []
     for webhook in webhooks:
@@ -118,7 +117,7 @@ def create_deliveries_for_subscriptions(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            context=context,
+            request=initialize_request(),
             app=webhook.app,
         )
         if not data:
