@@ -96,6 +96,49 @@ type Query {
   ): TranslatableItem
 
   """
+  Look up a tax configuration.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxConfiguration(
+    """ID of a tax configuration."""
+    id: ID!
+  ): TaxConfiguration
+
+  """
+  List of tax configurations.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxConfigurations(
+    """Sort tax configurations."""
+    sortBy: TaxConfigurationSortingInput
+
+    """Filtering options for tax configurations."""
+    filter: TaxConfigurationFilterInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): TaxConfigurationCountableConnection
+
+  """
   Look up a stock by ID
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -6779,6 +6822,65 @@ enum TranslatableKinds {
   SHIPPING_METHOD
   VARIANT
   VOUCHER
+}
+
+"""
+Channel-specific tax configuration.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxConfiguration implements Node {
+  """The ID of the object."""
+  id: ID!
+
+  """A channel to which the tax configuration applies to."""
+  channel: Channel!
+
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean!
+
+  """"""
+  displayGrossPrices: Boolean!
+
+  """"""
+  pricesEnteredWithTax: Boolean!
+}
+
+type TaxConfigurationCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxConfigurationCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxConfigurationCountableEdge {
+  """The item at the end of the edge."""
+  node: TaxConfiguration!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxConfigurationSortingInput {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Sort tax configurations by the selected field."""
+  field: TaxConfigurationSortField!
+}
+
+enum TaxConfigurationSortField {
+  """Sort tax configurations by channel."""
+  CHANNEL
+}
+
+input TaxConfigurationFilterInput {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
 }
 
 type StockCountableConnection {
