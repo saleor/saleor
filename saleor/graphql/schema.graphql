@@ -7696,6 +7696,9 @@ type CheckoutLine implements Node {
   """
   unitPrice: TaxedMoney!
 
+  """The unit price of the checkout line, without discounts included."""
+  undiscountedUnitPice: Money!
+
   """The sum of the checkout line price, taxes and discounts."""
   totalPrice: TaxedMoney!
 

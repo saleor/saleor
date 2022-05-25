@@ -3644,10 +3644,14 @@ QUERY_CHECKOUT_PRICES = """
                 }
             }
            lines {
-                unitPrice{
-                    gross{
+                unitPrice {
+                    gross {
                         amount
                     }
+                }
+                undiscountedUnitPice {
+                    amount
+                    currency
                 }
                 totalPrice {
                     currency
@@ -3712,6 +3716,18 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
     )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
 
 
 def test_checkout_prices_checkout_with_custom_prices(
@@ -3756,6 +3772,7 @@ def test_checkout_prices_checkout_with_custom_prices(
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == checkout_line.quantity * price_override
     )
+    assert data["lines"][0]["undiscountedUnitPice"]["amount"] == price_override
 
 
 def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discount_info):
@@ -3808,6 +3825,18 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPice"]["amount"]
+        == undiscounted_unit_price.amount
     )
 
 
@@ -3867,6 +3896,18 @@ def test_checkout_prices_with_specific_voucher(
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
     )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
 
 
 def test_checkout_prices_with_voucher_once_per_order(
@@ -3923,6 +3964,18 @@ def test_checkout_prices_with_voucher_once_per_order(
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPice"]["amount"]
+        == undiscounted_unit_price.amount
     )
 
 
