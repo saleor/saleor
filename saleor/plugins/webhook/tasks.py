@@ -30,7 +30,6 @@ from ...site.models import Site
 from ...webhook import observability
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
 from ...webhook.observability import WebhookData
-from ...webhook.payloads import generate_meta, generate_requestor
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
