@@ -197,14 +197,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.23.5"
+version = "1.23.7"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
-botocore = ">=1.26.5,<1.27.0"
+botocore = ">=1.26.7,<1.27.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.5.0,<0.6.0"
 
@@ -213,7 +213,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.26.5"
+version = "1.26.7"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -1846,15 +1846,15 @@ toml = ["toml"]
 
 [[package]]
 name = "pydyf"
-version = "0.1.2"
+version = "0.2.0"
 description = "A low-level PDF generator."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.extras]
 doc = ["sphinx", "sphinx-rtd-theme"]
-test = ["pytest", "pytest-cov", "pytest-flake8", "pytest-isort", "coverage", "pillow"]
+test = ["pytest", "pytest-xdist", "pytest-flake8", "pytest-isort", "pytest-cov", "coverage", "pillow"]
 
 [[package]]
 name = "pyflakes"
@@ -2415,7 +2415,7 @@ python-versions = "*"
 
 [[package]]
 name = "stripe"
-version = "3.1.0"
+version = "3.2.0"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -2798,7 +2798,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "ed629cc961fcce21b84cca20b622f1c8fec1f23294463114af17f702709b482f"
+content-hash = "49c5267a6d585df393705bc434f9497f0b621a064dba6e8fc1541fa163a7950f"
 
 [metadata.files]
 adyen = [
@@ -2889,12 +2889,12 @@ black = [
     {file = "black-22.3.0.tar.gz", hash = "sha256:35020b8886c022ced9282b51b5a875b6d1ab0c387b31a065b84db7c33085ca79"},
 ]
 boto3 = [
-    {file = "boto3-1.23.5-py3-none-any.whl", hash = "sha256:5cbbd985171b1e278b722dca48f71455b4938378962734828daeb76f73be6fba"},
-    {file = "boto3-1.23.5.tar.gz", hash = "sha256:73a0d092aaea1649150f43fb3f41451d5a0883940549a64d72781a23ce6b2d44"},
+    {file = "boto3-1.23.7-py3-none-any.whl", hash = "sha256:b59a210fa6a87f0c755b40403ffc66b9b285680bbc5ad5245cf167e2def33620"},
+    {file = "boto3-1.23.7.tar.gz", hash = "sha256:3fb956d097105a0fb98c29a622ff233fa8de68519aabd7088d7ffd36dfc33214"},
 ]
 botocore = [
-    {file = "botocore-1.26.5-py3-none-any.whl", hash = "sha256:805db3ecf85ff89edfb6788f862b87426f990e3e6383ef3fca3076f7659a5454"},
-    {file = "botocore-1.26.5.tar.gz", hash = "sha256:32541873924e3ff0ad95f02dc331e9f278721a3b864a4e2a8d514346b2598ce5"},
+    {file = "botocore-1.26.7-py3-none-any.whl", hash = "sha256:9f8d5e8d65b24d97fcb7804b84831e5627fceb52707167d2f496477675c98ded"},
+    {file = "botocore-1.26.7.tar.gz", hash = "sha256:0f4a467188644382856e96e85bff0b453442d5cf0c0f554154571a6e2468a005"},
 ]
 braintree = [
     {file = "braintree-4.15.2-py2.py3-none-any.whl", hash = "sha256:6145f6b865687d9ab985b9b0750b911d3201e26f3f3b76178a344ff7af39061e"},
@@ -4013,8 +4013,8 @@ pydocstyle = [
     {file = "pydocstyle-6.1.1.tar.gz", hash = "sha256:1d41b7c459ba0ee6c345f2eb9ae827cab14a7533a88c5c6f7e94923f72df92dc"},
 ]
 pydyf = [
-    {file = "pydyf-0.1.2-py3-none-any.whl", hash = "sha256:9ef1505c424e2ac9c4caef5b8f8c105a311c23fdb4db4979d7d82ad6cff76fa7"},
-    {file = "pydyf-0.1.2.tar.gz", hash = "sha256:1e2f5de48174f505de025a7d1e7cf01bbdd9422ca8ab9451782bf00ee178602c"},
+    {file = "pydyf-0.2.0-py3-none-any.whl", hash = "sha256:f0468bc644d3a5b0a7072d0d92bd5c024cf4beede0df56100d9919a59f15e1f0"},
+    {file = "pydyf-0.2.0.tar.gz", hash = "sha256:06ebc18b4de29fc1450ae49dd142ecd26bd7ba09d0b1919e365fbc3d8af8a622"},
 ]
 pyflakes = [
     {file = "pyflakes-2.4.0-py2.py3-none-any.whl", hash = "sha256:3bb3a3f256f4b7968c9c788781e4ff07dce46bdf12339dcda61053375426ee2e"},
@@ -4225,8 +4225,8 @@ starkbank-ecdsa = [
     {file = "starkbank-ecdsa-2.0.3.tar.gz", hash = "sha256:73b62b1b3de54bbaa05dedb1a2d951c033432bb074de899e19d4a96a36b21df6"},
 ]
 stripe = [
-    {file = "stripe-3.1.0-py2.py3-none-any.whl", hash = "sha256:9a1fab25dcb8c4c24a6a00c4b7f5faea1e12d106b954356920624ce228854dce"},
-    {file = "stripe-3.1.0.tar.gz", hash = "sha256:d7fa4c18578d26a7e7f689e5177dd8ebb47f2879b1c06019aa0b888e2dd1aeb9"},
+    {file = "stripe-3.2.0-py2.py3-none-any.whl", hash = "sha256:210d5137bdc686a31ee435a7c1761e112544ad58d84dd8cb7f0903068edcabd2"},
+    {file = "stripe-3.2.0.tar.gz", hash = "sha256:d9a47de7d963cf69a880f3d04961b792c40f456c74e09878551555de3c2261f0"},
 ]
 sympy = [
     {file = "sympy-1.10.1-py3-none-any.whl", hash = "sha256:df75d738930f6fe9ebe7034e59d56698f29e85f443f743e51e47df0caccc2130"},
