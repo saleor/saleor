@@ -14,13 +14,14 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files import File
-from django.db.models import F, Q
+from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
+
 from saleor.attribute.models.product import AssignedProductAttributeValue
 from saleor.attribute.models.product_variant import AssignedVariantAttributeValue
 
@@ -774,9 +775,7 @@ def create_fulfillments(order):
 
 def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False):
     channel = (
-        Channel.objects.filter(
-            Q(slug=settings.DEFAULT_CHANNEL_SLUG) | Q(slug="channel-pln")
-        )
+        Channel.objects.filter(slug__in=[settings.DEFAULT_CHANNEL_SLUG, "channel-pln"])
         .order_by("?")
         .first()
     )
