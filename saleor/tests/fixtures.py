@@ -1874,9 +1874,7 @@ def shippable_gift_card_product_type(db):
 
 
 @pytest.fixture
-def product_type_with_rich_text_attribute(
-    rich_text_attribute, color_attribute, size_attribute
-):
+def product_type_with_rich_text_attribute(rich_text_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
