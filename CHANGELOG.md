@@ -27,7 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor app tokens - #9438 by @IKarbowiak
   - Store app tokens hashes instead of plain text.
 - Save images to product media from external URLs - #9329 by @krzysztofwolski
-
+- Fix and rename initialize_context for subscription webhooks - #9846 by @SzymJ
 
 # 3.1.7
 
