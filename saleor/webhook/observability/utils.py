@@ -93,7 +93,7 @@ def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
     return None
 
 
-def put_to_buffer(generate_payload: Callable[[], Any]):
+def put_event(generate_payload: Callable[[], Any]):
     try:
         payload = generate_payload()
         get_buffer(get_buffer_name()).put_event(payload)
@@ -101,10 +101,14 @@ def put_to_buffer(generate_payload: Callable[[], Any]):
         logger.error("[Observability] Event dropped", exc_info=True)
 
 
-def buffer_pop_events() -> Tuple[List[Any], int]:
-    buffer = get_buffer(get_buffer_name())
-    events, remaining = buffer.pop_events_get_size()
-    batch_count = buffer.in_batches(remaining)
+def pop_events_with_remaining_size() -> Tuple[List[Any], int]:
+    try:
+        buffer = get_buffer(get_buffer_name())
+        events, remaining = buffer.pop_events_get_size()
+        batch_count = buffer.in_batches(remaining)
+    except Exception:
+        logger.error("[Observability] Could not pop events batch", exc_info=True)
+        events, batch_count = [], 0
     return events, batch_count
 
 
@@ -139,7 +143,7 @@ class ApiCall:
         ) as scope:
             scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
             if get_webhooks():
-                put_to_buffer(
+                put_event(
                     partial(
                         generate_api_call_payload,
                         self.request,
@@ -198,7 +202,7 @@ def report_event_delivery_attempt(
     ) as scope:
         scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
         if get_webhooks():
-            put_to_buffer(
+            put_event(
                 partial(
                     generate_event_delivery_attempt_payload,
                     attempt,

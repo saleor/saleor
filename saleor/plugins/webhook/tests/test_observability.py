@@ -1,7 +1,8 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from celery.canvas import Signature
 
+from ....core import EventDeliveryStatus
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.observability import dump_payload
 from ..tasks import (
@@ -14,9 +15,9 @@ from ..tasks import (
 @patch("saleor.plugins.webhook.tasks.group")
 @patch("saleor.plugins.webhook.tasks.send_observability_events")
 @patch("saleor.plugins.webhook.tasks.observability.get_webhooks")
-@patch("saleor.plugins.webhook.tasks.observability.buffer_pop_events")
+@patch("saleor.plugins.webhook.tasks.observability.pop_events_with_remaining_size")
 def test_observability_reporter_task(
-    mock_buffer_pop_events,
+    mock_pop_events_with_remaining_size,
     mock_get_webhooks,
     mock_send_observability_events,
     mock_celery_group,
@@ -25,7 +26,7 @@ def test_observability_reporter_task(
 ):
     events, batch_count = ["event", "event"], 5
     webhooks = [observability_webhook_data]
-    mock_buffer_pop_events.return_value = events, batch_count
+    mock_pop_events_with_remaining_size.return_value = events, batch_count
     mock_get_webhooks.return_value = webhooks
 
     observability_reporter_task()
@@ -42,16 +43,16 @@ def test_observability_reporter_task(
 
 @patch("saleor.plugins.webhook.tasks.send_observability_events")
 @patch("saleor.plugins.webhook.tasks.observability.get_webhooks")
-@patch("saleor.plugins.webhook.tasks.observability.buffer_pop_events")
+@patch("saleor.plugins.webhook.tasks.observability.pop_events_with_remaining_size")
 def test_observability_send_events(
-    mock_buffer_pop_events,
+    mock_pop_events_with_remaining_size,
     mock_get_webhooks,
     mock_send_observability_events,
     observability_webhook_data,
 ):
     events, batch_count = ["event", "event"], 5
     webhooks = [observability_webhook_data]
-    mock_buffer_pop_events.return_value = events, batch_count
+    mock_pop_events_with_remaining_size.return_value = events, batch_count
     mock_get_webhooks.return_value = webhooks
 
     observability_send_events()
@@ -63,10 +64,9 @@ def test_observability_send_events(
 def test_send_observability_events(
     mock_send_webhook_using_scheme_method, observability_webhook_data
 ):
-    webhooks = [observability_webhook_data]
     events = [{"event": "data"}, {"event": "data"}]
 
-    send_observability_events(webhooks, events)
+    send_observability_events([observability_webhook_data], events)
 
     mock_send_webhook_using_scheme_method.assert_called_once_with(
         observability_webhook_data.target_url,
@@ -75,6 +75,19 @@ def test_send_observability_events(
         WebhookEventAsyncType.OBSERVABILITY,
         dump_payload(events),
     )
+
+
+@patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_send_observability_events_when_reposnse_failed(
+    mock_send_webhook_using_scheme_method, observability_webhook_data
+):
+    events = [{"event": "data"}, {"event": "data"}]
+    response = Mock()
+    response.status = EventDeliveryStatus.FAILED
+    mock_send_webhook_using_scheme_method.return_value = response
+
+    send_observability_events([observability_webhook_data], events)
+    mock_send_webhook_using_scheme_method.assert_called_once()
 
 
 @patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")

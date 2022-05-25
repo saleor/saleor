@@ -84,9 +84,6 @@ class BaseBuffer:
     def in_batches(self, size: int) -> int:
         return math.ceil(size / self.batch_size)
 
-    def batch_count(self) -> int:
-        return self.in_batches(self.size())
-
 
 class RedisBuffer(BaseBuffer):
     _pools: Dict[str, ConnectionPool] = {}

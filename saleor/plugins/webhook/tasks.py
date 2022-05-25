@@ -497,7 +497,7 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
             )
             continue
         if failed:
-            task_logger.warning(
+            logger.warning(
                 "[Observability] Webhook ID: %r failed request to %r "
                 "(%s/%s events dropped): %r.",
                 webhook.id,
@@ -516,28 +516,22 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
 
 @app.task
 def observability_send_events():
-    try:
-        if webhooks := observability.get_webhooks():
-            events, _ = observability.buffer_pop_events()
-            if events:
-                send_observability_events(webhooks, events)
-    except Exception:
-        logger.error("[Observability] Reporter failed - Could not pop events")
+    if webhooks := observability.get_webhooks():
+        events, _ = observability.pop_events_with_remaining_size()
+        if events:
+            send_observability_events(webhooks, events)
 
 
 @app.task
 def observability_reporter_task():
-    try:
-        if webhooks := observability.get_webhooks():
-            events, batch_count = observability.buffer_pop_events()
-            if batch_count > 0:
-                tasks = [observability_send_events.s() for _ in range(batch_count)]
-                expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
-                group(tasks).apply_async(expires=expiration)
-            if events:
-                send_observability_events(webhooks, events)
-    except Exception:
-        logger.error("[Observability] Reporter failed", exc_info=True)
+    if webhooks := observability.get_webhooks():
+        events, batch_count = observability.pop_events_with_remaining_size()
+        if batch_count > 0:
+            tasks = [observability_send_events.s() for _ in range(batch_count)]
+            expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+            group(tasks).apply_async(expires=expiration)
+        if events:
+            send_observability_events(webhooks, events)
 
 
 # DEPRECATED

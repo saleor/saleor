@@ -15,10 +15,13 @@ from ..utils import (
     ApiCall,
     get_webhooks,
     get_webhooks_clear_mem_cache,
+    pop_events_with_remaining_size,
+    put_event,
     report_api_call,
     report_gql_operation,
     task_next_retry_date,
 )
+from .conftest import BATCH_SIZE
 
 
 @pytest.fixture
@@ -147,11 +150,11 @@ def api_call(test_request):
     return api_call
 
 
-@patch("saleor.webhook.observability.utils.put_to_buffer")
+@patch("saleor.webhook.observability.utils.put_event")
 @patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_report(
     mock_get_webhooks,
-    mock_put_to_buffer,
+    mock_put_event,
     observability_enabled,
     app,
     api_call,
@@ -162,14 +165,14 @@ def test_api_call_report(
     test_request.app = app
     api_call.report(), api_call.report()
 
-    mock_put_to_buffer.assert_called_once()
+    mock_put_event.assert_called_once()
 
 
-@patch("saleor.webhook.observability.utils.put_to_buffer")
+@patch("saleor.webhook.observability.utils.put_event")
 @patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_response_report_when_observability_not_active(
     mock_get_webhooks,
-    mock_put_to_buffer,
+    mock_put_event,
     observability_disabled,
     api_call,
     observability_webhook_data,
@@ -178,14 +181,14 @@ def test_api_call_response_report_when_observability_not_active(
     api_call.report()
 
     mock_get_webhooks.assert_not_called()
-    mock_put_to_buffer.assert_not_called()
+    mock_put_event.assert_not_called()
 
 
-@patch("saleor.webhook.observability.utils.put_to_buffer")
+@patch("saleor.webhook.observability.utils.put_event")
 @patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_response_report_when_request_not_from_app(
     mock_get_webhooks,
-    mock_put_to_buffer,
+    mock_put_event,
     observability_enabled,
     api_call,
     observability_webhook_data,
@@ -194,4 +197,30 @@ def test_api_call_response_report_when_request_not_from_app(
     api_call.report()
 
     mock_get_webhooks.assert_not_called()
-    mock_put_to_buffer.assert_not_called()
+    mock_put_event.assert_not_called()
+
+
+def test_put_event(buffer):
+    put_event(lambda: {"payload": "data"})
+    assert buffer.size() == 1
+
+
+def test_put_event_catch_exceptions(buffer):
+    put_event(lambda: 1 / 0)
+    assert buffer.size() == 0
+
+
+def test_pop_events_with_remaining_size(buffer):
+    payload = "payload-{}"
+    buffer.put_events([payload.format(i) for i in range(BATCH_SIZE + BATCH_SIZE // 2)])
+
+    events, batch_count = pop_events_with_remaining_size()
+
+    assert events == [payload.format(i) for i in range(BATCH_SIZE)]
+    assert batch_count == 1
+
+
+def test_pop_events_with_remaining_size_catch_exceptions(redis_server, buffer):
+    redis_server.connected = False
+
+    assert pop_events_with_remaining_size() == ([], 0)

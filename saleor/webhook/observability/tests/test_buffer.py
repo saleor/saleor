@@ -1,42 +1,8 @@
-from unittest.mock import patch
-
-import fakeredis
 import pytest
-from redis import ConnectionPool
 
 from ..buffers import RedisBuffer, buffer_factory, get_buffer
 from ..exceptions import ConnectionNotConfigured
-
-BROKER_URL = "redis://fake-redis"
-KEY, MAX_SIZE, BATCH_SIZE = "observability_buffer", 10, 5
-
-
-@pytest.fixture
-def redis_server(settings):
-    settings.OBSERVABILITY_BROKER_URL = BROKER_URL
-    settings.OBSERVABILITY_BUFFER_SIZE_LIMIT = MAX_SIZE
-    settings.OBSERVABILITY_BUFFER_BATCH_SIZE = BATCH_SIZE
-    server = fakeredis.FakeServer()
-    server.connected = True
-    yield server
-
-
-@pytest.fixture
-def patch_redis(redis_server):
-    with patch(
-        "saleor.webhook.observability.buffers.RedisBuffer.get_connection_pool",
-        lambda x: ConnectionPool(
-            connection_class=fakeredis.FakeConnection, server=redis_server
-        ),
-    ):
-        yield
-
-
-@pytest.fixture
-def buffer(patch_redis):
-    buffer = RedisBuffer(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
-    yield buffer
-    buffer.client.flushall()
+from ..tests.conftest import BATCH_SIZE, KEY, MAX_SIZE
 
 
 def test_buffer_factory(redis_server, settings):
@@ -59,6 +25,10 @@ def test_get_buffer(redis_server, settings):
     assert buffer.broker_url == settings.OBSERVABILITY_BROKER_URL
     assert buffer.max_size == settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
     assert buffer.batch_size == settings.OBSERVABILITY_BUFFER_BATCH_SIZE
+
+
+def test_in_batches(buffer):
+    assert buffer.in_batches(BATCH_SIZE + BATCH_SIZE // 2) == 2
 
 
 def test_buffer_put_events(buffer):
