@@ -16,7 +16,7 @@ from ...account.utils import create_superuser
 from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard, GiftCardEvent
-from ...order.models import Order, OrderLine
+from ...order.models import Order
 from ...product import ProductTypeKind
 from ...product.models import ProductMedia, ProductType
 from ...shipping.models import ShippingZone
@@ -153,13 +153,7 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     how_many_orders = 2
     for _ in random_data.create_orders(how_many_orders):
         pass
-    assert Order.objects.all().count() == 2
-
-    how_many_preorder_orders = 1
-    for _ in random_data.create_preorder_orders(how_many_preorder_orders):
-        pass
-    assert Order.objects.count() == how_many_orders + how_many_preorder_orders
-    assert OrderLine.objects.filter(variant__is_preorder=True).exists()
+    assert Order.objects.all().count() == how_many_orders
 
 
 def test_create_product_sales(db):
@@ -189,7 +183,7 @@ def test_create_gift_card(
     db, product, shippable_gift_card_product, customer_user, staff_user, order
 ):
     product = shippable_gift_card_product
-    product.name = "Gift card"
+    product.name = "Gift card 100"
     product.save(update_fields=["name"])
 
     amount = 5
