@@ -7,8 +7,6 @@ from functools import partial
 from time import monotonic
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Tuple
 
-import opentracing
-import opentracing.tags
 from asgiref.local import Local
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -21,6 +19,7 @@ from ..event_types import WebhookEventAsyncType
 from ..utils import get_webhooks_for_event
 from .buffers import get_buffer
 from .payloads import generate_api_call_payload, generate_event_delivery_attempt_payload
+from .tracing import opentracing_trace
 
 if TYPE_CHECKING:
 
@@ -57,10 +56,7 @@ def get_webhooks_clear_mem_cache():
 
 
 def get_webhooks(timeout=CACHE_TIMEOUT) -> List[WebhookData]:
-    with opentracing.global_tracer().start_active_span(
-        "get_observability_webhooks"
-    ) as scope:
-        scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
+    with opentracing_trace("get_observability_webhooks", "webhooks"):
         buffer_name = get_buffer_name()
         if cached := _webhooks_mem_cache.get(buffer_name, None):
             webhooks_data, check_time = cached
@@ -96,7 +92,8 @@ def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
 def put_event(generate_payload: Callable[[], Any]):
     try:
         payload = generate_payload()
-        get_buffer(get_buffer_name()).put_event(payload)
+        with opentracing_trace("put_event", "buffer"):
+            get_buffer(get_buffer_name()).put_event(payload)
     except Exception:
         logger.error("[Observability] Event dropped", exc_info=True)
 
@@ -104,8 +101,9 @@ def put_event(generate_payload: Callable[[], Any]):
 def pop_events_with_remaining_size() -> Tuple[List[Any], int]:
     try:
         buffer = get_buffer(get_buffer_name())
-        events, remaining = buffer.pop_events_get_size()
-        batch_count = buffer.in_batches(remaining)
+        with opentracing_trace("pop_events", "buffer"):
+            events, remaining = buffer.pop_events_get_size()
+            batch_count = buffer.in_batches(remaining)
     except Exception:
         logger.error("[Observability] Could not pop events batch", exc_info=True)
         events, batch_count = [], 0
@@ -138,10 +136,7 @@ class ApiCall:
             logger.error("[Observability] HttpResponse not provided, event dropped")
             return
         self._reported = True
-        with opentracing.global_tracer().start_active_span(
-            "observability_report_api_call"
-        ) as scope:
-            scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
+        with opentracing_trace("report_api_call", "reporter"):
             if get_webhooks():
                 put_event(
                     partial(
@@ -197,10 +192,7 @@ def report_event_delivery_attempt(
         logger.error(
             "[Observability] %r not assigned to delivery. Event dropped", attempt
         )
-    with opentracing.global_tracer().start_active_span(
-        "observability_report_event_delivery_attempt"
-    ) as scope:
-        scope.span.set_tag(opentracing.tags.COMPONENT, "observability")
+    with opentracing_trace("report_event_delivery_attempt", "reporter"):
         if get_webhooks():
             put_event(
                 partial(
