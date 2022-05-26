@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from unittest.mock import patch
 from uuid import UUID
 
 import graphene
@@ -10,6 +11,7 @@ from django.utils import timezone
 from ....core import EventDeliveryStatus
 from ....webhook.event_types import WebhookEventAsyncType
 from ..exceptions import TruncationError
+from ..obfuscation import MASK
 from ..payload_schema import (
     ApiCallPayload,
     ApiCallRequest,
@@ -398,7 +400,7 @@ def test_generate_event_delivery_attempt_payload_with_next_retry_date(
     assert payload["next_retry"] == next_retry_date
 
 
-def test_generate_event_delivery_attempt_payload_with_empty_headers(
+def test_generate_event_delivery_attempt_payload_with_non_empty_headers(
     event_attempt,
 ):
     headers = {"Content-Length": "19", "Content-Type": "application/json"}
@@ -410,3 +412,19 @@ def test_generate_event_delivery_attempt_payload_with_empty_headers(
 
     assert payload["request"]["headers"] == headers_list
     assert payload["response"]["headers"] == headers_list
+
+
+@patch(
+    "saleor.webhook.observability.payloads.SENSITIVE_GQL_FIELDS", {"Product": {"name"}}
+)
+def test_generate_event_delivery_attempt_payload_with_subscription_query(
+    webhook,
+    event_attempt,
+):
+    query = "subscription { event { ...on ProductUpdated { product { name } } } }"
+    webhook.subscription_query = query
+
+    payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+
+    assert payload["webhook"]["subscription_query"].text == query
+    assert payload["event_delivery"]["payload"]["body"].text == pretty_json(MASK)

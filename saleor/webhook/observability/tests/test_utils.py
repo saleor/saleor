@@ -18,6 +18,7 @@ from ..utils import (
     pop_events_with_remaining_size,
     put_event,
     report_api_call,
+    report_event_delivery_attempt,
     report_gql_operation,
     task_next_retry_date,
 )
@@ -197,6 +198,38 @@ def test_api_call_response_report_when_request_not_from_app(
     api_call.report()
 
     mock_get_webhooks.assert_not_called()
+    mock_put_event.assert_not_called()
+
+
+@patch("saleor.webhook.observability.utils.put_event")
+@patch("saleor.webhook.observability.utils.get_webhooks")
+def test_report_event_delivery_attempt(
+    mock_get_webhooks,
+    mock_put_event,
+    observability_enabled,
+    event_attempt,
+    observability_webhook_data,
+):
+    mock_get_webhooks.return_value = [observability_webhook_data]
+
+    report_event_delivery_attempt(event_attempt)
+
+    mock_put_event.assert_called_once()
+
+
+@patch("saleor.webhook.observability.utils.put_event")
+@patch("saleor.webhook.observability.utils.get_webhooks")
+def test_report_event_delivery_attempt_not_active(
+    mock_get_webhooks,
+    mock_put_event,
+    observability_disabled,
+    event_attempt,
+    observability_webhook_data,
+):
+    mock_get_webhooks.return_value = [observability_webhook_data]
+
+    report_event_delivery_attempt(event_attempt)
+
     mock_put_event.assert_not_called()
 
 

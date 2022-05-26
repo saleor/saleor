@@ -110,3 +110,19 @@ def test_send_observability_events_to_google_pub_sub(
         WebhookEventAsyncType.OBSERVABILITY,
         dump_payload(events[-1]),
     )
+
+
+@patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
+def test_send_observability_events_to_google_pub_sub_when_reposnse_failed(
+    mock_send_webhook_using_scheme_method, observability_webhook_data
+):
+    observability_webhook_data.target_url = (
+        "gcpubsub://cloud.google.com/projects/saleor/topics/test"
+    )
+    events = [{"event": "data"}, {"event": "data"}]
+    response = Mock()
+    response.status = EventDeliveryStatus.FAILED
+    mock_send_webhook_using_scheme_method.return_value = response
+
+    send_observability_events([observability_webhook_data], events)
+    assert mock_send_webhook_using_scheme_method.call_count == len(events)
