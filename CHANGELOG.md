@@ -92,6 +92,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix AttributeError: 'Options' object has no attribute 'Model' in `search_tasks.py` - #9824
 - Fix Braintree merchant accounts mismatch error - #9778
 - Stricter signatures for resolvers and mutations - #9649
+  for old checkout lines.
+- Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
 
 # 3.3.1
 
