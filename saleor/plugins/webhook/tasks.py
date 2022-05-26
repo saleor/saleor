@@ -515,22 +515,28 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
 
 @app.task
 def observability_send_events():
-    if webhooks := observability.get_webhooks():
-        events, _ = observability.pop_events_with_remaining_size()
-        if events:
-            send_observability_events(webhooks, events)
+    with observability.opentracing_trace("send_events_task", "task"):
+        if webhooks := observability.get_webhooks():
+            with observability.opentracing_trace("pop_events", "buffer"):
+                events, _ = observability.pop_events_with_remaining_size()
+            if events:
+                with observability.opentracing_trace("send_events", "webhooks"):
+                    send_observability_events(webhooks, events)
 
 
 @app.task
 def observability_reporter_task():
-    if webhooks := observability.get_webhooks():
-        events, batch_count = observability.pop_events_with_remaining_size()
-        if batch_count > 0:
-            tasks = [observability_send_events.s() for _ in range(batch_count)]
-            expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
-            group(tasks).apply_async(expires=expiration)
-        if events:
-            send_observability_events(webhooks, events)
+    with observability.opentracing_trace("reporter_task", "task"):
+        if webhooks := observability.get_webhooks():
+            with observability.opentracing_trace("pop_events", "buffer"):
+                events, batch_count = observability.pop_events_with_remaining_size()
+            if batch_count > 0:
+                tasks = [observability_send_events.s() for _ in range(batch_count)]
+                expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+                group(tasks).apply_async(expires=expiration)
+            if events:
+                with observability.opentracing_trace("send_events", "webhooks"):
+                    send_observability_events(webhooks, events)
 
 
 # DEPRECATED
