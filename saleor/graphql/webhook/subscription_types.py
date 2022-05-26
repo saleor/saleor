@@ -586,7 +586,9 @@ class FulfillmentBase(AbstractType):
     )
     order = graphene.Field(
         "saleor.graphql.order.types.Order",
-        description="Order connected with looked up fulfillment." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Order connected with looked up fulfillment."
+        + ADDED_IN_34
+        + PREVIEW_FEATURE,
     )
 
     @staticmethod
