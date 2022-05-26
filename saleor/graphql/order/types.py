@@ -200,9 +200,9 @@ class OrderEvent(CountableDjangoObjectType):
         def _resolve_user(event_user):
             requester = get_user_or_app_from_context(info.context)
             if (
-                requester == event_user
-                or requester.has_perm(AccountPermissions.MANAGE_USERS)
-                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+                    requester == event_user
+                    or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                    or requester.has_perm(AccountPermissions.MANAGE_STAFF)
             ):
                 return event_user
             return None
@@ -216,10 +216,10 @@ class OrderEvent(CountableDjangoObjectType):
     def resolve_app(root: models.OrderEvent, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(
-            requestor,
-            root.user,
-            AppPermission.MANAGE_APPS,
-            OrderPermissions.MANAGE_ORDERS,
+                requestor,
+                root.user,
+                AppPermission.MANAGE_APPS,
+                OrderPermissions.MANAGE_ORDERS,
         ):
             return (
                 AppByIdLoader(info.context).load(root.app_id) if root.app_id else None
@@ -569,8 +569,8 @@ class OrderLine(CountableDjangoObjectType):
 
             return (
                 ProductChannelListingByProductIdAndChannelSlugLoader(context)
-                .load((variant.product_id, channel.slug))
-                .then(product_is_available)
+                    .load((variant.product_id, channel.slug))
+                    .then(product_is_available)
             )
 
         variant = ProductVariantByIdLoader(context).load(root.variant_id)
@@ -762,8 +762,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.id)
-            .then(return_voucher_discount)
+                .load(root.id)
+                .then(return_voucher_discount)
         )
 
     @staticmethod
@@ -778,8 +778,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.id)
-            .then(return_voucher_name)
+                .load(root.id)
+                .then(return_voucher_name)
         )
 
     @staticmethod
@@ -794,8 +794,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             OrderDiscountsByOrderIDLoader(info.context)
-            .load(root.id)
-            .then(return_voucher_translated_name)
+                .load(root.id)
+                .then(return_voucher_translated_name)
         )
 
     @staticmethod
@@ -822,8 +822,8 @@ class Order(CountableDjangoObjectType):
             return Promise.all([user, address]).then(_resolve_billing_address)
         return (
             AddressByIdLoader(info.context)
-            .load(root.billing_address_id)
-            .then(_resolve_billing_address)
+                .load(root.billing_address_id)
+                .then(_resolve_billing_address)
         )
 
     @staticmethod
@@ -848,8 +848,8 @@ class Order(CountableDjangoObjectType):
             return Promise.all([user, address]).then(_resolve_shipping_address)
         return (
             AddressByIdLoader(info.context)
-            .load(root.shipping_address_id)
-            .then(_resolve_shipping_address)
+                .load(root.shipping_address_id)
+                .then(_resolve_shipping_address)
         )
 
     @staticmethod
@@ -909,8 +909,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             OrderLinesByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_subtotal)
+                .load(root.id)
+                .then(_resolve_subtotal)
         )
 
     @staticmethod
@@ -928,8 +928,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_total_get_total_authorized)
+                .load(root.id)
+                .then(_resolve_total_get_total_authorized)
         )
 
     @staticmethod
@@ -953,8 +953,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             FulfillmentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_fulfillments)
+                .load(root.id)
+                .then(_resolve_fulfillments)
         )
 
     @staticmethod
@@ -984,8 +984,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_payment_status)
+                .load(root.id)
+                .then(_resolve_payment_status)
         )
 
     @staticmethod
@@ -997,8 +997,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_payment_status)
+                .load(root.id)
+                .then(_resolve_payment_status)
         )
 
     @staticmethod
@@ -1032,8 +1032,8 @@ class Order(CountableDjangoObjectType):
 
         return (
             UserByUserIdLoader(info.context)
-            .load(root.user_id)
-            .then(_resolve_user_email)
+                .load(root.user_id)
+                .then(_resolve_user_email)
         )
 
     @staticmethod
@@ -1041,10 +1041,10 @@ class Order(CountableDjangoObjectType):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
             if requestor_has_access(
-                requester,
-                user,
-                AccountPermissions.MANAGE_USERS,
-                OrderPermissions.MANAGE_ORDERS,
+                    requester,
+                    user,
+                    AccountPermissions.MANAGE_USERS,
+                    OrderPermissions.MANAGE_ORDERS,
             ):
                 return user
             raise PermissionDenied()

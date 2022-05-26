@@ -259,7 +259,7 @@ class Order(ModelWithMetadata):
 
     def update_total_paid(self):
         self.total_paid_amount = (
-            sum(self.payments.values_list("captured_amount", flat=True)) or 0
+                sum(self.payments.values_list("captured_amount", flat=True)) or 0
         )
         self.save(update_fields=["total_paid_amount"])
 
@@ -289,8 +289,8 @@ class Order(ModelWithMetadata):
                 transactions__kind=TransactionKind.AUTH,
                 transactions__action_required=False,
             )
-            .filter(transactions__is_success=True)
-            .exists()
+                .filter(transactions__is_success=True)
+                .exists()
         )
 
     def is_captured(self):
@@ -300,8 +300,8 @@ class Order(ModelWithMetadata):
                 transactions__kind=TransactionKind.CAPTURE,
                 transactions__action_required=False,
             )
-            .filter(transactions__is_success=True)
-            .exists()
+                .filter(transactions__is_success=True)
+                .exists()
         )
 
     def is_shipping_required(self):
@@ -332,10 +332,10 @@ class Order(ModelWithMetadata):
             FulfillmentStatus.RETURNED,
         ]
         return (
-            not self.fulfillments.exclude(
-                status__in=statuses_allowed_to_cancel
-            ).exists()
-        ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
+                   not self.fulfillments.exclude(
+                       status__in=statuses_allowed_to_cancel
+                   ).exists()
+               ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
     def can_capture(self, payment=None):
         if not payment:
@@ -529,6 +529,9 @@ class OrderLine(models.Model):
 
     # Fulfilled when sale was applied to product in the line
     sale_id = models.CharField(max_length=255, null=True, blank=True)
+
+    origin_variant_id = models.IntegerField(max_length=255, null=True, blank=True)
+    origin_sku = models.CharField(max_length=255, null=True, blank=True)
 
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 

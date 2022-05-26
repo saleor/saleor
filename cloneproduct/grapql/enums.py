@@ -1,0 +1,3 @@
+import graphene
+from cloneproduct import error_codes as cloneproduct_error_codes
+CloneProductErrorCode = graphene.Enum.from_enum(cloneproduct_error_codes.CloneProductErrorCode)
