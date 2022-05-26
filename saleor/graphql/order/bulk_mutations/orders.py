@@ -5,7 +5,7 @@ from ....order import models
 from ....order.actions import cancel_order
 from ...core.mutations import BaseBulkMutation
 from ...core.types import NonNullList, OrderError
-from ..mutations.orders import clean_order_cancel
+from ..mutations.order_cancel import clean_order_cancel
 from ..types import Order
 
 

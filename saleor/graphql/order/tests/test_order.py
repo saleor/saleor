@@ -45,12 +45,6 @@ from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, PreorderAllocation, Stock, Warehouse
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...core.utils import to_global_id_or_none
-from ...order.mutations.orders import (
-    clean_order_cancel,
-    clean_order_capture,
-    clean_refund_payment,
-    try_payment_action,
-)
 from ...payment.enums import TransactionStatusEnum
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import (
@@ -58,6 +52,10 @@ from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ..mutations.order_cancel import clean_order_cancel
+from ..mutations.order_capture import clean_order_capture
+from ..mutations.order_refund import clean_refund_payment
+from ..mutations.utils import try_payment_action
 from ..utils import validate_draft_order
 from .utils import assert_order_and_payment_ids
 
@@ -359,7 +357,7 @@ query OrdersQuery {
                         currency
                         amount
                     }
-                    capturedAmount{
+                    chargedAmount{
                         currency
                         amount
                     }
@@ -606,7 +604,7 @@ def test_order_query_with_transactions_details(
                 reference="123",
                 currency="USD",
                 authorized_value=Decimal("15"),
-                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
             ),
             TransactionItem(
                 order_id=order.id,
@@ -615,7 +613,7 @@ def test_order_query_with_transactions_details(
                 reference="321",
                 currency="USD",
                 authorized_value=Decimal("10"),
-                available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
             ),
             TransactionItem(
                 order_id=order.id,
@@ -623,7 +621,7 @@ def test_order_query_with_transactions_details(
                 type="Credit card",
                 reference="321",
                 currency="USD",
-                captured_value=Decimal("15"),
+                charged_value=Decimal("15"),
                 available_actions=[TransactionAction.REFUND],
             ),
         ]
@@ -760,7 +758,7 @@ def test_order_discounts_query(
     assert len(discounts_data) == 1
     discount_data = discounts_data[0]
     _, discount_id = graphene.Node.from_global_id(discount_data["id"])
-    assert int(discount_id) == discount.id
+    assert discount_id == str(discount.id)
     assert discount_data["valueType"] == discount.value_type.upper()
     assert discount_data["value"] == discount.value
     assert discount_data["amount"]["amount"] == discount.amount_value
@@ -1778,15 +1776,22 @@ QUERY_ORDER_BY_ID = """
 """
 
 
-def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
+def test_non_staff_user_can_see_his_order(user_api_client, order):
+    # given
     query = QUERY_ORDER_BY_ID
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
+
+    # when
     response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["order"]
+    assert order_data["number"] == str(order.number)
 
 
-def test_query_order_as_app(app_api_client, permission_manage_orders, order):
+def test_query_order_as_app(app_api_client, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
@@ -1796,9 +1801,7 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     """
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
-    response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = app_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     order_data = content["data"]["order"]
     assert order_data["id"] == graphene.Node.to_global_id("Order", order.id)
@@ -1808,48 +1811,253 @@ def test_staff_query_order_by_old_id(staff_api_client, order, permission_manage_
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
     variables = {"id": graphene.Node.to_global_id("Order", order.number)}
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_BY_ID, variables)
     content = get_graphql_content_from_response(response)
     assert content["data"]["order"]["number"] == str(order.number)
 
 
 def test_staff_query_order_by_old_id_for_order_with_use_old_id_set_to_false(
-    staff_api_client, order, permission_manage_orders
+    staff_api_client, order
 ):
     assert not order.use_old_id
     variables = {"id": graphene.Node.to_global_id("Order", order.number)}
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_BY_ID, variables)
     content = get_graphql_content_from_response(response)
     assert content["data"]["order"] is None
 
 
-def test_staff_query_order_by_invalid_id(
-    staff_api_client, order, permission_manage_orders
-):
+def test_staff_query_order_by_invalid_id(staff_api_client, order):
     id = "bh/"
     variables = {"id": id}
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_BY_ID, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
     assert content["data"]["order"] is None
 
 
-def test_staff_query_order_with_invalid_object_type(
-    staff_api_client, order, permission_manage_orders
-):
+def test_staff_query_order_with_invalid_object_type(staff_api_client, order):
     variables = {"id": graphene.Node.to_global_id("Checkout", order.pk)}
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_BY_ID, variables)
     content = get_graphql_content(response)
     assert content["data"]["order"] is None
+
+
+QUERY_ORDER_FIELDS_BY_ID = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            number
+            billingAddress{
+                city
+                streetAddress1
+                postalCode
+            }
+            shippingAddress{
+                city
+                streetAddress1
+                postalCode
+            }
+            userEmail
+            invoices {
+                number
+            }
+        }
+    }
+"""
+
+
+def test_query_order_fields_order_with_new_id_by_staff_no_perm(order, staff_api_client):
+    """Ensure that all fields that are available for order owner can be fetched with
+    use of new id by staff user without permissions."""
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_order_with_new_id_by_anonymous_user(order, api_client):
+    """Ensure that all fields that are available for order owner can be fetched with
+    use of new id by the customer user."""
+    # given
+    variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
+
+    # when
+    response = api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_by_old_id_staff_no_perms(order, staff_api_client):
+    """Ensure that all fields that are available for order owner cannot be fetched with
+    use of old id by staff user without permissions."""
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_order_fields_by_old_id_by_order_owner(order, user_api_client):
+    """Ensure that all fields that are available for order owner can be fetched with
+    use of old id by order owner."""
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_by_old_id_staff_with_perm(
+    order, staff_api_client, permission_manage_orders
+):
+    """Ensure that all fields that are available for order owner can be fetched with
+    use of old id by staff user with manage orders permission."""
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_FIELDS_BY_ID, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_by_old_id_app_with_perm(
+    order, app_api_client, permission_manage_orders
+):
+    """Ensure that all fields that are available for order owner can be fetched with
+    use of old id by app with manage orders permission."""
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ORDER_FIELDS_BY_ID, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_order_with_old_id_staff_with_perm(
+    order, app_api_client, permission_manage_orders
+):
+    """Ensure that all fields that are available for order owner can be fetched with
+    use of old id by app with manage orders permission."""
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.id)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ORDER_FIELDS_BY_ID, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_by_old_id_app_no_perm(order, app_api_client):
+    """Ensure that all fields that are available for order owner cannot be fetched with
+    use of old id by app without permissions."""
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+
+    # when
+    response = app_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
+
+    # then
+    assert_no_permission(response)
 
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -2224,7 +2432,7 @@ def test_draft_order_create_variant_with_0_price(
     assert created_draft_event.parameters == {}
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_order")
+@patch("saleor.graphql.order.mutations.draft_order_create.add_variant_to_order")
 def test_draft_order_create_tax_error(
     add_variant_to_order_mock,
     staff_api_client,
@@ -2950,7 +3158,7 @@ def test_draft_order_update_with_non_draft_order(
     assert error["code"] == OrderErrorCode.INVALID.name
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
+@patch("saleor.graphql.order.mutations.draft_order_create.update_order_prices")
 def test_draft_order_update_tax_error(
     update_order_prices_mock,
     staff_api_client,
@@ -5460,8 +5668,8 @@ mutation cancelOrder($id: ID!) {
 """
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -5485,8 +5693,8 @@ def test_order_cancel(
     )
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel_as_app(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -5510,8 +5718,8 @@ def test_order_cancel_as_app(
     )
 
 
-@patch("saleor.graphql.order.mutations.orders.cancel_order")
-@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+@patch("saleor.graphql.order.mutations.order_cancel.cancel_order")
+@patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel_with_bought_gift_cards(
     mock_clean_order_cancel,
     mock_cancel_order,
@@ -5663,7 +5871,7 @@ def test_order_capture_with_transaction_action_request(
     mocked_transaction_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.CAPTURE,
+            action_type=TransactionAction.CHARGE,
             action_value=capture_value,
         ),
         channel_slug=order.channel.slug,
@@ -6104,7 +6312,7 @@ def test_order_refund_with_transaction_action_request_missing_event(
     mocked_is_active, staff_api_client, permission_manage_orders, order
 ):
     # given
-    captured_value = Decimal("10")
+    authorized_value = Decimal("10")
     TransactionItem.objects.create(
         status="Authorized",
         type="Credit card",
@@ -6112,12 +6320,12 @@ def test_order_refund_with_transaction_action_request_missing_event(
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
-        authorized_value=captured_value,
+        authorized_value=authorized_value,
     )
     mocked_is_active.return_value = False
 
     order_id = to_global_id_or_none(order)
-    variables = {"id": order_id, "amount": captured_value}
+    variables = {"id": order_id, "amount": authorized_value}
 
     # when
     response = staff_api_client.post_graphql(
@@ -6687,46 +6895,32 @@ def test_order_by_token_query_by_anonymous_user(api_client, order):
     content = get_graphql_content(response)
     data = content["data"]["orderByToken"]
     assert data["id"] == order_id
-    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name[
-        0
-    ] + "." * (len(order.shipping_address.first_name) - 1)
-    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name[
-        0
-    ] + "." * (len(order.shipping_address.last_name) - 1)
-    assert data["shippingAddress"][
-        "streetAddress1"
-    ] == order.shipping_address.street_address_1[0] + "." * (
-        len(order.shipping_address.street_address_1) - 1
-    )
-    assert data["shippingAddress"][
-        "streetAddress2"
-    ] == order.shipping_address.street_address_2[0] + "." * (
-        len(order.shipping_address.street_address_2) - 1
-    )
-    assert data["shippingAddress"]["phone"] == str(order.shipping_address.phone)[
-        :3
-    ] + "." * (len(str(order.shipping_address.phone)) - 3)
 
-    assert data["billingAddress"]["firstName"] == order.billing_address.first_name[
-        0
-    ] + "." * (len(order.billing_address.first_name) - 1)
-    assert data["billingAddress"]["lastName"] == order.billing_address.last_name[
-        0
-    ] + "." * (len(order.billing_address.last_name) - 1)
-    assert data["billingAddress"][
-        "streetAddress1"
-    ] == order.billing_address.street_address_1[0] + "." * (
-        len(order.billing_address.street_address_1) - 1
+    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name
+    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
     )
-    assert data["billingAddress"][
-        "streetAddress2"
-    ] == order.billing_address.street_address_2[0] + "." * (
-        len(order.billing_address.street_address_2) - 1
+    assert (
+        data["shippingAddress"]["streetAddress2"]
+        == order.shipping_address.street_address_2
     )
-    assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
-        :3
-    ] + "." * (len(str(order.billing_address.phone)) - 3)
-    assert data["userEmail"] == obfuscate_email(order.user_email)
+    assert data["shippingAddress"]["phone"] == order.shipping_address.phone
+
+    assert data["billingAddress"]["firstName"] == order.billing_address.first_name
+    assert data["billingAddress"]["lastName"] == order.billing_address.last_name
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        data["billingAddress"]["streetAddress2"]
+        == order.billing_address.street_address_2
+    )
+    assert data["billingAddress"]["phone"] == order.billing_address.phone
+
+    assert data["userEmail"] == order.user_email
 
 
 def test_order_by_token_query_by_order_owner(user_api_client, order):
@@ -6769,6 +6963,67 @@ def test_order_by_token_query_by_order_owner(user_api_client, order):
     assert data["billingAddress"]["phone"] == order.billing_address.phone
 
     assert data["userEmail"] == order.user_email
+
+
+def test_order_by_old_id_query_by_anonymous_user(api_client, order):
+    # given
+    query = ORDER_BY_TOKEN_QUERY
+
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    order.billing_address.street_address_2 = "test"
+    order.billing_address.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    # when
+    response = api_client.post_graphql(query, {"token": order.id})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderByToken"]
+    assert data["id"] == order_id
+    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name[
+        0
+    ] + "." * (len(order.shipping_address.first_name) - 1)
+    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name[
+        0
+    ] + "." * (len(order.shipping_address.last_name) - 1)
+    assert data["shippingAddress"][
+        "streetAddress1"
+    ] == order.shipping_address.street_address_1[0] + "." * (
+        len(order.shipping_address.street_address_1) - 1
+    )
+    assert data["shippingAddress"][
+        "streetAddress2"
+    ] == order.shipping_address.street_address_2[0] + "." * (
+        len(order.shipping_address.street_address_2) - 1
+    )
+    assert data["shippingAddress"]["phone"] == str(order.shipping_address.phone)[
+        :3
+    ] + "." * (len(str(order.shipping_address.phone)) - 3)
+
+    assert data["billingAddress"]["firstName"] == order.billing_address.first_name[
+        0
+    ] + "." * (len(order.billing_address.first_name) - 1)
+    assert data["billingAddress"]["lastName"] == order.billing_address.last_name[
+        0
+    ] + "." * (len(order.billing_address.last_name) - 1)
+    assert data["billingAddress"][
+        "streetAddress1"
+    ] == order.billing_address.street_address_1[0] + "." * (
+        len(order.billing_address.street_address_1) - 1
+    )
+    assert data["billingAddress"][
+        "streetAddress2"
+    ] == order.billing_address.street_address_2[0] + "." * (
+        len(order.billing_address.street_address_2) - 1
+    )
+    assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
+        :3
+    ] + "." * (len(str(order.billing_address.phone)) - 3)
+    assert data["userEmail"] == obfuscate_email(order.user_email)
 
 
 def test_order_by_token_query_by_superuser(superuser_api_client, order):
@@ -6882,45 +7137,31 @@ def test_order_by_token_query_by_staff_no_permission(
     data = content["data"]["orderByToken"]
     assert data["id"] == order_id
 
-    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name[
-        0
-    ] + "." * (len(order.shipping_address.first_name) - 1)
-    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name[
-        0
-    ] + "." * (len(order.shipping_address.last_name) - 1)
-    assert data["shippingAddress"][
-        "streetAddress1"
-    ] == order.shipping_address.street_address_1[0] + "." * (
-        len(order.shipping_address.street_address_1) - 1
+    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name
+    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
     )
-    assert data["shippingAddress"][
-        "streetAddress2"
-    ] == order.shipping_address.street_address_2[0] + "." * (
-        len(order.shipping_address.street_address_2) - 1
+    assert (
+        data["shippingAddress"]["streetAddress2"]
+        == order.shipping_address.street_address_2
     )
-    assert data["shippingAddress"]["phone"] == str(order.shipping_address.phone)[
-        :3
-    ] + "." * (len(str(order.shipping_address.phone)) - 3)
+    assert data["shippingAddress"]["phone"] == order.shipping_address.phone
 
-    assert data["billingAddress"]["firstName"] == order.billing_address.first_name[
-        0
-    ] + "." * (len(order.billing_address.first_name) - 1)
-    assert data["billingAddress"]["lastName"] == order.billing_address.last_name[
-        0
-    ] + "." * (len(order.billing_address.last_name) - 1)
-    assert data["billingAddress"][
-        "streetAddress1"
-    ] == order.billing_address.street_address_1[0] + "." * (
-        len(order.billing_address.street_address_1) - 1
+    assert data["billingAddress"]["firstName"] == order.billing_address.first_name
+    assert data["billingAddress"]["lastName"] == order.billing_address.last_name
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
     )
-    assert data["billingAddress"][
-        "streetAddress2"
-    ] == order.billing_address.street_address_2[0] + "." * (
-        len(order.billing_address.street_address_2) - 1
+    assert (
+        data["billingAddress"]["streetAddress2"]
+        == order.billing_address.street_address_2
     )
-    assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
-        :3
-    ] + "." * (len(str(order.billing_address.phone)) - 3)
+    assert data["billingAddress"]["phone"] == order.billing_address.phone
+
+    assert data["userEmail"] == order.user_email
 
 
 def test_order_by_token_query_by_app(
@@ -6989,6 +7230,51 @@ def test_order_by_token_query_by_app_no_perm(
     content = get_graphql_content(response)
     data = content["data"]["orderByToken"]
     assert data["id"] == order_id
+
+    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name
+    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert (
+        data["shippingAddress"]["streetAddress2"]
+        == order.shipping_address.street_address_2
+    )
+    assert data["shippingAddress"]["phone"] == order.shipping_address.phone
+
+    assert data["billingAddress"]["firstName"] == order.billing_address.first_name
+    assert data["billingAddress"]["lastName"] == order.billing_address.last_name
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        data["billingAddress"]["streetAddress2"]
+        == order.billing_address.street_address_2
+    )
+    assert data["billingAddress"]["phone"] == order.billing_address.phone
+
+    assert data["userEmail"] == order.user_email
+
+
+def test_order_by_old_id_query_by_app_no_perm(app_api_client, order, customer_user):
+    # given
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id"])
+
+    query = ORDER_BY_TOKEN_QUERY
+
+    order.user = customer_user
+    order.save()
+
+    # when
+    response = app_api_client.post_graphql(query, {"token": order.id})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderByToken"]
+    assert data["id"] == graphene.Node.to_global_id("Order", order.id)
 
     assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name[
         0

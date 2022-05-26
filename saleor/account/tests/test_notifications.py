@@ -20,7 +20,7 @@ def test_get_default_user_payload(customer_user):
         "last_name": customer_user.last_name,
         "is_staff": customer_user.is_staff,
         "is_active": customer_user.is_active,
-        "private_metadata": customer_user.private_metadata,
+        "private_metadata": {},
         "metadata": customer_user.metadata,
         "language_code": customer_user.language_code,
     }

@@ -340,3 +340,10 @@ class WarehouseByIdLoader(DataLoader):
             keys
         )
         return [warehouses.get(warehouse_uuid) for warehouse_uuid in keys]
+
+
+class StockByIdLoader(DataLoader):
+    context_key = "stock_by_id"
+
+    def batch_load(self, keys):
+        return Stock.objects.using(self.database_connection_name).in_bulk(keys).values()

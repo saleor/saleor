@@ -37,7 +37,7 @@ mutation TransactionCreate(
                     currency
                     amount
                 }
-                capturedAmount{
+                chargedAmount{
                     currency
                     amount
                 }
@@ -70,7 +70,7 @@ def test_transaction_create_for_order(
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -125,7 +125,7 @@ def test_transaction_create_for_checkout(
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -176,7 +176,7 @@ def test_transaction_create_for_checkout(
     "amount_field_name, amount_db_field",
     [
         ("amountAuthorized", "authorized_value"),
-        ("amountCaptured", "captured_value"),
+        ("amountCharged", "charged_value"),
         ("amountVoided", "voided_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -228,11 +228,11 @@ def test_transaction_create_multiple_amounts_provided(
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
-    captured_value = Decimal("11")
+    charged_value = Decimal("11")
     refunded_value = Decimal("12")
     voided_value = Decimal("13")
 
@@ -247,8 +247,8 @@ def test_transaction_create_multiple_amounts_provided(
                 "amount": authorized_value,
                 "currency": "USD",
             },
-            "amountCaptured": {
-                "amount": captured_value,
+            "amountCharged": {
+                "amount": charged_value,
                 "currency": "USD",
             },
             "amountRefunded": {
@@ -275,12 +275,12 @@ def test_transaction_create_multiple_amounts_provided(
     assert data["status"] == status
     assert data["reference"] == reference
     assert data["authorizedAmount"]["amount"] == authorized_value
-    assert data["capturedAmount"]["amount"] == captured_value
+    assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
     assert data["voidedAmount"]["amount"] == voided_value
 
     assert transaction.authorized_value == authorized_value
-    assert transaction.captured_value == captured_value
+    assert transaction.charged_value == charged_value
     assert transaction.voided_value == voided_value
     assert transaction.refunded_value == refunded_value
 
@@ -293,7 +293,7 @@ def test_transaction_create_create_event_for_order(
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -344,7 +344,7 @@ def test_transaction_create_permission_denied_for_staff(
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -382,7 +382,7 @@ def test_transaction_create_missing_app_permission(order_with_lines, app_api_cli
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
@@ -416,7 +416,7 @@ def test_transaction_create_missing_app_permission(order_with_lines, app_api_cli
     "amount_field_name, amount_db_field",
     [
         ("amountAuthorized", "authorized_value"),
-        ("amountCaptured", "captured_value"),
+        ("amountCharged", "charged_value"),
         ("amountVoided", "voided_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -530,7 +530,7 @@ def test_creates_transaction_event_for_checkout(
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = [
-        TransactionActionEnum.CAPTURE.name,
+        TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")

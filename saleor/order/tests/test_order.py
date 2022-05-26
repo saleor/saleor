@@ -1278,7 +1278,7 @@ GET_ORDER_AVAILABLE_COLLECTION_POINTS = """
 
 
 def test_available_collection_points_for_preorders_variants_in_order(
-    api_client, staff_api_client, order_with_preorder_lines, permission_manage_orders
+    api_client, staff_api_client, order_with_preorder_lines
 ):
     expected_collection_points = list(
         Warehouse.objects.for_country("US")
@@ -1292,7 +1292,6 @@ def test_available_collection_points_for_preorders_variants_in_order(
         variables={
             "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
         },
-        permissions=[permission_manage_orders],
     )
     response_content = get_graphql_content(response)
     assert (
@@ -1305,7 +1304,6 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
     api_client,
     staff_api_client,
     order_with_preorder_lines,
-    permission_manage_orders,
 ):
     expected_collection_points = list(
         Warehouse.objects.for_country("US")
@@ -1320,7 +1318,6 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
         variables={
             "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
         },
-        permissions=[permission_manage_orders],
     )
     response_content = get_graphql_content(response)
     assert (

@@ -1,8 +1,9 @@
 import random
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import graphene
 import pytest
+import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -229,6 +230,76 @@ def test_sort_products_by_rating(
         graphene.Node.to_global_id("Product", product.pk) for product in sorted_products
     ]
     assert [node["node"]["id"] for node in data] == expected_ids
+
+
+QUERY_PAGINATED_SORTED_PRODUCTS = """
+    query Products(
+        $first: Int, $sortBy: ProductOrder, $channel: String, $after: String
+    ) {
+        products(first: $first, sortBy: $sortBy, after: $after, channel: $channel) {
+            edges {
+                node {
+                    id
+                    slug
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+def test_pagination_for_sorting_products_by_published_at_date(
+    api_client, channel_USD, product_list
+):
+    """Ensure that using the cursor in sorting products by published at date works
+    properly."""
+    # given
+    channel_listings = ProductChannelListing.objects.filter(channel_id=channel_USD.id)
+    listings_in_bulk = {listing.product_id: listing for listing in channel_listings}
+    for product in product_list:
+        listing = listings_in_bulk.get(product.id)
+        listing.published_at = datetime.now(pytz.UTC)
+
+    ProductChannelListing.objects.bulk_update(channel_listings, ["published_at"])
+
+    first = 2
+    variables = {
+        "sortBy": {"direction": "ASC", "field": "PUBLISHED_AT"},
+        "channel": channel_USD.slug,
+        "first": first,
+    }
+
+    # first request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_PRODUCTS, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["products"]
+    assert len(data["edges"]) == first
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        product.slug for product in product_list[:first]
+    ]
+    end_cursor = data["pageInfo"]["endCursor"]
+
+    variables["after"] = end_cursor
+
+    # when
+    # second request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_PRODUCTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["products"]
+    expected_count = len(product_list) - first
+    assert len(data["edges"]) == expected_count
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        product.slug for product in product_list[first:]
+    ]
 
 
 QUERY_SORT_BY_COLLECTION = """

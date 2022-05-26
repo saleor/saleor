@@ -52,6 +52,7 @@ if TYPE_CHECKING:
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
+    from ..warehouse.models import Warehouse
 
 PluginConfigurationType = List[dict]
 NoneType = type(None)
@@ -133,11 +134,11 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
-    #  Trigger when app is created.
+    #  Trigger when app is installed.
     #
     #  Overwrite this method if you need to trigger specific logic after an app is
-    #  created.
-    app_created: Callable[["App", None], None]
+    #  installed.
+    app_installed: Callable[["App", None], None]
 
     #  Trigger when app is deleted.
     #
@@ -718,6 +719,24 @@ class BasePlugin:
     tracking_number_updated: Callable[["Fulfillment", Any], Any]
 
     void_payment: Callable[["PaymentData", Any], GatewayResponse]
+
+    #  Trigger when warehouse is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a warehouse is
+    #  created.
+    warehouse_created: Callable[["Warehouse", None], None]
+
+    #  Trigger when warehouse is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a warehouse is
+    #  deleted.
+    warehouse_deleted: Callable[["Warehouse", None], None]
+
+    #  Trigger when warehouse is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a warehouse is
+    #  updated.
+    warehouse_updated: Callable[["Warehouse", None], None]
 
     #  Trigger when voucher is created.
     #

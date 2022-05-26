@@ -9,12 +9,15 @@ from django.db import transaction
 
 from ....account.error_codes import AccountErrorCode
 from ....account.models import User
+from ....app.models import App
 from ....checkout.models import Checkout
 from ....core.error_codes import MetadataErrorCode
+from ....core.jwt import create_access_token_for_app
 from ....core.models import ModelWithMetadata
 from ....invoice.models import Invoice
 from ....payment.models import TransactionItem
 from ....payment.utils import payment_owned_by_user
+from ...tests.fixtures import ApiClient
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
@@ -706,6 +709,68 @@ def test_add_public_metadata_for_app_that_is_owner(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], app, app_id
     )
+
+
+def test_add_public_metadata_for_app_by_staff_without_permissions(
+    staff_api_client, app
+):
+    # given
+    app_id = graphene.Node.to_global_id("App", app.pk)
+    variables = {
+        "id": app_id,
+        "input": [{"key": PUBLIC_KEY, "value": "NewMetaValue"}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "App", variables, permissions=None
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_add_public_metadata_for_app_with_app_user_token(app, staff_user):
+    # given
+    token = create_access_token_for_app(app, staff_user)
+    api_client = ApiClient(user=staff_user)
+    api_client.token = token
+    app_id = graphene.Node.to_global_id("App", app.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client,
+        None,
+        app_id,
+        "App",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], app, app_id
+    )
+
+
+def test_add_public_metadata_for_unrelated_app_by_app_user_token(staff_user, app):
+    # given
+    token = create_access_token_for_app(app, staff_user)
+    api_client = ApiClient(user=staff_user)
+    api_client.token = token
+    second_app = App.objects.create(name="Sample app", is_active=True)
+    app_id = graphene.Node.to_global_id("App", second_app.pk)
+
+    variables = {
+        "id": app_id,
+        "input": [{"key": PUBLIC_KEY, "value": "NewMetaValue"}],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "App", variables, permissions=None
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_add_public_metadata_for_page(staff_api_client, permission_manage_pages, page):
@@ -2355,6 +2420,29 @@ def test_add_private_metadata_for_app_by_different_app(
         payment_app,
         app_id,
     )
+
+
+def test_add_private_metadata_for_app_with_app_user_token(
+    staff_user, permission_manage_apps, app, payment_app
+):
+    # given
+    token = create_access_token_for_app(app, staff_user)
+    api_client = ApiClient(user=staff_user)
+    api_client.token = token
+    app_id = graphene.Node.to_global_id("App", app.pk)
+
+    variables = {
+        "id": app_id,
+        "input": [{"key": PUBLIC_KEY, "value": "NewMetaValue"}],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "App", variables, permissions=None
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_add_private_metadata_by_app_that_is_owner(

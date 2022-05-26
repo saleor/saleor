@@ -224,7 +224,7 @@ ORDER_FULFILL_QUERY = """
 
 
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
-@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+@patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill_old_line_id(
     mock_create_fulfillments,
     fulfillment_auto_approve,
@@ -590,6 +590,8 @@ def test_update_order_line_discount_old_id(
     order.save(update_fields=["status"])
     line_to_discount = order.lines.first()
     unit_price = Money(Decimal(7.3), currency="USD")
+    line_to_discount.base_unit_price = unit_price
+    line_to_discount.undiscounted_base_unit_price = unit_price
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
     line_to_discount.undiscounted_unit_price = line_to_discount.unit_price
     total_price = line_to_discount.unit_price * line_to_discount.quantity
@@ -675,10 +677,13 @@ def test_delete_discount_from_order_line_by_old_id(
     order.save(update_fields=["status"])
     line = order.lines.first()
     line.old_id = 1
+
     line.save(update_fields=["old_id"])
 
-    line_undiscounted_price = line.undiscounted_unit_price
-    line_undiscounted_total_price = line.undiscounted_total_price
+    line_undiscounted_price = TaxedMoney(
+        line.undiscounted_base_unit_price, line.undiscounted_base_unit_price
+    )
+    line_undiscounted_total_price = line_undiscounted_price * line.quantity
 
     mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
         undiscounted_price=line_undiscounted_price,

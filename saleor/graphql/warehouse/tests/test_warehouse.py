@@ -2,11 +2,13 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
 
 from ....account.models import Address
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.models import Stock, Warehouse
+from ....webhook.event_types import WebhookEventAsyncType
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -594,6 +596,62 @@ def test_mutation_create_warehouse(
     assert created_warehouse["companyName"] == warehouse.address.company_name
 
 
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_mutation_create_warehouse_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_products,
+    shipping_zone,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "input": {
+            "name": "Test warehouse",
+            "slug": "test-warhouse",
+            "email": "test-admin@example.com",
+            "address": {
+                "streetAddress1": "Teczowa 8",
+                "city": "Wroclaw",
+                "country": "PL",
+                "postalCode": "53-601",
+                "companyName": "Amazing Company Inc",
+            },
+            "shippingZones": [
+                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    warehouse = Warehouse.objects.last()
+
+    # then
+    assert content["data"]["createWarehouse"]["warehouse"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("Warehouse", warehouse.id),
+            "name": warehouse.name,
+        },
+        WebhookEventAsyncType.WAREHOUSE_CREATED,
+        [any_webhook],
+        warehouse,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
 def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
     staff_api_client, permission_manage_products, shipping_zone
 ):
@@ -721,6 +779,50 @@ def test_mutation_update_warehouse(
     assert not (warehouse.name == warehouse_old_name)
     assert warehouse.name == "New name"
     assert warehouse.slug == warehouse_slug
+
+
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_mutation_update_warehouse_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {
+        "id": warehouse_id,
+        "input": {"name": "New name"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    warehouse.refresh_from_db()
+
+    # then
+    assert content["data"]["updateWarehouse"]["warehouse"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "name": warehouse.name,
+        },
+        WebhookEventAsyncType.WAREHOUSE_UPDATED,
+        [any_webhook],
+        warehouse,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_mutation_update_warehouse_can_update_address(
@@ -979,6 +1081,43 @@ def test_delete_warehouse_mutation(
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
     assert not Warehouse.objects.exists()
+
+
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_warehouse_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    response = staff_api_client.post_graphql(
+        MUTATION_DELETE_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["deleteWarehouse"]["errors"]) == 0
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": warehouse_id,
+            "name": warehouse.name,
+        },
+        WebhookEventAsyncType.WAREHOUSE_DELETED,
+        [any_webhook],
+        warehouse,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")

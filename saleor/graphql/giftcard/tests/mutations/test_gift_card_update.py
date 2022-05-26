@@ -4,11 +4,13 @@ from unittest import mock
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCardTag
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 UPDATE_GIFT_CARD_MUTATION = """
@@ -730,6 +732,7 @@ def test_update_gift_card_duplicated_tags_item(
     assert errors[0]["code"] == GiftCardErrorCode.DUPLICATED_INPUT_ITEM.name
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_gift_card_trigger_webhook(
@@ -782,6 +785,11 @@ def test_update_gift_card_trigger_webhook(
         {
             "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
             "is_active": gift_card.is_active,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.GIFT_CARD_UPDATED,
         [any_webhook],

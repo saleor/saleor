@@ -3,10 +3,12 @@ from unittest import mock
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....shipping.error_codes import ShippingErrorCode
 from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import WeightUnitsEnum
 from ....tests.utils import get_graphql_content
 from ...types import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
@@ -91,6 +93,7 @@ def test_update_shipping_method(
     assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_update_shipping_method_trigger_webhook(
@@ -136,7 +139,14 @@ def test_update_shipping_method_trigger_webhook(
     assert not data["errors"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": shipping_method_id},
+        {
+            "id": shipping_method_id,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
         [any_webhook],
         shipping_method,

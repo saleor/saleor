@@ -19,7 +19,7 @@ def set_order_line_token_and_created_at(apps, _schema_editor):
         )
         for order_line in order_lines:
             order = order_in_bulk.get(order_line.order_id)
-            order_line.created_at = order.created_at.replace(second=order_line.pk)
+            order_line.created_at = order.created_at
             order_line.token = uuid.uuid4()
 
         OrderLine.objects.bulk_update(order_lines, ["token", "created_at"])

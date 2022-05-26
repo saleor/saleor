@@ -97,7 +97,7 @@ class Checkout(ModelWithMetadata):
     discount_name = models.CharField(max_length=255, blank=True, null=True)
 
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
-    voucher_code = models.CharField(max_length=12, blank=True, null=True)
+    voucher_code = models.CharField(max_length=255, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 
     redirect_url = models.URLField(blank=True, null=True)
@@ -178,6 +178,9 @@ class CheckoutLine(models.Model):
     their `data` field is different.
     """
 
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     checkout = models.ForeignKey(
         Checkout, related_name="lines", on_delete=models.CASCADE
     )
@@ -193,7 +196,7 @@ class CheckoutLine(models.Model):
     )
 
     class Meta:
-        ordering = ("id",)
+        ordering = ("created_at", "id")
 
     def __str__(self):
         return smart_str(self.variant)

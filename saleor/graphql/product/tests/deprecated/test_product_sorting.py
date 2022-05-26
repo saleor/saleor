@@ -1,11 +1,16 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import graphene
 import pytest
+import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....product.models import ProductChannelListing
+from .....product.models import (
+    Collection,
+    CollectionChannelListing,
+    ProductChannelListing,
+)
 from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 GET_SORTED_PRODUCTS_QUERY = """
@@ -96,3 +101,154 @@ def test_products_with_sorting_and_without_channel(
 
     # then
     assert_graphql_error_with_message(response, "A default channel does not exist.")
+
+
+QUERY_PAGINATED_SORTED_PRODUCTS = """
+    query Products(
+        $first: Int, $sortBy: ProductOrder, $channel: String, $after: String
+    ) {
+        products(first: $first, sortBy: $sortBy, after: $after, channel: $channel) {
+            edges {
+                node {
+                    id
+                    slug
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+def test_pagination_for_sorting_products_by_publication_date(
+    api_client, channel_USD, product_list
+):
+    """Ensure that using the cursor in sorting products by publication date works
+    properly."""
+    # given
+    channel_listings = ProductChannelListing.objects.filter(channel_id=channel_USD.id)
+    listings_in_bulk = {listing.product_id: listing for listing in channel_listings}
+    for product in product_list:
+        listing = listings_in_bulk.get(product.id)
+        listing.published_at = datetime.now(pytz.UTC)
+
+    ProductChannelListing.objects.bulk_update(channel_listings, ["published_at"])
+
+    first = 2
+    variables = {
+        "sortBy": {"direction": "ASC", "field": "PUBLICATION_DATE"},
+        "channel": channel_USD.slug,
+        "first": first,
+    }
+
+    # first request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_PRODUCTS, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["products"]
+    assert len(data["edges"]) == first
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        product.slug for product in product_list[:first]
+    ]
+    end_cursor = data["pageInfo"]["endCursor"]
+
+    variables["after"] = end_cursor
+
+    # when
+    # second request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_PRODUCTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["products"]
+    expected_count = len(product_list) - first
+    assert len(data["edges"]) == expected_count
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        product.slug for product in product_list[first:]
+    ]
+
+
+QUERY_PAGINATED_SORTED_COLLECTIONS = """
+    query (
+        $first: Int, $sort_by: CollectionSortingInput!, $after: String, $channel: String
+    ) {
+        collections(first: $first, sortBy: $sort_by, after: $after, channel: $channel) {
+                edges{
+                    node{
+                        slug
+                    }
+                }
+                pageInfo{
+                    startCursor
+                    endCursor
+                    hasNextPage
+                    hasPreviousPage
+                }
+            }
+        }
+"""
+
+
+def test_pagination_for_sorting_collections_by_publication_date(
+    api_client, channel_USD
+):
+    """Ensure that using the cursor in sorting collections by publication date works
+    properly."""
+    # given
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-1"),
+            Collection(name="Coll2", slug="collection-2"),
+            Collection(name="Coll3", slug="collection-3"),
+        ]
+    )
+    now = datetime.now(pytz.UTC)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD,
+                collection=collection,
+                is_published=True,
+                published_at=now - timedelta(days=num),
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+
+    first = 2
+    variables = {
+        "sort_by": {"direction": "DESC", "field": "PUBLICATION_DATE"},
+        "channel": channel_USD.slug,
+        "first": first,
+    }
+
+    # first request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_COLLECTIONS, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]
+    assert len(data["edges"]) == first
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        collection.slug for collection in collections[:first]
+    ]
+    end_cursor = data["pageInfo"]["endCursor"]
+
+    variables["after"] = end_cursor
+
+    # when
+    # second request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_COLLECTIONS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]
+    expected_count = len(collections) - first
+    assert len(data["edges"]) == expected_count
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        collection.slug for collection in collections[first:]
+    ]

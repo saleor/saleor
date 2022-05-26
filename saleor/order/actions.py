@@ -1472,7 +1472,7 @@ def _process_refund(
             # transaction. This can be changed when we will provide an interface
             # to provide list of transactions.
             transaction_item = transactions[-1]
-            amount = min(transaction_item.captured_value, amount)
+            amount = min(transaction_item.charged_value, amount)
             request_refund_action(
                 transaction_item,
                 manager,

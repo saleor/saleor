@@ -75,7 +75,7 @@ def test_checkout_lines_add(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
@@ -109,7 +109,7 @@ def test_checkout_lines_add_with_reservations(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
@@ -144,7 +144,7 @@ def test_checkout_lines_add_updates_reservation(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 3
     assert calculate_checkout_quantity(lines) == 3
@@ -232,7 +232,7 @@ def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.quantity == 10
     assert checkout.last_change != previous_last_change
 
@@ -258,7 +258,7 @@ def test_checkout_lines_add_custom_price(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 1
     assert line.price_override == price
@@ -286,7 +286,7 @@ def test_checkout_lines_add_existing_variant_with_custom_price(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.quantity == 10
     assert line.price_override == price
 
@@ -316,7 +316,7 @@ def test_checkout_lines_add_existing_variant_override_previous_custom_price(
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.quantity == 10
     assert line.price_override == price
 
