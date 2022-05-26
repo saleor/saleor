@@ -17,6 +17,7 @@ from pytimeparse import parse
 
 from ..event_types import WebhookEventAsyncType
 from ..utils import get_webhooks_for_event
+from . import worker
 from .buffers import get_buffer
 from .payloads import generate_api_call_payload, generate_event_delivery_attempt_payload
 from .tracing import opentracing_trace
@@ -90,13 +91,7 @@ def task_next_retry_date(retry_error: "Retry") -> Optional[datetime]:
 
 
 def put_event(generate_payload: Callable[[], Any]):
-    try:
-        payload = generate_payload()
-        with opentracing_trace("put_event", "buffer"):
-            if get_buffer(get_buffer_name()).put_event(payload):
-                logger.warning("[Observability] Buffer full, event dropped")
-    except Exception:
-        logger.error("[Observability] Event dropped", exc_info=True)
+    worker.put_event(get_buffer_name(), generate_payload)
 
 
 def pop_events_with_remaining_size() -> Tuple[List[Any], int]:

@@ -1,5 +1,7 @@
 import opentracing
 
+default_app_config = "saleor.webhook.app.WebhookAppConfig"
+
 
 def traced_payload_generator(func):
     def wrapper(*args, **kwargs):
