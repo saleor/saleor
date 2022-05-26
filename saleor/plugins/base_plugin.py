@@ -134,6 +134,24 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
+    #  Trigger when address is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an address is
+    #  created.
+    address_created: Callable[["Address", None], None]
+
+    #  Trigger when address is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an address is
+    #  deleted.
+    address_deleted: Callable[["Address", None], None]
+
+    #  Trigger when address is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an address is
+    #  updated.
+    address_updated: Callable[["Address", None], None]
+
     #  Trigger when app is installed.
     #
     #  Overwrite this method if you need to trigger specific logic after an app is

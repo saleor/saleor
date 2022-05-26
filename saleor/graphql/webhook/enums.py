@@ -23,6 +23,9 @@ order_updated_event_enum_description = (
 
 
 WEBHOOK_EVENT_DESCRIPTION = {
+    WebhookEventAsyncType.ADDRESS_CREATED: "A new address created.",
+    WebhookEventAsyncType.ADDRESS_UPDATED: "An address updated.",
+    WebhookEventAsyncType.ADDRESS_DELETED: "An address deleted.",
     WebhookEventAsyncType.APP_INSTALLED: "A new app installed.",
     WebhookEventAsyncType.APP_UPDATED: "An app updated.",
     WebhookEventAsyncType.APP_DELETED: "An app deleted.",
