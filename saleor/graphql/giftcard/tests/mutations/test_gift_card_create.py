@@ -4,11 +4,13 @@ from unittest import mock
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCard
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 CREATE_GIFT_CARD_MUTATION = """
@@ -622,6 +624,7 @@ def test_create_gift_card_with_expiry_date_type_invalid(
     assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_create_gift_card_trigger_webhook(
@@ -674,6 +677,11 @@ def test_create_gift_card_trigger_webhook(
         {
             "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
             "is_active": gift_card.is_active,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: app_api_client.app)
+                )
+            ),
         },
         WebhookEventAsyncType.GIFT_CARD_CREATED,
         [any_webhook],

@@ -18,6 +18,9 @@ query {
                             id
                         }
                     }
+                    warehouse {
+                        id
+                    }
                 }
             }
         }

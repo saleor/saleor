@@ -30,8 +30,8 @@ from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxType, zero_taxed_money
-from ..discount import DiscountInfo
+from ..core.taxes import TaxType, zero_money, zero_taxed_money
+from ..discount import DiscountInfo, VoucherType
 from ..order.interface import OrderTaxedPricesData
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -68,7 +68,7 @@ if TYPE_CHECKING:
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..translation.models import Translation
-    from ..warehouse.models import Stock
+    from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
@@ -263,7 +263,7 @@ class PluginsManager(PaymentInterface):
                 line_info,
                 address,
                 discounts,
-            ).price_with_sale
+            ).price_with_discounts
             for line_info in lines
         ]
         currency = checkout_info.checkout.currency
@@ -447,8 +447,14 @@ class PluginsManager(PaymentInterface):
         product: "Product",
     ) -> OrderTaxedPricesData:
         default_value = OrderTaxedPricesData(
-            undiscounted_price=order_line.undiscounted_unit_price,
-            price_with_discounts=order_line.unit_price,
+            undiscounted_price=TaxedMoney(
+                order_line.undiscounted_base_unit_price,
+                order_line.undiscounted_base_unit_price,
+            ),
+            price_with_discounts=TaxedMoney(
+                order_line.base_unit_price,
+                order_line.base_unit_price,
+            ),
         )
         currency = order_line.currency
         line_unit = self.__run_method_on_plugins(
@@ -802,9 +808,9 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
-    def app_created(self, app: "App"):
+    def app_installed(self, app: "App"):
         default_value = None
-        return self.__run_method_on_plugins("app_created", default_value, app)
+        return self.__run_method_on_plugins("app_installed", default_value, app)
 
     def app_updated(self, app: "App"):
         default_value = None
@@ -936,6 +942,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "shipping_zone_deleted", default_value, shipping_zone
+        )
+
+    def warehouse_created(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_created", default_value, warehouse
+        )
+
+    def warehouse_updated(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_updated", default_value, warehouse
+        )
+
+    def warehouse_deleted(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_deleted", default_value, warehouse
         )
 
     def voucher_created(self, voucher: "Voucher"):

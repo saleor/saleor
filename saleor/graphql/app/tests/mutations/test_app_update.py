@@ -2,10 +2,12 @@ from unittest import mock
 
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....app.error_codes import AppErrorCode
 from .....app.models import App, AppToken
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import PermissionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -75,6 +77,7 @@ def test_app_update_mutation(
     }
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_update_trigger_mutation(
@@ -118,6 +121,11 @@ def test_app_update_trigger_mutation(
             "id": variables["id"],
             "is_active": app_with_token.is_active,
             "name": app_with_token.name,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.APP_UPDATED,
         [any_webhook],

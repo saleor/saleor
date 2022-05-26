@@ -3,10 +3,12 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....shipping.error_codes import ShippingErrorCode
 from .....shipping.models import ShippingMethodChannelListing
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -103,6 +105,7 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     )
 
 
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_shipping_method_channel_listing_create_trigger_webhook(
@@ -156,7 +159,14 @@ def test_shipping_method_channel_listing_create_trigger_webhook(
     assert data["shippingMethod"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": shipping_method_id},
+        {
+            "id": shipping_method_id,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.SHIPPING_PRICE_UPDATED,
         [any_webhook],
         shipping_method,

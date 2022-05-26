@@ -177,7 +177,7 @@ class AppCreate(ModelMutation):
         cls._save_m2m(info, instance, cleaned_input)
         response = cls.success_response(instance)
         response.auth_token = auth_token
-        info.context.plugins.app_created(instance)
+        info.context.plugins.app_installed(instance)
         return response
 
     @classmethod

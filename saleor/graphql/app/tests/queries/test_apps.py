@@ -3,6 +3,8 @@ import pytest
 from freezegun import freeze_time
 
 from .....app.models import App
+from .....app.types import AppType
+from .....core.jwt import create_access_token_for_app
 from .....webhook.models import Webhook
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AppTypeEnum
@@ -33,6 +35,8 @@ QUERY_APPS_WITH_FILTER = """
                     supportUrl
                     configurationUrl
                     appUrl
+                    metafield(key: "test")
+                    metafields(keys: ["test"])
                     extensions{
                         id
                         label
@@ -47,7 +51,7 @@ QUERY_APPS_WITH_FILTER = """
             }
         }
     }
-    """
+"""
 
 
 @pytest.mark.parametrize(
@@ -252,3 +256,184 @@ def test_query_app_for_federation_without_permission(api_client, app):
     response = api_client.post_graphql(QUERY_APPS_FOR_FEDERATION, variables)
     content = get_graphql_content(response)
     assert content["data"]["_entities"] == [None]
+
+
+QUERY_APPS_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
+    query{
+        apps(first: 5){
+            edges{
+                node{
+                    id
+                    isActive
+                    permissions{
+                        name
+                        code
+                    }
+                    name
+                    type
+                    aboutApp
+                    dataPrivacy
+                    dataPrivacyUrl
+                    homepageUrl
+                    supportUrl
+                    configurationUrl
+                    appUrl
+                    accessToken
+                    extensions{
+                        id
+                        label
+                        url
+                        mount
+                        target
+                        permissions{
+                            code
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_apps_query_staff_without_permissions(
+    staff_api_client,
+    staff_user,
+    permission_manage_apps,
+    permission_manage_orders,
+    app,
+):
+    # given
+    app.type = AppType.THIRDPARTY
+    app.save()
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS,
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    apps_data = content["data"]["apps"]["edges"]
+
+    assert len(apps_data) == 1
+    app_data = apps_data[0]["node"]
+    expected_id = graphene.Node.to_global_id("App", app.id)
+    assert app_data["id"] == expected_id
+    assert app_data["accessToken"] == create_access_token_for_app(app, staff_user)
+
+
+def test_apps_query_for_normal_user(
+    user_api_client, permission_manage_users, permission_manage_staff, app
+):
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_APPS_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+QUERY_APPS_WITH_METADATA = """
+    query{
+        apps(first: 5){
+            edges{
+                node{
+                    id
+                    metadata{
+                        key
+                        value
+                    }
+
+                }
+            }
+        }
+    }
+"""
+
+
+def test_apps_query_with_metadata_staff_user_without_permissions(
+    staff_api_client,
+    staff_user,
+    app,
+):
+    # given
+    app.type = AppType.THIRDPARTY
+    app.store_value_in_metadata({"test": "123"})
+    app.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_METADATA,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+QUERY_APPS_WITH_METAFIELD = """
+    query{
+        apps(first: 5){
+            edges{
+                node{
+                    id
+                    metafield(key: "test")
+                }
+            }
+        }
+    }
+"""
+
+
+def test_apps_query_with_metafield_staff_user_without_permissions(
+    staff_api_client,
+    staff_user,
+    app,
+):
+    # given
+    app.type = AppType.THIRDPARTY
+    app.store_value_in_metadata({"test": "123"})
+    app.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_METAFIELD,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+QUERY_APPS_WITH_METAFIELDS = """
+    query{
+        apps(first: 5){
+            edges{
+                node{
+                    id
+                    metafields(keys: ["test"])
+                }
+            }
+        }
+    }
+"""
+
+
+def test_apps_query_with_metafields_staff_user_without_permissions(
+    staff_api_client,
+    staff_user,
+    app,
+):
+    # given
+    app.type = AppType.THIRDPARTY
+    app.store_value_in_metadata({"test": "123"})
+    app.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_WITH_METAFIELDS,
+    )
+
+    # then
+    assert_no_permission(response)

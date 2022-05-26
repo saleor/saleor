@@ -20,13 +20,12 @@ from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
 from ...graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
-    initialize_context,
+    initialize_request,
 )
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
 from ...webhook.event_types import SUBSCRIBABLE_EVENTS
-from ...webhook.payloads import generate_meta, generate_requestor
 from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
@@ -63,7 +62,7 @@ class WebhookResponse:
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, meta=None
+    event_type, subscribable_object, webhooks, requestor=None
 ) -> List[EventDelivery]:
     """Create webhook payload based on subscription query.
 
@@ -72,6 +71,7 @@ def create_deliveries_for_subscriptions(
 
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in SUBSCRIBABLE_EVENTS:
@@ -80,7 +80,6 @@ def create_deliveries_for_subscriptions(
         )
         return []
 
-    context = initialize_context()
     event_payloads = []
     event_deliveries = []
     for webhook in webhooks:
@@ -88,7 +87,7 @@ def create_deliveries_for_subscriptions(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            context=context,
+            request=initialize_request(requestor),
             app=webhook.app,
         )
         if not data:
@@ -97,7 +96,7 @@ def create_deliveries_for_subscriptions(
             )
             continue
 
-        event_payload = EventPayload(payload=json.dumps({**data, "meta": meta}))
+        event_payload = EventPayload(payload=json.dumps({**data}))
         event_payloads.append(event_payload)
         event_deliveries.append(
             EventDelivery(
@@ -136,17 +135,12 @@ def trigger_webhooks_async(
             )
         )
     if subscription_webhooks:
-        meta = {}
-        if requestor:
-            meta = generate_meta(
-                requestor_data=generate_requestor(requestor), camel_case=True
-            )
         deliveries.extend(
             create_deliveries_for_subscriptions(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 webhooks=subscription_webhooks,
-                meta=meta,
+                requestor=requestor,
             )
         )
 
@@ -320,8 +314,14 @@ def send_webhook_request_async(self, event_delivery_id):
     except EventDelivery.DoesNotExist:
         logger.error("Event delivery id: %r not found", event_delivery_id)
         return
-    data = delivery.payload.payload
+
+    if not delivery.webhook.is_active:
+        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
+        return
+
     webhook = delivery.webhook
+    data = delivery.payload.payload
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS

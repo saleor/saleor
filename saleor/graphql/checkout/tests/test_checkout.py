@@ -4692,7 +4692,7 @@ def test_checkout_transactions_missing_permission(api_client, checkout):
         reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"token": str(checkout.token)}
@@ -4714,7 +4714,7 @@ def test_checkout_transactions_with_manage_checkouts(
         reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"token": str(checkout.token)}
@@ -4743,7 +4743,7 @@ def test_checkout_transactions_with_handle_payments(
         reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"token": str(checkout.token)}

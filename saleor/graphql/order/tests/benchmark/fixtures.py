@@ -6,7 +6,7 @@ from prices import Money, TaxedMoney
 
 from .....account.models import User
 from .....order import OrderEvents, OrderStatus
-from .....order.models import Fulfillment, Order, OrderEvent, OrderLine
+from .....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from .....payment import ChargeStatus
 from .....payment.models import Payment
 
@@ -89,6 +89,7 @@ def orders_for_benchmarks(
     users_for_order_benchmarks,
     variant_with_image,
     shipping_method,
+    stocks_for_cc,
 ):
     orders = [
         Order(
@@ -106,21 +107,33 @@ def orders_for_benchmarks(
     payments = []
     events = []
     fulfillments = []
+    fulfillment_lines = []
     lines = []
 
-    for order in created_orders:
+    for index, order in enumerate(created_orders):
         new_payments = _prepare_payments_for_order(order)
         new_events = _prepare_events_for_order(order)
         new_lines = _prepare_lines_for_order(order, variant_with_image)
         payments.extend(new_payments)
         events.extend(new_events)
         lines.extend(new_lines)
-        fulfillments.append(Fulfillment(order=order, fulfillment_order=order.number))
+        fulfillment = Fulfillment(order=order, fulfillment_order=order.number)
+        fulfillments.append(fulfillment)
+
+        fulfillment_lines.append(
+            FulfillmentLine(
+                order_line=new_lines[0],
+                fulfillment=fulfillment,
+                stock=stocks_for_cc[index % 3] if index % 2 else None,
+                quantity=index,
+            )
+        )
 
     Payment.objects.bulk_create(payments)
     OrderEvent.objects.bulk_create(events)
     Fulfillment.objects.bulk_create(fulfillments)
     OrderLine.objects.bulk_create(lines)
+    FulfillmentLine.objects.bulk_create(fulfillment_lines)
 
     return created_orders
 

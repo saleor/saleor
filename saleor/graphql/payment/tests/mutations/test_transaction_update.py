@@ -37,7 +37,7 @@ mutation TransactionUpdate(
                     currency
                     amount
                 }
-                capturedAmount{
+                chargedAmount{
                     currency
                     amount
                 }
@@ -68,7 +68,7 @@ def transaction(order_with_lines):
         status="Authorized",
         type="Credit card",
         reference="PSP ref",
-        available_actions=["capture", "void"],
+        available_actions=["charge", "void"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -183,7 +183,7 @@ def test_transaction_update_available_actions(
     "field_name, response_field, db_field_name, value",
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
-        ("amountCaptured", "capturedAmount", "captured_value", Decimal("13")),
+        ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
         ("amountVoided", "voidedAmount", "voided_value", Decimal("14")),
         ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
     ],
@@ -222,7 +222,7 @@ def test_transaction_update_multiple_amounts_provided(
 ):
     # given
     authorized_value = Decimal("10")
-    captured_value = Decimal("11")
+    charged_value = Decimal("11")
     refunded_value = Decimal("12")
     voided_value = Decimal("13")
 
@@ -233,8 +233,8 @@ def test_transaction_update_multiple_amounts_provided(
                 "amount": authorized_value,
                 "currency": "USD",
             },
-            "amountCaptured": {
-                "amount": captured_value,
+            "amountCharged": {
+                "amount": charged_value,
                 "currency": "USD",
             },
             "amountRefunded": {
@@ -258,12 +258,12 @@ def test_transaction_update_multiple_amounts_provided(
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["authorizedAmount"]["amount"] == authorized_value
-    assert data["capturedAmount"]["amount"] == captured_value
+    assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
     assert data["voidedAmount"]["amount"] == voided_value
 
     assert transaction.authorized_value == authorized_value
-    assert transaction.captured_value == captured_value
+    assert transaction.charged_value == charged_value
     assert transaction.voided_value == voided_value
     assert transaction.refunded_value == refunded_value
 
@@ -318,7 +318,7 @@ def test_transaction_update_for_order_missing_app_permission(
     "amount_field_name, amount_db_field",
     [
         ("amountAuthorized", "authorized_value"),
-        ("amountCaptured", "captured_value"),
+        ("amountCharged", "charged_value"),
         ("amountVoided", "voided_value"),
         ("amountRefunded", "refunded_value"),
     ],

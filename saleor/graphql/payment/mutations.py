@@ -25,7 +25,7 @@ from ...payment.error_codes import (
     TransactionUpdateErrorCode,
 )
 from ...payment.gateway import (
-    request_capture_action,
+    request_charge_action,
     request_refund_action,
     request_void_action,
 )
@@ -599,7 +599,7 @@ class TransactionUpdateInput(graphene.InputObjectType):
         description="List of all possible actions for the transaction",
     )
     amount_authorized = MoneyInput(description="Amount authorized by this transaction.")
-    amount_captured = MoneyInput(description="Amount captured by this transaction.")
+    amount_charged = MoneyInput(description="Amount charged by this transaction.")
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
     amount_voided = MoneyInput(description="Amount voided by this transaction.")
 
@@ -687,8 +687,8 @@ class TransactionCreate(BaseMutation):
     def cleanup_money_data(cls, cleaned_data: dict):
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
             cleaned_data["authorized_value"] = amount_authorized["amount"]
-        if amount_captured := cleaned_data.pop("amount_captured", None):
-            cleaned_data["captured_value"] = amount_captured["amount"]
+        if amount_charged := cleaned_data.pop("amount_charged", None):
+            cleaned_data["charged_value"] = amount_charged["amount"]
         if amount_refunded := cleaned_data.pop("amount_refunded", None):
             cleaned_data["refunded_value"] = amount_refunded["amount"]
         if amount_voided := cleaned_data.pop("amount_voided", None):
@@ -726,7 +726,7 @@ class TransactionCreate(BaseMutation):
             return
         money_input_fields = [
             "amount_authorized",
-            "amount_captured",
+            "amount_charged",
             "amount_refunded",
             "amount_voided",
         ]
@@ -937,15 +937,15 @@ class TransactionRequestAction(BaseMutation):
     ):
         if action == TransactionAction.VOID:
             request_void_action(**action_kwargs)
-        elif action == TransactionAction.CAPTURE:
+        elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
-            request_capture_action(**action_kwargs, capture_value=action_value)
+            request_charge_action(**action_kwargs, charge_value=action_value)
         elif action == TransactionAction.REFUND:
             transaction = action_kwargs["transaction"]
-            action_value = action_value or transaction.captured_value
-            action_value = min(action_value, transaction.captured_value)
+            action_value = action_value or transaction.charged_value
+            action_value = min(action_value, transaction.charged_value)
             request_refund_action(**action_kwargs, refund_value=action_value)
 
     @classmethod

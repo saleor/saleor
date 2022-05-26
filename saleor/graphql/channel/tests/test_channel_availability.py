@@ -2,9 +2,11 @@ from unittest import mock
 
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import get_graphql_content
 
 CHANNEL_ACTIVATE_MUTATION = """
@@ -49,6 +51,7 @@ def test_channel_activate_mutation(
     assert data["channel"]["isActive"] is True
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_channel_activate_mutation_trigger_webhook(
@@ -80,7 +83,15 @@ def test_channel_activate_mutation_trigger_webhook(
     # then
     assert not content["data"]["channelActivate"]["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": variables["id"], "is_active": True},
+        {
+            "id": variables["id"],
+            "is_active": True,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
         [any_webhook],
         channel_USD,
@@ -149,6 +160,7 @@ def test_channel_deactivate_mutation(
     assert data["channel"]["isActive"] is False
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_channel_deactivate_mutation_trigger_webhook(
@@ -178,7 +190,15 @@ def test_channel_deactivate_mutation_trigger_webhook(
     # then
     assert not content["data"]["channelDeactivate"]["errors"]
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": variables["id"], "is_active": False},
+        {
+            "id": variables["id"],
+            "is_active": False,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.CHANNEL_STATUS_CHANGED,
         [any_webhook],
         channel_USD,

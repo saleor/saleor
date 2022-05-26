@@ -64,6 +64,10 @@ class App(ModelWithMetadata):
                 AppPermission.MANAGE_APPS.codename,
                 "Manage apps",
             ),
+            (
+                AppPermission.MANAGE_OBSERVABILITY.codename,
+                "Manage observability",
+            ),
         )
 
     def __str__(self):

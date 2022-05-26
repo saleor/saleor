@@ -118,17 +118,23 @@ def get_client_token(
         span = scope.span
         span.set_tag(opentracing.tags.COMPONENT, "payment")
         span.set_tag("service.name", "braintree")
-        if not token_config:
-            return gateway.client_token.generate()
         parameters = create_token_params(config, token_config)
         return gateway.client_token.generate(parameters)
 
 
-def create_token_params(config: GatewayConfig, token_config: TokenConfig) -> dict:
+def create_token_params(
+    config: GatewayConfig, token_config: Optional[TokenConfig] = None
+) -> dict:
     params = {}
-    customer_id = token_config.customer_id
-    if customer_id and config.store_customer:
-        params["customer_id"] = customer_id
+    if "merchant_account_id" in config.connection_params:
+        merchant_account_id = config.connection_params["merchant_account_id"]
+        if merchant_account_id:
+            params["merchant_account_id"] = merchant_account_id
+
+    if token_config:
+        customer_id = token_config.customer_id
+        if customer_id and config.store_customer:
+            params["customer_id"] = customer_id
     return params
 
 

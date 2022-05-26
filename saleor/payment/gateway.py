@@ -83,30 +83,30 @@ def with_locked_payment(fn: Callable) -> Callable:
     return wrapped
 
 
-def request_capture_action(
+def request_charge_action(
     transaction: TransactionItem,
     manager: "PluginsManager",
-    capture_value: Optional[Decimal],
+    charge_value: Optional[Decimal],
     channel_slug: str,
     user: UserType,
     app: AppType,
 ):
 
-    if capture_value is None:
-        capture_value = transaction.authorized_value
+    if charge_value is None:
+        charge_value = transaction.authorized_value
 
     _request_payment_action(
         transaction=transaction,
         manager=manager,
-        action_type=TransactionAction.CAPTURE,
-        action_value=capture_value,
+        action_type=TransactionAction.CHARGE,
+        action_value=charge_value,
         channel_slug=channel_slug,
     )
     if order_id := transaction.order_id:
         event_transaction_capture_requested(
             order_id=order_id,
             reference=transaction.reference,
-            amount=quantize_price(capture_value, transaction.currency),
+            amount=quantize_price(charge_value, transaction.currency),
             user=user,
             app=app,
         )
@@ -121,7 +121,7 @@ def request_refund_action(
     app: AppType,
 ):
     if refund_value is None:
-        refund_value = transaction.captured_value
+        refund_value = transaction.charged_value
 
     _request_payment_action(
         transaction=transaction,
