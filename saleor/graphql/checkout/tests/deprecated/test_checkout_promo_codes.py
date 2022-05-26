@@ -50,6 +50,16 @@ def test_checkout_add_voucher_code_by_id(api_client, checkout_with_item, voucher
     assert data["checkout"]["voucherCode"] == voucher.code
 
 
+def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, voucher):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"token": checkout_with_item.token, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert not data["errors"]
+    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["voucherCode"] == voucher.code
+
+
 def test_checkout_add_voucher_code_neither_token_and_id_given(
     api_client, checkout_with_item, voucher
 ):

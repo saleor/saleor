@@ -931,7 +931,18 @@ type Query {
 
   """Look up a checkout by token and slug of channel."""
   checkout(
-    """The checkout's token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    The checkout's token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): Checkout
 
@@ -7195,7 +7206,13 @@ type User implements Node & ObjectWithMetadata {
   checkoutTokens(
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): [UUID!]
+  ): [UUID!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutIds` instead.")
+
+  """Returns the checkout ID's assigned to this user."""
+  checkoutIds(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): [ID!]
 
   """List of the user gift cards."""
   giftCards(
@@ -12448,16 +12465,27 @@ type Mutation {
   """Adds a gift card or a voucher to a checkout."""
   checkoutAddPromoCode(
     """
-    The ID of the checkout. 
+    The ID of the checkout.
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Gift card code or voucher code."""
     promoCode: String!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutAddPromoCode
 
@@ -12469,11 +12497,22 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutBillingAddressUpdate
 
@@ -12484,9 +12523,16 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Client-side generated data required to finalize the payment."""
     paymentData: JSONString
@@ -12503,7 +12549,11 @@ type Mutation {
     """
     storeSource: Boolean = false
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutComplete
 
@@ -12522,7 +12572,7 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
@@ -12531,7 +12581,18 @@ type Mutation {
     """
     customerId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutCustomerAttach
 
@@ -12544,11 +12605,22 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutCustomerDetach
 
@@ -12557,14 +12629,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
     """email."""
     email: String!
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutEmailUpdate
 
@@ -12573,24 +12656,46 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """ID of the checkout line to delete."""
     lineId: ID
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
 
   """Deletes checkout lines."""
   checkoutLinesDelete(
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
     """A list of checkout lines."""
     linesIds: [ID!]!
 
-    """Checkout token."""
-    token: UUID!
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
+    token: UUID
   ): CheckoutLinesDelete
 
   """
@@ -12600,16 +12705,27 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
     lines: [CheckoutLineInput!]!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLinesAdd
 
@@ -12618,16 +12734,27 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
     lines: [CheckoutLineUpdateInput!]!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLinesUpdate
 
@@ -12636,9 +12763,16 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Gift card code or voucher code."""
     promoCode: String
@@ -12646,7 +12780,11 @@ type Mutation {
     """Gift card or voucher ID."""
     promoCodeId: ID
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutRemovePromoCode
 
@@ -12655,14 +12793,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Data required to create a new payment."""
     input: PaymentInput!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutPaymentCreate
 
@@ -12671,14 +12820,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """The mailing address to where the checkout will be shipped."""
     shippingAddress: AddressInput!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutShippingAddressUpdate
 
@@ -12687,14 +12847,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Shipping method."""
     shippingMethodId: ID!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
 
@@ -12709,7 +12880,18 @@ type Mutation {
     """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
     deliveryMethodId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutDeliveryMethodUpdate
 
@@ -12718,14 +12900,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """New language code."""
     languageCode: LanguageCodeEnum!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLanguageCodeUpdate
 
