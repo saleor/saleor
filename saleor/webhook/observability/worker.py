@@ -6,6 +6,8 @@ from threading import Lock, Thread
 from time import monotonic
 from typing import Any, Callable, Optional
 
+import opentracing
+import opentracing.tags
 from django.conf import settings
 
 from .buffers import get_buffer
@@ -33,10 +35,11 @@ def init():
         atexit.register(_shutdown_worker)
 
 
-def put_event(buffer_name: str, generate_payload: Callable[[], Any]):
+def put_event(buffer_name: str, generate_payload: Callable[[], Any]) -> bool:
     if _worker:
         return _worker.submit_event(buffer_name, generate_payload)
     logger.warning("[Observability] Worker not initialized, event dropped")
+    return False
 
 
 class BackgroundWorker:
@@ -50,39 +53,48 @@ class BackgroundWorker:
 
     def _target(self):
         logger.info("[Observability] Background worker started")
+        tracer = opentracing.global_tracer()
         working = True
         while working:
-            events, events_count, deadline = {}, 0, monotonic() + self._timeout
-            while (
-                events_count < self._batch_size
-                and (timeout := deadline - monotonic()) > 0.0
-            ):
-                try:
-                    event_data = self._queue.get(timeout=timeout)
-                except Empty:
-                    break
-                try:
-                    if event_data is _TERMINATOR:
-                        working = False
+            with tracer.start_active_span("observability.background_worker") as scope:
+                scope.span.set_tag(opentracing.tags.COMPONENT, "background_worker")
+                scope.span.set_tag("service.name", "observability")
+                events, events_count, deadline = {}, 0, monotonic() + self._timeout
+                while (
+                    events_count < self._batch_size
+                    and (timeout := deadline - monotonic()) > 0.0
+                ):
+                    try:
+                        event_data = self._queue.get(timeout=timeout)
+                    except Empty:
                         break
-                    buffer_name, generate_payload = event_data
-                    events.setdefault(buffer_name, []).append(generate_payload())
-                    events_count += 1
-                except Exception:
-                    logger.error(
-                        "[Observability] Failed generating payload", exc_info=True
-                    )
-                finally:
-                    self._queue.task_done()
-            if events_count:
-                try:
-                    get_buffer("").put_multi_key_events(events)
-                except Exception:
-                    logger.error(
-                        "[Observability] Buffer error, dropped %s events",
-                        events_count,
-                        exc_info=True,
-                    )
+                    try:
+                        if event_data is _TERMINATOR:
+                            working = False
+                            break
+                        buffer_name, generate_payload = event_data
+                        events.setdefault(buffer_name, []).append(generate_payload())
+                        events_count += 1
+                    except Exception:
+                        logger.error(
+                            "[Observability] Failed generating payload", exc_info=True
+                        )
+                    finally:
+                        self._queue.task_done()
+                if events_count:
+                    with tracer.start_active_span(
+                        "observability.put_to_buffer"
+                    ) as scope:
+                        scope.span.set_tag(opentracing.tags.COMPONENT, "buffer")
+                        scope.span.set_tag("service.name", "observability")
+                        try:
+                            get_buffer("").put_multi_key_events(events)
+                        except Exception:
+                            logger.error(
+                                "[Observability] Buffer error, dropped %s events",
+                                events_count,
+                                exc_info=True,
+                            )
 
     def start(self):
         with self._lock:
@@ -107,14 +119,16 @@ class BackgroundWorker:
         if not self.is_alive:
             self.start()
 
-    def submit_event(self, buffer_name: str, generate_payload: Callable[[], Any]):
+    def submit_event(
+        self, buffer_name: str, generate_payload: Callable[[], Any]
+    ) -> bool:
         self._ensure_thread()
         try:
             self._queue.put_nowait((buffer_name, generate_payload))
             return True
         except Full:
             logger.warning("[Observability] Queue full, event dropped")
-            return False
+        return False
 
     def _timed_queue_join(self, timeout: float) -> bool:
         deadline = monotonic() + timeout
