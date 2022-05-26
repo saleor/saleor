@@ -6,11 +6,10 @@ from threading import Lock, Thread
 from time import monotonic
 from typing import Any, Callable, Optional
 
-import opentracing
-import opentracing.tags
 from django.conf import settings
 
 from .buffers import get_buffer
+from .tracing import opentracing_trace
 
 _worker: Optional["BackgroundWorker"] = None
 _TERMINATOR = object()
@@ -53,12 +52,9 @@ class BackgroundWorker:
 
     def _target(self):
         logger.info("[Observability] Background worker started")
-        tracer = opentracing.global_tracer()
         working = True
         while working:
-            with tracer.start_active_span("observability.background_worker") as scope:
-                scope.span.set_tag(opentracing.tags.COMPONENT, "background_worker")
-                scope.span.set_tag("service.name", "observability")
+            with opentracing_trace("background_worker", "background_worker"):
                 events, events_count, deadline = {}, 0, monotonic() + self._timeout
                 while (
                     events_count < self._batch_size
@@ -82,11 +78,7 @@ class BackgroundWorker:
                     finally:
                         self._queue.task_done()
                 if events_count:
-                    with tracer.start_active_span(
-                        "observability.put_to_buffer"
-                    ) as scope:
-                        scope.span.set_tag(opentracing.tags.COMPONENT, "buffer")
-                        scope.span.set_tag("service.name", "observability")
+                    with opentracing_trace("put_events", "buffer"):
                         try:
                             get_buffer("").put_multi_key_events(events)
                         except Exception:
