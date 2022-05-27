@@ -584,11 +584,22 @@ class FulfillmentBase(AbstractType):
         "saleor.graphql.order.types.Fulfillment",
         description="Look up a Fulfillment." + ADDED_IN_32 + PREVIEW_FEATURE,
     )
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order",
+        description="Order connected with looked up fulfillment."
+        + ADDED_IN_34
+        + PREVIEW_FEATURE,
+    )
 
     @staticmethod
     def resolve_fulfillment(root, _info):
-        _, invoice = root
-        return invoice
+        _, fulfillment = root
+        return fulfillment
+
+    @staticmethod
+    def resolve_order(root, info):
+        _, fulfillment = root
+        return fulfillment.order
 
 
 class FulfillmentCreated(ObjectType, FulfillmentBase):

@@ -22,23 +22,12 @@ if TYPE_CHECKING:
     from ..order.models import OrderLine
 
 
-def calculate_base_line_unit_price(
+def _calculate_base_line_unit_price(
     line_info: CheckoutLineInfo,
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> CheckoutPricesData:
-    """Calculate line unit prices including discounts and vouchers.
-
-    Returns a three money values. Undiscounted price, price and price with voucher.
-    Voucher is added to 'price_with_discounts' when line's product matches to products
-    applicable for voucher.
-    For voucher with 'apply once per order', the price will be reduced in calculation
-    of total price.
-    'price' includes discount from sale if any valid exists.
-    'price_with_discounts' includes voucher discount and sale discount if any valid
-    exists.
-    'undiscounted_price' is a price without any sale and voucher.
-    """
+    """Calculate base line unit price without voucher applied once per order."""
     variant = line_info.variant
     variant_price = variant.get_price(
         line_info.product,
@@ -81,6 +70,40 @@ def calculate_base_line_unit_price(
     )
 
 
+def calculate_base_line_unit_price(
+    line_info: CheckoutLineInfo,
+    channel: "Channel",
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> CheckoutPricesData:
+    """Calculate line unit prices including discounts and vouchers.
+
+    Returns a three money values. Undiscounted price, price and price with voucher.
+    Voucher is added to 'price_with_discounts' when line's product matches to products
+    applicable for voucher.
+    For voucher with 'apply once per order', the price will be included in unit price.
+    'price' includes discount from sale if any valid exists.
+    'price_with_discounts' includes voucher discount and sale discount if any valid
+    exists.
+    'undiscounted_price' is a price without any sale and voucher.
+    """
+    prices_data = calculate_base_line_total_price(
+        line_info=line_info, channel=channel, discounts=discounts
+    )
+    quantity = line_info.line.quantity
+    currency = prices_data.price_with_discounts.currency
+    return CheckoutPricesData(
+        undiscounted_price=quantize_price(
+            prices_data.undiscounted_price / quantity, currency
+        ),
+        price_with_sale=quantize_price(
+            prices_data.price_with_sale / quantity, currency
+        ),
+        price_with_discounts=quantize_price(
+            prices_data.price_with_discounts / quantity, currency
+        ),
+    )
+
+
 def calculate_base_line_total_price(
     line_info: CheckoutLineInfo,
     channel: "Channel",
@@ -96,7 +119,7 @@ def calculate_base_line_total_price(
     exists.
     'undiscounted_price' is a price without any sale and voucher.
     """
-    prices_data = calculate_base_line_unit_price(
+    prices_data = _calculate_base_line_unit_price(
         line_info=line_info, channel=channel, discounts=discounts
     )
     if line_info.voucher and line_info.voucher.apply_once_per_order:
@@ -108,7 +131,7 @@ def calculate_base_line_total_price(
             zero_money(prices_data.price_with_sale.currency),
         )
         # we add -1 as we handle a case when voucher is applied only to single line
-        # of the cheapest line
+        # of the cheapest item
         quantity_without_voucher = line_info.line.quantity - 1
         prices_data = CheckoutPricesData(
             price_with_discounts=(
