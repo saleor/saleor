@@ -706,6 +706,9 @@ FULFILLMENT_CREATED = (
           fulfillment{
             ...FulfillmentDetails
           }
+          order{
+            id
+          }
         }
       }
     }
@@ -720,6 +723,9 @@ FULFILLMENT_CANCELED = (
         ...on FulfillmentCanceled{
           fulfillment{
             ...FulfillmentDetails
+          }
+          order{
+            id
           }
         }
       }

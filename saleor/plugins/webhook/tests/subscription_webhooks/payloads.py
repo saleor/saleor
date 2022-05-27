@@ -64,7 +64,10 @@ def generate_fulfillment_payload(fulfillment):
             "trackingNumber": fulfillment.tracking_number,
             "status": fulfillment.status.upper(),
             "lines": generate_fulfillment_lines_payload(fulfillment),
-        }
+        },
+        "order": {
+            "id": graphene.Node.to_global_id("Order", fulfillment.order.pk),
+        },
     }
 
 
