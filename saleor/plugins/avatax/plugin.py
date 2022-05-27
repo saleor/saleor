@@ -248,6 +248,7 @@ class AvataxPlugin(BasePlugin):
     def _calculate_checkout_shipping(
         self, currency: str, lines: List[Dict], shipping_price: TaxedMoney
     ) -> TaxedMoney:
+        discount_amount = Decimal(0.0)
         shipping_tax = Decimal(0.0)
         shipping_net = shipping_price.net.amount
         for line in lines:
