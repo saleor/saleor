@@ -810,8 +810,8 @@ class TransactionCreate(BaseMutation):
             return
         add_to_order_total_authorized_and_total_charged(
             order_id=order_id,
-            authorized_amount_to_add=transaction_data.get("authorized_value", 0),
-            charged_amount_to_add=transaction_data.get("charged_value", 0),
+            authorized_amount_to_add=authorized_amount,
+            charged_amount_to_add=charged_amount,
         )
 
     @classmethod
