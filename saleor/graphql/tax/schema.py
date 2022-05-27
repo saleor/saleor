@@ -7,7 +7,6 @@ from ..core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from .filters import TaxConfigurationFilterInput
-from .sorters import TaxConfigurationSortingInput
 from .types import TaxConfiguration, TaxConfigurationCountableConnection
 
 
@@ -23,7 +22,6 @@ class TaxQueries(graphene.ObjectType):
     tax_configurations = FilterConnectionField(
         TaxConfigurationCountableConnection,
         description="List of tax configurations." + ADDED_IN_35 + PREVIEW_FEATURE,
-        sort_by=TaxConfigurationSortingInput(description="Sort tax configurations."),
         filter=TaxConfigurationFilterInput(
             description="Filtering options for tax configurations."
         ),

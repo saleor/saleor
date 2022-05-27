@@ -119,9 +119,6 @@ type Query {
   Requires one of the following permissions: MANAGE_TAXES.
   """
   taxConfigurations(
-    """Sort tax configurations."""
-    sortBy: TaxConfigurationSortingInput
-
     """Filtering options for tax configurations."""
     filter: TaxConfigurationFilterInput
 
@@ -6863,19 +6860,6 @@ type TaxConfigurationCountableEdge {
 
   """A cursor for use in pagination."""
   cursor: String!
-}
-
-input TaxConfigurationSortingInput {
-  """Specifies the direction in which to sort products."""
-  direction: OrderDirection!
-
-  """Sort tax configurations by the selected field."""
-  field: TaxConfigurationSortField!
-}
-
-enum TaxConfigurationSortField {
-  """Sort tax configurations by channel."""
-  CHANNEL
 }
 
 input TaxConfigurationFilterInput {
