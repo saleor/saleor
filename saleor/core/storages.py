@@ -22,6 +22,6 @@ class AzureMediaStorage(AzureStorage):
     def __init__(self, *args, **kwargs):
         self.account_name = settings.AZURE_ACCOUNT_NAME
         self.account_key = settings.AZURE_ACCOUNT_KEY
-        self.azure_container = settings.AZURE_MEDIA_CONTAINER
+        self.azure_container = settings.AZURE_CONTAINER
         self.expiration_secs = None
         super().__init__(*args, **kwargs)
