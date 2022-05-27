@@ -2889,7 +2889,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "226b9f3b19585b863583affd40bfb72fa5d650382ee348c7f2f5e039df64bfa4"
+content-hash = "20c43c34704e5a500dad5f8e4fe2cfb0e4edbdd93760c4248974f1ce68d29ee7"
 
 [metadata.files]
 adyen = [
