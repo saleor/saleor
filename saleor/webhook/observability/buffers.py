@@ -39,7 +39,7 @@ class BaseBuffer:
             pickle.dumps(value, self._pickle_version), self._compressor_preset
         )
 
-    def put_event(self, event: Any):
+    def put_event(self, event: Any) -> int:
         raise NotImplementedError(
             "subclasses of BaseBuffer must provide a put_event() method"
         )
@@ -117,22 +117,23 @@ class RedisBuffer(BaseBuffer):
 
     def _put_events(
         self, key: KEY_TYPE, events: List[Any], client: Optional[Redis] = None
-    ):
+    ) -> int:
         start_index = -self.max_size
         events_data = [self.encode(event) for event in events[start_index:]]
         if client is None:
             client = self.client
         client.lpush(key, *events_data)
         client.ltrim(key, 0, max(0, self.max_size - 1))
+        return max(0, len(events) - self.max_size)
 
     def put_events(self, events: List[Any]) -> int:
         with self.client.pipeline(transaction=False) as pipe:
-            self._put_events(self.key, events, client=pipe)
+            dropped = self._put_events(self.key, events, client=pipe)
             result = pipe.execute()
-        return max(0, result[0] - self.max_size)
+        return dropped + max(0, result[0] - self.max_size)
 
-    def put_event(self, event: Any):
-        self.put_events([event])
+    def put_event(self, event: Any) -> int:
+        return self.put_events([event])
 
     def put_multi_key_events(
         self, events_dict: Dict[KEY_TYPE, List[Any]]
@@ -143,11 +144,11 @@ class RedisBuffer(BaseBuffer):
             return trimmed
         with self.client.pipeline(transaction=False) as pipe:
             for key in keys:
-                self._put_events(key, events_dict[key], client=pipe)
+                trimmed[key] = self._put_events(key, events_dict[key], client=pipe)
             result = pipe.execute()
         for key in keys:
             buffer_len, _ = result.pop(0), result.pop(0)
-            trimmed[key] = max(0, buffer_len - self.max_size)
+            trimmed[key] += max(0, buffer_len - self.max_size)
         return trimmed
 
     def _pop_events(self, key: KEY_TYPE, batch_size: int) -> Tuple[List[Any], int]:

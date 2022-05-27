@@ -93,7 +93,8 @@ def put_event(generate_payload: Callable[[], Any]):
     try:
         payload = generate_payload()
         with opentracing_trace("put_event", "buffer"):
-            get_buffer(get_buffer_name()).put_event(payload)
+            if get_buffer(get_buffer_name()).put_event(payload):
+                logger.warning("[Observability] Buffer full, event dropped")
     except Exception:
         logger.error("[Observability] Event dropped", exc_info=True)
 

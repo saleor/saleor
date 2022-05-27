@@ -31,10 +31,11 @@ def test_in_batches(buffer):
     assert buffer.in_batches(BATCH_SIZE + BATCH_SIZE // 2) == 2
 
 
-def test_buffer_put_events(buffer):
+def test_put_event(buffer):
     event = {"event": "data"}
-    buffer.put_event(event)
+    dropped = buffer.put_event(event)
     assert buffer.size() == 1
+    assert dropped == 0
 
 
 def test_buffer_put_events_max_size(buffer):
@@ -46,13 +47,23 @@ def test_buffer_put_events_max_size(buffer):
 
 def test_put_events(buffer):
     events = [{"event": "data"}] * 2
-    buffer.put_events(events)
+    dropped = buffer.put_events(events)
     assert buffer.size() == 2
+    assert dropped == 0
 
 
 def test_put_events_max_size(buffer):
     events = [{"event": "data"}] * MAX_SIZE * 2
+    dropped = buffer.put_events(events)
+    assert buffer.size() == MAX_SIZE
+    assert dropped == MAX_SIZE
+
+
+def test_buffer_drops_events_when_put_events(buffer):
+    events = [{"event": "data"}] * MAX_SIZE
     buffer.put_events(events)
+    dropped = buffer.put_events(events)
+    assert dropped == MAX_SIZE
     assert buffer.size() == MAX_SIZE
 
 
@@ -65,10 +76,13 @@ def test_put_multi_key_events(patch_redis):
         get_buffer(key_b),
         get_buffer(key_c),
     )
-    buffer_a.put_multi_key_events({key_a: events_a, key_b: events_b, key_c: events_c})
+    dropped = buffer_a.put_multi_key_events(
+        {key_a: events_a, key_b: events_b, key_c: events_c}
+    )
     assert buffer_a.size() == 2
     assert buffer_b.size() == MAX_SIZE
     assert buffer_c.size() == MAX_SIZE
+    assert dropped == {key_a: 0, key_b: 0, key_c: MAX_SIZE}
 
 
 def test_pop_event(buffer):
