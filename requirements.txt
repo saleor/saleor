@@ -6,6 +6,9 @@ asgiref==3.5.2; python_version >= "3.7"
 async-timeout==4.0.2; python_version >= "3.7"
 authlib==1.0.1
 authorizenet==1.1.4
+azure-common==1.1.28
+azure-storage-blob==12.12.0
+azure-storage-common==2.1.0
 babel==2.10.1; python_version >= "3.6"
 beautifulsoup4==4.7.1
 billiard==3.6.4.0; python_version >= "3.7"
