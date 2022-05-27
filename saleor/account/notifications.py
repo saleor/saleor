@@ -12,7 +12,7 @@ from .models import User
 
 
 def get_default_user_payload(user: User):
-    return {
+    payload = {
         "id": to_global_id_or_none(user),
         "email": user.email,
         "first_name": user.first_name,
@@ -23,6 +23,10 @@ def get_default_user_payload(user: User):
         "metadata": user.metadata,
         "language_code": user.language_code,
     }
+    # Deprecated: override private_metadata with empty dict as it shouldn't be returned
+    # in the payload (see SALEOR-7046). Should be removed in Saleor 4.0.
+    payload["private_metadata"] = {}
+    return payload
 
 
 def get_user_custom_payload(user: User):

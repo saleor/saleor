@@ -484,7 +484,7 @@ def _create_order(
         voucher = order_data.get("voucher")
         # When we have a voucher for specific products we track it directly in the
         # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
-        # as we apply it only for single quantity of the cheapest line.
+        # as we apply it only for single quantity of the cheapest item.
         if not voucher or (
             voucher.type != VoucherType.SPECIFIC_PRODUCT
             and not voucher.apply_once_per_order
@@ -907,7 +907,7 @@ def _handle_checkout_discount(
 
         # When we have a voucher for specific products we track it directly in the
         # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
-        # as we apply it only for single quantity of the cheapest line.
+        # as we apply it only for single quantity of the cheapest item.
         if not voucher or (
             voucher.type != VoucherType.SPECIFIC_PRODUCT
             and not voucher.apply_once_per_order

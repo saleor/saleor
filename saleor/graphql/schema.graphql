@@ -7691,8 +7691,17 @@ type CheckoutLine implements Node {
   variant: ProductVariant!
   quantity: Int!
 
+  """The unit price of the checkout line, with taxes and discounts."""
+  unitPrice: TaxedMoney!
+
+  """The unit price of the checkout line, without discounts."""
+  undiscountedUnitPrice: Money!
+
   """The sum of the checkout line price, taxes and discounts."""
   totalPrice: TaxedMoney!
+
+  """The sum of the checkout line price, without discounts."""
+  undiscountedTotalPrice: Money!
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
@@ -21507,6 +21516,15 @@ type FulfillmentCreated implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   fulfillment: Fulfillment
+
+  """
+  Order connected with looked up fulfillment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 type FulfillmentCanceled implements Event {
@@ -21530,6 +21548,15 @@ type FulfillmentCanceled implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   fulfillment: Fulfillment
+
+  """
+  Order connected with looked up fulfillment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 type CustomerCreated implements Event {
