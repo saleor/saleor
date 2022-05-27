@@ -1792,6 +1792,10 @@ def permission_manage_observability():
     return Permission.objects.get(codename="manage_observability")
 
 
+def permission_manage_taxes():
+    return Permission.objects.get(codename="manage_taxes")
+
+
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(

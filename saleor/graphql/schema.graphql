@@ -6838,11 +6838,36 @@ type TaxConfiguration implements Node {
   """Determines whether taxes are charged in the given channel."""
   chargeTaxes: Boolean!
 
-  """"""
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
   displayGrossPrices: Boolean!
 
-  """"""
+  """Determines whether prices are entered with the tax included."""
   pricesEnteredWithTax: Boolean!
+
+  """List of country-specific exceptions in tax configuration."""
+  countries: [TaxConfigurationPerCountry!]!
+}
+
+"""
+Country-specific exceptions of a channel's tax configuration.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxConfigurationPerCountry {
+  """Country in which this configuration applies."""
+  country: CountryDisplay!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
 }
 
 type TaxConfigurationCountableConnection {
