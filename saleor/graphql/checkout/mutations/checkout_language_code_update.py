@@ -25,7 +25,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} " "Use `id` instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
             ),
         )
         language_code = graphene.Argument(
