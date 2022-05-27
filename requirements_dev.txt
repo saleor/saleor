@@ -9,6 +9,9 @@ atomicwrites==1.4.0; python_version >= "3.7" and python_full_version < "3.0.0" a
 attrs==21.4.0; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_full_version >= "3.5.0" and python_version >= "3.7" and python_version < "4.0"
 authlib==1.0.1
 authorizenet==1.1.4
+azure-common==1.1.28
+azure-storage-blob==12.12.0
+azure-storage-common==2.1.0
 babel==2.10.1; python_version >= "3.6"
 beautifulsoup4==4.7.1
 beautifultable==0.7.0
