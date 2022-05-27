@@ -94,6 +94,7 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...tax.models import TaxClass, TaxConfiguration
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
@@ -988,6 +989,7 @@ def create_channel(channel_name, currency_code, slug=None, country=None):
             "default_country": country,
         },
     )
+    TaxConfiguration.objects.get_or_create(channel=channel)
     return f"Channel: {channel}"
 
 
@@ -1590,3 +1592,12 @@ def create_checkout_with_custom_prices():
         "Created checkout with two lines and custom prices. "
         f"Checkout token: {checkout.token}."
     )
+
+
+def create_tax_classes():
+    names = ["Groceries", "Books"]
+    tax_classes = []
+    for name in names:
+        tax_classes.append(TaxClass(name=name))
+    TaxClass.objects.bulk_create(tax_classes)
+    yield f"Created tax classes: {names}"
