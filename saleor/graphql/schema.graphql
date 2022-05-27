@@ -21516,6 +21516,15 @@ type FulfillmentCreated implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   fulfillment: Fulfillment
+
+  """
+  Order connected with looked up fulfillment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 type FulfillmentCanceled implements Event {
@@ -21539,6 +21548,15 @@ type FulfillmentCanceled implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   fulfillment: Fulfillment
+
+  """
+  Order connected with looked up fulfillment.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 type CustomerCreated implements Event {
