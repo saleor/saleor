@@ -56,10 +56,11 @@ def patch_redis(redis_server):
         ),
     ):
         yield redis_server
-        RedisBuffer._pools = {}
 
 
 @pytest.fixture
 def buffer(redis_server, patch_redis):
     buffer = RedisBuffer(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
     yield buffer
+    redis_server.connected = True
+    buffer.clear()

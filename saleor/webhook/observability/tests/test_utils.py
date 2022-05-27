@@ -233,17 +233,23 @@ def test_report_event_delivery_attempt_not_active(
     mock_put_event.assert_not_called()
 
 
-def test_put_event(buffer):
+@patch("saleor.webhook.observability.utils.get_buffer")
+def test_put_event(mock_get_buffer, buffer):
+    mock_get_buffer.return_value = buffer
     put_event(lambda: {"payload": "data"})
     assert buffer.size() == 1
 
 
-def test_put_event_catch_exceptions(buffer):
+@patch("saleor.webhook.observability.utils.get_buffer")
+def test_put_event_catch_exceptions(mock_get_buffer, buffer):
+    mock_get_buffer.return_value = buffer
     put_event(lambda: 1 / 0)
     assert buffer.size() == 0
 
 
-def test_pop_events_with_remaining_size(buffer):
+@patch("saleor.webhook.observability.utils.get_buffer")
+def test_pop_events_with_remaining_size(mock_get_buffer, buffer):
+    mock_get_buffer.return_value = buffer
     payload = "payload-{}"
     buffer.put_events([payload.format(i) for i in range(BATCH_SIZE + BATCH_SIZE // 2)])
 
@@ -253,7 +259,11 @@ def test_pop_events_with_remaining_size(buffer):
     assert batch_count == 1
 
 
-def test_pop_events_with_remaining_size_catch_exceptions(redis_server, buffer):
+@patch("saleor.webhook.observability.utils.get_buffer")
+def test_pop_events_with_remaining_size_catch_exceptions(
+    mock_get_buffer, redis_server, buffer
+):
+    mock_get_buffer.return_value = buffer
     redis_server.connected = False
 
     assert pop_events_with_remaining_size() == ([], 0)
