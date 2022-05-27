@@ -2849,17 +2849,23 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     assert all([line for line in lines_data if line["taxIncluded"] is True])
 
 
-def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
+def test_get_order_request_data_for_line_with_already_included_taxes_in_price(
     order_with_lines, shipping_zone, site_settings, address_usa
 ):
+    """Ensure that when line already has calculated taxes, the `taxIncluded` flag
+    is set based on site settings, and we are sending the base price of line."""
+    # given
+    include_taxes_in_prices = False
     site_settings.company_address = address_usa
-    site_settings.include_taxes_in_prices = False
+    site_settings.include_taxes_in_prices = include_taxes_in_prices
     site_settings.save()
 
     method = shipping_zone.shipping_methods.get()
-    line = order_with_lines.lines.first()
-    line.unit_price_gross_amount = line.unit_price_net_amount
-    line.save()
+    line_1, line_2 = order_with_lines.lines.all()
+    line_1.unit_price_gross_amount = line_1.unit_price_net_amount
+    line_1.save()
+
+    assert line_2.unit_price_gross_amount != line_2.unit_price_net_amount
 
     order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
     order_with_lines.shipping_method_name = method.name
@@ -2877,16 +2883,24 @@ def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
         from_country="PL",
     )
 
+    # when
     request_data = get_order_request_data(order_with_lines, config)
+
+    # then
     lines_data = request_data["createTransactionModel"]["lines"]
-    line_without_taxes = [line for line in lines_data if line["taxIncluded"] is False]
-    # if order line has different .net and .gross we already added tax to it
-    lines_with_taxes = [line for line in lines_data if line["taxIncluded"] is True]
+    lines_1_data = lines_data[0]
+    assert lines_1_data["itemCode"] == line_1.product_sku
+    assert lines_1_data["amount"] == str(
+        line_1.base_unit_price.amount * line_1.quantity
+    )
+    assert lines_1_data["taxIncluded"] == include_taxes_in_prices
 
-    assert len(line_without_taxes) == 2
-    assert len(lines_with_taxes) == 1
-
-    assert line_without_taxes[0]["itemCode"] == line.product_sku
+    lines_2_data = lines_data[1]
+    assert lines_2_data["itemCode"] == line_2.product_sku
+    assert lines_2_data["amount"] == str(
+        line_2.base_unit_price.amount * line_2.quantity
+    )
+    assert lines_2_data["taxIncluded"] == include_taxes_in_prices
 
 
 def test_get_order_request_data_confirmed_order_with_voucher(

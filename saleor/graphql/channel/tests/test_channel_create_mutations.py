@@ -3,10 +3,12 @@ from unittest import mock
 import graphene
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
+from freezegun import freeze_time
 
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_CREATE_MUTATION = """
@@ -273,6 +275,7 @@ def test_channel_create_mutation_with_shipping_zones(
         shipping_zone.channels.get(slug=slug)
 
 
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_channel_create_mutation_trigger_webhook(
@@ -315,7 +318,15 @@ def test_channel_create_mutation_trigger_webhook(
     assert not data["errors"]
 
     mocked_webhook_trigger.assert_called_once_with(
-        {"id": graphene.Node.to_global_id("Channel", channel.id)},
+        {
+            "id": graphene.Node.to_global_id("Channel", channel.id),
+            "is_active": channel.is_active,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
         WebhookEventAsyncType.CHANNEL_CREATED,
         [any_webhook],
         channel,

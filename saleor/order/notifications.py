@@ -262,6 +262,9 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             **get_discounts_payload(order),
         }
     )
+    # Deprecated: override private_metadata with empty dict as it shouldn't be returned
+    # in the payload (see SALEOR-7046). Should be removed in Saleor 4.0.
+    order_payload["private_metadata"] = {}
     return order_payload
 
 

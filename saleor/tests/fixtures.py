@@ -40,7 +40,7 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
-from ..checkout.utils import add_variant_to_checkout
+from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
@@ -310,6 +310,32 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_specific_products(
+    checkout_with_item, voucher_specific_product_type
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher_specific_product_type
+    )
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
+    voucher.apply_once_per_order = True
+    voucher.save()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
 
 
 @pytest.fixture
@@ -675,6 +701,8 @@ def customer_user(address):  # pylint: disable=W0613
         default_shipping_address=default_address,
         first_name="Leslie",
         last_name="Wade",
+        metadata={"key": "value"},
+        private_metadata={"secret_key": "secret_value"},
     )
     user.addresses.add(default_address)
     user._password = "password"
@@ -781,6 +809,8 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        metadata={"key": "value"},
+        private_metadata={"secret_key": "secret_value"},
     )
     return order
 
@@ -3058,7 +3088,8 @@ def voucher_percentage(channel_USD):
 
 
 @pytest.fixture
-def voucher_specific_product_type(voucher_percentage):
+def voucher_specific_product_type(voucher_percentage, product):
+    voucher_percentage.products.add(product)
     voucher_percentage.type = VoucherType.SPECIFIC_PRODUCT
     voucher_percentage.save()
     return voucher_percentage
@@ -5139,7 +5170,7 @@ def webhook_app(
     permission_manage_menus,
     permission_manage_products,
 ):
-    app = App.objects.create(name="Sample app objects", is_active=True)
+    app = App.objects.create(name="Webhook app", is_active=True)
     app.permissions.add(permission_manage_shipping)
     app.permissions.add(permission_manage_gift_card)
     app.permissions.add(permission_manage_discounts)

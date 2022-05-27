@@ -35,6 +35,7 @@ from .interface import (
     PaymentMethodInfo,
     RefundData,
     StorePaymentMethodEnum,
+    TransactionData,
 )
 from .models import Payment, Transaction
 
@@ -139,6 +140,22 @@ def create_order_payment_lines_information(order: Order) -> PaymentLinesData:
     )
 
 
+def generate_transactions_data(payment: Payment) -> List[TransactionData]:
+    return [
+        TransactionData(
+            token=t.token,
+            is_success=t.is_success,
+            kind=t.kind,
+            gateway_response=t.gateway_response,
+            amount={
+                "amount": str(quantize_price(t.amount, t.currency)),
+                "currency": t.currency,
+            },
+        )
+        for t in payment.transactions.all()
+    ]
+
+
 def create_payment_information(
     payment: Payment,
     payment_token: str = None,
@@ -179,7 +196,9 @@ def create_payment_information(
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
-    order_id = payment.order.pk if payment.order else None
+    order = payment.order
+    order_id = order.pk if order else None
+    channel_slug = order.channel.slug if order and order.channel else None
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     graphql_customer_id = None
@@ -194,6 +213,7 @@ def create_payment_information(
         billing=billing_address,
         shipping=shipping_address,
         order_id=order_id,
+        order_channel_slug=channel_slug,
         payment_id=payment.pk,
         graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
@@ -210,6 +230,7 @@ def create_payment_information(
         payment_metadata=payment.metadata,
         psp_reference=payment.psp_reference,
         refund_data=refund_data,
+        transactions=generate_transactions_data(payment),
         _resolve_lines_data=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),

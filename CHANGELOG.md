@@ -2,7 +2,8 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# Unreleased
+## Unreleased
+
 - Migrate order line id from int to UUID - #9637 by @IKarbowiak
   - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
   for old order lines.
@@ -18,6 +19,17 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add filters to `Order`:
     - `authorizeStatus`
     - `chargeStatus`
+- Fix sorting by publication date with pagination - #9741 by IKarbowiak
+- Migrate order discount id from int to UUID - #9729 by @IKarbowiak
+  - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
+  for old order discounts.
+- Add `unitPrice`, `undiscountedUnitPrice`, `undiscountedTotalPrice` fields to `CheckoutLine` type - #9821 by @fowczarek
+
+
+## Breaking
+
+- Hide private metadata in notification payloads - #9849 by @maarcingebala
+  - From now on, the `private_metadata` field in `NOTIFY_USER` webhook payload is deprecated and it will return an empty dictionary. This change also affects `AdminEmailPlugin`, `UserEmailPlugin`, an d `SendgridEmailPlugin`.
 
 ### Other changes
 - Fix for sending incorrect prices to Avatax - #9633 by @korycins
