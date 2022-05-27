@@ -655,6 +655,29 @@ def test_order_query_charge_status(
     assert order_data["chargeStatus"] == expected_status
 
 
+def test_order_query_payment_status_with_total_fulfillment_refund_equal_to_order_total(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    fulfilled_order.fulfillments.create(
+        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_REFUNDED.name
+
+
 def test_order_query_with_transactions_details(
     staff_api_client,
     permission_manage_orders,

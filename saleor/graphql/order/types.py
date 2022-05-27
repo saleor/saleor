@@ -1222,7 +1222,18 @@ class Order(ModelObjectType):
     @traced_resolver
     def resolve_payment_status(root: models.Order, info):
         def _resolve_payment_status(data):
-            transactions, payments = data
+            transactions, payments, fulfillments = data
+
+            total_fulfillment_refund = sum(
+                [
+                    fulfillment.total_refund_amount
+                    for fulfillment in fulfillments
+                    if fulfillment.total_refund_amount
+                ]
+            )
+            if total_fulfillment_refund == root.total.gross.amount:
+                return ChargeStatus.FULLY_REFUNDED
+
             if transactions:
                 return get_payment_status_for_order(root)
             last_payment = get_last_payment(payments)
@@ -1232,7 +1243,10 @@ class Order(ModelObjectType):
 
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
         payments = PaymentsByOrderIdLoader(info.context).load(root.id)
-        return Promise.all([transactions, payments]).then(_resolve_payment_status)
+        fulfillments = FulfillmentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments, fulfillments]).then(
+            _resolve_payment_status
+        )
 
     @staticmethod
     def resolve_authorize_status(root: models.Order, info):
