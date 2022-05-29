@@ -187,7 +187,7 @@ class RedisBuffer(BaseBuffer):
         return self.client.llen(self.key)
 
 
-def buffer_factory(key: KEY_TYPE) -> BaseBuffer:
+def get_buffer(key: KEY_TYPE) -> BaseBuffer:
     if not settings.OBSERVABILITY_BROKER_URL:
         raise ConnectionNotConfigured("The observability broker url not set")
     broker_url = settings.OBSERVABILITY_BROKER_URL
@@ -197,11 +197,3 @@ def buffer_factory(key: KEY_TYPE) -> BaseBuffer:
     return RedisBuffer(
         broker_url, key, max_size, batch_size, connection_timeout=connection_timeout
     )
-
-
-def get_buffer(key: KEY_TYPE) -> BaseBuffer:
-    if buffer := getattr(_local, key, None):
-        return buffer
-    buffer = buffer_factory(key)
-    setattr(_local, key, buffer)
-    return buffer

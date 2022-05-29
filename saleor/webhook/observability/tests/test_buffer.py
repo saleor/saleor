@@ -1,30 +1,21 @@
 import pytest
 
-from ..buffers import RedisBuffer, buffer_factory, get_buffer
+from ..buffers import RedisBuffer, get_buffer
 from ..exceptions import ConnectionNotConfigured
 from ..tests.conftest import BATCH_SIZE, KEY, MAX_SIZE
 
 
-def test_buffer_factory(redis_server, settings):
-    buffer = buffer_factory(KEY)
+def test_get_buffer(redis_server, settings):
+    buffer = get_buffer(KEY)
     assert isinstance(buffer, RedisBuffer)
     assert buffer.max_size == settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
     assert buffer.batch_size == settings.OBSERVABILITY_BUFFER_BATCH_SIZE
 
 
-def test_get_buffer_when_no_configured(settings):
+def test_get_buffer_with_no_config(settings):
     settings.OBSERVABILITY_BROKER_URL = None
     with pytest.raises(ConnectionNotConfigured):
         get_buffer(KEY)
-
-
-def test_get_buffer(redis_server, settings):
-    buffer = get_buffer(KEY)
-    buffer_bis = get_buffer(KEY)
-    assert id(buffer) == id(buffer_bis)
-    assert buffer.broker_url == settings.OBSERVABILITY_BROKER_URL
-    assert buffer.max_size == settings.OBSERVABILITY_BUFFER_SIZE_LIMIT
-    assert buffer.batch_size == settings.OBSERVABILITY_BUFFER_BATCH_SIZE
 
 
 def test_in_batches(buffer):
