@@ -31,6 +31,49 @@ def clear_cache():
     cache.clear()
 
 
+@pytest.fixture
+def api_call(test_request):
+    api_call = ApiCall(request=test_request)
+    api_call.response = HttpResponse({"response": "data"})
+    return api_call
+
+
+@pytest.fixture
+def patch_get_buffer(buffer):
+    with patch(
+        "saleor.webhook.observability.utils.get_buffer", return_value=buffer
+    ) as get_buffer:
+        yield get_buffer
+
+
+@pytest.fixture
+def patch_get_webhooks(observability_webhook_data):
+    with patch(
+        "saleor.webhook.observability.utils.get_webhooks",
+        return_value=observability_webhook_data,
+    ) as get_webhooks:
+        yield get_webhooks
+
+
+@pytest.fixture
+def test_request(rf):
+    return rf.post("/graphql", data={"request": "data"})
+
+
+@pytest.fixture
+def observability_enabled(settings):
+    settings.OBSERVABILITY_ACTIVE = True
+    settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
+    yield
+
+
+@pytest.fixture
+def observability_disabled(settings):
+    settings.OBSERVABILITY_ACTIVE = False
+    settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
+    yield
+
+
 @patch("saleor.webhook.observability.utils.cache.get")
 @patch("saleor.webhook.observability.utils.get_webhooks_for_event")
 def test_get_webhooks(
@@ -99,25 +142,6 @@ def test_task_next_retry_date(retry, next_retry_date):
     assert task_next_retry_date(retry) == next_retry_date
 
 
-@pytest.fixture
-def test_request(rf):
-    return rf.post("/graphql", data={"request": "data"})
-
-
-@pytest.fixture
-def observability_enabled(settings):
-    settings.OBSERVABILITY_ACTIVE = True
-    settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
-    yield
-
-
-@pytest.fixture
-def observability_disabled(settings):
-    settings.OBSERVABILITY_ACTIVE = False
-    settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
-    yield
-
-
 @patch("saleor.webhook.observability.utils.ApiCall.report")
 def test_report_api_call_scope(mocked_api_call_report, test_request):
     with report_api_call(test_request) as level_1:
@@ -144,25 +168,15 @@ def test_report_gql_operation_scope(test_request):
         assert api_call.gql_operations == [operation_a, operation_b]
 
 
-@pytest.fixture
-def api_call(test_request):
-    api_call = ApiCall(request=test_request)
-    api_call.response = HttpResponse({"response": "data"})
-    return api_call
-
-
 @patch("saleor.webhook.observability.utils.put_event")
-@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_report(
-    mock_get_webhooks,
     mock_put_event,
     observability_enabled,
+    patch_get_webhooks,
     app,
     api_call,
     test_request,
-    observability_webhook_data,
 ):
-    mock_get_webhooks.return_value = [observability_webhook_data]
     test_request.app = app
     api_call.report(), api_call.report()
 
@@ -170,86 +184,64 @@ def test_api_call_report(
 
 
 @patch("saleor.webhook.observability.utils.put_event")
-@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_response_report_when_observability_not_active(
-    mock_get_webhooks,
     mock_put_event,
     observability_disabled,
+    patch_get_webhooks,
     api_call,
-    observability_webhook_data,
 ):
-    mock_get_webhooks.return_value = [observability_webhook_data]
     api_call.report()
 
-    mock_get_webhooks.assert_not_called()
+    patch_get_webhooks.assert_not_called()
     mock_put_event.assert_not_called()
 
 
 @patch("saleor.webhook.observability.utils.put_event")
-@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_api_call_response_report_when_request_not_from_app(
-    mock_get_webhooks,
     mock_put_event,
     observability_enabled,
+    patch_get_webhooks,
     api_call,
-    observability_webhook_data,
 ):
-    mock_get_webhooks.return_value = [observability_webhook_data]
     api_call.report()
 
-    mock_get_webhooks.assert_not_called()
+    patch_get_webhooks.assert_not_called()
     mock_put_event.assert_not_called()
 
 
 @patch("saleor.webhook.observability.utils.put_event")
-@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_report_event_delivery_attempt(
-    mock_get_webhooks,
     mock_put_event,
     observability_enabled,
+    patch_get_webhooks,
     event_attempt,
-    observability_webhook_data,
 ):
-    mock_get_webhooks.return_value = [observability_webhook_data]
-
     report_event_delivery_attempt(event_attempt)
-
     mock_put_event.assert_called_once()
 
 
 @patch("saleor.webhook.observability.utils.put_event")
-@patch("saleor.webhook.observability.utils.get_webhooks")
 def test_report_event_delivery_attempt_not_active(
-    mock_get_webhooks,
     mock_put_event,
     observability_disabled,
+    patch_get_webhooks,
     event_attempt,
-    observability_webhook_data,
 ):
-    mock_get_webhooks.return_value = [observability_webhook_data]
-
     report_event_delivery_attempt(event_attempt)
-
     mock_put_event.assert_not_called()
 
 
-@patch("saleor.webhook.observability.utils.get_buffer")
-def test_put_event(mock_get_buffer, buffer):
-    mock_get_buffer.return_value = buffer
+def test_put_event(patch_get_buffer, buffer):
     put_event(lambda: {"payload": "data"})
     assert buffer.size() == 1
 
 
-@patch("saleor.webhook.observability.utils.get_buffer")
-def test_put_event_catch_exceptions(mock_get_buffer, buffer):
-    mock_get_buffer.return_value = buffer
+def test_put_event_catch_exceptions(patch_get_buffer, buffer):
     put_event(lambda: 1 / 0)
     assert buffer.size() == 0
 
 
-@patch("saleor.webhook.observability.utils.get_buffer")
-def test_pop_events_with_remaining_size(mock_get_buffer, buffer):
-    mock_get_buffer.return_value = buffer
+def test_pop_events_with_remaining_size(patch_get_buffer, buffer):
     payload = "payload-{}"
     buffer.put_events([payload.format(i) for i in range(BATCH_SIZE + BATCH_SIZE // 2)])
 
@@ -259,11 +251,8 @@ def test_pop_events_with_remaining_size(mock_get_buffer, buffer):
     assert batch_count == 1
 
 
-@patch("saleor.webhook.observability.utils.get_buffer")
 def test_pop_events_with_remaining_size_catch_exceptions(
-    mock_get_buffer, redis_server, buffer
+    redis_server, patch_get_buffer
 ):
-    mock_get_buffer.return_value = buffer
     redis_server.connected = False
-
     assert pop_events_with_remaining_size() == ([], 0)
