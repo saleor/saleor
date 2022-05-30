@@ -44,7 +44,14 @@ def put_event(buffer_name: str, generate_payload: Callable[[], Any]) -> bool:
 
 
 def buffer_put_multi_key_events(events: Dict[str, List]):
-    return get_buffer("").put_multi_key_events(events)
+    dropped_events = get_buffer("").put_multi_key_events(events)
+    for buffer_name, events_count in dropped_events.items():
+        if events_count:
+            logging.warning(
+                "[Observability] Buffer %s full, %s event(s) dropped",
+                buffer_name,
+                events_count,
+            )
 
 
 class BackgroundWorker:
@@ -57,7 +64,7 @@ class BackgroundWorker:
         self._timeout = timeout
 
     def _target(self):
-        logger.info("[Observability] Background worker started")
+        logger.debug("[Observability] Background worker started")
         working = True
         while working:
             with opentracing_trace("background_worker", "background_worker"):
