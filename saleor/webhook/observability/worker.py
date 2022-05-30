@@ -43,15 +43,18 @@ def put_event(buffer_name: str, generate_payload: Callable[[], Any]) -> bool:
     return False
 
 
-def buffer_put_multi_key_events(events: Dict[str, List]):
+def buffer_put_multi_key_events(events: Dict[str, List]) -> bool:
     dropped_events = get_buffer("").put_multi_key_events(events)
+    all_events_delivered = True
     for buffer_name, events_count in dropped_events.items():
         if events_count:
+            all_events_delivered = False
             logging.warning(
                 "[Observability] Buffer %s full, %s event(s) dropped",
                 buffer_name,
                 events_count,
             )
+    return all_events_delivered
 
 
 class BackgroundWorker:
@@ -114,9 +117,7 @@ class BackgroundWorker:
 
     @property
     def is_alive(self) -> bool:
-        if self._thread_for_pid != os.getpid():
-            return False
-        if not self._thread:
+        if self._thread_for_pid != os.getpid() or not self._thread:
             return False
         return self._thread.is_alive()
 
@@ -163,7 +164,7 @@ class BackgroundWorker:
             try:
                 self._queue.put_nowait(_TERMINATOR)
             except Full:
-                logger.debug("[Observability] Worker queue full, flush failed")
+                logger.warning("[Observability] Worker queue full, flush failed")
             if self.is_alive and timeout > 0.0:
                 self._wait_flush(timeout)
             self._thread = None
