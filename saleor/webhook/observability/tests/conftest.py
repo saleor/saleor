@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import fakeredis
 import pytest
+from django.core.cache import cache
 from graphql import get_default_backend
 from redis import ConnectionPool
 
@@ -12,7 +13,8 @@ from ..utils import GraphQLOperationResponse, get_buffer_name
 
 backend = get_default_backend()
 
-BROKER_URL = "redis://fake-redis"
+BROKER_URL_HOST = "fake-redis"
+BROKER_URL = f"redis://{BROKER_URL_HOST}"
 KEY, MAX_SIZE, BATCH_SIZE = get_buffer_name(), 10, 5
 
 
@@ -38,29 +40,35 @@ def gql_operation_factory():
 
 
 @pytest.fixture
+def clear_cache():
+    yield
+    cache.clear()
+
+
+@pytest.fixture
 def redis_server(settings):
     settings.OBSERVABILITY_BROKER_URL = BROKER_URL
     settings.OBSERVABILITY_BUFFER_SIZE_LIMIT = MAX_SIZE
     settings.OBSERVABILITY_BUFFER_BATCH_SIZE = BATCH_SIZE
     server = fakeredis.FakeServer()
     server.connected = True
-    yield server
+    return server
 
 
 @pytest.fixture
-def patch_redis(redis_server):
+def patch_connection_pool(redis_server):
+    t = "saleor.webhook.observability.buffers.RedisBuffer.get_or_create_connection_pool"
     with patch(
-        "saleor.webhook.observability.buffers.RedisBuffer.get_connection_pool",
-        lambda x: ConnectionPool(
-            connection_class=fakeredis.FakeConnection, server=redis_server
+        t,
+        return_value=ConnectionPool(
+            connection_class=fakeredis.FakeConnection,
+            server=redis_server,
         ),
     ):
         yield redis_server
 
 
 @pytest.fixture
-def buffer(redis_server, patch_redis):
+def buffer(patch_connection_pool):
     buffer = RedisBuffer(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
-    yield buffer
-    redis_server.connected = True
-    buffer.clear()
+    return buffer

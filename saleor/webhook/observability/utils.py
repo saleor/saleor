@@ -100,14 +100,14 @@ def put_event(generate_payload: Callable[[], Any]):
 
 
 def pop_events_with_remaining_size() -> Tuple[List[Any], int]:
-    try:
-        buffer = get_buffer(get_buffer_name())
-        with opentracing_trace("pop_events", "buffer"):
+    with opentracing_trace("pop_events", "buffer"):
+        try:
+            buffer = get_buffer(get_buffer_name())
             events, remaining = buffer.pop_events_get_size()
             batch_count = buffer.in_batches(remaining)
-    except Exception:
-        logger.error("[Observability] Could not pop events batch", exc_info=True)
-        events, batch_count = [], 0
+        except Exception:
+            logger.error("[Observability] Could not pop events batch", exc_info=True)
+            events, batch_count = [], 0
     return events, batch_count
 
 

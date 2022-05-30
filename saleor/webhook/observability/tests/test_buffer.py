@@ -2,7 +2,7 @@ import pytest
 
 from ..buffers import RedisBuffer, get_buffer
 from ..exceptions import ConnectionNotConfigured
-from ..tests.conftest import BATCH_SIZE, KEY, MAX_SIZE
+from ..tests.conftest import BATCH_SIZE, BROKER_URL_HOST, KEY, MAX_SIZE
 
 
 def test_get_buffer(redis_server, settings):
@@ -16,6 +16,23 @@ def test_get_buffer_with_no_config(settings):
     settings.OBSERVABILITY_BROKER_URL = None
     with pytest.raises(ConnectionNotConfigured):
         get_buffer(KEY)
+
+
+def test_get_connection_pool(buffer):
+    pool = buffer.get_connection_pool()
+    assert pool.connection_kwargs["host"] == BROKER_URL_HOST
+    assert pool.connection_kwargs["socket_timeout"] == buffer.connection_timeout
+    assert (
+        pool.connection_kwargs["socket_connect_timeout"]
+        == buffer._socket_connect_timeout
+    )
+    assert pool.connection_kwargs["client_name"] == buffer._client_name
+
+
+def test_get_or_create_connection_pool(buffer):
+    pool_a = buffer.get_or_create_connection_pool()
+    pool_b = buffer.get_or_create_connection_pool()
+    assert pool_a == pool_b
 
 
 def test_in_batches(buffer):
@@ -58,7 +75,7 @@ def test_buffer_drops_events_when_put_events(buffer):
     assert buffer.size() == MAX_SIZE
 
 
-def test_put_multi_key_events(patch_redis):
+def test_put_multi_key_events(patch_connection_pool):
     key_a, events_a = "buffer_a", [{"event": "data"}] * 2
     key_b, events_b = "buffer_b", [{"event": "data"}] * MAX_SIZE
     key_c, events_c = "buffer_c", [{"event": "data"}] * MAX_SIZE * 2

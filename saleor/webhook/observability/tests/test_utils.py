@@ -5,7 +5,6 @@ from unittest.mock import patch
 import pytest
 import pytz
 from celery.exceptions import Retry
-from django.core.cache import cache
 from django.http import HttpResponse
 from freezegun import freeze_time
 
@@ -23,12 +22,6 @@ from ..utils import (
     task_next_retry_date,
 )
 from .conftest import BATCH_SIZE
-
-
-@pytest.fixture
-def clear_cache():
-    yield
-    cache.clear()
 
 
 @pytest.fixture
@@ -64,14 +57,12 @@ def test_request(rf):
 def observability_enabled(settings):
     settings.OBSERVABILITY_ACTIVE = True
     settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
-    yield
 
 
 @pytest.fixture
 def observability_disabled(settings):
     settings.OBSERVABILITY_ACTIVE = False
     settings.OBSERVABILITY_REPORT_ALL_API_CALLS = False
-    yield
 
 
 @patch("saleor.webhook.observability.utils.cache.get")
@@ -252,7 +243,9 @@ def test_pop_events_with_remaining_size(patch_get_buffer, buffer):
 
 
 def test_pop_events_with_remaining_size_catch_exceptions(
-    redis_server, patch_get_buffer
+    redis_server, buffer, patch_get_buffer
 ):
+    payload = "payload-{}"
+    buffer.put_events([payload.format(i) for i in range(BATCH_SIZE)])
     redis_server.connected = False
     assert pop_events_with_remaining_size() == ([], 0)
