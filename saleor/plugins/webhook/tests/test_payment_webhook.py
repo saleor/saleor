@@ -81,8 +81,11 @@ def test_trigger_webhook_sync_no_webhook_available():
         trigger_webhook_sync(WebhookEventSyncType.PAYMENT_REFUND, {}, app)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
-def test_send_webhook_request_sync_failed_attempt(mock_post, app, event_delivery):
+def test_send_webhook_request_sync_failed_attempt(
+    mock_post, mock_observability, app, event_delivery
+):
     # given
     expected_data = {
         "content": '{"key": "response_text"}',
@@ -107,12 +110,14 @@ def test_send_webhook_request_sync_failed_attempt(mock_post, app, event_delivery
     assert attempt.response_headers == json.dumps(expected_data["headers"])
     assert attempt.response_status_code == expected_data["status_code"]
     assert response_data is None
+    mock_observability.assert_called_once_with(attempt)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 def test_send_webhook_request_sync_successful_attempt(
-    mock_clear_delivery, mock_post, app, event_delivery
+    mock_clear_delivery, mock_post, mock_observability, app, event_delivery
 ):
     # given
     expected_data = {
@@ -140,10 +145,14 @@ def test_send_webhook_request_sync_successful_attempt(
     assert attempt.response_headers == json.dumps(expected_data["headers"])
     assert attempt.response_status_code == expected_data["status_code"]
     assert response_data == json.loads(expected_data["content"])
+    mock_observability.assert_called_once_with(attempt)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post", side_effect=RequestException)
-def test_send_webhook_request_sync_request_exception(mock_post, app, event_delivery):
+def test_send_webhook_request_sync_request_exception(
+    mock_post, mock_observability, app, event_delivery
+):
     # when
     response_data = send_webhook_request_sync(app.name, event_delivery)
     attempt = EventDeliveryAttempt.objects.first()
@@ -157,11 +166,13 @@ def test_send_webhook_request_sync_request_exception(mock_post, app, event_deliv
     assert attempt.response_status_code is None
     assert attempt.request_headers == "null"
     assert response_data is None
+    mock_observability.assert_called_once_with(attempt)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_sync_when_exception_with_response(
-    mock_post, app, event_delivery
+    mock_post, mock_observability, app, event_delivery
 ):
     mock_response = mock.Mock()
     mock_response.text = "response_content"
@@ -176,10 +187,14 @@ def test_send_webhook_request_sync_when_exception_with_response(
     assert attempt.response == "response_content"
     assert attempt.response_headers == '{"response": "headers"}'
     assert attempt.response_status_code == 302
+    mock_observability.assert_called_once_with(attempt)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
-def test_send_webhook_request_sync_json_parsing_error(mock_post, app, event_delivery):
+def test_send_webhook_request_sync_json_parsing_error(
+    mock_post, mock_observability, app, event_delivery
+):
     # given
     expected_data = {
         "incorrect_content": "{key: response}",
@@ -204,6 +219,7 @@ def test_send_webhook_request_sync_json_parsing_error(mock_post, app, event_deli
     assert attempt.response_headers == json.dumps(expected_data["response_headers"])
     assert attempt.response_status_code == expected_data["status_code"]
     assert response_data is None
+    mock_observability.assert_called_once_with(attempt)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
