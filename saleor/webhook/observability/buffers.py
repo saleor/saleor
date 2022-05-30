@@ -88,6 +88,7 @@ class BaseBuffer:
 class RedisBuffer(BaseBuffer):
     _pools: Dict[str, ConnectionPool] = {}
     _socket_connect_timeout = 0.25
+    _client_name = "observability_buffer"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -98,6 +99,7 @@ class RedisBuffer(BaseBuffer):
             self.broker_url,
             socket_connect_timeout=self._socket_connect_timeout,
             socket_timeout=self.connection_timeout,
+            client_name=self._client_name,
         )
 
     def get_or_create_connection_pool(self):
