@@ -3,7 +3,7 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ..types import Checkout
@@ -26,13 +26,20 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
-            ),
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
             required=False,
         )
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
+            ),
+        )
         lines = NonNullList(
             CheckoutLineUpdateInput,
             required=True,
@@ -119,7 +126,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, lines, checkout_id=None, token=None):
+    def perform_mutation(cls, root, info, lines, checkout_id=None, token=None, id=None):
         return super().perform_mutation(
-            root, info, lines, checkout_id, token, replace=True
+            root, info, lines, checkout_id, token, id, replace=True
         )

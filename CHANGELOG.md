@@ -23,6 +23,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrate order discount id from int to UUID - #9729 by @IKarbowiak
   - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
   for old order discounts.
+- Unify checkout's ID fields. - #9862 by @korycins
+  - Deprecate `checkoutID` and `token` in all Checkout's mutations. Use `id` instead.
+  - Deprecate `token` in `checkout` query. Use `id` instead.
 - Add `unitPrice`, `undiscountedUnitPrice`, `undiscountedTotalPrice` fields to `CheckoutLine` type - #9821 by @fowczarek
 
 
