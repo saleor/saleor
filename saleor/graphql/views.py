@@ -25,6 +25,7 @@ from jwt.exceptions import PyJWTError
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from ..webhook import observability
 from .api import API_PATH, schema
 from .context import get_context_value
 from .core.validators.query_cost import validate_query_cost
@@ -100,6 +101,7 @@ class GraphQLView(View):
                 "Cannot import '%s' graphene middleware!" % middleware_name
             )
 
+    @observability.report_view
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
@@ -197,30 +199,34 @@ class GraphQLView(View):
             # we can calculate the RAW UTF-8 size using the length of
             # response.content of type 'bytes'
             span.set_tag("http.content_length", len(response.content))
-
+            with observability.report_api_call(request) as api_call:
+                api_call.response = response
+                api_call.report()
             return response
 
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
-        if execution_result:
-            response = {}
-            if execution_result.errors:
-                response["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-            if execution_result.invalid:
-                status_code = 400
+        with observability.report_gql_operation() as operation:
+            execution_result = self.execute_graphql_request(request, data)
+            status_code = 200
+            if execution_result:
+                response = {}
+                if execution_result.errors:
+                    response["errors"] = [
+                        self.format_error(e) for e in execution_result.errors
+                    ]
+                if execution_result.invalid:
+                    status_code = 400
+                else:
+                    response["data"] = execution_result.data
+                if execution_result.extensions:
+                    response["extensions"] = execution_result.extensions
+                result: Optional[Dict[str, List[Any]]] = response
             else:
-                response["data"] = execution_result.data
-            if execution_result.extensions:
-                response["extensions"] = execution_result.extensions
-            result: Optional[Dict[str, List[Any]]] = response
-        else:
-            result = None
-
+                result = None
+            operation.result = result
+            operation.result_invalid = execution_result.invalid
         return result, status_code
 
     def get_root_value(self):
@@ -279,6 +285,10 @@ class GraphQLView(View):
             query_cost = 0
 
             document, error = self.parse_query(query)
+            with observability.report_gql_operation() as operation:
+                operation.query = document
+                operation.name = operation_name
+                operation.variables = variables
             if error:
                 return error
 
