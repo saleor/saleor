@@ -4,6 +4,7 @@ from functools import partial
 from unittest.mock import patch
 
 import pytest
+from redis.exceptions import RedisError
 
 from .. import worker
 from .conftest import KEY, MAX_SIZE
@@ -57,6 +58,17 @@ def test_background_worker(mock_buffer_put_multi_key_events, init_worker):
     mock_buffer_put_multi_key_events.assert_called_once_with(
         {buffer_name: [payload.format(i) for i in range(BATCH_SIZE)]}
     )
+
+
+@patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
+def test_background_worker_put_to_buffer_exception(
+    mock_buffer_put_multi_key_events, init_worker
+):
+    mock_buffer_put_multi_key_events.side_effect = [RedisError, True]
+    for i in range(BATCH_SIZE * 2):
+        worker.put_event("buffer_a", lambda: "payload")
+    time.sleep(safe_delay)
+    mock_buffer_put_multi_key_events.call_count == 2
 
 
 @patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
