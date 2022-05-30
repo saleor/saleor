@@ -120,6 +120,13 @@ def test_json_truncate_text_to_byte_limit(
     assert len(json.dumps(truncated.text)) == expected_size + len('""')
 
 
+def test_json_truncate_text_comparison():
+    truncated_a = JsonTruncText("content", truncated=True)
+    truncated_b = JsonTruncText("content", truncated=True)
+    assert truncated_a != "content"
+    assert truncated_a == truncated_b
+
+
 @pytest.mark.parametrize(
     "retry, next_retry_date",
     [

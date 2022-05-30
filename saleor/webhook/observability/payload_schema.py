@@ -11,7 +11,7 @@ class JsonTruncText:
         self._added_bytes = max(0, added_bytes)
 
     def __eq__(self, other):
-        if not isinstance(self, JsonTruncText):
+        if not isinstance(other, JsonTruncText):
             return False
         return (self.text, self.truncated) == (other.text, other.truncated)
 
