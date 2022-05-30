@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 
 from ...core import models as core_models
@@ -19,7 +21,7 @@ from ..webhook.sorters import (
     EventDeliverySortingInput,
 )
 from . import enums
-from .dataloaders import PayloadByIdLoader
+from .dataloaders import PayloadByIdLoader, WebhookEventsByWebhookIdLoader
 
 
 class WebhookEvent(ModelObjectType):
@@ -187,16 +189,38 @@ class Webhook(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_async_events(root: models.Webhook, _info):
-        return root.events.filter(event_type__in=WebhookEventAsyncType.ALL)
+    def resolve_async_events(root: models.Webhook, info):
+        def _filter_by_async_type(webhook_events: List[WebhookEvent]):
+            return filter(
+                lambda webhook_event: webhook_event.event_type
+                in WebhookEventAsyncType.ALL,
+                webhook_events,
+            )
+
+        return (
+            WebhookEventsByWebhookIdLoader(info.context)
+            .load(root.id)
+            .then(_filter_by_async_type)
+        )
 
     @staticmethod
-    def resolve_sync_events(root: models.Webhook, _info):
-        return root.events.filter(event_type__in=WebhookEventSyncType.ALL)
+    def resolve_sync_events(root: models.Webhook, info):
+        def _filter_by_sync_type(webhook_events: List[WebhookEvent]):
+            return filter(
+                lambda webhook_event: webhook_event.event_type
+                in WebhookEventSyncType.ALL,
+                webhook_events,
+            )
+
+        return (
+            WebhookEventsByWebhookIdLoader(info.context)
+            .load(root.id)
+            .then(_filter_by_sync_type)
+        )
 
     @staticmethod
-    def resolve_events(root: models.Webhook, _info):
-        return root.events.all()
+    def resolve_events(root: models.Webhook, info):
+        return WebhookEventsByWebhookIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_event_deliveries(root: models.Webhook, info, **kwargs):

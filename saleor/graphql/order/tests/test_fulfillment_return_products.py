@@ -80,7 +80,7 @@ def test_fulfillment_return_products_with_transaction_action_request(
     # given
     mocked_is_active.return_value = True
 
-    captured_value = Decimal("20.0")
+    charged_value = Decimal("20.0")
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
@@ -88,7 +88,7 @@ def test_fulfillment_return_products_with_transaction_action_request(
         available_actions=["refund"],
         currency="USD",
         order_id=fulfilled_order.pk,
-        captured_value=captured_value,
+        charged_value=charged_value,
     )
 
     order_id = to_global_id_or_none(fulfilled_order)
@@ -136,7 +136,7 @@ def test_fulfillment_return_products_with_missing_payment_action_hook(
     # given
     mocked_is_active.return_value = False
 
-    captured_value = Decimal("20.0")
+    charged_value = Decimal("20.0")
     TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
@@ -144,7 +144,7 @@ def test_fulfillment_return_products_with_missing_payment_action_hook(
         available_actions=["refund"],
         currency="USD",
         order_id=fulfilled_order.pk,
-        captured_value=captured_value,
+        charged_value=charged_value,
     )
 
     order_id = to_global_id_or_none(fulfilled_order)

@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 import graphene
@@ -26,7 +26,7 @@ from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
-from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
+from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -104,7 +104,7 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
-from ..warehouse.types import Allocation, Warehouse
+from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     FulfillmentLinesByFulfillmentIdLoader,
@@ -151,15 +151,15 @@ def get_order_discount_event(discount_obj: dict):
 
 def get_payment_status_for_order(order, transactions):
     status = ChargeStatus.NOT_CHARGED
-    captured_money = prices.Money(Decimal(0), order.currency)
+    charged_money = prices.Money(Decimal(0), order.currency)
     refunded_money = prices.Money(Decimal(0), order.currency)
     for transaction in transactions:
-        captured_money += transaction.amount_captured
+        charged_money += transaction.amount_charged
         refunded_money += transaction.amount_refunded
 
-    if captured_money >= order.total.gross:
+    if charged_money >= order.total.gross:
         status = ChargeStatus.FULLY_CHARGED
-    elif captured_money and captured_money < order.total.gross:
+    elif charged_money and charged_money < order.total.gross:
         status = ChargeStatus.PARTIALLY_CHARGED
     if refunded_money >= order.total.gross:
         status = ChargeStatus.FULLY_REFUNDED
@@ -490,9 +490,28 @@ class Fulfillment(ModelObjectType):
         return root.get_status_display()
 
     @staticmethod
-    def resolve_warehouse(root: models.Fulfillment, _info):
-        line = root.lines.first()
-        return line.stock.warehouse if line and line.stock else None
+    def resolve_warehouse(root: models.Fulfillment, info):
+        def _resolve_stock_warehouse(stock: Stock):
+            return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
+
+        def _resolve_stock(fulfillment_lines: List[models.FulfillmentLine]):
+            try:
+                line = fulfillment_lines[0]
+            except IndexError:
+                return None
+
+            if stock_id := line.stock_id:
+                return (
+                    StockByIdLoader(info.context)
+                    .load(stock_id)
+                    .then(_resolve_stock_warehouse)
+                )
+
+        return (
+            FulfillmentLinesByFulfillmentIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_stock)
+        )
 
 
 class OrderLine(ModelObjectType):
@@ -1122,10 +1141,10 @@ class Order(ModelObjectType):
     def resolve_total_captured(root: models.Order, info):
         def _resolve_total_captured(transactions):
             if transactions:
-                captured_money = prices.Money(Decimal(0), root.currency)
+                charged_money = prices.Money(Decimal(0), root.currency)
                 for transaction in transactions:
-                    captured_money += transaction.amount_captured
-                return quantize_price(captured_money, root.currency)
+                    charged_money += transaction.amount_charged
+                return quantize_price(charged_money, root.currency)
             return root.total_paid
 
         return (
@@ -1138,10 +1157,10 @@ class Order(ModelObjectType):
     def resolve_total_balance(root: models.Order, info):
         def _resolve_total_balance(transactions):
             if transactions:
-                captured_money = prices.Money(Decimal(0), root.currency)
+                charged_money = prices.Money(Decimal(0), root.currency)
                 for transaction in transactions:
-                    captured_money += transaction.amount_captured
-                return quantize_price(captured_money - root.total.gross, root.currency)
+                    charged_money += transaction.amount_charged
+                return quantize_price(charged_money - root.total.gross, root.currency)
             return root.total_balance
 
         return (
@@ -1179,10 +1198,10 @@ class Order(ModelObjectType):
     def resolve_is_paid(root: models.Order, info):
         def _resolve_is_paid(transactions):
             if transactions:
-                captured_money = prices.Money(Decimal(0), root.currency)
+                charged_money = prices.Money(Decimal(0), root.currency)
                 for transaction in transactions:
-                    captured_money += transaction.amount_captured
-                return captured_money >= root.total.gross
+                    charged_money += transaction.amount_charged
+                return charged_money >= root.total.gross
             return root.is_fully_paid()
 
         return (

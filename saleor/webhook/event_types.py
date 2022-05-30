@@ -18,7 +18,7 @@ from ..core.permissions import (
 class WebhookEventAsyncType:
     ANY = "any_events"
 
-    APP_CREATED = "app_created"
+    APP_INSTALLED = "app_installed"
     APP_UPDATED = "app_updated"
     APP_DELETED = "app_deleted"
     APP_STATUS_CHANGED = "app_status_changed"
@@ -106,13 +106,19 @@ class WebhookEventAsyncType:
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
 
+    WAREHOUSE_CREATED = "warehouse_created"
+    WAREHOUSE_UPDATED = "warehouse_updated"
+    WAREHOUSE_DELETED = "warehouse_deleted"
+
     VOUCHER_CREATED = "voucher_created"
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
 
+    OBSERVABILITY = "observability"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
-        APP_CREATED: "App created",
+        APP_INSTALLED: "App created",
         APP_UPDATED: "App updated",
         APP_DELETED: "App deleted",
         APP_STATUS_CHANGED: "App status changed",
@@ -178,14 +184,18 @@ class WebhookEventAsyncType:
         TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
+        WAREHOUSE_CREATED: "Warehouse created",
+        WAREHOUSE_UPDATED: "Warehouse updated",
+        WAREHOUSE_DELETED: "Warehouse deleted",
         VOUCHER_CREATED: "Voucher created",
         VOUCHER_UPDATED: "Voucher updated",
         VOUCHER_DELETED: "Voucher deleted",
+        OBSERVABILITY: "Observability",
     }
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
-        (APP_CREATED, DISPLAY_LABELS[APP_CREATED]),
+        (APP_INSTALLED, DISPLAY_LABELS[APP_INSTALLED]),
         (APP_UPDATED, DISPLAY_LABELS[APP_UPDATED]),
         (APP_DELETED, DISPLAY_LABELS[APP_DELETED]),
         (APP_STATUS_CHANGED, DISPLAY_LABELS[APP_STATUS_CHANGED]),
@@ -251,15 +261,19 @@ class WebhookEventAsyncType:
         (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
+        (WAREHOUSE_CREATED, DISPLAY_LABELS[WAREHOUSE_CREATED]),
+        (WAREHOUSE_UPDATED, DISPLAY_LABELS[WAREHOUSE_UPDATED]),
+        (WAREHOUSE_DELETED, DISPLAY_LABELS[WAREHOUSE_DELETED]),
         (VOUCHER_CREATED, DISPLAY_LABELS[VOUCHER_CREATED]),
         (VOUCHER_UPDATED, DISPLAY_LABELS[VOUCHER_UPDATED]),
         (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
+        (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
     ]
 
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
-        APP_CREATED: AppPermission.MANAGE_APPS,
+        APP_INSTALLED: AppPermission.MANAGE_APPS,
         APP_UPDATED: AppPermission.MANAGE_APPS,
         APP_DELETED: AppPermission.MANAGE_APPS,
         APP_STATUS_CHANGED: AppPermission.MANAGE_APPS,
@@ -328,6 +342,10 @@ class WebhookEventAsyncType:
         VOUCHER_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
+        WAREHOUSE_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        WAREHOUSE_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        WAREHOUSE_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
     }
 
 
@@ -403,7 +421,7 @@ class WebhookEventSyncType:
 
 
 SUBSCRIBABLE_EVENTS = [
-    WebhookEventAsyncType.APP_CREATED,
+    WebhookEventAsyncType.APP_INSTALLED,
     WebhookEventAsyncType.APP_UPDATED,
     WebhookEventAsyncType.APP_DELETED,
     WebhookEventAsyncType.APP_STATUS_CHANGED,
@@ -481,4 +499,7 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
     WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    WebhookEventAsyncType.WAREHOUSE_CREATED,
+    WebhookEventAsyncType.WAREHOUSE_UPDATED,
+    WebhookEventAsyncType.WAREHOUSE_DELETED,
 ]

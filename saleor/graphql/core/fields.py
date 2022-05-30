@@ -13,14 +13,14 @@ from .connection import FILTERS_NAME, FILTERSET_CLASS
 class PermissionsField(graphene.Field):
     def __init__(self, *args, **kwargs):
         self.permissions = kwargs.pop("permissions", [])
+        auto_permission_message = kwargs.pop("auto_permission_message", True)
         assert isinstance(self.permissions, list), (
             "FieldWithPermissions `permissions` argument must be a list: "
             f"{self.permissions}"
         )
 
         super(PermissionsField, self).__init__(*args, **kwargs)
-
-        if self.permissions:
+        if auto_permission_message and self.permissions:
             permissions_msg = message_one_of_permissions_required(self.permissions)
             description = self.description or ""
             self.description = description + permissions_msg

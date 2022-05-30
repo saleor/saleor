@@ -37,6 +37,7 @@ from ....checkout.utils import (
     calculate_checkout_quantity,
 )
 from ....core.payments import PaymentInterface
+from ....core.prices import quantize_price
 from ....payment import TransactionAction, TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.base_plugin import ExcludedShippingMethod
@@ -3643,11 +3644,24 @@ QUERY_CHECKOUT_PRICES = """
                 }
             }
            lines {
+                unitPrice {
+                    gross {
+                        amount
+                    }
+                }
+                undiscountedUnitPrice {
+                    amount
+                    currency
+                }
                 totalPrice {
                     currency
                     gross {
                         amount
                     }
+                }
+                undiscountedTotalPrice {
+                    amount
+                    currency
                 }
            }
         }
@@ -3656,16 +3670,23 @@ QUERY_CHECKOUT_PRICES = """
 
 
 def test_checkout_prices(user_api_client, checkout_with_item):
+    # given
     query = QUERY_CHECKOUT_PRICES
     variables = {"token": str(checkout_with_item.token)}
+
+    # when
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
+
+    # then
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
+
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
     total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -3673,6 +3694,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         address=checkout_with_item.shipping_address,
     )
     assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+
     subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -3681,28 +3703,65 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
 
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+        discounts=[],
+    ).price_with_discounts
+    assert (
+        data["lines"][0]["unitPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount / line_info.line.quantity
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
 
 def test_checkout_prices_checkout_with_custom_prices(
     user_api_client, checkout_with_item
 ):
+    # given
     query = QUERY_CHECKOUT_PRICES
-
     checkout_line = checkout_with_item.lines.first()
     price_override = Decimal("20.00")
     checkout_line.price_override = price_override
     checkout_line.save(update_fields=["price_override"])
-
     variables = {"token": str(checkout_with_item.token)}
 
+    # when
     response = user_api_client.post_graphql(query, variables)
-
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
+
+    # then
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
+
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
     shipping_price = base_calculations.base_checkout_delivery_price(
         checkout_info, lines
     )
@@ -3713,6 +3772,234 @@ def test_checkout_prices_checkout_with_custom_prices(
     assert (
         data["subtotalPrice"]["gross"]["amount"]
         == checkout_line.quantity * price_override
+    )
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == price_override
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == checkout_line.quantity * price_override
+    )
+    assert data["lines"][0]["undiscountedUnitPrice"]["amount"] == price_override
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == price_override * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discount_info):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"token": str(checkout_with_item.token)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout_with_item.token)
+    assert len(data["lines"]) == checkout_with_item.lines.count()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+        discounts=[discount_info],
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+        discounts=[discount_info],
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+        discounts=[discount_info],
+    ).price_with_discounts
+    assert (
+        data["lines"][0]["unitPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount / line_info.line.quantity
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_specific_voucher(
+    user_api_client, checkout_with_item_and_voucher_specific_products
+):
+    # given
+    checkout = checkout_with_item_and_voucher_specific_products
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_prices = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert (
+        line_total_prices.price_with_discounts != line_total_prices.undiscounted_price
+    )
+    assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
+    line_total_price = line_total_prices.price_with_discounts
+    assert (
+        data["lines"][0]["unitPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount / line_info.line.quantity
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_voucher_once_per_order(
+    user_api_client, checkout_with_item_and_voucher_once_per_order
+):
+    # given
+    checkout = checkout_with_item_and_voucher_once_per_order
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"token": str(checkout.token)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_prices = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert (
+        line_total_prices.price_with_discounts != line_total_prices.undiscounted_price
+    )
+    assert line_total_prices.price_with_discounts != line_total_prices.price_with_sale
+    line_total_price = line_total_prices.price_with_discounts
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
     )
 
 
@@ -4692,7 +4979,7 @@ def test_checkout_transactions_missing_permission(api_client, checkout):
         reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"token": str(checkout.token)}
@@ -4714,7 +5001,7 @@ def test_checkout_transactions_with_manage_checkouts(
         reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"token": str(checkout.token)}
@@ -4743,7 +5030,7 @@ def test_checkout_transactions_with_handle_payments(
         reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CAPTURE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"token": str(checkout.token)}

@@ -1,5 +1,68 @@
 from .....graphql.tests.queries import fragments
 
+APP_INSTALLED = (
+    fragments.APP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AppInstalled{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+APP_UPDATED = (
+    fragments.APP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AppUpdated{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+APP_DELETED = (
+    fragments.APP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AppDeleted{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+APP_STATUS_CHANGED = (
+    fragments.APP_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AppStatusChanged{
+          app{
+            ...AppDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 GIFT_CARD_CREATED = (
     fragments.GIFT_CARD_DETAILS
     + """
@@ -78,6 +141,39 @@ VOUCHER_CREATED = (
 """
 )
 
+
+VOUCHER_CREATED_WITH_META = (
+    fragments.VOUCHER_DETAILS
+    + """
+    subscription{
+      event{
+        __typename
+        issuedAt
+        version
+        issuingPrincipal{
+          __typename
+          ...on App{
+            id
+            name
+          }
+          ...on User{
+            id
+            email
+          }
+        }
+        recipient{
+          id
+          name
+        }
+        ...on VoucherCreated{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
 
 VOUCHER_UPDATED = (
     fragments.VOUCHER_DETAILS
@@ -610,6 +706,9 @@ FULFILLMENT_CREATED = (
           fulfillment{
             ...FulfillmentDetails
           }
+          order{
+            id
+          }
         }
       }
     }
@@ -624,6 +723,9 @@ FULFILLMENT_CANCELED = (
         ...on FulfillmentCanceled{
           fulfillment{
             ...FulfillmentDetails
+          }
+          order{
+            id
           }
         }
       }
@@ -988,3 +1090,145 @@ TEST_VALID_SUBSCRIPTION_QUERY = """
       }
     }
 """
+
+
+MENU_CREATED = (
+    fragments.MENU_DETAILS
+    + """
+    subscription{
+      event{
+        ...on MenuCreated{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+MENU_UPDATED = (
+    fragments.MENU_DETAILS
+    + """
+    subscription{
+      event{
+        ...on MenuUpdated{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+MENU_DELETED = (
+    fragments.MENU_DETAILS
+    + """
+    subscription{
+      event{
+        ...on MenuDeleted{
+          menu{
+            ...MenuDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+MENU_ITEM_CREATED = (
+    fragments.MENU_ITEM_DETAILS
+    + """
+    subscription{
+      event{
+        ...on MenuItemCreated{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+MENU_ITEM_UPDATED = (
+    fragments.MENU_ITEM_DETAILS
+    + """
+    subscription{
+      event{
+        ...on MenuItemUpdated{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+MENU_ITEM_DELETED = (
+    fragments.MENU_ITEM_DETAILS
+    + """
+    subscription{
+      event{
+        ...on MenuItemDeleted{
+          menuItem{
+            ...MenuItemDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+WAREHOUSE_CREATED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on WarehouseCreated{
+          warehouse{
+            ...WarehouseDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+WAREHOUSE_UPDATED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on WarehouseUpdated{
+          warehouse{
+            ...WarehouseDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+WAREHOUSE_DELETED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on WarehouseDeleted{
+          warehouse{
+            ...WarehouseDetails
+          }
+        }
+      }
+    }
+"""
+)

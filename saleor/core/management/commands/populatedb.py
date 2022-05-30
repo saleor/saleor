@@ -18,7 +18,6 @@ from ...utils.random_data import (
     create_page_type,
     create_pages,
     create_permission_groups,
-    create_preorder_orders,
     create_product_sales,
     create_products_by_schema,
     create_shipping_zones,
@@ -99,15 +98,13 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         create_products_by_schema(self.placeholders_dir, create_images)
         self.stdout.write("Created products")
-        for msg in create_product_sales(5):
+        for msg in create_product_sales(2):
             self.stdout.write(msg)
         for msg in create_vouchers():
             self.stdout.write(msg)
         for msg in create_users(user_password, 20):
             self.stdout.write(msg)
         for msg in create_orders(20):
-            self.stdout.write(msg)
-        for msg in create_preorder_orders(1):
             self.stdout.write(msg)
         for msg in create_gift_cards():
             self.stdout.write(msg)

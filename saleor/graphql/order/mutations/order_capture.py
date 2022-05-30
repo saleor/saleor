@@ -6,7 +6,7 @@ from ....order.actions import order_captured
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, TransactionKind, gateway
-from ....payment.gateway import request_capture_action
+from ....payment.gateway import request_charge_action
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
@@ -61,10 +61,10 @@ class OrderCapture(BaseMutation):
                 # We use the last transaction as we don't have a possibility to
                 # provide way of handling multiple transaction here
                 payment_transaction = payment_transactions[-1]
-                request_capture_action(
+                request_charge_action(
                     transaction=payment_transaction,
                     manager=info.context.plugins,
-                    capture_value=amount,
+                    charge_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
                     app=info.context.app,

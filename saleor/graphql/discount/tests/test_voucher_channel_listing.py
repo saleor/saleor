@@ -2,10 +2,12 @@ from unittest.mock import patch
 
 import graphene
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 VOUCHER_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -122,6 +124,7 @@ def test_voucher_channel_listing_update_as_customer(
     assert_no_permission(response)
 
 
+@freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_voucher_channel_listing_update_trigger_webhook(
@@ -161,6 +164,11 @@ def test_voucher_channel_listing_update_trigger_webhook(
             "id": variables["id"],
             "name": voucher.name,
             "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
         },
         WebhookEventAsyncType.VOUCHER_UPDATED,
         [any_webhook],
