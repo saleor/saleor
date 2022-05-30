@@ -29,7 +29,8 @@ def test_get_connection_pool(buffer):
     assert pool.connection_kwargs["client_name"] == buffer._client_name
 
 
-def test_get_or_create_connection_pool(buffer):
+def test_get_or_create_connection_pool(redis_server):
+    buffer = get_buffer(KEY)
     pool_a = buffer.get_or_create_connection_pool()
     pool_b = buffer.get_or_create_connection_pool()
     assert pool_a == pool_b
