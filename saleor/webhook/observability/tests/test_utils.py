@@ -12,6 +12,7 @@ from ..payload_schema import JsonTruncText
 from ..payloads import CustomJsonEncoder
 from ..utils import (
     ApiCall,
+    get_buffer_name,
     get_webhooks,
     get_webhooks_clear_mem_cache,
     pop_events_with_remaining_size,
@@ -229,9 +230,13 @@ def test_report_event_delivery_attempt_not_active(
     mock_put_event.assert_not_called()
 
 
-def test_put_event(patch_get_buffer, buffer):
-    put_event(lambda: {"payload": "data"})
-    assert buffer.size() == 1
+@patch("saleor.webhook.observability.utils.worker.put_event")
+def test_put_event(mock_put_event, patch_get_buffer):
+    def generate_payload():
+        return {"payload": "data"}
+
+    put_event(generate_payload)
+    mock_put_event.assert_called_once_with(get_buffer_name(), generate_payload)
 
 
 def test_put_event_catch_exceptions(patch_get_buffer, buffer):
