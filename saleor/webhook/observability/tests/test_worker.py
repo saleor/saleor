@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta
 from functools import partial
 from unittest.mock import patch
@@ -8,27 +9,21 @@ from .. import worker
 from .conftest import KEY, MAX_SIZE
 
 BATCH_SIZE = 10
-REPORT_PERIOD = timedelta(seconds=1)
+REPORT_PERIOD = timedelta(seconds=0.01)
+timeout = REPORT_PERIOD.total_seconds()
+safe_delay = timeout * 2
 
 
 @pytest.fixture
-def worker_settings(settings):
+def init_worker(settings):
     settings.OBSERVABILITY_BUFFER_BATCH_SIZE = BATCH_SIZE
     settings.OBSERVABILITY_REPORT_PERIOD = REPORT_PERIOD
-
-
-@pytest.fixture
-def init(worker_settings):
     worker.init()
+    yield
+    worker.shutdown_worker()
 
 
-@pytest.fixture
-def init_no_timeout(settings, worker_settings):
-    settings.OBSERVABILITY_REPORT_PERIOD = timedelta(seconds=0)
-    worker.init()
-
-
-def test_init(init):
+def test_init(init_worker):
     assert isinstance(worker._worker, worker.BackgroundWorker)
 
 
@@ -55,30 +50,67 @@ def test_buffer_put_multi_key_events_when_buffer_is_full(mock_get_buffer, buffer
 
 
 @patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
-def test_background_worker(mock_buffer_put_multi_key_events, init):
+def test_background_worker(mock_buffer_put_multi_key_events, init_worker):
     buffer_name, payload = "buffer_a", "payload-{}"
-    for i in range(BATCH_SIZE):
+    for i in range(BATCH_SIZE + 1):
         worker.put_event(buffer_name, partial(payload.format, i))
-    worker.shutdown_worker()
     mock_buffer_put_multi_key_events.assert_called_once_with(
         {buffer_name: [payload.format(i) for i in range(BATCH_SIZE)]}
     )
 
 
 @patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
-def test_background_worker_queue_no_timeout(
-    mock_buffer_put_multi_key_events, init_no_timeout
+def test_background_worker_put_to_buffer_on_timeout(
+    mock_buffer_put_multi_key_events, init_worker
 ):
-    buffer_name, payload = "buffer_a", "payload-{}"
-    worker.put_event(buffer_name, partial(payload.format, 0))
-    worker.shutdown_worker()
+    buffer_name, payload = "buffer_a", "payload"
+    worker.put_event(buffer_name, lambda: payload)
+    time.sleep(safe_delay)
+    mock_buffer_put_multi_key_events.assert_called_once_with({buffer_name: [payload]})
+
+
+@patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
+def test_background_worker_put_multi_buffer(
+    mock_buffer_put_multi_key_events, init_worker
+):
+    buffer_a, buffer_b = "buffer_a", "buffer_b"
+    payload = "payload-{}"
+    for i in range(BATCH_SIZE // 2):
+        worker.put_event(buffer_a, partial(payload.format, i))
+        worker.put_event(buffer_b, partial(payload.format, i))
+    time.sleep(safe_delay)
     mock_buffer_put_multi_key_events.assert_called_once_with(
-        {buffer_name: [payload.format(0)]}
+        {
+            buffer_a: [payload.format(i) for i in range(BATCH_SIZE // 2)],
+            buffer_b: [payload.format(i) for i in range(BATCH_SIZE // 2)],
+        }
     )
 
 
 @patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
-def test_background_worker_put_multi_buffer(mock_buffer_put_multi_key_events, init):
+def test_background_worker_queue_full(mock_buffer_put_multi_key_events, init_worker):
+    buffer_name, payload = "buffer_a", "payload-{}"
+    for i in range(BATCH_SIZE):
+        worker.put_event(buffer_name, partial(payload.format, i))
+    assert worker.put_event(buffer_name, partial(payload.format, BATCH_SIZE)) is False
+    mock_buffer_put_multi_key_events.assert_called_once_with(
+        {buffer_name: [payload.format(i) for i in range(BATCH_SIZE)]}
+    )
+
+
+@patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
+def test_background_worker_with_generate_payload_exception(
+    mock_buffer_put_multi_key_events, init_worker
+):
+    buffer_name, payload = "buffer_a", "payload"
+    worker.put_event(buffer_name, lambda: 1 / 0)
+    worker.put_event(buffer_name, lambda: payload)
+    time.sleep(safe_delay)
+    mock_buffer_put_multi_key_events.assert_called_once_with({buffer_name: [payload]})
+
+
+@patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
+def test_background_worker_shutdown(mock_buffer_put_multi_key_events, init_worker):
     buffer_a, buffer_b = "buffer_a", "buffer_b"
     payload = "payload-{}"
     for i in range(BATCH_SIZE // 2):
@@ -94,33 +126,14 @@ def test_background_worker_put_multi_buffer(mock_buffer_put_multi_key_events, in
 
 
 @patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
-def test_background_worker_queue_full(mock_buffer_put_multi_key_events, init):
-    buffer_name, payload = "buffer_a", "payload-{}"
-    for i in range(BATCH_SIZE):
-        worker.put_event(buffer_name, partial(payload.format, i))
-    assert worker.put_event(buffer_name, partial(payload.format, BATCH_SIZE)) is False
-    worker.shutdown_worker()
-    mock_buffer_put_multi_key_events.assert_called_once()
-
-
-@patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
-def test_background_worker_with_generate_payload_exception(
-    mock_buffer_put_multi_key_events, init
+def test_background_worker_failed_flush_on_shutdown(
+    mock_buffer_put_multi_key_events, init_worker
 ):
-    buffer_name, payload = "buffer_a", "payload-{}"
-    worker.put_event(buffer_name, lambda: 1 / 0)
-    for i in range(BATCH_SIZE - 1):
-        worker.put_event(buffer_name, partial(payload.format, i))
-    worker.shutdown_worker()
-    mock_buffer_put_multi_key_events.assert_called_once_with(
-        {buffer_name: [payload.format(i) for i in range(BATCH_SIZE - 1)]}
-    )
+    def generate_payload():
+        time.sleep(safe_delay)
+        return "payload"
 
-
-@patch("saleor.webhook.observability.worker.buffer_put_multi_key_events")
-def test_background_worker_failed_flush(mock_buffer_put_multi_key_events, init):
-    buffer_name, payload = "buffer_a", "payload-{}"
-    for i in range(BATCH_SIZE - 1):
-        worker.put_event(buffer_name, partial(payload.format, i))
-    worker.shutdown_worker(0.0)
+    worker.put_event("buffer_a", generate_payload)
+    worker.shutdown_worker(timeout)
     mock_buffer_put_multi_key_events.assert_not_called()
+    time.sleep(safe_delay)

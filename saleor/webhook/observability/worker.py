@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 def shutdown_worker(timeout=FLUSH_TIMEOUT):
     global _worker
-    logger.debug("[Observability] Atexit shutdown signal")
     if _worker:
+        logger.debug("[Observability] Background worker shutdown")
         _worker.flush(timeout)
         _worker = None
 
