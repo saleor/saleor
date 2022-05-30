@@ -381,12 +381,28 @@ def test_generate_event_delivery_attempt_payload(event_attempt):
     )
 
 
-def test_generate_event_delivery_attempt_payload_failed(event_attempt):
+def test_generate_event_delivery_attempt_payload_raises_truncation_error(event_attempt):
     too_small_bytes_limit = 10
     with pytest.raises(TruncationError):
         generate_event_delivery_attempt_payload(
             event_attempt, None, too_small_bytes_limit
         )
+
+
+def test_generate_event_delivery_attempt_payload_raises_error_when_no_delivery(
+    event_attempt,
+):
+    event_attempt.delivery = None
+    with pytest.raises(ValueError):
+        generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+
+
+def test_generate_event_delivery_attempt_payload_raises_error_when_no_payload(
+    event_attempt,
+):
+    event_attempt.delivery.payload = None
+    with pytest.raises(ValueError):
+        generate_event_delivery_attempt_payload(event_attempt, None, 1024)
 
 
 def test_generate_event_delivery_attempt_payload_with_next_retry_date(
