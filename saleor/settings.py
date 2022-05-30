@@ -513,6 +513,14 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+CELERY_TASK_ROUTES = {
+    "saleor.plugins.webhook.tasks.observability_reporter_task": {
+        "queue": "observability"
+    },
+    "saleor.plugins.webhook.tasks.observability_send_events": {
+        "queue": "observability"
+    },
+}
 
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
