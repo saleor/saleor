@@ -214,6 +214,67 @@ class OrderEventsEmails:
     ]
 
 
+class OrderAuthorizeStatus:
+    """Determine a current authorize status for order.
+
+    We treat the order as fully authorized when the sum of authorized and charged funds
+    cover the order.total.
+    We treat the order as partially authorized when the sum of authorized and charged
+    funds covers only part of the order.total
+    We treat the order as not authorized when the sum of authorized and charged funds is
+    0.
+
+    NONE - the funds are not authorized
+    PARTIAL - the funds that are authorized or charged don't cover fully the order's
+    total
+    FULL - the funds that are authorized or charged fully cover the order's total
+    """
+
+    NONE = "none"
+    PARTIAL = "partial"
+    FULL = "full"
+
+    CHOICES = [
+        (NONE, "The funds are not authorized"),
+        (
+            PARTIAL,
+            "The funds that are authorized or charged don't cover fully the order's "
+            "total",
+        ),
+        (
+            FULL,
+            "The funds that are authorized or charged fully cover the order's total",
+        ),
+    ]
+
+
+class OrderChargeStatus:
+    """Determine the current charge status for the order.
+
+    We treat the order as overcharged when the charged amount is bigger that order.total
+    We treat the order as fully charged when the charged amount is equal to order.total.
+    We treat the order as partially charged when the charged amount covers only part of
+    the order.total
+
+    NONE - the funds are not charged.
+    PARTIAL - the funds that are charged don't cover the order's total
+    FULL - the funds that are charged fully cover the order's total
+    OVERCHARGED - the charged funds are bigger than order's total
+    """
+
+    NONE = "none"
+    PARTIAL = "partial"
+    FULL = "full"
+    OVERCHARGED = "overcharged"
+
+    CHOICES = [
+        (NONE, "The funds are not charged."),
+        (PARTIAL, "The funds that are charged, don't cover the order's total"),
+        (FULL, "The funds that are charged fully cover the order's total"),
+        (OVERCHARGED, "The charged funds are bigger than order's total"),
+    ]
+
+
 @dataclass
 class FulfillmentLineData:
     line: "FulfillmentLine"

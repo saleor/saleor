@@ -44,6 +44,7 @@ from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_document_value
+from ..order.utils import update_order_authorize_data, update_order_charge_data
 from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
@@ -536,7 +537,8 @@ def _create_order(
     order.metadata = checkout.metadata
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
-    order.update_total_paid()
+    update_order_charge_data(order, with_save=False)
+    update_order_authorize_data(order, with_save=False)
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
@@ -1062,6 +1064,8 @@ def _create_order_from_checkout(
     # payments
     checkout_info.checkout.payments.update(order=order, checkout_id=None)
     checkout_info.checkout.payment_transactions.update(order=order, checkout_id=None)
+    update_order_charge_data(order, with_save=False)
+    update_order_authorize_data(order, with_save=False)
 
     # order search
     order.search_document = prepare_order_search_document_value(order)
