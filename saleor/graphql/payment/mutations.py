@@ -35,7 +35,7 @@ from ...payment.gateway import (
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
-from ..checkout.mutations.utils import get_checkout_by_token
+from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -48,7 +48,6 @@ from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
-from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
 from ..utils import get_user_or_app_from_context
 from .enums import TransactionActionEnum, TransactionStatusEnum
@@ -137,13 +136,20 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     payment = graphene.Field(Payment, description="A newly created payment.")
 
     class Arguments:
-        checkout_id = graphene.ID(
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
-            ),
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
             required=False,
         )
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
+            ),
+        )
         input = PaymentInput(
             description="Data required to create a new payment.", required=True
         )
@@ -245,19 +251,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
-        # DEPRECATED
-        validate_one_of_args_is_in_mutation(
-            PaymentErrorCode, "checkout_id", checkout_id, "token", token
+    def perform_mutation(
+        cls, _root, info, checkout_id=None, token=None, id=None, **data
+    ):
+        checkout = get_checkout(
+            cls,
+            info,
+            checkout_id=checkout_id,
+            token=token,
+            id=id,
+            error_class=PaymentErrorCode,
         )
-
-        if token:
-            checkout = get_checkout_by_token(token)
-        # DEPRECATED
-        else:
-            checkout = cls.get_node_or_error(
-                info, checkout_id or token, only_type=Checkout, field="checkout_id"
-            )
 
         cls.validate_checkout_email(checkout)
 
