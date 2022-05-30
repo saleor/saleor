@@ -272,6 +272,8 @@ def test_checkout_complete(
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
+    assert order.total_charged_amount == payment.total
+    assert order.total_authorized == zero_money(order.currency)
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
