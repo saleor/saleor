@@ -1327,6 +1327,15 @@ enum WebhookEventTypeEnum {
   """All the events."""
   ANY_EVENTS
 
+  """A new address created."""
+  ADDRESS_CREATED
+
+  """An address updated."""
+  ADDRESS_UPDATED
+
+  """An address deleted."""
+  ADDRESS_DELETED
+
   """A new app installed."""
   APP_INSTALLED
 
@@ -1487,6 +1496,15 @@ enum WebhookEventTypeEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new page type is created."""
+  PAGE_TYPE_CREATED
+
+  """A page type is updated."""
+  PAGE_TYPE_UPDATED
+
+  """A page type is deleted."""
+  PAGE_TYPE_DELETED
 
   """A new shipping price is created."""
   SHIPPING_PRICE_CREATED
@@ -1578,6 +1596,15 @@ enum WebhookEventTypeAsyncEnum {
   """All the events."""
   ANY_EVENTS
 
+  """A new address created."""
+  ADDRESS_CREATED
+
+  """An address updated."""
+  ADDRESS_UPDATED
+
+  """An address deleted."""
+  ADDRESS_DELETED
+
   """A new app installed."""
   APP_INSTALLED
 
@@ -1738,6 +1765,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new page type is created."""
+  PAGE_TYPE_CREATED
+
+  """A page type is updated."""
+  PAGE_TYPE_UPDATED
+
+  """A page type is deleted."""
+  PAGE_TYPE_DELETED
 
   """A new shipping price is created."""
   SHIPPING_PRICE_CREATED
@@ -2245,6 +2281,9 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum {
+  ADDRESS_CREATED
+  ADDRESS_UPDATED
+  ADDRESS_DELETED
   APP_INSTALLED
   APP_UPDATED
   APP_DELETED
@@ -2302,6 +2341,9 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  PAGE_TYPE_CREATED
+  PAGE_TYPE_UPDATED
+  PAGE_TYPE_DELETED
   SHIPPING_PRICE_CREATED
   SHIPPING_PRICE_UPDATED
   SHIPPING_PRICE_DELETED
@@ -20641,6 +20683,75 @@ enum VolumeUnitsEnum {
   ACRE_FT
 }
 
+type AddressCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The address the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  address: Address
+}
+
+type AddressUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The address the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  address: Address
+}
+
+type AddressDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The address the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  address: Address
+}
+
 type AppInstalled implements Event {
   """Time of the event."""
   issuedAt: DateTime
@@ -22050,6 +22161,75 @@ type PageDeleted implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   page: Page
+}
+
+type PageTypeCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The page type the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  pageType: PageType
+}
+
+type PageTypeUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The page type the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  pageType: PageType
+}
+
+type PageTypeDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The page type the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  pageType: PageType
 }
 
 type ShippingPriceCreated implements Event {

@@ -3,6 +3,7 @@ from copy import copy
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
@@ -474,6 +475,10 @@ class AddressCreate(ModelMutation):
             user.search_document = prepare_user_search_document_value(user)
             user.save(update_fields=["search_document", "updated_at"])
         return response
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        transaction.on_commit(lambda: info.context.plugins.address_created(instance))
 
 
 class AddressUpdate(BaseAddressUpdate):

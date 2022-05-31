@@ -298,6 +298,19 @@ fragment PageDetails on Page{
 
 """
 
+
+PAGE_TYPE_DETAILS = """
+fragment PageTypeDetails on PageType{
+  id
+  name
+  slug
+  attributes {
+    slug
+  }
+}
+"""
+
+
 SALE_DETAILS = """
 fragment SaleDetails on Sale {
   id
