@@ -2691,7 +2691,7 @@ python-versions = "*"
 name = "types-redis"
 version = "4.2.6"
 description = "Typing stubs for redis"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2922,7 +2922,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "eea48300906d88558a2839307a568bfbb7b7a3c819d5b13164ecf992fe84257f"
+content-hash = "7c4df873c991541b61b2408a0674b94b159f2885c49a49459f3a65c0db7ba307"
 
 [metadata.files]
 adyen = [

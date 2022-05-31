@@ -147,6 +147,7 @@ threadloop==1.0.2; python_version >= "3.7"
 thrift==0.16.0; python_version >= "3.7"
 tinycss2==1.1.1; python_version >= "3.7"
 tornado==6.1; python_version >= "3.7"
+types-redis==4.2.6
 typing-extensions==4.2.0; python_version >= "3.7"
 urllib3==1.26.9; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version < "4" and python_version >= "3.7"
 uvicorn==0.17.6; python_version >= "3.7"
