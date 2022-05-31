@@ -9,6 +9,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..account.models import User
+from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
@@ -21,9 +22,9 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..order import FulfillmentStatus, OrderStatus
 from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
+from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -38,7 +39,13 @@ from ..warehouse.management import (
     increase_stock,
 )
 from ..warehouse.models import Warehouse
-from . import events
+from . import (
+    FulfillmentStatus,
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderStatus,
+    events,
+)
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -1010,3 +1017,97 @@ def remove_discount_from_order_line(
             "tax_rate",
         ]
     )
+
+
+def update_order_charge_status(order: Order):
+    """Update the current charge status for the order.
+
+    We treat the order as overcharged when the charged amount is bigger that order.total
+    We treat the order as fully charged when the charged amount is equal to order.total.
+    We treat the order as partially charged when the charged amount covers only part of
+    the order.total
+    We treat the order as not charged when the charged amount is 0.
+    """
+    total_charged = order.total_charged_amount or Decimal("0")
+    total_charged = quantize_price(total_charged, order.currency)
+
+    total_gross = order.total_gross_amount or Decimal(0)
+    total_gross = quantize_price(total_gross, order.currency)
+
+    if total_charged <= 0:
+        order.charge_status = OrderChargeStatus.NONE
+    elif total_charged < total_gross:
+        order.charge_status = OrderChargeStatus.PARTIAL
+    elif total_charged == total_gross:
+        order.charge_status = OrderChargeStatus.FULL
+    else:
+        order.charge_status = OrderChargeStatus.OVERCHARGED
+
+
+def _update_order_total_charged(order: Order):
+    order.total_charged_amount = (
+        sum(order.payments.values_list("captured_amount", flat=True))  # type: ignore
+        or 0
+    )
+    order.total_charged_amount += sum(
+        order.payment_transactions.values_list(  # type: ignore
+            "charged_value", flat=True
+        )
+    )
+
+
+def update_order_charge_data(order: Order, with_save=True):
+    _update_order_total_charged(order)
+    update_order_charge_status(order)
+    if with_save:
+        order.save(
+            update_fields=["total_charged_amount", "charge_status", "updated_at"]
+        )
+
+
+def _update_order_total_authorized(order: Order):
+    order.total_authorized_amount = get_total_authorized(
+        order.payments.all(), order.currency  # type: ignore
+    ).amount
+    order.total_authorized_amount += (
+        sum(
+            order.payment_transactions.values_list(  # type: ignore
+                "authorized_value", flat=True
+            )
+        )
+        or 0
+    )
+
+
+def update_order_authorize_status(order: Order):
+    """Update the current authorize status for the order.
+
+    We treat the order as fully authorized when the sum of authorized and charged funds
+    cover the order.total.
+    We treat the order as partially authorized when the sum of authorized and charged
+    funds covers only part of the order.total
+    We treat the order as not authorized when the sum of authorized and charged funds is
+    0.
+    """
+    total_covered = (
+        order.total_authorized_amount + order.total_charged_amount or Decimal("0")
+    )
+    total_covered = quantize_price(total_covered, order.currency)
+    total_gross = order.total_gross_amount or Decimal("0")
+    total_gross = quantize_price(total_gross, order.currency)
+
+    if total_covered == 0:
+        order.authorize_status = OrderAuthorizeStatus.NONE
+    elif total_covered >= total_gross:
+        order.authorize_status = OrderAuthorizeStatus.FULL
+    else:
+        order.authorize_status = OrderAuthorizeStatus.PARTIAL
+
+
+def update_order_authorize_data(order: Order, with_save=True):
+    _update_order_total_authorized(order)
+    update_order_authorize_status(order)
+    if with_save:
+        order.save(
+            update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
+        )

@@ -10,10 +10,22 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
 - Fix sorting by publication date with pagination - #9741 by @IKarbowiak
 - Fix max_length for voucher_code in Checkout model - #9791 by @SzymJ
+- Add new fields to `Order` type to show authorize/charge status #9795
+  - Add new fields to Order type:
+    - `totalAuthorized`
+    - `totalCharged`
+    - `authorizeStatus`
+    - `chargeStatus`
+  - Add filters to `Order`:
+    - `authorizeStatus`
+    - `chargeStatus`
 - Fix sorting by publication date with pagination - #9741 by IKarbowiak
 - Migrate order discount id from int to UUID - #9729 by @IKarbowiak
   - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
   for old order discounts.
+- Unify checkout's ID fields. - #9862 by @korycins
+  - Deprecate `checkoutID` and `token` in all Checkout's mutations. Use `id` instead.
+  - Deprecate `token` in `checkout` query. Use `id` instead.
 - Add `unitPrice`, `undiscountedUnitPrice`, `undiscountedTotalPrice` fields to `CheckoutLine` type - #9821 by @fowczarek
 
 

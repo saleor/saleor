@@ -2,7 +2,12 @@ import graphene
 
 from ...core.permissions import CheckoutPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_34,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ..core.fields import ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
 from ..payment.mutations import CheckoutPaymentCreate
@@ -39,7 +44,15 @@ class CheckoutQueries(graphene.ObjectType):
     checkout = graphene.Field(
         Checkout,
         description="Look up a checkout by token and slug of channel.",
-        token=graphene.Argument(UUID, description="The checkout's token."),
+        id=graphene.Argument(
+            graphene.ID, description="The checkout's ID." + ADDED_IN_34
+        ),
+        token=graphene.Argument(
+            UUID,
+            description=(
+                f"The checkout's token.{DEPRECATED_IN_3X_INPUT} Use `id` instead."
+            ),
+        ),
     )
     # FIXME we could optimize the below field
     checkouts = FilterConnectionField(
@@ -65,8 +78,8 @@ class CheckoutQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_checkout(_root, info, *, token):
-        return resolve_checkout(info, token)
+    def resolve_checkout(_root, info, *, token=None, id=None):
+        return resolve_checkout(info, token, id)
 
     @staticmethod
     def resolve_checkouts(_root, info, *, channel=None, **kwargs):

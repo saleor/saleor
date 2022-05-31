@@ -8,21 +8,18 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variants_to_checkout, recalculate_checkout_discount
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
-from ...core.validators import (
-    validate_one_of_args_is_in_mutation,
-    validate_variants_available_in_channel,
-)
+from ...core.validators import validate_variants_available_in_channel
 from ...product.types import ProductVariant
 from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (
     check_lines_quantity,
     check_permissions_for_custom_prices,
-    get_checkout_by_token,
+    get_checkout,
     group_quantity_and_custom_prices_by_variants,
     update_checkout_shipping_method_if_invalid,
     validate_variants_are_published,
@@ -34,13 +31,20 @@ class CheckoutLinesAdd(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
-            ),
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
             required=False,
         )
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
+            ),
+        )
         lines = NonNullList(
             CheckoutLineInput,
             required=True,
@@ -150,21 +154,18 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, lines, checkout_id=None, token=None, replace=False
+        cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
     ):
-        # DEPRECATED
-        validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
-        )
         check_permissions_for_custom_prices(info.context.app, lines)
 
-        if token:
-            checkout = get_checkout_by_token(token)
-        # DEPRECATED
-        else:
-            checkout = cls.get_node_or_error(
-                info, checkout_id or token, only_type=Checkout, field="checkout_id"
-            )
+        checkout = get_checkout(
+            cls,
+            info,
+            checkout_id=checkout_id,
+            token=token,
+            id=id,
+            error_class=CheckoutErrorCode,
+        )
 
         discounts = info.context.discounts
         manager = info.context.plugins

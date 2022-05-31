@@ -34,7 +34,7 @@ from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
-from ...core.utils import str_to_enum
+from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
     assert_no_permission,
@@ -98,6 +98,7 @@ FULL_USER_QUERY = """
                 isDefaultShippingAddress
                 isDefaultBillingAddress
             }
+            checkoutIds
             orders(first: 10) {
                 totalCount
                 edges {
@@ -183,6 +184,7 @@ def test_query_customer_user(
     permission_manage_orders,
     media_root,
     settings,
+    checkout,
 ):
     user = customer_user
     user.default_shipping_address.country = "US"
@@ -193,6 +195,9 @@ def test_query_customer_user(
     avatar_mock.name = "image.jpg"
     user.avatar = avatar_mock
     user.save()
+
+    checkout.user = user
+    checkout.save()
 
     Group.objects.create(name="empty group")
 
@@ -263,6 +268,8 @@ def test_query_customer_user(
     assert data["giftCards"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_used.pk
     )
+
+    assert data["checkoutIds"] == [to_global_id_or_none(checkout)]
 
 
 def test_query_customer_user_with_orders(

@@ -13,13 +13,13 @@ azure-storage-common==2.1.0
 babel==2.10.1; python_version >= "3.6"
 beautifulsoup4==4.7.1
 billiard==3.6.4.0; python_version >= "3.7"
-boto3==1.23.9; python_version >= "3.6"
-botocore==1.26.9; python_version >= "3.6"
+boto3==1.23.10; python_version >= "3.6"
+botocore==1.26.10; python_version >= "3.6"
 braintree==4.15.2
 brotli==1.0.9; platform_python_implementation == "CPython" and python_version >= "3.7"
 brotlicffi==1.0.9.2; platform_python_implementation != "CPython" and python_version >= "3.7"
-cachetools==5.1.0; python_version >= "3.7" and python_version < "4.0" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")
-celery==5.2.6; python_version >= "3.7"
+cachetools==5.2.0; python_version >= "3.7" and python_version < "4.0" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")
+celery==5.2.7; python_version >= "3.7"
 certifi==2022.5.18.1; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
 cffi==1.15.0; platform_python_implementation != "CPython" and python_version >= "3.7"
 charset-normalizer==2.0.12; python_full_version >= "3.6.0" and python_version >= "3.7"
@@ -34,7 +34,7 @@ deprecated==1.2.13; python_version >= "3.7" and python_full_version < "3.0.0" or
 dj-database-url==0.5.0
 dj-email-url==1.0.5
 django-appconf==1.0.5; python_version >= "3.6"
-django-cache-url==3.4.0
+django-cache-url==3.4.2
 django-celery-beat==2.2.1
 django-countries==7.3.2
 django-filter==21.1; python_version >= "3.6"
@@ -97,7 +97,7 @@ openpyxl==3.0.10; python_version >= "3.6"
 opentracing==2.4.0
 packaging==21.3; python_version >= "3.7"
 petl==1.7.9; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
-phonenumberslite==8.12.48
+phonenumberslite==8.12.49
 pillow==9.1.1; python_version >= "3.7"
 posuto==2022.5.0
 prices==1.1.0
