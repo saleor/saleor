@@ -22074,20 +22074,20 @@ type PageDeleted implements Event {
 }
 
 type PageTypeCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a page type.
+  The page type the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22097,20 +22097,20 @@ type PageTypeCreated implements Event {
 }
 
 type PageTypeUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a page type.
+  The page type the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22120,20 +22120,20 @@ type PageTypeUpdated implements Event {
 }
 
 type PageTypeDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a page type.
+  The page type the event relates to.
   
   Added in Saleor 3.4.
   

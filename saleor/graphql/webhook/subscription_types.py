@@ -736,7 +736,9 @@ class PageDeleted(ObjectType, PageBase):
 class PageTypeBase(AbstractType):
     page_type = graphene.Field(
         "saleor.graphql.page.types.PageType",
-        description="Look up a page type." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="The page type the event relates to."
+        + ADDED_IN_34
+        + PREVIEW_FEATURE,
     )
 
     @staticmethod
