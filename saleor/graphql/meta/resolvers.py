@@ -67,6 +67,7 @@ def resolve_object_with_metadata_type(instance):
             product_models.ProductVariant: product_types.ProductVariant,
             shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
             shipping_models.ShippingZone: shipping_types.ShippingZone,
+            tax_models.TaxClass: tax_types.TaxClass,
             tax_models.TaxConfiguration: tax_types.TaxConfiguration,
             warehouse_models.Warehouse: warehouse_types.Warehouse,
         }

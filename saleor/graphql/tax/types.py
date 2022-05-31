@@ -7,7 +7,10 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
-from .dataloaders import TaxConfigurationPerCountryByTaxConfigurationIDLoader
+from .dataloaders import (
+    TaxClassCountryRateByTaxClassIDLoader,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
 
 
 class TaxConfiguration(ModelObjectType):
@@ -85,6 +88,62 @@ class TaxConfigurationPerCountry(ModelObjectType):
         )
         interface = [graphene.relay.Node]
         model = models.TaxConfigurationPerCountry
+
+    @staticmethod
+    def resolve_country(root: models.TaxConfigurationPerCountry, _info):
+        return CountryDisplay(code=root.country.code, country=root.country.name)
+
+
+class TaxClass(ModelObjectType):
+    name = graphene.String(description="Name of the tax class.", required=True)
+    is_default = graphene.Boolean(
+        description=(
+            "Determines whether a tax class is a default one. Default tax class is "
+            "created by the system and cannot be removed."
+        ),
+        required=True,
+    )
+    countries = NonNullList(
+        "saleor.graphql.tax.types.TaxClassCountryRate",
+        required=True,
+        description="Country-specific tax rates for this tax class.",
+    )
+
+    class Meta:
+        description = (
+            "Tax class is a named object used to define tax rates per country. Tax "
+            "class can be assigned to product types, products and shipping methods to "
+            "define their tax rates." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        model = models.TaxClass
+
+    @staticmethod
+    def resolve_countries(root: models.TaxConfiguration, info):
+        return TaxClassCountryRateByTaxClassIDLoader(info.context).load(root.pk)
+
+
+class TaxClassCountableConnection(CountableConnection):
+    class Meta:
+        node = TaxClass
+
+
+class TaxClassCountryRate(ModelObjectType):
+    country = graphene.Field(
+        CountryDisplay,
+        required=True,
+        description="Country in which this tax rate applies.",
+    )
+    rate = graphene.Float(required=True, description="Tax rate value.")
+
+    class Meta:
+        description = (
+            "Country-specific tax rate value for a tax class."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
+        interfaces = [graphene.relay.Node]
+        model = models.TaxClassCountryRate
 
     @staticmethod
     def resolve_country(root: models.TaxConfigurationPerCountry, _info):

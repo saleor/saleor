@@ -2,7 +2,7 @@ from ...tax import models
 from ..core.filters import GlobalIDMultipleChoiceFilter, MetadataFilterBase
 from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_id
-from .types import TaxConfiguration
+from .types import TaxClass, TaxConfiguration
 
 
 class TaxConfigurationFilter(MetadataFilterBase):
@@ -16,3 +16,16 @@ class TaxConfigurationFilter(MetadataFilterBase):
 class TaxConfigurationFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = TaxConfigurationFilter
+
+
+class TaxClassFilter(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id(TaxClass))
+
+    class Meta:
+        model = models.TaxClass
+        fields = []
+
+
+class TaxClassFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = TaxClassFilter
