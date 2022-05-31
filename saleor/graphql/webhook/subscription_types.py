@@ -70,6 +70,9 @@ class Event(graphene.Interface):
     @classmethod
     def get_type(cls, object_type: str):
         types = {
+            WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
+            WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
+            WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,
             WebhookEventAsyncType.APP_INSTALLED: AppInstalled,
             WebhookEventAsyncType.APP_UPDATED: AppUpdated,
             WebhookEventAsyncType.APP_DELETED: AppDeleted,
@@ -173,6 +176,33 @@ class Event(graphene.Interface):
         if isinstance(info.context.requestor, AnonymousUser):
             return None
         return info.context.requestor
+
+
+class AddressBase(AbstractType):
+    address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        description="The address the event relates to." + ADDED_IN_34 + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_address(root, _info):
+        _, address = root
+        return address
+
+
+class AddressCreated(ObjectType, AddressBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AddressUpdated(ObjectType, AddressBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AddressDeleted(ObjectType, AddressBase):
+    class Meta:
+        interfaces = (Event,)
 
 
 class AppBase(AbstractType):
@@ -995,6 +1025,9 @@ class Subscription(ObjectType):
 # so all subscription events types need to be added manually to `Schema`.
 
 SUBSCRIPTION_EVENTS_TYPES = [
+    AddressCreated,
+    AddressUpdated,
+    AddressDeleted,
     AppInstalled,
     AppUpdated,
     AppDeleted,

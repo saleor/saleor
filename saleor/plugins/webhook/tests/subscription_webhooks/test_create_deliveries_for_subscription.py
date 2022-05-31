@@ -16,6 +16,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
 from .payloads import (
+    generate_address_payload,
     generate_app_payload,
     generate_category_payload,
     generate_collection_payload,
@@ -71,6 +72,57 @@ def test_subscription_query_with_meta(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_address_created(address, subscription_address_created_webhook):
+    # given
+    webhooks = [subscription_address_created_webhook]
+    event_type = WebhookEventAsyncType.ADDRESS_CREATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
+
+    # then
+    expected_payload = json.dumps({"address": generate_address_payload(address)})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_address_updated(address, subscription_address_updated_webhook):
+    # given
+    webhooks = [subscription_address_updated_webhook]
+    event_type = WebhookEventAsyncType.ADDRESS_UPDATED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
+
+    # then
+    expected_payload = json.dumps({"address": generate_address_payload(address)})
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_address_deleted(address, subscription_address_deleted_webhook):
+    # given
+    webhooks = [subscription_address_deleted_webhook]
+
+    id = address.id
+    address.delete()
+    address.id = id
+
+    event_type = WebhookEventAsyncType.ADDRESS_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
+
+    # then
+    expected_payload = json.dumps({"address": generate_address_payload(address)})
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_app_installed(app, subscription_app_installed_webhook):
     # given
     webhooks = [subscription_app_installed_webhook]
@@ -91,13 +143,13 @@ def test_app_updated(app, subscription_app_updated_webhook):
     # given
     webhooks = [subscription_app_updated_webhook]
     event_type = WebhookEventAsyncType.APP_UPDATED
-    gift_card_id = graphene.Node.to_global_id("App", app.id)
+    app_id = graphene.Node.to_global_id("App", app.id)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
 
     # then
-    expected_payload = generate_app_payload(app, gift_card_id)
+    expected_payload = generate_app_payload(app, app_id)
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
