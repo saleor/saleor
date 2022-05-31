@@ -181,7 +181,7 @@ class Event(graphene.Interface):
 class AddressBase(AbstractType):
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
-        description="The address the event relates to." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="The address the event relates to." + ADDED_IN_35 + PREVIEW_FEATURE,
     )
 
     @staticmethod
