@@ -23,7 +23,7 @@ from ...webhook.event_types import WebhookEventAsyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
-from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, ADDED_IN_35, PREVIEW_FEATURE
 from ..core.scalars import PositiveDecimal
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
@@ -737,7 +737,7 @@ class PageTypeBase(AbstractType):
     page_type = graphene.Field(
         "saleor.graphql.page.types.PageType",
         description="The page type the event relates to."
-        + ADDED_IN_34
+        + ADDED_IN_35
         + PREVIEW_FEATURE,
     )
 

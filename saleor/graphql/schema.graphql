@@ -22089,7 +22089,7 @@ type PageTypeCreated implements Event {
   """
   The page type the event relates to.
   
-  Added in Saleor 3.4.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -22112,7 +22112,7 @@ type PageTypeUpdated implements Event {
   """
   The page type the event relates to.
   
-  Added in Saleor 3.4.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -22135,7 +22135,7 @@ type PageTypeDeleted implements Event {
   """
   The page type the event relates to.
   
-  Added in Saleor 3.4.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
