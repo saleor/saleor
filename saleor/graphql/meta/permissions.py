@@ -23,6 +23,7 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
+    TaxPermissions,
 )
 from ...payment.utils import payment_owned_by_user
 from ..core.utils import from_global_id_or_error
@@ -149,6 +150,10 @@ def gift_card_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [GiftcardPermissions.MANAGE_GIFT_CARD]
 
 
+def tax_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
+    return [TaxPermissions.MANAGE_TAXES]
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "App": app_permissions,
     "Attribute": attribute_permissions,
@@ -172,6 +177,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "Sale": discount_permissions,
     "ShippingMethodType": shipping_permissions,
     "ShippingZone": shipping_permissions,
+    "TaxConfiguration": tax_permissions,
     "User": public_user_permissions,
     "Voucher": discount_permissions,
     "Warehouse": product_permissions,
@@ -202,6 +208,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "ShippingMethod": shipping_permissions,
     "ShippingMethodType": shipping_permissions,
     "ShippingZone": shipping_permissions,
+    "TaxConfiguration": tax_permissions,
     "User": private_user_permissions,
     "Voucher": discount_permissions,
     "Warehouse": product_permissions,

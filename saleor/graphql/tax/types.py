@@ -6,6 +6,7 @@ from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
+from ..meta.types import ObjectWithMetadata
 from .dataloaders import TaxConfigurationPerCountryByTaxConfigurationIDLoader
 
 
@@ -39,7 +40,7 @@ class TaxConfiguration(ModelObjectType):
         description = (
             "Channel-specific tax configuration." + ADDED_IN_35 + PREVIEW_FEATURE
         )
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.TaxConfiguration
 
     @staticmethod
