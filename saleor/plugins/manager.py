@@ -1102,6 +1102,17 @@ class PluginsManager(PaymentInterface):
             available_shipping_methods,
         )
 
+    def write_to_db(
+        self, custom: "Custom"
+    ):
+        default_value = None
+        plugin = self.get_plugin("custom.write")
+        return self.__run_method_on_single_plugin(
+            plugin,
+            "write_to_db",
+            default_value,
+            custom,
+        )
 
 def get_plugins_manager() -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
