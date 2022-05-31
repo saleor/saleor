@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name="taxclass",
             options={
-                "ordering": ("is_default", "name"),
+                "ordering": ("is_default", "name", "pk"),
                 "permissions": (("manage_taxes", "Manage taxes."),),
             },
         ),
