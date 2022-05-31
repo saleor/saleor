@@ -280,6 +280,10 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
         if attributes is not None:
             instance.page_attributes.add(*attributes)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.page_type_created(instance)
+
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
     class Arguments:
@@ -336,6 +340,10 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
         if add_attributes is not None:
             instance.page_attributes.add(*add_attributes)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.page_type_updated(instance)
+
 
 class PageTypeDelete(ModelDeleteMutation):
     class Arguments:
@@ -365,3 +373,7 @@ class PageTypeDelete(ModelDeleteMutation):
             attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
             pageassignments__assignment__page_type_id=instance_pk,
         ).delete()
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        transaction.on_commit(lambda: info.context.plugins.page_type_deleted(instance))

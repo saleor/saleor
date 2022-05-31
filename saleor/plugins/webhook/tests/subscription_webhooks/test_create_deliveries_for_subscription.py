@@ -26,6 +26,7 @@ from .payloads import (
     generate_menu_item_payload,
     generate_menu_payload,
     generate_page_payload,
+    generate_page_type_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
     generate_voucher_created_payload_with_meta,
@@ -1120,6 +1121,55 @@ def test_page_deleted(page, subscription_page_deleted_webhook):
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_page_type_created(page_type, subscription_page_type_created_webhook):
+    # given
+    webhooks = [subscription_page_type_created_webhook]
+    event_type = WebhookEventAsyncType.PAGE_TYPE_CREATED
+    expected_payload = json.dumps(generate_page_type_payload(page_type))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_page_type_updated(page_type, subscription_page_type_updated_webhook):
+    # given
+    webhooks = [subscription_page_type_updated_webhook]
+    event_type = WebhookEventAsyncType.PAGE_TYPE_UPDATED
+    expected_payload = json.dumps(generate_page_type_payload(page_type))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_page_type_deleted(page_type, subscription_page_type_deleted_webhook):
+    # given
+    page_type_id = page_type.id
+    page_type.delete()
+    page_type.id = page_type_id
+
+    webhooks = [subscription_page_type_deleted_webhook]
+    event_type = WebhookEventAsyncType.PAGE_TYPE_DELETED
+    expected_payload = json.dumps(generate_page_type_payload(page_type))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
 
     # then
     assert deliveries[0].payload.payload == expected_payload
