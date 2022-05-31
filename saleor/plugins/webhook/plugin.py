@@ -59,7 +59,7 @@ if TYPE_CHECKING:
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
-    from ...page.models import Page
+    from ...page.models import Page, PageType
     from ...payment.interface import (
         GatewayResponse,
         PaymentData,
@@ -710,6 +710,39 @@ class WebhookPlugin(BasePlugin):
             trigger_webhooks_async(
                 page_data, event_type, webhooks, page, self.requestor
             )
+
+    def _trigger_page_type_event(self, event_type, page_type):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("PageType", page_type.id),
+                "name": page_type.name,
+                "slug": page_type.slug,
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, page_type, self.requestor
+            )
+
+    def page_type_created(self, page_type: "PageType", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_page_type_event(
+            WebhookEventAsyncType.PAGE_TYPE_CREATED, page_type
+        )
+
+    def page_type_updated(self, page_type: "PageType", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_page_type_event(
+            WebhookEventAsyncType.PAGE_TYPE_UPDATED, page_type
+        )
+
+    def page_type_deleted(self, page_type: "PageType", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_page_type_event(
+            WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type
+        )
 
     def _trigger_shipping_price_event(self, event_type, shipping_method):
         if webhooks := get_webhooks_for_event(event_type):

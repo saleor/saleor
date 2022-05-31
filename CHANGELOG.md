@@ -4,7 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.5.0 [Unreleased]
 
-...
+### Other changes
+
+#### Saleor Apps
+- Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
 
 # 3.4.0
 
