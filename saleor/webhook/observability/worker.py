@@ -18,7 +18,7 @@ FLUSH_TIMEOUT = 2.0
 logger = logging.getLogger(__name__)
 
 
-def shutdown_worker(timeout=FLUSH_TIMEOUT):
+def shutdown(timeout=FLUSH_TIMEOUT):
     global _worker
     if _worker:
         logger.debug("[Observability] Background worker shutdown")
@@ -33,13 +33,19 @@ def init():
             batch_size=settings.OBSERVABILITY_BUFFER_BATCH_SIZE,
             timeout=settings.OBSERVABILITY_REPORT_PERIOD.total_seconds(),
         )
-        atexit.register(shutdown_worker)
+        atexit.register(shutdown)
 
 
 def put_event(buffer_name: str, generate_payload: Callable[[], Any]) -> bool:
     if _worker:
         return _worker.submit_event(buffer_name, generate_payload)
     logger.warning("[Observability] Worker not initialized, event dropped")
+    return False
+
+
+def queue_join(timeout: float):
+    if _worker:
+        return _worker.queue_join(timeout)
     return False
 
 
@@ -59,19 +65,24 @@ def buffer_put_multi_key_events(events: Dict[str, List]) -> bool:
 
 class BackgroundWorker:
     def __init__(self, batch_size: int, timeout: float):
-        self._batch_size = batch_size
-        self._queue: "Queue[Any]" = Queue(maxsize=batch_size)
+        self._batch_size = max(batch_size, 1)
+        self._queue: "Queue[Any]" = Queue(maxsize=self.queue_size(self._batch_size))
         self._lock = Lock()
         self._thread: Optional[Thread] = None
         self._thread_for_pid: Optional[int] = None
         self._timeout = timeout
+
+    @staticmethod
+    def queue_size(batch_size: int) -> int:
+        return batch_size * 2
 
     def _target(self):
         logger.debug("[Observability] Background worker started")
         working = True
         while working:
             with opentracing_trace("background_worker", "background_worker"):
-                events, events_count, deadline = {}, 0, monotonic() + self._timeout
+                deadline = monotonic() + self._timeout
+                events, events_count = {}, 0
                 while (
                     events_count < self._batch_size
                     and (timeout := deadline - monotonic()) > 0.0
@@ -80,19 +91,19 @@ class BackgroundWorker:
                         event_data = self._queue.get(timeout=timeout)
                     except Empty:
                         break
+                    if event_data is _TERMINATOR:
+                        working = False
+                        self._queue.task_done()
+                        break
                     try:
-                        if event_data is _TERMINATOR:
-                            working = False
-                            break
                         buffer_name, generate_payload = event_data
                         events.setdefault(buffer_name, []).append(generate_payload())
                         events_count += 1
                     except Exception:
+                        self._queue.task_done()
                         logger.error(
                             "[Observability] Failed generating payload", exc_info=True
                         )
-                    finally:
-                        self._queue.task_done()
                 if events_count:
                     with opentracing_trace("put_events", "buffer"):
                         try:
@@ -103,6 +114,9 @@ class BackgroundWorker:
                                 events_count,
                                 exc_info=True,
                             )
+                for _ in range(events_count):
+                    self._queue.task_done()
+        logger.debug("[Observability] Background worker stopped")
 
     def start(self):
         with self._lock:
@@ -136,24 +150,23 @@ class BackgroundWorker:
             logger.warning("[Observability] Queue full, event dropped")
         return False
 
-    def _timed_queue_join(self, timeout: float) -> bool:
+    def queue_join(self, timeout: float) -> bool:
         deadline = monotonic() + timeout
         queue = self._queue
-        self._timeout = timeout
         with queue.all_tasks_done:
             while queue.unfinished_tasks:
                 delay = deadline - monotonic()
                 if delay <= 0:
                     return False
                 queue.all_tasks_done.wait(timeout=delay)
-            return True
+        return True
 
     def _wait_flush(self, timeout: float):
         initial_timeout = min(0.1, timeout)
-        if not self._timed_queue_join(initial_timeout):
+        if not self.queue_join(initial_timeout):
             pending = self._queue.qsize()
             logger.debug("[Observability] %d events pending on flush", pending)
-            if not self._timed_queue_join(timeout - initial_timeout):
+            if not self.queue_join(timeout - initial_timeout):
                 pending = self._queue.qsize()
                 logger.error(
                     "[Observability] Flush timed out, dropped %s events", pending
