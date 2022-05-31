@@ -3,6 +3,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, notifications, search, utils
@@ -328,9 +329,18 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         user = info.context.user
         remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
-        info.context.plugins.customer_updated(user)
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
+        transaction.on_commit(
+            lambda: cls.trigger_post_account_address_create_webhooks(
+                info, instance, user
+            )
+        )
+
+    @classmethod
+    def trigger_post_account_address_create_webhooks(cls, info, address, user):
+        info.context.plugins.customer_updated(user)
+        info.context.plugins.address_created(address)
 
 
 class AccountAddressUpdate(BaseAddressUpdate):

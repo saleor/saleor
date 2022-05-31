@@ -50,7 +50,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from ...account.models import User
+    from ...account.models import Address, User
     from ...channel.models import Channel
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
@@ -95,6 +95,34 @@ class WebhookPlugin(BasePlugin):
 
     def _generate_meta(self):
         return generate_meta(requestor_data=generate_requestor(self.requestor))
+
+    def _trigger_address_event(self, event_type, address):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Address", address.id),
+                "city": address.city,
+                "country": address.country,
+                "company_name": address.company_name,
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, address, self.requestor
+            )
+
+    def address_created(self, address: "Address", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_address_event(WebhookEventAsyncType.ADDRESS_CREATED, address)
+
+    def address_updated(self, address: "Address", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_address_event(WebhookEventAsyncType.ADDRESS_UPDATED, address)
+
+    def address_deleted(self, address: "Address", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_address_event(WebhookEventAsyncType.ADDRESS_DELETED, address)
 
     def _trigger_app_event(self, event_type, app):
         if webhooks := get_webhooks_for_event(event_type):

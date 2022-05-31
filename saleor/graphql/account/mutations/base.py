@@ -331,6 +331,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
 
         info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
+        info.context.plugins.address_updated(address)
 
         success_response = cls.success_response(address)
         success_response.user = user
@@ -391,6 +392,7 @@ class BaseAddressDelete(ModelDeleteMutation):
 
         response.user = user
         info.context.plugins.customer_updated(user)
+        info.context.plugins.address_deleted(instance)
         return response
 
 

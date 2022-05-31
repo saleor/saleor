@@ -826,6 +826,18 @@ class PluginsManager(PaymentInterface):
             channel_slug=channel_slug,
         )
 
+    def address_created(self, address: "Address"):
+        default_value = None
+        return self.__run_method_on_plugins("address_created", default_value, address)
+
+    def address_updated(self, address: "Address"):
+        default_value = None
+        return self.__run_method_on_plugins("address_updated", default_value, address)
+
+    def address_deleted(self, address: "Address"):
+        default_value = None
+        return self.__run_method_on_plugins("address_deleted", default_value, address)
+
     def app_installed(self, app: "App"):
         default_value = None
         return self.__run_method_on_plugins("app_installed", default_value, app)

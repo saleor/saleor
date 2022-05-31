@@ -19,6 +19,10 @@ from ..core.permissions import (
 class WebhookEventAsyncType:
     ANY = "any_events"
 
+    ADDRESS_CREATED = "address_created"
+    ADDRESS_UPDATED = "address_updated"
+    ADDRESS_DELETED = "address_deleted"
+
     APP_INSTALLED = "app_installed"
     APP_UPDATED = "app_updated"
     APP_DELETED = "app_deleted"
@@ -123,6 +127,9 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        ADDRESS_CREATED: "Address created",
+        ADDRESS_UPDATED: "Address updated",
+        ADDRESS_DELETED: "Address deleted",
         APP_INSTALLED: "App created",
         APP_UPDATED: "App updated",
         APP_DELETED: "App deleted",
@@ -203,6 +210,9 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
+        (ADDRESS_UPDATED, DISPLAY_LABELS[ADDRESS_UPDATED]),
+        (ADDRESS_DELETED, DISPLAY_LABELS[ADDRESS_DELETED]),
         (APP_INSTALLED, DISPLAY_LABELS[APP_INSTALLED]),
         (APP_UPDATED, DISPLAY_LABELS[APP_UPDATED]),
         (APP_DELETED, DISPLAY_LABELS[APP_DELETED]),
@@ -284,6 +294,9 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
+        ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
+        ADDRESS_DELETED: AccountPermissions.MANAGE_USERS,
         APP_INSTALLED: AppPermission.MANAGE_APPS,
         APP_UPDATED: AppPermission.MANAGE_APPS,
         APP_DELETED: AppPermission.MANAGE_APPS,
@@ -435,6 +448,9 @@ class WebhookEventSyncType:
 
 
 SUBSCRIBABLE_EVENTS = [
+    WebhookEventAsyncType.ADDRESS_CREATED,
+    WebhookEventAsyncType.ADDRESS_UPDATED,
+    WebhookEventAsyncType.ADDRESS_DELETED,
     WebhookEventAsyncType.APP_INSTALLED,
     WebhookEventAsyncType.APP_UPDATED,
     WebhookEventAsyncType.APP_DELETED,

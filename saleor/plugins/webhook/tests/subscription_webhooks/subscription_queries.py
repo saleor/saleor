@@ -1,5 +1,53 @@
 from .....graphql.tests.queries import fragments
 
+ADDRESS_CREATED = (
+    fragments.ADDRESS_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AddressCreated{
+          address{
+            ...AddressDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ADDRESS_UPDATED = (
+    fragments.ADDRESS_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AddressUpdated{
+          address{
+            ...AddressDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ADDRESS_DELETED = (
+    fragments.ADDRESS_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AddressDeleted{
+          address{
+            ...AddressDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 APP_INSTALLED = (
     fragments.APP_DETAILS
     + """

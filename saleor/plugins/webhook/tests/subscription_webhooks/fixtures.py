@@ -21,6 +21,27 @@ def subscription_webhook(webhook_app):
 
 
 @pytest.fixture
+def subscription_address_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ADDRESS_CREATED, WebhookEventAsyncType.ADDRESS_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_address_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ADDRESS_UPDATED, WebhookEventAsyncType.ADDRESS_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_address_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ADDRESS_DELETED, WebhookEventAsyncType.ADDRESS_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_app_installed_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.APP_INSTALLED, WebhookEventAsyncType.APP_INSTALLED
