@@ -209,6 +209,7 @@ def append_line_to_data(
     name: str = None,
     tax_included: Optional[bool] = None,
     discounted: Optional[bool] = False,
+    tax_override_data: Optional[dict] = None,
     ref1: Optional[str] = None,
     ref2: Optional[str] = None,
 ):
@@ -224,6 +225,8 @@ def append_line_to_data(
         "description": name,
     }
 
+    if tax_override_data:
+        line_data["taxOverride"] = tax_override_data
     if ref1:
         line_data["ref1"] = ref1
     if ref2:
@@ -262,11 +265,23 @@ def get_checkout_lines_data(
     tax_included = Site.objects.get_current().settings.include_taxes_in_prices
     voucher = checkout_info.voucher
     is_entire_order_discount = (
-        voucher.type == VoucherType.ENTIRE_ORDER if voucher else False
+        voucher.type == VoucherType.ENTIRE_ORDER
+        if voucher and not voucher.apply_once_per_order
+        else False
     )
     for line_info in lines_info:
+        tax_override_data = {}
         if not line_info.product.charge_taxes:
-            continue
+            if not is_entire_order_discount:
+                continue
+            # if there is a voucher for the entire order we need to attach this line
+            # with 0 tax to propagate discount through all lines
+            tax_override_data = {
+                "type": "taxAmount",
+                "taxAmount": 0,
+                "reason": "Charge taxes for this product are turned off.",
+            }
+
         product = line_info.product
         name = product.name
         product_type = line_info.product_type
@@ -299,6 +314,7 @@ def get_checkout_lines_data(
             "name": name,
             "tax_included": tax_included,
             "discounted": is_entire_order_discount,
+            "tax_override_data": tax_override_data,
         }
 
         append_line_to_data(
@@ -445,7 +461,6 @@ def generate_request_data_from_checkout(
     transaction_type=TransactionType.ORDER,
     discounts=None,
 ):
-
     address = checkout_info.shipping_address or checkout_info.billing_address
     lines = get_checkout_lines_data(checkout_info, lines_info, config, discounts)
 

@@ -1162,6 +1162,78 @@ def test_calculate_checkout_total_voucher_on_entire_order(
 
 
 @pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
+    checkout_with_item,
+    voucher_percentage,
+    stock,
+    monkeypatch,
+    site_settings,
+    ship_to_pl_address,
+    shipping_zone,
+    address,
+    plugin_configuration,
+):
+    """Ensure that the voucher is applied to entire order the total
+    is equal to the shipping price."""
+    # given
+    plugin_configuration()
+    variant = stock.product_variant
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager()
+    site_settings.company_address = address
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    channel = checkout_with_item.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = (
+        variant.get_price(
+            variant.product, [], checkout_with_item.channel, channel_listing
+        )
+        * checkout_with_item.lines.first().quantity
+    )
+
+    discount_amount = Decimal("2.0")
+    checkout_with_item.shipping_address = ship_to_pl_address
+    shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.discount_amount = discount_amount
+    checkout_with_item.save()
+
+    shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
+    shipping_price = shipping_channel_listings.price
+
+    line = checkout_with_item.lines.first()
+    product = line.variant.product
+    product.charge_taxes = False
+    product.save(update_fields=["charge_taxes"])
+
+    discounts = None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    currency = checkout_with_item.currency
+
+    # when
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, discounts
+    )
+
+    # then
+    total = quantize_price(total, currency)
+    expected_gross = Money(net.amount - discount_amount, "USD")
+    assert total == TaxedMoney(
+        net=quantize_price(expected_gross + shipping_price / Decimal("1.23"), currency),
+        gross=expected_gross + shipping_price,
+    )
+
+
+@pytest.mark.vcr
 @pytest.mark.parametrize(
     "expected_net, expected_gross, taxes_in_prices",
     [
