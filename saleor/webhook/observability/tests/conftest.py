@@ -72,3 +72,10 @@ def patch_connection_pool(redis_server):
 def buffer(patch_connection_pool):
     buffer = RedisBuffer(BROKER_URL, KEY, max_size=MAX_SIZE, batch_size=BATCH_SIZE)
     return buffer
+
+
+@pytest.fixture
+def buffer_full(buffer):
+    for _ in range(MAX_SIZE):
+        buffer.put_event("payload")
+    return buffer

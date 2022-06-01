@@ -1,4 +1,3 @@
-import time
 from datetime import timedelta
 from functools import partial
 from unittest.mock import call, patch
@@ -7,9 +6,8 @@ import pytest
 from redis.exceptions import RedisError
 
 from .. import worker
-from .conftest import KEY, MAX_SIZE
+from .conftest import BATCH_SIZE, KEY
 
-BATCH_SIZE = 10
 QUEUE_SIZE = worker.BackgroundWorker.queue_size(BATCH_SIZE)
 REPORT_PERIOD = timedelta(seconds=0.01)
 JOIN_TIMEOUT = REPORT_PERIOD.total_seconds() * 2
@@ -40,11 +38,8 @@ def test_buffer_put_multi_key_events(mock_get_buffer, buffer):
 
 
 @patch("saleor.webhook.observability.worker.get_buffer")
-def test_buffer_put_multi_key_events_when_buffer_is_full(mock_get_buffer, buffer):
-    mock_get_buffer.return_value = buffer
-    for _ in range(MAX_SIZE):
-        buffer.put_event("payload")
-    assert buffer.size() == MAX_SIZE
+def test_buffer_put_multi_key_events_when_buffer_is_full(mock_get_buffer, buffer_full):
+    mock_get_buffer.return_value = buffer_full
     events = {KEY: ["payload"], "buffer_b": ["payload"]}
 
     assert worker.buffer_put_multi_key_events(events) is False
@@ -55,6 +50,7 @@ def test_put_event_when_worker_not_initialized():
 
     assert worker.put_event("buffer", lambda: "payload") is False
     assert worker.queue_join(JOIN_TIMEOUT) is False
+    assert worker.shutdown() is False
 
 
 def test_background_worker(init_worker, mock_buffer_put_multi_key_events):
@@ -155,13 +151,11 @@ def test_background_worker_shutdown_when_queue_full(
     mock_buffer_put_multi_key_events.assert_called()
 
 
+@patch("saleor.webhook.observability.worker.BackgroundWorker.queue_join")
 def test_background_worker_failed_flush_on_shutdown(
-    init_worker, mock_buffer_put_multi_key_events
+    mock_queue_join, init_worker, mock_buffer_put_multi_key_events
 ):
-    def generate_payload():
-        time.sleep(JOIN_TIMEOUT * 2)
-        return "payload"
+    mock_queue_join.return_value = False
+    worker.put_event(KEY, lambda: "payload")
 
-    worker.put_event(KEY, generate_payload)
-    worker.shutdown(JOIN_TIMEOUT)
-    mock_buffer_put_multi_key_events.assert_not_called()
+    assert worker.shutdown(JOIN_TIMEOUT) is False

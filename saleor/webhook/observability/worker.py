@@ -18,12 +18,14 @@ FLUSH_TIMEOUT = 2.0
 logger = logging.getLogger(__name__)
 
 
-def shutdown(timeout=FLUSH_TIMEOUT):
+def shutdown(timeout=FLUSH_TIMEOUT) -> bool:
     global _worker
     if _worker:
         logger.debug("[Observability] Background worker shutdown")
-        _worker.flush(timeout)
+        success = _worker.flush(timeout)
         _worker = None
+        return success
+    return False
 
 
 def init():
@@ -161,7 +163,7 @@ class BackgroundWorker:
                 queue.all_tasks_done.wait(timeout=delay)
         return True
 
-    def _wait_flush(self, timeout: float):
+    def _wait_flush(self, timeout: float) -> bool:
         initial_timeout = min(0.1, timeout)
         if not self.queue_join(initial_timeout):
             pending = self._queue.qsize()
@@ -171,14 +173,18 @@ class BackgroundWorker:
                 logger.error(
                     "[Observability] Flush timed out, dropped %s events", pending
                 )
+                return False
+        return True
 
-    def flush(self, timeout: float):
+    def flush(self, timeout: float) -> bool:
         with self._lock:
             try:
                 self._queue.put_nowait(_TERMINATOR)
             except Full:
                 logger.warning("[Observability] Worker queue full, flush failed")
+            success = False
             if self.is_alive and timeout > 0.0:
-                self._wait_flush(timeout)
+                success = self._wait_flush(timeout)
             self._thread = None
             self._thread_for_pid = None
+        return success
