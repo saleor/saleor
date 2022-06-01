@@ -6,34 +6,17 @@ from ..fragments import TAX_CONFIGURATION_FRAGMENT
 
 QUERY = (
     """
-  query TaxConfiguration {
-    taxConfigurations(first: 100) {
-      totalCount
-      edges {
-        node {
-          ...TaxConfiguration
+    query TaxConfiguration($filter: TaxConfigurationFilterInput) {
+        taxConfigurations(first: 100, filter: $filter) {
+            totalCount
+            edges {
+                node {
+                    ...TaxConfiguration
+                }
+            }
         }
-      }
     }
-  }
-"""
-    + TAX_CONFIGURATION_FRAGMENT
-)
-
-
-QUERY_WITH_FILTER = (
     """
-  query TaxConfiguration($ids: [ID!]) {
-    taxConfigurations(first: 100, filter: { ids: $ids }) {
-      totalCount
-      edges {
-        node {
-          ...TaxConfiguration
-        }
-      }
-    }
-  }
-"""
     + TAX_CONFIGURATION_FRAGMENT
 )
 
@@ -95,7 +78,7 @@ def test_tax_configurations_filter(
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_WITH_FILTER, {"ids": ids}, permissions=[permission_manage_taxes]
+        QUERY, {"ids": ids}, permissions=[permission_manage_taxes]
     )
 
     # then

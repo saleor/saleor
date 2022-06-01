@@ -26,3 +26,28 @@ TAX_CONFIGURATION_FRAGMENT = """
     }
   }
 """
+
+
+TAX_CLASS_FRAGMENT = """
+  fragment TaxClass on TaxClass {
+    id
+    name
+    isDefault
+    countries {
+      id
+      country {
+        code
+        country
+      }
+      rate
+    }
+    metadata {
+      key
+      value
+    }
+    privateMetadata {
+      key
+      value
+    }
+  }
+"""

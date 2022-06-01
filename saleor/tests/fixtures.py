@@ -117,7 +117,6 @@ from ..shipping.models import (
 )
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
-from ..tax.models import TaxClass
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
@@ -1792,6 +1791,7 @@ def permission_manage_observability():
     return Permission.objects.get(codename="manage_observability")
 
 
+@pytest.fixture
 def permission_manage_taxes():
     return Permission.objects.get(codename="manage_taxes")
 
@@ -5931,9 +5931,3 @@ def event_deliveries(event_payload, webhook, app):
         "delivery_2_id": delivery_2,
         "delivery_3_id": delivery_3,
     }
-
-
-@pytest.fixture(autouse=True)
-def default_tax_class(db):
-    tax_class, _ = TaxClass.objects.get_or_create(is_default=True, name="Default")
-    return tax_class

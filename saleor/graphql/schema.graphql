@@ -7101,6 +7101,7 @@ enum TaxClassSortField {
 input TaxClassFilterInput {
   metadata: [MetadataFilter!]
   ids: [ID!]
+  countries: [CountryCode!]
 }
 
 type StockCountableConnection {
