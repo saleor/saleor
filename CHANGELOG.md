@@ -2,29 +2,35 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-## Unreleased
-
-- Migrate order line id from int to UUID - #9637 by @IKarbowiak
-  - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
-  for old order lines.
-- Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
-- Fix sorting by publication date with pagination - #9741 by @IKarbowiak
-- Fix max_length for voucher_code in Checkout model - #9791 by @SzymJ
-- Fix sorting by publication date with pagination - #9741 by IKarbowiak
-- Migrate order discount id from int to UUID - #9729 by @IKarbowiak
-  - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
-  for old order discounts.
-- Add `unitPrice`, `undiscountedUnitPrice`, `undiscountedTotalPrice` fields to `CheckoutLine` type - #9821 by @fowczarek
-
-
-## Breaking
-
-- Hide private metadata in notification payloads - #9849 by @maarcingebala
-  - From now on, the `private_metadata` field in `NOTIFY_USER` webhook payload is deprecated and it will return an empty dictionary. This change also affects `AdminEmailPlugin`, `UserEmailPlugin`, an d `SendgridEmailPlugin`.
+# 3.5.0 [Unreleased]
 
 ### Other changes
-- Fix for sending incorrect prices to Avatax - #9633 by @korycins
-- PREVIEW_FEATURE: Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
+
+#### Saleor Apps
+- Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
+- Add webhooks `ADDRESS_CREATED`, `ADDRESS_UPDATED` and `ADDRESS_DELETED` - #9860 by @SzymJ
+
+# 3.4.0
+
+### Breaking changes
+
+- Hide private metadata in notification payloads - #9849 by @maarcingebala
+  - From now on, the `private_metadata` field in `NOTIFY_USER` webhook payload is deprecated and it will return an empty dictionary. This change also affects `AdminEmailPlugin`, `UserEmailPlugin`, and `SendgridEmailPlugin`.
+
+### Other changes
+
+#### GraphQL API
+
+- Add new fields to `Order` type to show authorize/charge status #9795
+  - Add new fields to Order type:
+    - `totalAuthorized`
+    - `totalCharged`
+    - `authorizeStatus`
+    - `chargeStatus`
+  - Add filters to `Order`:
+    - `authorizeStatus`
+    - `chargeStatus`
+- Add mutations for managing a payment transaction attached to order/checkout. - #9564 by @korycins
   - add fields:
     - `order.transactions`
     - `checkout.transactions`
@@ -34,14 +40,62 @@ All notable, unreleased changes to this project will be documented in this file.
     - `transactionRequestAction`
   - add new webhook event:
     - `TRANSACTION_ACTION_REQUEST`
+- Unify checkout's ID fields. - #9862 by @korycins
+  - Deprecate `checkoutID` and `token` in all Checkout's mutations. Use `id` instead.
+  - Deprecate `token` in `checkout` query. Use `id` instead.
+- Add `unitPrice`, `undiscountedUnitPrice`, `undiscountedTotalPrice` fields to `CheckoutLine` type - #9821 by @fowczarek
+- Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation - #9653 by @IKarbowiak
+- Update sorting field descriptions - add info where channel slug is required (#9695) (391743098)
+- Fix using enum values in permission descriptions (#9697) (dbb783e1f)
+- Change gateway validation in `checkoutPaymentCreate` mutation (#9530) (cf1d49bdc)
+- Fix invalid `ADDED_PRODUCTS` event parameter for `OrderLinesCreate` mutation (#9653) (a0d8aa8f1)
+- Fix resolver for `Product.created` field (#9737) (0af00cb70)
+- Allow fetching by id all order data for new orders (#9728) (71c19c951)
+- Provide a reference for the rich text format (#9744) (f2207c408)
+- Improve event schema field descriptions - #9880 by @patrys
 
 #### Saleor Apps
-- Add webhooks `MENU_CREATED`, `MENU_UPDATED`, `MENU_DELETED`, `MENU_ITEM_CREATED`, `MENU_ITEM_UPDATED`, `MENU_ITEM_DELETED` - #9651 by @SzymJ
-- Add webhooks `VOUCHER_CREATED`, `VOUCHER_UPDATED`, `VOUCHER_DELETED` - #9657 by @SzymJ
-- Add webhooks `APP_CREATED`, `APP_UPDATED`, `APP_DELETED`, `APP_STATUS_CHANGED` - #9698 by @SzymJ
+
+- Add menu webhooks: `MENU_CREATED`, `MENU_UPDATED`, `MENU_DELETED`, `MENU_ITEM_CREATED`, `MENU_ITEM_UPDATED`, `MENU_ITEM_DELETED` - #9651 by @SzymJ
+- Add voucher webhooks: `VOUCHER_CREATED`, `VOUCHER_UPDATED`, `VOUCHER_DELETED` - #9657 by @SzymJ
+- Add app webhooks: `APP_INSTALLED`, `APP_UPDATED`, `APP_DELETED`, `APP_STATUS_CHANGED` - #9698 by @SzymJ
+- Add warehouse webhoks: `WAREHOUSE_CREATED`, `WAREHOUSE_UPDATED`, `WAREHOUSE_DELETED` - #9746 by @SzymJ
+- Expose order alongside fulfillment in fulfillment-based subscriptions used by webhooks (#9847)
+- Fix webhooks payload not having field for `is_published` (#9800) (723f93c50)
+- Add support for `ORDER_*` mounting points for Apps (#9694) (cc728ef7e)
+- Add missing shipping method data in order and checkout events payloads. (#9692) (dabd1a221)
+- Use the human-readable order number in notification payloads (#9863) (f10c5fd5f)
+
+#### Models
+
+- Migrate order discount id from int to UUID - #9729 by @IKarbowiak
+  - Changed the order discount `id` from `int` to `UUID`, the old ids still can be used
+    for old order discounts.
+- Migrate order line id from int to UUID - #9637 by @IKarbowiak
+  - Changed the order line `id` from `int` to `UUID`, the old ids still can be used
+    for old order lines.
 - Migrate checkout line id from int to UUID - #9675 by @IKarbowiak
   - Changed the checkout line `id` from `int` to `UUID`, the old ids still can be used
-  for old checkout lines.
+    for old checkout lines.
+
+#### Performance
+
+- Fix memory consumption of `delete_event_payloads_task` (#9806) (2823edc68)
+- Add webhook events dataloader (#9790) (e88eef35e)
+- Add dataloader for fulfillment warehouse resolver (#9740) (9d14fadb2)
+- Fix order type resolvers performance (#9723) (13b5a95e7)
+- Improve warehouse filtering performance (#9622) (a1a7a223b)
+- Add dataloader for fulfillment lines (#9707) (68fb4bf4a)
+
+#### Other
+
+- Observability reporter - #9803 by @przlada
+- Update sample products set - #9796 by @mirekm
+- Fix for sending incorrect prices to Avatax - #9633 by @korycins
+- Fix tax-included flag sending to Avatax - #9820
+- Fix AttributeError: 'Options' object has no attribute 'Model' in `search_tasks.py` - #9824
+- Fix Braintree merchant accounts mismatch error - #9778
+- Stricter signatures for resolvers and mutations - #9649
 
 # 3.3.1
 
@@ -90,7 +144,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix for raising Permission Denied when anonymous user calls `checkout.customer` field - #9573 by @korycins
 - Optimize stock warehouse resolver performance (955489bff) by @tomaszszymanski129
 - Improve shipping zone filters performance (#9540) (7841ec536) by @tomaszszymanski129
-
 
 # 3.2.0
 

@@ -513,6 +513,14 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+CELERY_TASK_ROUTES = {
+    "saleor.plugins.webhook.tasks.observability_reporter_task": {
+        "queue": "observability"
+    },
+    "saleor.plugins.webhook.tasks.observability_send_events": {
+        "queue": "observability"
+    },
+}
 
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
@@ -552,6 +560,30 @@ CELERY_BEAT_SCHEDULE = {
 EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
+
+# Observability settings
+OBSERVABILITY_BROKER_URL = os.environ.get("OBSERVABILITY_BROKER_URL")
+OBSERVABILITY_ACTIVE = bool(OBSERVABILITY_BROKER_URL)
+OBSERVABILITY_REPORT_ALL_API_CALLS = get_bool_from_env(
+    "OBSERVABILITY_REPORT_ALL_API_CALLS", False
+)
+OBSERVABILITY_MAX_PAYLOAD_SIZE = int(
+    os.environ.get("OBSERVABILITY_MAX_PAYLOAD_SIZE", 128 * 1024)
+)
+OBSERVABILITY_BUFFER_SIZE_LIMIT = int(
+    os.environ.get("OBSERVABILITY_BUFFER_SIZE_LIMIT", 1000)
+)
+OBSERVABILITY_BUFFER_BATCH_SIZE = int(
+    os.environ.get("OBSERVABILITY_BUFFER_BATCH_SIZE", 100)
+)
+OBSERVABILITY_REPORT_PERIOD = timedelta(
+    seconds=parse(os.environ.get("OBSERVABILITY_REPORT_PERIOD", "20 seconds"))
+)
+if OBSERVABILITY_ACTIVE:
+    CELERY_BEAT_SCHEDULE["observability-reporter"] = {
+        "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
+        "schedule": OBSERVABILITY_REPORT_PERIOD,
+    }
 
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR

@@ -236,9 +236,9 @@ def from_global_id_or_none(
 
 def to_global_id_or_none(instance):
     class_name = instance.__class__.__name__
-    if instance.id is None:
+    if instance.pk is None:
         return None
-    return graphene.Node.to_global_id(class_name, instance.id)
+    return graphene.Node.to_global_id(class_name, instance.pk)
 
 
 def add_hash_to_file_name(file):

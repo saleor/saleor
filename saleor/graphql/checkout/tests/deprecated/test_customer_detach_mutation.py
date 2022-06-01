@@ -40,6 +40,26 @@ def test_checkout_customer_detach_by_id(
     assert checkout.user is None
 
 
+def test_checkout_customer_detach_by_token(
+    user_api_client, checkout_with_item, customer_user
+):
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+
+    variables = {"token": checkout.token}
+
+    # Mutation should succeed if the user owns this checkout.
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerDetach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user is None
+
+
 def test_checkout_customer_detach_neither_token_and_id_given(
     user_api_client, checkout_with_item, customer_user
 ):

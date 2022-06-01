@@ -129,6 +129,7 @@ from ..warehouse.models import (
 )
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
+from ..webhook.observability import WebhookData
 from .utils import dummy_editorjs
 
 
@@ -1784,6 +1785,11 @@ def permission_manage_plugins():
 @pytest.fixture
 def permission_manage_apps():
     return Permission.objects.get(codename="manage_apps")
+
+
+@pytest.fixture
+def permission_manage_observability():
+    return Permission.objects.get(codename="manage_observability")
 
 
 @pytest.fixture
@@ -5272,6 +5278,31 @@ def shipping_app(db, permission_manage_shipping):
         ]
     )
     return app
+
+
+@pytest.fixture
+def observability_webhook(db, permission_manage_observability):
+    app = App.objects.create(name="Observability App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_observability)
+
+    webhook = Webhook.objects.create(
+        name="observability-webhook-1",
+        app=app,
+        target_url="https://observability-app.com/api/",
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.OBSERVABILITY)
+    return webhook
+
+
+@pytest.fixture
+def observability_webhook_data(observability_webhook):
+    return WebhookData(
+        id=observability_webhook.id,
+        saleor_domain="mirumee.com",
+        target_url=observability_webhook.target_url,
+        secret_key=observability_webhook.secret_key,
+    )
 
 
 @pytest.fixture

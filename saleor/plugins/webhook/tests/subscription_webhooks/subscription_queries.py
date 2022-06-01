@@ -1,5 +1,53 @@
 from .....graphql.tests.queries import fragments
 
+ADDRESS_CREATED = (
+    fragments.ADDRESS_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AddressCreated{
+          address{
+            ...AddressDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ADDRESS_UPDATED = (
+    fragments.ADDRESS_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AddressUpdated{
+          address{
+            ...AddressDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ADDRESS_DELETED = (
+    fragments.ADDRESS_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AddressDeleted{
+          address{
+            ...AddressDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 APP_INSTALLED = (
     fragments.APP_DETAILS
     + """
@@ -877,6 +925,53 @@ PAGE_DELETED = (
     }
 """
 )
+
+
+PAGE_TYPE_CREATED = (
+    fragments.PAGE_TYPE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PageTypeCreated{
+          pageType{
+            ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PAGE_TYPE_UPDATED = (
+    fragments.PAGE_TYPE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PageTypeUpdated{
+          pageType{
+            ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PAGE_TYPE_DELETED = (
+    fragments.PAGE_TYPE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PageTypeDeleted{
+          pageType{
+            ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 
 MULTIPLE_EVENTS = """
 subscription{

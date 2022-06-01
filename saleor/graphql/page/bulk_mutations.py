@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
@@ -90,6 +91,13 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
             return 0, error
         cls.delete_assigned_attribute_values(pks)
         return super().perform_mutation(_root, info, ids, **data)
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        page_types = list(queryset)
+        queryset.delete()
+        for pt in page_types:
+            transaction.on_commit(lambda: info.context.plugins.page_type_deleted(pt))
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):

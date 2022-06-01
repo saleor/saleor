@@ -619,7 +619,6 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
 
     authorized_amount = payment.transactions.first().amount
     assert payment.get_authorized_amount().amount == authorized_amount
-    assert payment.order.total_authorized.amount == authorized_amount
 
     payment.transactions.create(
         amount=payment.total,

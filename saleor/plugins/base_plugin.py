@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..page.models import Page
+    from ..page.models import Page, PageType
     from ..product.models import (
         Category,
         Collection,
@@ -133,6 +133,24 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
+
+    #  Trigger when address is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an address is
+    #  created.
+    address_created: Callable[["Address", None], None]
+
+    #  Trigger when address is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an address is
+    #  deleted.
+    address_deleted: Callable[["Address", None], None]
+
+    #  Trigger when address is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an address is
+    #  updated.
+    address_updated: Callable[["Address", None], None]
 
     #  Trigger when app is installed.
     #
@@ -601,6 +619,24 @@ class BasePlugin:
     #  Overwrite this method if you need to trigger specific logic when a page is
     #  updated.
     page_updated: Callable[["Page", Any], Any]
+
+    #  Trigger when page type is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a page type is
+    #  created.
+    page_type_created: Callable[["PageType", Any], Any]
+
+    #  Trigger when page type is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a page type is
+    #  deleted.
+    page_type_deleted: Callable[["PageType", Any], Any]
+
+    #  Trigger when page type is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic when a page type is
+    #  updated.
+    page_type_updated: Callable[["PageType", Any], Any]
 
     #  Trigger directly before order creation.
     #

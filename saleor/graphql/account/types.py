@@ -29,7 +29,7 @@ from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, ModelObjectType, NonNullList, Permission
-from ..core.utils import from_global_id_or_error, str_to_enum
+from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
@@ -249,6 +249,14 @@ class User(ModelObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `checkoutIds` instead."),
+    )
+    checkout_ids = NonNullList(
+        graphene.ID,
+        description="Returns the checkout ID's assigned to this user.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     gift_cards = ConnectionField(
         "saleor.graphql.giftcard.types.GiftCardCountableConnection",
@@ -335,6 +343,29 @@ class User(ModelObjectType):
             CheckoutByUserAndChannelLoader(info.context)
             .load((root.id, channel))
             .then(return_checkout_tokens)
+        )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_checkout_ids(root: models.User, info, channel=None):
+        def return_checkout_ids(checkouts):
+            if not checkouts:
+                return []
+            checkout_global_ids = []
+            for checkout in checkouts:
+                checkout_global_ids.append(to_global_id_or_none(checkout))
+            return checkout_global_ids
+
+        if not channel:
+            return (
+                CheckoutByUserLoader(info.context)
+                .load(root.id)
+                .then(return_checkout_ids)
+            )
+        return (
+            CheckoutByUserAndChannelLoader(info.context)
+            .load((root.id, channel))
+            .then(return_checkout_ids)
         )
 
     @staticmethod

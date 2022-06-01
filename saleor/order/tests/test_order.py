@@ -47,6 +47,8 @@ from ..utils import (
     get_voucher_discount_for_order,
     recalculate_order,
     restock_fulfillment_lines,
+    update_order_authorize_data,
+    update_order_charge_data,
     update_order_prices,
     update_order_status,
 )
@@ -492,13 +494,13 @@ def test_order_queryset_to_ship(settings, channel_USD):
         Order.objects.create(
             status=OrderStatus.UNFULFILLED,
             total=total,
-            total_paid_amount=total.gross.amount,
+            total_charged_amount=total.gross.amount,
             channel=channel_USD,
         ),
         Order.objects.create(
             status=OrderStatus.PARTIALLY_FULFILLED,
             total=total,
-            total_paid_amount=total.gross.amount,
+            total_charged_amount=total.gross.amount,
             channel=channel_USD,
         ),
     ]
@@ -1323,4 +1325,129 @@ def test_available_collection_points_for_preorders_and_regular_variants_in_order
     assert (
         expected_collection_points
         == response_content["data"]["order"]["availableCollectionPoints"]
+    )
+
+
+def test_order_update_total_authorize_data_with_payment(
+    order_with_lines, payment_txn_preauth
+):
+    # given
+    authorized_amount = payment_txn_preauth.transactions.first().amount
+
+    # when
+    update_order_authorize_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_authorized == Money(
+        authorized_amount, order_with_lines.currency
+    )
+
+
+def test_order_update_total_authorize_data_with_transaction_item(order_with_lines):
+    # given
+    first_authorized_amount = Decimal(10)
+    order_with_lines.payment_transactions.create(
+        authorized_value=first_authorized_amount,
+        charged_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+    second_authorized_amount = Decimal(3)
+    order_with_lines.payment_transactions.create(
+        authorized_value=second_authorized_amount,
+        charged_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+
+    # when
+    update_order_authorize_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_authorized == Money(
+        first_authorized_amount + second_authorized_amount, order_with_lines.currency
+    )
+
+
+def test_order_update_total_authorize_data_with_transaction_item_and_payment(
+    order_with_lines, payment_txn_preauth
+):
+    # given
+    first_authorized_amount = payment_txn_preauth.transactions.first().amount
+
+    second_authorized_amount = Decimal(3)
+    order_with_lines.payment_transactions.create(
+        authorized_value=second_authorized_amount,
+        charged_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+
+    # when
+    update_order_authorize_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_authorized == Money(
+        first_authorized_amount + second_authorized_amount, order_with_lines.currency
+    )
+
+
+def test_order_update_charge_data_with_payment(order_with_lines, payment_txn_captured):
+    # given
+    charged_amount = payment_txn_captured.transactions.first().amount
+
+    # when
+    update_order_charge_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_charged == Money(
+        charged_amount, order_with_lines.currency
+    )
+
+
+def test_order_update_charge_data_with_transaction_item(order_with_lines):
+    # given
+    first_charged_amount = Decimal(10)
+    order_with_lines.payment_transactions.create(
+        charged_value=first_charged_amount,
+        authorized_value=Decimal(12),
+        currency=order_with_lines.currency,
+    )
+    second_charged_amount = Decimal(3)
+    order_with_lines.payment_transactions.create(
+        authorized_value=Decimal(11),
+        charged_value=second_charged_amount,
+        currency=order_with_lines.currency,
+    )
+
+    # when
+    update_order_charge_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_charged == Money(
+        first_charged_amount + second_charged_amount, order_with_lines.currency
+    )
+
+
+def test_order_update_charge_data_with_transaction_item_and_payment(
+    order_with_lines, payment_txn_captured
+):
+    # given
+    first_charged_amount = payment_txn_captured.transactions.first().amount
+    second_charged_amount = Decimal(3)
+    order_with_lines.payment_transactions.create(
+        authorized_value=Decimal(11),
+        charged_value=second_charged_amount,
+        currency=order_with_lines.currency,
+    )
+
+    # when
+    update_order_charge_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.total_charged == Money(
+        first_charged_amount + second_charged_amount, order_with_lines.currency
     )

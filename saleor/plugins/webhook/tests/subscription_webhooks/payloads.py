@@ -168,6 +168,20 @@ def generate_page_payload(page):
     }
 
 
+def generate_page_type_payload(page_type):
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    return {
+        "pageType": {
+            "id": page_type_id,
+            "name": page_type.name,
+            "slug": page_type.slug,
+            "attributes": [
+                {"slug": ap.attribute.slug} for ap in page_type.attributepage.all()
+            ],
+        }
+    }
+
+
 def generate_invoice_payload(invoice):
     return {
         "invoice": {
