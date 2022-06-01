@@ -1,7 +1,7 @@
 name: Test migrations compatibility
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - "3.*"
       - "main"
@@ -54,7 +54,7 @@ jobs:
       - name: Checkout base
         uses: actions/checkout@v3
         with:
-          ref: {{ env.GITHUB_REF }}
+          ref: ${{ github['base_ref'] }}
 
       - name: Run tests
         run: |
