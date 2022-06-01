@@ -376,3 +376,24 @@ def generate_warehouse_payload(warehouse, warehouse_global_id):
             }
         }
     )
+
+
+def generate_payment_payload(payment):
+    total = payment.get_total()
+    return {
+        "payment": {
+            "id": graphene.Node.to_global_id("Payment", payment.pk),
+            "total": {"amount": float(total.amount), "currency": total.currency},
+            "gateway": payment.gateway,
+            "isActive": payment.is_active,
+        }
+    }
+
+
+def generate_gateway_checkout_payload(checkout):
+    return {
+        "checkout": {
+            "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+            "totalPrice": 111,
+        }
+    }

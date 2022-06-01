@@ -1,6 +1,6 @@
 import pytest
 
-from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.models import Webhook
 from . import subscription_queries
 
@@ -549,4 +549,70 @@ def subscription_voucher_webhook_with_meta(subscription_webhook):
     return subscription_webhook(
         subscription_queries.VOUCHER_CREATED_WITH_META,
         WebhookEventAsyncType.VOUCHER_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_payment_authorize_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_AUTHORIZE, WebhookEventSyncType.PAYMENT_AUTHORIZE
+    )
+
+
+@pytest.fixture
+def subscription_payment_capture_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_CAPTURE, WebhookEventSyncType.PAYMENT_CAPTURE
+    )
+
+
+@pytest.fixture
+def subscription_payment_refund_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_REFUND, WebhookEventSyncType.PAYMENT_REFUND
+    )
+
+
+@pytest.fixture
+def subscription_payment_void_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_VOID, WebhookEventSyncType.PAYMENT_VOID
+    )
+
+
+@pytest.fixture
+def subscription_payment_confirm_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_CONFIRM, WebhookEventSyncType.PAYMENT_CONFIRM
+    )
+
+
+@pytest.fixture
+def subscription_payment_process_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_PROCESS, WebhookEventSyncType.PAYMENT_PROCESS
+    )
+
+
+@pytest.fixture
+def subscription_payment_list_gateways_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.PAYMENT_LIST_GATEWAYS,
+        WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
+    )
+
+
+@pytest.fixture
+def subscription_checkout_filter_shipping_methods_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.CHECKOUT_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+
+@pytest.fixture
+def subscription_order_filter_shipping_methods_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ORDER_FILTER_SHIPPING_METHODS,
+        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )

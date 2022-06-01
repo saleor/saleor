@@ -1232,3 +1232,134 @@ WAREHOUSE_DELETED = (
     }
 """
 )
+
+PAYMENT_AUTHORIZE = (
+    fragments.PAYMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PaymentAuthorize{
+          payment{
+            ...PaymentDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
+PAYMENT_CAPTURE = (
+    fragments.PAYMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PaymentCaptureEvent{
+          payment{
+            ...PaymentDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
+PAYMENT_REFUND = (
+    fragments.PAYMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PaymentRefundEvent{
+          payment{
+            ...PaymentDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
+PAYMENT_VOID = (
+    fragments.PAYMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PaymentVoidEvent{
+          payment{
+            ...PaymentDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
+PAYMENT_CONFIRM = (
+    fragments.PAYMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PaymentConfirmEvent{
+          payment{
+            ...PaymentDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
+PAYMENT_PROCESS = (
+    fragments.PAYMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PaymentProcessEvent{
+          payment{
+            ...PaymentDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+PAYMENT_LIST_GATEWAYS = """
+    subscription{
+      event{
+        ...on PaymentListGateways{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+    """
+
+ORDER_FILTER_SHIPPING_METHODS = """
+subscription{
+  event{
+    ...on OrderFilterShippingMethods{
+      order{
+        id
+      }
+    }
+  }
+}
+"""
+
+CHECKOUT_FILTER_SHIPPING_METHODS = """
+subscription{
+  event{
+    ...on CheckoutFilterShippingMethods{
+      checkout{
+        id
+      }
+    }
+  }
+}
+"""

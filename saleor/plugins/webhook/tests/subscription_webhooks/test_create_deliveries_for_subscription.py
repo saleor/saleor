@@ -12,7 +12,7 @@ from .....graphql.webhook.subscription_payload import validate_subscription_quer
 from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....shipping.models import ShippingMethod, ShippingZone
-from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
 from .payloads import (
@@ -26,6 +26,7 @@ from .payloads import (
     generate_menu_item_payload,
     generate_menu_payload,
     generate_page_payload,
+    generate_payment_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
     generate_voucher_created_payload_with_meta,
@@ -1246,6 +1247,150 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     # then
     expected_payload = generate_voucher_payload(voucher, voucher_global_id)
     assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_authorize(payment, subscription_payment_authorize_webhook):
+    # given
+    webhooks = [subscription_payment_authorize_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_AUTHORIZE
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
+
+    # then
+    expected_payload = generate_payment_payload(payment)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_capture(payment, subscription_payment_capture_webhook):
+    # given
+    webhooks = [subscription_payment_capture_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_CAPTURE
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
+
+    # then
+    expected_payload = generate_payment_payload(payment)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_refund(payment, subscription_payment_refund_webhook):
+    # given
+    webhooks = [subscription_payment_refund_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_REFUND
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
+
+    # then
+    expected_payload = generate_payment_payload(payment)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_void(payment, subscription_payment_void_webhook):
+    # given
+    webhooks = [subscription_payment_void_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_VOID
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
+
+    # then
+    expected_payload = generate_payment_payload(payment)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_confirm(payment, subscription_payment_confirm_webhook):
+    # given
+    webhooks = [subscription_payment_confirm_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_CONFIRM
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
+
+    # then
+    expected_payload = generate_payment_payload(payment)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_process(payment, subscription_payment_process_webhook):
+    # given
+    webhooks = [subscription_payment_process_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_PROCESS
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
+
+    # then
+    expected_payload = generate_payment_payload(payment)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_payment_list_gateways(checkout, subscription_payment_list_gateways_webhook):
+    # given
+
+    webhooks = [subscription_payment_list_gateways_webhook]
+    event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+
+    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+
+    # then
+    expected_payload = {"checkout": {"id": checkout_id}}
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_checkout_filter_shipping_methods(
+    checkout, subscription_checkout_filter_shipping_methods_webhook
+):
+    # given
+    webhooks = [subscription_checkout_filter_shipping_methods_webhook]
+    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+
+    # then
+    expected_payload = {"checkout": {"id": checkout_id}}
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_order_filter_shipping_methods(
+    order, subscription_order_filter_shipping_methods_webhook
+):
+    # given
+    webhooks = [subscription_order_filter_shipping_methods_webhook]
+    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+
+    # then
+    expected_payload = {"order": {"id": order_id}}
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

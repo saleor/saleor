@@ -52,6 +52,24 @@ def test_trigger_webhook_sync(mock_request, payment_app):
     mock_request.assert_called_once_with(payment_app.name, event_delivery)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.create_deliveries_for_subscriptions")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_trigger_webhook_sync_with_subscription(
+    mock_request,
+    mock_deliveries_create,
+    payment,
+    payment_app_with_subscription_webhooks,
+):
+    payment_app = payment_app_with_subscription_webhooks
+    data = '{"key": "value"}'
+    fake_delivery_list = ["fake_delivery"]
+    mock_deliveries_create.return_value = fake_delivery_list
+    trigger_webhook_sync(
+        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app, payment
+    )
+    mock_request.assert_called_once_with(payment_app.name, fake_delivery_list[0])
+
+
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_trigger_webhook_sync_use_first_webhook(mock_request, payment_app):
     webhook_1 = payment_app.webhooks.first()

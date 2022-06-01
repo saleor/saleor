@@ -361,3 +361,15 @@ MENU_ITEM_DETAILS = """
         }
     }
 """
+
+PAYMENT_DETAILS = """
+fragment PaymentDetails on Payment {
+  id
+  total {
+    amount
+    currency
+  }
+  isActive
+  gateway
+}
+"""

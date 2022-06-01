@@ -19,10 +19,9 @@ from ...product.models import (
     ProductVariantTranslation,
 )
 from ...shipping.models import ShippingMethodTranslation
-from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
-from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..channel import ChannelContext
 from ..core.descriptions import ADDED_IN_32, ADDED_IN_34, PREVIEW_FEATURE
 from ..core.scalars import PositiveDecimal
@@ -145,6 +144,19 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,
             WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
             WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
+            WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
+            WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
+            WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
+            WebhookEventSyncType.PAYMENT_VOID: PaymentVoidEvent,
+            WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
+            WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
+            WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+            WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (
+                OrderFilterShippingMethods
+            ),
+            WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
+                CheckoutFilterShippingMethods
+            ),
         }
         return types.get(object_type)
 
@@ -920,43 +932,53 @@ class PaymentBase(AbstractType):
 
 
 class PaymentAuthorize(ObjectType, PaymentBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class PaymentCaptureEvent(ObjectType, PaymentBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class PaymentRefundEvent(ObjectType, PaymentBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class PaymentVoidEvent(ObjectType, PaymentBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class PaymentConfirmEvent(ObjectType, PaymentBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class PaymentProcessEvent(ObjectType, PaymentBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class PaymentListGateways(ObjectType, CheckoutBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class ShippingListMethodsForCheckout(ObjectType, CheckoutBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class CheckoutFilterShippingMethods(ObjectType, CheckoutBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class OrderFilterShippingMethods(ObjectType, OrderBase):
-    ...
+    class Meta:
+        interfaces = (Event,)
 
 
 class WarehouseCreated(ObjectType, WarehouseBase):
@@ -1060,4 +1082,13 @@ SUBSCRIPTION_EVENTS_TYPES = [
     WarehouseCreated,
     WarehouseUpdated,
     WarehouseDeleted,
+    PaymentAuthorize,
+    PaymentCaptureEvent,
+    PaymentRefundEvent,
+    PaymentVoidEvent,
+    PaymentConfirmEvent,
+    PaymentProcessEvent,
+    PaymentListGateways,
+    OrderFilterShippingMethods,
+    CheckoutFilterShippingMethods,
 ]
