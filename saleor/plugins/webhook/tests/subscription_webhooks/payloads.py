@@ -402,12 +402,3 @@ def generate_payment_payload(payment):
             "isActive": payment.is_active,
         }
     }
-
-
-def generate_gateway_checkout_payload(checkout):
-    return {
-        "checkout": {
-            "id": graphene.Node.to_global_id("Checkout", checkout.pk),
-            "totalPrice": 111,
-        }
-    }
