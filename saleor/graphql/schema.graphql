@@ -22660,16 +22660,16 @@ type WarehouseDeleted implements Event {
 }
 
 type PaymentAuthorize implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22683,16 +22683,16 @@ type PaymentAuthorize implements Event {
 }
 
 type PaymentCaptureEvent implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22706,16 +22706,16 @@ type PaymentCaptureEvent implements Event {
 }
 
 type PaymentRefundEvent implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22729,16 +22729,16 @@ type PaymentRefundEvent implements Event {
 }
 
 type PaymentVoidEvent implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22752,16 +22752,16 @@ type PaymentVoidEvent implements Event {
 }
 
 type PaymentConfirmEvent implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22775,16 +22775,16 @@ type PaymentConfirmEvent implements Event {
 }
 
 type PaymentProcessEvent implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22798,20 +22798,20 @@ type PaymentProcessEvent implements Event {
 }
 
 type PaymentListGateways implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a Checkout.
+  The checkout the event relates to.
   
   Added in Saleor 3.2.
   
@@ -22821,20 +22821,20 @@ type PaymentListGateways implements Event {
 }
 
 type OrderFilterShippingMethods implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -22844,20 +22844,20 @@ type OrderFilterShippingMethods implements Event {
 }
 
 type CheckoutFilterShippingMethods implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a Checkout.
+  The checkout the event relates to.
   
   Added in Saleor 3.2.
   
