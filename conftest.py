@@ -17,6 +17,7 @@ pytest_plugins = [
 ]
 
 if os.environ.get("PYTEST_DB_URL"):
+
     @pytest.fixture(scope="session")
     def django_db_setup():
         settings.DATABASES = {
