@@ -770,17 +770,17 @@ def validate_values(
     name_field = attribute.values.model.name.field  # type: ignore
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
     for value in values:
-        if is_numeric:
+        if value is None or (not is_numeric and not value.strip()):
+            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
+                attribute_id
+            )
+        elif is_numeric:
             try:
                 float(value)
             except ValueError:
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attribute_id)
-        elif value is None or not value.strip():
-            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attribute_id
-            )
         elif len(value) > name_field.max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
 
