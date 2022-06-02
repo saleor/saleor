@@ -2,9 +2,6 @@ name: Test migrations compatibility
 
 on:
   pull_request:
-    branches:
-      - "3.*"
-      - "main"
     paths:
       - "**/migrations/**"
 
