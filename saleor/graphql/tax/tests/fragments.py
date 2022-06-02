@@ -34,7 +34,6 @@ TAX_CLASS_FRAGMENT = """
     name
     isDefault
     countries {
-      id
       country {
         code
         country
