@@ -620,6 +620,54 @@ def test_update_page_with_plain_text_attribute_existing_value(
     assert plain_text_attribute_page_type.values.count() == values_count
 
 
+@pytest.mark.parametrize("value", ["", "  ", None])
+def test_update_page_with_required_plain_text_attribute_empty_value(
+    value,
+    staff_api_client,
+    permission_manage_pages,
+    page_list,
+    plain_text_attribute_page_type,
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page = page_list[0]
+    page_type = page.page_type
+    page_type.page_attributes.add(plain_text_attribute_page_type)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", plain_text_attribute_page_type.pk
+    )
+    attribute_value = plain_text_attribute_page_type.values.first()
+    attribute_value.slug = f"{page.pk}_{plain_text_attribute_page_type.pk}"
+    attribute_value.save(update_fields=["slug"])
+
+    plain_text_attribute_page_type.value_required = True
+    plain_text_attribute_page_type.save(update_fields=["value_required"])
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": attribute_id, "plainText": value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+    errors = data["errors"]
+
+    assert not data["page"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+
+
 def test_update_page_with_product_reference_attribute_new_value(
     staff_api_client,
     permission_manage_pages,

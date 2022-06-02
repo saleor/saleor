@@ -2526,6 +2526,59 @@ def test_update_variant_with_plain_text_attribute(
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 
+@pytest.mark.parametrize("value", ["", "  ", None])
+def test_update_variant_with_required_plain_text_attribute_no_value(
+    value,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    plain_text_attribute,
+):
+    # given
+    product_type.variant_attributes.add(plain_text_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
+
+    plain_text_attribute_value = plain_text_attribute.values.first()
+    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.save()
+
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, plain_text_attribute.values.first()
+    )
+
+    plain_text_attribute.value_required = True
+    plain_text_attribute.save(update_fields=["value_required"])
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attr_id, "plainText": value},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+    errors = content["errors"]
+
+    assert not data
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_date_attribute(
     product_variant_updated,
