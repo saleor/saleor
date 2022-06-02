@@ -22,6 +22,6 @@ if os.environ.get("PYTEST_DB_URL"):
     def django_db_setup():
         settings.DATABASES = {
             settings.DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-                default=os.environ.get("PYTEST_DB_URL"), conn_max_age=600
+                env="PYTEST_DB_URL", conn_max_age=600
             ),
         }
