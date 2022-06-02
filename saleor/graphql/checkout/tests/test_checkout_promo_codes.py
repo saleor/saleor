@@ -245,6 +245,9 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
                 id
                 token
                 voucherCode
+                discount {
+                    amount
+                }
                 giftCards {
                     id
                     last4CodeChars
@@ -322,6 +325,46 @@ def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, vouc
     assert data["checkout"]["voucherCode"] == voucher.code
 
 
+def test_checkout_add_already_applied_voucher_for_entire_order(
+    api_client, checkout_with_item, voucher
+):
+    # given
+    variant = checkout_with_item.lines.first().variant
+    channel = checkout_with_item.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = (
+        variant.get_price(
+            variant.product, [], checkout_with_item.channel, channel_listing
+        )
+        * checkout_with_item.lines.first().quantity
+    )
+
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel)
+    voucher_channel_listing.discount_value = net.amount
+    voucher_channel_listing.save(update_fields=["discount_value"])
+
+    checkout_with_item.voucher_code = voucher.code
+    checkout_with_item.discount_amount = net.amount
+    checkout_with_item.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": voucher.code,
+    }
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    checkout_with_item.refresh_from_db()
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    total_price_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    assert total_price_gross_amount == 0
+    assert checkout_data["discount"]["amount"] == net.amount
+
+
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_checkout_add_voucher_code_by_token_with_external_shipment(
     mock_send_request,
@@ -380,8 +423,8 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
     voucher_channel_listing.save()
 
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
+        "saleor.checkout.utils.base_calculations.base_checkout_lines_total",
+        lambda checkout_lines, channel, currency, discounts: TaxedMoney(
             Money(95, "USD"), Money(100, "USD")
         ),
     )
@@ -413,8 +456,8 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     voucher_channel_listing.save()
 
     monkeypatch.setattr(
-        "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
+        "saleor.checkout.utils.base_calculations.base_checkout_lines_total",
+        lambda checkout_lines, channel, currency, discounts: TaxedMoney(
             Money(95, "USD"), Money(100, "USD")
         ),
     )

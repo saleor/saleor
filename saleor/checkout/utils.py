@@ -36,7 +36,7 @@ from ..warehouse.availability import (
 )
 from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
-from . import AddressType, calculations
+from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
     update_checkout_info_delivery_method,
@@ -457,12 +457,11 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        subtotal = calculations.checkout_subtotal(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=address,
-            discounts=discounts,
+        subtotal = base_calculations.base_checkout_lines_total(
+            lines,
+            checkout_info.channel,
+            checkout_info.checkout.currency,
+            discounts,
         ).gross
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
