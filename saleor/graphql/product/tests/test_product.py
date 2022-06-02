@@ -3064,6 +3064,54 @@ def test_products_query_with_filter_search_by_rich_text_attribute(
     assert products[0]["node"]["name"] == product_with_rich_text_attr.name
 
 
+@pytest.mark.parametrize("search_value", ["plain", "test plain", "PLAIN text"])
+def test_products_query_with_filter_search_by_plain_text_attribute(
+    search_value,
+    query_products_with_filter,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    channel_USD,
+    plain_text_attribute,
+):
+    # given
+    product_with_plain_text_attr = product_list[1]
+
+    product_type = product_with_plain_text_attr.product_type
+    product_type.product_attributes.add(plain_text_attribute)
+
+    plain_text_value = plain_text_attribute.values.first()
+    plain_text_value.plain_text = "Test plain text."
+    plain_text_value.save(update_fields=["plain_text"])
+
+    associate_attribute_values_to_instance(
+        product_with_plain_text_attr, plain_text_attribute, plain_text_value
+    )
+
+    product_with_plain_text_attr.refresh_from_db()
+
+    product_with_plain_text_attr.search_vector = prepare_product_search_vector_value(
+        product_with_plain_text_attr
+    )
+    product_with_plain_text_attr.save(update_fields=["search_vector"])
+
+    variables = {"filter": {"search": search_value}, "channel": channel_USD.slug}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # then
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_plain_text_attr.id
+    )
+    assert products[0]["node"]["name"] == product_with_plain_text_attr.name
+
+
 @pytest.mark.parametrize("search_value", ["13456", "13456 cm"])
 def test_products_query_with_filter_search_by_numeric_attribute_value(
     search_value,
@@ -9117,6 +9165,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                             node {
                                 name
                                 richText
+                                plainText
                                 boolean
                                 date
                                 dateTime
@@ -9328,6 +9377,7 @@ def test_create_product_type_with_rich_text_attribute(
                         "node": {
                             "name": "Red",
                             "richText": None,
+                            "plainText": None,
                             "boolean": None,
                             "date": None,
                             "dateTime": None,
@@ -9337,6 +9387,7 @@ def test_create_product_type_with_rich_text_attribute(
                         "node": {
                             "name": "Blue",
                             "richText": None,
+                            "plainText": None,
                             "boolean": None,
                             "date": None,
                             "dateTime": None,
@@ -9352,6 +9403,46 @@ def test_create_product_type_with_rich_text_attribute(
     ]
     for attribute in data["productAttributes"]:
         assert attribute in expected_attributes
+
+
+def test_create_product_type_with_plain_text_attribute(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    plain_text_attribute,
+):
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    product_type_name = "test type"
+    slug = "test-type"
+
+    product_type.product_attributes.add(plain_text_attribute)
+    product_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", attr.id)
+        for attr in product_type.product_attributes.all()
+    ]
+
+    variables = {
+        "name": product_type_name,
+        "slug": slug,
+        "kind": ProductTypeKindEnum.NORMAL.name,
+        "productAttributes": product_attributes_ids,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]["productType"]
+    errors = content["data"]["productTypeCreate"]["errors"]
+
+    assert not errors
+    assert data["name"] == product_type_name
+    assert data["slug"] == slug
+    expected_plain_text_attribute = {
+        "name": plain_text_attribute.name,
+        "choices": {"edges": []},
+    }
+    assert expected_plain_text_attribute in data["productAttributes"]
 
 
 def test_create_product_type_with_date_attribute(
