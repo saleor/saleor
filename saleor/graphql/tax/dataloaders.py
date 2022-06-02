@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from ...tax.models import TaxClassCountryRate, TaxConfigurationPerCountry
+from ...tax.models import TaxClass, TaxClassCountryRate, TaxConfigurationPerCountry
 from ..core.dataloaders import DataLoader
 
 
@@ -32,3 +32,13 @@ class TaxClassCountryRateByTaxClassIDLoader(DataLoader):
             one_to_many[obj.tax_class_id].append(obj)
 
         return [one_to_many[key] for key in keys]
+
+
+class TaxClassByIdLoader(DataLoader):
+    context_key = "tax_class_by_id"
+
+    def batch_load(self, keys):
+        tax_class_map = TaxClass.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
+        return [tax_class_map.get(obj_id) for obj_id in keys]

@@ -8,6 +8,7 @@ from ..core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from .dataloaders import (
+    TaxClassByIdLoader,
     TaxClassCountryRateByTaxClassIDLoader,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
@@ -135,6 +136,9 @@ class TaxClassCountryRate(ModelObjectType):
         description="Country in which this tax rate applies.",
     )
     rate = graphene.Float(required=True, description="Tax rate value.")
+    tax_class = graphene.Field(
+        TaxClass, description="Related tax class.", required=True
+    )
 
     class Meta:
         description = (
@@ -142,9 +146,32 @@ class TaxClassCountryRate(ModelObjectType):
             + ADDED_IN_35
             + PREVIEW_FEATURE
         )
-        interfaces = [graphene.relay.Node]
         model = models.TaxClassCountryRate
 
     @staticmethod
     def resolve_country(root: models.TaxConfigurationPerCountry, _info):
+        return CountryDisplay(code=root.country.code, country=root.country.name)
+
+    @staticmethod
+    def resolve_tax_class(root, info):
+        return TaxClassByIdLoader(info.context).load(root.tax_class_id)
+
+
+class TaxCountryConfiguration(graphene.ObjectType):
+    country = graphene.Field(
+        CountryDisplay,
+        required=True,
+        description="A country for which tax class rates are grouped.",
+    )
+    tax_class_country_rates = NonNullList(
+        TaxClassCountryRate, description="List of tax class rates.", required=True
+    )
+
+    class Meta:
+        description = (
+            "Tax class rates grouped by country." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_country(root, info, **kwargs):
         return CountryDisplay(code=root.country.code, country=root.country.name)

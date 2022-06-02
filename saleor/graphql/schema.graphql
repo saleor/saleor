@@ -179,6 +179,19 @@ type Query {
   ): TaxClassCountableConnection
 
   """
+  Tax class rates grouped by country.
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfiguration(
+    """Country for which to return tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfiguration
+
+  "\\n\\nRequires one of the following permissions: MANAGE_TAXES."
+  taxCountryConfigurations: [TaxCountryConfiguration!]
+
+  """
   Look up a stock by ID
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -7057,15 +7070,15 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TaxClassCountryRate implements Node {
-  """The ID of the object."""
-  id: ID!
-
+type TaxClassCountryRate {
   """Country in which this tax rate applies."""
   country: CountryDisplay!
 
   """Tax rate value."""
   rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass!
 }
 
 type TaxClassCountableConnection {
@@ -7102,6 +7115,21 @@ input TaxClassFilterInput {
   metadata: [MetadataFilter!]
   ids: [ID!]
   countries: [CountryCode!]
+}
+
+"""
+Tax class rates grouped by country.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxCountryConfiguration {
+  """A country for which tax class rates are grouped."""
+  country: CountryDisplay!
+
+  """List of tax class rates."""
+  taxClassCountryRates: [TaxClassCountryRate!]!
 }
 
 type StockCountableConnection {

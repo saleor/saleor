@@ -51,3 +51,18 @@ TAX_CLASS_FRAGMENT = """
     }
   }
 """
+
+TAX_COUNTRY_CONFIGURATION_FRAGMENT = """
+  fragment TaxCountryConfiguration on TaxCountryConfiguration {
+    country {
+      code
+    }
+    taxClassCountryRates {
+      rate
+      taxClass {
+        id
+        name
+      }
+    }
+  }
+"""

@@ -1,10 +1,15 @@
+from collections import defaultdict
+
 import graphene
+from django_countries.fields import Country
 
 from ...core.permissions.enums import TaxPermissions
 from ...tax import models
+from ..account.enums import CountryCodeEnum
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ..core.fields import FilterConnectionField, PermissionsField
+from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from .filters import TaxClassFilterInput, TaxConfigurationFilterInput
 from .sorters import TaxClassSortingInput
@@ -13,6 +18,7 @@ from .types import (
     TaxClassCountableConnection,
     TaxConfiguration,
     TaxConfigurationCountableConnection,
+    TaxCountryConfiguration,
 )
 
 
@@ -48,6 +54,24 @@ class TaxQueries(graphene.ObjectType):
         filter=TaxClassFilterInput(description="Filtering options for tax classes."),
         permissions=[TaxPermissions.MANAGE_TAXES],
     )
+    tax_country_configuration = PermissionsField(
+        TaxCountryConfiguration,
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description="Country for which to return tax class rates.",
+            required=True,
+        ),
+        description="Tax class rates grouped by country.",
+        permissions=[TaxPermissions.MANAGE_TAXES],
+    )
+    tax_country_configurations = PermissionsField(
+        NonNullList(
+            TaxCountryConfiguration,
+            description="A list of countries with grouped tax class rates.",
+            required=True,
+        ),
+        permissions=[TaxPermissions.MANAGE_TAXES],
+    )
 
     @staticmethod
     def resolve_tax_configuration(_root, _info, id):
@@ -72,6 +96,27 @@ class TaxQueries(graphene.ObjectType):
         qs = models.TaxClass.objects.all()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, TaxClassCountableConnection)
+
+    @staticmethod
+    def resolve_tax_country_configuration(_root, _info, country_code):
+        country_rates = models.TaxClassCountryRate.objects.filter(country=country_code)
+        return TaxCountryConfiguration(
+            country=Country(country_code),
+            tax_class_country_rates=country_rates,
+        )
+
+    @staticmethod
+    def resolve_tax_country_configurations(_root, _info, **kwargs):
+        country_rates = models.TaxClassCountryRate.objects.all()
+        rates_per_country = defaultdict(list)
+        for country_rate in country_rates:
+            rates_per_country[country_rate.country].append(country_rate)
+        return [
+            TaxCountryConfiguration(
+                country=country, tax_class_country_rates=rates_per_country[country]
+            )
+            for country in rates_per_country
+        ]
 
 
 class TaxMutations(graphene.ObjectType):
