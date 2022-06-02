@@ -48,11 +48,6 @@ class Checkout(ModelWithMetadata):
     )
     email = models.EmailField(blank=True, null=True)
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    channel = models.ForeignKey(
-        Channel,
-        related_name="checkouts",
-        on_delete=models.PROTECT,
-    )
     billing_address = models.ForeignKey(
         "account.Address",
         related_name="+",
