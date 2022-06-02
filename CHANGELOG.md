@@ -3,13 +3,9 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 # 3.5.0 [Unreleased]
-### Breaking changes
-- Fix inaccurate tax calculations - #9799 by @IKarbowiak
-  - Use a new definition of `calculate_checkout_line_total` method in
-    plugins/pluginsManager. The method definition is extended with an additional
-    boolean field `include_voucher`.
 
 ### Other changes
+- Fix inaccurate tax calculations - #9799 by @IKarbowiak
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
