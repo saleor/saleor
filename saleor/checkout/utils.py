@@ -324,12 +324,10 @@ def change_shipping_address_in_checkout(
 
 
 def _get_shipping_voucher_discount_for_checkout(
-    manager: PluginsManager,
     voucher: Voucher,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate discount value for a voucher of shipping type."""
     if not is_shipping_required(lines):
@@ -346,12 +344,9 @@ def _get_shipping_voucher_discount_for_checkout(
             msg = "This offer is not valid in your country."
             raise NotApplicable(msg)
 
-    shipping_price = calculations.checkout_shipping_price(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-        discounts=discounts,
+    # the gross is taken, as net and gross are the same for base calculations
+    shipping_price = base_calculations.base_checkout_delivery_price(
+        checkout_info=checkout_info, lines=lines
     ).gross
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
 
@@ -457,6 +452,7 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
+        # the gross is taken, as net and gross are the same for base calculations
         subtotal = base_calculations.base_checkout_lines_total(
             lines,
             checkout_info.channel,
@@ -466,7 +462,7 @@ def get_voucher_discount_for_checkout(
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
-            manager, voucher, checkout_info, lines, address, discounts
+            voucher, checkout_info, lines, address
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         # The specific product voucher is propagated on specific line's prices
