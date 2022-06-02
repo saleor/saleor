@@ -369,7 +369,7 @@ class GiftCard(ModelObjectType):
             ) or (user and requestor == user):
                 return root.code
 
-            return PermissionDenied(
+            raise PermissionDenied(
                 permissions=[
                     AuthorizationFilters.OWNER,
                     GiftcardPermissions.MANAGE_GIFT_CARD,
