@@ -351,6 +351,13 @@ def send_webhook_request_async(self, event_delivery_id):
                 delivery.event_type,
                 attempt.id,
             )
+            if status_code := getattr(response, "response_status_code", None):
+                if 400 <= status_code < 500:
+                    # endpoint returned 4XX code, we should disable the webhook.
+                    webhook.is_active = False
+                    webhook.save(update_fields=["is_active"])
+                    delivery_update(delivery, EventDeliveryStatus.FAILED)
+                    return
             try:
                 countdown = self.retry_backoff * (2**self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)

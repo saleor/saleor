@@ -1156,6 +1156,31 @@ def test_send_webhook_request_async_when_delivery_attempt_failed(
     mocked_observability.assert_called_once_with(attempt, None)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_http")
+@pytest.mark.parametrize(
+    "status_code",
+    [400, 401, 499],
+)
+def test_send_webhook_request_disabled_on_4XX(
+    mocked_send_http_response, event_delivery, webhook_response_failed, status_code
+):
+    # given
+    webhook_response_failed.response_status_code = status_code
+    mocked_send_http_response.return_value = webhook_response_failed
+    assert event_delivery.webhook.is_active
+
+    # when
+    send_webhook_request_async(event_delivery.pk)
+
+    # then
+    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
+    delivery = EventDelivery.objects.get(id=event_delivery.pk)
+    assert delivery.webhook.is_active is False
+    assert attempt.status == EventDeliveryStatus.FAILED
+    assert attempt.response_status_code == status_code
+    assert delivery.status == EventDeliveryStatus.FAILED
+
+
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.retry")
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
