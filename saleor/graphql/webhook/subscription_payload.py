@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
@@ -7,16 +8,21 @@ from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLDocument, get_default_backend, parse
-from graphql.error import GraphQLSyntaxError, format_error
+from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
 from ...discount.utils import fetch_discounts
 from ...plugins.manager import PluginsManager
+from ...core.exceptions import PermissionDenied
 from ...settings import get_host
+from ..utils import format_error
 
 logger = get_task_logger(__name__)
+
+unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
+handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def validate_subscription_query(query: str) -> bool:
@@ -156,7 +162,8 @@ def generate_payload_from_subscription(
 
     if payload_instance.errors:
         event_payload["errors"] = [
-            format_error(error) for error in payload_instance.errors
+            format_error(error, (GraphQLError, PermissionDenied))
+            for error in payload_instance.errors
         ]
 
     return event_payload

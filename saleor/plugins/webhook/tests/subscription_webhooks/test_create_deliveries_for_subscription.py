@@ -1446,9 +1446,9 @@ def test_generate_payload_from_subscription_return_permission_errors_in_payload(
 
     # then
     payload = json.loads(deliveries[0].payload.payload)
-    message = "You need one of the following permissions: OWNER, MANAGE_GIFT_CARD"
+    error_code = "PermissionDenied"
 
     assert not payload["giftCard"]
-    assert payload["errors"][0]["message"] == message
+    assert payload["errors"][0]["extensions"]["exception"]["code"] == error_code
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
