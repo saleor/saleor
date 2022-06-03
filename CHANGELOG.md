@@ -2,6 +2,15 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+# 3.5.0 [Unreleased]
+
+### Other changes
+- Fix inaccurate tax calculations - #9799 by @IKarbowiak
+
+#### Saleor Apps
+- Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
+- Add webhooks `ADDRESS_CREATED`, `ADDRESS_UPDATED` and `ADDRESS_DELETED` - #9860 by @SzymJ
+
 # 3.4.0
 
 ### Breaking changes
