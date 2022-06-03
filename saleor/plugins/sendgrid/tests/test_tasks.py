@@ -1,7 +1,6 @@
 from dataclasses import asdict
 from unittest.mock import Mock, patch
 
-import graphene
 import pytest
 
 from ....account import CustomerEvents
@@ -302,15 +301,15 @@ def test_send_invoice_email_task_by_user(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": graphene.Node.to_global_id("Invoice", invoice.id),
-            "order_id": graphene.Node.to_global_id("Order", order.id),
+            "id": to_global_id_or_none(invoice),
+            "order_id": to_global_id_or_none(order),
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
-        "requester_user_id": staff_user.id,
+        "requester_user_id": to_global_id_or_none(staff_user),
         "requester_app_id": None,
     }
 
@@ -349,8 +348,8 @@ def test_send_invoice_email_task_by_app(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": graphene.Node.to_global_id("Invoice", invoice.id),
-            "order_id": graphene.Node.to_global_id("Order", order.id),
+            "id": to_global_id_or_none(invoice),
+            "order_id": to_global_id_or_none(order),
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
@@ -358,7 +357,7 @@ def test_send_invoice_email_task_by_app(
         "site_name": "Saleor",
         "domain": "localhost:8000",
         "requester_user_id": None,
-        "requester_app_id": app.pk,
+        "requester_app_id": to_global_id_or_none(app),
     }
 
     plugin = sendgrid_email_plugin(
