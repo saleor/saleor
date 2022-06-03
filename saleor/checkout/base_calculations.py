@@ -7,7 +7,7 @@ manager.
 from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
@@ -205,12 +205,25 @@ def calculate_base_price_for_shipping_method(
 
 
 def base_checkout_total(
-    subtotal: TaxedMoney,
-    shipping_price: TaxedMoney,
-    discount: Money,
-    currency: str,
+    checkout_info: "CheckoutInfo",
+    discounts: Iterable[DiscountInfo],
+    lines: Iterable["CheckoutLineInfo"],
 ) -> TaxedMoney:
     """Return the total cost of the checkout."""
+    currency = checkout_info.checkout.currency
+    line_totals = [
+        base_checkout_line_total(
+            line_info,
+            checkout_info.channel,
+            discounts,
+        ).price_with_discounts
+        for line_info in lines
+    ]
+    subtotal = sum(line_totals, zero_taxed_money(currency))
+
+    shipping_price = base_checkout_delivery_price(checkout_info, lines)
+    discount = checkout_info.checkout.discount
+
     zero = zero_taxed_money(currency)
     total = subtotal + shipping_price - discount
     # Discount is subtracted from both gross and net values, which may cause negative
