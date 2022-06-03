@@ -758,6 +758,17 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                         id
                     }
                 }
+                totalPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
+                discount {
+                    amount
+                }
             }
             errors {
                 field
@@ -811,6 +822,53 @@ def test_checkout_lines_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+
+
+def test_checkout_lines_update_checkout_with_voucher(
+    user_api_client, checkout_with_item, voucher_percentage
+):
+    """Ensure that discount is correct calculated when updating the checkout with
+    already applied discount."""
+    # given
+    channel = checkout_with_item.channel
+    line = checkout_with_item.lines.first()
+    variant = line.variant
+
+    channel_listing = variant.channel_listings.get(channel=channel)
+    unit_price = variant.get_price(
+        variant.product, [], checkout_with_item.channel, channel_listing
+    )
+
+    voucher_channel_listing = voucher_percentage.channel_listings.get(channel=channel)
+    voucher_channel_listing.discount_value = 100
+    voucher_channel_listing.save(update_fields=["discount_value"])
+
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.discount_amount = (unit_price * line.quantity).amount
+    checkout_with_item.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    total_price_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    assert total_price_gross_amount == 0
+    assert checkout_data["discount"]["amount"] == unit_price.amount
+
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.discount_amount == unit_price.amount
 
 
 def test_checkout_lines_update_with_new_reservations(

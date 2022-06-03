@@ -634,6 +634,7 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_setti
         product_1, [], channel, variant_channel_listing_1, None
     )
     line_1.unit_price_gross = price_1
+    line_1.base_unit_price = price_1
     line_1.save()
 
     line_2 = order_with_lines.lines.last()
@@ -644,6 +645,7 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_setti
         product_2, [], channel, variant_channel_listing_2, None
     )
     line_2.unit_price_gross = price_2
+    line_2.base_unit_price = price_2
     line_2.save()
 
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
