@@ -532,12 +532,12 @@ def recalculate_checkout_discount(
             remove_voucher_from_checkout(checkout)
             checkout_info.voucher = None
         else:
-            subtotal = calculations.checkout_subtotal(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                address=address,
-                discounts=discounts,
+            # the gross is taken, as net and gross are the same for base calculations
+            subtotal = base_calculations.base_checkout_lines_total(
+                lines,
+                checkout_info.channel,
+                checkout_info.checkout.currency,
+                discounts,
             ).gross
             checkout.discount = (
                 min(discount, subtotal)
