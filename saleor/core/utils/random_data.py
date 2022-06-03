@@ -632,6 +632,7 @@ def create_order_lines(order, discounts, how_many=10):
         )
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
+    manager.update_taxes_for_order_lines(order, lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -692,6 +693,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
                 quantity=line.quantity,
             )
         )
+    manager.update_taxes_for_order_lines(order, lines)
     PreorderAllocation.objects.bulk_create(preorder_allocations)
 
     OrderLine.objects.bulk_update(
