@@ -276,6 +276,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
     @staticmethod
     def resolve_categories(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.categories.all()
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
