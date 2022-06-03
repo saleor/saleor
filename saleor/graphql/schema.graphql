@@ -4239,7 +4239,7 @@ type AttributeValueTranslation implements Node {
   """
   richText: JSONString
 
-  """Attribute text value."""
+  """Attribute plain text value."""
   plainText: String
 }
 
@@ -5816,7 +5816,7 @@ type AttributeValueTranslatableContent implements Node {
   """
   richText: JSONString
 
-  """Attribute text value."""
+  """Attribute plain text value."""
   plainText: String
 
   """Returns translated attribute value fields for the given language code."""
@@ -15289,7 +15289,7 @@ input AttributeValueInput {
   """Text content in JSON format."""
   richText: JSONString
 
-  """Text content."""
+  """Plain text content."""
   plainText: String
 
   """Represents the boolean value of the attribute value."""
@@ -19424,7 +19424,7 @@ input AttributeValueCreateInput {
   """
   Represents the text of the attribute value, plain text without formating.
   """
-  plaintText: String
+  plainText: String
 
   """URL of the file attribute. Every time, a new value is created."""
   fileUrl: String
@@ -19514,7 +19514,7 @@ input AttributeValueUpdateInput {
   """
   Represents the text of the attribute value, plain text without formating.
   """
-  plaintText: String
+  plainText: String
 
   """URL of the file attribute. Every time, a new value is created."""
   fileUrl: String
