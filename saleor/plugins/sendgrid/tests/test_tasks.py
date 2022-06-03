@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from unittest.mock import Mock, patch
 
+import graphene
 import pytest
 
 from ....account import CustomerEvents
@@ -301,8 +302,8 @@ def test_send_invoice_email_task_by_user(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": invoice.id,
-            "order_id": order.id,
+            "id": graphene.Node.to_global_id("Invoice", invoice.id),
+            "order_id": graphene.Node.to_global_id("Order", order.id),
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
@@ -348,8 +349,8 @@ def test_send_invoice_email_task_by_app(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": invoice.id,
-            "order_id": order.id,
+            "id": graphene.Node.to_global_id("Invoice", invoice.id),
+            "order_id": graphene.Node.to_global_id("Order", order.id),
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
