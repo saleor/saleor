@@ -13,6 +13,7 @@ from .plugins.views import (
     handle_plugin_webhook,
 )
 from .product.views import digital_product
+from .thumbnail.views import handle_thumbnail
 
 urlpatterns = [
     url(r"^graphql/$", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
@@ -36,6 +37,14 @@ urlpatterns = [
         r"plugins/(?P<plugin_id>[.0-9A-Za-z_\-]+)/",
         handle_plugin_webhook,
         name="plugins",
+    ),
+    url(
+        (
+            r"thumbnail/(?P<instance_id>[.0-9A-Za-z_=\-]+)/(?P<size>\d+)/"
+            r"(?:(?P<format>[a-zA-Z]+)/)?"
+        ),
+        handle_thumbnail,
+        name="thumbnail",
     ),
     url(r".well-known/jwks.json", jwks, name="jwks"),
 ]
