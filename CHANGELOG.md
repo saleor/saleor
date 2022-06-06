@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # Unreleased
 
 ### Other changes
+- Fix inaccurate tax calculations - #9799 by @IKarbowiak
 
 - Fix sending webhook request in Celery task when webhook is disabled.
 - Fix for multiplied line prices passed to Avatax - #9699 by @korycins
