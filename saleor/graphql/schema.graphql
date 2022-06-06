@@ -9426,6 +9426,11 @@ enum OrderSortField {
   NUMBER
 
   """
+  Sort orders by rank. Note: This option is available only with the `search` filter.
+  """
+  RANK
+
+  """
   Sort orders by creation date. 
   
   DEPRECATED: this field will be removed in Saleor 4.0.
