@@ -1165,16 +1165,8 @@ def test_checkout_create_logged_in_customer(user_api_client, stock, channel_USD)
     checkout_user = new_checkout.user
     customer = user_api_client.user
     assert customer.id == checkout_user.id
-    assert customer.default_shipping_address_id != new_checkout.shipping_address_id
-    assert (
-        customer.default_shipping_address.as_data()
-        == new_checkout.shipping_address.as_data()
-    )
-    assert customer.default_billing_address_id != new_checkout.billing_address_id
-    assert (
-        customer.default_billing_address.as_data()
-        == new_checkout.billing_address.as_data()
-    )
+    assert new_checkout.shipping_address is None
+    assert new_checkout.billing_address is None
     assert customer.email == new_checkout.email
 
 

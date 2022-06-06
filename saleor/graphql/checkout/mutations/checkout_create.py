@@ -138,8 +138,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             return cls.validate_address(
                 data["shipping_address"], address_type=AddressType.SHIPPING
             )
-        if user.is_authenticated:
-            return user.default_shipping_address
         return None
 
     @classmethod
@@ -148,8 +146,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             return cls.validate_address(
                 data["billing_address"], address_type=AddressType.BILLING
             )
-        if user.is_authenticated:
-            return user.default_billing_address
         return None
 
     @classmethod
