@@ -13,6 +13,7 @@ from ...core.tracing import traced_atomic_transaction
 from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
+from ...tax.models import TaxConfiguration
 from ..account.enums import CountryCodeEnum
 from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -84,6 +85,7 @@ class ChannelCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        TaxConfiguration.objects.create(channel=instance)
         info.context.plugins.channel_created(instance)
 
 

@@ -5,6 +5,14 @@ from ....channel.models import Channel
 from ....tax.models import TaxConfiguration
 
 
+def _create_channel_tax_configuration(channel):
+    tax_configuration = TaxConfiguration.objects.create(
+        channel=channel, metadata={"key": "value"}, private_metadata={"key": "value"}
+    )
+    tax_configuration.country_exceptions.create(country="PL")
+    tax_configuration.country_exceptions.create(country="DE")
+
+
 @pytest.fixture
 def channel_USD(db):
     slug = settings.DEFAULT_CHANNEL_SLUG
@@ -15,7 +23,7 @@ def channel_USD(db):
         default_country="US",
         is_active=True,
     )
-    TaxConfiguration.objects.create(channel=channel)
+    _create_channel_tax_configuration(channel)
     return channel
 
 
@@ -28,7 +36,7 @@ def other_channel_USD(db):
         default_country="US",
         is_active=True,
     )
-    TaxConfiguration.objects.create(channel=channel)
+    _create_channel_tax_configuration(channel)
     return channel
 
 
@@ -41,7 +49,7 @@ def channel_PLN(db):
         default_country="PL",
         is_active=True,
     )
-    TaxConfiguration.objects.create(channel=channel)
+    _create_channel_tax_configuration(channel)
     return channel
 
 
@@ -54,5 +62,5 @@ def channel_JPY(db):
         default_country="JP",
         is_active=True,
     )
-    TaxConfiguration.objects.create(channel=channel)
+    _create_channel_tax_configuration(channel)
     return channel
