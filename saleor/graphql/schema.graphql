@@ -10736,6 +10736,19 @@ type Mutation {
   ): WarehouseShippingZoneUnassign
 
   """
+  Update tax configuration for a channel. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxConfigurationUpdate(
+    """ID of the tax configuration."""
+    id: ID!
+
+    """Fields required to update the tax configuration."""
+    input: TaxConfigurationUpdateInput!
+  ): TaxConfigurationUpdate
+
+  """
   Creates a new staff notification recipient. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
@@ -14433,6 +14446,72 @@ type WarehouseShippingZoneUnassign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
+}
+
+"""
+Update tax configuration for a channel. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxConfigurationUpdate {
+  errors: [TaxConfigurationUpdateError!]!
+  taxConfiguration: TaxConfiguration
+}
+
+type TaxConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxConfigurationUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxConfigurationUpdateErrorCode {
+  GRAPHQL_ERROR
+  DUPLICATED_INPUT_ITEM
+}
+
+input TaxConfigurationUpdateInput {
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean
+
+  """
+  List of tax country configurations to create or update (identified by a country code).
+  """
+  updateCountriesConfiguration: [TaxConfigurationPerCountryInput!]
+
+  """List of country codes for which to remove the tax configuration."""
+  removeCountriesConfiguration: [CountryCode!]
+}
+
+input TaxConfigurationPerCountryInput {
+  """Country in which this configuration applies."""
+  countryCode: CountryCode!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """
