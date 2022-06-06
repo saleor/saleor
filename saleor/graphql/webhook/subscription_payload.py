@@ -2,7 +2,9 @@ from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.http import HttpRequest
+from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLDocument, get_default_backend, parse
 from graphql.error import GraphQLSyntaxError
@@ -10,6 +12,8 @@ from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
+from ...discount.utils import fetch_discounts
+from ...plugins.manager import PluginsManager
 from ...settings import get_host
 
 logger = get_task_logger(__name__)
@@ -55,6 +59,11 @@ def initialize_request(requestor=None) -> HttpRequest:
     return: HttpRequest
     """
 
+    def _get_plugins(requestor_getter):
+        return PluginsManager(settings.PLUGINS, requestor_getter)
+
+    request_time = timezone.now()
+
     request = HttpRequest()
     request.path = "/graphql/"
     request.path_info = "/graphql/"
@@ -65,6 +74,13 @@ def initialize_request(requestor=None) -> HttpRequest:
         request.META["SERVER_PORT"] = "443"
 
     request.requestor = requestor  # type: ignore
+    request.request_time = request_time  # type: ignore
+    request.site = SimpleLazyObject(lambda: Site.objects.get_current())  # type: ignore
+    request.discounts = SimpleLazyObject(  # type: ignore
+        lambda: fetch_discounts(request_time)
+    )
+    request.plugins = SimpleLazyObject(lambda: _get_plugins(requestor))  # type: ignore
+
     return request
 
 
