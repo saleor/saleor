@@ -5,6 +5,7 @@ from graphene import Int
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
+from ..core.permissions.enums import TaxPermissions
 
 DEFAULT_TAX_CLASS_NAME = "Default"
 
@@ -27,6 +28,12 @@ class TaxClass(ModelWithMetadata):
 
     class Meta:
         ordering = ("is_default", "name", "pk")
+        permissions = (
+            (
+                TaxPermissions.MANAGE_TAXES.codename,
+                "Manage taxes.",
+            ),
+        )
 
     def __str__(self):
         return self.name
