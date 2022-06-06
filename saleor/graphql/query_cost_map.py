@@ -114,6 +114,12 @@ COST_MAP = {
         "staffUsers": {"complexity": 1, "multipliers": ["first", "last"]},
         "stock": {"complexity": 1},
         "stocks": {"complexity": 1, "multipliers": ["first", "last"]},
+        "taxClass": {"complexity": 1},
+        "taxClasses": {"complexity": 1, "multipliers": ["first", "last"]},
+        "taxConfiguration": {"complexity": 1},
+        "taxConfigurations": {"complexity": 1, "multipliers": ["first", "last"]},
+        "taxCountryConfiguration": {"complexity": 1},
+        "taxCountryConfigurations": {"complexity": 1},
         "taxTypes": {"complexity": 1},
         "translation": {"complexity": 1},
         "translations": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -305,6 +311,19 @@ COST_MAP = {
     },
     "Stock": {
         "productVariant": {"complexity": 1},
+    },
+    "TaxClass": {
+        "countries": {"complexity": 1},
+    },
+    "TaxClassCountryRate": {
+        "taxClass": {"complexity": 1},
+    },
+    "TaxCountryConfiguration": {
+        "taxClassCountryRates": {"complexity": 1},
+    },
+    "TaxConfiguration": {
+        "channel": {"complexity": 1},
+        "countries": {"complexity": 1},
     },
     "User": {
         "avatar": {"complexity": 1},
