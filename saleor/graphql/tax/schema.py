@@ -12,6 +12,9 @@ from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from .filters import TaxClassFilterInput, TaxConfigurationFilterInput
+from .mutations.tax_class_create import TaxClassCreate
+from .mutations.tax_class_delete import TaxClassDelete
+from .mutations.tax_class_update import TaxClassUpdate
 from .mutations.tax_configuration_update import TaxConfigurationUpdate
 from .sorters import TaxClassSortingInput
 from .types import (
@@ -121,4 +124,7 @@ class TaxQueries(graphene.ObjectType):
 
 
 class TaxMutations(graphene.ObjectType):
+    tax_class_create = TaxClassCreate.Field()
+    tax_class_delete = TaxClassDelete.Field()
+    tax_class_update = TaxClassUpdate.Field()
     tax_configuration_update = TaxConfigurationUpdate.Field()

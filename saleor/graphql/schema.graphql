@@ -10736,6 +10736,39 @@ type Mutation {
   ): WarehouseShippingZoneUnassign
 
   """
+  Create a tax class. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassCreate(
+    """Fields required to create a tax class."""
+    input: TaxClassCreateInput!
+  ): TaxClassCreate
+
+  """
+  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassDelete(
+    """ID of a tax class to delete."""
+    id: ID!
+  ): TaxClassDelete
+
+  """
+  Create a tax class. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassUpdate(
+    """ID of the tax class."""
+    id: ID!
+
+    """Fields required to update a tax class."""
+    input: TaxClassUpdateInput!
+  ): TaxClassUpdate
+
+  """
   Update tax configuration for a channel. 
   
   Requires one of the following permissions: MANAGE_TAXES.
@@ -14446,6 +14479,126 @@ type WarehouseShippingZoneUnassign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
+}
+
+"""
+Create a tax class. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassCreate {
+  errors: [TaxClassCreateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassCreateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassCreateErrorCode {
+  GRAPHQL_ERROR
+}
+
+input TaxClassCreateInput {
+  """Name of the tax class."""
+  name: String!
+
+  """List of country-specific tax rates for this tax class."""
+  updateCountryRates: [CountryRateInput!]
+}
+
+input CountryRateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """Tax rate value."""
+  rate: Float!
+}
+
+"""
+Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassDelete {
+  errors: [TaxClassDeleteError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxClassDeleteErrorCode {
+  CANNOT_DELETE_DEFAULT_CLASS
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+"""
+Create a tax class. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassUpdate {
+  errors: [TaxClassUpdateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassUpdateErrorCode {
+  GRAPHQL_ERROR
+  DUPLICATED_INPUT_ITEM
+}
+
+input TaxClassUpdateInput {
+  """Name of the tax class."""
+  name: String
+
+  """List of country-specific tax rates for this tax class."""
+  updateCountryRates: [CountryRateInput!]
+
+  """List of country codes for which to remove the tax class rates."""
+  removeCountryRates: [CountryCode!]
 }
 
 """
