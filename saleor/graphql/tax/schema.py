@@ -12,6 +12,7 @@ from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from .filters import TaxClassFilterInput, TaxConfigurationFilterInput
+from .mutations.tax_configuration_update import TaxConfigurationUpdate
 from .sorters import TaxClassSortingInput
 from .types import (
     TaxClass,
@@ -120,4 +121,4 @@ class TaxQueries(graphene.ObjectType):
 
 
 class TaxMutations(graphene.ObjectType):
-    pass
+    tax_configuration_update = TaxConfigurationUpdate.Field()
