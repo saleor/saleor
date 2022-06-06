@@ -125,7 +125,7 @@ redis==4.3.1; python_version >= "3.7"
 requests==2.27.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
 rsa==4.8; python_version >= "3.6" and python_version < "4" and (python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7")
 rx==1.6.1
-s3transfer==0.5.2; python_version >= "3.6"
+s3transfer==0.6.0; python_version >= "3.6"
 sendgrid==6.9.7; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
 sentry-sdk==1.5.12
 six==1.16.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.7"
