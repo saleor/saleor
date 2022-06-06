@@ -2,51 +2,21 @@
 
 from django.db import migrations
 from django.db.models import F
-import uuid
+from django.db.models import OuterRef, Subquery
+from django.contrib.postgres.functions import RandomUUID
 
-BATCH_SIZE = 10000
 
-
-def set_order_line_token_and_created_at(apps, _schema_editor):
+def set_order_line_token_created_at_and_old_id(apps, _schema_editor):
     OrderLine = apps.get_model("order", "OrderLine")
     Order = apps.get_model("order", "Order")
 
-    queryset = OrderLine.objects.filter(token__isnull=True)
-    for batch_pks in queryset_in_batches(queryset):
-        order_lines = OrderLine.objects.filter(pk__in=batch_pks)
-        order_in_bulk = Order.objects.in_bulk(
-            order_lines.values_list("order_id", flat=True)
-        )
-        for order_line in order_lines:
-            order = order_in_bulk.get(order_line.order_id)
-            order_line.created_at = order.created_at
-            order_line.token = uuid.uuid4()
-
-        OrderLine.objects.bulk_update(order_lines, ["token", "created_at"])
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.order_by("pk").filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
-
-
-def set_order_line_old_id(apps, schema_editor):
-    OrderLine = apps.get_model("order", "OrderLine")
-    OrderLine.objects.all().update(old_id=F("id"))
+    OrderLine.objects.filter(token__isnull=True).update(
+        old_id=F("id"),
+        token=RandomUUID(),
+        created_at=Subquery(
+            Order.objects.filter(lines=OuterRef("id")).values("created_at")[:1]
+        ),
+    )
 
 
 class Migration(migrations.Migration):
@@ -57,10 +27,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            set_order_line_token_and_created_at,
+            set_order_line_token_created_at_and_old_id,
             migrations.RunPython.noop,
-        ),
-        migrations.RunPython(
-            set_order_line_old_id, reverse_code=migrations.RunPython.noop
-        ),
+        )
     ]
