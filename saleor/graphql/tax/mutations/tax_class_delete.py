@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.permissions import TaxPermissions
 from ....tax import error_codes, models
+from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import Error
 from ..types import TaxClass
@@ -20,9 +21,13 @@ class TaxClassDelete(ModelDeleteMutation):
 
     class Meta:
         description = (
-            "Delete a tax class. After deleting the tax class any products, product "
-            "types or shipping methods using it are updated to use the default tax "
-            "class."
+            (
+                "Delete a tax class. After deleting the tax class any products, "
+                "product types or shipping methods using it are updated to use the "
+                "default tax class."
+            )
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
         )
         error_type_class = TaxClassDeleteError
         model = models.TaxClass

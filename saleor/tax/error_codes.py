@@ -19,3 +19,12 @@ class TaxClassDeleteErrorCode(Enum):
     CANNOT_DELETE_DEFAULT_CLASS = "cannot_delete_default_class"
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+
+
+class TaxCountryConfigurationUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+
+
+class TaxCountryConfigurationDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"

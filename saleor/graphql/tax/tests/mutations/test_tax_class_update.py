@@ -20,7 +20,7 @@ MUTATION = (
             }
         }
     }
-"""
+    """
     + TAX_CLASS_FRAGMENT
 )
 

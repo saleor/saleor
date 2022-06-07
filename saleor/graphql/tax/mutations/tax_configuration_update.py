@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import TaxPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
+from ...core.descriptions import ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import Error, NonNullList
 from ...core.utils import get_duplicates_items
@@ -74,7 +75,9 @@ class TaxConfigurationUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Update tax configuration for a channel."
+        description = (
+            "Update tax configuration for a channel." + ADDED_IN_35 + PREVIEW_FEATURE
+        )
         error_type_class = TaxConfigurationUpdateError
         model = models.TaxConfiguration
         object_type = TaxConfiguration

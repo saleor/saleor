@@ -10736,7 +10736,11 @@ type Mutation {
   ): WarehouseShippingZoneUnassign
 
   """
-  Create a tax class. 
+  Create a tax class.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -10746,7 +10750,11 @@ type Mutation {
   ): TaxClassCreate
 
   """
-  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
+  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -10756,7 +10764,11 @@ type Mutation {
   ): TaxClassDelete
 
   """
-  Create a tax class. 
+  Create a tax class.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -10769,7 +10781,11 @@ type Mutation {
   ): TaxClassUpdate
 
   """
-  Update tax configuration for a channel. 
+  Update tax configuration for a channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -10780,6 +10796,29 @@ type Mutation {
     """Fields required to update the tax configuration."""
     input: TaxConfigurationUpdateInput!
   ): TaxConfigurationUpdate
+
+  """
+  Update tax class rates for a specific country.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationUpdate(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+
+    """List of tax rates per tax class to update."""
+    updateTaxClassRates: [TaxClassRateInput!]!
+  ): TaxCountryConfigurationUpdate
+
+  "\\n\\nAdded in Saleor 3.5.\\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point. \\n\\nRequires one of the following permissions: MANAGE_TAXES."
+  taxCountryConfigurationDelete(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfigurationDelete
 
   """
   Creates a new staff notification recipient. 
@@ -14482,7 +14521,11 @@ type WarehouseShippingZoneUnassign {
 }
 
 """
-Create a tax class. 
+Create a tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -14529,7 +14572,11 @@ input CountryRateInput {
 }
 
 """
-Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class. 
+Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -14559,7 +14606,11 @@ enum TaxClassDeleteErrorCode {
 }
 
 """
-Create a tax class. 
+Create a tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -14602,7 +14653,11 @@ input TaxClassUpdateInput {
 }
 
 """
-Update tax configuration for a channel. 
+Update tax configuration for a channel.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -14665,6 +14720,76 @@ input TaxConfigurationPerCountryInput {
   Determines whether prices displayed in a storefront should include taxes for this country.
   """
   displayGrossPrices: Boolean!
+}
+
+"""
+Update tax class rates for a specific country.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationUpdate {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationUpdateError!]!
+}
+
+type TaxCountryConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationUpdateErrorCode!
+
+  """List of tax class IDs for which the update failed."""
+  taxClassIds: [String!]!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+input TaxClassRateInput {
+  """ID of a tax class for which to update the tax rate"""
+  taxClassId: ID!
+
+  """Tax rate value."""
+  rate: Float!
+}
+
+"\\n\\nAdded in Saleor 3.5.\\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point. \\n\\nRequires one of the following permissions: MANAGE_TAXES."
+type TaxCountryConfigurationDelete {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationDeleteError!]!
+}
+
+type TaxCountryConfigurationDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationDeleteErrorCode {
+  GRAPHQL_ERROR
 }
 
 """
