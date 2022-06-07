@@ -216,6 +216,10 @@ class AttributeValue(SortableModel):
         Attribute, related_name="values", on_delete=models.CASCADE
     )
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    plain_text = models.TextField(
+        blank=True,
+        null=True,
+    )
     boolean = models.BooleanField(blank=True, null=True)
     date_time = models.DateTimeField(blank=True, null=True)
 
@@ -262,6 +266,10 @@ class AttributeValueTranslation(Translation):
     )
     name = models.CharField(max_length=100)
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    plain_text = models.TextField(
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         unique_together = (("language_code", "attribute_value"),)

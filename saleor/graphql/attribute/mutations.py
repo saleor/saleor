@@ -192,6 +192,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 class AttributeValueInput(graphene.InputObjectType):
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
     rich_text = JSONString(description=AttributeValueDescriptions.RICH_TEXT)
+    plain_text = graphene.String(description=AttributeValueDescriptions.PLAIN_TEXT)
     file_url = graphene.String(
         required=False,
         description="URL of the file attribute. Every time, a new value is created.",
