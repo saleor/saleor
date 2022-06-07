@@ -441,6 +441,13 @@ GS_FILE_OVERWRITE = get_bool_from_env("GS_FILE_OVERWRITE", True)
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
     GS_CREDENTIALS = os.environ.get("GS_CREDENTIALS")
 
+# Azure Storage configuration
+# See https://django-storages.readthedocs.io/en/latest/backends/azure.html
+AZURE_ACCOUNT_NAME = os.environ.get("AZURE_ACCOUNT_NAME")
+AZURE_ACCOUNT_KEY = os.environ.get("AZURE_ACCOUNT_KEY")
+AZURE_CONTAINER = os.environ.get("AZURE_CONTAINER")
+AZURE_SSL = os.environ.get("AZURE_SSL")
+
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 elif GS_BUCKET_NAME:
@@ -451,6 +458,9 @@ if AWS_MEDIA_BUCKET_NAME:
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
+    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
+elif AZURE_CONTAINER:
+    DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {

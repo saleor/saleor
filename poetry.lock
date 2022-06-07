@@ -121,6 +121,54 @@ pyxb = "1.2.5"
 requests = ">=2.0.0,<3.0.0"
 
 [[package]]
+name = "azure-common"
+version = "1.1.28"
+description = "Microsoft Azure Client Library for Python (Common)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "azure-core"
+version = "1.24.1"
+description = "Microsoft Azure Core Library for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+requests = ">=2.18.4"
+six = ">=1.11.0"
+typing-extensions = ">=4.0.1"
+
+[[package]]
+name = "azure-storage-blob"
+version = "12.12.0"
+description = "Microsoft Azure Blob Storage Client Library for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+azure-core = ">=1.23.1,<2.0.0"
+cryptography = ">=2.1.4"
+msrest = ">=0.6.21"
+
+[[package]]
+name = "azure-storage-common"
+version = "2.1.0"
+description = "Microsoft Azure Storage Common Client Library for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+azure-common = ">=1.1.5"
+cryptography = "*"
+python-dateutil = "*"
+requests = "*"
+
+[[package]]
 name = "babel"
 version = "2.10.1"
 description = "Internationalization utilities"
@@ -197,14 +245,14 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.24.2"
+version = "1.24.3"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 
 [package.dependencies]
-botocore = ">=1.27.2,<1.28.0"
+botocore = ">=1.27.3,<1.28.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -213,7 +261,7 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.27.2"
+version = "1.27.3"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -876,7 +924,7 @@ testing = ["pre-commit"]
 
 [[package]]
 name = "faker"
-version = "13.12.0"
+version = "13.12.1"
 description = "Faker is a Python package that generates fake data for you."
 category = "main"
 optional = false
@@ -1022,7 +1070,7 @@ grpc = ["grpcio (>=1.8.2,<2.0dev)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.12.1"
+version = "2.13.0"
 description = "Google Cloud Pub/Sub API client library"
 category = "main"
 optional = false
@@ -1030,10 +1078,11 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 google-api-core = {version = ">=1.31.5,<2.0.0 || >2.3.0,<3.0.0dev", extras = ["grpc"]}
-grpc-google-iam-v1 = ">=0.12.3,<0.13dev"
+grpc-google-iam-v1 = ">=0.12.4,<1.0.0dev"
 grpcio = ">=1.38.1,<2.0dev"
 grpcio-status = ">=1.16.0"
-proto-plus = ">=1.15.0"
+proto-plus = ">=1.15.0,<2.0.0dev"
+protobuf = ">=3.19.0,<4.0.0dev"
 
 [package.extras]
 libcst = ["libcst (>=0.3.10)"]
@@ -1346,6 +1395,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "isodate"
+version = "0.6.1"
+description = "An ISO 8601 date/time/duration parser and formatter"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "isort"
 version = "5.10.1"
 description = "A Python utility / library to sort Python imports."
@@ -1535,6 +1595,23 @@ python-versions = "*"
 [package.extras]
 develop = ["pytest (>=4.6)", "pycodestyle", "pytest-cov", "codecov", "wheel"]
 tests = ["pytest (>=4.6)"]
+
+[[package]]
+name = "msrest"
+version = "0.6.21"
+description = "AutoRest swagger generator Python client runtime."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+certifi = ">=2017.4.17"
+isodate = ">=0.6.0"
+requests = ">=2.16,<3.0"
+requests-oauthlib = ">=0.5.0"
+
+[package.extras]
+async = ["aiohttp (>=3.0)", "aiodns"]
 
 [[package]]
 name = "multidict"
@@ -1894,7 +1971,7 @@ tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pylint"
-version = "2.14.0"
+version = "2.14.1"
 description = "python code static checker"
 category = "dev"
 optional = false
@@ -2292,6 +2369,21 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
+name = "requests-oauthlib"
+version = "1.3.1"
+description = "OAuthlib authentication support for Requests."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[package.dependencies]
+oauthlib = ">=3.0.0"
+requests = ">=2.0.0"
+
+[package.extras]
+rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
+
+[[package]]
 name = "rsa"
 version = "4.8"
 description = "Pure-Python RSA implementation"
@@ -2607,7 +2699,7 @@ python-versions = "*"
 name = "types-redis"
 version = "4.2.6"
 description = "Typing stubs for redis"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -2846,7 +2938,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "c4e6caf9467bbead56bb205e2075708bbe78936a04e358871051c6a967efe57e"
+content-hash = "7c4df873c991541b61b2408a0674b94b159f2885c49a49459f3a65c0db7ba307"
 
 [metadata.files]
 adyen = [
@@ -2890,6 +2982,22 @@ authlib = [
 ]
 authorizenet = [
     {file = "authorizenet-1.1.4.tar.gz", hash = "sha256:d1f910953b5a31a49340b52469c4023f3b1e0d66ec1a02ab3558b01741b84006"},
+]
+azure-common = [
+    {file = "azure-common-1.1.28.zip", hash = "sha256:4ac0cd3214e36b6a1b6a442686722a5d8cc449603aa833f3f0f40bda836704a3"},
+    {file = "azure_common-1.1.28-py2.py3-none-any.whl", hash = "sha256:5c12d3dcf4ec20599ca6b0d3e09e86e146353d443e7fcc050c9a19c1f9df20ad"},
+]
+azure-core = [
+    {file = "azure-core-1.24.1.zip", hash = "sha256:39c5d59d04209bb70a1a7ee879cef05d07bc76472cd3fb5eaa2e607a90d312bb"},
+    {file = "azure_core-1.24.1-py3-none-any.whl", hash = "sha256:f48a640affa59fa45ac770565b3bead4c4f834242d16983c1ae2bb173a4b8a6d"},
+]
+azure-storage-blob = [
+    {file = "azure-storage-blob-12.12.0.zip", hash = "sha256:f6daf07d1ca86d189ae15c9b1859dff5b7127bf24a07a4bbe41e0b81e01d62f7"},
+    {file = "azure_storage_blob-12.12.0-py3-none-any.whl", hash = "sha256:1eac4c364309ccc193c80ee26c78d25dfbf10926b1309095a448a7a0388526eb"},
+]
+azure-storage-common = [
+    {file = "azure-storage-common-2.1.0.tar.gz", hash = "sha256:ccedef5c67227bc4d6670ffd37cec18fb529a1b7c3a5e53e4096eb0cf23dc73f"},
+    {file = "azure_storage_common-2.1.0-py2.py3-none-any.whl", hash = "sha256:b01a491a18839b9d05a4fe3421458a0ddb5ab9443c14e487f40d16f9a1dc2fbe"},
 ]
 babel = [
     {file = "Babel-2.10.1-py3-none-any.whl", hash = "sha256:3f349e85ad3154559ac4930c3918247d319f21910d5ce4b25d439ed8693b98d2"},
@@ -2937,12 +3045,12 @@ black = [
     {file = "black-22.3.0.tar.gz", hash = "sha256:35020b8886c022ced9282b51b5a875b6d1ab0c387b31a065b84db7c33085ca79"},
 ]
 boto3 = [
-    {file = "boto3-1.24.2-py3-none-any.whl", hash = "sha256:e3c10adc7be890b147568a4162d9cafb876f11f87460c4a0dc90742d6d4ebe7c"},
-    {file = "boto3-1.24.2.tar.gz", hash = "sha256:927b5e8e2decad746e6c32bb81f15c2ea9ab4398286134d21f6742493eb893f6"},
+    {file = "boto3-1.24.3-py3-none-any.whl", hash = "sha256:1bc562393d7985263e62828173eea6c7d61562031c646dc857a4f0fad1dfddbe"},
+    {file = "boto3-1.24.3.tar.gz", hash = "sha256:7625c5ed92bb7a953e03d2541bcbfcb66c3495f8d7b9421e47b4e2c280dc9162"},
 ]
 botocore = [
-    {file = "botocore-1.27.2-py3-none-any.whl", hash = "sha256:131f71fe16ef84f9e0e72c54d2e230a6d8e79dd3947f507259a129649649a35d"},
-    {file = "botocore-1.27.2.tar.gz", hash = "sha256:b7cdd4f4a6395a084a381a7d2a25b177e6de5f8a4dfa3c645ec957ba3c83e200"},
+    {file = "botocore-1.27.3-py3-none-any.whl", hash = "sha256:2d48f4ed77220d4cb6f1b1abbb1b782d1b12260645f6ba3f3cd9ae5c98546297"},
+    {file = "botocore-1.27.3.tar.gz", hash = "sha256:7be5962b956b5770799ba87b0bd2173230068d269982bdf8d16fabaa79483912"},
 ]
 braintree = [
     {file = "braintree-4.15.2-py2.py3-none-any.whl", hash = "sha256:6145f6b865687d9ab985b9b0750b911d3201e26f3f3b76178a344ff7af39061e"},
@@ -3339,8 +3447,8 @@ execnet = [
     {file = "execnet-1.9.0.tar.gz", hash = "sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5"},
 ]
 faker = [
-    {file = "Faker-13.12.0-py3-none-any.whl", hash = "sha256:5cbb89fc6a16793b2bd98252c03a86098c7426beab0a20382709a815651b8804"},
-    {file = "Faker-13.12.0.tar.gz", hash = "sha256:1f6478011ac8a8273e0f9cd6da03d9ea6391c622db340eca015339512e9cde29"},
+    {file = "Faker-13.12.1-py3-none-any.whl", hash = "sha256:0122b75e7960cbb1e2bbbf10ef9b8c183377878e38466854953539c6d822e7c0"},
+    {file = "Faker-13.12.1.tar.gz", hash = "sha256:fb95f956bac59c90f54543919d5c5ef41625e12a0773e5aa08c9b9c62ba58fb3"},
 ]
 fakeredis = [
     {file = "fakeredis-1.8-py3-none-any.whl", hash = "sha256:65dcd78c0cd29d17daccce9f58698f6ab61ad7a404eab373fcad2b76fe8db03d"},
@@ -3375,8 +3483,8 @@ google-cloud-core = [
     {file = "google_cloud_core-2.3.0-py2.py3-none-any.whl", hash = "sha256:35900f614045a33d5208e1d50f0d7945df98ce088388ce7237e7a2db12d5656e"},
 ]
 google-cloud-pubsub = [
-    {file = "google-cloud-pubsub-2.12.1.tar.gz", hash = "sha256:993a615232fad4dc1a13bbca0e0782bfed16780d7914d433be763fe9f1d9fd05"},
-    {file = "google_cloud_pubsub-2.12.1-py2.py3-none-any.whl", hash = "sha256:7c3f5927a358d5297db87f8b6e5dd12e8b47f11ec319ce3e7b58e046dc23b922"},
+    {file = "google-cloud-pubsub-2.13.0.tar.gz", hash = "sha256:a5c2e05c83d60bb17a152e599e7f4324c9ffb6c8cda44ffb6250b16280c383e6"},
+    {file = "google_cloud_pubsub-2.13.0-py2.py3-none-any.whl", hash = "sha256:555f792093c32a8611dbec0419884e83a77827b45246cf991506122a06084748"},
 ]
 google-cloud-storage = [
     {file = "google-cloud-storage-2.3.0.tar.gz", hash = "sha256:f4cbb0de5e17228e9c09cdc897d81eaa70e2c396f58513f79de0e824584c8f5b"},
@@ -3594,6 +3702,10 @@ iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
+isodate = [
+    {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},
+    {file = "isodate-0.6.1.tar.gz", hash = "sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9"},
+]
 isort = [
     {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
     {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
@@ -3787,6 +3899,10 @@ mock = [
 mpmath = [
     {file = "mpmath-1.2.1-py3-none-any.whl", hash = "sha256:604bc21bd22d2322a177c73bdb573994ef76e62edd595d17e00aff24b0667e5c"},
     {file = "mpmath-1.2.1.tar.gz", hash = "sha256:79ffb45cf9f4b101a807595bcb3e72e0396202e0b1d25d689134b48c4216a81a"},
+]
+msrest = [
+    {file = "msrest-0.6.21-py2.py3-none-any.whl", hash = "sha256:c840511c845330e96886011a236440fafc2c9aff7b2df9c0a92041ee2dee3782"},
+    {file = "msrest-0.6.21.tar.gz", hash = "sha256:72661bc7bedc2dc2040e8f170b6e9ef226ee6d3892e01affd4d26b06474d68d8"},
 ]
 multidict = [
     {file = "multidict-6.0.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:0b9e95a740109c6047602f4db4da9949e6c5945cefbad34a1299775ddc9a62e2"},
@@ -4079,8 +4195,8 @@ pyjwt = [
     {file = "PyJWT-2.4.0.tar.gz", hash = "sha256:d42908208c699b3b973cbeb01a969ba6a96c821eefb1c5bfe4c390c01d67abba"},
 ]
 pylint = [
-    {file = "pylint-2.14.0-py3-none-any.whl", hash = "sha256:ef64ce5d4c17b8906caeaf2c2914ef3036a3a1b7f4a86f5fbf6caff9067c5f63"},
-    {file = "pylint-2.14.0.tar.gz", hash = "sha256:10d291ea5133645f73fc1b51ca137ad6531223c1461a5632a1db029a9bc033b5"},
+    {file = "pylint-2.14.1-py3-none-any.whl", hash = "sha256:bb71e6d169506de585edea997e48d9ff20c0dc0e2fbc1d166bad6b640120326b"},
+    {file = "pylint-2.14.1.tar.gz", hash = "sha256:549261e0762c3466cc001024c4419c08252cb8c8d40f5c2c6966fea690e7fe2a"},
 ]
 pylint-celery = [
     {file = "pylint-celery-0.3.tar.gz", hash = "sha256:41e32094e7408d15c044178ea828dd524beedbdbe6f83f712c5e35bde1de4beb"},
@@ -4230,6 +4346,10 @@ redis = [
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
     {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
+]
+requests-oauthlib = [
+    {file = "requests-oauthlib-1.3.1.tar.gz", hash = "sha256:75beac4a47881eeb94d5ea5d6ad31ef88856affe2332b9aafb52c6452ccf0d7a"},
+    {file = "requests_oauthlib-1.3.1-py2.py3-none-any.whl", hash = "sha256:2577c501a2fb8d05a304c09d090d6e47c306fef15809d102b327cf8364bddab5"},
 ]
 rsa = [
     {file = "rsa-4.8-py3-none-any.whl", hash = "sha256:95c5d300c4e879ee69708c428ba566c59478fd653cc3a22243eeb8ed846950bb"},
