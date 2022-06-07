@@ -863,6 +863,9 @@ CHECKOUT_CREATED = """
         ...on CheckoutCreated{
           checkout{
             id
+            totalPrice{
+                currency
+            }
           }
         }
       }
