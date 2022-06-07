@@ -1,16 +1,22 @@
+from collections import namedtuple
+
 from django.http import HttpResponseNotFound, HttpResponseRedirect
 from graphql.error import GraphQLError
 
+from ..account.models import User
 from ..graphql.core.utils import from_global_id_or_error
-from ..thumbnail import ThumbnailFormat
+from ..product.models import Category, Collection, ProductMedia
 from ..thumbnail.models import Thumbnail
-from .utils import get_thumbnail_size
+from . import ThumbnailFormat
+from .utils import ProcessedImage, get_thumbnail_size, prepare_thumbnail_file_name
 
-TYPE_TO_THUMBNAIL_FIELD_MAPPING = {
-    "User": "user",
-    "Category": "category",
-    "Collection": "collection",
-    "ProductMedia": "product_media",
+ModelData = namedtuple("ModelData", ["model", "image_field", "thumbnail_field"])
+
+TYPE_TO_MODEL_DATA_MAPPING = {
+    "User": ModelData(User, "avatar", "user"),
+    "Category": ModelData(Category, "background_image", "category"),
+    "Collection": ModelData(Collection, "background_image", "collection"),
+    "ProductMedia": ModelData(ProductMedia, "image", "product_media"),
 }
 
 
@@ -18,8 +24,9 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     """Create and return thumbnail for given instance in provided size and format.
 
     If the provided size is not in the available resolution list, the thumbnail with
-    the closest size is returned or created and returned if it does not exist.
+    the closest available size is created and returned, if it does not exist.
     """
+    # check formats
     available_formats = [ThumbnailFormat.WEBP, ThumbnailFormat.AVIF]
     format = format.lower() if format else None
     if format and format not in available_formats:
@@ -32,17 +39,33 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     except GraphQLError:
         return HttpResponseNotFound("Cannot found instance with the given id.")
 
-    if object_type not in TYPE_TO_THUMBNAIL_FIELD_MAPPING.keys():
+    if object_type not in TYPE_TO_MODEL_DATA_MAPPING.keys():
         return HttpResponseNotFound("Invalid instance type.")
 
     size = get_thumbnail_size(size)
 
-    instance_id_lookup = TYPE_TO_THUMBNAIL_FIELD_MAPPING[object_type] + "_id"
+    # return the thumbnail if it's already exist
+    model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]
+    instance_id_lookup = model_data.thumbnail_field + "_id"
     if thumbnail := Thumbnail.objects.filter(
         format=format, size=size, **{instance_id_lookup: pk}
     ).first():
         return HttpResponseRedirect(thumbnail.image.url)
 
-    # TODO: create thumbnail
+    instance = model_data.objects.get(**{model_data.image_field: pk})  # type: ignore
+    image = getattr(instance, model_data.image_field)
+    if image is None:
+        return HttpResponseNotFound("There is no image for provided instance.")
 
-    # TODO: save thumbnail in models
+    # prepare thumbnail
+    processed_image = ProcessedImage(image.url, size, format)
+    thumbnail_file = processed_image.create_thumbnail()
+
+    thumbnail_file_name = prepare_thumbnail_file_name()
+
+    # save image thumbnail
+    # TODO: probably the Thumbnail would need to have optional image field
+    thumbnail = Thumbnail(
+        size=size, format=format, **{model_data.thumbnail_field: instance}
+    )
+    thumbnail.image.save(thumbnail_file_name, thumbnail_file)
