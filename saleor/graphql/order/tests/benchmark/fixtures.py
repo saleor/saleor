@@ -8,11 +8,26 @@ from .....account.models import User
 from .....order import OrderEvents, OrderStatus
 from .....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from .....payment import ChargeStatus
-from .....payment.models import Payment
+from .....payment.models import Payment, Transaction
 
 ORDER_COUNT_IN_BENCHMARKS = 10
 EVENTS_PER_ORDER = 5
 LINES_PER_ORDER = 3
+TRANSACTIONS_PER_PAYMENT = 3
+
+
+def _prepare_payment_transactions(payments):
+    transactions = []
+
+    for payment in payments:
+        transactions.extend(
+            [
+                Transaction(payment=payment, gateway_response=str(index))
+                for index in range(TRANSACTIONS_PER_PAYMENT)
+            ]
+        )
+
+    return transactions
 
 
 def _prepare_payments_for_order(order):
@@ -49,7 +64,8 @@ def _prepare_events_for_order(order):
 
 def _prepare_lines_for_order(order, variant_with_image):
     price = TaxedMoney(
-        net=Money(amount=5, currency="USD"), gross=Money(amount=5, currency="USD")
+        net=Money(amount=5, currency="USD"),
+        gross=Money(amount=5, currency="USD"),
     )
     return [
         OrderLine(
@@ -109,12 +125,15 @@ def orders_for_benchmarks(
     fulfillments = []
     fulfillment_lines = []
     lines = []
+    transactions = []
 
     for index, order in enumerate(created_orders):
         new_payments = _prepare_payments_for_order(order)
+        new_transactions = _prepare_payment_transactions(new_payments)
         new_events = _prepare_events_for_order(order)
         new_lines = _prepare_lines_for_order(order, variant_with_image)
         payments.extend(new_payments)
+        transactions.extend(new_transactions)
         events.extend(new_events)
         lines.extend(new_lines)
         fulfillment = Fulfillment(order=order, fulfillment_order=order.number)
@@ -130,6 +149,7 @@ def orders_for_benchmarks(
         )
 
     Payment.objects.bulk_create(payments)
+    Transaction.objects.bulk_create(transactions)
     OrderEvent.objects.bulk_create(events)
     Fulfillment.objects.bulk_create(fulfillments)
     OrderLine.objects.bulk_create(lines)
