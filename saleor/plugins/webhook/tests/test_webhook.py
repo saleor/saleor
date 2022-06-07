@@ -1034,10 +1034,15 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     mocked_webhook_send.assert_called_once_with(event_delivery.pk)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_send_webhook_request_async(
-    mocked_send_response, mocked_clear_delivery, event_delivery, webhook_response
+    mocked_send_response,
+    mocked_clear_delivery,
+    mocked_observability,
+    event_delivery,
+    webhook_response,
 ):
     mocked_send_response.return_value = webhook_response
     send_webhook_request_async(event_delivery.pk)
@@ -1059,11 +1064,13 @@ def test_send_webhook_request_async(
     assert attempt.request_headers == json.dumps(webhook_response.request_headers)
     assert attempt.duration == webhook_response.duration
     assert delivery.status == EventDeliveryStatus.SUCCESS
+    mocked_observability.assert_called_once_with(attempt)
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
 def test_send_webhook_request_async_when_webhook_is_disabled(
-    mocked_clear_delivery, event_delivery
+    mocked_clear_delivery, mocked_observability, event_delivery
 ):
     # given
     event_delivery.webhook.is_active = False
@@ -1075,6 +1082,7 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
 
     # then
     mocked_clear_delivery.not_called()
+    mocked_observability.not_called()
     assert event_delivery.status == EventDeliveryStatus.FAILED
 
 
@@ -1127,9 +1135,11 @@ def test_transaction_action_request(
     )
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_send_webhook_request_async_when_delivery_attempt_failed(
     mocked_send_response,
+    mocked_observability,
     event_delivery,
     webhook_response_failed,
 ):
@@ -1143,12 +1153,15 @@ def test_send_webhook_request_async_when_delivery_attempt_failed(
     assert attempt.status == EventDeliveryStatus.FAILED
     assert attempt.response_status_code == webhook_response_failed.response_status_code
     assert delivery.status == EventDeliveryStatus.PENDING
+    mocked_observability.assert_called_once_with(attempt, None)
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.retry")
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_using_scheme_method")
 def test_send_webhook_request_async_when_max_retries_exceeded(
     mocked_send_response,
+    mocked_observability,
     mocked_task_retry,
     event_delivery,
     webhook_response_failed,
@@ -1162,6 +1175,7 @@ def test_send_webhook_request_async_when_max_retries_exceeded(
     delivery = EventDelivery.objects.get(id=event_delivery.pk)
     assert attempt.status == EventDeliveryStatus.FAILED
     assert delivery.status == EventDeliveryStatus.FAILED
+    mocked_observability.assert_called_once_with(attempt)
 
 
 @pytest.mark.parametrize(

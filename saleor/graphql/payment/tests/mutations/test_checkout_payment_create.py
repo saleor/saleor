@@ -12,17 +12,18 @@ from .....payment.error_codes import PaymentErrorCode
 from .....payment.interface import StorePaymentMethodEnum
 from .....payment.models import ChargeStatus, Payment
 from .....plugins.manager import get_plugins_manager
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 DUMMY_GATEWAY = "mirumee.payments.dummy"
 
 CREATE_PAYMENT_MUTATION = """
     mutation CheckoutPaymentCreate(
-        $token: UUID,
+        $id: ID,
         $input: PaymentInput!,
     ) {
         checkoutPaymentCreate(
-            token: $token,
+            id: $id,
             input: $input,
         ) {
             payment {
@@ -52,7 +53,7 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -90,7 +91,7 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -121,7 +122,7 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -162,7 +163,7 @@ def test_checkout_add_payment(
     )
     return_url = "https://www.example.com"
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -204,7 +205,7 @@ def test_checkout_add_payment_default_amount(
     )
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token"},
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -235,7 +236,7 @@ def test_checkout_add_payment_bad_amount(
     )
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -265,7 +266,7 @@ def test_checkout_add_payment_no_checkout_email(
     )
     return_url = "https://www.example.com"
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -294,7 +295,7 @@ def test_checkout_add_payment_not_supported_currency(
     checkout.save(update_fields=["billing_address", "currency"])
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token", "amount": "10.0"},
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -312,7 +313,7 @@ def test_checkout_add_payment_not_existing_gateway(
     checkout.save(update_fields=["billing_address", "currency"])
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {"gateway": "not.existing", "token": "sample-token", "amount": "10.0"},
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -331,7 +332,7 @@ def test_checkout_add_payment_gateway_inactive(
     checkout.save(update_fields=["billing_address", "currency"])
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token", "amount": "10.0"},
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -352,7 +353,7 @@ def test_use_checkout_billing_address_as_payment_billing(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -401,7 +402,7 @@ def test_create_payment_for_checkout_with_active_payments(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -454,7 +455,7 @@ def test_create_payment_with_store(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -490,7 +491,7 @@ def test_create_payment_with_metadata(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -528,7 +529,7 @@ def test_checkout_add_payment_no_variant_channel_listings(
     )
     return_url = "https://www.example.com"
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -569,7 +570,7 @@ def test_checkout_add_payment_no_product_channel_listings(
     )
     return_url = "https://www.example.com"
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
@@ -609,7 +610,7 @@ def test_checkout_add_payment_checkout_without_lines(
     )
     return_url = "https://www.example.com"
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",

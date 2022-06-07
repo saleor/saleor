@@ -122,6 +122,8 @@ def generate_attributes_search_vector_value(
             values_list = [
                 clean_editor_js(value.rich_text, to_string=True) for value in values
             ]
+        elif input_type == AttributeInputType.PLAIN_TEXT:
+            values_list = [value.plain_text for value in values]
         elif input_type == AttributeInputType.NUMERIC:
             unit = attribute.unit
             values_list = [

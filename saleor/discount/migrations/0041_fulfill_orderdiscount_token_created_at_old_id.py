@@ -22,9 +22,7 @@ def set_order_discount_token_and_created_at(apps, _schema_editor):
         for discount in discounts:
             order = order_in_bulk.get(discount.order_id)
             discount.created_at = (
-                order.created_at.replace(second=discount.pk)
-                if order
-                else datetime.datetime.now(pytz.UTC)
+                order.created_at if order else datetime.datetime.now(pytz.UTC)
             )
             discount.token = uuid.uuid4()
 

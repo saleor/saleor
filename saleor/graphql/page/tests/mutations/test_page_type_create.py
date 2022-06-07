@@ -1,7 +1,13 @@
+from unittest import mock
+
 import graphene
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import PageType
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 PAGE_TYPE_CREATE_MUTATION = """
@@ -67,6 +73,67 @@ def test_page_type_create_as_staff(
     assert {attr_data["slug"] for attr_data in page_type_data["attributes"]} == {
         attr.slug for attr in attributes
     }
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_page_type_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    tag_page_attribute,
+    author_page_attribute,
+    permission_manage_page_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+
+    name = "Test page type"
+    slug = "test-page-type"
+
+    attributes = [author_page_attribute, tag_page_attribute]
+
+    variables = {
+        "name": name,
+        "slug": slug,
+        "addAttributes": [
+            graphene.Node.to_global_id("Attribute", attr.pk) for attr in attributes
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_TYPE_CREATE_MUTATION, variables)
+    page_type = PageType.objects.last()
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypeCreate"]
+
+    assert not data["errors"]
+    assert data["pageType"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("PageType", page_type.id),
+            "name": page_type.name,
+            "slug": page_type.slug,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.PAGE_TYPE_CREATED,
+        [any_webhook],
+        page_type,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_page_type_create_as_staff_no_perm(

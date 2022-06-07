@@ -15,6 +15,7 @@ from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order.models import Order
+from ..order.utils import update_order_authorize_data, update_order_charge_data
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -445,7 +446,6 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
     changed_fields = changed_fields or []
 
     transaction_kind = transaction.kind
-
     if transaction_kind in {
         TransactionKind.CAPTURE,
         TransactionKind.REFUND_REVERSED,
@@ -493,8 +493,10 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
-    if "captured_amount" in changed_fields and payment.order:
-        payment.order.update_total_paid()
+    if "captured_amount" in changed_fields and payment.order_id:
+        update_order_charge_data(payment.order)
+    if transaction_kind == TransactionKind.AUTH and payment.order_id:
+        update_order_authorize_data(payment.order)
 
 
 def fetch_customer_id(user: User, gateway: str):

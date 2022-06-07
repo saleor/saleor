@@ -40,7 +40,7 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
-from ..checkout.utils import add_variant_to_checkout
+from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
@@ -128,6 +128,7 @@ from ..warehouse.models import (
 )
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
+from ..webhook.observability import WebhookData
 from .utils import dummy_editorjs
 
 
@@ -310,6 +311,32 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_specific_products(
+    checkout_with_item, voucher_specific_product_type
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher_specific_product_type
+    )
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
+    voucher.apply_once_per_order = True
+    voucher.save()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
 
 
 @pytest.fixture
@@ -1328,6 +1355,48 @@ def rich_text_attribute_with_many_values(rich_text_attribute):
 
 
 @pytest.fixture
+def plain_text_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="plain-text",
+        name="Plain text",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Plain text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(text, 50),
+        slug=f"instance_{attribute.id}",
+        plain_text=text,
+    )
+    return attribute
+
+
+@pytest.fixture
+def plain_text_attribute_page_type(db):
+    attribute = Attribute.objects.create(
+        slug="plain-text",
+        name="Plain text",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Plain text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(text, 50),
+        slug=f"instance_{attribute.id}",
+        plain_text=text,
+    )
+    return attribute
+
+
+@pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
         slug="color",
@@ -1760,6 +1829,11 @@ def permission_manage_apps():
 
 
 @pytest.fixture
+def permission_manage_observability():
+    return Permission.objects.get(codename="manage_observability")
+
+
+@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
@@ -1800,9 +1874,7 @@ def shippable_gift_card_product_type(db):
 
 
 @pytest.fixture
-def product_type_with_rich_text_attribute(
-    rich_text_attribute, color_attribute, size_attribute
-):
+def product_type_with_rich_text_attribute(rich_text_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
@@ -3062,7 +3134,8 @@ def voucher_percentage(channel_USD):
 
 
 @pytest.fixture
-def voucher_specific_product_type(voucher_percentage):
+def voucher_specific_product_type(voucher_percentage, product):
+    voucher_percentage.products.add(product)
     voucher_percentage.type = VoucherType.SPECIFIC_PRODUCT
     voucher_percentage.save()
     return voucher_percentage
@@ -5223,6 +5296,31 @@ def shipping_app(db, permission_manage_shipping):
         ]
     )
     return app
+
+
+@pytest.fixture
+def observability_webhook(db, permission_manage_observability):
+    app = App.objects.create(name="Observability App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_observability)
+
+    webhook = Webhook.objects.create(
+        name="observability-webhook-1",
+        app=app,
+        target_url="https://observability-app.com/api/",
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.OBSERVABILITY)
+    return webhook
+
+
+@pytest.fixture
+def observability_webhook_data(observability_webhook):
+    return WebhookData(
+        id=observability_webhook.id,
+        saleor_domain="mirumee.com",
+        target_url=observability_webhook.target_url,
+        secret_key=observability_webhook.secret_key,
+    )
 
 
 @pytest.fixture

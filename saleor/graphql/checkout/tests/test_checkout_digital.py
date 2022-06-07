@@ -8,6 +8,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout
 from ....plugins.manager import get_plugins_manager
+from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 from ..mutations.utils import update_checkout_shipping_method_if_invalid
 from .test_checkout import (
@@ -69,8 +70,8 @@ def test_checkout_has_no_available_shipping_methods(
     """Test no shipping method are available on digital orders."""
 
     query = """
-        query getCheckout($token: UUID!) {
-            checkout(token: $token) {
+        query getCheckout($id: ID!) {
+            checkout(id: $id) {
                 availableShippingMethods {
                     name
                     price {
@@ -87,7 +88,7 @@ def test_checkout_has_no_available_shipping_methods(
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
 
-    variables = {"token": checkout.token}
+    variables = {"id": to_global_id_or_none(checkout)}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -101,7 +102,10 @@ def test_checkout_update_shipping_address(
     """Test updating the shipping address of a digital order throws an error."""
 
     checkout = checkout_with_digital_item
-    variables = {"token": checkout.token, "shippingAddress": graphql_address_data}
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": graphql_address_data,
+    }
 
     response = api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -129,7 +133,7 @@ def test_checkout_update_shipping_method(
 
     checkout = checkout_with_digital_item
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.pk)
-    variables = {"token": checkout.token, "shippingMethodId": method_id}
+    variables = {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id}
 
     # Put a shipping address, to ensure it is still handled properly
     checkout.shipping_address = address
@@ -186,7 +190,7 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 0}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -213,7 +217,7 @@ def test_checkout_line_delete_remove_shipping_if_removed_product_with_shipping(
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
 
-    variables = {"token": checkout.token, "lineId": line_id}
+    variables = {"id": to_global_id_or_none(checkout), "lineId": line_id}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
     content = get_graphql_content(response)
 

@@ -64,7 +64,10 @@ def generate_fulfillment_payload(fulfillment):
             "trackingNumber": fulfillment.tracking_number,
             "status": fulfillment.status.upper(),
             "lines": generate_fulfillment_lines_payload(fulfillment),
-        }
+        },
+        "order": {
+            "id": graphene.Node.to_global_id("Order", fulfillment.order.pk),
+        },
     }
 
 
@@ -160,6 +163,20 @@ def generate_page_payload(page):
                     ],
                 },
                 {"attribute": {"slug": page_attributes[1].slug}, "values": []},
+            ],
+        }
+    }
+
+
+def generate_page_type_payload(page_type):
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    return {
+        "pageType": {
+            "id": page_type_id,
+            "name": page_type.name,
+            "slug": page_type.slug,
+            "attributes": [
+                {"slug": ap.attribute.slug} for ap in page_type.attributepage.all()
             ],
         }
     }

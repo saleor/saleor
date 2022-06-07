@@ -46,6 +46,28 @@ def test_checkout_update_language_code_by_id(
     assert checkout.language_code == language_code.lower()
 
 
+def test_checkout_update_language_code_by_token(
+    user_api_client,
+    checkout_with_gift_card,
+):
+    language_code = "PL"
+    checkout = checkout_with_gift_card
+
+    variables = {"token": checkout.token, "languageCode": language_code}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLanguageCodeUpdate"]
+    assert not data["errors"]
+
+    assert data["checkout"]["languageCode"] == language_code
+    checkout.refresh_from_db()
+    assert checkout.language_code == language_code.lower()
+
+
 def test_checkout_update_language_code_neither_token_and_id_given(
     user_api_client,
     checkout_with_gift_card,

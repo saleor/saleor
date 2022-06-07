@@ -23,6 +23,9 @@ order_updated_event_enum_description = (
 
 
 WEBHOOK_EVENT_DESCRIPTION = {
+    WebhookEventAsyncType.ADDRESS_CREATED: "A new address created.",
+    WebhookEventAsyncType.ADDRESS_UPDATED: "An address updated.",
+    WebhookEventAsyncType.ADDRESS_DELETED: "An address deleted.",
     WebhookEventAsyncType.APP_INSTALLED: "A new app installed.",
     WebhookEventAsyncType.APP_UPDATED: "An app updated.",
     WebhookEventAsyncType.APP_DELETED: "An app deleted.",
@@ -66,6 +69,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PAGE_CREATED: "A new page is created.",
     WebhookEventAsyncType.PAGE_UPDATED: "A page is updated.",
     WebhookEventAsyncType.PAGE_DELETED: "A page is deleted.",
+    WebhookEventAsyncType.PAGE_TYPE_CREATED: "A new page type is created.",
+    WebhookEventAsyncType.PAGE_TYPE_UPDATED: "A page type is updated.",
+    WebhookEventAsyncType.PAGE_TYPE_DELETED: "A page type is deleted.",
     WebhookEventAsyncType.PRODUCT_CREATED: "A new product is created.",
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",

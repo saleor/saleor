@@ -1,11 +1,12 @@
+from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
-            $checkoutId: ID, $token: UUID, $billingAddress: AddressInput!) {
+            $checkoutId: ID, $id: ID, $billingAddress: AddressInput!) {
         checkoutBillingAddressUpdate(
+                id: $id,
                 checkoutId: $checkoutId,
-                token: $token,
                 billingAddress: $billingAddress
         ){
             checkout {
@@ -22,7 +23,7 @@ MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
 """
 
 
-def test_checkout_billing_address_update_by_token(
+def test_checkout_billing_address_update_by_id(
     user_api_client, checkout_with_item, graphql_address_data
 ):
     checkout = checkout_with_item
@@ -31,7 +32,10 @@ def test_checkout_billing_address_update_by_token(
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
     billing_address = graphql_address_data
 
-    variables = {"token": checkout_with_item.token, "billingAddress": billing_address}
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "billingAddress": billing_address,
+    }
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -52,7 +56,7 @@ def test_checkout_billing_address_update_by_token(
     assert checkout.billing_address.city == billing_address["city"].upper()
 
 
-def test_checkout_billing_address_update_by_token_without_required_fields(
+def test_checkout_billing_address_update_by_id_without_required_fields(
     user_api_client, checkout_with_item, graphql_address_data
 ):
     checkout = checkout_with_item
@@ -66,7 +70,10 @@ def test_checkout_billing_address_update_by_token_without_required_fields(
 
     billing_address = graphql_address_data
 
-    variables = {"token": checkout_with_item.token, "billingAddress": billing_address}
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "billingAddress": billing_address,
+    }
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -86,7 +93,7 @@ def test_checkout_billing_address_update_by_token_without_required_fields(
     ]
 
 
-def test_checkout_billing_address_update_by_token_without_street_address_2(
+def test_checkout_billing_address_update_by_id_without_street_address_2(
     user_api_client, checkout_with_item, graphql_address_data
 ):
     checkout = checkout_with_item
@@ -98,7 +105,10 @@ def test_checkout_billing_address_update_by_token_without_street_address_2(
 
     billing_address = graphql_address_data
 
-    variables = {"token": checkout_with_item.token, "billingAddress": billing_address}
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "billingAddress": billing_address,
+    }
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
