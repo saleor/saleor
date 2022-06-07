@@ -3,6 +3,7 @@
 from django.db import migrations
 from django.db.models import F, OuterRef, Subquery
 from django.contrib.postgres.functions import RandomUUID
+from django.contrib.postgres.operations import CryptoExtension
 
 
 def set_checkout_line_token_and_created_at(apps, _schema_editor):
@@ -29,6 +30,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        CryptoExtension(),
         migrations.RunPython(
             set_checkout_line_token_and_created_at,
             migrations.RunPython.noop,
