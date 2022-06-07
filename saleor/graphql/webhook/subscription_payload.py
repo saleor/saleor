@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Dict, Optional
 
 from celery.utils.log import get_task_logger
@@ -13,16 +12,13 @@ from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
+from ...core.exceptions import PermissionDenied
 from ...discount.utils import fetch_discounts
 from ...plugins.manager import PluginsManager
-from ...core.exceptions import PermissionDenied
 from ...settings import get_host
 from ..utils import format_error
 
 logger = get_task_logger(__name__)
-
-unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
-handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def validate_subscription_query(query: str) -> bool:
