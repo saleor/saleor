@@ -60,6 +60,8 @@ from .utils import (
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
+    update_order_authorize_data,
+    update_order_charge_data,
     update_order_status,
 )
 
@@ -519,7 +521,12 @@ def mark_order_as_paid(
     transaction.on_commit(lambda: manager.order_fully_paid(order))
     transaction.on_commit(lambda: manager.order_updated(order))
 
-    order.update_total_paid()
+    update_order_charge_data(
+        order,
+    )
+    update_order_authorize_data(
+        order,
+    )
 
 
 def clean_mark_order_as_paid(order: "Order"):

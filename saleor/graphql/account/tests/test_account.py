@@ -14,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.test import override_settings
 from django.utils import timezone
+from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ....account import events as account_events
@@ -34,7 +35,9 @@ from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
-from ...core.utils import str_to_enum
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
+from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
     assert_no_permission,
@@ -45,6 +48,24 @@ from ...tests.utils import (
 from ..mutations.base import INVALID_TOKEN
 from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate, UserDelete
 from ..tests.utils import convert_dict_keys_to_camel_case
+
+
+def generate_address_webhook_call_args(address, event, requestor, webhook):
+    return [
+        {
+            "id": graphene.Node.to_global_id("Address", address.id),
+            "city": address.city,
+            "country": address.country,
+            "company_name": address.company_name,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(SimpleLazyObject(lambda: requestor))
+            ),
+        },
+        event,
+        [webhook],
+        address,
+        SimpleLazyObject(lambda: requestor),
+    ]
 
 
 @pytest.fixture
@@ -98,6 +119,7 @@ FULL_USER_QUERY = """
                 isDefaultShippingAddress
                 isDefaultBillingAddress
             }
+            checkoutIds
             orders(first: 10) {
                 totalCount
                 edges {
@@ -183,6 +205,7 @@ def test_query_customer_user(
     permission_manage_orders,
     media_root,
     settings,
+    checkout,
 ):
     user = customer_user
     user.default_shipping_address.country = "US"
@@ -193,6 +216,9 @@ def test_query_customer_user(
     avatar_mock.name = "image.jpg"
     user.avatar = avatar_mock
     user.save()
+
+    checkout.user = user
+    checkout.save()
 
     Group.objects.create(name="empty group")
 
@@ -263,6 +289,8 @@ def test_query_customer_user(
     assert data["giftCards"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "GiftCard", gift_card_used.pk
     )
+
+    assert data["checkoutIds"] == [to_global_id_or_none(checkout)]
 
 
 def test_query_customer_user_with_orders(
@@ -3561,6 +3589,46 @@ def test_create_address_mutation(
         assert variables[field].lower() in customer_user.search_document
 
 
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_address_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"user": user_id, "city": "Dummy", "country": "PL"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ADDRESS_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    address = Address.objects.last()
+
+    # then
+    assert not content["data"]["addressCreate"]["errors"]
+    assert content["data"]["addressCreate"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        *generate_address_webhook_call_args(
+            address,
+            WebhookEventAsyncType.ADDRESS_CREATED,
+            staff_api_client.user,
+            any_webhook,
+        )
+    )
+
+
 @override_settings(MAX_USER_ADDRESSES=2)
 def test_create_address_mutation_the_oldest_address_is_deleted(
     staff_api_client, customer_user, address, permission_manage_users
@@ -3631,6 +3699,49 @@ def test_address_update_mutation(
     )
 
 
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_address_update_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    address = customer_user.addresses.first()
+    assert staff_api_client.user not in address.user_addresses.all()
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address.id),
+        "address": graphql_address_data,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        ADDRESS_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    address.refresh_from_db()
+
+    # then
+    assert content["data"]["addressUpdate"]
+    mocked_webhook_trigger.assert_called_with(
+        *generate_address_webhook_call_args(
+            address,
+            WebhookEventAsyncType.ADDRESS_UPDATED,
+            staff_api_client.user,
+            any_webhook,
+        )
+    )
+
+
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
     mutation updateAccountAddress($addressId: ID!, $address: AddressInput!) {
         accountAddressUpdate(id: $addressId, input: $address) {
@@ -3667,6 +3778,49 @@ def test_customer_update_own_address(
     assert address_obj.city == address_data["city"].upper()
     user.refresh_from_db()
     assert generate_address_search_document_value(address_obj) in user.search_document
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_address_update_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    user_api_client,
+    customer_user,
+    graphql_address_data,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    address = customer_user.addresses.first()
+    address_data = graphql_address_data
+    address_data["city"] = "Poznań"
+    assert address_data["city"] != address.city
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address.id),
+        "address": graphql_address_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_ADDRESS_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    address.refresh_from_db()
+
+    # then
+    assert content["data"]["accountAddressUpdate"]
+    mocked_webhook_trigger.assert_called_with(
+        *generate_address_webhook_call_args(
+            address,
+            WebhookEventAsyncType.ADDRESS_UPDATED,
+            user_api_client.user,
+            any_webhook,
+        )
+    )
 
 
 def test_update_address_as_anonymous_user(
@@ -3758,6 +3912,43 @@ def test_address_delete_mutation(
     )
 
 
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_address_delete_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    address = customer_user.addresses.first()
+    variables = {"id": graphene.Node.to_global_id("Address", address.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ADDRESS_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["addressDelete"]
+    mocked_webhook_trigger.assert_called_with(
+        *generate_address_webhook_call_args(
+            address,
+            WebhookEventAsyncType.ADDRESS_DELETED,
+            staff_api_client.user,
+            any_webhook,
+        )
+    )
+
+
 def test_address_delete_mutation_as_app(
     app_api_client, customer_user, permission_manage_users
 ):
@@ -3803,6 +3994,40 @@ def test_customer_delete_own_address(user_api_client, customer_user):
     user.refresh_from_db()
     assert (
         generate_address_search_document_value(address_obj) not in user.search_document
+    )
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_delete_address_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    user_api_client,
+    customer_user,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    address = customer_user.addresses.first()
+    variables = {"id": graphene.Node.to_global_id("Address", address.id)}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_ADDRESS_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["accountAddressDelete"]
+    mocked_webhook_trigger.assert_called_with(
+        *generate_address_webhook_call_args(
+            address,
+            WebhookEventAsyncType.ADDRESS_DELETED,
+            user_api_client.user,
+            any_webhook,
+        )
     )
 
 
@@ -4349,6 +4574,40 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     assert (
         generate_address_search_document_value(user.addresses.last())
         in user.search_document
+    )
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_customer_create_address_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    user_api_client,
+    graphql_address_data,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {"addressInput": graphql_address_data}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_ADDRESS_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    address = Address.objects.last()
+
+    # then
+    assert content["data"]["accountAddressCreate"]
+    mocked_webhook_trigger.assert_called_with(
+        *generate_address_webhook_call_args(
+            address,
+            WebhookEventAsyncType.ADDRESS_CREATED,
+            user_api_client.user,
+            any_webhook,
+        )
     )
 
 

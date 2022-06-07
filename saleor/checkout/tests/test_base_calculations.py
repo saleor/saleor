@@ -2,15 +2,17 @@ from decimal import Decimal
 
 from prices import Money, TaxedMoney
 
+from ...core.taxes import zero_taxed_money
 from ...discount import DiscountValueType, VoucherType
 from ...discount.utils import get_product_discount_on_sale
+from ...plugins.manager import get_plugins_manager
 from ..base_calculations import (
     base_checkout_total,
     base_tax_rate,
     calculate_base_line_total_price,
     calculate_base_line_unit_price,
 )
-from ..fetch import fetch_checkout_lines
+from ..fetch import fetch_checkout_info, fetch_checkout_lines
 
 
 def test_calculate_base_line_unit_price(checkout_with_single_item):
@@ -336,10 +338,10 @@ def test_calculate_base_line_unit_price_with_discounts_apply_once_per_order(
         channel_listing=checkout_line_info.channel_listing,
         discounts=[],
     )
+    expected_voucher_amount = expected_price * voucher_percent_value / 100
     assert prices_data.undiscounted_price == expected_price
     assert prices_data.price_with_sale == expected_price
-    # apply once per order is applied when calculating line total.
-    assert prices_data.price_with_discounts == expected_price
+    assert prices_data.price_with_discounts == expected_price - expected_voucher_amount
 
 
 def test_calculate_base_line_unit_price_with_discounts_once_per_order_custom_prices(
@@ -375,10 +377,10 @@ def test_calculate_base_line_unit_price_with_discounts_once_per_order_custom_pri
     # then
     currency = checkout_line_info.channel_listing.currency
     expected_price = Money(price_override, currency)
+    expected_voucher_amount = expected_price * voucher_percent_value / 100
     assert prices_data.undiscounted_price == expected_price
     assert prices_data.price_with_sale == expected_price
-    # apply once per order is applied when calculating line total.
-    assert prices_data.price_with_discounts == expected_price
+    assert prices_data.price_with_discounts == expected_price - expected_voucher_amount
 
 
 def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
@@ -794,32 +796,52 @@ def test_base_tax_rate_gross_price_zero():
     assert base_tax_rate(price) == Decimal("0.0")
 
 
-def test_base_checkout_total():
+def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percentage):
     # given
-    currency = "USD"
-    taxed_money = TaxedMoney(net=Money(10, currency), gross=Money(10, currency))
-    subtotal = taxed_money
-    shipping_price = taxed_money
-    discount = Money(5, currency)
+    manager = get_plugins_manager()
+    channel = checkout_with_item.channel
+    currency = checkout_with_item.currency
+    discount_amount = Money(5, currency)
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.discount = discount_amount
+    checkout_with_item.save()
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
 
     # when
-    total = base_checkout_total(subtotal, shipping_price, discount, currency)
-    expected = subtotal + shipping_price - discount
+    total = base_checkout_total(checkout_info, [], checkout_lines)
 
     # then
-    assert total == expected
+    variant = checkout_with_item.lines.first().variant
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(variant.product, [], channel, channel_listing)
+    shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
+    expected_price = (
+        net * checkout_with_item.lines.first().quantity
+        + shipping_channel_listings.price
+        - discount_amount
+    )
+    assert total == TaxedMoney(net=expected_price, gross=expected_price)
 
 
-def test_base_checkout_total_high_discount():
+def test_base_checkout_total_high_discount(
+    checkout_with_item, shipping_method, voucher_percentage
+):
     # given
-    currency = "USD"
-    zero_taxed_money = TaxedMoney(net=Money(0, currency), gross=Money(0, currency))
-    subtotal = TaxedMoney(net=Money(10, currency), gross=Money(12, currency))
-    shipping_price = zero_taxed_money
-    discount = Money(20, currency)
+    manager = get_plugins_manager()
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+
+    currency = checkout_with_item.currency
+    discount_amount = Money(100, currency)
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.discount = discount_amount
+    checkout_with_item.save()
 
     # when
-    total = base_checkout_total(subtotal, shipping_price, discount, currency)
+    total = base_checkout_total(checkout_info, [], checkout_lines)
 
     # then
-    assert total == zero_taxed_money
+    assert total == zero_taxed_money(currency)

@@ -10,7 +10,7 @@ from ....core import analytics
 from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -19,7 +19,7 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...order.types import Order
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
-from .utils import get_checkout_by_token
+from .utils import get_checkout
 
 
 class CheckoutComplete(BaseMutation):
@@ -40,13 +40,20 @@ class CheckoutComplete(BaseMutation):
     )
 
     class Arguments:
-        checkout_id = graphene.ID(
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
-            ),
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
             required=False,
         )
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
+            ),
+        )
         store_source = graphene.Boolean(
             default_value=False,
             description=(
@@ -82,31 +89,30 @@ class CheckoutComplete(BaseMutation):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, store_source, checkout_id=None, token=None, **data
+        cls, _root, info, store_source, checkout_id=None, token=None, id=None, **data
     ):
         # DEPRECATED
         validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
         )
 
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:
-                if token:
-                    checkout = get_checkout_by_token(token)
-                # DEPRECATED
-                else:
-                    checkout = cls.get_node_or_error(
-                        info,
-                        checkout_id or token,
-                        only_type=Checkout,
-                        field="checkout_id",
-                    )
+                checkout = get_checkout(
+                    cls,
+                    info,
+                    checkout_id=checkout_id,
+                    token=token,
+                    id=id,
+                    error_class=CheckoutErrorCode,
+                )
             except ValidationError as e:
                 # DEPRECATED
-                if checkout_id:
+                if id or checkout_id:
+                    id = id or checkout_id
                     token = cls.get_global_id_or_error(
-                        checkout_id, only_type=Checkout, field="checkout_id"
+                        id, only_type=Checkout, field="id" if id else "checkout_id"
                     )
 
                 order = order_models.Order.objects.get_by_checkout_token(token)

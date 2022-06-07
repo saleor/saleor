@@ -931,7 +931,18 @@ type Query {
 
   """Look up a checkout by token and slug of channel."""
   checkout(
-    """The checkout's token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    The checkout's token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): Checkout
 
@@ -1316,6 +1327,15 @@ enum WebhookEventTypeEnum {
   """All the events."""
   ANY_EVENTS
 
+  """A new address created."""
+  ADDRESS_CREATED
+
+  """An address updated."""
+  ADDRESS_UPDATED
+
+  """An address deleted."""
+  ADDRESS_DELETED
+
   """A new app installed."""
   APP_INSTALLED
 
@@ -1476,6 +1496,15 @@ enum WebhookEventTypeEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new page type is created."""
+  PAGE_TYPE_CREATED
+
+  """A page type is updated."""
+  PAGE_TYPE_UPDATED
+
+  """A page type is deleted."""
+  PAGE_TYPE_DELETED
 
   """A new shipping price is created."""
   SHIPPING_PRICE_CREATED
@@ -1567,6 +1596,15 @@ enum WebhookEventTypeAsyncEnum {
   """All the events."""
   ANY_EVENTS
 
+  """A new address created."""
+  ADDRESS_CREATED
+
+  """An address updated."""
+  ADDRESS_UPDATED
+
+  """An address deleted."""
+  ADDRESS_DELETED
+
   """A new app installed."""
   APP_INSTALLED
 
@@ -1727,6 +1765,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A page is deleted."""
   PAGE_DELETED
+
+  """A new page type is created."""
+  PAGE_TYPE_CREATED
+
+  """A page type is updated."""
+  PAGE_TYPE_UPDATED
+
+  """A page type is deleted."""
+  PAGE_TYPE_DELETED
 
   """A new shipping price is created."""
   SHIPPING_PRICE_CREATED
@@ -2234,6 +2281,9 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum {
+  ADDRESS_CREATED
+  ADDRESS_UPDATED
+  ADDRESS_DELETED
   APP_INSTALLED
   APP_UPDATED
   APP_DELETED
@@ -2291,6 +2341,9 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  PAGE_TYPE_CREATED
+  PAGE_TYPE_UPDATED
+  PAGE_TYPE_DELETED
   SHIPPING_PRICE_CREATED
   SHIPPING_PRICE_UPDATED
   SHIPPING_PRICE_DELETED
@@ -4050,6 +4103,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  PLAIN_TEXT
   SWATCH
   BOOLEAN
   DATE
@@ -4156,6 +4210,11 @@ type AttributeValue implements Node {
   """
   richText: JSONString
 
+  """
+  Represents the text of the attribute value, plain text without formating.
+  """
+  plainText: String
+
   """Represents the boolean value of the attribute value."""
   boolean: Boolean
 
@@ -4179,6 +4238,9 @@ type AttributeValueTranslation implements Node {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
 }
 
 type File {
@@ -5754,6 +5816,9 @@ type AttributeValueTranslatableContent implements Node {
   """
   richText: JSONString
 
+  """Attribute plain text value."""
+  plainText: String
+
   """Returns translated attribute value fields for the given language code."""
   translation(
     """A language code to return the translation for attribute value."""
@@ -7195,7 +7260,13 @@ type User implements Node & ObjectWithMetadata {
   checkoutTokens(
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): [UUID!]
+  ): [UUID!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutIds` instead.")
+
+  """Returns the checkout ID's assigned to this user."""
+  checkoutIds(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): [ID!]
 
   """List of the user gift cards."""
   giftCards(
@@ -7691,8 +7762,17 @@ type CheckoutLine implements Node {
   variant: ProductVariant!
   quantity: Int!
 
+  """The unit price of the checkout line, with taxes and discounts."""
+  unitPrice: TaxedMoney!
+
+  """The unit price of the checkout line, without discounts."""
+  undiscountedUnitPrice: Money!
+
   """The sum of the checkout line price, taxes and discounts."""
   totalPrice: TaxedMoney!
+
+  """The sum of the checkout line price, without discounts."""
+  undiscountedTotalPrice: Money!
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
@@ -7987,6 +8067,24 @@ type Order implements Node & ObjectWithMetadata {
 
   """User-friendly payment status."""
   paymentStatusDisplay: String!
+
+  """
+  The authorize status of the order.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  authorizeStatus: OrderAuthorizeStatusEnum!
+
+  """
+  The charge status of the order.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  chargeStatus: OrderChargeStatusEnum!
 
   """
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
@@ -8388,6 +8486,47 @@ enum PaymentChargeStatusEnum {
   FULLY_REFUNDED
   REFUSED
   CANCELLED
+}
+
+"""
+Determine a current authorize status for order.
+
+    We treat the order as fully authorized when the sum of authorized and charged funds
+    cover the order.total.
+    We treat the order as partially authorized when the sum of authorized and charged
+    funds covers only part of the order.total
+    We treat the order as not authorized when the sum of authorized and charged funds is
+    0.
+
+    NONE - the funds are not authorized
+    PARTIAL - the funds that are authorized or charged don't cover fully the order's
+    total
+    FULL - the funds that are authorized or charged fully cover the order's total
+"""
+enum OrderAuthorizeStatusEnum {
+  NONE
+  PARTIAL
+  FULL
+}
+
+"""
+Determine the current charge status for the order.
+
+    We treat the order as overcharged when the charged amount is bigger that order.total
+    We treat the order as fully charged when the charged amount is equal to order.total.
+    We treat the order as partially charged when the charged amount covers only part of
+    the order.total
+
+    NONE - the funds are not charged.
+    PARTIAL - the funds that are charged don't cover the order's total
+    FULL - the funds that are charged fully cover the order's total
+    OVERCHARGED - the charged funds are bigger than order's total
+"""
+enum OrderChargeStatusEnum {
+  NONE
+  PARTIAL
+  FULL
+  OVERCHARGED
 }
 
 """Represents a payment of a given type."""
@@ -9333,6 +9472,8 @@ input OrderFilterInput {
   search: String
   metadata: [MetadataFilter!]
   channels: [ID!]
+  authorizeStatus: [OrderAuthorizeStatusEnum!]
+  chargeStatus: [OrderChargeStatusEnum!]
   updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
   isPreorder: Boolean
@@ -12448,16 +12589,27 @@ type Mutation {
   """Adds a gift card or a voucher to a checkout."""
   checkoutAddPromoCode(
     """
-    The ID of the checkout. 
+    The ID of the checkout.
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Gift card code or voucher code."""
     promoCode: String!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutAddPromoCode
 
@@ -12469,11 +12621,22 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutBillingAddressUpdate
 
@@ -12484,9 +12647,16 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Client-side generated data required to finalize the payment."""
     paymentData: JSONString
@@ -12503,7 +12673,11 @@ type Mutation {
     """
     storeSource: Boolean = false
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutComplete
 
@@ -12522,7 +12696,7 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
@@ -12531,7 +12705,18 @@ type Mutation {
     """
     customerId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutCustomerAttach
 
@@ -12544,11 +12729,22 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutCustomerDetach
 
@@ -12557,14 +12753,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
 
     """email."""
     email: String!
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutEmailUpdate
 
@@ -12573,24 +12780,46 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """ID of the checkout line to delete."""
     lineId: ID
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLineDelete @deprecated(reason: "DEPRECATED: Will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
 
   """Deletes checkout lines."""
   checkoutLinesDelete(
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
     """A list of checkout lines."""
     linesIds: [ID!]!
 
-    """Checkout token."""
-    token: UUID!
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
+    token: UUID
   ): CheckoutLinesDelete
 
   """
@@ -12600,16 +12829,27 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
     lines: [CheckoutLineInput!]!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLinesAdd
 
@@ -12618,16 +12858,27 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """
     A list of checkout lines, each containing information about an item in the checkout.
     """
     lines: [CheckoutLineUpdateInput!]!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLinesUpdate
 
@@ -12636,9 +12887,16 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Gift card code or voucher code."""
     promoCode: String
@@ -12646,7 +12904,11 @@ type Mutation {
     """Gift card or voucher ID."""
     promoCodeId: ID
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutRemovePromoCode
 
@@ -12655,14 +12917,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Data required to create a new payment."""
     input: PaymentInput!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutPaymentCreate
 
@@ -12671,14 +12944,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """The mailing address to where the checkout will be shipped."""
     shippingAddress: AddressInput!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutShippingAddressUpdate
 
@@ -12687,14 +12971,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """Shipping method."""
     shippingMethodId: ID!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutShippingMethodUpdate @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
 
@@ -12709,7 +13004,18 @@ type Mutation {
     """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
     deliveryMethodId: ID
 
-    """Checkout token."""
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
+
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutDeliveryMethodUpdate
 
@@ -12718,14 +13024,25 @@ type Mutation {
     """
     The ID of the checkout. 
     
-    DEPRECATED: this field will be removed in Saleor 4.0. Use token instead.
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     checkoutId: ID
+
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.4.
+    """
+    id: ID
 
     """New language code."""
     languageCode: LanguageCodeEnum!
 
-    """Checkout token."""
+    """
+    Checkout token.
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
+    """
     token: UUID
   ): CheckoutLanguageCodeUpdate
 
@@ -14971,6 +15288,9 @@ input AttributeValueInput {
 
   """Text content in JSON format."""
   richText: JSONString
+
+  """Plain text content."""
+  plainText: String
 
   """Represents the boolean value of the attribute value."""
   boolean: Boolean
@@ -19101,6 +19421,11 @@ input AttributeValueCreateInput {
   """
   richText: JSONString
 
+  """
+  Represents the text of the attribute value, plain text without formating.
+  """
+  plainText: String
+
   """URL of the file attribute. Every time, a new value is created."""
   fileUrl: String
 
@@ -19185,6 +19510,11 @@ input AttributeValueUpdateInput {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """
+  Represents the text of the attribute value, plain text without formating.
+  """
+  plainText: String
 
   """URL of the file attribute. Every time, a new value is created."""
   fileUrl: String
@@ -19290,6 +19620,9 @@ input AttributeValueTranslationInput {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """Translated text."""
+  plainText: String
 }
 
 """
@@ -20335,16 +20668,16 @@ type Subscription {
 }
 
 interface Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 }
 
@@ -20387,21 +20720,90 @@ enum VolumeUnitsEnum {
   ACRE_FT
 }
 
-type AppInstalled implements Event {
-  """Time of generating the event."""
+type AddressCreated implements Event {
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a app.
+  The address the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  address: Address
+}
+
+type AddressUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The address the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  address: Address
+}
+
+type AddressDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The address the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  address: Address
+}
+
+type AppInstalled implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The application the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20411,20 +20813,20 @@ type AppInstalled implements Event {
 }
 
 type AppUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a app.
+  The application the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20434,20 +20836,20 @@ type AppUpdated implements Event {
 }
 
 type AppDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a app.
+  The application the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20457,20 +20859,20 @@ type AppDeleted implements Event {
 }
 
 type AppStatusChanged implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a app.
+  The application the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20480,20 +20882,20 @@ type AppStatusChanged implements Event {
 }
 
 type CategoryCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a category.
+  The category the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20503,20 +20905,20 @@ type CategoryCreated implements Event {
 }
 
 type CategoryUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a category.
+  The category the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20526,20 +20928,20 @@ type CategoryUpdated implements Event {
 }
 
 type CategoryDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a category.
+  The category the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20549,20 +20951,20 @@ type CategoryDeleted implements Event {
 }
 
 type ChannelCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a channel.
+  The channel the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20572,20 +20974,20 @@ type ChannelCreated implements Event {
 }
 
 type ChannelUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a channel.
+  The channel the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20595,20 +20997,20 @@ type ChannelUpdated implements Event {
 }
 
 type ChannelDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a channel.
+  The channel the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20618,20 +21020,20 @@ type ChannelDeleted implements Event {
 }
 
 type ChannelStatusChanged implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a channel.
+  The channel the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20641,20 +21043,20 @@ type ChannelStatusChanged implements Event {
 }
 
 type GiftCardCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a gift card.
+  The gift card the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20664,20 +21066,20 @@ type GiftCardCreated implements Event {
 }
 
 type GiftCardUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a gift card.
+  The gift card the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20687,20 +21089,20 @@ type GiftCardUpdated implements Event {
 }
 
 type GiftCardDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a gift card.
+  The gift card the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20710,20 +21112,20 @@ type GiftCardDeleted implements Event {
 }
 
 type GiftCardStatusChanged implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a gift card.
+  The gift card the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20733,20 +21135,20 @@ type GiftCardStatusChanged implements Event {
 }
 
 type MenuCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a menu.
+  The menu the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20759,20 +21161,20 @@ type MenuCreated implements Event {
 }
 
 type MenuUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a menu.
+  The menu the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20785,20 +21187,20 @@ type MenuUpdated implements Event {
 }
 
 type MenuDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a menu.
+  The menu the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20811,20 +21213,20 @@ type MenuDeleted implements Event {
 }
 
 type MenuItemCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a menu item.
+  The menu item the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20837,20 +21239,20 @@ type MenuItemCreated implements Event {
 }
 
 type MenuItemUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a menu item.
+  The menu item the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20863,20 +21265,20 @@ type MenuItemUpdated implements Event {
 }
 
 type MenuItemDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a menu item.
+  The menu item the event relates to.
   
   Added in Saleor 3.4.
   
@@ -20889,20 +21291,20 @@ type MenuItemDeleted implements Event {
 }
 
 type OrderCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20912,20 +21314,20 @@ type OrderCreated implements Event {
 }
 
 type OrderUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20935,20 +21337,20 @@ type OrderUpdated implements Event {
 }
 
 type OrderConfirmed implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20958,20 +21360,20 @@ type OrderConfirmed implements Event {
 }
 
 type OrderFullyPaid implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -20981,20 +21383,20 @@ type OrderFullyPaid implements Event {
 }
 
 type OrderCancelled implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21004,20 +21406,20 @@ type OrderCancelled implements Event {
 }
 
 type OrderFulfilled implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21027,20 +21429,20 @@ type OrderFulfilled implements Event {
 }
 
 type DraftOrderCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21050,20 +21452,20 @@ type DraftOrderCreated implements Event {
 }
 
 type DraftOrderUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21073,20 +21475,20 @@ type DraftOrderUpdated implements Event {
 }
 
 type DraftOrderDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an order.
+  The order the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21096,20 +21498,20 @@ type DraftOrderDeleted implements Event {
 }
 
 type ProductCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product.
+  The product the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21121,7 +21523,7 @@ type ProductCreated implements Event {
   ): Product
 
   """
-  Look up a category.
+  The category of the product.
   
   Added in Saleor 3.2.
   
@@ -21131,20 +21533,20 @@ type ProductCreated implements Event {
 }
 
 type ProductUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product.
+  The product the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21156,7 +21558,7 @@ type ProductUpdated implements Event {
   ): Product
 
   """
-  Look up a category.
+  The category of the product.
   
   Added in Saleor 3.2.
   
@@ -21166,20 +21568,20 @@ type ProductUpdated implements Event {
 }
 
 type ProductDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product.
+  The product the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21191,7 +21593,7 @@ type ProductDeleted implements Event {
   ): Product
 
   """
-  Look up a category.
+  The category of the product.
   
   Added in Saleor 3.2.
   
@@ -21201,20 +21603,20 @@ type ProductDeleted implements Event {
 }
 
 type ProductVariantCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product variant.
+  The product variant the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21227,20 +21629,20 @@ type ProductVariantCreated implements Event {
 }
 
 type ProductVariantUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product variant.
+  The product variant the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21253,20 +21655,20 @@ type ProductVariantUpdated implements Event {
 }
 
 type ProductVariantOutOfStock implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product variant.
+  The product variant the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21288,20 +21690,20 @@ type ProductVariantOutOfStock implements Event {
 }
 
 type ProductVariantBackInStock implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product variant.
+  The product variant the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21323,20 +21725,20 @@ type ProductVariantBackInStock implements Event {
 }
 
 type ProductVariantDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a product variant.
+  The product variant the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21349,20 +21751,20 @@ type ProductVariantDeleted implements Event {
 }
 
 type SaleCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a sale.
+  The sale the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21375,20 +21777,20 @@ type SaleCreated implements Event {
 }
 
 type SaleUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a sale.
+  The sale the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21401,20 +21803,20 @@ type SaleUpdated implements Event {
 }
 
 type SaleDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a sale.
+  The sale the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21427,20 +21829,20 @@ type SaleDeleted implements Event {
 }
 
 type InvoiceRequested implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an Invoice.
+  The invoice the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21450,20 +21852,20 @@ type InvoiceRequested implements Event {
 }
 
 type InvoiceDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an Invoice.
+  The invoice the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21473,20 +21875,20 @@ type InvoiceDeleted implements Event {
 }
 
 type InvoiceSent implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up an Invoice.
+  The invoice the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21496,66 +21898,84 @@ type InvoiceSent implements Event {
 }
 
 type FulfillmentCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a Fulfillment.
+  The fulfillment the event relates to.
   
   Added in Saleor 3.2.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   fulfillment: Fulfillment
+
+  """
+  The order the fulfillment belongs to.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 type FulfillmentCanceled implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a Fulfillment.
+  The fulfillment the event relates to.
   
   Added in Saleor 3.2.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   fulfillment: Fulfillment
+
+  """
+  The order the fulfillment belongs to.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  order: Order
 }
 
 type CustomerCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a user.
+  The user the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21565,20 +21985,20 @@ type CustomerCreated implements Event {
 }
 
 type CustomerUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a user.
+  The user the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21588,20 +22008,20 @@ type CustomerUpdated implements Event {
 }
 
 type CollectionCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a collection.
+  The collection the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21614,20 +22034,20 @@ type CollectionCreated implements Event {
 }
 
 type CollectionUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a collection.
+  The collection the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21640,20 +22060,20 @@ type CollectionUpdated implements Event {
 }
 
 type CollectionDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a collection.
+  The collection the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21666,20 +22086,20 @@ type CollectionDeleted implements Event {
 }
 
 type CheckoutCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a Checkout.
+  The checkout the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21689,20 +22109,20 @@ type CheckoutCreated implements Event {
 }
 
 type CheckoutUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a Checkout.
+  The checkout the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21712,20 +22132,20 @@ type CheckoutUpdated implements Event {
 }
 
 type PageCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a page.
+  The page the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21735,20 +22155,20 @@ type PageCreated implements Event {
 }
 
 type PageUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a page.
+  The page the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21758,20 +22178,20 @@ type PageUpdated implements Event {
 }
 
 type PageDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a page.
+  The page the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21780,21 +22200,90 @@ type PageDeleted implements Event {
   page: Page
 }
 
-type ShippingPriceCreated implements Event {
-  """Time of generating the event."""
+type PageTypeCreated implements Event {
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a shipping method.
+  The page type the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  pageType: PageType
+}
+
+type PageTypeUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The page type the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  pageType: PageType
+}
+
+type PageTypeDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The page type the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  pageType: PageType
+}
+
+type ShippingPriceCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The shipping method the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21806,7 +22295,7 @@ type ShippingPriceCreated implements Event {
   ): ShippingMethodType
 
   """
-  Look up a shipping zone.
+  The shipping zone the shipping method belongs to.
   
   Added in Saleor 3.2.
   
@@ -21819,20 +22308,20 @@ type ShippingPriceCreated implements Event {
 }
 
 type ShippingPriceUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a shipping method.
+  The shipping method the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21844,7 +22333,7 @@ type ShippingPriceUpdated implements Event {
   ): ShippingMethodType
 
   """
-  Look up a shipping zone.
+  The shipping zone the shipping method belongs to.
   
   Added in Saleor 3.2.
   
@@ -21857,20 +22346,20 @@ type ShippingPriceUpdated implements Event {
 }
 
 type ShippingPriceDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a shipping method.
+  The shipping method the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21882,7 +22371,7 @@ type ShippingPriceDeleted implements Event {
   ): ShippingMethodType
 
   """
-  Look up a shipping zone.
+  The shipping zone the shipping method belongs to.
   
   Added in Saleor 3.2.
   
@@ -21895,20 +22384,20 @@ type ShippingPriceDeleted implements Event {
 }
 
 type ShippingZoneCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a shipping zone.
+  The shipping zone the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21921,20 +22410,20 @@ type ShippingZoneCreated implements Event {
 }
 
 type ShippingZoneUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a shipping zone.
+  The shipping zone the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21947,20 +22436,20 @@ type ShippingZoneUpdated implements Event {
 }
 
 type ShippingZoneDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a shipping zone.
+  The shipping zone the event relates to.
   
   Added in Saleor 3.2.
   
@@ -21973,16 +22462,16 @@ type ShippingZoneDeleted implements Event {
 }
 
 type TransactionActionRequest implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
@@ -22013,20 +22502,20 @@ type TransactionAction {
 }
 
 type TranslationCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a translation.
+  The translation the event relates to.
   
   Added in Saleor 3.2.
   
@@ -22038,20 +22527,20 @@ type TranslationCreated implements Event {
 union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | SaleTranslation | VoucherTranslation | MenuItemTranslation
 
 type TranslationUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a translation.
+  The translation the event relates to.
   
   Added in Saleor 3.2.
   
@@ -22061,20 +22550,20 @@ type TranslationUpdated implements Event {
 }
 
 type VoucherCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a voucher.
+  The voucher the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22087,20 +22576,20 @@ type VoucherCreated implements Event {
 }
 
 type VoucherUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a voucher.
+  The voucher the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22113,20 +22602,20 @@ type VoucherUpdated implements Event {
 }
 
 type VoucherDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a voucher.
+  The voucher the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22139,20 +22628,20 @@ type VoucherDeleted implements Event {
 }
 
 type WarehouseCreated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a warehouse.
+  The warehouse the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22162,20 +22651,20 @@ type WarehouseCreated implements Event {
 }
 
 type WarehouseUpdated implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a warehouse.
+  The warehouse the event relates to.
   
   Added in Saleor 3.4.
   
@@ -22185,20 +22674,20 @@ type WarehouseUpdated implements Event {
 }
 
 type WarehouseDeleted implements Event {
-  """Time of generating the event."""
+  """Time of the event."""
   issuedAt: DateTime
 
-  """Saleor version."""
+  """Saleor version that triggered the event."""
   version: String
 
-  """Look up a issuing principal."""
+  """The user or application that triggered the event."""
   issuingPrincipal: IssuingPrincipal
 
-  """Look up a recipient of the webhook."""
+  """The application receiving the webhook."""
   recipient: App
 
   """
-  Look up a warehouse.
+  The warehouse the event relates to.
   
   Added in Saleor 3.4.
   

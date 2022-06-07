@@ -1,8 +1,10 @@
+import uuid
 from decimal import Decimal
 from typing import List, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import F
 
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
@@ -16,6 +18,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event
+from ...order.models import Order
 from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
 from ...payment import models as payment_models
 from ...payment.error_codes import (
@@ -32,7 +35,7 @@ from ...payment.gateway import (
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..channel.utils import validate_channel
-from ..checkout.mutations.utils import get_checkout_by_token
+from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -45,12 +48,22 @@ from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
-from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.mutations import MetadataInput
 from ..utils import get_user_or_app_from_context
 from .enums import TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
+
+
+def add_to_order_total_authorized_and_total_charged(
+    order_id: uuid.UUID,
+    authorized_amount_to_add: Decimal,
+    charged_amount_to_add: Decimal,
+):
+    Order.objects.filter(id=order_id).update(
+        total_authorized_amount=F("total_authorized_amount") + authorized_amount_to_add,
+        total_charged_amount=F("total_charged_amount") + charged_amount_to_add,
+    )
 
 
 def description(enum):
@@ -123,13 +136,20 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     payment = graphene.Field(Payment, description="A newly created payment.")
 
     class Arguments:
-        checkout_id = graphene.ID(
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
-            ),
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
             required=False,
         )
-        token = UUID(description="Checkout token.", required=False)
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
+            ),
+        )
         input = PaymentInput(
             description="Data required to create a new payment.", required=True
         )
@@ -231,19 +251,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id=None, token=None, **data):
-        # DEPRECATED
-        validate_one_of_args_is_in_mutation(
-            PaymentErrorCode, "checkout_id", checkout_id, "token", token
+    def perform_mutation(
+        cls, _root, info, checkout_id=None, token=None, id=None, **data
+    ):
+        checkout = get_checkout(
+            cls,
+            info,
+            checkout_id=checkout_id,
+            token=token,
+            id=id,
+            error_class=PaymentErrorCode,
         )
-
-        if token:
-            checkout = get_checkout_by_token(token)
-        # DEPRECATED
-        else:
-            checkout = cls.get_node_or_error(
-                info, checkout_id or token, only_type=Checkout, field="checkout_id"
-            )
 
         cls.validate_checkout_email(checkout)
 
@@ -789,6 +807,18 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
+    def add_amounts_to_order(cls, order_id: uuid.UUID, transaction_data: dict):
+        authorized_amount = transaction_data.get("authorized_value", 0)
+        charged_amount = transaction_data.get("charged_value", 0)
+        if not authorized_amount and not charged_amount:
+            return
+        add_to_order_total_authorized_and_total_charged(
+            order_id=order_id,
+            authorized_amount_to_add=authorized_amount,
+            charged_amount_to_add=charged_amount,
+        )
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         order_or_checkout_instance = cls.get_node_or_error(info, instance_id)
@@ -811,6 +841,9 @@ class TransactionCreate(BaseMutation):
                     name=transaction_event_data.get("name", ""),
                 )
         transaction = cls.create_transaction(transaction_data)
+        if order_id := transaction_data.get("order_id"):
+            cls.add_amounts_to_order(order_id, transaction_data)
+
         if transaction_event_data:
             cls.create_transaction_event(transaction_event_data, transaction)
         return TransactionCreate(transaction=transaction)
@@ -865,6 +898,33 @@ class TransactionUpdate(TransactionCreate):
         )
 
     @classmethod
+    def update_amounts_for_order(
+        cls,
+        transaction: payment_models.TransactionItem,
+        order_id: uuid.UUID,
+        transaction_data: dict,
+    ):
+        current_authorized_amount = transaction.authorized_value
+        updated_authorized_amount = transaction_data.get(
+            "authorized_value", current_authorized_amount
+        )
+        authorized_amount_to_add = updated_authorized_amount - current_authorized_amount
+
+        current_charged_amount = transaction.charged_value
+        updated_charged_amount = transaction_data.get(
+            "charged_value", current_charged_amount
+        )
+        charged_amount_to_add = updated_charged_amount - current_charged_amount
+
+        if not authorized_amount_to_add and not charged_amount_to_add:
+            return
+        add_to_order_total_authorized_and_total_charged(
+            order_id=order_id,
+            authorized_amount_to_add=authorized_amount_to_add,
+            charged_amount_to_add=charged_amount_to_add,
+        )
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance_id = data.get("id")
         instance = cls.get_node_or_error(info, instance_id, only_type=TransactionItem)
@@ -873,6 +933,10 @@ class TransactionUpdate(TransactionCreate):
             cls.validate_transaction_input(instance, transaction_data)
             cls.cleanup_money_data(transaction_data)
             cls.cleanup_metadata_data(transaction_data)
+            if instance.order_id:
+                cls.update_amounts_for_order(
+                    instance, instance.order_id, transaction_data
+                )
             instance = cls.construct_instance(instance, transaction_data)
             instance.save()
 

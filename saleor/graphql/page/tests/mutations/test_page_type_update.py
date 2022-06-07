@@ -1,9 +1,13 @@
-from unittest.mock import ANY
+from unittest import mock
 
 import graphene
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import PageType
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 PAGE_TYPE_UPDATE_MUTATION = """
@@ -76,6 +80,62 @@ def test_page_type_update_as_staff(
         tag_page_attribute.slug,
         author_page_attribute.slug,
     }
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_page_type_update_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    page_type,
+    permission_manage_page_types_and_attributes,
+    author_page_attribute,
+    size_page_attribute,
+    tag_page_attribute,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+
+    slug = "new-slug"
+
+    variables = {
+        "id": graphene.Node.to_global_id("PageType", page_type.pk),
+        "input": {
+            "slug": slug,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_TYPE_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypeUpdate"]
+    page_type.refresh_from_db()
+
+    # then
+    assert not data["errors"]
+    assert data["pageType"]["slug"] == slug
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("PageType", page_type.id),
+            "name": page_type.name,
+            "slug": page_type.slug,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(SimpleLazyObject(lambda: staff_user))
+            ),
+        },
+        WebhookEventAsyncType.PAGE_TYPE_UPDATED,
+        [any_webhook],
+        page_type,
+        SimpleLazyObject(lambda: staff_user),
+    )
 
 
 def test_page_type_update_as_staff_no_perm(staff_api_client, page_type):
@@ -237,13 +297,13 @@ def test_page_type_update_not_valid_attributes(
         {
             "code": PageErrorCode.INVALID.name,
             "field": "addAttributes",
-            "message": ANY,
+            "message": mock.ANY,
             "attributes": [graphene.Node.to_global_id("Attribute", color_attribute.pk)],
         },
         {
             "code": PageErrorCode.INVALID.name,
             "field": "removeAttributes",
-            "message": ANY,
+            "message": mock.ANY,
             "attributes": [
                 graphene.Node.to_global_id("Attribute", attr.pk)
                 for attr in [weight_attribute, size_attribute]

@@ -34,6 +34,13 @@ def get_payment_id_from_query(value):
         return None
 
 
+def get_checkout_id_from_query(value):
+    try:
+        return from_global_id_or_error(value, only_type="Checkout")[1]
+    except Exception:
+        return None
+
+
 def filter_checkout_by_payment(qs, payment_id):
     if payment_id:
         payments = Payment.objects.filter(pk=payment_id).values("id")
@@ -70,7 +77,9 @@ def filter_checkout_search(qs, _, value):
 
     filter_option = Q(Exists(users.filter(id=OuterRef("user_id"))))
 
-    if checkout_id := get_checkout_token_from_query(value):
+    possible_token = get_checkout_id_from_query(value) or value
+
+    if checkout_id := get_checkout_token_from_query(possible_token):
         filter_option |= Q(token=checkout_id)
 
     payments = Payment.objects.filter(psp_reference=value).values("id")

@@ -16,7 +16,12 @@ from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ....warehouse import models as warehouse_models
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_34,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -24,14 +29,22 @@ from ...core.utils import from_global_id_or_error
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
 from ..types import Checkout
-from .utils import ERROR_DOES_NOT_SHIP, clean_delivery_method, get_checkout_by_token
+from .utils import ERROR_DOES_NOT_SHIP, clean_delivery_method, get_checkout
 
 
 class CheckoutDeliveryMethodUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        token = UUID(description="Checkout token.", required=False)
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
+            required=False,
+        )
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
+
         delivery_method_id = graphene.ID(
             description="Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID).",
             required=False,
@@ -224,11 +237,18 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         cls,
         _,
         info,
-        token,
+        token=None,
+        id=None,
         delivery_method_id=None,
     ):
-
-        checkout = get_checkout_by_token(token)
+        checkout = get_checkout(
+            cls,
+            info,
+            checkout_id=None,
+            token=token,
+            id=id,
+            error_class=CheckoutErrorCode,
+        )
 
         manager = info.context.plugins
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)

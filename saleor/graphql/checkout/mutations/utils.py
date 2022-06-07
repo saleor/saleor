@@ -3,12 +3,13 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Iterable, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Type, Union, cast
 
 import graphene
 import pytz
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q
+from django.db.models import Q, QuerySet
+from graphql import ResolveInfo
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
@@ -25,6 +26,12 @@ from ....product.models import ProductChannelListing
 from ....shipping import interface as shipping_interface
 from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
+from ...core.validators import validate_one_of_args_is_in_mutation
+from ..types import Checkout
+
+if TYPE_CHECKING:
+    from ...core.mutations import BaseMutation
+
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -222,6 +229,48 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
                 )
             }
         )
+    return checkout
+
+
+def get_checkout(
+    mutation_class: Type["BaseMutation"],
+    info: ResolveInfo,
+    checkout_id: str = None,
+    token: uuid.UUID = None,
+    id: str = None,
+    error_class=CheckoutErrorCode,
+    qs: QuerySet = None,
+):
+    """Return checkout by using the current id field or the deprecated one.
+
+    It is helper logic to return a checkout for mutations that takes into account the
+    current `id` field and the deprecated one (`checkout_id`, `token`). If checkout is
+    not found, it will raise an exception.
+    """
+
+    validate_one_of_args_is_in_mutation(
+        error_class, "checkout_id", checkout_id, "token", token, "id", id
+    )
+    if qs is None:
+        qs = models.Checkout.objects.select_related(
+            "channel",
+            "shipping_method",
+            "collection_point",
+            "billing_address",
+            "shipping_address",
+        )
+
+    if id:
+        checkout = mutation_class.get_node_or_error(
+            info, id, only_type=Checkout, field="id", qs=qs
+        )
+    else:  # DEPRECATED
+        if token:
+            checkout = get_checkout_by_token(token, qs=qs)
+        else:
+            checkout = mutation_class.get_node_or_error(
+                info, checkout_id, only_type=Checkout, field="checkout_id", qs=qs
+            )
     return checkout
 
 
