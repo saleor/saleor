@@ -19023,7 +19023,7 @@ input PaymentInput {
   
   Added in Saleor 3.1.
   """
-  storePaymentMethod: StorePaymentMethodEnum = none
+  storePaymentMethod: StorePaymentMethodEnum = NONE
 
   """
   User public metadata.
