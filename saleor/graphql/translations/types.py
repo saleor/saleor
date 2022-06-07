@@ -69,6 +69,7 @@ class AttributeValueTranslation(BaseTranslationType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
+    plain_text = graphene.String(description="Attribute plain text value.")
 
     class Meta:
         model = attribute_models.AttributeValueTranslation
@@ -79,6 +80,7 @@ class AttributeValueTranslatableContent(ModelObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     rich_text = JSONString(description="Attribute value." + RICH_CONTENT)
+    plain_text = graphene.String(description="Attribute plain text value.")
     translation = TranslationField(
         AttributeValueTranslation, type_name="attribute value"
     )
