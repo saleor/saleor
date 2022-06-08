@@ -14,12 +14,13 @@ import sentry_sdk.utils
 from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
-from . import __version__
+from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 
 
@@ -729,4 +730,8 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
-# Support multiple interface notation in schema for Apollo tooling.
+
+# Patch SubscriberExecutionContext class from `graphql-core-legacy` package
+# to fix bug causing not returning errors for subscription queries.
+
+executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore

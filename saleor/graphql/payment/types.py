@@ -14,7 +14,10 @@ from ..meta.permissions import public_payment_permissions
 from ..meta.resolvers import resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..utils import get_user_or_app_from_context
-from .dataloaders import TransactionEventByTransactionIdLoader
+from .dataloaders import (
+    TransactionByPaymentIdLoader,
+    TransactionEventByTransactionIdLoader,
+)
 from .enums import (
     OrderAction,
     PaymentChargeStatusEnum,
@@ -181,8 +184,8 @@ class Payment(ModelObjectType):
         return root.get_captured_amount()
 
     @staticmethod
-    def resolve_transactions(root: models.Payment, _info):
-        return root.transactions.all()
+    def resolve_transactions(root: models.Payment, info):
+        return TransactionByPaymentIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_available_refund_amount(root: models.Payment, _info):

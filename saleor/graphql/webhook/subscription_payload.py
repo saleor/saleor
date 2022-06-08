@@ -8,15 +8,17 @@ from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from graphql import GraphQLDocument, get_default_backend, parse
-from graphql.error import GraphQLSyntaxError
+from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.language.ast import FragmentDefinition, OperationDefinition
 from promise import Promise
 
 from ...app.models import App
 from ...webhook.error_codes import WebhookErrorCode
+from ...core.exceptions import PermissionDenied
 from ...discount.utils import fetch_discounts
 from ...plugins.manager import PluginsManager
 from ...settings import get_host
+from ..utils import format_error
 
 logger = get_task_logger(__name__)
 
@@ -101,6 +103,14 @@ def initialize_request(requestor=None) -> HttpRequest:
     return request
 
 
+def get_event_payload(event):
+    # Queries that use dataloaders return Promise object for the "event" field. In that
+    # case, we need to resolve them first.
+    if isinstance(event, Promise):
+        return event.get()
+    return event
+
+
 def generate_payload_from_subscription(
     event_type: str,
     subscribable_object,
@@ -113,7 +123,7 @@ def generate_payload_from_subscription(
     It uses a graphql's engine to build payload by using the same logic as response.
     As an input it expects given event type and object and the query which will be
     used to resolve a payload.
-    event_type: is a event which will be triggered.
+    event_type: is an event which will be triggered.
     subscribable_object: is an object which have a dedicated own type in Subscription
     definition.
     subscription_query: query used to prepare a payload via graphql engine.
@@ -149,6 +159,7 @@ def generate_payload_from_subscription(
             extra={"query": subscription_query, "app": app_id},
         )
         return None
+
     payload = []  # type: ignore
     results.subscribe(payload.append)
 
@@ -160,11 +171,12 @@ def generate_payload_from_subscription(
         return None
 
     payload_instance = payload[0]
-    event_payload = payload_instance.data.get("event")
+    event_payload = get_event_payload(payload_instance.data.get("event"))
 
-    # Queries that use dataloaders return Promise object for the "event" field. In that
-    # case, we need to resolve them first.
-    if isinstance(event_payload, Promise):
-        return event_payload.get()
+    if payload_instance.errors:
+        event_payload["errors"] = [
+            format_error(error, (GraphQLError, PermissionDenied))
+            for error in payload_instance.errors
+        ]
 
     return event_payload
