@@ -42,7 +42,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     if object_type not in TYPE_TO_MODEL_DATA_MAPPING.keys():
         return HttpResponseNotFound("Invalid instance type.")
 
-    size = get_thumbnail_size(size)
+    size: int = get_thumbnail_size(size)
 
     # return the thumbnail if it's already exist
     model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]
@@ -52,16 +52,19 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     ).first():
         return HttpResponseRedirect(thumbnail.image.url)
 
-    instance = model_data.objects.get(**{model_data.image_field: pk})  # type: ignore
+    instance = model_data.model.objects.get(id=pk)
     image = getattr(instance, model_data.image_field)
-    if image is None:
+    # TODO: maybe the condition can be changed after dropping versatile image field
+    if not bool(image):
         return HttpResponseNotFound("There is no image for provided instance.")
 
+    # TODO: handle format
+    # TODO maybe the image.name should be passed
     # prepare thumbnail
     processed_image = ProcessedImage(image.url, size, format)
     thumbnail_file = processed_image.create_thumbnail()
 
-    thumbnail_file_name = prepare_thumbnail_file_name()
+    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size)
 
     # save image thumbnail
     # TODO: probably the Thumbnail would need to have optional image field
@@ -69,3 +72,6 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
         size=size, format=format, **{model_data.thumbnail_field: instance}
     )
     thumbnail.image.save(thumbnail_file_name, thumbnail_file)
+    thumbnail.save()
+
+    return HttpResponseRedirect(thumbnail.image.url)

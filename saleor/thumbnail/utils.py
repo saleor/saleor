@@ -2,6 +2,7 @@ from io import BytesIO
 from typing import Optional
 
 import magic
+from django.conf import settings
 from django.core.files.storage import default_storage
 from PIL import Image
 
@@ -19,8 +20,9 @@ def get_thumbnail_size(size: str) -> int:
     return min(THUMBNAIL_SIZES, key=lambda x: abs(x - size))
 
 
-def prepare_thumbnail_file_name() -> str:
-    pass
+def prepare_thumbnail_file_name(file_name: str, size: int) -> str:
+    file_path, file_ext = file_name.rsplit(".")
+    return file_path + f"_thumbnail_{size}." + file_ext
 
 
 class ProcessedImage:
@@ -52,7 +54,7 @@ class ProcessedImage:
         self.storage = storage
 
     def create_thumbnail(self):
-        image, file_ext, image_format, mime_type = self.retrieve_image(self.image_path)
+        image, file_ext, image_format, mime_type = self.retrieve_image()
         image, save_kwargs = self.preprocess(image, image_format)
         image_file = self.process_image(
             image=image,
@@ -66,7 +68,7 @@ class ProcessedImage:
 
     def retrieve_image(self):
         """Return a PIL Image instance stored at `image_path`."""
-        image = self.storage.open(self.image_path, "rb")
+        image = self.storage.open(self.image_path.lstrip(settings.MEDIA_URL), "rb")
         image_format, mime_type = self.get_image_metadata_from_file(image)
         file_ext = self.image_path.rsplit(".")[-1]
 
@@ -177,7 +179,7 @@ class ProcessedImage:
 
         return (image, save_kwargs)
 
-    def process_image(self, image, image_format, save_kwargs, width, height):
+    def process_image(self, image, image_format, save_kwargs):
         """Return a BytesIO instance of `image` that fits in a bounding box.
 
         Bounding box dimensions are `width`x`height`.
@@ -185,7 +187,7 @@ class ProcessedImage:
         # TODO: handle image format
         image_file = BytesIO()
         image.thumbnail(
-            self.size,
+            (self.size, self.size),
         )
         image.save(image_file, **save_kwargs)
         return image_file
