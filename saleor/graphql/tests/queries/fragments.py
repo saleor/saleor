@@ -215,10 +215,10 @@ fragment AddressDetails on Address {
     """
 
 
-USER_DETAILS = (
+CUSTOMER_DETAILS = (
     ADDRESS_DETAILS
     + """
-fragment UserDetails on User {
+fragment CustomerDetails on User {
   email
   firstName
   lastName
@@ -237,6 +237,16 @@ fragment UserDetails on User {
 }
 """
 )
+
+STAFF_DETAILS = """
+fragment StaffDetails on User {
+  email
+  firstName
+  lastName
+  isStaff
+  isActive
+}
+"""
 
 
 BASIC_PRODUCT_FIELDS = """

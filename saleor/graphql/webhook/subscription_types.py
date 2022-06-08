@@ -142,6 +142,9 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.SHIPPING_ZONE_CREATED: ShippingZoneCreated,
             WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
             WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
+            WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
+            WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
+            WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
             WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
             WebhookEventAsyncType.TRANSLATION_CREATED: TranslationCreated,
             WebhookEventAsyncType.TRANSLATION_UPDATED: TranslationUpdated,
@@ -870,6 +873,21 @@ class ShippingZoneDeleted(ObjectType, ShippingZoneBase):
         interfaces = (Event,)
 
 
+class StaffCreated(ObjectType, UserBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class StaffUpdated(ObjectType, UserBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class StaffDeleted(ObjectType, UserBase):
+    class Meta:
+        interfaces = (Event,)
+
+
 class TransactionAction(ObjectType, AbstractType):
     action_type = graphene.Field(
         TransactionActionEnum,
@@ -1093,6 +1111,9 @@ SUBSCRIPTION_EVENTS_TYPES = [
     ShippingZoneCreated,
     ShippingZoneUpdated,
     ShippingZoneDeleted,
+    StaffCreated,
+    StaffUpdated,
+    StaffDeleted,
     TransactionActionRequest,
     TranslationCreated,
     TranslationUpdated,

@@ -273,6 +273,10 @@ class StaffCreate(ModelMutation):
         if groups:
             instance.groups.add(*groups)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.staff_created(instance)
+
 
 class StaffUpdate(StaffCreate):
     class Arguments:
@@ -409,6 +413,7 @@ class StaffUpdate(StaffCreate):
         if user.email != old_email:
             assign_user_gift_cards(user)
             match_orders_with_new_user(user)
+        info.context.plugins.staff_updated(instance)
         return response
 
 
@@ -435,7 +440,11 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
-        return cls.success_response(instance)
+
+        response = cls.success_response(instance)
+        info.context.plugins.staff_deleted(instance)
+
+        return response
 
 
 class AddressCreate(ModelMutation):

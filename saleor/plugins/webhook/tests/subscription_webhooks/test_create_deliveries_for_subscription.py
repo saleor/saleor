@@ -30,6 +30,7 @@ from .payloads import (
     generate_page_type_payload,
     generate_sale_payload,
     generate_shipping_method_payload,
+    generate_staff_payload,
     generate_voucher_created_payload_with_meta,
     generate_voucher_payload,
     generate_warehouse_payload,
@@ -688,6 +689,56 @@ def test_shipping_zone_deleted(
         }
     )
     assert zones_instances[0].id is not None
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_staff_created(staff_user, subscription_staff_created_webhook):
+    # given
+    webhooks = [subscription_staff_created_webhook]
+    event_type = WebhookEventAsyncType.STAFF_CREATED
+    expected_payload = json.dumps(generate_staff_payload(staff_user))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, staff_user, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_staff_updated(staff_user, subscription_staff_updated_webhook):
+    # given
+    webhooks = [subscription_staff_updated_webhook]
+    event_type = WebhookEventAsyncType.STAFF_UPDATED
+    expected_payload = json.dumps(generate_staff_payload(staff_user))
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, staff_user, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_staff_deleted(staff_user, subscription_staff_deleted_webhook):
+    # given
+    webhooks = [subscription_staff_deleted_webhook]
+    id = staff_user.id
+    staff_user.delete()
+    staff_user.id = id
+
+    event_type = WebhookEventAsyncType.STAFF_DELETED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, staff_user, webhooks)
+    expected_payload = json.dumps(generate_staff_payload(staff_user))
+
+    # then
+
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
