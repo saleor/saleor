@@ -2,8 +2,6 @@ import fnmatch
 import hashlib
 import importlib
 import json
-import logging
-import traceback
 from inspect import isclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -18,7 +16,6 @@ from django.shortcuts import render
 from django.views.generic import View
 from graphql import GraphQLDocument, get_default_backend
 from graphql.error import GraphQLError, GraphQLSyntaxError
-from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 
@@ -30,12 +27,9 @@ from .api import API_PATH, schema
 from .context import get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
-from .utils import query_fingerprint
+from .utils import format_error, query_fingerprint
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
-handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -392,35 +386,7 @@ class GraphQLView(View):
 
     @classmethod
     def format_error(cls, error):
-        if isinstance(error, GraphQLError):
-            result = format_graphql_error(error)
-        else:
-            result = {"message": str(error)}
-
-        if "extensions" not in result:
-            result["extensions"] = {}
-
-        exc = error
-        while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
-            exc = exc.original_error
-        if isinstance(exc, AssertionError):
-            exc = GraphQLError(str(exc))
-        if isinstance(exc, cls.HANDLED_EXCEPTIONS):
-            handled_errors_logger.info("A query had an error", exc_info=exc)
-        else:
-            unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
-
-        result["extensions"]["exception"] = {"code": type(exc).__name__}
-        if settings.DEBUG:
-            lines = []
-
-            if isinstance(exc, BaseException):
-                for line in traceback.format_exception(
-                    type(exc), exc, exc.__traceback__
-                ):
-                    lines.extend(line.rstrip().splitlines())
-            result["extensions"]["exception"]["stacktrace"] = lines
-        return result
+        return format_error(error, cls.HANDLED_EXCEPTIONS)
 
 
 def get_key(key):

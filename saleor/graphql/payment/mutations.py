@@ -43,14 +43,13 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
-from ..core.enums import to_enum
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
 from ..meta.mutations import MetadataInput
 from ..utils import get_user_or_app_from_context
-from .enums import TransactionActionEnum, TransactionStatusEnum
+from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
 from .utils import metadata_contains_empty_key
 
@@ -64,30 +63,6 @@ def add_to_order_total_authorized_and_total_charged(
         total_authorized_amount=F("total_authorized_amount") + authorized_amount_to_add,
         total_charged_amount=F("total_charged_amount") + charged_amount_to_add,
     )
-
-
-def description(enum):
-    if enum is None:
-        return "Enum representing the type of a payment storage in a gateway."
-    elif enum == StorePaymentMethodEnum.NONE:
-        return "Storage is disabled. The payment is not stored."
-    elif enum == StorePaymentMethodEnum.ON_SESSION:
-        return (
-            "On session storage type. "
-            "The payment is stored only to be reused when "
-            "the customer is present in the checkout flow."
-        )
-    elif enum == StorePaymentMethodEnum.OFF_SESSION:
-        return (
-            "Off session storage type. "
-            "The payment is stored to be reused even if the customer is absent."
-        )
-    return None
-
-
-StorePaymentMethodEnum = to_enum(
-    StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
-)
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -122,7 +97,7 @@ class PaymentInput(graphene.InputObjectType):
     store_payment_method = StorePaymentMethodEnum(
         description="Payment store type." + ADDED_IN_31,
         required=False,
-        default_value=StorePaymentMethod.NONE,
+        default_value=StorePaymentMethodEnum.NONE.name,
     )
     metadata = common_types.NonNullList(
         MetadataInput,
@@ -332,6 +307,9 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         payment = None
         if amount != 0:
+            store_payment_method = (
+                data.get("store_payment_method") or StorePaymentMethod.NONE
+            )
             payment = create_payment(
                 gateway=gateway,
                 payment_token=data.get("token", ""),
@@ -343,7 +321,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 customer_ip_address=get_client_ip(info.context),
                 checkout=checkout,
                 return_url=data.get("return_url"),
-                store_payment_method=data["store_payment_method"],
+                store_payment_method=store_payment_method,
                 metadata=metadata,
             )
 
