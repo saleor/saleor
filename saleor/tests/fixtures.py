@@ -5861,7 +5861,6 @@ def app_manifest_webhook():
             }
         """,
         "targetUrl": "https://app.example/api/webhook",
-        "isActive": True,
     }
 
 

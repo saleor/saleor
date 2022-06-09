@@ -13,7 +13,7 @@ from ...core.permissions import (
 )
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error
@@ -167,9 +167,6 @@ class AppManifestWebhook(graphene.ObjectType):
     target_url = graphene.String(
         description="The url to receive the payload.", required=True
     )
-    is_active = graphene.Boolean(
-        description="Determine if webhook will be set active or not.", required=True
-    )
 
     @staticmethod
     def resolve_async_events(root, info):
@@ -182,10 +179,6 @@ class AppManifestWebhook(graphene.ObjectType):
     @staticmethod
     def resolve_target_url(root, info):
         return root["targetUrl"]
-
-    @staticmethod
-    def resolve_is_active(root, info):
-        return root["isActive"]
 
 
 class Manifest(graphene.ObjectType):
@@ -204,7 +197,7 @@ class Manifest(graphene.ObjectType):
     extensions = NonNullList(AppManifestExtension, required=True)
     webhooks = NonNullList(
         AppManifestWebhook,
-        description="List of the app's webhooks." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="List of the app's webhooks." + ADDED_IN_35 + PREVIEW_FEATURE,
         required=True,
     )
 

@@ -290,7 +290,7 @@ def test_install_app_with_webhook(
     )
     assert webhook.subscription_query == app_manifest_webhook["query"]
     assert webhook.target_url == app_manifest_webhook["targetUrl"]
-    assert webhook.is_active == app_manifest_webhook["isActive"]
+    assert webhook.is_active is True
 
 
 def test_install_app_webhook_incorrect_url(
@@ -309,8 +309,8 @@ def test_install_app_webhook_incorrect_url(
         install_app(app_installation, activate=True)
 
     error_dict = excinfo.value.error_dict
-    assert "target_url" in error_dict
-    assert error_dict["target_url"][0].message == "Enter a valid URL."
+    assert "webhooks" in error_dict
+    assert error_dict["webhooks"][0].message == "Invalid target url."
 
 
 def test_install_app_webhook_incorrect_query(
@@ -343,5 +343,5 @@ def test_install_app_webhook_incorrect_query(
         install_app(app_installation, activate=True)
 
     error_dict = excinfo.value.error_dict
-    assert "query" in error_dict
-    assert error_dict["query"][0].message == "Subscription query is not valid"
+    assert "webhooks" in error_dict
+    assert error_dict["webhooks"][0].message == "Subscription query is not valid."
