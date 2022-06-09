@@ -69,7 +69,7 @@ class WebhookEventSync(ModelObjectType):
     @staticmethod
     def resolve_name(root: models.WebhookEvent, _info):
         return (
-            WebhookEventAsyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
+            WebhookEventSyncType.DISPLAY_LABELS.get(root.event_type) or root.event_type
         )
 
 
