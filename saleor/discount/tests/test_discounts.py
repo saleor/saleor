@@ -26,12 +26,7 @@ from ..utils import (
 )
 
 
-def test_valid_voucher_min_spent_amount_with_display_gross_prices(
-    channel_USD, site_settings
-):
-    site_settings.display_gross_prices = True
-    site_settings.save()
-
+def test_valid_voucher_min_spent_amount(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -43,17 +38,12 @@ def test_valid_voucher_min_spent_amount_with_display_gross_prices(
         discount=Money(10, "USD"),
         min_spent=Money(7, "USD"),
     )
-    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+    value = Money(7, "USD")
 
     voucher.validate_min_spent(value, channel_USD)
 
 
-def test_valid_voucher_min_spent_amount_without_display_gross_prices(
-    channel_USD, site_settings
-):
-    site_settings.display_gross_prices = False
-    site_settings.save()
-
+def test_valid_voucher_min_spent_amount_not_reached(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
@@ -65,7 +55,7 @@ def test_valid_voucher_min_spent_amount_without_display_gross_prices(
         discount=Money(10, "USD"),
         min_spent=Money(7, "USD"),
     )
-    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+    value = Money(5, "USD")
 
     with pytest.raises(NotApplicable):
         voucher.validate_min_spent(value, channel_USD)
@@ -512,9 +502,8 @@ def test_validate_voucher(
         min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
-    price = TaxedMoney(gross=total_price, net=total_price)
     validate_voucher(
-        voucher, price, total_quantity, "test@example.com", channel_USD, None
+        voucher, total_price, total_quantity, "test@example.com", channel_USD, None
     )
 
 
@@ -607,11 +596,10 @@ def test_validate_voucher_not_applicable(
         min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
-    price = TaxedMoney(net=total_price, gross=total_price)
 
     with pytest.raises(NotApplicable):
         validate_voucher(
-            voucher, price, total_quantity, "test@example.com", channel_USD, None
+            voucher, total_price, total_quantity, "test@example.com", channel_USD, None
         )
 
 

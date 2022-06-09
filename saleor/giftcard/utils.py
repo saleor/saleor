@@ -61,6 +61,8 @@ def remove_gift_card_code_from_checkout(checkout: Checkout, gift_card_code: str)
     if gift_card:
         checkout.gift_cards.remove(gift_card)
         checkout.save(update_fields=["last_change"])
+        return True
+    return False
 
 
 def deactivate_gift_card(gift_card: GiftCard):

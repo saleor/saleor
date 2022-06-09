@@ -26,12 +26,11 @@ from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import base_calculations
-from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxType, zero_money, zero_taxed_money
-from ..discount import DiscountInfo, VoucherType
+from ..core.taxes import TaxData, TaxType, zero_taxed_money
+from ..discount import DiscountInfo
 from ..order.interface import OrderTaxedPricesData
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -260,7 +259,7 @@ class PluginsManager(PaymentInterface):
                 line_info,
                 address,
                 discounts,
-            ).price_with_discounts
+            )
             for line_info in lines
         ]
         currency = checkout_info.checkout.currency
@@ -277,9 +276,8 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_delivery_price(
-            checkout_info, lines
-        )
+        price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
+        default_value = TaxedMoney(price, price)
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_shipping",
@@ -364,15 +362,16 @@ class PluginsManager(PaymentInterface):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-    ) -> CheckoutTaxedPricesData:
+    ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_line_total(
             checkout_line_info,
             checkout_info.channel,
             discounts,
         )
+        default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
         line_total = self.__run_method_on_plugins(
             "calculate_checkout_line_total",
-            default_value,
+            default_taxed_value,
             checkout_info,
             lines,
             checkout_line_info,
@@ -381,16 +380,7 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
         currency = checkout_info.checkout.currency
-        line_total.price_with_sale = quantize_price(
-            line_total.price_with_sale, currency
-        )
-        line_total.price_with_discounts = quantize_price(
-            line_total.price_with_discounts, currency
-        )
-        line_total.undiscounted_price = quantize_price(
-            line_total.undiscounted_price, currency
-        )
-        return line_total
+        return quantize_price(line_total, currency)
 
     def calculate_order_line_total(
         self,
@@ -425,13 +415,14 @@ class PluginsManager(PaymentInterface):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-    ) -> CheckoutTaxedPricesData:
+    ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_line_unit_price(
             checkout_line_info, checkout_info.channel, discounts
         )
-        line_unit = self.__run_method_on_plugins(
+        default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
+        unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
-            default_value,
+            default_taxed_value,
             checkout_info,
             lines,
             checkout_line_info,
@@ -440,14 +431,7 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout_info.channel.slug,
         )
         currency = checkout_info.checkout.currency
-        line_unit.price_with_sale = quantize_price(line_unit.price_with_sale, currency)
-        line_unit.price_with_discounts = quantize_price(
-            line_unit.price_with_discounts, currency
-        )
-        line_unit.undiscounted_price = quantize_price(
-            line_unit.undiscounted_price, currency
-        )
-        return line_unit
+        return quantize_price(unit_price, currency)
 
     def calculate_order_line_unit(
         self,
@@ -492,7 +476,7 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
-    ) -> Decimal:
+    ) -> Optional[str]:
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_checkout_line_tax_rate",
@@ -531,6 +515,12 @@ class PluginsManager(PaymentInterface):
     def show_taxes_on_storefront(self) -> bool:
         default_value = False
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
+
+    def get_taxes_for_checkout(self, checkout_info, lines) -> Optional[TaxData]:
+        return self.__run_tax_method("get_taxes_for_checkout", checkout_info, lines)
+
+    def get_taxes_for_order(self, order: "Order") -> Optional[TaxData]:
+        return self.__run_tax_method("get_taxes_for_order", order)
 
     def apply_taxes_to_product(
         self, product: "Product", price: Money, country: Country, channel_slug: str
@@ -1221,11 +1211,12 @@ class PluginsManager(PaymentInterface):
 
     def list_shipping_methods_for_checkout(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["ShippingMethodData"]:
-        channel_slug = checkout.channel.slug if checkout else channel_slug
+        channel_slug = channel_slug or checkout_info.channel.slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
         shipping_plugins = [
             plugin
@@ -1237,25 +1228,26 @@ class PluginsManager(PaymentInterface):
         for plugin in shipping_plugins:
             shipping_methods.extend(
                 # https://github.com/python/mypy/issues/9975
-                getattr(plugin, "get_shipping_methods_for_checkout")(checkout, None)
+                getattr(plugin, "get_shipping_methods_for_checkout")(
+                    checkout_info, lines, None
+                )
             )
         return shipping_methods
 
     def get_shipping_method(
         self,
         shipping_method_id: str,
-        checkout: Optional["Checkout"] = None,
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         channel_slug: Optional[str] = None,
     ):
-        if checkout:
-            methods = {
-                method.id: method
-                for method in self.list_shipping_methods_for_checkout(
-                    checkout=checkout, channel_slug=channel_slug
-                )
-            }
-            return methods.get(shipping_method_id)
-        return None
+        methods = {
+            method.id: method
+            for method in self.list_shipping_methods_for_checkout(
+                checkout_info, lines, channel_slug
+            )
+        }
+        return methods.get(shipping_method_id)
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
         auth_basic_method = "external_obtain_access_tokens"
@@ -1291,6 +1283,36 @@ class PluginsManager(PaymentInterface):
             f"Payment plugin {gateway} for {method_name}"
             " payment method is inaccessible!"
         )
+
+    def __run_tax_method(
+        self,
+        method_name: str,
+        *args,
+    ) -> Optional[TaxData]:
+        plugins = self.get_plugins()
+        for plugin in plugins:
+            result = self.__run_method_on_single_plugin(
+                plugin, method_name, None, *args
+            )
+            if isinstance(result, TaxData):
+                return result
+        return None
+
+    def _get_all_plugin_configs(self):
+        with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):
+            if not hasattr(self, "_plugin_configs"):
+                plugin_configurations = PluginConfiguration.objects.prefetch_related(
+                    "channel"
+                ).all()
+                self._plugin_configs_per_channel = defaultdict(dict)
+                self._global_plugin_configs = {}
+                for pc in plugin_configurations:
+                    channel = pc.channel
+                    if channel is None:
+                        self._global_plugin_configs[pc.identifier] = pc
+                    else:
+                        self._plugin_configs_per_channel[channel][pc.identifier] = pc
+            return self._global_plugin_configs, self._plugin_configs_per_channel
 
     # FIXME these methods should be more generic
 
@@ -1493,13 +1515,15 @@ class PluginsManager(PaymentInterface):
 
     def excluded_shipping_methods_for_checkout(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         available_shipping_methods: List["ShippingMethodData"],
     ) -> List[ExcludedShippingMethod]:
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],
-            checkout,
+            checkout_info,
+            lines,
             available_shipping_methods,
         )
 

@@ -6,6 +6,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -269,6 +270,8 @@ def test_handle_authorization_for_checkout_one_of_variants_deleted(
     payment.save()
 
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
@@ -744,6 +747,8 @@ def test_handle_capture_for_checkout_order_not_created_checkout_line_variant_del
     payment.save()
 
     checkout.lines.first().delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
 
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
@@ -1360,6 +1365,8 @@ def test_handle_not_created_order_order_not_created_checkout_line_variant_delete
     # given
     checkout = payment_adyen_for_checkout.checkout
     checkout.lines.first().variant.delete()
+    checkout.price_expiration = timezone.now()
+    checkout.save()
 
     payment_adyen_for_checkout.charge_status = ChargeStatus.FULLY_CHARGED
     payment_adyen_for_checkout.captured_amount = payment_adyen_for_checkout.total

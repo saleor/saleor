@@ -13,7 +13,11 @@ from ....core.utils.url import validate_storefront_url
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
-from ....order.utils import add_variant_to_order, recalculate_order, update_order_prices
+from ....order.utils import (
+    add_variant_to_order,
+    invalidate_order_prices,
+    recalculate_order_weight,
+)
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -269,24 +273,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         )
 
     @classmethod
-    def _refresh_lines_unit_price(cls, info, instance, cleaned_input, new_instance):
-        if new_instance:
-            # It is a new instance, all new lines have already updated prices.
-            return
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address and instance.is_shipping_required():
-            update_order_prices(
-                instance,
-                info.context.plugins,
-                info.context.site.settings.include_taxes_in_prices,
-            )
-        billing_address = cleaned_input.get("billing_address")
-        if billing_address and not instance.is_shipping_required():
-            update_order_prices(
-                instance,
-                info.context.plugins,
-                info.context.site.settings.include_taxes_in_prices,
-            )
+    def should_invalidate_prices(cls, instance, cleaned_input, new_instance) -> bool:
+        # Force price recalculation for all new instances
+        return new_instance
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -309,8 +298,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 cleaned_input.get("quantities"),
                 cleaned_input.get("variants"),
             )
-
-            cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
         except TaxError as tax_error:
             raise ValidationError(
                 "Unable to calculate taxes - %s" % str(tax_error),
@@ -328,5 +315,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
         # Post-process the results
-        recalculate_order(instance)
-        update_order_search_vector(instance)
+        updated_fields = ["weight", "search_vector", "updated_at"]
+        if cls.should_invalidate_prices(instance, cleaned_input, new_instance):
+            invalidate_order_prices(instance)
+            updated_fields.append("should_refresh_prices")
+        recalculate_order_weight(instance)
+        update_order_search_vector(instance, save=False)
+
+        instance.save(update_fields=updated_fields)

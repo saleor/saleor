@@ -16,9 +16,8 @@ from django_prices_vatlayer.utils import (
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations, calculations
-from ...checkout.interface import CheckoutTaxedPricesData
 from ...core.prices import quantize_price
-from ...core.taxes import TaxType, zero_money, zero_taxed_money
+from ...core.taxes import TaxType, zero_money
 from ...discount import VoucherType
 from ...order.interface import OrderTaxedPricesData
 from ...order.utils import (
@@ -138,7 +137,6 @@ class VatlayerPlugin(BasePlugin):
             TaxedMoney,
             TaxedMoneyRange,
             Decimal,
-            CheckoutTaxedPricesData,
             OrderTaxedPricesData,
         ],
     ) -> bool:
@@ -154,12 +152,6 @@ class VatlayerPlugin(BasePlugin):
 
         if isinstance(previous_value, TaxedMoney):
             return previous_value.net != previous_value.gross
-
-        if isinstance(previous_value, CheckoutTaxedPricesData):
-            return (
-                previous_value.price_with_sale.net
-                != previous_value.price_with_sale.gross
-            )
 
         if isinstance(previous_value, OrderTaxedPricesData):
             return (
@@ -181,18 +173,10 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         manager = get_plugins_manager()
-        return calculations.checkout_subtotal(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=address,
-            discounts=discounts,
-        ) + calculations.checkout_shipping_price(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=address,
-            discounts=discounts,
+        return manager.calculate_checkout_subtotal(
+            checkout_info, lines, address, discounts
+        ) + manager.calculate_checkout_shipping(
+            checkout_info, lines, address, discounts
         )
 
     def _get_taxes_for_country(self, country: Country):
@@ -374,8 +358,8 @@ class VatlayerPlugin(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: CheckoutTaxedPricesData,
-    ) -> CheckoutTaxedPricesData:
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
         unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
             checkout_info,
             lines,
@@ -385,15 +369,11 @@ class VatlayerPlugin(BasePlugin):
             address,
             previous_value,
         )
-        if not unit_taxed_prices_data:
+        if unit_taxed_prices_data is None:
             return previous_value
 
         quantity = checkout_line_info.line.quantity
-        return CheckoutTaxedPricesData(
-            price_with_discounts=unit_taxed_prices_data.price_with_discounts * quantity,
-            price_with_sale=unit_taxed_prices_data.price_with_sale * quantity,
-            undiscounted_price=unit_taxed_prices_data.undiscounted_price * quantity,
-        )
+        return unit_taxed_prices_data * quantity
 
     def calculate_checkout_line_unit_price(
         self,
@@ -402,8 +382,8 @@ class VatlayerPlugin(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: CheckoutTaxedPricesData,
-    ) -> CheckoutTaxedPricesData:
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
         unit_taxed_prices_data = self.__calculate_checkout_line_unit_price(
             checkout_info,
             lines,
@@ -413,7 +393,11 @@ class VatlayerPlugin(BasePlugin):
             address,
             previous_value,
         )
-        return unit_taxed_prices_data if unit_taxed_prices_data else previous_value
+        return (
+            unit_taxed_prices_data
+            if unit_taxed_prices_data is not None
+            else previous_value
+        )
 
     def __calculate_checkout_line_unit_price(
         self,
@@ -423,7 +407,7 @@ class VatlayerPlugin(BasePlugin):
         channel: "Channel",
         discounts: Iterable["DiscountInfo"],
         address: Optional["Address"],
-        previous_value: CheckoutTaxedPricesData,
+        previous_value: TaxedMoney,
     ):
         if self._skip_plugin(previous_value):
             return
@@ -434,27 +418,18 @@ class VatlayerPlugin(BasePlugin):
             discounts,
         )
 
-        prices_data.price_with_discounts = apply_checkout_discount_on_checkout_line(
+        prices_data = apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
             checkout_line_info,
             discounts,
-            prices_data.price_with_discounts,
+            prices_data,
         )
 
         country = address.country if address else None
-        taxed_prices_data = CheckoutTaxedPricesData(
-            price_with_sale=self.__apply_taxes_to_product(
-                checkout_line_info.product, prices_data.price_with_sale, country
-            ),
-            undiscounted_price=self.__apply_taxes_to_product(
-                checkout_line_info.product, prices_data.undiscounted_price, country
-            ),
-            price_with_discounts=self.__apply_taxes_to_product(
-                checkout_line_info.product, prices_data.price_with_discounts, country
-            ),
+        return self.__apply_taxes_to_product(
+            checkout_line_info.product, prices_data, country
         )
-        return taxed_prices_data
 
     def get_checkout_line_tax_rate(
         self,

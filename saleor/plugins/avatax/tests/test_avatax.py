@@ -113,7 +113,7 @@ def test_calculate_checkout_line_total(
         checkout_line_info,
         checkout_with_item.shipping_address,
         discounts,
-    ).price_with_sale
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -167,10 +167,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("30.00"), currency), gross=Money(Decimal("30.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("12.20"), currency), gross=Money(Decimal("15.00"), currency)
     )
 
@@ -235,10 +232,7 @@ def test_calculate_checkout_line_total_with_voucher(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("30.00"), currency), gross=Money(Decimal("30.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("17.07"), currency), gross=Money(Decimal("21.00"), currency)
     )
 
@@ -300,10 +294,7 @@ def test_calculate_checkout_line_total_with_voucher_once_per_order(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("30.00"), currency), gross=Money(Decimal("30.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("21.95"), currency), gross=Money(Decimal("27.00"), currency)
     )
 
@@ -365,13 +356,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("30.00"), currency), gross=Money(Decimal("30.00"), currency)
-    )
-    assert line_price_data.price_with_sale == TaxedMoney(
-        net=Money(Decimal("4.88"), currency), gross=Money(Decimal("6.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("4.88"), currency), gross=Money(Decimal("6.00"), currency)
     )
 
@@ -434,10 +419,7 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_onc
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("30.00"), currency), gross=Money(Decimal("30.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("9.76"), currency), gross=Money(Decimal("12.00"), currency)
     )
 
@@ -501,9 +483,7 @@ def test_calculate_checkout_line_without_sku_total(
         checkout_with_item.shipping_address,
         discounts,
     )
-    total = quantize_price(
-        total_prices_data.price_with_sale, total_prices_data.price_with_sale.currency
-    )
+    total = quantize_price(total_prices_data, total_prices_data.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
@@ -2102,9 +2082,6 @@ def test_calculate_checkout_line_unit_price(
         [],
     )
 
-    expected_undiscounted_line_price = TaxedMoney(
-        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
-    )
     if charge_taxes:
         expected_line_price = TaxedMoney(
             net=Money("8.13", "USD"), gross=Money("10.00", "USD")
@@ -2113,8 +2090,7 @@ def test_calculate_checkout_line_unit_price(
         expected_line_price = TaxedMoney(
             net=Money("10.00", "USD"), gross=Money("10.00", "USD")
         )
-    assert line_price_data.undiscounted_price == expected_undiscounted_line_price
-    assert line_price_data.price_with_discounts == expected_line_price
+    assert line_price_data == expected_line_price
 
 
 @pytest.mark.vcr
@@ -2154,11 +2130,7 @@ def test_calculate_checkout_line_unit_price_in_JPY(
         checkout.shipping_address,
         [],
     )
-
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money("1200", "JPY"), gross=Money("1200", "JPY")
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money("976", "JPY"), gross=Money("1200", "JPY")
     )
 
@@ -2206,10 +2178,9 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("10.00"), currency), gross=Money(Decimal("10.00"), currency)
+    assert line_price_data == TaxedMoney(
+        net=Money(Decimal("4.07"), currency), gross=Money(Decimal("5.00"), currency)
     )
-    assert line_price_data.price_with_discounts == line_price_data.price_with_sale
 
 
 @pytest.mark.vcr
@@ -2268,10 +2239,7 @@ def test_calculate_checkout_line_unit_price_with_voucher(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("10.00"), currency), gross=Money(Decimal("10.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("5.69"), currency), gross=Money(Decimal("7.00"), currency)
     )
 
@@ -2333,11 +2301,8 @@ def test_calculate_checkout_line_unit_price_with_voucher_once_per_order(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("10.00"), currency), gross=Money(Decimal("10.00"), currency)
-    )
     # voucher with apply_once_per_order is added in calulation of total unit price
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("7.32"), currency), gross=Money(Decimal("9.00"), currency)
     )
 
@@ -2399,10 +2364,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher(
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("10.00"), currency), gross=Money(Decimal("10.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("1.63"), currency), gross=Money(Decimal("2.00"), currency)
     )
 
@@ -2465,10 +2427,7 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher_onl
     )
 
     # then
-    assert line_price_data.undiscounted_price == TaxedMoney(
-        net=Money(Decimal("10.00"), currency), gross=Money(Decimal("10.00"), currency)
-    )
-    assert line_price_data.price_with_discounts == TaxedMoney(
+    assert line_price_data == TaxedMoney(
         net=Money(Decimal("3.25"), currency), gross=Money(Decimal("4.00"), currency)
     )
 

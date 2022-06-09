@@ -14,9 +14,10 @@ if TYPE_CHECKING:
     from .models import Order
 
 
-def update_order_search_vector(order: "Order"):
+def update_order_search_vector(order: "Order", *, save: bool = True):
     order.search_vector = prepare_order_search_vector_value(order)
-    order.save(update_fields=["search_vector", "updated_at"])
+    if save:
+        order.save(update_fields=["search_vector", "updated_at"])
 
 
 def prepare_order_search_vector_value(order: "Order", *, already_prefetched=False):

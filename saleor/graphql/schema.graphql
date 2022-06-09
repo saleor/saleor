@@ -1641,6 +1641,8 @@ enum WebhookEventTypeEnum {
 
   """Void payment."""
   PAYMENT_VOID
+  CHECKOUT_CALCULATE_TAXES
+  ORDER_CALCULATE_TAXES
 
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
@@ -1683,6 +1685,8 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+  CHECKOUT_CALCULATE_TAXES
+  ORDER_CALCULATE_TAXES
 
   """Fetch external shipping methods for checkout."""
   SHIPPING_LIST_METHODS_FOR_CHECKOUT
@@ -2209,6 +2213,7 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
   MANAGE_CHECKOUTS
   HANDLE_CHECKOUTS
+  HANDLE_TAXES
 }
 
 """

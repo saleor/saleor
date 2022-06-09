@@ -4,6 +4,7 @@ from typing import (
     Any,
     DefaultDict,
     Iterable,
+    List,
     Optional,
     Set,
     Tuple,
@@ -19,8 +20,7 @@ from graphql.execution import ExecutionResult
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...checkout.interface import CheckoutTaxedPricesData
-from ...core.taxes import TaxType
+from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...order.interface import OrderTaxedPricesData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
@@ -29,11 +29,35 @@ if TYPE_CHECKING:
     from ...account.models import Address
     from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import Checkout
+    from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
+
+
+def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
+
+    unit = Decimal("10.00")
+    unit_gross = Decimal("12.30")
+    lines = [
+        TaxLineData(
+            total_net_amount=unit * 3,
+            total_gross_amount=unit_gross * 3,
+            tax_rate=Decimal("0.23"),
+        )
+        for _ in obj_with_lines.lines.all()
+    ]
+
+    shipping = Decimal("50.00")
+    shipping_gross = Decimal("63.20")
+
+    return TaxData(
+        shipping_price_net_amount=shipping,
+        shipping_price_gross_amount=shipping_gross,
+        shipping_tax_rate=Decimal("0.23"),
+        lines=lines,
+    )
 
 
 class PluginSample(BasePlugin):
@@ -107,17 +131,13 @@ class PluginSample(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: CheckoutTaxedPricesData,
+        previous_value: TaxedMoney,
     ):
         # See if delivery method doesn't trigger infinite recursion
         bool(checkout_info.delivery_method_info.delivery_method)
 
         price = Money("1.0", currency=checkout_info.checkout.currency)
-        return CheckoutTaxedPricesData(
-            price_with_sale=TaxedMoney(price, price),
-            price_with_discounts=TaxedMoney(price, price),
-            undiscounted_price=TaxedMoney(price, price),
-        )
+        return TaxedMoney(price, price)
 
     def calculate_order_line_total(
         self,
@@ -140,15 +160,11 @@ class PluginSample(BasePlugin):
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        previous_value: CheckoutTaxedPricesData,
+        previous_value: TaxedMoney,
     ):
         currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
-        return CheckoutTaxedPricesData(
-            price_with_sale=TaxedMoney(price, price),
-            price_with_discounts=TaxedMoney(price, price),
-            undiscounted_price=TaxedMoney(price, price),
-        )
+        return TaxedMoney(price, price)
 
     def calculate_order_line_unit(
         self,
@@ -279,6 +295,16 @@ class PluginSample(BasePlugin):
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_taxes_for_checkout(
+        self, checkout_info: "CheckoutInfo", lines, previous_value
+    ) -> Optional["TaxData"]:
+        return sample_tax_data(checkout_info.checkout)
+
+    def get_taxes_for_order(
+        self, order: "Order", previous_value
+    ) -> Optional["TaxData"]:
+        return sample_tax_data(order)
 
     def sample_not_implemented(self, previous_value):
         return NotImplemented

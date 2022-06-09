@@ -7,8 +7,8 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     delete_external_shipping_id,
+    invalidate_checkout_prices,
     is_shipping_required,
-    recalculate_checkout_discount,
     set_external_shipping_id,
 )
 from ....plugins.webhook.utils import APP_ID_PREFIX
@@ -174,13 +174,19 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
+            checkout_info, lines, manager, info.context.discounts, save=False
+        )
         checkout.save(
-            update_fields=["private_metadata", "shipping_method", "last_change"]
+            update_fields=[
+                "private_metadata",
+                "shipping_method",
+                "price_expiration",
+                "last_change",
+            ]
+            + invalidate_prices_updated_fields
         )
 
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
-        )
         manager.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
@@ -189,7 +195,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         cls, info, shipping_method_id, checkout_info, lines, checkout, manager
     ):
         delivery_method = manager.get_shipping_method(
-            checkout=checkout,
+            checkout_info=checkout_info,
+            lines=lines,
             channel_slug=checkout.channel.slug,
             shipping_method_id=shipping_method_id,
         )
@@ -200,12 +207,18 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
         checkout.shipping_method = None
-        checkout.save(
-            update_fields=["private_metadata", "shipping_method", "last_change"]
+        invalidate_prices_updated_fields = invalidate_checkout_prices(
+            checkout_info, lines, manager, info.context.discounts, save=False
         )
-
-        recalculate_checkout_discount(
-            manager, checkout_info, lines, info.context.discounts
+        checkout.save(
+            update_fields=[
+                "private_metadata",
+                "shipping_method",
+                "price_expiration",
+                "last_change",
+            ]
+            + invalidate_prices_updated_fields
         )
         manager.checkout_updated(checkout)
+
         return CheckoutShippingMethodUpdate(checkout=checkout)

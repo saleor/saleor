@@ -27,6 +27,7 @@ from ..tests.sample_plugins import (
     InactivePaymentGateway,
     PluginInactive,
     PluginSample,
+    sample_tax_data,
 )
 
 
@@ -239,16 +240,12 @@ def test_manager_calculates_checkout_line_total(
         checkout_with_item, lines, [discount_info], manager
     )
     checkout_line_info = lines[0]
-    taxed_total = (
-        PluginsManager(plugins=plugins)
-        .calculate_checkout_line_total(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            checkout_with_item.shipping_address,
-            [discount_info],
-        )
-        .price_with_sale
+    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+        [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -474,16 +471,12 @@ def test_manager_calculates_checkout_line_unit_price(
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
 
-    taxed_total = (
-        PluginsManager(plugins=plugins)
-        .calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            address,
-            [],
-        )
-        .price_with_sale
+    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        address,
+        [],
     )
     currency = total_line_price.net.currency
     expected_net = Money(
@@ -527,12 +520,53 @@ def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
     assert tax_rate_list == PluginsManager(plugins=plugins).get_tax_rate_type_choices()
 
 
+def sample_none_data(obj):
+    return None
+
+
 @pytest.mark.parametrize(
     "plugins, show_taxes",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], True), ([], False)],
 )
 def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
+
+
+@pytest.mark.parametrize(
+    "plugins, expected_tax_data",
+    [
+        ([], sample_none_data),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
+    ],
+)
+def test_manager_get_taxes_for_checkout(
+    checkout,
+    plugins,
+    expected_tax_data,
+):
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
+        checkout_info, lines
+    ) == expected_tax_data(checkout)
+
+
+@pytest.mark.parametrize(
+    "plugins, expected_tax_data",
+    [
+        ([], sample_none_data),
+        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
+    ],
+)
+def test_manager_get_taxes_for_order(
+    order,
+    plugins,
+    expected_tax_data,
+):
+    assert PluginsManager(plugins=plugins).get_taxes_for_order(
+        order
+    ) == expected_tax_data(order)
 
 
 @pytest.mark.parametrize(

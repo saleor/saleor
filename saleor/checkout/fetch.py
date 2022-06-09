@@ -216,20 +216,22 @@ def fetch_checkout_lines(
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
 
-    prefetched_fields = [
+    select_related_fields = ["variant__product__product_type"]
+    prefetch_related_fields = [
         "variant__product__collections",
         "variant__product__channel_listings__channel",
         "variant__channel_listings__channel",
-        "variant__product__product_type",
     ]
     if prefetch_variant_attributes:
-        prefetched_fields.extend(
+        prefetch_related_fields.extend(
             [
                 "variant__attributes__assignment__attribute",
                 "variant__attributes__values",
             ]
         )
-    lines = checkout.lines.prefetch_related(*prefetched_fields)
+    lines = checkout.lines.select_related(*select_related_fields).prefetch_related(
+        *prefetch_related_fields
+    )
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
@@ -490,7 +492,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
 
     country_code = shipping_address.country.code if shipping_address else None
 
-    subtotal = base_calculations.base_checkout_lines_total(
+    subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
@@ -525,9 +527,7 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
 
-    return manager.list_shipping_methods_for_checkout(
-        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
-    )
+    return manager.list_shipping_methods_for_checkout(checkout_info, lines)
 
 
 def update_delivery_method_lists_for_checkout_info(
@@ -567,7 +567,7 @@ def update_delivery_method_lists_for_checkout_info(
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = manager.excluded_shipping_methods_for_checkout(
-            checkout_info.checkout, all_methods
+            checkout_info, lines, all_methods
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods

@@ -1,13 +1,11 @@
 from django.core.exceptions import ValidationError
 
-from ....order import OrderStatus, events
+from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError
 from ....plugins.manager import PluginsManager
 from ....shipping.interface import ShippingMethodData
 from ..utils import get_shipping_method_availability_error
-
-ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 class EditableOrderValidationMixin:

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from prices import TaxedMoney
 
 
+# TODO: In Separate PR
+# Drop it or refactor it.
 @dataclass
 class OrderTaxedPricesData:
     """Store an order prices data with applied taxes.

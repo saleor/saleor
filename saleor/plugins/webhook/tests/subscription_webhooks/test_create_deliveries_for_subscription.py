@@ -70,7 +70,7 @@ def test_subscription_query_with_meta(
         requestor_type,
         subscription_voucher_webhook_with_meta.app,
     )
-    assert deliveries[0].payload.payload == expected_payload
+    assert json.loads(deliveries[0].payload.payload) == json.loads(expected_payload)
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1190,7 +1190,7 @@ def test_fulfillment_created(fulfillment, subscription_fulfillment_created_webho
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
 
     # then
-    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert json.loads(deliveries[0].payload.payload) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

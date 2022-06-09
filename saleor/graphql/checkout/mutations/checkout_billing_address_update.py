@@ -2,7 +2,11 @@ import graphene
 
 from ....checkout import AddressType
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.utils import change_billing_address_in_checkout
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.utils import (
+    change_billing_address_in_checkout,
+    invalidate_checkout_prices,
+)
 from ....core.tracing import traced_atomic_transaction
 from ...account.types import AddressInput
 from ...core.descriptions import (
@@ -88,6 +92,26 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         )
         with traced_atomic_transaction():
             billing_address.save()
-            change_billing_address_in_checkout(checkout, billing_address)
+            change_address_updated_fields = change_billing_address_in_checkout(
+                checkout, billing_address
+            )
+            lines, _ = fetch_checkout_lines(checkout)
+            checkout_info = fetch_checkout_info(
+                checkout, lines, info.context.discounts, info.context.plugins
+            )
+            invalidate_prices_updated_fields = invalidate_checkout_prices(
+                checkout_info,
+                lines,
+                info.context.plugins,
+                info.context.discounts,
+                recalculate_discount=False,
+                save=False,
+            )
+            checkout.save(
+                update_fields=change_address_updated_fields
+                + invalidate_prices_updated_fields
+            )
+
             info.context.plugins.checkout_updated(checkout)
+
         return CheckoutBillingAddressUpdate(checkout=checkout)
