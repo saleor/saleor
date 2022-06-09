@@ -32,7 +32,11 @@ class TaxCountryConfigurationDelete(BaseMutation):
         )
 
     class Meta:
-        description = "" + ADDED_IN_35 + PREVIEW_FEATURE
+        description = (
+            "Remove all tax class rates for a specific country."
+            + ADDED_IN_35
+            + PREVIEW_FEATURE
+        )
         error_type_class = TaxCountryConfigurationDeleteError
         permissions = (TaxPermissions.MANAGE_TAXES,)
 

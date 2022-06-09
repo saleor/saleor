@@ -91,7 +91,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         return cleaned_data
 
     @classmethod
-    def update_country_rates(cls, country_code, cleaned_data):
+    def update_and_create_country_rates(cls, country_code, cleaned_data):
         # updating existing instances
         to_update = models.TaxClassCountryRate.objects.filter(
             country=country_code, tax_class_id__in=cleaned_data.keys()
@@ -116,7 +116,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
     def perform_mutation(cls, _root, _info, **data):
         country_code = data["country_code"]
         cleaned_data = cls.clean_input(**data)
-        cls.update_country_rates(country_code, cleaned_data)
+        cls.update_and_create_country_rates(country_code, cleaned_data)
         all_rates = models.TaxClassCountryRate.objects.filter(
             country=country_code, tax_class_id__in=cleaned_data.keys()
         )

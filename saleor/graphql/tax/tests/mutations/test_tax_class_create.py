@@ -48,7 +48,7 @@ def _test_tax_class_create(api_client, permission_manage_taxes):
     variables = {
         "input": {
             "name": name,
-            "updateCountryRates": [
+            "createCountryRates": [
                 {"countryCode": country_code, "rate": rate},
             ],
         },
@@ -65,7 +65,6 @@ def _test_tax_class_create(api_client, permission_manage_taxes):
     assert not data["errors"]
     assert data["taxClass"]["name"] == name
     assert len(data["taxClass"]["countries"]) == 1
-    assert data["taxClass"]["countries"][0]["country"]["code"] == "PL"
     assert data["taxClass"]["countries"][0]["rate"] == rate
     assert data["taxClass"]["countries"][0]["country"]["code"] == country_code
 

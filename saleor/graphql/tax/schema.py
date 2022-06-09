@@ -12,12 +12,14 @@ from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from .filters import TaxClassFilterInput, TaxConfigurationFilterInput
-from .mutations.tax_class_create import TaxClassCreate
-from .mutations.tax_class_delete import TaxClassDelete
-from .mutations.tax_class_update import TaxClassUpdate
-from .mutations.tax_configuration_update import TaxConfigurationUpdate
-from .mutations.tax_country_configuration_delete import TaxCountryConfigurationDelete
-from .mutations.tax_country_configuration_update import TaxCountryConfigurationUpdate
+from .mutations import (
+    TaxClassCreate,
+    TaxClassDelete,
+    TaxClassUpdate,
+    TaxConfigurationUpdate,
+    TaxCountryConfigurationDelete,
+    TaxCountryConfigurationUpdate,
+)
 from .sorters import TaxClassSortingInput
 from .types import (
     TaxClass,

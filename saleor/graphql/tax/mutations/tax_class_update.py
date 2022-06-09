@@ -27,7 +27,9 @@ class TaxClassUpdateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the tax class.")
     update_country_rates = NonNullList(
         CountryRateInput,
-        description="List of country-specific tax rates for this tax class.",
+        description=(
+            "List of country-specific tax rates to create or update for this tax class."
+        ),
     )
     remove_country_rates = NonNullList(
         CountryCodeEnum,
@@ -43,7 +45,7 @@ class TaxClassUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Create a tax class." + ADDED_IN_35 + PREVIEW_FEATURE
+        description = "Update a tax class." + ADDED_IN_35 + PREVIEW_FEATURE
         error_type_class = TaxClassUpdateError
         model = models.TaxClass
         object_type = TaxClass
@@ -79,7 +81,6 @@ class TaxClassUpdate(ModelMutation):
         updated_countries = []
         for obj in to_update:
             data = input_data_by_country[obj.country]
-            obj.country = data["country_code"]
             obj.rate = data["rate"]
             updated_countries.append(obj.country.code)
         models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))

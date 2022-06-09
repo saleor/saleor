@@ -24,14 +24,20 @@ class CountryRateInput(graphene.InputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this rate applies.", required=True
     )
-    rate = graphene.Float(description="Tax rate value.", required=True)
+    rate = graphene.Float(
+        description=(
+            "Tax rate value provided as percentage. Example: provide `23` to "
+            "represent `23%` tax rate."
+        ),
+        required=True,
+    )
 
 
 class TaxClassCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the tax class.", required=True)
-    update_country_rates = NonNullList(
+    create_country_rates = NonNullList(
         CountryRateInput,
-        description="List of country-specific tax rates for this tax class.",
+        description="List of country-specific tax rates to create for this tax class.",
     )
 
 
@@ -61,5 +67,5 @@ class TaxClassCreate(ModelMutation):
     @classmethod
     def save(cls, _info, instance, cleaned_input):
         instance.save()
-        create_country_rates = cleaned_input.get("update_country_rates", [])
+        create_country_rates = cleaned_input.get("create_country_rates", [])
         cls.create_country_rates(instance, create_country_rates)

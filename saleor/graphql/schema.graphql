@@ -10764,7 +10764,7 @@ type Mutation {
   ): TaxClassDelete
 
   """
-  Create a tax class.
+  Update a tax class.
   
   Added in Saleor 3.5.
   
@@ -10814,7 +10814,15 @@ type Mutation {
     updateTaxClassRates: [TaxClassRateInput!]!
   ): TaxCountryConfigurationUpdate
 
-  "\\n\\nAdded in Saleor 3.5.\\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point. \\n\\nRequires one of the following permissions: MANAGE_TAXES."
+  """
+  Remove all tax class rates for a specific country.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
   taxCountryConfigurationDelete(
     """Country in which to update the tax class rates."""
     countryCode: CountryCode!
@@ -14553,21 +14561,25 @@ type TaxClassCreateError {
 """An enumeration."""
 enum TaxClassCreateErrorCode {
   GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
 }
 
 input TaxClassCreateInput {
   """Name of the tax class."""
   name: String!
 
-  """List of country-specific tax rates for this tax class."""
-  updateCountryRates: [CountryRateInput!]
+  """List of country-specific tax rates to create for this tax class."""
+  createCountryRates: [CountryRateInput!]
 }
 
 input CountryRateInput {
   """Country in which this rate applies."""
   countryCode: CountryCode!
 
-  """Tax rate value."""
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate.
+  """
   rate: Float!
 }
 
@@ -14602,11 +14614,12 @@ type TaxClassDeleteError {
 enum TaxClassDeleteErrorCode {
   CANNOT_DELETE_DEFAULT_CLASS
   GRAPHQL_ERROR
+  INVALID
   NOT_FOUND
 }
 
 """
-Create a tax class.
+Update a tax class.
 
 Added in Saleor 3.5.
 
@@ -14637,15 +14650,19 @@ type TaxClassUpdateError {
 
 """An enumeration."""
 enum TaxClassUpdateErrorCode {
-  GRAPHQL_ERROR
   DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
 }
 
 input TaxClassUpdateInput {
   """Name of the tax class."""
   name: String
 
-  """List of country-specific tax rates for this tax class."""
+  """
+  List of country-specific tax rates to create or update for this tax class.
+  """
   updateCountryRates: [CountryRateInput!]
 
   """List of country codes for which to remove the tax class rates."""
@@ -14684,8 +14701,10 @@ type TaxConfigurationUpdateError {
 
 """An enumeration."""
 enum TaxConfigurationUpdateErrorCode {
-  GRAPHQL_ERROR
   DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
 }
 
 input TaxConfigurationUpdateInput {
@@ -14756,6 +14775,7 @@ type TaxCountryConfigurationUpdateError {
 """An enumeration."""
 enum TaxCountryConfigurationUpdateErrorCode {
   GRAPHQL_ERROR
+  INVALID
   NOT_FOUND
 }
 
@@ -14767,7 +14787,15 @@ input TaxClassRateInput {
   rate: Float!
 }
 
-"\\n\\nAdded in Saleor 3.5.\\n\\nNote: this API is currently in Feature Preview and can be subject to changes at later point. \\n\\nRequires one of the following permissions: MANAGE_TAXES."
+"""
+Remove all tax class rates for a specific country.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
 type TaxCountryConfigurationDelete {
   """Updated tax class rates grouped by a country."""
   taxCountryConfiguration: TaxCountryConfiguration
@@ -14790,6 +14818,8 @@ type TaxCountryConfigurationDeleteError {
 """An enumeration."""
 enum TaxCountryConfigurationDeleteErrorCode {
   GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
 }
 
 """
