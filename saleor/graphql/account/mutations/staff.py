@@ -413,8 +413,11 @@ class StaffUpdate(StaffCreate):
         if user.email != old_email:
             assign_user_gift_cards(user)
             match_orders_with_new_user(user)
-        info.context.plugins.staff_updated(instance)
         return response
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.staff_updated(instance)
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):

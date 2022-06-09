@@ -2751,7 +2751,7 @@ def test_staff_update_trigger_webhook(
     # then
     assert not data["errors"]
     assert data["user"]
-    expected_call = call(
+    mocked_webhook_trigger.assert_called_once_with(
         {
             "id": graphene.Node.to_global_id("User", staff_user.id),
             "email": staff_user.email,
@@ -2766,7 +2766,6 @@ def test_staff_update_trigger_webhook(
         staff_user,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
-    assert expected_call in mocked_webhook_trigger.call_args_list
 
 
 def test_staff_update_email(staff_api_client, permission_manage_staff, media_root):
