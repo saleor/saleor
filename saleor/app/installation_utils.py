@@ -1,7 +1,6 @@
 import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.db import transaction
 
 from ..core.permissions import get_permission_names
 from ..plugins.manager import PluginsManager
@@ -63,23 +62,25 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
-    for webhook_data in manifest_data.get("webhooks", []):
-        with transaction.atomic():
-            webhook = Webhook(
-                app=app,
-                name=webhook_data["name"],
-                target_url=webhook_data["targetUrl"],
-                is_active=webhook_data["isActive"],
-                subscription_query=webhook_data["query"],
+    webhooks = Webhook.objects.bulk_create(
+        Webhook(
+            app=app,
+            name=webhook["name"],
+            target_url=webhook["targetUrl"],
+            subscription_query=webhook["query"],
+        )
+        for webhook in manifest_data.get("webhooks", [])
+    )
+
+    webhook_events = []
+    for db_webhook, manifest_webhook in zip(
+        webhooks, manifest_data.get("webhooks", [])
+    ):
+        for event_type in manifest_webhook["events"]:
+            webhook_events.append(
+                WebhookEvent(webhook=db_webhook, event_type=event_type)
             )
-            webhook.full_clean()
-            webhook.save()
-            WebhookEvent.objects.bulk_create(
-                [
-                    WebhookEvent(webhook=webhook, event_type=event)
-                    for event in (webhook_data.get("asyncEvents", []) + webhook_data.get("syncEvents", []))
-                ]
-            )
+    WebhookEvent.objects.bulk_create(webhook_events)
 
     _, token = app.tokens.create(name="Default token")
 

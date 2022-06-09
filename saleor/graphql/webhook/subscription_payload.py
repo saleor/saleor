@@ -36,8 +36,8 @@ def validate_subscription_query(query: str) -> bool:
     return True
 
 
-def validate_query(query, required=False):
-    if not query and not required:
+def validate_query(query):
+    if not query:
         return
     is_valid = validate_subscription_query(query)
     if not is_valid:
