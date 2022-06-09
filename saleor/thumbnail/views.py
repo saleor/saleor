@@ -33,6 +33,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
             f"Invalid format value. Available format: {ThumbnailFormat.WEBP}."
         )
 
+    # try to find corresponding instance based on given instance_id
     try:
         object_type, pk = from_global_id_or_error(instance_id, raise_error=True)
     except GraphQLError:
@@ -57,15 +58,13 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     if not bool(image):
         return HttpResponseNotFound("There is no image for provided instance.")
 
-    # TODO: handle format
-    # TODO maybe the image.name should be passed
     # prepare thumbnail
-    processed_image = ProcessedImage(image.url, size, format)
+    processed_image = ProcessedImage(image.name, size, format)
     thumbnail_file = processed_image.create_thumbnail()
 
     thumbnail_file_name = prepare_thumbnail_file_name(image.name, size, format)
+
     # save image thumbnail
-    # TODO: probably the Thumbnail would need to have optional image field
     thumbnail = Thumbnail(
         size=size, format=format, **{model_data.thumbnail_field: instance}
     )

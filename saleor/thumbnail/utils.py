@@ -2,7 +2,6 @@ from io import BytesIO
 from typing import Optional
 
 import magic
-from django.conf import settings
 from django.core.files.storage import default_storage
 from PIL import Image
 
@@ -57,25 +56,19 @@ class ProcessedImage:
         self.storage = storage
 
     def create_thumbnail(self):
-        image, file_ext, image_format, mime_type = self.retrieve_image()
+        image, image_format = self.retrieve_image()
         image, save_kwargs = self.preprocess(image, image_format)
         image_file = self.process_image(
             image=image,
-            image_format=image_format,
             save_kwargs=save_kwargs,
         )
         return image_file
-        # TODO: prepare path to thumbnail or add to init
-        # save_path_on_storage = ""
-        # self.save_image(image_file, save_path_on_storage, file_ext, mime_type)
 
     def retrieve_image(self):
         """Return a PIL Image instance stored at `image_path`."""
-        image = self.storage.open(self.image_path.lstrip(settings.MEDIA_URL), "rb")
-        image_format, mime_type = self.get_image_metadata_from_file(image)
-        file_ext = self.image_path.rsplit(".")[-1]
-
-        return (Image.open(image), file_ext, image_format, mime_type)
+        image = self.storage.open(self.image_path, "rb")
+        image_format = self.get_image_metadata_from_file(image)
+        return (Image.open(image), image_format)
 
     def get_image_metadata_from_file(self, file_like):
         """Return a image format and InMemoryUploadedFile-friendly save format.
@@ -88,7 +81,7 @@ class ProcessedImage:
         mime_type = magic.from_buffer(file_like.read(1024), mime=True)
         file_like.seek(0)
         image_format = MIME_TYPE_TO_PIL_IDENTIFIER[mime_type]
-        return image_format, mime_type
+        return image_format
 
     def preprocess(self, image, image_format):
         """Preprocess an image.
@@ -183,38 +176,14 @@ class ProcessedImage:
 
         return (image, save_kwargs)
 
-    def process_image(self, image, image_format, save_kwargs):
+    def process_image(self, image, save_kwargs):
         """Return a BytesIO instance of `image` that fits in a bounding box.
 
         Bounding box dimensions are `width`x`height`.
         """
-        # TODO: handle image format
         image_file = BytesIO()
         image.thumbnail(
             (self.size, self.size),
         )
         image.save(image_file, **save_kwargs)
         return image_file
-
-    # def save_image(self, image_file, save_path, file_ext, mime_type):
-    #     """
-    #     Save an image to self.storage at `save_path`.
-
-    #     Arguments:
-    #         `imagefile`: Raw image data, typically a BytesIO instance.
-    #         `save_path`: The path within self.storage where the image should
-    #                      be saved.
-    #         `file_ext`: The file extension of the image-to-be-saved.
-    #         `mime_type`: A valid image mime type (as found in
-    #                      versatileimagefield.utils)
-    #     """
-    #     file_to_save = InMemoryUploadedFile(
-    #         image_file,
-    #         None,
-    #         'foo.%s' % file_ext,
-    #         mime_type,
-    #         image_file.tell(),
-    #         None
-    #     )
-    #     file_to_save.seek(0)
-    #     self.storage.save(save_path, file_to_save)
