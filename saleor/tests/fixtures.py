@@ -1355,6 +1355,48 @@ def rich_text_attribute_with_many_values(rich_text_attribute):
 
 
 @pytest.fixture
+def plain_text_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="plain-text",
+        name="Plain text",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Plain text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(text, 50),
+        slug=f"instance_{attribute.id}",
+        plain_text=text,
+    )
+    return attribute
+
+
+@pytest.fixture
+def plain_text_attribute_page_type(db):
+    attribute = Attribute.objects.create(
+        slug="plain-text",
+        name="Plain text",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Plain text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(text, 50),
+        slug=f"instance_{attribute.id}",
+        plain_text=text,
+    )
+    return attribute
+
+
+@pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
         slug="color",
@@ -1832,9 +1874,7 @@ def shippable_gift_card_product_type(db):
 
 
 @pytest.fixture
-def product_type_with_rich_text_attribute(
-    rich_text_attribute, color_attribute, size_attribute
-):
+def product_type_with_rich_text_attribute(rich_text_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",

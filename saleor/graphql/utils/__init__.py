@@ -1,16 +1,24 @@
 import hashlib
+import logging
+import traceback
 from typing import Union
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
+from graphql.error import format_error as format_graphql_error
 
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
+
+unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
+handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -186,3 +194,33 @@ def query_fingerprint(document: GraphQLDocument) -> str:
             break
     query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
     return f"{label}:{query_hash}"
+
+
+def format_error(error, handled_exceptions):
+    if isinstance(error, GraphQLError):
+        result = format_graphql_error(error)
+    else:
+        result = {"message": str(error)}
+
+    if "extensions" not in result:
+        result["extensions"] = {}
+
+    exc = error
+    while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
+        exc = exc.original_error
+    if isinstance(exc, AssertionError):
+        exc = GraphQLError(str(exc))
+    if isinstance(exc, handled_exceptions):
+        handled_errors_logger.info("A query had an error", exc_info=exc)
+    else:
+        unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
+
+    result["extensions"]["exception"] = {"code": type(exc).__name__}
+    if settings.DEBUG:
+        lines = []
+
+        if isinstance(exc, BaseException):
+            for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
+                lines.extend(line.rstrip().splitlines())
+        result["extensions"]["exception"]["stacktrace"] = lines
+    return result

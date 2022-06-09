@@ -137,6 +137,7 @@ class NameTranslationInput(graphene.InputObjectType):
 
 class AttributeValueTranslationInput(NameTranslationInput):
     rich_text = JSONString(description="Translated text." + RICH_CONTENT)
+    plain_text = graphene.String(description="Translated text.")
 
 
 class SeoTranslationInput(graphene.InputObjectType):
