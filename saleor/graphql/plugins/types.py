@@ -38,7 +38,7 @@ class PluginConfiguration(graphene.ObjectType):
         description = "Stores information about a configuration of plugin."
 
     @staticmethod
-    def resolve_configuration(root: "BasePlugin", info, **_kwargs):
+    def resolve_configuration(root: "BasePlugin", info):
         return root.resolve_plugin_configuration(info.context)
 
 

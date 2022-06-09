@@ -1,8 +1,9 @@
+from saleor.graphql.core.utils import to_global_id_or_none
 from saleor.graphql.tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE = """
-mutation checkoutLanguageCodeUpdate($token: UUID, $languageCode: LanguageCodeEnum!){
-  checkoutLanguageCodeUpdate(token: $token, languageCode: $languageCode){
+mutation checkoutLanguageCodeUpdate($id: ID, $languageCode: LanguageCodeEnum!){
+  checkoutLanguageCodeUpdate(id: $id, languageCode: $languageCode){
     checkout{
       id
       languageCode
@@ -24,7 +25,7 @@ def test_checkout_update_language_code(
     language_code = "PL"
     checkout = checkout_with_gift_card
     previous_last_change = checkout.last_change
-    variables = {"token": checkout.token, "languageCode": language_code}
+    variables = {"id": to_global_id_or_none(checkout), "languageCode": language_code}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables

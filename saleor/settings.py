@@ -14,11 +14,13 @@ import sentry_sdk.utils
 from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
+from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 
 
@@ -440,6 +442,13 @@ GS_FILE_OVERWRITE = get_bool_from_env("GS_FILE_OVERWRITE", True)
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
     GS_CREDENTIALS = os.environ.get("GS_CREDENTIALS")
 
+# Azure Storage configuration
+# See https://django-storages.readthedocs.io/en/latest/backends/azure.html
+AZURE_ACCOUNT_NAME = os.environ.get("AZURE_ACCOUNT_NAME")
+AZURE_ACCOUNT_KEY = os.environ.get("AZURE_ACCOUNT_KEY")
+AZURE_CONTAINER = os.environ.get("AZURE_CONTAINER")
+AZURE_SSL = os.environ.get("AZURE_SSL")
+
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 elif GS_BUCKET_NAME:
@@ -450,6 +459,9 @@ if AWS_MEDIA_BUCKET_NAME:
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
+    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
+elif AZURE_CONTAINER:
+    DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
@@ -512,6 +524,14 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+CELERY_TASK_ROUTES = {
+    "saleor.plugins.webhook.tasks.observability_reporter_task": {
+        "queue": "observability"
+    },
+    "saleor.plugins.webhook.tasks.observability_send_events": {
+        "queue": "observability"
+    },
+}
 
 CELERY_BEAT_SCHEDULE = {
     "delete-empty-allocations": {
@@ -552,6 +572,30 @@ EVENT_PAYLOAD_DELETE_PERIOD = timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_PERIOD", "14 days"))
 )
 
+# Observability settings
+OBSERVABILITY_BROKER_URL = os.environ.get("OBSERVABILITY_BROKER_URL")
+OBSERVABILITY_ACTIVE = bool(OBSERVABILITY_BROKER_URL)
+OBSERVABILITY_REPORT_ALL_API_CALLS = get_bool_from_env(
+    "OBSERVABILITY_REPORT_ALL_API_CALLS", False
+)
+OBSERVABILITY_MAX_PAYLOAD_SIZE = int(
+    os.environ.get("OBSERVABILITY_MAX_PAYLOAD_SIZE", 128 * 1024)
+)
+OBSERVABILITY_BUFFER_SIZE_LIMIT = int(
+    os.environ.get("OBSERVABILITY_BUFFER_SIZE_LIMIT", 1000)
+)
+OBSERVABILITY_BUFFER_BATCH_SIZE = int(
+    os.environ.get("OBSERVABILITY_BUFFER_BATCH_SIZE", 100)
+)
+OBSERVABILITY_REPORT_PERIOD = timedelta(
+    seconds=parse(os.environ.get("OBSERVABILITY_REPORT_PERIOD", "20 seconds"))
+)
+if OBSERVABILITY_ACTIVE:
+    CELERY_BEAT_SCHEDULE["observability-reporter"] = {
+        "task": "saleor.plugins.webhook.tasks.observability_reporter_task",
+        "schedule": OBSERVABILITY_REPORT_PERIOD,
+    }
+
 # Change this value if your application is running behind a proxy,
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
 REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
@@ -575,7 +619,7 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     Will only be called if SENTRY_DSN is not None, during core start, can be
     overriden in separate settings file.
     """
-    sentry_sdk.init(dsn, **sentry_opts)
+    sentry_sdk.init(dsn, release=__version__, **sentry_opts)
     ignore_logger("graphql.execution.utils")
     ignore_logger("graphql.execution.executor")
 
@@ -613,6 +657,7 @@ BUILTIN_PLUGINS = [
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
     "saleor.plugins.sendgrid.plugin.SendgridEmailPlugin",
+    "saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin",
 ]
 
 # Plugin discovery
@@ -673,8 +718,7 @@ if REDIS_URL:
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
-# Default False because storefront and dashboard don't support expiration of token
-JWT_EXPIRE = get_bool_from_env("JWT_EXPIRE", False)
+JWT_EXPIRE = True
 JWT_TTL_ACCESS = timedelta(seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes")))
 JWT_TTL_APP_ACCESS = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_APP_ACCESS", "5 minutes"))
@@ -686,4 +730,8 @@ JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
 
-# Support multiple interface notation in schema for Apollo tooling.
+
+# Patch SubscriberExecutionContext class from `graphql-core-legacy` package
+# to fix bug causing not returning errors for subscription queries.
+
+executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore

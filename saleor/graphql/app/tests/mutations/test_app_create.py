@@ -1,5 +1,13 @@
+from unittest import mock
+
+import graphene
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
+
 from .....app.error_codes import AppErrorCode
 from .....app.models import App
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import PermissionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -57,7 +65,59 @@ def test_app_create_mutation(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_app_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user.user_permissions.add(permission_manage_products)
+
+    variables = {
+        "name": "Trigger Test",
+        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+    app = App.objects.get(name=variables["name"])
+
+    # then
+    assert content["data"]["appCreate"]["app"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("App", app.id),
+            "is_active": app.is_active,
+            "name": app.name,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.APP_INSTALLED,
+        [any_webhook],
+        app,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_app_is_not_allowed_to_call_create_mutation_for_app(
@@ -135,7 +195,8 @@ def test_app_create_mutation_superuser_can_create_app_with_any_perms(
     assert app_data["isActive"] == app.is_active
     assert app_data["name"] == app.name
     assert list(app.permissions.all()) == [permission_manage_products]
-    assert default_token == app.tokens.get().auth_token
+    assert default_token
+    assert default_token[-4:] == app.tokens.get().token_last_4
 
 
 def test_app_create_mutation_no_permissions(

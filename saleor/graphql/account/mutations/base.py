@@ -315,7 +315,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         return super().clean_input(info, instance, data)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
@@ -331,6 +331,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
 
         info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
+        info.context.plugins.address_updated(address)
 
         success_response = cls.success_response(address)
         success_response.user = user
@@ -391,6 +392,7 @@ class BaseAddressDelete(ModelDeleteMutation):
 
         response.user = user
         info.context.plugins.customer_updated(user)
+        info.context.plugins.address_deleted(instance)
         return response
 
 

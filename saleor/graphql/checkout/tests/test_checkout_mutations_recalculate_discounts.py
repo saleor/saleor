@@ -223,7 +223,7 @@ def test_checkout_lines_add_perform_discounts_recalculation(
 CHECKOUT_LINES_UPDATE_MUTATION = (
     CHECKOUT_PRICING_FRAGMENT
     + """
-mutation checkoutLinesUpdate($token: UUID, $lines: [CheckoutLineInput!]!) {
+mutation checkoutLinesUpdate($token: UUID, $lines: [CheckoutLineUpdateInput!]!) {
   checkoutLinesUpdate(token: $token, lines: $lines) {
     checkout {
       token

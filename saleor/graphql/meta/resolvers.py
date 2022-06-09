@@ -54,6 +54,7 @@ def resolve_object_with_metadata_type(instance):
             page_models.Page: page_types.Page,
             page_models.PageType: page_types.PageType,
             payment_models.Payment: payment_types.Payment,
+            payment_models.TransactionItem: payment_types.TransactionItem,
             product_models.Product: product_types.Product,
             product_models.ProductType: product_types.ProductType,
             product_models.ProductVariant: product_types.ProductVariant,
@@ -80,7 +81,7 @@ def resolve_metadata(metadata: dict):
     )
 
 
-def resolve_private_metadata(root: ModelWithMetadata, info):
+def check_private_metadata_privilege(root: ModelWithMetadata, info):
     item_type, item_id = resolve_object_with_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
@@ -101,4 +102,7 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
     if not requester.has_perms(required_permissions):
         raise PermissionDenied()
 
+
+def resolve_private_metadata(root: ModelWithMetadata, info):
+    check_private_metadata_privilege(root, info)
     return resolve_metadata(root.private_metadata)

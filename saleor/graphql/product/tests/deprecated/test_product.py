@@ -111,7 +111,7 @@ def test_fetch_all_products(user_api_client, product):
     assert product_data["isAvailable"] is True
     assert product_data["isAvailableForPurchase"] is True
     assert product_data["availableForPurchase"] == str(
-        product_channel_listing.available_for_purchase
+        product_channel_listing.available_for_purchase_at.date()
     )
     assert len(content["data"]["products"]["edges"]) == num_products
     assert any(

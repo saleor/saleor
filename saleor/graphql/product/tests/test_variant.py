@@ -520,6 +520,7 @@ CREATE_VARIANT_MUTATION = """
                                 slug
                                 reference
                                 richText
+                                plainText
                                 boolean
                                 date
                                 dateTime
@@ -604,10 +605,6 @@ def test_create_variant(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
-
-    product.refresh_from_db()
-    assert product.search_document
-    assert sku in product.search_document
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
@@ -714,10 +711,6 @@ def test_create_variant_no_required_attributes(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
-
-    product.refresh_from_db()
-    assert product.search_document
-    assert sku in product.search_document
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
@@ -837,6 +830,7 @@ def test_create_variant_with_boolean_attribute(
                 "slug": f"{boolean_attribute.id}_true",
                 "reference": None,
                 "richText": None,
+                "plainText": None,
                 "boolean": True,
                 "file": None,
                 "dateTime": None,
@@ -1039,6 +1033,7 @@ def test_create_variant_with_page_reference_attribute(
             "slug": f"{variant_pk}_{page_list[0].pk}",
             "file": None,
             "richText": None,
+            "plainText": None,
             "reference": page_ref_1,
             "name": page_list[0].title,
             "boolean": None,
@@ -1049,6 +1044,7 @@ def test_create_variant_with_page_reference_attribute(
             "slug": f"{variant_pk}_{page_list[1].pk}",
             "file": None,
             "richText": None,
+            "plainText": None,
             "reference": page_ref_2,
             "name": page_list[1].title,
             "boolean": None,
@@ -1195,6 +1191,7 @@ def test_create_variant_with_product_reference_attribute(
             "slug": f"{variant_pk}_{product_list[0].pk}",
             "file": None,
             "richText": None,
+            "plainText": None,
             "reference": product_ref_1,
             "name": product_list[0].name,
             "boolean": None,
@@ -1205,6 +1202,7 @@ def test_create_variant_with_product_reference_attribute(
             "slug": f"{variant_pk}_{product_list[1].pk}",
             "file": None,
             "richText": None,
+            "plainText": None,
             "reference": product_ref_2,
             "name": product_list[1].name,
             "boolean": None,
@@ -1663,6 +1661,62 @@ def test_create_variant_with_rich_text_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+def test_create_variant_with_plain_text_attribute(
+    created_webhook_mock,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    plain_text_attribute,
+    warehouse,
+):
+    # given
+    product_type.variant_attributes.add(plain_text_attribute)
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    cost_price = 3.22
+    weight = 10.22
+    attr_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
+    text = "Sample text"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "costPrice": cost_price,
+        "price": price,
+        "weight": weight,
+        "attributes": [
+            {"id": attr_id, "plainText": text},
+        ],
+        "trackInventory": True,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["name"] == sku
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["values"][0]["plainText"] == text
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
 def test_create_variant_with_date_attribute(
     created_webhook_mock,
@@ -1709,6 +1763,7 @@ def test_create_variant_with_date_attribute(
                 "file": None,
                 "reference": None,
                 "richText": None,
+                "plainText": None,
                 "dateTime": None,
                 "date": str(date_value),
                 "name": str(date_value),
@@ -1772,6 +1827,7 @@ def test_create_variant_with_date_time_attribute(
                 "file": None,
                 "reference": None,
                 "richText": None,
+                "plainText": None,
                 "dateTime": date_time_value.isoformat(),
                 "date": None,
                 "name": str(date_time_value),
@@ -1970,10 +2026,6 @@ def test_product_variant_update_with_new_attributes(
     assert len(attributes) == 1
     assert attributes[0]["attribute"]["id"] == size_attribute_id
 
-    product.refresh_from_db()
-    assert product.search_document
-    assert attr_value.lower() in product.search_document
-
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
@@ -2044,10 +2096,6 @@ def test_update_product_variant(
         product.variants.last()
     )
     product_variant_created_webhook_mock.assert_not_called()
-
-    product.refresh_from_db()
-    assert product.search_document
-    assert attr_value.lower() in product.search_document
 
 
 def test_update_product_variant_with_negative_weight(
@@ -2165,9 +2213,6 @@ def test_update_product_variant_change_sku(
     assert data["sku"] == sku
     variant.refresh_from_db()
     assert variant.sku == sku
-    product.refresh_from_db()
-    assert product.search_document
-    assert sku.lower() in product.search_document
 
 
 def test_update_product_variant_without_sku_keep_it_empty(
@@ -2244,6 +2289,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                             }
                             reference
                             richText
+                            plainText
                             boolean
                             date
                             dateTime
@@ -2430,6 +2476,110 @@ def test_update_variant_with_rich_text_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_plain_text_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    plain_text_attribute,
+    warehouse,
+):
+    # given
+    product_type.variant_attributes.add(plain_text_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
+    plain_text_attribute_value = plain_text_attribute.values.first()
+    text = plain_text_attribute_value.plain_text
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attr_id, "plainText": text},
+        ],
+    }
+    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.save()
+    values_count = plain_text_attribute.values.count()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, plain_text_attribute.values.first()
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == plain_text_attribute.slug
+    assert data["attributes"][-1]["values"][0]["plainText"] == text
+    assert plain_text_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+@pytest.mark.parametrize("value", ["", "  ", None])
+def test_update_variant_with_required_plain_text_attribute_no_value(
+    value,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    plain_text_attribute,
+):
+    # given
+    product_type.variant_attributes.add(plain_text_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
+
+    plain_text_attribute_value = plain_text_attribute.values.first()
+    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.save()
+
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, plain_text_attribute.values.first()
+    )
+
+    plain_text_attribute.value_required = True
+    plain_text_attribute.save(update_fields=["value_required"])
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attr_id, "plainText": value},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+    errors = content["errors"]
+
+    assert not data
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_update_variant_with_date_attribute(
     product_variant_updated,
     permission_manage_products,
@@ -2473,6 +2623,7 @@ def test_update_variant_with_date_attribute(
                 "file": None,
                 "reference": None,
                 "richText": None,
+                "plainText": None,
                 "dateTime": None,
                 "date": str(date_value),
                 "name": str(date_value),
@@ -2534,6 +2685,7 @@ def test_update_variant_with_date_time_attribute(
                 "file": None,
                 "reference": None,
                 "richText": None,
+                "plainText": None,
                 "dateTime": date_time_value.isoformat(),
                 "date": None,
                 "name": str(date_time_value),
@@ -3338,9 +3490,6 @@ def test_delete_variant(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
-    product.refresh_from_db()
-    assert product.search_document
-    assert variant_sku not in product.search_document
 
 
 def test_delete_variant_remove_checkout_lines(
@@ -3653,8 +3802,6 @@ def test_delete_variant_delete_product_channel_listing_without_available_channel
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
     product.refresh_from_db()
-    assert product.search_document
-    assert variant_sku not in product.search_document
     assert product.channel_listings.count() == 0
 
 
@@ -3695,8 +3842,6 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
     product.refresh_from_db()
-    assert product.search_document
-    assert variant_sku not in product.search_document
     assert product.channel_listings.count() == product_channel_listing_count
 
 
@@ -4163,9 +4308,6 @@ def test_product_variant_bulk_create_by_attribute_id(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    assert product.search_document
-    assert sku in product.search_document
-    assert attribute_value.name.lower() in product.search_document
 
 
 def test_product_variant_bulk_create_with_swatch_attribute(
@@ -4214,9 +4356,6 @@ def test_product_variant_bulk_create_with_swatch_attribute(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
-    assert product.search_document
-    assert variants[0]["sku"] in product.search_document
-    assert variants[1]["sku"] in product.search_document
 
 
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
@@ -4264,9 +4403,6 @@ def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
-    assert product.search_document
-    assert sku in product.search_document
-    assert attribute_value.name.lower() in product.search_document
 
 
 def test_product_variant_bulk_create_empty_attribute(
@@ -4287,8 +4423,6 @@ def test_product_variant_bulk_create_empty_attribute(
     assert data["count"] == 1
     product.refresh_from_db()
     assert product_variant_count + 1 == ProductVariant.objects.count()
-    assert product.search_document
-    assert variants[0]["sku"].lower() in product.search_document
 
 
 def test_product_variant_bulk_create_with_new_attribute_value(

@@ -12,7 +12,11 @@ from graphene.utils.str_converters import to_camel_case
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, has_one_of_permissions
+from ...core.permissions import (
+    AccountPermissions,
+    AuthorizationFilters,
+    has_one_of_permissions,
+)
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -463,7 +467,7 @@ def look_for_permission_in_users_with_manage_staff(
             permissions_to_find.difference_update(common_permissions)
 
 
-def requestor_has_access(
+def is_owner_or_has_one_of_perms(
     requestor: Union["User", "App"], owner: Optional[Union["User", "App"]], *perms
 ) -> bool:
     """Check if requestor can access data.
@@ -478,7 +482,7 @@ def requestor_has_access(
     return requestor == owner or has_one_of_permissions(requestor, perms)
 
 
-def check_requestor_access(
+def check_is_owner_or_has_one_of_perms(
     requestor: Union["User", "App"], owner: Optional["User"], *perms
 ) -> None:
     """Confirm that requestor can access data, raise `PermissionDenied` otherwise.
@@ -492,5 +496,5 @@ def check_requestor_access(
 
     :raises PermissionDenied: if requestor cannot access data
     """
-    if not requestor_has_access(requestor, owner, *perms):
-        raise PermissionDenied(permissions=perms)
+    if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
+        raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])

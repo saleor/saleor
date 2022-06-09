@@ -3,6 +3,7 @@ from copy import copy
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
@@ -15,7 +16,7 @@ from ....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
 from ....checkout import AddressType
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
@@ -25,7 +26,6 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.utils import add_hash_to_file_name, validate_image_file
-from ...decorators import staff_member_required
 from ...utils.validators import check_for_duplicates
 from ..utils import (
     CustomerDeleteMixin,
@@ -476,6 +476,10 @@ class AddressCreate(ModelMutation):
             user.save(update_fields=["search_document", "updated_at"])
         return response
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        transaction.on_commit(lambda: info.context.plugins.address_created(instance))
+
 
 class AddressUpdate(BaseAddressUpdate):
     class Meta:
@@ -559,9 +563,9 @@ class UserAvatarUpdate(BaseMutation):
         )
         error_type_class = AccountError
         error_type_field = "account_errors"
+        permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
 
     @classmethod
-    @staff_member_required
     def perform_mutation(cls, _root, info, image):
         user = info.context.user
         image_data = info.context.FILES.get(image)
@@ -584,9 +588,9 @@ class UserAvatarDelete(BaseMutation):
         description = "Deletes a user avatar. Only for staff members."
         error_type_class = AccountError
         error_type_field = "account_errors"
+        permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
 
     @classmethod
-    @staff_member_required
     def perform_mutation(cls, _root, info):
         user = info.context.user
         user.avatar.delete_sized_images()

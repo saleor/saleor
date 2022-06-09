@@ -27,10 +27,17 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_subtotal, get_total_authorized
+from ..payment.model_helpers import get_subtotal
 from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
+from . import (
+    FulfillmentStatus,
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderStatus,
+)
 
 
 class OrderQueryset(models.QuerySet):
@@ -61,7 +68,7 @@ class OrderQueryset(models.QuerySet):
         return self.filter(
             Exists(payments.filter(order_id=OuterRef("id"))),
             status__in=statuses,
-            total_gross_amount__lte=F("total_paid_amount"),
+            total_gross_amount__lte=F("total_charged_amount"),
         )
 
     def ready_to_capture(self):
@@ -94,10 +101,22 @@ class Order(ModelWithMetadata):
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)
 
-    created = models.DateTimeField(default=now, editable=False)
+    created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
+    )
+    authorize_status = models.CharField(
+        max_length=32,
+        default=OrderAuthorizeStatus.NONE,
+        choices=OrderAuthorizeStatus.CHOICES,
+        db_index=True,
+    )
+    charge_status = models.CharField(
+        max_length=32,
+        default=OrderChargeStatus.NONE,
+        choices=OrderChargeStatus.CHOICES,
+        db_index=True,
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -237,12 +256,22 @@ class Order(ModelWithMetadata):
         currency_field="currency",
     )
 
-    total_paid_amount = models.DecimalField(
+    total_charged_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
-    total_paid = MoneyField(amount_field="total_paid_amount", currency_field="currency")
+    total_authorized_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    total_authorized = MoneyField(
+        amount_field="total_authorized_amount", currency_field="currency"
+    )
+    total_charged = MoneyField(
+        amount_field="total_charged_amount", currency_field="currency"
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
@@ -281,19 +310,13 @@ class Order(ModelWithMetadata):
         ]
 
     def is_fully_paid(self):
-        return self.total_paid >= self.total.gross
+        return self.total_charged >= self.total.gross
 
     def is_partly_paid(self):
-        return self.total_paid_amount > 0
+        return self.total_charged_amount > 0
 
     def get_customer_email(self):
         return self.user.email if self.user_id else self.user_email
-
-    def update_total_paid(self):
-        self.total_paid_amount = (
-            sum(self.payments.values_list("captured_amount", flat=True)) or 0
-        )
-        self.save(update_fields=["total_paid_amount", "updated_at"])
 
     def _index_billing_phone(self):
         return self.billing_address.phone
@@ -397,18 +420,10 @@ class Order(ModelWithMetadata):
         return len(payments) == 0
 
     @property
-    def total_authorized(self):
-        return get_total_authorized(self.payments.all(), self.currency)
-
-    @property
-    def total_captured(self):
-        return self.total_paid
-
-    @property
     def total_balance(self):
-        return self.total_captured - self.total.gross
+        return self.total_charged - self.total.gross
 
-    def get_total_weight(self, *_args):
+    def get_total_weight(self, _lines=None):
         return self.weight
 
 
@@ -427,6 +442,9 @@ class OrderLineQueryset(models.QuerySet):
 
 
 class OrderLine(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
         Order,
         related_name="lines",
@@ -558,6 +576,24 @@ class OrderLine(models.Model):
         currency="currency",
     )
 
+    base_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    base_unit_price = MoneyField(
+        amount_field="base_unit_price_amount", currency_field="currency"
+    )
+
+    undiscounted_base_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_base_unit_price = MoneyField(
+        amount_field="undiscounted_base_unit_price_amount", currency_field="currency"
+    )
+
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
@@ -571,7 +607,7 @@ class OrderLine(models.Model):
     objects = models.Manager.from_queryset(OrderLineQueryset)()
 
     class Meta:
-        ordering = ("pk",)
+        ordering = ("created_at", "id")
 
     def __str__(self):
         return (
@@ -608,7 +644,7 @@ class Fulfillment(ModelWithMetadata):
         choices=FulfillmentStatus.CHOICES,
     )
     tracking_number = models.CharField(max_length=255, default="", blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     shipping_refund_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -658,7 +694,9 @@ class Fulfillment(ModelWithMetadata):
 
 class FulfillmentLine(models.Model):
     order_line = models.ForeignKey(
-        OrderLine, related_name="fulfillment_lines", on_delete=models.CASCADE
+        OrderLine,
+        related_name="fulfillment_lines",
+        on_delete=models.CASCADE,
     )
     fulfillment = models.ForeignKey(
         Fulfillment, related_name="lines", on_delete=models.CASCADE

@@ -3,7 +3,10 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import graphene
+import pytz
+import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files import File
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils.text import slugify
@@ -14,6 +17,7 @@ from ....core.exceptions import PreorderAllocationError
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tasks import delete_product_media_task
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.date_time import convert_to_utc_date_time
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
@@ -23,8 +27,8 @@ from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, ProductTypeKind, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.search import (
-    update_product_search_document,
-    update_products_search_document,
+    update_product_search_vector,
+    update_products_search_vector,
 )
 from ....product.tasks import (
     update_product_discounted_price_task,
@@ -42,7 +46,12 @@ from ....warehouse.management import deactivate_preorder_for_variant
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_31,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
 from ...core.fields import JSONString
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -52,7 +61,10 @@ from ...core.utils import (
     add_hash_to_file_name,
     clean_seo_fields,
     get_duplicated_values,
+    get_filename_from_url,
+    is_image_url,
     validate_image_file,
+    validate_image_url,
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
@@ -77,7 +89,7 @@ from ..utils import (
 
 
 class CategoryInput(graphene.InputObjectType):
-    description = JSONString(description="Category description (JSON).")
+    description = JSONString(description="Category description." + RICH_CONTENT)
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -145,6 +157,10 @@ class CategoryCreate(ModelMutation):
         if cleaned_input.get("background_image"):
             create_category_background_image_thumbnails.delay(instance.pk)
 
+    @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.category_created(instance)
+
 
 class CategoryUpdate(CategoryCreate):
     class Arguments:
@@ -160,6 +176,10 @@ class CategoryUpdate(CategoryCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.category_updated(instance)
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -193,11 +213,15 @@ class CollectionInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Name of the collection.")
     slug = graphene.String(description="Slug of the collection.")
-    description = JSONString(description="Description of the collection (JSON).")
+    description = JSONString(
+        description="Description of the collection." + RICH_CONTENT
+    )
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
-    publication_date = graphene.Date(description="Publication date. ISO 8601 standard.")
+    publication_date = graphene.Date(
+        description=(f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT}")
+    )
 
 
 class CollectionCreateInput(CollectionInput):
@@ -239,7 +263,9 @@ class CollectionCreate(ModelMutation):
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = datetime.date.today()
+            cleaned_input["published_at"] = datetime.datetime.now(pytz.UTC)
+        elif publication_date:
+            cleaned_input["published_at"] = convert_to_utc_date_time(publication_date)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -523,7 +549,7 @@ class ProductInput(graphene.InputObjectType):
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
-    description = JSONString(description="Product description (JSON).")
+    description = JSONString(description="Product description." + RICH_CONTENT)
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
@@ -663,7 +689,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        update_product_search_document(instance)
+        update_product_search_vector(instance)
         info.context.plugins.product_created(product)
 
     @classmethod
@@ -716,7 +742,7 @@ class ProductUpdate(ProductCreate):
     @classmethod
     def post_save_action(cls, info, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
-        update_product_search_document(instance)
+        update_product_search_vector(instance)
         info.context.plugins.product_updated(product)
 
 
@@ -766,7 +792,9 @@ class ProductDelete(ModelDeleteMutation):
         order_pks = draft_order_lines_data.order_pks
         if order_pks:
             recalculate_orders_task.delay(list(order_pks))
-        info.context.plugins.product_deleted(instance, variants_id)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_deleted(instance, variants_id)
+        )
 
         return response
 
@@ -801,14 +829,14 @@ class ProductVariantInput(graphene.InputObjectType):
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
         description=(
-            f"{ADDED_IN_31} Determines if variant is in preorder. {PREVIEW_FEATURE}"
+            "Determines if variant is in preorder." + ADDED_IN_31 + PREVIEW_FEATURE
         )
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
-            f"{ADDED_IN_31} Determines maximum quantity of `ProductVariant`,"
-            f"that can be bought in a single checkout. {PREVIEW_FEATURE}"
+            "Determines maximum quantity of `ProductVariant`,"
+            "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
 
@@ -1042,7 +1070,7 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
 
         generate_and_set_variant_name(instance, cleaned_input.get("sku"))
-        update_product_search_document(instance.product)
+        update_product_search_vector(instance.product)
         event_to_call = (
             info.context.plugins.product_variant_created
             if new_variant
@@ -1138,7 +1166,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         # Update the "discounted_prices" of the parent product
         update_product_discounted_price_task.delay(instance.product_id)
         product = models.Product.objects.get(id=instance.product_id)
-        update_product_search_document(product)
+        update_product_search_vector(product)
         # if the product default variant has been removed set the new one
         if not product.default_variant:
             product.default_variant = product.variants.first()
@@ -1379,7 +1407,7 @@ class ProductTypeUpdate(ProductTypeCreate):
             or "variant_attributes" in cleaned_input
         ):
             products = models.Product.objects.filter(product_type=instance)
-            update_products_search_document(products)
+            update_products_search_vector(products)
 
 
 class ProductTypeDelete(ModelDeleteMutation):
@@ -1510,14 +1538,29 @@ class ProductMediaCreate(BaseMutation):
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
             create_product_thumbnails.delay(media.pk)
-        else:
-            oembed_data, media_type = get_oembed_data(media_url, "media_url")
-            media = product.media.create(
-                external_url=oembed_data["url"],
-                alt=oembed_data.get("title", alt),
-                type=media_type,
-                oembed_data=oembed_data,
-            )
+        if media_url:
+            # Remote URLs can point to the images or oembed data.
+            # In case of images, file is downloaded. Otherwise we keep only
+            # URL to remote media.
+            if is_image_url(media_url):
+                validate_image_url(media_url, "media_url", ProductErrorCode.INVALID)
+                filename = get_filename_from_url(media_url)
+                image_data = requests.get(media_url, stream=True)
+                image_file = File(image_data.raw, filename)
+                media = product.media.create(
+                    image=image_file,
+                    alt=alt,
+                    type=ProductMediaTypes.IMAGE,
+                )
+                create_product_thumbnails.delay(media.pk)
+            else:
+                oembed_data, media_type = get_oembed_data(media_url, "media_url")
+                media = product.media.create(
+                    external_url=oembed_data["url"],
+                    alt=oembed_data.get("title", alt),
+                    type=media_type,
+                    oembed_data=oembed_data,
+                )
 
         info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
@@ -1770,8 +1813,7 @@ class ProductMediaDelete(BaseMutation):
                 }
             )
         media_id = media_obj.id
-        media_obj.to_remove = True
-        media_obj.save(update_fields=["to_remove"])
+        media_obj.set_to_remove()
         delete_product_media_task.delay(media_id)
         media_obj.id = media_id
         product = models.Product.objects.prefetched_for_webhook().get(
@@ -1812,7 +1854,16 @@ class VariantMediaAssign(BaseMutation):
             # check if the given image and variant can be matched together
             media_belongs_to_product = variant.product.media.filter(pk=media.pk).first()
             if media_belongs_to_product:
-                media.variant_media.create(variant=variant)
+                _, created = media.variant_media.get_or_create(variant=variant)
+                if not created:
+                    raise ValidationError(
+                        {
+                            "media_id": ValidationError(
+                                "This media is already assigned",
+                                code=ProductErrorCode.MEDIA_ALREADY_ASSIGNED,
+                            )
+                        }
+                    )
             else:
                 raise ValidationError(
                     {
@@ -1893,9 +1944,10 @@ class ProductVariantPreorderDeactivate(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Deactivates product variant preorder. "
-            f"It changes all preorder allocation into regular allocation. "
-            f"{PREVIEW_FEATURE}"
+            "Deactivates product variant preorder. "
+            "It changes all preorder allocation into regular allocation."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError

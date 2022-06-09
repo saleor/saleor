@@ -15,6 +15,7 @@ from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount.utils import fetch_active_discounts
 from ..order.models import Order
+from ..order.utils import update_order_authorize_data, update_order_charge_data
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -34,6 +35,7 @@ from .interface import (
     PaymentMethodInfo,
     RefundData,
     StorePaymentMethodEnum,
+    TransactionData,
 )
 from .models import Payment, Transaction
 
@@ -138,6 +140,22 @@ def create_order_payment_lines_information(order: Order) -> PaymentLinesData:
     )
 
 
+def generate_transactions_data(payment: Payment) -> List[TransactionData]:
+    return [
+        TransactionData(
+            token=t.token,
+            is_success=t.is_success,
+            kind=t.kind,
+            gateway_response=t.gateway_response,
+            amount={
+                "amount": str(quantize_price(t.amount, t.currency)),
+                "currency": t.currency,
+            },
+        )
+        for t in payment.transactions.all()
+    ]
+
+
 def create_payment_information(
     payment: Payment,
     payment_token: str = None,
@@ -178,7 +196,9 @@ def create_payment_information(
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
-    order_id = payment.order.pk if payment.order else None
+    order = payment.order
+    order_id = order.pk if order else None
+    channel_slug = order.channel.slug if order and order.channel else None
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     graphql_customer_id = None
@@ -193,6 +213,7 @@ def create_payment_information(
         billing=billing_address,
         shipping=shipping_address,
         order_id=order_id,
+        order_channel_slug=channel_slug,
         payment_id=payment.pk,
         graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
@@ -209,6 +230,7 @@ def create_payment_information(
         payment_metadata=payment.metadata,
         psp_reference=payment.psp_reference,
         refund_data=refund_data,
+        transactions=generate_transactions_data(payment),
         _resolve_lines_data=lambda: create_payment_lines_information(
             payment, manager or get_plugins_manager()
         ),
@@ -424,7 +446,6 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
     changed_fields = changed_fields or []
 
     transaction_kind = transaction.kind
-
     if transaction_kind in {
         TransactionKind.CAPTURE,
         TransactionKind.REFUND_REVERSED,
@@ -436,14 +457,14 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-        changed_fields += ["charge_status", "captured_amount", "modified"]
+        changed_fields += ["charge_status", "captured_amount", "modified_at"]
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        changed_fields += ["is_active", "modified"]
+        changed_fields += ["is_active", "modified_at"]
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields += ["captured_amount", "modified"]
+        changed_fields += ["captured_amount", "modified_at"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
@@ -467,13 +488,15 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
             payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
-            changed_fields += ["charge_status", "captured_amount", "modified"]
+            changed_fields += ["charge_status", "captured_amount", "modified_at"]
     if changed_fields:
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
-    if "captured_amount" in changed_fields and payment.order:
-        payment.order.update_total_paid()
+    if "captured_amount" in changed_fields and payment.order_id:
+        update_order_charge_data(payment.order)
+    if transaction_kind == TransactionKind.AUTH and payment.order_id:
+        update_order_authorize_data(payment.order)
 
 
 def fetch_customer_id(user: User, gateway: str):
@@ -594,10 +617,14 @@ def try_void_or_refund_inactive_payment(
     webhook when we have order already paid.
     """
     if transaction.is_success:
-        update_payment_charge_status(payment, transaction)
         channel_slug = get_channel_slug_from_payment(payment)
         try:
-            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+            gateway.payment_refund_or_void(
+                payment,
+                manager,
+                channel_slug=channel_slug,
+                transaction_id=transaction.token,
+            )
         except PaymentError:
             logger.exception(
                 "Unable to void/refund an inactive payment %s, %s.",

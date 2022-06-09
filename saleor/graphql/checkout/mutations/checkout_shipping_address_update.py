@@ -1,7 +1,7 @@
 from typing import Iterable
 
 import graphene
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType, models
 from ....checkout.error_codes import CheckoutErrorCode
@@ -20,16 +20,15 @@ from ....product import models as product_models
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 from .utils import (
     ERROR_DOES_NOT_SHIP,
     check_lines_quantity,
-    get_checkout_by_token,
+    get_checkout,
     update_checkout_shipping_method_if_invalid,
 )
 
@@ -38,13 +37,20 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
+        id = graphene.ID(
+            description="The checkout's ID." + ADDED_IN_34,
+            required=False,
+        )
+        token = UUID(
+            description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
+            required=False,
+        )
         checkout_id = graphene.ID(
             required=False,
             description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use token instead."
+                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
             ),
         )
-        token = UUID(description="Checkout token.", required=False)
         shipping_address = AddressInput(
             required=True,
             description="The mailing address to where the checkout will be shipped.",
@@ -85,38 +91,19 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(
-        cls, _root, info, shipping_address, checkout_id=None, token=None
+        cls, _root, info, shipping_address, checkout_id=None, token=None, id=None
     ):
-        # DEPRECATED
-        validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
+        checkout = get_checkout(
+            cls,
+            info,
+            checkout_id=checkout_id,
+            token=token,
+            id=id,
+            error_class=CheckoutErrorCode,
+            qs=models.Checkout.objects.prefetch_related(
+                "lines__variant__product__product_type"
+            ),
         )
-
-        if token:
-            checkout = get_checkout_by_token(
-                token,
-                qs=models.Checkout.objects.prefetch_related(
-                    "lines__variant__product__product_type"
-                ),
-            )
-        # DEPRECATED
-        if checkout_id:
-            pk = cls.get_global_id_or_error(
-                checkout_id, only_type=Checkout, field="checkout_id"
-            )
-            try:
-                checkout = models.Checkout.objects.prefetch_related(
-                    "lines__variant__product__product_type"
-                ).get(pk=pk)
-            except ObjectDoesNotExist:
-                raise ValidationError(
-                    {
-                        "checkout_id": ValidationError(
-                            f"Couldn't resolve to a node: {checkout_id}",
-                            code=CheckoutErrorCode.NOT_FOUND,
-                        )
-                    }
-                )
 
         lines, _ = fetch_checkout_lines(checkout)
         if not is_shipping_required(lines):

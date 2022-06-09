@@ -1,4 +1,5 @@
 import base64
+import json
 import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
@@ -11,9 +12,10 @@ from prices import Money
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...shipping.interface import ShippingMethodData
+from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
-from .tasks import _get_webhooks_for_event, trigger_webhook_sync
+from .tasks import trigger_webhook_sync
 from .utils import APP_ID_PREFIX
 
 if TYPE_CHECKING:
@@ -51,6 +53,19 @@ def parse_list_shipping_methods_response(
     return shipping_methods
 
 
+def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
+    """Compare two strings of order payloads ignoring meta."""
+    EXCLUDED_KEY = "meta"
+    try:
+        order_payload = json.loads(payload)["order"]
+        cached_order_payload = json.loads(cached_payload)["order"]
+    except:  # noqa
+        return False
+    return {k: v for k, v in order_payload.items() if k != EXCLUDED_KEY} == {
+        k: v for k, v in cached_order_payload.items() if k != EXCLUDED_KEY
+    }
+
+
 def get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet, event_type: str, payload: str, cache_key: str
 ) -> Dict[str, List[ExcludedShippingMethod]]:
@@ -62,7 +77,9 @@ def get_excluded_shipping_methods_or_fetch(
     cached_data = cache.get(cache_key)
     if cached_data:
         cached_payload, excluded_shipping_methods = cached_data
-        if payload == cached_payload:
+        if (payload == cached_payload) or _compare_order_payloads(
+            payload, cached_payload
+        ):
             return parse_excluded_shipping_methods(excluded_shipping_methods)
 
     excluded_methods = []
@@ -101,7 +118,7 @@ def get_excluded_shipping_data(
     """
 
     excluded_methods_map: Dict[str, List[ExcludedShippingMethod]] = defaultdict(list)
-    webhooks = _get_webhooks_for_event(event_type)
+    webhooks = get_webhooks_for_event(event_type)
     if webhooks:
         payload = payload_fun()
 

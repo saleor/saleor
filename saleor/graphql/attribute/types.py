@@ -1,10 +1,15 @@
-import re
 from typing import cast
 
 import graphene
 from django.db.models import QuerySet
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...core.permissions import (
+    PagePermissions,
+    PageTypePermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
 from ...core.tracing import traced_resolver
 from ..core.connection import (
     CountableConnection,
@@ -32,9 +37,6 @@ from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTyp
 from .filters import AttributeValueFilterInput
 from .sorters import AttributeChoicesSortingInput
 
-COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
-color_pattern = re.compile(COLOR_PATTERN)
-
 
 class AttributeValue(ModelObjectType):
     id = graphene.GlobalID(required=True)
@@ -52,6 +54,9 @@ class AttributeValue(ModelObjectType):
     rich_text = JSONString(
         description=AttributeValueDescriptions.RICH_TEXT, required=False
     )
+    plain_text = graphene.String(
+        description=AttributeValueDescriptions.PLAIN_TEXT, required=False
+    )
     boolean = graphene.Boolean(
         description=AttributeValueDescriptions.BOOLEAN, required=False
     )
@@ -67,7 +72,7 @@ class AttributeValue(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_input_type(root: models.AttributeValue, info, *_args):
+    def resolve_input_type(root: models.AttributeValue, info):
         return (
             AttributesByAttributeId(info.context)
             .load(root.attribute_id)
@@ -75,13 +80,13 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_file(root: models.AttributeValue, *_args):
+    def resolve_file(root: models.AttributeValue, _info):
         if not root.file_url:
             return
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
-    def resolve_reference(root: models.AttributeValue, info, **_kwargs):
+    def resolve_reference(root: models.AttributeValue, info):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
@@ -103,7 +108,7 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_date_time(root: models.AttributeValue, info, **_kwargs):
+    def resolve_date_time(root: models.AttributeValue, info):
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE_TIME:
                 return root.date_time
@@ -116,7 +121,7 @@ class AttributeValue(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_date(root: models.AttributeValue, info, **_kwargs):
+    def resolve_date(root: models.AttributeValue, info):
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE:
                 return root.date_time
@@ -155,30 +160,69 @@ class Attribute(ModelObjectType):
     )
 
     value_required = graphene.Boolean(
-        description=AttributeDescriptions.VALUE_REQUIRED, required=True
+        description=(
+            f"{AttributeDescriptions.VALUE_REQUIRED} Requires one of the following "
+            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
+        ),
+        required=True,
     )
     visible_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT, required=True
+        description=(
+            f"{AttributeDescriptions.VISIBLE_IN_STOREFRONT} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
+        ),
+        required=True,
     )
     filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT, required=True
+        description=(
+            f"{AttributeDescriptions.FILTERABLE_IN_STOREFRONT} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
+        ),
+        required=True,
     )
     filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD, required=True
+        description=(
+            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
+        ),
+        required=True,
     )
     available_in_grid = graphene.Boolean(
-        description=AttributeDescriptions.AVAILABLE_IN_GRID, required=True
+        description=(
+            f"{AttributeDescriptions.AVAILABLE_IN_GRID} Requires one of the following "
+            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
+        ),
+        required=True,
     )
-
-    translation = TranslationField(AttributeTranslation, type_name="attribute")
-
     storefront_search_position = graphene.Int(
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION, required=True
+        description=(
+            f"{AttributeDescriptions.STOREFRONT_SEARCH_POSITION} Requires one of the "
+            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
+            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
+            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
+            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
+        ),
+        required=True,
     )
+    translation = TranslationField(AttributeTranslation, type_name="attribute")
     with_choices = graphene.Boolean(
         description=AttributeDescriptions.WITH_CHOICES, required=True
     )
-
     product_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
@@ -212,36 +256,36 @@ class Attribute(ModelObjectType):
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_value_required(root: models.Attribute, *_args):
+    def resolve_value_required(root: models.Attribute, _info):
         return root.value_required
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_visible_in_storefront(root: models.Attribute, *_args):
+    def resolve_visible_in_storefront(root: models.Attribute, _info):
         return root.visible_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_storefront(root: models.Attribute, *_args):
+    def resolve_filterable_in_storefront(root: models.Attribute, _info):
         return root.filterable_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
+    def resolve_filterable_in_dashboard(root: models.Attribute, _info):
         return root.filterable_in_dashboard
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_storefront_search_position(root: models.Attribute, *_args):
+    def resolve_storefront_search_position(root: models.Attribute, _info):
         return root.storefront_search_position
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_available_in_grid(root: models.Attribute, *_args):
+    def resolve_available_in_grid(root: models.Attribute, _info):
         return root.available_in_grid
 
     @staticmethod
-    def resolve_with_choices(root: models.Attribute, *_args):
+    def resolve_with_choices(root: models.Attribute, _info):
         return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
 
     @staticmethod
@@ -280,8 +324,8 @@ class AssignedVariantAttribute(graphene.ObjectType):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Represents assigned attribute to variant with "
-            "variant selection attached."
+            "Represents assigned attribute to variant with variant selection attached."
+            + ADDED_IN_31
         )
 
 
@@ -346,6 +390,7 @@ class AttributeValueInput(graphene.InputObjectType):
         required=False,
     )
     rich_text = JSONString(required=False, description="Text content in JSON format.")
+    plain_text = graphene.String(required=False, description="Plain text content.")
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )

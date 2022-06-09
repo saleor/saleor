@@ -5,12 +5,18 @@ import graphene
 from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AppPermission, AuthorizationFilters
-from ..account.utils import requestor_has_access
+from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
+from ...core.permissions import (
+    AppPermission,
+    AuthorizationFilters,
+    message_one_of_permissions_required,
+)
+from ..account.utils import is_owner_or_has_one_of_perms
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import Job, ModelObjectType, NonNullList, Permission
+from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.types import Webhook
@@ -25,10 +31,30 @@ from .resolvers import (
 
 def has_required_permission(app: models.App, context):
     requester = get_user_or_app_from_context(context)
-    if not requestor_has_access(requester, app, AppPermission.MANAGE_APPS):
+    if not is_owner_or_has_one_of_perms(requester, app, AppPermission.MANAGE_APPS):
         raise PermissionDenied(
             permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
         )
+
+
+def check_permission_for_access_to_meta(app: models.App, info):
+    has_access = has_access_to_app_public_meta(app, info)
+    if not has_access:
+        raise PermissionDenied(
+            permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+        )
+
+
+def has_access_to_app_public_meta(root, info) -> bool:
+    auth_token = info.context.decoded_auth_token or {}
+    if auth_token.get("type") == JWT_THIRDPARTY_ACCESS_TYPE:
+        _, app_id = from_global_id_or_error(auth_token["app"], "App")
+    else:
+        app_id = info.context.app.id if info.context.app else None
+    if app_id is not None and int(app_id) == root.id:
+        return True
+    requester = get_user_or_app_from_context(info.context)
+    return requester.has_perm(AppPermission.MANAGE_APPS)
 
 
 class AppManifestExtension(graphene.ObjectType):
@@ -108,7 +134,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         return AppByIdLoader(info.context).load(app_id)
 
     @staticmethod
-    def resolve_permissions(root: models.AppExtension, _info, **_kwargs):
+    def resolve_permissions(root: models.AppExtension, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
@@ -167,8 +193,8 @@ class AppToken(graphene.ObjectType):
             return None
 
     @staticmethod
-    def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
-        return root.auth_token[-4:]
+    def resolve_auth_token(root: models.AppToken, _info):
+        return root.token_last_4
 
 
 @federated_entity("id")
@@ -183,9 +209,23 @@ class App(ModelObjectType):
     )
     name = graphene.String(description="Name of the app.")
     type = AppTypeEnum(description="Type of the app.")
-    tokens = NonNullList(AppToken, description="Last 4 characters of the tokens.")
+    tokens = NonNullList(
+        AppToken,
+        description=(
+            "Last 4 characters of the tokens."
+            + message_one_of_permissions_required(
+                [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
+        ),
+    )
     webhooks = NonNullList(
-        Webhook, description="List of webhooks assigned to this app."
+        Webhook,
+        description=(
+            "List of webhooks assigned to this app."
+            + message_one_of_permissions_required(
+                [AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+            )
+        ),
     )
 
     about_app = graphene.String(description="Description of this app.")
@@ -208,7 +248,7 @@ class App(ModelObjectType):
     )
     extensions = NonNullList(
         AppExtension,
-        description=f"{ADDED_IN_31} App's dashboard extensions. {PREVIEW_FEATURE}",
+        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=True,
     )
 
@@ -218,14 +258,18 @@ class App(ModelObjectType):
         model = models.App
 
     @staticmethod
-    def resolve_permissions(root: models.App, _info, **_kwargs):
+    def resolve_created(root: models.App, _info):
+        return root.created_at
+
+    @staticmethod
+    def resolve_permissions(root: models.App, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_tokens(root: models.App, info, **_kwargs):
+    def resolve_tokens(root: models.App, info):
         has_required_permission(root, info.context)
         return root.tokens.all()
 
@@ -236,7 +280,6 @@ class App(ModelObjectType):
 
     @staticmethod
     def resolve_access_token(root: models.App, info):
-        has_required_permission(root, info.context)
         return resolve_access_token_for_app(info, root)
 
     @staticmethod
@@ -244,7 +287,7 @@ class App(ModelObjectType):
         return AppExtensionByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def __resolve_references(roots: List["App"], info, **_kwargs):
+    def __resolve_references(roots: List["App"], info):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)
@@ -254,6 +297,21 @@ class App(ModelObjectType):
             qs = resolve_apps(info)
 
         return resolve_federation_references(App, roots, qs)
+
+    @staticmethod
+    def resolve_metadata(root: models.App, info):
+        check_permission_for_access_to_meta(root, info)
+        return ObjectWithMetadata.resolve_metadata(root, info)
+
+    @staticmethod
+    def resolve_metafield(root: models.App, info, *, key: str):
+        check_permission_for_access_to_meta(root, info)
+        return ObjectWithMetadata.resolve_metafield(root, info, key=key)
+
+    @staticmethod
+    def resolve_metafields(root: models.App, info, *, keys=None):
+        check_permission_for_access_to_meta(root, info)
+        return ObjectWithMetadata.resolve_metafields(root, info, keys=keys)
 
 
 class AppCountableConnection(CountableConnection):

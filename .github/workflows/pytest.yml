@@ -3,10 +3,21 @@ name: Pytest
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - "**.py"
+      - Dockerfile
+      - requirements_dev.txt
+      - "saleor/**"
+      - ".github/workflows/pytest.yml"
   push:
     branches:
       - main
       - ci/*
+    paths:
+      - "**.py"
+      - Dockerfile
+      - requirements_dev.txt
+      - "saleor/**"
 
 env:
   BENCH_PATH: ./queries-results.json
@@ -31,13 +42,12 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v3
 
       - name: Install system dependencies
         run: apt-get install -y libpq-dev
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
@@ -56,7 +66,7 @@ jobs:
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
@@ -64,8 +74,9 @@ jobs:
             ${{ runner.os }}-pre-commit-
 
       # Publish coverage and test results
-      - uses: codecov/codecov-action@v1
-      - uses: actions/upload-artifact@v1
+      - uses: codecov/codecov-action@v2
+
+      - uses: actions/upload-artifact@v3
         with:
           name: pytest-results
           path: junit/test-results.xml
@@ -77,7 +88,7 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
           diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
-        if: ${{ github.event_name == 'pull_request' }}
+        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
 
       # Save results for future comparison against pull requests
       - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
@@ -85,7 +96,7 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
-        if: ${{ github.event_name == 'push' }}
+        if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
       # Run linters and Django related checks
       - name: Run Linters and Checks

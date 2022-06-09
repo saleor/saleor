@@ -23,6 +23,10 @@ class DigitalContentUrl(ModelObjectType):
         interfaces = (relay.Node,)
 
     @staticmethod
+    def resolve_created(root: models.DigitalContentUrl, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_url(root: models.DigitalContentUrl, *_args):
         return root.get_absolute_url()
 
@@ -49,7 +53,7 @@ class DigitalContent(ModelObjectType):
         interfaces = (relay.Node, ObjectWithMetadata)
 
     @staticmethod
-    def resolve_urls(root: models.DigitalContent, **_kwargs):
+    def resolve_urls(root: models.DigitalContent, _info):
         return root.urls.all()
 
     @staticmethod

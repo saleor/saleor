@@ -210,6 +210,22 @@ def _finalize_checkout(
         return None
 
 
+def _get_or_create_transaction(
+    payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
+):
+    transaction = payment.transactions.filter(
+        token=stripe_object.id,
+        action_required=False,
+        is_success=True,
+        kind=kind,
+    ).last()
+    if not transaction:
+        transaction = _update_payment_with_new_transaction(
+            payment, stripe_object, kind, amount, currency
+        )
+    return transaction
+
+
 def _update_payment_with_new_transaction(
     payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
 ):
@@ -290,7 +306,7 @@ def handle_authorized_payment_intent(
     update_payment_method_details_from_intent(payment, payment_intent)
 
     if not payment.is_active:
-        transaction = _update_payment_with_new_transaction(
+        transaction = _get_or_create_transaction(
             payment,
             payment_intent,
             TransactionKind.AUTH,
@@ -402,7 +418,7 @@ def handle_successful_payment_intent(
     update_payment_method_details_from_intent(payment, payment_intent)
 
     if not payment.is_active:
-        transaction = _update_payment_with_new_transaction(
+        transaction = _get_or_create_transaction(
             payment,
             payment_intent,
             TransactionKind.CAPTURE,

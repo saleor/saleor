@@ -9,6 +9,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.models import User
+from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
@@ -22,9 +23,9 @@ from ..discount.utils import (
 )
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
-from ..order import FulfillmentStatus, OrderStatus
 from ..order.fetch import OrderLineInfo
 from ..order.models import Order, OrderLine
+from ..payment.model_helpers import get_total_authorized
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -39,7 +40,13 @@ from ..warehouse.management import (
     increase_stock,
 )
 from ..warehouse.models import Warehouse
-from . import events
+from . import (
+    FulfillmentStatus,
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderStatus,
+    events,
+)
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -196,6 +203,7 @@ def recalculate_order_weight(order):
     for line in order.lines.all():
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
+    weight.unit = order.weight.unit
     order.weight = weight
     order.save(update_fields=["weight", "updated_at"])
 
@@ -228,6 +236,7 @@ def update_taxes_for_order_lines(
 ):
     for line in lines:
         update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
+    manager.update_taxes_for_order_lines(order, lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -363,18 +372,18 @@ def add_variant_to_order(
         channel_listing = variant.channel_listings.get(channel=channel)
 
         # vouchers are not applied for new lines in unconfirmed/draft orders
-        unit_price = variant.get_price(
+        untaxed_unit_price = variant.get_price(
             product, collections, channel, channel_listing, discounts
         )
         if not discounts:
-            undiscounted_price = unit_price
+            untaxed_undiscounted_price = untaxed_unit_price
         else:
-            undiscounted_price = variant.get_price(
+            untaxed_undiscounted_price = variant.get_price(
                 product, collections, channel, channel_listing, []
             )
-        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
         undiscounted_unit_price = TaxedMoney(
-            net=undiscounted_price, gross=undiscounted_price
+            net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
         )
         total_price = unit_price * quantity
         undiscounted_total_price = unit_price * quantity
@@ -399,6 +408,8 @@ def add_variant_to_order(
             quantity=quantity,
             unit_price=unit_price,
             undiscounted_unit_price=undiscounted_unit_price,
+            base_unit_price=untaxed_unit_price,
+            undiscounted_base_unit_price=untaxed_undiscounted_price,
             total_price=total_price,
             undiscounted_total_price=undiscounted_total_price,
             variant=variant,
@@ -416,6 +427,8 @@ def add_variant_to_order(
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
+
+        manager.update_taxes_for_order_lines(order, list(order.lines.all()))
 
         unit_discount = line.undiscounted_unit_price - line.unit_price
         if unit_discount.gross:
@@ -806,6 +819,22 @@ def get_total_order_discount(order: Order) -> Money:
     return total_order_discount
 
 
+def get_total_order_discount_excluding_shipping(order: Order) -> Money:
+    """Return total discounts assigned to the order excluding shipping discounts."""
+    # If the order has an assigned shipping voucher we want to exclude the corresponding
+    # order discount from the calculation.
+    # The calculation is based on assumption that an order can have only one voucher.
+    all_discounts = order.discounts.all()
+    if order.voucher_id and order.voucher.type == VoucherType.SHIPPING:  # type: ignore
+        all_discounts = all_discounts.exclude(type=DiscountType.VOUCHER)
+    total_order_discount = Money(
+        sum([discount.amount_value for discount in all_discounts]),
+        currency=order.currency,
+    )
+    total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
+    return total_order_discount
+
+
 def get_order_discounts(order: Order) -> List[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
     return list(order.discounts.filter(type=DiscountType.MANUAL))
@@ -902,17 +931,17 @@ def update_discount_for_order_line(
         order_line.unit_discount_reason = reason
         fields_to_update.append("unit_discount_reason")
     if current_value != value or current_value_type != value_type:
-        undiscounted_unit_price = order_line.undiscounted_unit_price
-        currency = undiscounted_unit_price.currency
-        unit_price_with_discount = apply_discount_to_value(
-            value, value_type, currency, undiscounted_unit_price
+        undiscounted_base_unit_price = order_line.undiscounted_base_unit_price
+        currency = undiscounted_base_unit_price.currency
+        base_unit_price = apply_discount_to_value(
+            value, value_type, currency, undiscounted_base_unit_price
         )
 
-        order_line.unit_discount = (
-            undiscounted_unit_price - unit_price_with_discount
-        ).gross
+        order_line.unit_discount = undiscounted_base_unit_price - base_unit_price
 
-        order_line.unit_price = unit_price_with_discount
+        order_line.unit_price = TaxedMoney(base_unit_price, base_unit_price)
+        order_line.base_unit_price = base_unit_price
+
         order_line.unit_discount_type = value_type
         order_line.unit_discount_value = value
         order_line.total_price = order_line.unit_price * order_line.quantity
@@ -933,6 +962,7 @@ def update_discount_for_order_line(
                 "unit_price_net_amount",
                 "total_price_net_amount",
                 "total_price_gross_amount",
+                "base_unit_price_amount",
                 "undiscounted_unit_price_gross_amount",
                 "undiscounted_unit_price_net_amount",
                 "undiscounted_total_price_gross_amount",
@@ -944,23 +974,22 @@ def update_discount_for_order_line(
     # from db
     order_line.save(update_fields=fields_to_update)
 
-    update_taxes_for_order_line(order_line, order, manager, tax_included)
-    order_line.save(
-        update_fields=[
-            "unit_price_gross_amount",
-            "unit_price_net_amount",
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-        ]
-    )
+    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
 
 
 def remove_discount_from_order_line(
     order_line: OrderLine, order: "Order", manager, tax_included
 ):
     """Drop discount applied to order line. Restore undiscounted price."""
-    order_line.unit_price = order_line.undiscounted_unit_price
+    order_line.unit_price = TaxedMoney(
+        net=order_line.undiscounted_base_unit_price,
+        gross=order_line.undiscounted_base_unit_price,
+    )
+    order_line.base_unit_price = order_line.undiscounted_base_unit_price
+    order_line.undiscounted_unit_price = TaxedMoney(
+        net=order_line.undiscounted_base_unit_price,
+        gross=order_line.undiscounted_base_unit_price,
+    )
     order_line.unit_discount_amount = Decimal(0)
     order_line.unit_discount_value = Decimal(0)
     order_line.unit_discount_reason = ""
@@ -972,12 +1001,13 @@ def remove_discount_from_order_line(
             "unit_discount_reason",
             "unit_price_gross_amount",
             "unit_price_net_amount",
+            "base_unit_price_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
         ]
     )
 
-    update_taxes_for_order_line(order_line, order, manager, tax_included)
+    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
     order_line.save(
         update_fields=[
             "unit_price_gross_amount",
@@ -987,3 +1017,95 @@ def remove_discount_from_order_line(
             "tax_rate",
         ]
     )
+
+
+def update_order_charge_status(order: Order):
+    """Update the current charge status for the order.
+
+    We treat the order as overcharged when the charged amount is bigger that order.total
+    We treat the order as fully charged when the charged amount is equal to order.total.
+    We treat the order as partially charged when the charged amount covers only part of
+    the order.total
+    We treat the order as not charged when the charged amount is 0.
+    """
+    total_charged = order.total_charged_amount or Decimal("0")
+    total_charged = quantize_price(total_charged, order.currency)
+
+    total_gross = order.total_gross_amount or Decimal(0)
+    total_gross = quantize_price(total_gross, order.currency)
+
+    if total_charged <= 0:
+        order.charge_status = OrderChargeStatus.NONE
+    elif total_charged < total_gross:
+        order.charge_status = OrderChargeStatus.PARTIAL
+    elif total_charged == total_gross:
+        order.charge_status = OrderChargeStatus.FULL
+    else:
+        order.charge_status = OrderChargeStatus.OVERCHARGED
+
+
+def _update_order_total_charged(order: Order):
+    order.total_charged_amount = (
+        sum(order.payments.values_list("captured_amount", flat=True))  # type: ignore
+        or 0
+    )
+    order.total_charged_amount += sum(  # type: ignore
+        order.payment_transactions.values_list("charged_value", flat=True)
+    )
+
+
+def update_order_charge_data(order: Order, with_save=True):
+    _update_order_total_charged(order)
+    update_order_charge_status(order)
+    if with_save:
+        order.save(
+            update_fields=["total_charged_amount", "charge_status", "updated_at"]
+        )
+
+
+def _update_order_total_authorized(order: Order):
+    order.total_authorized_amount = get_total_authorized(
+        order.payments.all(), order.currency  # type: ignore
+    ).amount
+    order.total_authorized_amount += (
+        sum(
+            order.payment_transactions.values_list(  # type: ignore
+                "authorized_value", flat=True
+            )
+        )
+        or 0
+    )
+
+
+def update_order_authorize_status(order: Order):
+    """Update the current authorize status for the order.
+
+    We treat the order as fully authorized when the sum of authorized and charged funds
+    cover the order.total.
+    We treat the order as partially authorized when the sum of authorized and charged
+    funds covers only part of the order.total
+    We treat the order as not authorized when the sum of authorized and charged funds is
+    0.
+    """
+    total_covered = (
+        order.total_authorized_amount + order.total_charged_amount or Decimal("0")
+    )
+    total_covered = quantize_price(total_covered, order.currency)
+    total_gross = order.total_gross_amount or Decimal("0")
+    total_gross = quantize_price(total_gross, order.currency)
+
+    if total_covered == 0:
+        order.authorize_status = OrderAuthorizeStatus.NONE
+    elif total_covered >= total_gross:
+        order.authorize_status = OrderAuthorizeStatus.FULL
+    else:
+        order.authorize_status = OrderAuthorizeStatus.PARTIAL
+
+
+def update_order_authorize_data(order: Order, with_save=True):
+    _update_order_total_authorized(order)
+    update_order_authorize_status(order)
+    if with_save:
+        order.save(
+            update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
+        )

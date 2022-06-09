@@ -1,8 +1,10 @@
 import random
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 import graphene
 import pytest
+import pytz
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import CollectionProduct, Product, ProductChannelListing
@@ -160,26 +162,26 @@ query Products($sortBy: ProductOrder, $channel: String) {
 @freeze_time("2020-03-18 12:00:00")
 @pytest.mark.parametrize(
     "direction, order_direction",
-    (("ASC", "publication_date"), ("DESC", "-publication_date")),
+    (("ASC", "published_at"), ("DESC", "-published_at")),
 )
-def test_sort_products_by_publication_date(
+def test_sort_products_by_published_at(
     direction, order_direction, api_client, product_list, channel_USD
 ):
     product_channel_listings = []
     for iter_value, product in enumerate(product_list):
         product_channel_listing = product.channel_listings.get(channel=channel_USD)
-        product_channel_listing.publication_date = date.today() - timedelta(
+        product_channel_listing.published_at = timezone.now() - timedelta(
             days=iter_value
         )
         product_channel_listings.append(product_channel_listing)
     ProductChannelListing.objects.bulk_update(
-        product_channel_listings, ["publication_date"]
+        product_channel_listings, ["published_at"]
     )
 
     variables = {
         "sortBy": {
             "direction": direction,
-            "field": "PUBLICATION_DATE",
+            "field": "PUBLISHED_AT",
         },
         "channel": channel_USD.slug,
     }
@@ -228,6 +230,76 @@ def test_sort_products_by_rating(
         graphene.Node.to_global_id("Product", product.pk) for product in sorted_products
     ]
     assert [node["node"]["id"] for node in data] == expected_ids
+
+
+QUERY_PAGINATED_SORTED_PRODUCTS = """
+    query Products(
+        $first: Int, $sortBy: ProductOrder, $channel: String, $after: String
+    ) {
+        products(first: $first, sortBy: $sortBy, after: $after, channel: $channel) {
+            edges {
+                node {
+                    id
+                    slug
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+def test_pagination_for_sorting_products_by_published_at_date(
+    api_client, channel_USD, product_list
+):
+    """Ensure that using the cursor in sorting products by published at date works
+    properly."""
+    # given
+    channel_listings = ProductChannelListing.objects.filter(channel_id=channel_USD.id)
+    listings_in_bulk = {listing.product_id: listing for listing in channel_listings}
+    for product in product_list:
+        listing = listings_in_bulk.get(product.id)
+        listing.published_at = datetime.now(pytz.UTC)
+
+    ProductChannelListing.objects.bulk_update(channel_listings, ["published_at"])
+
+    first = 2
+    variables = {
+        "sortBy": {"direction": "ASC", "field": "PUBLISHED_AT"},
+        "channel": channel_USD.slug,
+        "first": first,
+    }
+
+    # first request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_PRODUCTS, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["products"]
+    assert len(data["edges"]) == first
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        product.slug for product in product_list[:first]
+    ]
+    end_cursor = data["pageInfo"]["endCursor"]
+
+    variables["after"] = end_cursor
+
+    # when
+    # second request
+    response = api_client.post_graphql(QUERY_PAGINATED_SORTED_PRODUCTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["products"]
+    expected_count = len(product_list) - first
+    assert len(data["edges"]) == expected_count
+    assert [node["node"]["slug"] for node in data["edges"]] == [
+        product.slug for product in product_list[first:]
+    ]
 
 
 QUERY_SORT_BY_COLLECTION = """

@@ -22,7 +22,6 @@ from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
-from ..checkout import calculations
 from ..core.taxes import zero_money
 from . import DiscountInfo, DiscountValueType
 from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
@@ -198,16 +197,15 @@ def validate_voucher_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
+    from ..checkout import base_calculations
     from ..checkout.utils import calculate_checkout_quantity
 
     quantity = calculate_checkout_quantity(lines)
-    address = checkout_info.shipping_address or checkout_info.billing_address
-    subtotal = calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-        discounts=discounts,
+    subtotal = base_calculations.base_checkout_lines_total(
+        lines,
+        checkout_info.channel,
+        checkout_info.checkout.currency,
+        discounts,
     )
 
     customer_email = cast(str, checkout_info.get_customer_email())

@@ -1,9 +1,13 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
+import graphene
 import pytest
 import requests
 from django.core.exceptions import ValidationError
+from freezegun import freeze_time
 
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.payloads import generate_meta, generate_requestor
 from ..installation_utils import install_app
 from ..models import App
 from ..types import AppExtensionMount, AppExtensionTarget
@@ -23,11 +27,55 @@ def test_install_app_created_app(
     app_installation.permissions.set([permission_manage_products])
 
     # when
-    app = install_app(app_installation, activate=True)
+    app, _ = install_app(app_installation, activate=True)
 
     # then
     assert App.objects.get().id == app.id
     assert list(app.permissions.all()) == [permission_manage_products]
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_install_app_created_app_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    app_manifest,
+    app_installation,
+    monkeypatch,
+    permission_manage_products,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    app_installation.permissions.set([permission_manage_products])
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("App", app.id),
+            "is_active": app.is_active,
+            "name": app.name,
+            "meta": generate_meta(requestor_data=generate_requestor()),
+        },
+        WebhookEventAsyncType.APP_INSTALLED,
+        [any_webhook],
+        app,
+        None,
+    )
 
 
 def test_install_app_with_extension(
@@ -60,7 +108,7 @@ def test_install_app_with_extension(
     )
 
     # when
-    app = install_app(app_installation, activate=True)
+    app, _ = install_app(app_installation, activate=True)
 
     # then
     assert App.objects.get().id == app.id

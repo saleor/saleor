@@ -15,7 +15,7 @@ import graphene
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
 from ..account.models import Address, User
@@ -44,7 +44,8 @@ from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..order.search import prepare_order_search_document_value
-from ..payment import PaymentError, gateway
+from ..order.utils import update_order_authorize_data, update_order_charge_data
+from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
@@ -52,6 +53,7 @@ from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
+from .base_calculations import calculate_base_line_unit_price
 from .checkout_cleaner import (
     _validate_gift_cards,
     clean_checkout_payment,
@@ -176,6 +178,9 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
+    base_prices_data = calculate_base_line_unit_price(
+        line_info=checkout_line_info, channel=checkout_info.channel, discounts=discounts
+    )
     total_line_price_data = manager.calculate_checkout_line_total(
         checkout_info,
         lines,
@@ -199,9 +204,16 @@ def _create_line_for_order(
         unit_price_data.price_with_sale,
     )
 
+    price_override = checkout_line_info.line.price_override
+    channel_listing = checkout_line_info.channel_listing
+    price = (
+        channel_listing.price
+        if price_override is None
+        else Money(price_override, channel_listing.currency)
+    )
     sale_id = get_sale_id_applied_as_a_discount(
         product=checkout_line_info.product,
-        price=checkout_line_info.channel_listing.price,
+        price=price,
         discounts=discounts,
         collections=checkout_line_info.collections,
         channel=checkout_info.channel,
@@ -252,6 +264,8 @@ def _create_line_for_order(
         unit_discount=discount_amount,  # type: ignore
         unit_discount_reason=unit_discount_reason,
         unit_discount_value=discount_amount.amount,  # we store value as fixed discount
+        base_unit_price=base_prices_data.price_with_discounts,
+        undiscounted_base_unit_price=base_prices_data.undiscounted_price,
     )
     is_digital = line.is_digital
     line_info = OrderLineInfo(
@@ -471,7 +485,7 @@ def _create_order(
         voucher = order_data.get("voucher")
         # When we have a voucher for specific products we track it directly in the
         # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
-        # as we apply it only for single quantity of the cheapest line.
+        # as we apply it only for single quantity of the cheapest item.
         if not voucher or (
             voucher.type != VoucherType.SPECIFIC_PRODUCT
             and not voucher.apply_once_per_order
@@ -523,7 +537,8 @@ def _create_order(
     order.metadata = checkout.metadata
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
-    order.update_total_paid()
+    update_order_charge_data(order, with_save=False)
+    update_order_authorize_data(order, with_save=False)
     order.search_document = prepare_order_search_document_value(order)
     order.save()
 
@@ -748,7 +763,7 @@ def complete_checkout(
             )
 
     order = None
-    if not action_required:
+    if not action_required and not _is_refund_ongoing(payment):
         try:
             order = _create_order(
                 checkout_info=checkout_info,
@@ -780,6 +795,17 @@ def complete_checkout(
             mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
+
+
+def _is_refund_ongoing(payment):
+    """Return True if refund is ongoing for given payment."""
+    return (
+        payment.transactions.filter(
+            kind=TransactionKind.REFUND_ONGOING, is_success=True
+        ).exists()
+        if payment
+        else False
+    )
 
 
 def _get_order_total(
@@ -883,7 +909,7 @@ def _handle_checkout_discount(
 
         # When we have a voucher for specific products we track it directly in the
         # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
-        # as we apply it only for single quantity of the cheapest line.
+        # as we apply it only for single quantity of the cheapest item.
         if not voucher or (
             voucher.type != VoucherType.SPECIFIC_PRODUCT
             and not voucher.apply_once_per_order
@@ -1037,6 +1063,9 @@ def _create_order_from_checkout(
 
     # payments
     checkout_info.checkout.payments.update(order=order, checkout_id=None)
+    checkout_info.checkout.payment_transactions.update(order=order, checkout_id=None)
+    update_order_charge_data(order, with_save=False)
+    update_order_authorize_data(order, with_save=False)
 
     # order search
     order.search_document = prepare_order_search_document_value(order)

@@ -23,7 +23,7 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     translated = TranslationProxy()
 

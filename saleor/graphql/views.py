@@ -2,8 +2,6 @@ import fnmatch
 import hashlib
 import importlib
 import json
-import logging
-import traceback
 from inspect import isclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -18,23 +16,20 @@ from django.shortcuts import render
 from django.views.generic import View
 from graphql import GraphQLDocument, get_default_backend
 from graphql.error import GraphQLError, GraphQLSyntaxError
-from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from ..webhook import observability
 from .api import API_PATH, schema
 from .context import get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
-from .utils import query_fingerprint
+from .utils import format_error, query_fingerprint
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
-handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -100,6 +95,7 @@ class GraphQLView(View):
                 "Cannot import '%s' graphene middleware!" % middleware_name
             )
 
+    @observability.report_view
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
@@ -197,30 +193,34 @@ class GraphQLView(View):
             # we can calculate the RAW UTF-8 size using the length of
             # response.content of type 'bytes'
             span.set_tag("http.content_length", len(response.content))
-
+            with observability.report_api_call(request) as api_call:
+                api_call.response = response
+                api_call.report()
             return response
 
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
-        if execution_result:
-            response = {}
-            if execution_result.errors:
-                response["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-            if execution_result.invalid:
-                status_code = 400
+        with observability.report_gql_operation() as operation:
+            execution_result = self.execute_graphql_request(request, data)
+            status_code = 200
+            if execution_result:
+                response = {}
+                if execution_result.errors:
+                    response["errors"] = [
+                        self.format_error(e) for e in execution_result.errors
+                    ]
+                if execution_result.invalid:
+                    status_code = 400
+                else:
+                    response["data"] = execution_result.data
+                if execution_result.extensions:
+                    response["extensions"] = execution_result.extensions
+                result: Optional[Dict[str, List[Any]]] = response
             else:
-                response["data"] = execution_result.data
-            if execution_result.extensions:
-                response["extensions"] = execution_result.extensions
-            result: Optional[Dict[str, List[Any]]] = response
-        else:
-            result = None
-
+                result = None
+            operation.result = result
+            operation.result_invalid = execution_result.invalid
         return result, status_code
 
     def get_root_value(self):
@@ -279,6 +279,10 @@ class GraphQLView(View):
             query_cost = 0
 
             document, error = self.parse_query(query)
+            with observability.report_gql_operation() as operation:
+                operation.query = document
+                operation.name = operation_name
+                operation.variables = variables
             if error:
                 return error
 
@@ -382,35 +386,7 @@ class GraphQLView(View):
 
     @classmethod
     def format_error(cls, error):
-        if isinstance(error, GraphQLError):
-            result = format_graphql_error(error)
-        else:
-            result = {"message": str(error)}
-
-        if "extensions" not in result:
-            result["extensions"] = {}
-
-        exc = error
-        while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
-            exc = exc.original_error
-        if isinstance(exc, AssertionError):
-            exc = GraphQLError(str(exc))
-        if isinstance(exc, cls.HANDLED_EXCEPTIONS):
-            handled_errors_logger.info("A query had an error", exc_info=exc)
-        else:
-            unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
-
-        result["extensions"]["exception"] = {"code": type(exc).__name__}
-        if settings.DEBUG:
-            lines = []
-
-            if isinstance(exc, BaseException):
-                for line in traceback.format_exception(
-                    type(exc), exc, exc.__traceback__
-                ):
-                    lines.extend(line.rstrip().splitlines())
-            result["extensions"]["exception"]["stacktrace"] = lines
-        return result
+        return format_error(error, cls.HANDLED_EXCEPTIONS)
 
 
 def get_key(key):

@@ -1,6 +1,7 @@
 import datetime
 
 import graphene
+import pytz
 from freezegun import freeze_time
 
 from ....product.error_codes import CollectionErrorCode
@@ -22,7 +23,7 @@ mutation UpdateCollectionChannelListing(
             slug
             channelListings {
                 isPublished
-                publicationDate
+                publishedAt
                 channel {
                     slug
                 }
@@ -176,7 +177,7 @@ def test_collection_channel_listing_update_as_staff_user(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc).replace(microsecond=0)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -186,7 +187,7 @@ def test_collection_channel_listing_update_as_staff_user(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                 }
             ]
         },
@@ -206,18 +207,19 @@ def test_collection_channel_listing_update_as_staff_user(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date_usd = collection_channel_listing.publication_date.isoformat()
+    publication_date_usd = collection_channel_listing.published_at
     assert not data["errors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is True
     assert (
-        collection_data["channelListings"][0]["publicationDate"] == publication_date_usd
+        collection_data["channelListings"][0]["publishedAt"]
+        == publication_date_usd.isoformat()
     )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
     assert collection_data["channelListings"][1]["isPublished"] is False
     assert (
-        collection_data["channelListings"][1]["publicationDate"]
+        collection_data["channelListings"][1]["publishedAt"]
         == publication_date.isoformat()
     )
     assert collection_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
@@ -231,7 +233,7 @@ def test_collection_channel_listing_update_as_app(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc).replace(microsecond=0)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -241,7 +243,7 @@ def test_collection_channel_listing_update_as_app(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                 }
             ]
         },
@@ -259,19 +261,20 @@ def test_collection_channel_listing_update_as_app(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date_usd = collection_channel_listing.publication_date.isoformat()
+    publication_date_usd = collection_channel_listing.published_at
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["errors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is True
     assert (
-        collection_data["channelListings"][0]["publicationDate"] == publication_date_usd
+        collection_data["channelListings"][0]["publishedAt"]
+        == publication_date_usd.isoformat()
     )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
     assert collection_data["channelListings"][1]["isPublished"] is False
     assert (
-        collection_data["channelListings"][1]["publicationDate"]
+        collection_data["channelListings"][1]["publishedAt"]
         == publication_date.isoformat()
     )
     assert collection_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
@@ -325,7 +328,7 @@ def test_collection_channel_listing_update_add_channel(
     channel_PLN,
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc).replace(microsecond=0)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -335,7 +338,7 @@ def test_collection_channel_listing_update_add_channel(
                 {
                     "channelId": channel_id,
                     "isPublished": False,
-                    "publicationDate": publication_date,
+                    "publishedAt": publication_date,
                 }
             ]
         },
@@ -353,19 +356,20 @@ def test_collection_channel_listing_update_add_channel(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date_usd = collection_channel_listing.publication_date.isoformat()
+    publication_date_usd = collection_channel_listing.published_at
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["errors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is True
     assert (
-        collection_data["channelListings"][0]["publicationDate"] == publication_date_usd
+        collection_data["channelListings"][0]["publishedAt"]
+        == publication_date_usd.isoformat()
     )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
     assert collection_data["channelListings"][1]["isPublished"] is False
     assert (
-        collection_data["channelListings"][1]["publicationDate"]
+        collection_data["channelListings"][1]["publishedAt"]
         == publication_date.isoformat()
     )
     assert collection_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
@@ -390,7 +394,7 @@ def test_collection_channel_listing_update_unpublished(
     )
     content = get_graphql_content(response)
     collection_channel_listing = published_collection.channel_listings.get()
-    publication_date_usd = collection_channel_listing.publication_date.isoformat()
+    publication_date_usd = collection_channel_listing.published_at
 
     # then
     data = content["data"]["collectionChannelListingUpdate"]
@@ -399,7 +403,8 @@ def test_collection_channel_listing_update_unpublished(
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is False
     assert (
-        collection_data["channelListings"][0]["publicationDate"] == publication_date_usd
+        collection_data["channelListings"][0]["publishedAt"]
+        == publication_date_usd.isoformat()
     )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
@@ -408,15 +413,13 @@ def test_collection_channel_listing_update_update_publication_date(
     staff_api_client, collection, permission_manage_products, channel_USD
 ):
     # given
-    publication_date = datetime.date.today()
+    publication_date = datetime.datetime.now(pytz.utc).replace(microsecond=0)
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "id": collection_id,
         "input": {
-            "addChannels": [
-                {"channelId": channel_id, "publicationDate": publication_date}
-            ]
+            "addChannels": [{"channelId": channel_id, "publishedAt": publication_date}]
         },
     }
 
@@ -434,7 +437,7 @@ def test_collection_channel_listing_update_update_publication_date(
     assert not data["errors"]
     assert collection_data["slug"] == collection.slug
     assert (
-        collection_data["channelListings"][0]["publicationDate"]
+        collection_data["channelListings"][0]["publishedAt"]
         == publication_date.isoformat()
     )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
@@ -467,13 +470,16 @@ def test_collection_channel_listing_update_remove_not_assigned_channel(
     collection_channel_listing = published_collection.channel_listings.get(
         channel=channel_USD
     )
-    publication_date = collection_channel_listing.publication_date.isoformat()
+    publication_date = collection_channel_listing.published_at
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["errors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is True
-    assert collection_data["channelListings"][0]["publicationDate"] == publication_date
+    assert (
+        collection_data["channelListings"][0]["publishedAt"]
+        == publication_date.isoformat()
+    )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
 
@@ -510,8 +516,8 @@ def test_collection_channel_listing_update_add_channel_without_publication_date(
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
     assert collection_data["channelListings"][1]["isPublished"] is True
     assert (
-        collection_data["channelListings"][1]["publicationDate"]
-        == datetime.date(2020, 3, 18).isoformat()
+        collection_data["channelListings"][1]["publishedAt"]
+        == datetime.datetime.now(pytz.utc).isoformat()
     )
     assert collection_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
 
@@ -544,7 +550,7 @@ def test_collection_channel_listing_update_publish_without_publication_date(
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListings"][0]["isPublished"] is True
     assert (
-        collection_data["channelListings"][0]["publicationDate"]
-        == datetime.date(2020, 3, 18).isoformat()
+        collection_data["channelListings"][0]["publishedAt"]
+        == datetime.datetime.now(pytz.utc).isoformat()
     )
     assert collection_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
