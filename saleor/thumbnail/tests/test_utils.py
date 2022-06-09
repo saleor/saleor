@@ -16,15 +16,16 @@ def test_get_thumbnail_size(size, expected_value):
 
 
 @pytest.mark.parametrize(
-    "file_name, size, expected_name",
+    "file_name, size, format, expected_name",
     [
-        ("test.txt", 20, "test_thumbnail_20.txt"),
-        ("test/test.txt", 20, "test/test_thumbnail_20.txt"),
+        ("test.txt", 20, None, "test_thumbnail_20.txt"),
+        ("test/test.txt", 20, None, "test/test_thumbnail_20.txt"),
+        ("test/test.txt", 40, "webp", "test/test_thumbnail_40.webp"),
     ],
 )
-def test_prepare_thumbnail_file_name(file_name, size, expected_name):
+def test_prepare_thumbnail_file_name(file_name, size, format, expected_name):
     # when
-    thumbnail_name = prepare_thumbnail_file_name(file_name, size)
+    thumbnail_name = prepare_thumbnail_file_name(file_name, size, format)
 
     # then
     assert thumbnail_name == expected_name

@@ -1,7 +1,29 @@
 import graphene
 from django.test.client import Client
 
+from .. import ThumbnailFormat
 from ..models import Thumbnail
+
+
+def test_handle_thumbnail_view_with_format(client, category_with_image, settings):
+    # given
+    size = 60
+    format = ThumbnailFormat.WEBP
+    client = Client()
+    category_id = graphene.Node.to_global_id("Category", category_with_image.id)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{category_id}/{size}/{format}/")
+
+    # then
+    assert response.status_code == 302
+    file_path, _ = category_with_image.background_image.name.rsplit(".")
+    assert (
+        response.url
+        == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_64.{format.lower()}"
+    )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
 
 
 def test_handle_thumbnail_view_for_category(client, category_with_image, settings):
@@ -9,6 +31,7 @@ def test_handle_thumbnail_view_for_category(client, category_with_image, setting
     size = 60
     client = Client()
     category_id = graphene.Node.to_global_id("Category", category_with_image.id)
+    thumbnail_count = 0
 
     # when
     response = client.get(f"/thumbnail/{category_id}/{size}/")
@@ -20,6 +43,7 @@ def test_handle_thumbnail_view_for_category(client, category_with_image, setting
         response.url
         == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_64.{ext}"
     )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
 
 
 def test_handle_thumbnail_view_for_collection(client, collection_with_image, settings):
@@ -27,6 +51,7 @@ def test_handle_thumbnail_view_for_collection(client, collection_with_image, set
     size = 100
     client = Client()
     collection_id = graphene.Node.to_global_id("Collection", collection_with_image.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{collection_id}/{size}/")
@@ -38,6 +63,7 @@ def test_handle_thumbnail_view_for_collection(client, collection_with_image, set
         response.url
         == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_128.{ext}"
     )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
 
 
 def test_handle_thumbnail_view_for_user(
@@ -50,6 +76,7 @@ def test_handle_thumbnail_view_for_user(
     size = 200
     client = Client()
     user_id = graphene.Node.to_global_id("User", staff_user.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{user_id}/{size}/")
@@ -61,6 +88,7 @@ def test_handle_thumbnail_view_for_user(
         response.url
         == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_256.{ext}"
     )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
 
 
 def test_handle_thumbnail_view_for_product_media(
@@ -72,6 +100,7 @@ def test_handle_thumbnail_view_for_product_media(
     size = 500
     client = Client()
     product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{product_media_id}/{size}/")
@@ -83,6 +112,7 @@ def test_handle_thumbnail_view_for_product_media(
         response.url
         == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_512.{ext}"
     )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
 
 
 def test_handle_thumbnail_view_for_category_thumbnail_already_exist(
@@ -93,6 +123,7 @@ def test_handle_thumbnail_view_for_category_thumbnail_already_exist(
     thumbnail = Thumbnail.objects.create(category=category, size=size, image=image)
     client = Client()
     category_id = graphene.Node.to_global_id("Category", category.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{category_id}/{size}/")
@@ -100,6 +131,7 @@ def test_handle_thumbnail_view_for_category_thumbnail_already_exist(
     # then
     assert response.status_code == 302
     assert response.url == thumbnail.image.url
+    assert Thumbnail.objects.count() == thumbnail_count
 
 
 def test_handle_thumbnail_view_for_collection_thumbnail_already_exist(
@@ -110,6 +142,7 @@ def test_handle_thumbnail_view_for_collection_thumbnail_already_exist(
     thumbnail = Thumbnail.objects.create(collection=collection, size=128, image=image)
     client = Client()
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{collection_id}/{size}/")
@@ -117,6 +150,7 @@ def test_handle_thumbnail_view_for_collection_thumbnail_already_exist(
     # then
     assert response.status_code == 302
     assert response.url == thumbnail.image.url
+    assert Thumbnail.objects.count() == thumbnail_count
 
 
 def test_handle_thumbnail_view_for_user_thumbnail_already_exist(
@@ -127,6 +161,7 @@ def test_handle_thumbnail_view_for_user_thumbnail_already_exist(
     thumbnail = Thumbnail.objects.create(user=staff_user, size=128, image=image)
     client = Client()
     user_id = graphene.Node.to_global_id("User", staff_user.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{user_id}/{size}/")
@@ -134,6 +169,7 @@ def test_handle_thumbnail_view_for_user_thumbnail_already_exist(
     # then
     assert response.status_code == 302
     assert response.url == thumbnail.image.url
+    assert Thumbnail.objects.count() == thumbnail_count
 
 
 def test_handle_thumbnail_view_for_product_media_thumbnail_already_exist(
@@ -147,6 +183,7 @@ def test_handle_thumbnail_view_for_product_media_thumbnail_already_exist(
     )
     client = Client()
     product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    thumbnail_count = Thumbnail.objects.count()
 
     # when
     response = client.get(f"/thumbnail/{product_media_id}/{size}/")
@@ -154,6 +191,7 @@ def test_handle_thumbnail_view_for_product_media_thumbnail_already_exist(
     # then
     assert response.status_code == 302
     assert response.url == thumbnail.image.url
+    assert Thumbnail.objects.count() == thumbnail_count
 
 
 def test_handle_thumbnail_view_no_image(client, category):

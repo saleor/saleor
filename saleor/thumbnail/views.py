@@ -27,11 +27,10 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     the closest available size is created and returned, if it does not exist.
     """
     # check formats
-    available_formats = [ThumbnailFormat.WEBP, ThumbnailFormat.AVIF]
     format = format.lower() if format else None
-    if format and format not in available_formats:
+    if format and format != ThumbnailFormat.WEBP:
         return HttpResponseNotFound(
-            f"Invalid format value. Available formats: {', '.join(available_formats)}."
+            f"Invalid format value. Available format: {ThumbnailFormat.WEBP}."
         )
 
     try:
@@ -64,8 +63,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
     processed_image = ProcessedImage(image.url, size, format)
     thumbnail_file = processed_image.create_thumbnail()
 
-    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size)
-
+    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size, format)
     # save image thumbnail
     # TODO: probably the Thumbnail would need to have optional image field
     thumbnail = Thumbnail(

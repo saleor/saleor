@@ -20,8 +20,11 @@ def get_thumbnail_size(size: str) -> int:
     return min(THUMBNAIL_SIZES, key=lambda x: abs(x - size))
 
 
-def prepare_thumbnail_file_name(file_name: str, size: int) -> str:
+def prepare_thumbnail_file_name(
+    file_name: str, size: int, format: Optional[str]
+) -> str:
     file_path, file_ext = file_name.rsplit(".")
+    file_ext = format or file_ext
     return file_path + f"_thumbnail_{size}." + file_ext
 
 
@@ -106,7 +109,8 @@ class ProcessedImage:
                     arguments, return an empty dict ({}).
 
         """
-        save_kwargs = {"format": image_format}
+        format = self.format or image_format
+        save_kwargs = {"format": format}
 
         # Ensuring image is properly rotated
         if hasattr(image, "_getexif"):
@@ -124,8 +128,8 @@ class ProcessedImage:
         # Ensure any embedded ICC profile is preserved
         save_kwargs["icc_profile"] = image.info.get("icc_profile")
 
-        if hasattr(self, "preprocess_%s" % image_format):
-            image, addl_save_kwargs = getattr(self, "preprocess_%s" % image_format)(
+        if hasattr(self, "preprocess_%s" % format):
+            image, addl_save_kwargs = getattr(self, "preprocess_%s" % format)(
                 image=image
             )
             save_kwargs.update(addl_save_kwargs)
