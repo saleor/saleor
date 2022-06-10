@@ -40,6 +40,7 @@ from .filters import (
     ProductTypeFilterInput,
     ProductVariantFilterInput,
 )
+from .mutations import ProductTypeCreate, ProductTypeDelete, ProductTypeUpdate
 from .mutations.attributes import (
     ProductAttributeAssign,
     ProductAttributeAssignmentUpdate,
@@ -75,9 +76,6 @@ from .mutations.products import (
     ProductMediaDelete,
     ProductMediaReorder,
     ProductMediaUpdate,
-    ProductTypeCreate,
-    ProductTypeDelete,
-    ProductTypeUpdate,
     ProductUpdate,
     ProductVariantCreate,
     ProductVariantDelete,
