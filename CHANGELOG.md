@@ -5,10 +5,15 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.5.0 [Unreleased]
 
 ### Other changes
+- Fix inaccurate tax calculations - #9799 by @IKarbowiak
+- Fix incorrect default value used in `PaymentInput.storePaymentMethod` - #9943 by @korycins
+- Introduce plain text attribute - #9907 by @IKarbowiak
+- Stop auto-assigning default addresses to checkout - #9933 by @SzymJ
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
 - Add webhooks `ADDRESS_CREATED`, `ADDRESS_UPDATED` and `ADDRESS_DELETED` - #9860 by @SzymJ
+- Returning errors in subscription webhooks payloads fix - #9905 by @SzymJ
 
 # 3.4.0
 

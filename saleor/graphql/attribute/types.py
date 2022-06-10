@@ -54,6 +54,9 @@ class AttributeValue(ModelObjectType):
     rich_text = JSONString(
         description=AttributeValueDescriptions.RICH_TEXT, required=False
     )
+    plain_text = graphene.String(
+        description=AttributeValueDescriptions.PLAIN_TEXT, required=False
+    )
     boolean = graphene.Boolean(
         description=AttributeValueDescriptions.BOOLEAN, required=False
     )
@@ -387,6 +390,7 @@ class AttributeValueInput(graphene.InputObjectType):
         required=False,
     )
     rich_text = JSONString(required=False, description="Text content in JSON format.")
+    plain_text = graphene.String(required=False, description="Plain text content.")
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
     )

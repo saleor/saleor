@@ -4200,6 +4200,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  PLAIN_TEXT
   SWATCH
   BOOLEAN
   DATE
@@ -4306,6 +4307,11 @@ type AttributeValue implements Node {
   """
   richText: JSONString
 
+  """
+  Represents the text of the attribute value, plain text without formating.
+  """
+  plainText: String
+
   """Represents the boolean value of the attribute value."""
   boolean: Boolean
 
@@ -4329,6 +4335,9 @@ type AttributeValueTranslation implements Node {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
 }
 
 type File {
@@ -5903,6 +5912,9 @@ type AttributeValueTranslatableContent implements Node {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
 
   """Returns translated attribute value fields for the given language code."""
   translation(
@@ -16016,6 +16028,9 @@ input AttributeValueInput {
   """Text content in JSON format."""
   richText: JSONString
 
+  """Plain text content."""
+  plainText: String
+
   """Represents the boolean value of the attribute value."""
   boolean: Boolean
 
@@ -19804,7 +19819,7 @@ input PaymentInput {
   
   Added in Saleor 3.1.
   """
-  storePaymentMethod: StorePaymentMethodEnum = none
+  storePaymentMethod: StorePaymentMethodEnum = NONE
 
   """
   User public metadata.
@@ -20145,6 +20160,11 @@ input AttributeValueCreateInput {
   """
   richText: JSONString
 
+  """
+  Represents the text of the attribute value, plain text without formating.
+  """
+  plainText: String
+
   """URL of the file attribute. Every time, a new value is created."""
   fileUrl: String
 
@@ -20229,6 +20249,11 @@ input AttributeValueUpdateInput {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """
+  Represents the text of the attribute value, plain text without formating.
+  """
+  plainText: String
 
   """URL of the file attribute. Every time, a new value is created."""
   fileUrl: String
@@ -20334,6 +20359,9 @@ input AttributeValueTranslationInput {
   Rich text format. For reference see https://editorjs.io/
   """
   richText: JSONString
+
+  """Translated text."""
+  plainText: String
 }
 
 """

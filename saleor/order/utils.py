@@ -235,6 +235,7 @@ def update_taxes_for_order_lines(
 ):
     for line in lines:
         update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
+    manager.update_taxes_for_order_lines(order, lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -425,6 +426,8 @@ def add_variant_to_order(
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
+
+        manager.update_taxes_for_order_lines(order, list(order.lines.all()))
 
         unit_discount = line.undiscounted_unit_price - line.unit_price
         if unit_discount.gross:
@@ -815,6 +818,22 @@ def get_total_order_discount(order: Order) -> Money:
     return total_order_discount
 
 
+def get_total_order_discount_excluding_shipping(order: Order) -> Money:
+    """Return total discounts assigned to the order excluding shipping discounts."""
+    # If the order has an assigned shipping voucher we want to exclude the corresponding
+    # order discount from the calculation.
+    # The calculation is based on assumption that an order can have only one voucher.
+    all_discounts = order.discounts.all()
+    if order.voucher_id and order.voucher.type == VoucherType.SHIPPING:  # type: ignore
+        all_discounts = all_discounts.exclude(type=OrderDiscountType.VOUCHER)
+    total_order_discount = Money(
+        sum([discount.amount_value for discount in all_discounts]),
+        currency=order.currency,
+    )
+    total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
+    return total_order_discount
+
+
 def get_order_discounts(order: Order) -> List[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
     return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
@@ -1049,10 +1068,8 @@ def _update_order_total_charged(order: Order):
         sum(order.payments.values_list("captured_amount", flat=True))  # type: ignore
         or 0
     )
-    order.total_charged_amount += sum(
-        order.payment_transactions.values_list(  # type: ignore
-            "charged_value", flat=True
-        )
+    order.total_charged_amount += sum(  # type: ignore
+        order.payment_transactions.values_list("charged_value", flat=True)
     )
 
 

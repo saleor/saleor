@@ -1117,7 +1117,9 @@ def test_checkout_create(checkout, subscription_checkout_created_webhook):
     event_type = WebhookEventAsyncType.CHECKOUT_CREATED
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
-    expected_payload = json.dumps({"checkout": {"id": checkout_id}})
+    expected_payload = json.dumps(
+        {"checkout": {"id": checkout_id, "totalPrice": {"currency": "USD"}}}
+    )
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -1426,3 +1428,27 @@ def test_validate_invalid_multiple_subscriptions():
         subscription_queries.TEST_INVALID_MULTIPLE_SUBSCRIPTION
     )
     assert result is False
+
+
+def test_generate_payload_from_subscription_return_permission_errors_in_payload(
+    gift_card, subscription_gift_card_created_webhook, permission_manage_gift_card
+):
+    # given
+    subscription_gift_card_created_webhook.app.permissions.remove(
+        permission_manage_gift_card
+    )
+    webhooks = [subscription_gift_card_created_webhook]
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        WebhookEventAsyncType.GIFT_CARD_CREATED, gift_card, webhooks
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+    error_code = "PermissionDenied"
+
+    assert not payload["giftCard"]
+    assert payload["errors"][0]["extensions"]["exception"]["code"] == error_code
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
