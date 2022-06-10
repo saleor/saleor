@@ -9159,6 +9159,58 @@ def test_orders_query_with_filter_charge_status(
     assert content["data"]["orders"]["totalCount"] == expected_count
 
 
+def test_order_query_with_filter_numbers(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    channel_USD,
+):
+    # given
+    variables = {
+        "filter": {
+            "numbers": [orders[0].number, orders[2].number],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 2
+
+
+def test_order_query_with_filter_not_allow_numbers_and_ids_together(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    channel_USD,
+):
+    # given
+    variables = {
+        "filter": {
+            "numbers": [orders[0].number, orders[2].number],
+            "ids": [graphene.Node.to_global_id("Order", orders[1].id)],
+        },
+    }
+    error_message = "'ids' and 'numbers` are not allowed to use together in filter."
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content_from_response(response)
+
+    # then
+    assert content["errors"][0]["message"] == error_message
+    assert not content["data"]["orders"]
+
+
 QUERY_GET_VARIANTS_FROM_ORDER = """
 {
   me{
