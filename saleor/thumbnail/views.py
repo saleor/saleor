@@ -54,7 +54,6 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str = None):
 
     instance = model_data.model.objects.get(id=pk)
     image = getattr(instance, model_data.image_field)
-    # TODO: maybe the condition can be changed after dropping versatile image field
     if not bool(image):
         return HttpResponseNotFound("There is no image for provided instance.")
 

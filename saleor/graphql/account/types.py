@@ -17,6 +17,7 @@ from ...core.permissions import (
 )
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
+from ...thumbnail.utils import get_thumbnail_size, prepare_image_proxy_url
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
@@ -34,7 +35,10 @@ from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from .dataloaders import CustomerEventsByUserLoader
+from .dataloaders import (
+    CustomerEventsByUserLoader,
+    ThumbnailsByUserIdSizeAndFormatLoader,
+)
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
@@ -430,15 +434,29 @@ class User(ModelObjectType):
         return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
-    def resolve_avatar(root: models.User, info, size=None):
-        if root.avatar:
-            return Image.get_adjusted(
-                image=root.avatar,
-                alt=None,
-                size=size,
-                rendition_key_set="user_avatars",
-                info=info,
+    def resolve_avatar(root: models.User, info, size=None, format=None):
+        if not root.avatar:
+            return
+
+        if not size:
+            return Image(url=root.avatar.url, alt=None)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_avatar(thumbnail):
+            url = (
+                prepare_image_proxy_url(root.id, "User", size, format)
+                if thumbnail is None
+                else thumbnail.image.url
             )
+            return Image(url=url, alt=None)
+
+        return (
+            ThumbnailsByUserIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_avatar)
+        )
 
     @staticmethod
     def resolve_stored_payment_sources(root: models.User, info, channel=None):

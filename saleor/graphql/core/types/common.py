@@ -417,6 +417,10 @@ class Image(graphene.ObjectType):
         description = "Represents an image."
 
     @staticmethod
+    def resolve_url(root, info):
+        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+
+    @staticmethod
     def get_adjusted(image, alt, size, rendition_key_set, info):
         """Return Image adjusted with given size."""
         if size:

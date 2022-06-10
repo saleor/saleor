@@ -10,7 +10,6 @@ from ....account import models, utils
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
 from ....account.search import USER_SEARCH_FIELDS, prepare_user_search_document_value
-from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import (
     remove_staff_member,
     remove_the_oldest_user_address_if_address_limit_is_reached,
@@ -21,6 +20,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
+from ....thumbnail import models as thumbnail_models
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -588,11 +588,10 @@ class UserAvatarUpdate(BaseMutation):
         validate_image_file(image_data, "image", AccountErrorCode)
         add_hash_to_file_name(image_data)
         if user.avatar:
-            user.avatar.delete_sized_images()
             user.avatar.delete()
+            thumbnail_models.Thumbnail.objects.filter(user_id=user.id).delete()
         user.avatar = image_data
         user.save()
-        create_user_avatar_thumbnails.delay(user_id=user.pk)
 
         return UserAvatarUpdate(user=user)
 
@@ -609,6 +608,6 @@ class UserAvatarDelete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info):
         user = info.context.user
-        user.avatar.delete_sized_images()
         user.avatar.delete()
+        thumbnail_models.Thumbnail.objects.filter(user_id=user.id).delete()
         return UserAvatarDelete(user=user)
