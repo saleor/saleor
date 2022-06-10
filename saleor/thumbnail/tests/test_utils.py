@@ -1,6 +1,11 @@
+import graphene
 import pytest
 
-from ..utils import get_thumbnail_size, prepare_thumbnail_file_name
+from ..utils import (
+    get_thumbnail_size,
+    prepare_image_proxy_url,
+    prepare_thumbnail_file_name,
+)
 
 
 @pytest.mark.parametrize(
@@ -29,3 +34,18 @@ def test_prepare_thumbnail_file_name(file_name, size, format, expected_name):
 
     # then
     assert thumbnail_name == expected_name
+
+
+@pytest.mark.parametrize("size, format", [(100, "WEBP"), (1, None), (200, "")])
+def test_prepare_image_proxy_url(size, format, collection):
+    # given
+    instance_id = graphene.Node.to_global_id("Collection", collection.id)
+
+    # when
+    url = prepare_image_proxy_url(collection.id, "Collection", size, format)
+
+    # then
+    expected_url = f"/thumbnail/{instance_id}/{size}/"
+    if format:
+        expected_url += f"{format.lower()}/"
+    assert url == expected_url

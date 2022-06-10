@@ -1,13 +1,23 @@
 from io import BytesIO
 from typing import Optional
 
+import graphene
 import magic
 from django.core.files.storage import default_storage
+from django.urls import reverse
 from PIL import Image
 
 from . import MIME_TYPE_TO_PIL_IDENTIFIER, THUMBNAIL_SIZES
 
-# from django.core.files.uploadedfile import InMemoryUploadedFile
+
+def prepare_image_proxy_url(
+    instance_pk: int, object_type: str, size: int, format: Optional[str]
+):
+    instance_id = graphene.Node.to_global_id(object_type, instance_pk)
+    kwargs = {"instance_id": instance_id, "size": size}
+    if format:
+        kwargs["format"] = format.lower()
+    return reverse("thumbnail", kwargs=kwargs)
 
 
 def get_thumbnail_size(size: str) -> int:
