@@ -110,6 +110,10 @@ class WebhookEventAsyncType:
     SHIPPING_ZONE_UPDATED = "shipping_zone_updated"
     SHIPPING_ZONE_DELETED = "shipping_zone_deleted"
 
+    STAFF_CREATED = "staff_created"
+    STAFF_UPDATED = "staff_updated"
+    STAFF_DELETED = "staff_deleted"
+
     TRANSACTION_ACTION_REQUEST = "transaction_action_request"
 
     TRANSLATION_CREATED = "translation_created"
@@ -196,6 +200,9 @@ class WebhookEventAsyncType:
         SHIPPING_ZONE_CREATED: "Shipping zone created",
         SHIPPING_ZONE_UPDATED: "Shipping zone updated",
         SHIPPING_ZONE_DELETED: "Shipping zone deleted",
+        STAFF_CREATED: "Staff created",
+        STAFF_UPDATED: "Staff updated",
+        STAFF_DELETED: "Staff deleted",
         TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
@@ -279,6 +286,9 @@ class WebhookEventAsyncType:
         (SHIPPING_ZONE_CREATED, DISPLAY_LABELS[SHIPPING_ZONE_CREATED]),
         (SHIPPING_ZONE_UPDATED, DISPLAY_LABELS[SHIPPING_ZONE_UPDATED]),
         (SHIPPING_ZONE_DELETED, DISPLAY_LABELS[SHIPPING_ZONE_DELETED]),
+        (STAFF_CREATED, DISPLAY_LABELS[STAFF_CREATED]),
+        (STAFF_UPDATED, DISPLAY_LABELS[STAFF_UPDATED]),
+        (STAFF_DELETED, DISPLAY_LABELS[STAFF_DELETED]),
         (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
@@ -363,6 +373,9 @@ class WebhookEventAsyncType:
         SHIPPING_ZONE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_ZONE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_ZONE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
+        STAFF_CREATED: AccountPermissions.MANAGE_STAFF,
+        STAFF_UPDATED: AccountPermissions.MANAGE_STAFF,
+        STAFF_DELETED: AccountPermissions.MANAGE_STAFF,
         TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
@@ -516,6 +529,9 @@ SUBSCRIBABLE_EVENTS = [
     WebhookEventAsyncType.SHIPPING_ZONE_CREATED,
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED,
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED,
+    WebhookEventAsyncType.STAFF_CREATED,
+    WebhookEventAsyncType.STAFF_UPDATED,
+    WebhookEventAsyncType.STAFF_DELETED,
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST,
     WebhookEventAsyncType.TRANSLATION_CREATED,
     WebhookEventAsyncType.TRANSLATION_UPDATED,
