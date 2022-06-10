@@ -5220,6 +5220,7 @@ def webhook_app(
     permission_manage_discounts,
     permission_manage_menus,
     permission_manage_products,
+    permission_manage_staff,
 ):
     app = App.objects.create(name="Webhook app", is_active=True)
     app.permissions.add(permission_manage_shipping)
@@ -5227,6 +5228,7 @@ def webhook_app(
     app.permissions.add(permission_manage_discounts)
     app.permissions.add(permission_manage_menus)
     app.permissions.add(permission_manage_products)
+    app.permissions.add(permission_manage_staff)
     return app
 
 

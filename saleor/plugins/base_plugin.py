@@ -759,6 +759,24 @@ class BasePlugin:
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
 
+    #  Trigger when staff user is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a staff user is
+    #  created.
+    staff_created: Callable[["User", Any], Any]
+
+    #  Trigger when staff user is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a staff user is
+    #  updated.
+    staff_updated: Callable[["User", Any], Any]
+
+    #  Trigger when staff user is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a staff user is
+    #  deleted.
+    staff_deleted: Callable[["User", Any], Any]
+
     #  Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]
 

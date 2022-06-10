@@ -983,6 +983,18 @@ class PluginsManager(PaymentInterface):
             "shipping_zone_deleted", default_value, shipping_zone
         )
 
+    def staff_created(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_created", default_value, staff_user)
+
+    def staff_updated(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_updated", default_value, staff_user)
+
+    def staff_deleted(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+
     def warehouse_created(self, warehouse: "Warehouse"):
         default_value = None
         return self.__run_method_on_plugins(

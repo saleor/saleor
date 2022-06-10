@@ -1619,6 +1619,11 @@ enum WebhookEventTypeEnum {
 
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
+
+  """A staff user is deleted"""
+  STAFF_CREATED
+  STAFF_UPDATED
+  STAFF_DELETED
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -1888,6 +1893,11 @@ enum WebhookEventTypeAsyncEnum {
 
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
+
+  """A staff user is deleted"""
+  STAFF_CREATED
+  STAFF_UPDATED
+  STAFF_DELETED
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -2447,6 +2457,9 @@ enum WebhookSampleEventTypeEnum {
   SHIPPING_ZONE_CREATED
   SHIPPING_ZONE_UPDATED
   SHIPPING_ZONE_DELETED
+  STAFF_CREATED
+  STAFF_UPDATED
+  STAFF_DELETED
   TRANSACTION_ACTION_REQUEST
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -23189,6 +23202,75 @@ type ShippingZoneDeleted implements Event {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): ShippingZone
+}
+
+type StaffCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The user the event relates to.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  user: User
+}
+
+type StaffUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The user the event relates to.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  user: User
+}
+
+type StaffDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The user the event relates to.
+  
+  Added in Saleor 3.2.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  user: User
 }
 
 type TransactionActionRequest implements Event {
