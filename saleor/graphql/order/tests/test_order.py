@@ -9169,7 +9169,7 @@ def test_order_query_with_filter_numbers(
     # given
     variables = {
         "filter": {
-            "numbers": [orders[0].number, orders[2].number],
+            "numbers": [str(orders[0].number), str(orders[2].number)],
         },
     }
 
@@ -9199,7 +9199,7 @@ def test_order_query_with_filter_not_allow_numbers_and_ids_together(
     # given
     variables = {
         "filter": {
-            "numbers": [orders[0].number, orders[2].number],
+            "numbers": [str(orders[0].number), str(orders[2].number)],
             "ids": [graphene.Node.to_global_id("Order", orders[1].id)],
         },
     }
