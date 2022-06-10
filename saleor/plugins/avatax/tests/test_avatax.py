@@ -1163,6 +1163,83 @@ def test_calculate_checkout_total_voucher_on_entire_order(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_voucher_on_entire_order_applied_once_per_order(
+    checkout_with_item,
+    voucher_percentage,
+    stock,
+    monkeypatch,
+    site_settings,
+    ship_to_pl_address,
+    shipping_zone,
+    address,
+    plugin_configuration,
+):
+    """Ensure that the voucher is applied to entire order the total
+    is equal to the shipping price."""
+    # given
+    plugin_configuration()
+    variant = stock.product_variant
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager()
+    site_settings.company_address = address
+    site_settings.save()
+
+    channel = checkout_with_item.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = (
+        variant.get_price(
+            variant.product, [], checkout_with_item.channel, channel_listing
+        )
+        * checkout_with_item.lines.first().quantity
+    )
+
+    voucher_percentage.apply_once_per_order = True
+    voucher_percentage.save(update_fields=["apply_once_per_order"])
+
+    voucher_listing = voucher_percentage.channel_listings.get(
+        channel=checkout_with_item.channel
+    )
+    discount_value = voucher_listing.discount_value
+
+    shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.discount_amount = net.amount
+    checkout_with_item.save()
+
+    shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
+    shipping_price = shipping_channel_listings.price
+
+    discounts = None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    # when
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, discounts
+    )
+
+    # then
+    line = checkout_with_item.lines.first()
+    channel_listing = variant.channel_listings.get(channel=channel)
+    expected_amount = (
+        channel_listing.price.amount * ((100 - discount_value) / 100)  # discounted line
+        + ((line.quantity - 1) * channel_listing.price).amount  # undiscounted lines
+        + shipping_price.amount  # shipping price
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=quantize_price(Money(expected_amount / Decimal(1.23), "USD"), "USD"),
+        gross=quantize_price(Money(expected_amount, "USD"), "USD"),
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
     checkout_with_item,
     voucher_percentage,

@@ -849,6 +849,32 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.SHIPPING_ZONE_DELETED, shipping_zone
         )
 
+    def _trigger_staff_event(self, event_type, staff_user):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("User", staff_user.id),
+                "email": staff_user.email,
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, staff_user, self.requestor
+            )
+
+    def staff_created(self, staff_user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_staff_event(WebhookEventAsyncType.STAFF_CREATED, staff_user)
+
+    def staff_updated(self, staff_user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_staff_event(WebhookEventAsyncType.STAFF_UPDATED, staff_user)
+
+    def staff_deleted(self, staff_user: "User", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_staff_event(WebhookEventAsyncType.STAFF_DELETED, staff_user)
+
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:
             return previous_value
