@@ -10736,6 +10736,99 @@ type Mutation {
   ): WarehouseShippingZoneUnassign
 
   """
+  Create a tax class.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassCreate(
+    """Fields required to create a tax class."""
+    input: TaxClassCreateInput!
+  ): TaxClassCreate
+
+  """
+  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassDelete(
+    """ID of a tax class to delete."""
+    id: ID!
+  ): TaxClassDelete
+
+  """
+  Update a tax class.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassUpdate(
+    """ID of the tax class."""
+    id: ID!
+
+    """Fields required to update a tax class."""
+    input: TaxClassUpdateInput!
+  ): TaxClassUpdate
+
+  """
+  Update tax configuration for a channel.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxConfigurationUpdate(
+    """ID of the tax configuration."""
+    id: ID!
+
+    """Fields required to update the tax configuration."""
+    input: TaxConfigurationUpdateInput!
+  ): TaxConfigurationUpdate
+
+  """
+  Update tax class rates for a specific country.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationUpdate(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+
+    """List of tax rates per tax class to update."""
+    updateTaxClassRates: [TaxClassRateInput!]!
+  ): TaxCountryConfigurationUpdate
+
+  """
+  Remove all tax class rates for a specific country.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationDelete(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfigurationDelete
+
+  """
   Creates a new staff notification recipient. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
@@ -14433,6 +14526,300 @@ type WarehouseShippingZoneUnassign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
+}
+
+"""
+Create a tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassCreate {
+  errors: [TaxClassCreateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassCreateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassCreateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassCreateInput {
+  """Name of the tax class."""
+  name: String!
+
+  """List of country-specific tax rates to create for this tax class."""
+  createCountryRates: [CountryRateInput!]
+}
+
+input CountryRateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate.
+  """
+  rate: Float!
+}
+
+"""
+Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassDelete {
+  errors: [TaxClassDeleteError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxClassDeleteErrorCode {
+  CANNOT_DELETE_DEFAULT_CLASS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Update a tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassUpdate {
+  errors: [TaxClassUpdateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassUpdateInput {
+  """Name of the tax class."""
+  name: String
+
+  """
+  List of country-specific tax rates to create or update for this tax class.
+  """
+  updateCountryRates: [CountryRateInput!]
+
+  """List of country codes for which to remove the tax class rates."""
+  removeCountryRates: [CountryCode!]
+}
+
+"""
+Update tax configuration for a channel.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxConfigurationUpdate {
+  errors: [TaxConfigurationUpdateError!]!
+  taxConfiguration: TaxConfiguration
+}
+
+type TaxConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxConfigurationUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxConfigurationUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxConfigurationUpdateInput {
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean
+
+  """
+  List of tax country configurations to create or update (identified by a country code).
+  """
+  updateCountriesConfiguration: [TaxConfigurationPerCountryInput!]
+
+  """List of country codes for which to remove the tax configuration."""
+  removeCountriesConfiguration: [CountryCode!]
+}
+
+input TaxConfigurationPerCountryInput {
+  """Country in which this configuration applies."""
+  countryCode: CountryCode!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+}
+
+"""
+Update tax class rates for a specific country.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationUpdate {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationUpdateError!]!
+}
+
+type TaxCountryConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationUpdateErrorCode!
+
+  """List of tax class IDs for which the update failed."""
+  taxClassIds: [String!]!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassRateInput {
+  """ID of a tax class for which to update the tax rate"""
+  taxClassId: ID!
+
+  """Tax rate value."""
+  rate: Float!
+}
+
+"""
+Remove all tax class rates for a specific country.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationDelete {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationDeleteError!]!
+}
+
+type TaxCountryConfigurationDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationDeleteErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
 }
 
 """
