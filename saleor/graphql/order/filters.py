@@ -156,7 +156,7 @@ def filter_order_by_id(qs, _, value):
     return qs.filter(Q(id__in=pks) | (Q(use_old_id=True) & Q(number__in=old_pks)))
 
 
-def filter_by_name(qs, _, values):
+def filter_by_order_number(qs, _, values):
     if not values:
         return qs
     return qs.filter(number__in=values)
@@ -198,7 +198,9 @@ class OrderFilter(DraftOrderFilter):
     ids = GlobalIDMultipleChoiceFilter(method=filter_order_by_id)
     gift_card_used = django_filters.BooleanFilter(method=filter_gift_card_used)
     gift_card_bought = django_filters.BooleanFilter(method=filter_gift_card_bought)
-    numbers = ListObjectTypeFilter(input_class=graphene.Int, method=filter_by_name)
+    numbers = ListObjectTypeFilter(
+        input_class=graphene.String, method=filter_by_order_number
+    )
 
     class Meta:
         model = Order

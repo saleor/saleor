@@ -9180,8 +9180,13 @@ def test_order_query_with_filter_numbers(
 
     # then
     content = get_graphql_content(response)
-    orders = content["data"]["orders"]["edges"]
-    assert len(orders) == 2
+    order_data = content["data"]["orders"]["edges"]
+    assert len(order_data) == 2
+    for order in [
+        {"node": {"id": graphene.Node.to_global_id("Order", orders[0].id)}},
+        {"node": {"id": graphene.Node.to_global_id("Order", orders[2].id)}},
+    ]:
+        assert order in order_data
 
 
 def test_order_query_with_filter_not_allow_numbers_and_ids_together(
