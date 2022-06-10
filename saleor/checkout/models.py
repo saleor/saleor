@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Iterable, Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.deletion import SET_NULL
@@ -98,6 +99,12 @@ class Checkout(ModelWithMetadata):
 
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=255, blank=True, null=True)
+    promo_codes = ArrayField(
+        models.CharField(
+            max_length=255,
+        ),
+        default=list,
+    )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 
     redirect_url = models.URLField(blank=True, null=True)
