@@ -28,13 +28,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2022 09:28:14 GMT
+      - Fri, 10 Jun 2022 10:43:56 GMT
       X-Content-Type-Options:
       - nosniff
       x-avalara-uid:
-      - d12a5812-2f8d-4508-95a5-76c96b208313
+      - fe1d9b8d-8c27-424c-b9a0-2801d1e4bf73
       x-correlation-id:
-      - d12a5812-2f8d-4508-95a5-76c96b208313
+      - fe1d9b8d-8c27-424c-b9a0-2801d1e4bf73
     status:
       code: 401
       message: Unauthorized

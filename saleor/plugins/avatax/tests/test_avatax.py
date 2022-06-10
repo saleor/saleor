@@ -957,9 +957,9 @@ def test_calculate_order_shipping_order_not_valid(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
         (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.59", "5.0", False),
-        (False, "41.99", "51.19", "0.0", False),
-        (False, "32.07", "38.99", "3.0", True),
+        (True, "21.99", "26.46", "5.0", False),
+        (False, "41.99", "51.05", "0.0", False),
+        (False, "32.04", "38.99", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
@@ -1025,9 +1025,9 @@ def test_calculate_checkout_total_uses_default_calculation(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
         (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.59", "5.0", False),
-        (False, "41.99", "51.19", "0.0", False),
-        (False, "32.07", "38.99", "3.0", True),
+        (True, "21.99", "26.46", "5.0", False),
+        (False, "41.99", "51.05", "0.0", False),
+        (False, "32.04", "38.99", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
