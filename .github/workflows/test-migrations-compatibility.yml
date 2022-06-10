@@ -60,5 +60,6 @@ jobs:
 
       - name: Run tests
         run: |
+          export DJANGO_SETTINGS_MODULE=saleor.tests.settings
           export PYTEST_DB_URL=$DATABASE_URL
           pytest -n 0 --reuse-db
