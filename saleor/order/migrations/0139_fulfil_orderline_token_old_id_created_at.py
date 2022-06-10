@@ -7,7 +7,7 @@ from django.contrib.postgres.operations import CryptoExtension
 
 
 def set_order_line_token_and_created_at(apps, _schema_editor):
-    OrderLine = apps.get_model("order", "OrderLine")
+    OrderLine =  apps.get_model("order", "OrderLine")
     Order = apps.get_model("order", "Order")
 
     OrderLine.objects.filter(token__isnull=True).update(
