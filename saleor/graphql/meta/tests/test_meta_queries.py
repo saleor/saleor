@@ -5,6 +5,7 @@ from django.contrib.auth.models import Permission
 from django.http import HttpResponse
 
 from saleor.core.models import ModelWithMetadata
+from saleor.order.models import Order
 from saleor.payment.models import Payment
 from saleor.payment.utils import payment_owned_by_user
 
@@ -54,6 +55,8 @@ QUERY_SELF_PUBLIC_META = """
                 key
                 value
             }
+            metafields(keys: ["INVALID", "key"])
+            keyFieldValue: metafield(key: "key")
         }
     }
 """
@@ -73,6 +76,10 @@ def test_query_public_meta_for_me_as_customer(user_api_client):
     metadata = content["data"]["me"]["metadata"][0]
     assert metadata["key"] == PUBLIC_KEY
     assert metadata["value"] == PUBLIC_VALUE
+    metafields = content["data"]["me"]["metafields"]
+    assert metafields[PUBLIC_KEY] == PUBLIC_VALUE
+    field_value = content["data"]["me"]["keyFieldValue"]
+    assert field_value == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_me_as_staff(staff_api_client):
@@ -89,6 +96,10 @@ def test_query_public_meta_for_me_as_staff(staff_api_client):
     metadata = content["data"]["me"]["metadata"][0]
     assert metadata["key"] == PUBLIC_KEY
     assert metadata["value"] == PUBLIC_VALUE
+    metafields = content["data"]["me"]["metafields"]
+    assert metafields[PUBLIC_KEY] == PUBLIC_VALUE
+    field_value = content["data"]["me"]["keyFieldValue"]
+    assert field_value == PUBLIC_VALUE
 
 
 QUERY_USER_PUBLIC_META = """
@@ -397,13 +408,18 @@ QUERY_ORDER_PUBLIC_META = """
 
 def test_query_public_meta_for_order_as_anonymous_user(api_client, order):
     # given
+    order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
     response = api_client.post_graphql(QUERY_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_order_as_customer(user_api_client, order):
@@ -415,9 +431,12 @@ def test_query_public_meta_for_order_as_customer(user_api_client, order):
 
     # when
     response = user_api_client.post_graphql(QUERY_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_order_as_staff(
@@ -482,13 +501,18 @@ QUERY_DRAFT_ORDER_PUBLIC_META = """
 
 def test_query_public_meta_for_draft_order_as_anonymous_user(api_client, draft_order):
     # given
+    draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    draft_order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
     response = api_client.post_graphql(QUERY_DRAFT_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_draft_order_as_customer(user_api_client, draft_order):
@@ -500,9 +524,12 @@ def test_query_public_meta_for_draft_order_as_customer(user_api_client, draft_or
 
     # when
     response = user_api_client.post_graphql(QUERY_DRAFT_ORDER_PUBLIC_META, variables)
+    content = get_graphql_content(response)
 
     # then
-    assert_no_permission(response)
+    metadata = content["data"]["order"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
 
 
 def test_query_public_meta_for_draft_order_as_staff(
@@ -1033,6 +1060,118 @@ def test_query_public_meta_for_digital_content_as_app(
     metadata = content["data"]["digitalContent"]["metadata"][0]
     assert metadata["key"] == PUBLIC_KEY
     assert metadata["value"] == PUBLIC_VALUE
+
+
+QUERY_TRANSACTION_ITEM_PUBLIC_META = """
+query transactionItemMeta($id: ID!){
+  order(id: $id){
+    transactions{
+      metadata{
+        key
+        value
+      }
+    }
+  }
+}
+"""
+
+
+def execute_query_public_metadata_for_transaction_item(
+    client: ApiClient, order: Order, permissions: List[Permission] = None
+):
+    return execute_query(
+        QUERY_TRANSACTION_ITEM_PUBLIC_META, client, order, "Order", permissions
+    )
+
+
+def assert_transaction_item_contains_metadata(response):
+    content = get_graphql_content(response)
+    metadata = content["data"]["order"]["transactions"][0]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
+def test_query_public_meta_for_transaction_item_as_customer(
+    user_api_client, order, permission_manage_orders
+):
+    # given
+    order.payment_transactions.create(metadata={PUBLIC_KEY: PUBLIC_VALUE})
+    order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    order.save(update_fields=["metadata"])
+
+    # when
+    response = execute_query_public_metadata_for_transaction_item(
+        user_api_client,
+        order,
+        permissions=[],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_public_meta_for_transaction_item_as_staff_with_permission(
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    permission_manage_payments,
+):
+    # given
+    order_with_lines.payment_transactions.create(metadata={PUBLIC_KEY: PUBLIC_VALUE})
+
+    # when
+    response = execute_query_public_metadata_for_transaction_item(
+        staff_api_client,
+        order_with_lines,
+        permissions=[permission_manage_orders, permission_manage_payments],
+    )
+
+    # then
+    assert_transaction_item_contains_metadata(response)
+
+
+def test_query_public_meta_for_transaction_item_as_staff_without_permission(
+    staff_api_client, order
+):
+    # given
+    order.payment_transactions.create(metadata={PUBLIC_KEY: PUBLIC_VALUE})
+
+    # when
+    response = execute_query_public_metadata_for_transaction_item(
+        staff_api_client, order
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_public_meta_for_transaction_item_as_app_with_permission(
+    app_api_client,
+    order,
+    permission_manage_orders,
+    permission_manage_payments,
+):
+    order.payment_transactions.create(metadata={PUBLIC_KEY: PUBLIC_VALUE})
+
+    # when
+    response = execute_query_public_metadata_for_transaction_item(
+        app_api_client,
+        order,
+        permissions=[permission_manage_payments, permission_manage_orders],
+    )
+
+    # then
+    assert_transaction_item_contains_metadata(response)
+
+
+def test_query_public_meta_for_transaction_item_as_app_without_permission(
+    app_api_client, order
+):
+    # when
+    response = execute_query_public_metadata_for_transaction_item(app_api_client, order)
+
+    # then
+    assert_no_permission(response)
 
 
 QUERY_PAYMENT_PUBLIC_META = """
@@ -2640,6 +2779,123 @@ def test_query_private_meta_for_digital_content_as_app(
     metadata = content["data"]["digitalContent"]["privateMetadata"][0]
     assert metadata["key"] == PRIVATE_KEY
     assert metadata["value"] == PRIVATE_VALUE
+
+
+QUERY_TRANSACTION_ITEM_PRIVATE_META = """
+query transactionItemMeta($id: ID!){
+  order(id: $id){
+    transactions{
+      privateMetadata{
+        key
+        value
+      }
+    }
+  }
+}
+"""
+
+
+def execute_query_private_metadata_for_transaction_item(
+    client: ApiClient, order: Order, permissions: List[Permission] = None
+):
+    return execute_query(
+        QUERY_TRANSACTION_ITEM_PRIVATE_META, client, order, "Order", permissions
+    )
+
+
+def assert_transaction_item_contains_private_metadata(response):
+    content = get_graphql_content(response)
+    metadata = content["data"]["order"]["transactions"][0]["privateMetadata"][0]
+    assert metadata["key"] == PRIVATE_KEY
+    assert metadata["value"] == PRIVATE_VALUE
+
+
+def test_query_private_meta_for_transaction_item_as_customer(
+    user_api_client, order, permission_manage_orders
+):
+    # given
+    order.payment_transactions.create(private_metadata={PRIVATE_KEY: PRIVATE_VALUE})
+
+    # when
+    response = execute_query_public_metadata_for_transaction_item(
+        user_api_client,
+        order,
+        permissions=[],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+#
+
+
+def test_query_private_meta_for_transaction_item_as_staff_with_permission(
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    permission_manage_payments,
+):
+    # given
+    order_with_lines.payment_transactions.create(
+        private_metadata={PRIVATE_KEY: PRIVATE_VALUE}
+    )
+
+    # when
+    response = execute_query_private_metadata_for_transaction_item(
+        staff_api_client,
+        order_with_lines,
+        permissions=[permission_manage_orders, permission_manage_payments],
+    )
+
+    # then
+    assert_transaction_item_contains_private_metadata(response)
+
+
+def test_query_private_meta_for_transaction_item_as_staff_without_permission(
+    staff_api_client, order
+):
+    # given
+    order.payment_transactions.create(private_metadata={PRIVATE_KEY: PRIVATE_VALUE})
+
+    # when
+    response = execute_query_private_metadata_for_transaction_item(
+        staff_api_client, order
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_private_meta_for_transaction_item_as_app_with_permission(
+    app_api_client,
+    order,
+    permission_manage_orders,
+    permission_manage_payments,
+):
+    order.payment_transactions.create(private_metadata={PRIVATE_KEY: PRIVATE_VALUE})
+
+    # when
+    response = execute_query_private_metadata_for_transaction_item(
+        app_api_client,
+        order,
+        permissions=[permission_manage_payments, permission_manage_orders],
+    )
+
+    # then
+    assert_transaction_item_contains_private_metadata(response)
+
+
+def test_query_private_meta_for_transaction_item_as_app_without_permission(
+    app_api_client, order
+):
+    # when
+    response = execute_query_private_metadata_for_transaction_item(
+        app_api_client, order
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 QUERY_PAYMENT_PRIVATE_META = """

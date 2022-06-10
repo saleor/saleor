@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0129_change_pk_to_uuid"),
+        ("order", "0131_change_pk_to_uuid"),
         ("account", "0063_save_customerevent_order_token"),
     ]
 

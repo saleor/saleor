@@ -12,11 +12,10 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import FilterConnectionField, JSONString
+from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.types import ModelObjectType, NonNullList
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -40,8 +39,17 @@ class PageType(ModelObjectType):
         AttributeCountableConnection,
         filter=AttributeFilterInput(),
         description="Attributes that can be assigned to the page type.",
+        permissions=[
+            PagePermissions.MANAGE_PAGES,
+        ],
     )
-    has_pages = graphene.Boolean(description="Whether page type has pages assigned.")
+    has_pages = PermissionsField(
+        graphene.Boolean,
+        description="Whether page type has pages assigned.",
+        permissions=[
+            PagePermissions.MANAGE_PAGES,
+        ],
+    )
 
     class Meta:
         description = (
@@ -60,7 +68,6 @@ class PageType(ModelObjectType):
         return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    @permission_required(PagePermissions.MANAGE_PAGES)
     def resolve_available_attributes(root: models.PageType, info, **kwargs):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
@@ -69,8 +76,7 @@ class PageType(ModelObjectType):
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
-    @permission_required(PagePermissions.MANAGE_PAGES)
-    def resolve_has_pages(root: models.PageType, info, **kwargs):
+    def resolve_has_pages(root: models.PageType, info):
         return (
             PagesByPageTypeIdLoader(info.context)
             .load(root.pk)
@@ -78,7 +84,7 @@ class PageType(ModelObjectType):
         )
 
     @staticmethod
-    def __resolve_references(roots: List["PageType"], info, **_kwargs):
+    def __resolve_references(roots: List["PageType"], _info):
         return resolve_federation_references(PageType, roots, models.PageType.objects)
 
 
@@ -92,14 +98,22 @@ class Page(ModelObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
     title = graphene.String(required=True)
-    content = JSONString(description="Content of the page (JSON).")
-    publication_date = graphene.Date()
+    content = JSONString(description="Content of the page." + RICH_CONTENT)
+    publication_date = graphene.Date(
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} "
+            "Use the `publishedAt` field to fetch the publication date."
+        ),
+    )
+    published_at = graphene.DateTime(
+        description="The page publication date." + ADDED_IN_33
+    )
     is_published = graphene.Boolean(required=True)
     slug = graphene.String(required=True)
     page_type = graphene.Field(PageType, required=True)
     created = graphene.DateTime(required=True)
     content_json = JSONString(
-        description="Content of the page (JSON).",
+        description="Content of the page." + RICH_CONTENT,
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
         required=True,
     )
@@ -119,11 +133,19 @@ class Page(ModelObjectType):
         model = models.Page
 
     @staticmethod
+    def resolve_publication_date(root: models.Page, _info):
+        return root.published_at
+
+    @staticmethod
+    def resolve_created(root: models.Page, _info):
+        return root.created_at
+
+    @staticmethod
     def resolve_page_type(root: models.Page, info):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
-    def resolve_content_json(root: models.Page, info):
+    def resolve_content_json(root: models.Page, _info):
         content = root.content
         return content if content is not None else {}
 

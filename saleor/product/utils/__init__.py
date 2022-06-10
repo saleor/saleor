@@ -27,7 +27,7 @@ def calculate_revenue_for_variant(
     revenue = zero_taxed_money(currency_code)
     for order_line in order_lines:
         order = orders_dict[order_line.order_id]
-        if order.created >= start_date:
+        if order.created_at >= start_date:
             revenue += order_line.total_price
     return revenue
 
@@ -49,16 +49,22 @@ def delete_categories(categories_ids: List[str], manager):
         products = products | collect_categories_tree_products(category)
 
     ProductChannelListing.objects.filter(product__in=products).update(
-        is_published=False, publication_date=None
+        is_published=False, published_at=None
     )
     products = list(products)
 
+    category_instances = [cat for cat in categories]
     categories.delete()
-    product_ids = [product.id for product in products]
+
+    for category in category_instances:
+        manager.category_deleted(category)
+
     for product in products:
         manager.product_updated(product)
 
-    update_products_discounted_prices_task.delay(product_ids=product_ids)
+    update_products_discounted_prices_task.delay(
+        product_ids=[product.id for product in products]
+    )
 
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":

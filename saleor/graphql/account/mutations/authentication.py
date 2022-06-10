@@ -20,7 +20,7 @@ from ....core.jwt import (
     get_user_from_payload,
     jwt_decode,
 )
-from ....core.permissions import get_permissions_from_names
+from ....core.permissions import AuthorizationFilters, get_permissions_from_names
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
@@ -122,7 +122,7 @@ class CreateToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         user = cls.get_user(info, data)
         access_token = create_access_token(user)
         csrf_token = _get_new_csrf_token()
@@ -236,7 +236,7 @@ class RefreshToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         refresh_token = cls.get_refresh_token(info, data)
         payload = cls.clean_refresh_token(refresh_token)
 
@@ -286,7 +286,7 @@ class VerifyToken(BaseMutation):
         return user
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         token = data["token"]
         payload = cls.get_payload(token)
         user = cls.get_user(payload)
@@ -298,13 +298,10 @@ class DeactivateAllUserTokens(BaseMutation):
         description = "Deactivate all JWT tokens of the currently authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         user.jwt_token_key = get_random_string()
         user.save(update_fields=["jwt_token_key", "updated_at"])
@@ -335,7 +332,7 @@ class ExternalAuthenticationUrl(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -374,7 +371,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -424,7 +421,7 @@ class ExternalRefresh(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -464,7 +461,7 @@ class ExternalLogout(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
@@ -496,7 +493,7 @@ class ExternalVerify(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]

@@ -20,12 +20,24 @@ from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field
-from .enums import OrderStatusFilter
+from .enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum, OrderStatusFilter
 
 
 def filter_payment_status(qs, _, value):
     if value:
         qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
+    return qs
+
+
+def filter_authorize_status(qs, _, value):
+    if value:
+        qs = qs.filter(authorize_status__in=value)
+    return qs
+
+
+def filter_charge_status(qs, _, value):
+    if value:
+        qs = qs.filter(charge_status__in=value)
     return qs
 
 
@@ -68,7 +80,7 @@ def filter_customer(qs, _, value):
 
 
 def filter_created_range(qs, _, value):
-    return filter_range_field(qs, "created__date", value)
+    return filter_range_field(qs, "created_at__date", value)
 
 
 def filter_updated_at_range(qs, _, value):
@@ -156,6 +168,12 @@ class DraftOrderFilter(MetadataFilterBase):
 class OrderFilter(DraftOrderFilter):
     payment_status = ListObjectTypeFilter(
         input_class=PaymentChargeStatusEnum, method=filter_payment_status
+    )
+    authorize_status = ListObjectTypeFilter(
+        input_class=OrderAuthorizeStatusEnum, method=filter_authorize_status
+    )
+    charge_status = ListObjectTypeFilter(
+        input_class=OrderChargeStatusEnum, method=filter_charge_status
     )
     status = ListObjectTypeFilter(input_class=OrderStatusFilter, method=filter_status)
     customer = django_filters.CharFilter(method=filter_customer)

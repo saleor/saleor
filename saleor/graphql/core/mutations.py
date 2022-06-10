@@ -1,5 +1,6 @@
 import os
 import secrets
+from enum import Enum
 from itertools import chain
 from typing import Iterable, Tuple, Union
 from uuid import UUID
@@ -19,11 +20,20 @@ from graphql.error import GraphQLError
 
 from ...core.db.utils import set_mutation_flag_in_context
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions
-from ..decorators import staff_member_or_app_required
+from ...core.permissions import (
+    AuthorizationFilters,
+    message_one_of_permissions_required,
+    one_of_permissions_or_auth_filter_required,
+)
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .descriptions import DEPRECATED_IN_3X_FIELD
-from .types import File, NonNullList, Upload, UploadError
+from .types import (
+    TYPES_WITH_DOUBLE_ID_AVAILABLE,
+    File,
+    NonNullList,
+    Upload,
+    UploadError,
+)
 from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -100,8 +110,21 @@ class BaseMutation(graphene.Mutation):
         abstract = True
 
     @classmethod
+    def _validate_permissions(cls, permissions):
+        if not permissions:
+            return
+        if not isinstance(permissions, tuple):
+            raise ImproperlyConfigured(
+                f"Permissions should be a tuple in Meta class: {permissions}"
+            )
+        for p in permissions:
+            if not isinstance(p, Enum):
+                raise ImproperlyConfigured(f"Permission should be an enum: {p}.")
+
+    @classmethod
     def __init_subclass_with_meta__(
         cls,
+        auto_permission_message=True,
         description=None,
         permissions: Tuple = None,
         _meta=None,
@@ -119,21 +142,22 @@ class BaseMutation(graphene.Mutation):
         if not error_type_class:
             raise ImproperlyConfigured("No error_type_class provided in Meta.")
 
-        if isinstance(permissions, str):
-            permissions = (permissions,)
+        cls._validate_permissions(permissions)
 
-        if permissions and not isinstance(permissions, tuple):
-            raise ImproperlyConfigured(
-                "Permissions should be a tuple or a string in Meta"
-            )
-
+        _meta.auto_permission_message = auto_permission_message
         _meta.permissions = permissions
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
+
+        if permissions and auto_permission_message:
+            permissions_msg = message_one_of_permissions_required(permissions)
+            description = f"{description} {permissions_msg}"
+
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
         )
+
         if error_type_field:
             deprecated_msg = f"{DEPRECATED_IN_3X_FIELD} Use `errors` field instead."
             cls._meta.fields.update(
@@ -159,25 +183,23 @@ class BaseMutation(graphene.Mutation):
         Whether by using the provided query set object or by calling type's get_node().
         """
         if qs is not None:
-            if str(graphene_type) == "Order":
-                return cls._get_order_node_by_pk(pk, qs)
-            return qs.filter(pk=pk).first()
+            lookup = Q(pk=pk)
+            if pk is not None and str(graphene_type) in TYPES_WITH_DOUBLE_ID_AVAILABLE:
+                # This is temporary solution that allows fetching objects with use of
+                # new and old id.
+                try:
+                    UUID(str(pk))
+                except ValueError:
+                    lookup = (
+                        Q(number=pk) & Q(use_old_id=True)
+                        if str(graphene_type) == "Order"
+                        else Q(old_id=pk) & Q(old_id__isnull=False)
+                    )
+            return qs.filter(lookup).first()
         get_node = getattr(graphene_type, "get_node", None)
         if get_node:
             return get_node(info, pk)
         return None
-
-    @classmethod
-    def _get_order_node_by_pk(cls, pk: Union[int, str], qs):
-        # This is temporary method that allows fetching orders with use of
-        # new and old id.
-        lookup = Q(pk=pk)
-        if pk is not None:
-            try:
-                UUID(str(pk))
-            except ValueError:
-                lookup = Q(number=pk) & Q(use_old_id=True)
-        return qs.filter(lookup).first()
 
     @classmethod
     def get_global_id_or_error(
@@ -192,7 +214,9 @@ class BaseMutation(graphene.Mutation):
         return pk
 
     @classmethod
-    def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
+    def get_node_or_error(
+        cls, info, node_id, field="id", only_type=None, qs=None, code="not_found"
+    ):
         if not node_id:
             return None
 
@@ -214,7 +238,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id, code="not_found"
+                            "Couldn't resolve to a node: %s" % node_id, code=code
                         )
                     }
                 )
@@ -331,24 +355,18 @@ class BaseMutation(graphene.Mutation):
 
         The `context` parameter is the Context instance associated with the request.
         """
-        permissions = permissions or cls._meta.permissions
-        if not permissions:
+        all_permissions = permissions or cls._meta.permissions
+        if not all_permissions:
             return True
-        if context.user.has_perms(permissions):
-            return True
-        app = getattr(context, "app", None)
-        if app:
-            # for now MANAGE_STAFF permission for app is not supported
-            if AccountPermissions.MANAGE_STAFF in permissions:
-                return False
-            return app.has_perms(permissions)
-        return False
+
+        return one_of_permissions_or_auth_filter_required(context, all_permissions)
 
     @classmethod
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
+
         if not cls.check_permissions(info.context):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=cls._meta.permissions)
 
         result = info.context.plugins.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
@@ -365,7 +383,7 @@ class BaseMutation(graphene.Mutation):
             return cls.handle_errors(e)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, _info, **data):
         pass
 
     @classmethod
@@ -576,9 +594,6 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        if not cls.check_permissions(info.context):
-            raise PermissionDenied()
-
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
@@ -592,6 +607,7 @@ class ModelDeleteMutation(ModelMutation):
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id
+        cls.post_save_action(info, instance, None)
         return cls.success_response(instance)
 
 
@@ -692,7 +708,7 @@ class BaseBulkMutation(BaseMutation):
     def mutate(cls, root, info, **data):
         set_mutation_flag_in_context(info.context)
         if not cls.check_permissions(info.context):
-            raise PermissionDenied()
+            raise PermissionDenied(permissions=cls._meta.permissions)
 
         result = info.context.plugins.perform_mutation(
             mutation_cls=cls, root=root, info=info, data=data
@@ -732,9 +748,12 @@ class FileUpload(BaseMutation):
         )
         error_type_class = UploadError
         error_type_field = "upload_errors"
+        permissions = (
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        )
 
     @classmethod
-    @staff_member_or_app_required
     def perform_mutation(cls, _root, info, **data):
         file_data = info.context.FILES.get(data["file"])
 

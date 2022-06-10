@@ -12,6 +12,9 @@ from ..core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
     has_one_of_permissions,
+    is_app,
+    is_staff_user,
+    one_of_permissions_or_auth_filter_required,
 )
 from ..core.permissions import permission_required as core_permission_required
 from .utils import get_user_or_app_from_context
@@ -67,7 +70,7 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
             perms = perm
 
         requestor = get_user_or_app_from_context(context)
-        if not core_permission_required(perms, requestor):
+        if not core_permission_required(requestor, perms):
             raise PermissionDenied(permissions=perms)
 
     return account_passes_test(check_perms)
@@ -75,24 +78,32 @@ def permission_required(perm: Union[Enum, Iterable[Enum]]):
 
 def one_of_permissions_required(perms: Iterable[Enum]):
     def check_perms(context):
-        requestor = get_user_or_app_from_context(context)
-        if not has_one_of_permissions(requestor, perms):
+        if not one_of_permissions_or_auth_filter_required(context, perms):
             raise PermissionDenied(permissions=perms)
 
     return account_passes_test(check_perms)
 
 
 def _check_staff_member(context):
-    if not context.user.is_active or not context.user.is_staff:
-        raise PermissionDenied()
+    if not is_staff_user(context):
+        raise PermissionDenied(
+            message=(
+                "You need to be authenticated as a staff member to perform this action"
+            )
+        )
 
 
 staff_member_required = account_passes_test(_check_staff_member)
 
 
 def _check_staff_member_or_app(context):
-    if not context.app and (not context.user.is_active or not context.user.is_staff):
-        raise PermissionDenied()
+    if not (is_app(context) or is_staff_user(context)):
+        raise PermissionDenied(
+            message=(
+                "You need to be authenticated as a staff member or an app to perform "
+                "this action"
+            )
+        )
 
 
 staff_member_or_app_required = account_passes_test(_check_staff_member_or_app)

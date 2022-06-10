@@ -3,18 +3,19 @@ from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
+import pytz
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
     Count,
-    DateField,
+    DateTimeField,
     Exists,
     ExpressionWrapper,
     F,
@@ -36,6 +37,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
+from prices import Money
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..channel.models import Channel
@@ -61,8 +63,9 @@ from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from decimal import Decimal
+
     from django.db.models import OrderBy
-    from prices import Money
 
     from ..account.models import User
     from ..app.models import App
@@ -191,21 +194,21 @@ class ProductType(ModelWithMetadata):
 
 class ProductsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = datetime.date.today()
+        today = datetime.datetime.now(pytz.UTC)
         channels = Channel.objects.filter(
             slug=str(channel_slug), is_active=True
         ).values("id")
         channel_listings = ProductChannelListing.objects.filter(
-            Q(publication_date__lte=today) | Q(publication_date__isnull=True),
+            Q(published_at__lte=today) | Q(published_at__isnull=True),
             Exists(channels.filter(pk=OuterRef("channel_id"))),
             is_published=True,
         ).values("id")
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel_slug: str):
-        today = datetime.date.today()
+        today = datetime.datetime.now(pytz.UTC)
         return self.annotate_publication_info(channel_slug).filter(
-            Q(publication_date__gt=today) & Q(is_published=True)
+            Q(published_at__gt=today) & Q(is_published=True)
             | Q(is_published=False)
             | Q(is_published__isnull=True)
         )
@@ -238,7 +241,7 @@ class ProductsQueryset(models.QuerySet):
         return self.published_with_variants(channel_slug)
 
     def annotate_publication_info(self, channel_slug: str):
-        return self.annotate_is_published(channel_slug).annotate_publication_date(
+        return self.annotate_is_published(channel_slug).annotate_published_at(
             channel_slug
         )
 
@@ -252,14 +255,14 @@ class ProductsQueryset(models.QuerySet):
             is_published=ExpressionWrapper(query, output_field=BooleanField())
         )
 
-    def annotate_publication_date(self, channel_slug: str):
+    def annotate_published_at(self, channel_slug: str):
         query = Subquery(
             ProductChannelListing.objects.filter(
                 product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("publication_date")[:1]
+            ).values_list("published_at")[:1]
         )
         return self.annotate(
-            publication_date=ExpressionWrapper(query, output_field=DateField())
+            published_at=ExpressionWrapper(query, output_field=DateTimeField())
         )
 
     def annotate_visible_in_listings(self, channel_slug):
@@ -394,6 +397,7 @@ class Product(SeoModel, ModelWithMetadata):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     description_plaintext = TextField(blank=True)
     search_document = models.TextField(blank=True, default="")
+    search_vector = SearchVectorField(blank=True, null=True)
 
     category = models.ForeignKey(
         Category,
@@ -402,7 +406,7 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         blank=True,
     )
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
@@ -432,9 +436,12 @@ class Product(SeoModel, ModelWithMetadata):
         indexes = [
             GinIndex(
                 name="product_search_gin",
-                # `opclasses` and `fields` should be the same length
                 fields=["search_document"],
                 opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                name="product_tsearch",
+                fields=["search_vector"],
             ),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
@@ -539,7 +546,7 @@ class ProductChannelListing(PublishableModel):
         on_delete=models.CASCADE,
     )
     visible_in_listings = models.BooleanField(default=False)
-    available_for_purchase = models.DateField(blank=True, null=True)
+    available_for_purchase_at = models.DateTimeField(blank=True, null=True)
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -555,14 +562,14 @@ class ProductChannelListing(PublishableModel):
         unique_together = [["product", "channel"]]
         ordering = ("pk",)
         indexes = [
-            models.Index(fields=["publication_date"]),
+            models.Index(fields=["published_at"]),
             BTreeIndex(fields=["discounted_price_amount"]),
         ]
 
     def is_available_for_purchase(self):
         return (
-            self.available_for_purchase is not None
-            and datetime.date.today() >= self.available_for_purchase
+            self.available_for_purchase_at is not None
+            and datetime.datetime.now(pytz.UTC) >= self.available_for_purchase_at
         )
 
 
@@ -580,7 +587,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     quantity_limit_per_customer = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
     )
-    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     weight = MeasurementField(
@@ -610,11 +617,16 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         channel: Channel,
         channel_listing: "ProductVariantChannelListing",
         discounts: Optional[Iterable[DiscountInfo]] = None,
+        price_override: Optional["Decimal"] = None,
     ) -> "Money":
-
+        price = (
+            channel_listing.price
+            if price_override is None
+            else Money(price_override, channel_listing.currency)
+        )
         return calculate_discounted_price(
             product=product,
-            price=channel_listing.price,
+            price=price,
             discounts=discounts,
             collections=collections,
             channel=channel,
@@ -757,7 +769,7 @@ class DigitalContentUrl(models.Model):
     content = models.ForeignKey(
         DigitalContent, related_name="urls", on_delete=models.CASCADE
     )
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     download_num = models.IntegerField(default=0)
     line = models.OneToOneField(
         "order.OrderLine",
@@ -804,6 +816,20 @@ class ProductMedia(SortableModel):
     def get_ordering_queryset(self):
         return self.product.media.all()
 
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        super(SortableModel, self).delete(*args, **kwargs)
+
+    @transaction.atomic
+    def set_to_remove(self):
+        self.to_remove = True
+        self.save(update_fields=["to_remove"])
+        if self.sort_order is not None:
+            qs = self.get_ordering_queryset()
+            qs.filter(sort_order__gt=self.sort_order).update(
+                sort_order=F("sort_order") - 1
+            )
+
 
 class VariantMedia(models.Model):
     variant = models.ForeignKey(
@@ -834,10 +860,10 @@ class CollectionProduct(SortableModel):
 
 class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
-        today = datetime.date.today()
+        today = datetime.datetime.now(pytz.UTC)
         return self.filter(
-            Q(channel_listings__publication_date__lte=today)
-            | Q(channel_listings__publication_date__isnull=True),
+            Q(channel_listings__published_at__lte=today)
+            | Q(channel_listings__published_at__isnull=True),
             channel_listings__channel__slug=str(channel_slug),
             channel_listings__channel__is_active=True,
             channel_listings__is_published=True,

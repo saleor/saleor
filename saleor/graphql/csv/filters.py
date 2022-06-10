@@ -1,26 +1,22 @@
 import django_filters
+from django.db.models import Exists, OuterRef, Q
 
+from ...account.models import User
+from ...app.models import App
 from ..core.filters import BaseJobFilter
 from ..core.types import FilterInputObjectType
-from ..utils.filters import filter_by_query_param
 
 
 def filter_user(qs, _, value):
-    user_fields = [
-        "user__first_name",
-        "user__last_name",
-        "user__email",
-    ]
-    qs = filter_by_query_param(qs, value, user_fields)
-    return qs
+    users = User.objects.filter(
+        Q(first_name__ilike=value) | Q(last_name__ilike=value) | Q(email__ilike=value)
+    ).values("pk")
+    return qs.filter(Exists(users.filter(id=OuterRef("user_id"))))
 
 
 def filter_app(qs, _, value):
-    app_fields = [
-        "app__name",
-    ]
-    qs = filter_by_query_param(qs, value, app_fields)
-    return qs
+    apps = App.objects.filter(name__ilike=value).values("pk")
+    return qs.filter(Exists(apps.filter(id=OuterRef("app_id"))))
 
 
 class ExportFileFilter(BaseJobFilter):

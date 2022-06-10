@@ -40,6 +40,7 @@ class AttrValuesInput:
     file_url: Optional[str] = None
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
+    plain_text: Optional[str] = None
     boolean: Optional[bool] = None
     date: Optional[str] = None
     date_time: Optional[str] = None
@@ -140,180 +141,6 @@ class AttributeAssignmentMixin:
         return int(internal_id)
 
     @classmethod
-    def _pre_save_values(
-        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
-    ):
-        """Lazy-retrieve or create the database objects from the supplied raw values."""
-        get_or_create = attribute.values.get_or_create
-
-        return tuple(
-            get_or_create(
-                attribute=attribute,
-                slug=slugify(value, allow_unicode=True),
-                defaults={"name": value},
-            )[0]
-            for value in attr_values.values
-        )
-
-    @classmethod
-    def _pre_save_numeric_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if not attr_values.values:
-            return tuple()
-        defaults = {
-            "name": attr_values.values[0],
-        }
-        return cls._update_or_create_value(instance, attribute, defaults)
-
-    @classmethod
-    def _pre_save_rich_text_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        defaults = {
-            "rich_text": attr_values.rich_text,
-            "name": truncatechars(
-                clean_editor_js(attr_values.rich_text, to_string=True), 200
-            ),
-        }
-        return cls._update_or_create_value(instance, attribute, defaults)
-
-    @classmethod
-    def _pre_save_boolean_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        get_or_create = attribute.values.get_or_create
-        boolean = bool(attr_values.boolean)
-        value, _ = get_or_create(
-            attribute=attribute,
-            slug=slugify(f"{attribute.id}_{boolean}", allow_unicode=True),
-            defaults={
-                "name": f"{attribute.name}: {'Yes' if boolean else 'No'}",
-                "boolean": boolean,
-            },
-        )
-        return (value,)
-
-    @classmethod
-    def _pre_save_date_time_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        is_date_attr = attribute.input_type == AttributeInputType.DATE
-        value = attr_values.date if is_date_attr else attr_values.date_time
-
-        tz = timezone.get_current_timezone()
-        date_time = (
-            datetime(
-                value.year, value.month, value.day, 0, 0, tzinfo=tz  # type: ignore
-            )
-            if is_date_attr
-            else value
-        )
-        defaults = {"name": value, "date_time": date_time}
-        return (
-            cls._update_or_create_value(instance, attribute, defaults) if value else ()
-        )
-
-    @classmethod
-    def _update_or_create_value(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        value_defaults: dict,
-    ):
-        update_or_create = attribute.values.update_or_create
-        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
-        value, _created = update_or_create(
-            attribute=attribute,
-            slug=slug,
-            defaults=value_defaults,
-        )
-        return (value,)
-
-    @classmethod
-    def _pre_save_reference_values(
-        cls,
-        instance,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        """Lazy-retrieve or create the database objects from the supplied raw values.
-
-        Slug value is generated based on instance and reference entity id.
-        """
-        field_name = cls.REFERENCE_VALUE_NAME_MAPPING[
-            attribute.entity_type  # type: ignore
-        ]
-        get_or_create = attribute.values.get_or_create
-
-        reference_list = []
-        for ref in attr_values.references:
-            reference_page = None
-            reference_product = None
-
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                reference_page = ref
-            else:
-                reference_product = ref
-
-            reference_list.append(
-                get_or_create(
-                    attribute=attribute,
-                    reference_product=reference_product,
-                    reference_page=reference_page,
-                    slug=slugify(
-                        f"{instance.id}_{ref.id}",  # type: ignore
-                        allow_unicode=True,
-                    ),
-                    defaults={"name": getattr(ref, field_name)},
-                )[0]
-            )
-        return tuple(reference_list)
-
-    @classmethod
-    def _pre_save_file_value(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_value: AttrValuesInput,
-    ):
-        """Create database file attribute value object from the supplied value.
-
-        For every URL new value must be created as file attribute can be removed
-        separately from every instance.
-        """
-        file_url = attr_value.file_url
-        if not file_url:
-            return tuple()
-        name = file_url.split("/")[-1]
-        # don't create new value when assignment already exists
-        value = cls._get_assigned_attribute_value_if_exists(
-            instance, attribute, "file_url", attr_value.file_url
-        )
-        if value is None:
-            value = attribute_models.AttributeValue(
-                attribute=attribute,
-                file_url=file_url,
-                name=name,
-                content_type=attr_value.content_type,
-            )
-            value.slug = generate_unique_slug(value, name)  # type: ignore
-            value.save()
-        return (value,)
-
-    @classmethod
     def _get_assigned_attribute_value_if_exists(
         cls,
         instance: T_INSTANCE,
@@ -369,6 +196,7 @@ class AttributeAssignmentMixin:
                 content_type=attribute_input.get("content_type"),
                 references=attribute_input.get("references", []),
                 rich_text=attribute_input.get("rich_text"),
+                plain_text=attribute_input.get("plain_text"),
                 boolean=attribute_input.get("boolean"),
                 date=attribute_input.get("date"),
                 date_time=attribute_input.get("date_time"),
@@ -496,6 +324,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.FILE: cls._pre_save_file_value,
             AttributeInputType.REFERENCE: cls._pre_save_reference_values,
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
             AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
             AttributeInputType.DATE: cls._pre_save_date_time_values,
@@ -520,6 +349,208 @@ class AttributeAssignmentMixin:
             instance.attributes.filter(
                 assignment__attribute_id__in=clean_assignment
             ).delete()
+
+    @classmethod
+    def _pre_save_values(
+        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
+    ):
+        """Lazy-retrieve or create the database objects from the supplied raw values."""
+        get_or_create = attribute.values.get_or_create
+
+        if not attr_values.values:
+            return tuple()
+
+        return tuple(
+            get_or_create(
+                attribute=attribute,
+                slug=slugify(value, allow_unicode=True),
+                defaults={"name": value},
+            )[0]
+            for value in attr_values.values
+        )
+
+    @classmethod
+    def _pre_save_numeric_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        if not attr_values.values:
+            return tuple()
+        defaults = {
+            "name": attr_values.values[0],
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_rich_text_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        if not attr_values.rich_text:
+            return tuple()
+        defaults = {
+            "rich_text": attr_values.rich_text,
+            "name": truncatechars(
+                clean_editor_js(attr_values.rich_text, to_string=True), 200
+            ),
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_plain_text_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        if not attr_values.plain_text:
+            return tuple()
+        defaults = {
+            "plain_text": attr_values.plain_text,
+            "name": truncatechars(attr_values.plain_text, 200),
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_boolean_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        if attr_values.boolean is None:
+            return tuple()
+        get_or_create = attribute.values.get_or_create
+        boolean = bool(attr_values.boolean)
+        value, _ = get_or_create(
+            attribute=attribute,
+            slug=slugify(f"{attribute.id}_{boolean}", allow_unicode=True),
+            defaults={
+                "name": f"{attribute.name}: {'Yes' if boolean else 'No'}",
+                "boolean": boolean,
+            },
+        )
+        return (value,)
+
+    @classmethod
+    def _pre_save_date_time_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        is_date_attr = attribute.input_type == AttributeInputType.DATE
+        value = attr_values.date if is_date_attr else attr_values.date_time
+
+        if value is None:
+            return tuple()
+
+        tz = timezone.get_current_timezone()
+        date_time = (
+            datetime(
+                value.year, value.month, value.day, 0, 0, tzinfo=tz  # type: ignore
+            )
+            if is_date_attr
+            else value
+        )
+        defaults = {"name": value, "date_time": date_time}
+        return (
+            cls._update_or_create_value(instance, attribute, defaults) if value else ()
+        )
+
+    @classmethod
+    def _update_or_create_value(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        value_defaults: dict,
+    ):
+        update_or_create = attribute.values.update_or_create
+        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
+        value, _created = update_or_create(
+            attribute=attribute,
+            slug=slug,
+            defaults=value_defaults,
+        )
+        return (value,)
+
+    @classmethod
+    def _pre_save_reference_values(
+        cls,
+        instance,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        """Lazy-retrieve or create the database objects from the supplied raw values.
+
+        Slug value is generated based on instance and reference entity id.
+        """
+        if not attr_values.references:
+            return tuple()
+
+        field_name = cls.REFERENCE_VALUE_NAME_MAPPING[
+            attribute.entity_type  # type: ignore
+        ]
+        get_or_create = attribute.values.get_or_create
+
+        reference_list = []
+        for ref in attr_values.references:
+            reference_page = None
+            reference_product = None
+
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                reference_page = ref
+            else:
+                reference_product = ref
+
+            reference_list.append(
+                get_or_create(
+                    attribute=attribute,
+                    reference_product=reference_product,
+                    reference_page=reference_page,
+                    slug=slugify(
+                        f"{instance.id}_{ref.id}",  # type: ignore
+                        allow_unicode=True,
+                    ),
+                    defaults={"name": getattr(ref, field_name)},
+                )[0]
+            )
+        return tuple(reference_list)
+
+    @classmethod
+    def _pre_save_file_value(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_value: AttrValuesInput,
+    ):
+        """Create database file attribute value object from the supplied value.
+
+        For every URL new value must be created as file attribute can be removed
+        separately from every instance.
+        """
+        file_url = attr_value.file_url
+        if not file_url:
+            return tuple()
+        name = file_url.split("/")[-1]
+        # don't create new value when assignment already exists
+        value = cls._get_assigned_attribute_value_if_exists(
+            instance, attribute, "file_url", attr_value.file_url
+        )
+        if value is None:
+            value = attribute_models.AttributeValue(
+                attribute=attribute,
+                file_url=file_url,
+                name=name,
+                content_type=attr_value.content_type,
+            )
+            value.slug = generate_unique_slug(value, name)  # type: ignore
+            value.save()
+        return (value,)
 
 
 def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
@@ -743,8 +774,6 @@ def validate_values(
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
-        elif not is_numeric and len(value) > name_field.max_length:
-            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
         elif is_numeric:
             try:
                 float(value)
@@ -752,6 +781,8 @@ def validate_values(
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attribute_id)
+        elif len(value) > name_field.max_length:
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
 
 
 def validate_required_attributes(

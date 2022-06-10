@@ -14,6 +14,7 @@ from .checkout_lines_update import CheckoutLinesUpdate
 from .checkout_remove_promo_code import CheckoutRemovePromoCode
 from .checkout_shipping_address_update import CheckoutShippingAddressUpdate
 from .checkout_shipping_method_update import CheckoutShippingMethodUpdate
+from .order_create_from_checkout import OrderCreateFromCheckout
 
 __all__ = [
     "CheckoutAddPromoCode",
@@ -32,4 +33,5 @@ __all__ = [
     "CheckoutRemovePromoCode",
     "CheckoutShippingAddressUpdate",
     "CheckoutShippingMethodUpdate",
+    "OrderCreateFromCheckout",
 ]

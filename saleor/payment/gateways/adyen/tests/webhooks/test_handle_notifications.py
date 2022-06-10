@@ -12,7 +12,7 @@ from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
-from .....utils import price_to_minor_unit
+from .....utils import price_to_minor_unit, update_payment_charge_status
 from ...webhooks import (
     confirm_payment_and_set_back_to_confirm,
     create_new_transaction,
@@ -337,18 +337,75 @@ def test_handle_authorization_with_adyen_auto_capture(
 def test_handle_authorization_with_adyen_auto_capture_and_inactive_payment(
     refund_mock, notification, adyen_plugin, inactive_payment_adyen_for_checkout
 ):
+    """
+    Ensure that the refund method is called and the new capture transaction is created,
+    when the payment is inactive and there is no success capture transaction for this
+    payment.
+    """
+    # given
     payment = inactive_payment_adyen_for_checkout
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    assert payment.transactions.count() == 0
     notification = notification(
         merchant_reference=payment_id,
         value=price_to_minor_unit(payment.total, payment.currency),
     )
     plugin = adyen_plugin(adyen_auto_capture=True)
 
+    # when
     handle_authorization(notification, plugin.config)
-    payment.refresh_from_db()
 
+    # then
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 1
+    txn = payment.transactions.first()
+    assert txn.kind == TransactionKind.CAPTURE
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == txn.amount
+    assert refund_mock.called
+
+
+@patch("saleor.payment.gateway.refund")
+def test_handle_authorization_adyen_auto_capture_inactive_payment_and_captured_txn(
+    refund_mock, notification, adyen_plugin, inactive_payment_adyen_for_checkout
+):
+    """
+    Ensure that the refund method is called and the new capture transaction
+    is not created, when the payment is inactive and already has capture transaction.
+    """
+    # given
+    payment = inactive_payment_adyen_for_checkout
+    psp_reference = "ABC"
+    txn = payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token=psp_reference,
+        gateway_response={},
+    )
+    update_payment_charge_status(payment, txn)
+    captured_amount = payment.captured_amount
+    assert payment.transactions.count() == 1
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    notification = notification(
+        psp_reference=psp_reference,
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    plugin = adyen_plugin(adyen_auto_capture=True)
+
+    # when
+    handle_authorization(notification, plugin.config)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 1
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == captured_amount
     assert refund_mock.called
 
 
@@ -578,18 +635,77 @@ def test_handle_capture_inactive_payment(
     address,
     shipping_method,
 ):
+    """
+    Ensure that the refund method is called and the new capture transaction is created,
+    when the payment is inactive and there is no success capture transaction for this
+    payment.
+    """
+    # given
     payment = inactive_payment_adyen_for_checkout
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    assert payment.transactions.count() == 0
     notification = notification(
         merchant_reference=payment_id,
         value=price_to_minor_unit(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
+    # when
     handle_capture(notification, config)
-    payment.refresh_from_db()
 
+    # then
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 1
+    txn = payment.transactions.first()
+    assert txn.kind == TransactionKind.CAPTURE
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == txn.amount
+    assert refund_mock.called
+
+
+@patch("saleor.payment.gateway.refund")
+def test_handle_capture_inactive_payment_capture_txn_exists(
+    refund_mock,
+    notification,
+    adyen_plugin,
+    inactive_payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    """
+    Ensure that the refund method is called and the new capture transaction
+    is not created, when the payment is inactive and already has capture transaction.
+    """
+    # given
+    payment = inactive_payment_adyen_for_checkout
+    psp_reference = "ABC"
+    txn = payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token=psp_reference,
+        gateway_response={},
+    )
+    update_payment_charge_status(payment, txn)
+    captured_amount = payment.captured_amount
+    assert payment.transactions.count() == 1
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference=psp_reference,
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+
+    # when
+    handle_capture(notification, config)
+
+    # then
+    assert payment.transactions.count() == 1
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == captured_amount
     assert refund_mock.called
 
 

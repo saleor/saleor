@@ -14,7 +14,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.db.utils import set_mutation_flag_in_context
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AccountPermissions, AuthorizationFilters
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
@@ -38,7 +38,7 @@ SHIPPING_ADDRESS_FIELD = "default_shipping_address"
 INVALID_TOKEN = "Invalid or expired token."
 
 
-def can_edit_address(context, address):
+def check_can_edit_address(context, address):
     """Determine whether the user or app can edit the given address.
 
     This method assumes that an address can be edited by:
@@ -50,7 +50,12 @@ def can_edit_address(context, address):
     if requester.has_perm(AccountPermissions.MANAGE_USERS):
         return True
     if not context.app and not context.user.is_anonymous:
-        return requester.addresses.filter(pk=address.pk).exists()
+        is_owner = requester.addresses.filter(pk=address.pk).exists()
+        if is_owner:
+            return True
+    raise PermissionDenied(
+        permissions=[AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
+    )
 
 
 class SetPassword(CreateToken):
@@ -258,10 +263,7 @@ class PasswordChange(BaseMutation):
         description = "Change the password of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -309,12 +311,11 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
     def clean_input(cls, info, instance, data):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context, instance):
-            raise PermissionDenied()
+        check_can_edit_address(info.context, instance)
         return super().clean_input(info, instance, data)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
@@ -330,6 +331,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
 
         info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
+        info.context.plugins.address_updated(address)
 
         success_response = cls.success_response(address)
         success_response.user = user
@@ -354,8 +356,7 @@ class BaseAddressDelete(ModelDeleteMutation):
     def clean_instance(cls, info, instance):
         # Method check_permissions cannot be used for permission check, because
         # it doesn't have the address instance.
-        if not can_edit_address(info.context, instance):
-            raise PermissionDenied()
+        check_can_edit_address(info.context, instance)
         return super().clean_instance(info, instance)
 
     @classmethod
@@ -391,6 +392,7 @@ class BaseAddressDelete(ModelDeleteMutation):
 
         response.user = user
         info.context.plugins.customer_updated(user)
+        info.context.plugins.address_deleted(instance)
         return response
 
 

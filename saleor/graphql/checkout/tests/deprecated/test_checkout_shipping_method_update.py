@@ -101,7 +101,7 @@ def test_checkout_shipping_method_update_by_token(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
 
     response = staff_api_client.post_graphql(
-        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+        query, {"token": checkout.token, "shippingMethodId": method_id}
     )
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
 

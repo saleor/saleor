@@ -3,13 +3,12 @@ from datetime import date
 from typing import TYPE_CHECKING, Iterable, Optional
 
 from dateutil.relativedelta import relativedelta
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 
-from ..checkout.error_codes import CheckoutErrorCode
 from ..checkout.models import Checkout
+from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
 from ..core.utils.validators import user_is_valid
@@ -133,9 +132,8 @@ def fulfill_gift_card_lines(
         else:
             stock = line.variant.stocks.for_channel(channel_slug).first()
             if not stock:
-                raise ValidationError(
-                    "Lack of gift card stock for checkout channel.",
-                    code=CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value,
+                raise GiftCardNotApplicable(
+                    message="Lack of gift card stock for checkout channel.",
                 )
             warehouse_pk = str(stock.warehouse_id)
             lines_for_warehouses[warehouse_pk].append(

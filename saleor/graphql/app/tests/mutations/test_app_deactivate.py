@@ -1,6 +1,12 @@
+from unittest import mock
+
 import graphene
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....app.models import App
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_DEACTIVATE_MUTATION = """
@@ -40,6 +46,57 @@ def test_deactivate_app(app, staff_api_client, permission_manage_apps):
 
     app.refresh_from_db()
     assert not app.is_active
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_deactivate_app_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    app,
+    staff_api_client,
+    permission_manage_apps,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    app.is_active = True
+    app.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("App", app.id),
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        APP_DEACTIVATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    app.refresh_from_db()
+
+    # then
+    assert not app.is_active
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "is_active": app.is_active,
+            "name": app.name,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+        [any_webhook],
+        app,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_deactivate_app_by_app(app, app_api_client, permission_manage_apps):

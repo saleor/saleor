@@ -1,6 +1,7 @@
 import graphene
 from django.db.models import Min, Q, QuerySet
 
+from ..core.descriptions import CHANNEL_REQUIRED
 from ..core.types import ChannelSortInputObjectType
 
 
@@ -10,14 +11,18 @@ class SaleSortField(graphene.Enum):
     END_DATE = ["end_date", "name", "pk"]
     VALUE = ["value", "name", "pk"]
     TYPE = ["type", "name", "pk"]
-    CREATED_AT = ["created", "name", "pk"]
+    CREATED_AT = ["created_at", "name", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
 
     @property
     def description(self):
+        descrption_extras = {SaleSortField.VALUE.name: [CHANNEL_REQUIRED]}
         if self.name in SaleSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            return f"Sort sales by {sort_name}."
+            description = f"Sort sales by {sort_name}."
+            if extras := descrption_extras.get(self.name):
+                description += "".join(extras)
+            return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
@@ -47,9 +52,16 @@ class VoucherSortField(graphene.Enum):
 
     @property
     def description(self):
+        descrption_extras = {
+            VoucherSortField.VALUE.name: [CHANNEL_REQUIRED],
+            VoucherSortField.MINIMUM_SPENT_AMOUNT.name: [CHANNEL_REQUIRED],
+        }
         if self.name in VoucherSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            return f"Sort vouchers by {sort_name}."
+            description = f"Sort vouchers by {sort_name}."
+            if extras := descrption_extras.get(self.name):
+                description += "".join(extras)
+            return description
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod

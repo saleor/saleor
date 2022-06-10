@@ -137,7 +137,6 @@ def create_event_delivery_list_for_webhooks(
     event_payload: "EventPayload",
     event_type: str,
 ) -> List[EventDelivery]:
-
     event_deliveries = EventDelivery.objects.bulk_create(
         [
             EventDelivery(
@@ -176,6 +175,7 @@ def attempt_update(
     attempt.duration = webhook_response.duration
     attempt.response = webhook_response.content
     attempt.response_headers = json.dumps(webhook_response.response_headers)
+    attempt.response_status_code = webhook_response.response_status_code
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
     attempt.save(
@@ -183,6 +183,7 @@ def attempt_update(
             "duration",
             "response",
             "response_headers",
+            "response_status_code",
             "request_headers",
             "status",
         ]
@@ -196,4 +197,7 @@ def delivery_update(delivery: "EventDelivery", status: str):
 
 def clear_successful_delivery(delivery: "EventDelivery"):
     if delivery.status == EventDeliveryStatus.SUCCESS:
+        payload_id = delivery.payload_id
         delivery.delete()
+        if payload_id:
+            EventPayload.objects.filter(pk=payload_id, deliveries__isnull=True).delete()

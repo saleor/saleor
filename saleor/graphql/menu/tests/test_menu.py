@@ -1,12 +1,17 @@
 import json
+from unittest import mock
 
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from ....menu.error_codes import MenuErrorCode
 from ....menu.models import Menu, MenuItem
 from ....product.models import Category
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...menu.mutations import NavigationType, _validate_menu_item_instance
 from ...tests.utils import (
     assert_no_permission,
@@ -582,10 +587,7 @@ def test_menu_item_query_staff_without_permission_gets_only_published_pages(
     assert data["page"] is None
 
 
-def test_create_menu(
-    staff_api_client, published_collection, category, page, permission_manage_menus
-):
-    query = """
+CREATE_MENU_QUERY = """
     mutation mc($name: String!, $collection: ID,
             $category: ID, $page: ID, $url: String) {
 
@@ -608,6 +610,10 @@ def test_create_menu(
     }
     """
 
+
+def test_create_menu(
+    staff_api_client, published_collection, category, page, permission_manage_menus
+):
     category_id = graphene.Node.to_global_id("Category", category.pk)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     page_id = graphene.Node.to_global_id("Page", page.pk)
@@ -621,11 +627,68 @@ def test_create_menu(
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_menus]
+        CREATE_MENU_QUERY, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
     assert content["data"]["menuCreate"]["menu"]["name"] == "test-menu"
     assert content["data"]["menuCreate"]["menu"]["slug"] == "test-menu"
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_menu_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    published_collection,
+    category,
+    page,
+    permission_manage_menus,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+    url = "http://www.example.com"
+
+    variables = {
+        "name": "test-menu",
+        "collection": collection_id,
+        "category": category_id,
+        "page": page_id,
+        "url": url,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_MENU_QUERY, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+    menu = Menu.objects.last()
+
+    # then
+    assert content["data"]["menuCreate"]["menu"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("Menu", menu.id),
+            "slug": menu.slug,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.MENU_CREATED,
+        [any_webhook],
+        menu,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_create_menu_slug_already_exists(
@@ -738,6 +801,54 @@ def test_update_menu_with_slug(staff_api_client, menu, permission_manage_menus):
     assert content["data"]["menuUpdate"]["menu"]["slug"] == "new-slug"
 
 
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_update_menu_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    menu,
+    permission_manage_menus,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    name = "Blue oyster menu"
+    variables = {
+        "id": graphene.Node.to_global_id("Menu", menu.pk),
+        "name": name,
+        "slug": "new-slug",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_MENU_WITH_SLUG_MUTATION, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["menuUpdate"]["menu"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "slug": variables["slug"],
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.MENU_UPDATED,
+        [any_webhook],
+        menu,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
 def test_update_menu_with_slug_already_exists(
     staff_api_client, menu, permission_manage_menus
 ):
@@ -756,29 +867,79 @@ def test_update_menu_with_slug_already_exists(
     assert error["code"] == MenuErrorCode.UNIQUE.name
 
 
-def test_delete_menu(staff_api_client, menu, permission_manage_menus):
-    query = """
-        mutation deletemenu($id: ID!) {
-            menuDelete(id: $id) {
-                menu {
-                    name
-                }
+DELETE_MENU_MUTATION = """
+    mutation deletemenu($id: ID!) {
+        menuDelete(id: $id) {
+            menu {
+                name
             }
         }
-        """
+    }
+    """
+
+
+def test_delete_menu(staff_api_client, menu, permission_manage_menus):
+    # given
     menu_id = graphene.Node.to_global_id("Menu", menu.pk)
     variables = {"id": menu_id}
+
+    # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_menus]
+        DELETE_MENU_MUTATION, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
+
+    # then
     assert content["data"]["menuDelete"]["menu"]["name"] == menu.name
     with pytest.raises(menu._meta.model.DoesNotExist):
         menu.refresh_from_db()
 
 
-def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
-    query = """
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_menu_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    menu,
+    permission_manage_menus,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+    variables = {"id": menu_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_MENU_MUTATION, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["menuDelete"]["menu"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "slug": menu.slug,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.MENU_DELETED,
+        [any_webhook],
+        menu,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
+CREATE_MENU_ITEM_MUTATION = """
     mutation createMenuItem($menu_id: ID!, $name: String!, $url: String){
         menuItemCreate(input: {name: $name, menu: $menu_id, url: $url}) {
             menuItem {
@@ -790,13 +951,16 @@ def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
             }
         }
     }
-    """
+"""
+
+
+def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
     name = "item menu"
     url = "http://www.example.com"
     menu_id = graphene.Node.to_global_id("Menu", menu.pk)
     variables = {"name": name, "url": url, "menu_id": menu_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_menus]
+        CREATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
     data = content["data"]["menuItemCreate"]["menuItem"]
@@ -805,10 +969,55 @@ def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
     assert data["menu"]["name"] == menu.name
 
 
-def test_update_menu_item(
-    staff_api_client, menu, menu_item, page, permission_manage_menus
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_menu_item_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    menu,
+    permission_manage_menus,
+    settings,
 ):
-    query = """
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    name = "item menu"
+    url = "http://www.example.com"
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+    variables = {"name": name, "url": url, "menu_id": menu_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+    menu_item = MenuItem.objects.last()
+
+    # then
+    assert content["data"]["menuItemCreate"]["menuItem"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("MenuItem", menu_item.id),
+            "name": menu_item.name,
+            "menu": {"id": menu_id},
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.MENU_ITEM_CREATED,
+        [any_webhook],
+        menu_item,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
+UPDATE_MENU_ITEM_MUTATION = """
     mutation updateMenuItem($id: ID!, $page: ID) {
         menuItemUpdate(id: $id, input: {page: $page}) {
             menuItem {
@@ -819,6 +1028,11 @@ def test_update_menu_item(
         }
     }
     """
+
+
+def test_update_menu_item(
+    staff_api_client, menu, menu_item, page, permission_manage_menus
+):
     # Menu item before update has url, but no page
     assert menu_item.url
     assert not menu_item.page
@@ -826,33 +1040,131 @@ def test_update_menu_item(
     page_id = graphene.Node.to_global_id("Page", page.pk)
     variables = {"id": menu_item_id, "page": page_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_menus]
+        UPDATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
     data = content["data"]["menuItemUpdate"]["menuItem"]
     assert data["page"]["id"] == page_id
 
 
-def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
-    query = """
-        mutation deleteMenuItem($id: ID!) {
-            menuItemDelete(id: $id) {
-                menuItem {
-                    name
-                }
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_update_menu_item_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    menu,
+    menu_item,
+    page,
+    permission_manage_menus,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    # Menu item before update has url, but no page
+    assert menu_item.url
+    assert not menu_item.page
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+    variables = {"id": menu_item_id, "page": page_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["menuItemUpdate"]["menuItem"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": menu_item_id,
+            "name": menu_item.name,
+            "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.MENU_ITEM_UPDATED,
+        [any_webhook],
+        menu_item,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
+DELETE_MENU_ITEM_MUTATION = """
+    mutation deleteMenuItem($id: ID!) {
+        menuItemDelete(id: $id) {
+            menuItem {
+                name
             }
         }
-        """
+    }
+    """
+
+
+def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
     menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     variables = {"id": menu_item_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_menus]
+        DELETE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
     data = content["data"]["menuItemDelete"]["menuItem"]
     assert data["name"] == menu_item.name
     with pytest.raises(menu_item._meta.model.DoesNotExist):
         menu_item.refresh_from_db()
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_menu_item_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    menu_item,
+    permission_manage_menus,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
+    variables = {"id": menu_item_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["menuItemDelete"]["menuItem"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": menu_item_id,
+            "name": menu_item.name,
+            "menu": {"id": graphene.Node.to_global_id("Menu", menu_item.menu_id)},
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.MENU_ITEM_DELETED,
+        [any_webhook],
+        menu_item,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_add_more_than_one_item(
@@ -1009,6 +1321,50 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
 
     # Ensure the order is right
     assert menu_data == expected_data
+
+
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_menu_reorder_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_menus,
+    menu_item_list,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    menu_item_list = list(menu_item_list)
+    menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
+
+    assert len(menu_item_list) == 3
+
+    items_global_ids = [
+        graphene.Node.to_global_id("MenuItem", item.pk) for item in menu_item_list
+    ]
+
+    moves_input = [
+        {"itemId": items_global_ids[0], "parentId": None, "sortOrder": 2},
+        {"itemId": items_global_ids[1], "parentId": None, "sortOrder": None},
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": -2},
+    ]
+
+    # when
+    response = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_REORDER_MENU,
+            {"moves": moves_input, "menu": menu_global_id},
+            [permission_manage_menus],
+        )
+    )["data"]["menuItemMove"]
+
+    assert response["menu"]
+    assert not response["errors"]
+    assert mocked_webhook_trigger.call_count == 2
 
 
 def test_menu_reorder_move_the_same_item_multiple_times(

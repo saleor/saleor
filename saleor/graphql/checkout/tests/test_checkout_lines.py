@@ -1,31 +1,33 @@
 import datetime
-import uuid
 from decimal import Decimal
 from unittest import mock
 
 import graphene
 import pytest
+import pytz
 from django.utils import timezone
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.models import Checkout
+from ....checkout.models import Checkout, CheckoutLine
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
 from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductChannelListing
 from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import Reservation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...tests.utils import get_graphql_content
+from ...core.utils import to_global_id_or_none
+from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations.utils import (
-    group_quantity_by_variants,
+    CheckoutLineData,
+    group_quantity_and_custom_prices_by_variants,
     update_checkout_shipping_method_if_invalid,
 )
 
 MUTATION_CHECKOUT_LINES_ADD = """
     mutation checkoutLinesAdd(
-            $token: UUID, $lines: [CheckoutLineInput!]!) {
-        checkoutLinesAdd(token: $token, lines: $lines) {
+            $id: ID, $lines: [CheckoutLineInput!]!) {
+        checkoutLinesAdd(id: $id, lines: $lines) {
             checkout {
                 token
                 quantity
@@ -63,7 +65,7 @@ def test_checkout_lines_add(
     previous_last_change = checkout.last_change
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
         "channelSlug": checkout.channel.slug,
     }
@@ -73,7 +75,7 @@ def test_checkout_lines_add(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
@@ -97,7 +99,7 @@ def test_checkout_lines_add_with_reservations(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
         "channelSlug": checkout.channel.slug,
     }
@@ -107,7 +109,7 @@ def test_checkout_lines_add_with_reservations(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 4
@@ -132,7 +134,7 @@ def test_checkout_lines_add_updates_reservation(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
         "channelSlug": checkout.channel.slug,
     }
@@ -142,7 +144,7 @@ def test_checkout_lines_add_updates_reservation(
     assert not data["errors"]
     checkout.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout)
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.variant == variant
     assert line.quantity == 3
     assert calculate_checkout_quantity(lines) == 3
@@ -180,7 +182,7 @@ def test_checkout_lines_add_new_variant_updates_other_lines_reservations_expirat
     variant_other_id = graphene.Node.to_global_id("ProductVariant", variant_other.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_other_id, "quantity": 3}],
         "channelSlug": checkout.channel.slug,
     }
@@ -221,7 +223,7 @@ def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item
     previous_last_change = checkout.last_change
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 7}],
         "channelSlug": checkout.channel.slug,
     }
@@ -230,9 +232,127 @@ def test_checkout_lines_add_existing_variant(user_api_client, checkout_with_item
     data = content["data"]["checkoutLinesAdd"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    line = checkout.lines.latest("pk")
+    line = checkout.lines.last()
     assert line.quantity == 10
     assert checkout.last_change != previous_last_change
+
+
+def test_checkout_lines_add_custom_price(
+    app_api_client, checkout, stock, permission_handle_checkouts
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    assert line.variant == variant
+    assert line.quantity == 1
+    assert line.price_override == price
+
+
+def test_checkout_lines_add_existing_variant_with_custom_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    assert line.quantity == 10
+    assert line.price_override == price
+
+
+def test_checkout_lines_add_existing_variant_override_previous_custom_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    line.price_override = 8.22
+    line.save(update_fields=["price_override"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 7, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    assert line.quantity == 10
+    assert line.price_override == price
+
+
+def test_checkout_lines_add_custom_price_app_no_perm(app_api_client, checkout, stock):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = app_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    assert_no_permission(response)
+
+
+def test_checkout_lines_add_custom_price_permission_denied_for_staff_user(
+    staff_api_client, checkout, stock, permission_handle_checkouts
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("13.11")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    assert_no_permission(response)
 
 
 def test_checkout_lines_add_existing_variant_over_allowed_stock(
@@ -244,7 +364,7 @@ def test_checkout_lines_add_existing_variant_over_allowed_stock(
     current_stock = line.variant.stocks.first()
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": current_stock.quantity - 1}],
         "channelSlug": checkout.channel.slug,
     }
@@ -267,7 +387,7 @@ def test_checkout_lines_add_with_unavailable_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
         "channelSlug": checkout.channel.slug,
     }
@@ -287,7 +407,7 @@ def test_checkout_lines_add_with_insufficient_stock(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 49}],
         "channelSlug": checkout.channel.slug,
     }
@@ -323,7 +443,7 @@ def test_checkout_lines_add_with_reserved_insufficient_stock(
     )
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 2}],
         "channelSlug": checkout.channel.slug,
     }
@@ -355,7 +475,7 @@ def test_checkout_lines_for_click_and_collect_insufficient_stock(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 42}],
         "channelSlug": checkout.channel.slug,
     }
@@ -376,7 +496,7 @@ def test_checkout_lines_add_with_zero_quantity(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 0}],
         "channelSlug": checkout.channel.slug,
     }
@@ -398,7 +518,7 @@ def test_checkout_lines_add_no_channel_shipping_zones(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
         "channelSlug": checkout.channel.slug,
     }
@@ -424,7 +544,7 @@ def test_checkout_lines_add_with_unpublished_product(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout_with_item.token,
+        "id": to_global_id_or_none(checkout_with_item),
         "lines": [{"variantId": variant_id, "quantity": 1}],
         "channelSlug": checkout_with_item.channel.slug,
     }
@@ -442,12 +562,12 @@ def test_checkout_lines_add_with_unavailable_for_purchase_product(
     # given
     variant = stock.product_variant
     product = stock.product_variant.product
-    product.channel_listings.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase_at=None)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout_with_item.token,
+        "id": to_global_id_or_none(checkout_with_item),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
 
@@ -469,13 +589,14 @@ def test_checkout_lines_add_with_available_for_purchase_from_tomorrow_product(
     variant = stock.product_variant
     product = stock.product_variant.product
     product.channel_listings.update(
-        available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
+        available_for_purchase_at=datetime.datetime.now(pytz.UTC)
+        + datetime.timedelta(days=1)
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout_with_item.token,
+        "id": to_global_id_or_none(checkout_with_item),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
 
@@ -495,7 +616,7 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout_with_item.token,
+        "id": to_global_id_or_none(checkout_with_item),
         "lines": [{"variantId": variant_id, "quantity": 51}],
         "channelSlug": checkout_with_item.channel.slug,
     }
@@ -526,7 +647,7 @@ def test_checkout_lines_add_too_many_after_two_trials(
     variant.save(update_fields=["is_preorder", "preorder_end_date"])
 
     variables = {
-        "token": checkout_with_item.token,
+        "id": to_global_id_or_none(checkout_with_item),
         "lines": [{"variantId": variant_id, "quantity": 26}],
         "channelSlug": checkout_with_item.channel.slug,
     }
@@ -553,7 +674,7 @@ def test_checkout_lines_add_empty_checkout(user_api_client, checkout, stock):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
@@ -573,7 +694,7 @@ def test_checkout_lines_add_variant_without_inventory_tracking(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
@@ -591,7 +712,7 @@ def test_checkout_lines_add_check_lines_quantity(user_api_client, checkout, stoc
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 16}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
@@ -609,7 +730,7 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     invalid_variant_id = "InvalidId"
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [
             {"variantId": variant_id, "quantity": 1},
             {"variantId": invalid_variant_id, "quantity": 3},
@@ -625,8 +746,8 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
 
 MUTATION_CHECKOUT_LINES_UPDATE = """
     mutation checkoutLinesUpdate(
-            $token: UUID, $lines: [CheckoutLineInput!]!) {
-        checkoutLinesUpdate(token: $token, lines: $lines) {
+            $id: ID, $lines: [CheckoutLineUpdateInput!]!) {
+        checkoutLinesUpdate(id: $id, lines: $lines) {
             checkout {
                 id
                 token
@@ -636,6 +757,17 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                     variant {
                         id
                     }
+                }
+                totalPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
+                discount {
+                    amount
                 }
             }
             errors {
@@ -669,7 +801,7 @@ def test_checkout_lines_update(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout_with_item.token,
+        "id": to_global_id_or_none(checkout_with_item),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -690,6 +822,53 @@ def test_checkout_lines_update(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
+
+
+def test_checkout_lines_update_checkout_with_voucher(
+    user_api_client, checkout_with_item, voucher_percentage
+):
+    """Ensure that discount is correct calculated when updating the checkout with
+    already applied discount."""
+    # given
+    channel = checkout_with_item.channel
+    line = checkout_with_item.lines.first()
+    variant = line.variant
+
+    channel_listing = variant.channel_listings.get(channel=channel)
+    unit_price = variant.get_price(
+        variant.product, [], checkout_with_item.channel, channel_listing
+    )
+
+    voucher_channel_listing = voucher_percentage.channel_listings.get(channel=channel)
+    voucher_channel_listing.discount_value = 100
+    voucher_channel_listing.save(update_fields=["discount_value"])
+
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.discount_amount = (unit_price * line.quantity).amount
+    checkout_with_item.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    total_price_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    assert total_price_gross_amount == 0
+    assert checkout_data["discount"]["amount"] == unit_price.amount
+
+    checkout_with_item.refresh_from_db()
+    assert checkout_with_item.discount_amount == unit_price.amount
 
 
 def test_checkout_lines_update_with_new_reservations(
@@ -713,7 +892,7 @@ def test_checkout_lines_update_with_new_reservations(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -765,7 +944,7 @@ def test_checkout_lines_update_against_reserved_stock(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 5}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -779,11 +958,11 @@ def test_checkout_lines_update_against_reserved_stock(
     assert data["errors"][0]["field"] == "quantity"
 
     checkout.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.variant == variant
     assert line.quantity == 3
+    lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
     reservation.refresh_from_db()
     assert Reservation.objects.count() == 1
@@ -818,7 +997,7 @@ def test_checkout_lines_update_other_lines_reservations_expirations(
     variant_other_id = graphene.Node.to_global_id("ProductVariant", variant_other.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_other_id, "quantity": 3}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -850,6 +1029,272 @@ def test_checkout_lines_update_other_lines_reservations_expirations(
         reservation.refresh_from_db()
 
 
+def test_checkout_lines_update_quantity_and_custom_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("22.22")
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 1
+    assert line.price_override == price
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 1
+
+
+def test_checkout_lines_update_custom_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    variant = line.variant
+    previous_quantity = line.quantity
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("22.22")
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "price": price}],
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == previous_quantity
+    assert line.price_override == price
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 3
+
+
+def test_checkout_lines_update_with_custom_price_override_existing_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    line.price_override = Decimal("10.12")
+    line.save(update_fields=["price_override"])
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("22.10")
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 1
+    assert line.price_override == price
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 1
+
+
+def test_checkout_lines_update_clear_custom_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    line.price_override = Decimal("10.12")
+    line.save(update_fields=["price_override"])
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": None}],
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 1
+    assert line.price_override is None
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 1
+
+
+def test_checkout_lines_update_set_quantity_to_0_then_update_customer_price(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    """Ensure an error is not raised and the line is deleted when the line quantity
+    is set to 0 firstly and then the custom price is changed."""
+
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    line.price_override = Decimal("10.12")
+    line.save(update_fields=["price_override"])
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [
+            {"variantId": variant_id, "quantity": 0},
+            {"variantId": variant_id, "price": 10},
+        ],
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 0
+    with pytest.raises(CheckoutLine.DoesNotExist):
+        line.refresh_from_db()
+
+
+def test_checkout_lines_update_with_custom_price_by_app_no_perm(
+    app_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("22.22")
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+    }
+    response = app_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    assert_no_permission(response)
+
+
+def test_checkout_lines_update_with_custom_price_raise_permission_denied_for_staff(
+    staff_api_client, checkout_with_item, permission_handle_checkouts
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("22.22")
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 1, "price": price}],
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    assert_no_permission(response)
+
+
+def test_checkout_lines_update_no_quantity_provided(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "quantity"
+
+
 def test_checkout_lines_update_with_unavailable_variant(
     user_api_client, checkout_with_item
 ):
@@ -866,7 +1311,7 @@ def test_checkout_lines_update_with_unavailable_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -893,7 +1338,7 @@ def test_checkout_lines_update_channel_without_shipping_zones(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -916,7 +1361,7 @@ def test_checkout_lines_update_variant_quantity_over_avability_stock(
     line.save()
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": current_stock.quantity - 2}],
         "channelSlug": checkout.channel.slug,
     }
@@ -938,7 +1383,7 @@ def test_checkout_lines_delete_with_by_zero_quantity_when_variant_out_of_stock(
     previous_last_change = checkout.last_change
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 0}],
         "channelSlug": checkout.channel.slug,
     }
@@ -968,7 +1413,7 @@ def test_checkout_line_delete_by_zero_quantity(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 0}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -1004,7 +1449,7 @@ def test_checkout_line_delete_by_zero_quantity_when_variant_unavailable_for_purc
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 0}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -1040,7 +1485,7 @@ def test_checkout_line_update_by_zero_quantity_dont_create_new_lines(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 0}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -1071,7 +1516,7 @@ def test_checkout_lines_update_with_unpublished_product(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -1082,11 +1527,11 @@ def test_checkout_lines_update_with_unpublished_product(
 
 
 def test_checkout_lines_update_invalid_checkout_id(user_api_client):
-    variables = {"token": uuid.uuid4(), "lines": []}
+    variables = {"id": "1234", "lines": []}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesUpdate"]
-    assert data["errors"][0]["field"] == "token"
+    assert data["errors"][0]["field"] == "id"
 
 
 def test_checkout_lines_update_check_lines_quantity(
@@ -1099,7 +1544,7 @@ def test_checkout_lines_update_check_lines_quantity(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 11}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -1122,7 +1567,7 @@ def test_checkout_lines_update_with_chosen_shipping(
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {
-        "token": checkout.token,
+        "id": to_global_id_or_none(checkout),
         "lines": [{"variantId": variant_id, "quantity": 1}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
@@ -1136,8 +1581,8 @@ def test_checkout_lines_update_with_chosen_shipping(
 
 
 MUTATION_CHECKOUT_LINE_DELETE = """
-    mutation checkoutLineDelete($token: UUID, $lineId: ID!) {
-        checkoutLineDelete(token: $token, lineId: $lineId) {
+    mutation checkoutLineDelete($id: ID, $lineId: ID!) {
+        checkoutLineDelete(id: $id, lineId: $lineId) {
             checkout {
                 token
                 lines {
@@ -1177,7 +1622,7 @@ def test_checkout_line_delete(
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
 
-    variables = {"token": checkout.token, "lineId": line_id}
+    variables = {"id": to_global_id_or_none(checkout), "lineId": line_id}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
     content = get_graphql_content(response)
 
@@ -1195,8 +1640,8 @@ def test_checkout_line_delete(
 
 
 MUTATION_CHECKOUT_LINES_DELETE = """
-    mutation checkoutLinesDelete($token: UUID!, $linesIds: [ID!]!) {
-        checkoutLinesDelete(token: $token, linesIds: $linesIds) {
+    mutation checkoutLinesDelete($id: ID, $linesIds: [ID!]!) {
+        checkoutLinesDelete(id: $id, linesIds: $linesIds) {
             checkout {
                 token
                 lines {
@@ -1236,7 +1681,7 @@ def test_checkout_lines_delete(
     second_line_id = graphene.Node.to_global_id("CheckoutLine", second_line.pk)
     lines_list = [first_line_id, second_line_id]
 
-    variables = {"token": checkout.token, "linesIds": lines_list}
+    variables = {"id": to_global_id_or_none(checkout), "linesIds": lines_list}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response)
 
@@ -1254,11 +1699,10 @@ def test_checkout_lines_delete(
     assert checkout.last_change != previous_last_change
 
 
-def test_checkout_lines_delete_invalid_checkout_token(
+def test_checkout_lines_delete_invalid_checkout_id(
     user_api_client, checkout_with_items
 ):
     checkout = checkout_with_items
-    previous_last_change = checkout.last_change
     line = checkout.lines.first()
     second_line = checkout.lines.last()
 
@@ -1267,15 +1711,14 @@ def test_checkout_lines_delete_invalid_checkout_token(
     lines_list = [first_line_id, second_line_id]
 
     variables = {
-        "token": "bd159cc8-9dd6-4529-a6f6-8a5dee169806",
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
         "linesIds": lines_list,
     }
+    checkout.delete()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response)
     errors = content["data"]["checkoutLinesDelete"]["errors"][0]
     assert errors["code"] == CheckoutErrorCode.NOT_FOUND.name
-    checkout.refresh_from_db()
-    assert checkout.last_change == previous_last_change
 
 
 def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with_items):
@@ -1286,7 +1729,7 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
     first_line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
     lines_list = [first_line_id, "Q2hlY2tvdXRMaW5lOjE8"]
 
-    variables = {"token": checkout.token, "linesIds": lines_list}
+    variables = {"id": to_global_id_or_none(checkout), "linesIds": lines_list}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response, ignore_errors=True)
     errors = content["errors"][0]
@@ -1299,41 +1742,70 @@ def tests_checkout_lines_delete_invalid_lines_ids(user_api_client, checkout_with
     [
         (
             [
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 1, "variantId": "def"},
+                {"quantity": 6, "variant_id": "abc", "price": 1.22},
+                {"quantity": 6, "variant_id": "abc"},
+                {"quantity": 1, "variant_id": "def", "price": 33.2},
+                {"quantity": 1, "variant_id": "def", "price": 10},
             ],
-            [12, 2],
+            [
+                CheckoutLineData(
+                    quantity=12,
+                    quantity_to_update=True,
+                    custom_price=1.22,
+                    custom_price_to_update=True,
+                ),
+                CheckoutLineData(
+                    quantity=2,
+                    quantity_to_update=True,
+                    custom_price=10,
+                    custom_price_to_update=True,
+                ),
+            ],
         ),
         (
             [
-                {"quantity": 8, "variantId": "ghi"},
-                {"quantity": 2, "variantId": "ghi"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 8, "variantId": "ghi"},
-                {"quantity": 2, "variantId": "ghi"},
-                {"quantity": 922, "variantId": "xyz"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 6, "variantId": "abc"},
-                {"quantity": 1, "variantId": "def"},
-                {"quantity": 1000, "variantId": "jkl"},
-                {"quantity": 999, "variantId": "zzz"},
+                {"quantity": 8, "variant_id": "ghi"},
+                {"quantity": 2, "variant_id": "ghi"},
+                {"quantity": 6, "variant_id": "abc"},
+                {"quantity": 1, "variant_id": "def"},
+                {"quantity": 6, "variant_id": "abc"},
+                {"quantity": 1, "variant_id": "def"},
+                {"quantity": 8, "variant_id": "ghi"},
+                {"quantity": 2, "variant_id": "ghi"},
+                {"quantity": 922, "variant_id": "xyz"},
+                {"quantity": 6, "variant_id": "abc"},
+                {"quantity": 1, "variant_id": "def"},
+                {"quantity": 6, "variant_id": "abc"},
+                {"quantity": 1, "variant_id": "def"},
+                {"quantity": 1000, "variant_id": "jkl"},
+                {"quantity": 999, "variant_id": "zzz"},
             ],
-            [20, 24, 4, 922, 1000, 999],
+            [
+                CheckoutLineData(
+                    quantity=quantity,
+                    quantity_to_update=True,
+                    custom_price=None,
+                    custom_price_to_update=False,
+                )
+                for quantity in [20, 24, 4, 922, 1000, 999]
+            ],
         ),
         (
             [
-                {"quantity": 100, "variantId": name}
+                {"quantity": 100, "variant_id": name}
                 for name in (l1 + l2 for l1 in "abcdef" for l2 in "ghijkl")
             ],
-            [100] * 36,
+            [
+                CheckoutLineData(
+                    quantity=100,
+                    quantity_to_update=True,
+                    custom_price=None,
+                    custom_price_to_update=False,
+                )
+            ]
+            * 36,
         ),
     ],
 )
 def test_group_by_variants(lines, expected):
-    assert expected == group_quantity_by_variants(lines)
+    assert expected == group_quantity_and_custom_prices_by_variants(lines)

@@ -1,9 +1,11 @@
 from collections import defaultdict
-from datetime import date
+from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
@@ -13,6 +15,7 @@ from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
+from ...core.descriptions import ADDED_IN_33, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
@@ -27,13 +30,19 @@ if TYPE_CHECKING:
 class PageInput(graphene.InputObjectType):
     slug = graphene.String(description="Page internal name.")
     title = graphene.String(description="Page title.")
-    content = JSONString(description="Page content in JSON format.")
+    content = JSONString(description="Page content." + RICH_CONTENT)
     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     is_published = graphene.Boolean(
         description="Determines if page is visible in the storefront."
     )
     publication_date = graphene.String(
-        description="Publication date. ISO 8601 standard."
+        description=(
+            f"Publication date. ISO 8601 standard. {DEPRECATED_IN_3X_INPUT} "
+            "Use `publishedAt` field instead."
+        )
+    )
+    published_at = graphene.DateTime(
+        description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
     seo = SeoInput(description="Search engine optimization fields.")
 
@@ -77,10 +86,25 @@ class PageCreate(ModelMutation):
             error.code = PageErrorCode.REQUIRED
             raise ValidationError({"slug": error})
 
+        if "publication_date" in cleaned_input and "published_at" in cleaned_input:
+            raise ValidationError(
+                {
+                    "publication_date": ValidationError(
+                        "Only one of argument: publicationDate or publishedAt "
+                        "must be specified.",
+                        code=PageErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         is_published = cleaned_input.get("is_published")
-        publication_date = cleaned_input.get("publication_date")
+        publication_date = cleaned_input.get("published_at") or cleaned_input.get(
+            "publication_date"
+        )
         if is_published and not publication_date:
-            cleaned_input["publication_date"] = date.today()
+            cleaned_input["published_at"] = datetime.now(pytz.UTC)
+        elif "publication_date" in cleaned_input or "published_at" in cleaned_input:
+            cleaned_input["published_at"] = publication_date
 
         attributes = cleaned_input.get("attributes")
         page_type = (
@@ -160,7 +184,7 @@ class PageDelete(ModelDeleteMutation):
         page = cls.get_instance(info, **data)
         cls.delete_assigned_attribute_values(page)
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.page_deleted(page)
+        transaction.on_commit(lambda: info.context.plugins.page_deleted(page))
         return response
 
     @staticmethod
@@ -256,6 +280,10 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
         if attributes is not None:
             instance.page_attributes.add(*attributes)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.page_type_created(instance)
+
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
     class Arguments:
@@ -312,6 +340,10 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
         if add_attributes is not None:
             instance.page_attributes.add(*add_attributes)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.page_type_updated(instance)
+
 
 class PageTypeDelete(ModelDeleteMutation):
     class Arguments:
@@ -341,3 +373,7 @@ class PageTypeDelete(ModelDeleteMutation):
             attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
             pageassignments__assignment__page_type_id=instance_pk,
         ).delete()
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        transaction.on_commit(lambda: info.context.plugins.page_type_deleted(instance))

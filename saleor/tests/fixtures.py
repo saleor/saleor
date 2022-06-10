@@ -42,8 +42,8 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
-from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus, TimePeriodType
+from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
@@ -108,7 +108,7 @@ from ..product.models import (
     ProductVariantTranslation,
     VariantMedia,
 )
-from ..product.search import prepare_product_search_document_value
+from ..product.search import prepare_product_search_vector_value
 from ..product.tests.utils import create_image
 from ..shipping.models import (
     ShippingMethod,
@@ -130,6 +130,7 @@ from ..warehouse.models import (
 )
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.models import Webhook, WebhookEvent
+from ..webhook.observability import WebhookData
 from .utils import dummy_editorjs
 
 
@@ -263,6 +264,7 @@ def site_settings(db, settings) -> SiteSettings:
         default_mail_sender_address="mirumee@example.com",
     )[0]
     settings.SITE_ID = site.pk
+    settings.ALLOWED_HOSTS += [site.domain]
 
     main_menu = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["top_menu_name"],
@@ -311,6 +313,32 @@ def checkout_with_item(checkout, product):
     add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_specific_products(
+    checkout_with_item, voucher_specific_product_type
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(
+        manager, checkout_info, lines, voucher_specific_product_type
+    )
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
+    voucher.apply_once_per_order = True
+    voucher.save()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
 
 
 @pytest.fixture
@@ -676,6 +704,8 @@ def customer_user(address):  # pylint: disable=W0613
         default_shipping_address=default_address,
         first_name="Leslie",
         last_name="Wade",
+        metadata={"key": "value"},
+        private_metadata={"secret_key": "secret_value"},
     )
     user.addresses.add(default_address)
     user._password = "password"
@@ -782,6 +812,8 @@ def order(customer_user, channel_USD):
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        metadata={"key": "value"},
+        private_metadata={"secret_key": "secret_value"},
     )
     return order
 
@@ -1325,6 +1357,48 @@ def rich_text_attribute_with_many_values(rich_text_attribute):
 
 
 @pytest.fixture
+def plain_text_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="plain-text",
+        name="Plain text",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Plain text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(text, 50),
+        slug=f"instance_{attribute.id}",
+        plain_text=text,
+    )
+    return attribute
+
+
+@pytest.fixture
+def plain_text_attribute_page_type(db):
+    attribute = Attribute.objects.create(
+        slug="plain-text",
+        name="Plain text",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Plain text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(text, 50),
+        slug=f"instance_{attribute.id}",
+        plain_text=text,
+    )
+    return attribute
+
+
+@pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
         slug="color",
@@ -1700,7 +1774,7 @@ def categories_tree_with_published_products(
             ProductChannelListing(
                 product=product,
                 channel=channel_USD,
-                publication_date=datetime.date.today(),
+                published_at=datetime.datetime.now(pytz.UTC),
                 is_published=True,
             )
         )
@@ -1708,7 +1782,7 @@ def categories_tree_with_published_products(
             ProductChannelListing(
                 product=product,
                 channel=channel_PLN,
-                publication_date=datetime.date.today(),
+                published_at=datetime.datetime.now(pytz.UTC),
                 is_published=True,
             )
         )
@@ -1742,6 +1816,11 @@ def permission_manage_checkouts():
 
 
 @pytest.fixture
+def permission_handle_checkouts():
+    return Permission.objects.get(codename="handle_checkouts")
+
+
+@pytest.fixture
 def permission_manage_plugins():
     return Permission.objects.get(codename="manage_plugins")
 
@@ -1749,6 +1828,11 @@ def permission_manage_plugins():
 @pytest.fixture
 def permission_manage_apps():
     return Permission.objects.get(codename="manage_apps")
+
+
+@pytest.fixture
+def permission_manage_observability():
+    return Permission.objects.get(codename="manage_observability")
 
 
 @pytest.fixture
@@ -1792,9 +1876,7 @@ def shippable_gift_card_product_type(db):
 
 
 @pytest.fixture
-def product_type_with_rich_text_attribute(
-    rich_text_attribute, color_attribute, size_attribute
-):
+def product_type_with_rich_text_attribute(rich_text_attribute):
     product_type = ProductType.objects.create(
         name="Default Type",
         slug="default-type",
@@ -1837,7 +1919,7 @@ def product(product_type, category, warehouse, channel_USD):
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -1879,7 +1961,7 @@ def shippable_gift_card_product(
         discounted_price_amount="100.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -1916,7 +1998,7 @@ def product_price_0(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_C")
     ProductVariantChannelListing.objects.create(
@@ -1939,7 +2021,7 @@ def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
         discounted_price_amount="1200",
         currency=channel_JPY.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = product.variants.get()
     ProductVariantChannelListing.objects.create(
@@ -1972,7 +2054,7 @@ def non_shippable_gift_card_product(
         discounted_price_amount="200.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -2010,7 +2092,7 @@ def product_with_rich_text_attribute(
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -2071,7 +2153,7 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_SINGLE_VARIANT")
     ProductVariantChannelListing.objects.create(
@@ -2099,7 +2181,7 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variants = [
@@ -2131,8 +2213,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             for variant in variants
         ]
     )
-    product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.search_vector = prepare_product_search_vector_value(product)
+    product.save(update_fields=["search_vector"])
 
     return product
 
@@ -2163,7 +2245,7 @@ def product_with_variant_with_two_attributes(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -2224,7 +2306,7 @@ def product_with_variant_with_external_media(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -2272,7 +2354,7 @@ def product_with_variant_with_file_attribute(
         is_published=True,
         currency=channel_USD.currency_code,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
 
     variant = ProductVariant.objects.create(
@@ -2333,7 +2415,7 @@ def product_with_default_variant(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True
@@ -2347,8 +2429,8 @@ def product_with_default_variant(
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
 
-    product.search_document = prepare_product_search_document_value(product)
-    product.save(update_fields=["search_document"])
+    product.search_vector = prepare_product_search_vector_value(product)
+    product.save(update_fields=["search_vector"])
 
     return product
 
@@ -2368,7 +2450,7 @@ def variant_without_inventory_tracking(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date.today(),
+        available_for_purchase_at=datetime.datetime.now(pytz.UTC),
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -2617,7 +2699,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     ProductVariantChannelListing.objects.create(
@@ -2680,7 +2762,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=10,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
-                available_for_purchase=datetime.date(1999, 1, 1),
+                available_for_purchase_at=(
+                    datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)
+                ),
             ),
             ProductChannelListing(
                 product=products[1],
@@ -2689,7 +2773,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=20,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
-                available_for_purchase=datetime.date(1999, 1, 1),
+                available_for_purchase_at=(
+                    datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)
+                ),
             ),
             ProductChannelListing(
                 product=products[2],
@@ -2698,7 +2784,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 discounted_price_amount=30,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
-                available_for_purchase=datetime.date(1999, 1, 1),
+                available_for_purchase_at=(
+                    datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC)
+                ),
             ),
         ]
     )
@@ -2755,9 +2843,9 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
 
     for product in products:
         associate_attribute_values_to_instance(product, product_attr, attr_value)
-        product.search_document = prepare_product_search_document_value(product)
+        product.search_vector = prepare_product_search_vector_value(product)
 
-    Product.objects.bulk_update(products, ["search_document"])
+    Product.objects.bulk_update(products, ["search_vector"])
 
     return products
 
@@ -3048,7 +3136,8 @@ def voucher_percentage(channel_USD):
 
 
 @pytest.fixture
-def voucher_specific_product_type(voucher_percentage):
+def voucher_specific_product_type(voucher_percentage, product):
+    voucher_percentage.products.add(product)
     voucher_percentage.type = VoucherType.SPECIFIC_PRODUCT
     voucher_percentage.save()
     return voucher_percentage
@@ -3119,6 +3208,8 @@ def order_line(order, variant):
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3148,6 +3239,8 @@ def gift_card_non_shippable_order_line(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3179,6 +3272,8 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3193,11 +3288,11 @@ def order_line_JPY(order_JPY, product_in_channel_JPY):
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    base_price = variant.get_price(product, [], channel, channel_listing)
+    currency = base_price.currency
+    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     quantity = 3
-    unit_price = TaxedMoney(net=net, gross=gross)
+    unit_price = TaxedMoney(net=base_price, gross=gross)
     return order_JPY.lines.create(
         product_name=str(product),
         variant_name=str(variant),
@@ -3210,6 +3305,8 @@ def order_line_JPY(order_JPY, product_in_channel_JPY):
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=base_price,
+        undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3250,6 +3347,8 @@ def order_line_with_allocation_in_many_stocks(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3305,6 +3404,8 @@ def order_line_with_one_allocation(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3530,7 +3631,7 @@ def order_with_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date.today(),
+        available_for_purchase_at=datetime.datetime.now(pytz.UTC),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3547,10 +3648,11 @@ def order_with_lines(
         quantity=5,
         quantity_allocated=quantity,
     )
-    net = variant.get_price(product, [], channel_USD, channel_listing)
-    currency = net.currency
-    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
-    unit_price = TaxedMoney(net=net, gross=gross)
+    base_price = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = base_price.currency
+    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=base_price, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
@@ -3564,6 +3666,8 @@ def order_with_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=base_price,
+        undiscounted_base_unit_price=base_price,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3581,7 +3685,7 @@ def order_with_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date.today(),
+        available_for_purchase_at=timezone.now(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3617,6 +3721,8 @@ def order_with_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3771,7 +3877,7 @@ def order_with_lines_channel_PLN(
         channel=channel_PLN,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date.today(),
+        available_for_purchase_at=timezone.now(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_A_PLN")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3802,6 +3908,8 @@ def order_with_lines_channel_PLN(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3819,7 +3927,7 @@ def order_with_lines_channel_PLN(
         channel=channel_PLN,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date.today(),
+        available_for_purchase_at=timezone.now(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B_PLN")
     channel_listing = ProductVariantChannelListing.objects.create(
@@ -3851,6 +3959,8 @@ def order_with_lines_channel_PLN(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -3903,6 +4013,8 @@ def order_with_line_without_inventory_tracking(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
 
@@ -3927,7 +4039,7 @@ def order_with_preorder_lines(
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date.today(),
+        available_for_purchase_at=timezone.now(),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_AA_P", is_preorder=True
@@ -3958,6 +4070,8 @@ def order_with_preorder_lines(
         total_price=unit_price * quantity,
         undiscounted_unit_price=unit_price,
         undiscounted_total_price=unit_price * quantity,
+        base_unit_price=unit_price.gross,
+        undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
     )
     PreorderAllocation.objects.create(
@@ -3986,8 +4100,12 @@ def order_with_preorder_lines(
 
 @pytest.fixture
 def order_events(order):
-    for event_type, _ in OrderEvents.CHOICES:
-        OrderEvent.objects.create(type=event_type, order=order)
+    order_events = [
+        OrderEvent(type=event_type, order=order)
+        for event_type, _ in OrderEvents.CHOICES
+    ]
+    OrderEvent.objects.bulk_create(order_events)
+    return order_events
 
 
 @pytest.fixture
@@ -3996,7 +4114,7 @@ def fulfilled_order(order_with_lines):
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        created=datetime.datetime.now(tz=pytz.utc),
+        created_at=datetime.datetime.now(tz=pytz.utc),
         status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -4457,7 +4575,7 @@ def published_collection(db, channel_USD):
         channel=channel_USD,
         collection=collection,
         is_published=True,
-        publication_date=datetime.date.today(),
+        published_at=timezone.now(),
     )
     return collection
 
@@ -4473,7 +4591,7 @@ def published_collection_PLN(db, channel_PLN):
         channel=channel_PLN,
         collection=collection,
         is_published=True,
-        publication_date=datetime.date.today(),
+        published_at=timezone.now(),
     )
     return collection
 
@@ -4946,7 +5064,7 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
-        available_for_purchase=datetime.date(1999, 1, 1),
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
     )
     product_variant = ProductVariant.objects.create(product=product, sku="SKU_554")
     ProductVariantChannelListing.objects.create(
@@ -5006,11 +5124,7 @@ def description_json():
                         "built with GraphQL, Django, and ReactJS."
                     )
                 },
-                "text": (
-                    "A modular, high performance e-commerce storefront "
-                    "built with GraphQL, Django, and ReactJS."
-                ),
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5019,7 +5133,7 @@ def description_json():
                 "key": "",
                 "data": {},
                 "text": "",
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5037,16 +5151,7 @@ def description_json():
                         "open source e-commerce."
                     ),
                 },
-                "text": (
-                    "Saleor is a rapidly-growing open source e-commerce platform "
-                    "that has served high-volume companies from branches "
-                    "like publishing and apparel since 2012. Based on Python "
-                    "and Django, the latest major update introduces a modular "
-                    "front end with a GraphQL API and storefront and dashboard "
-                    "written in React to make Saleor a full-functionality "
-                    "open source e-commerce."
-                ),
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5054,8 +5159,7 @@ def description_json():
             {
                 "key": "",
                 "data": {"text": ""},
-                "text": "",
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5065,8 +5169,7 @@ def description_json():
                 "data": {
                     "text": "Get Saleor today!",
                 },
-                "text": "Get Saleor today!",
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [{"key": 0, "length": 17, "offset": 0}],
                 "inlineStyleRanges": [],
@@ -5105,11 +5208,7 @@ def other_description_json():
                         "top of Python 3 and a Django 2 framework."
                     ),
                 },
-                "text": (
-                    "Saleor is powered by a GraphQL server running on "
-                    "top of Python 3 and a Django 2 framework."
-                ),
-                "type": "unstyled",
+                "type": "paragraph",
                 "depth": 0,
                 "entityRanges": [],
                 "inlineStyleRanges": [],
@@ -5122,14 +5221,40 @@ def other_description_json():
 @pytest.fixture
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
-    app.tokens.create(name="Default")
     return app
 
 
 @pytest.fixture
-def app_with_extensions(app, permission_manage_products):
+def webhook_app(
+    db,
+    permission_manage_shipping,
+    permission_manage_gift_card,
+    permission_manage_discounts,
+    permission_manage_menus,
+    permission_manage_products,
+    permission_manage_staff,
+):
+    app = App.objects.create(name="Webhook app", is_active=True)
+    app.permissions.add(permission_manage_shipping)
+    app.permissions.add(permission_manage_gift_card)
+    app.permissions.add(permission_manage_discounts)
+    app.permissions.add(permission_manage_menus)
+    app.permissions.add(permission_manage_products)
+    app.permissions.add(permission_manage_staff)
+    return app
+
+
+@pytest.fixture
+def app_with_token(db):
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Test")
+    return app
+
+
+@pytest.fixture
+def app_with_extensions(app_with_token, permission_manage_products):
     first_app_extension = AppExtension(
-        app=app,
+        app=app_with_token,
         label="Create product with App",
         url="www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
@@ -5138,7 +5263,7 @@ def app_with_extensions(app, permission_manage_products):
         [
             first_app_extension,
             AppExtension(
-                app=app,
+                app=app_with_token,
                 label="Update product with App",
                 url="www.example.com/app-product-update",
                 mount=AppExtensionMount.PRODUCT_DETAILS_MORE_ACTIONS,
@@ -5146,7 +5271,7 @@ def app_with_extensions(app, permission_manage_products):
         ]
     )
     first_app_extension.permissions.add(permission_manage_products)
-    return app, extensions
+    return app_with_token, extensions
 
 
 @pytest.fixture
@@ -5190,6 +5315,31 @@ def shipping_app(db, permission_manage_shipping):
         ]
     )
     return app
+
+
+@pytest.fixture
+def observability_webhook(db, permission_manage_observability):
+    app = App.objects.create(name="Observability App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_observability)
+
+    webhook = Webhook.objects.create(
+        name="observability-webhook-1",
+        app=app,
+        target_url="https://observability-app.com/api/",
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.OBSERVABILITY)
+    return webhook
+
+
+@pytest.fixture
+def observability_webhook_data(observability_webhook):
+    return WebhookData(
+        id=observability_webhook.id,
+        saleor_domain="mirumee.com",
+        target_url=observability_webhook.target_url,
+        secret_key=observability_webhook.secret_key,
+    )
 
 
 @pytest.fixture
@@ -5725,7 +5875,24 @@ def event_attempt(event_delivery):
 @pytest.fixture
 def webhook_response():
     return WebhookResponse(
+        content="test_content",
+        request_headers={"headers": "test_request"},
+        response_headers={"headers": "test_response"},
+        response_status_code=200,
+        duration=2.0,
+        status=EventDeliveryStatus.SUCCESS,
+    )
+
+
+@pytest.fixture
+def webhook_response_failed():
+    return WebhookResponse(
         content="example_content_response",
+        request_headers={"headers": "test_request"},
+        response_headers={"headers": "test_response"},
+        response_status_code=500,
+        duration=2.0,
+        status=EventDeliveryStatus.FAILED,
     )
 
 

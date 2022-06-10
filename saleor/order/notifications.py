@@ -10,6 +10,7 @@ from ..core.notify_events import NotifyEventType
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
+from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
 from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
@@ -69,7 +70,7 @@ def get_product_payload(product: Product):
     all_media = product.media.all()
     images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
-        "id": product.id,
+        "id": to_global_id_or_none(product),
         "attributes": get_product_attributes(product),
         "weight": str(product.weight or ""),
         **get_default_images_payload(images),
@@ -80,7 +81,7 @@ def get_product_variant_payload(variant: ProductVariant):
     all_media = variant.media.all()
     images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
-        "id": variant.id,
+        "id": to_global_id_or_none(variant),
         "weight": str(variant.weight or ""),
         "is_preorder": variant.is_preorder_active(),
         "preorder_global_threshold": variant.preorder_global_threshold,
@@ -103,7 +104,7 @@ def get_order_line_payload(line: "OrderLine"):
     currency = line.currency
 
     return {
-        "id": line.id,
+        "id": to_global_id_or_none(line),
         "product": variant_dependent_fields.get("product"),  # type: ignore
         "product_name": line.product_name,
         "translated_product_name": line.translated_product_name or line.product_name,
@@ -241,11 +242,11 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
-            "id": order.id,
+            "id": to_global_id_or_none(order),
             "token": order.id,  # DEPRECATED: will be removed in Saleor 4.0.
             "number": order.number,
             "channel_slug": order.channel.slug,
-            "created": str(order.created),
+            "created": str(order.created_at),
             "shipping_price_net_amount": order.shipping_price_net_amount,
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
             "order_details_url": order_details_url,
@@ -261,12 +262,15 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             **get_discounts_payload(order),
         }
     )
+    # Deprecated: override private_metadata with empty dict as it shouldn't be returned
+    # in the payload (see SALEOR-7046). Should be removed in Saleor 4.0.
+    order_payload["private_metadata"] = {}
     return order_payload
 
 
 def get_default_fulfillment_line_payload(line: "FulfillmentLine"):
     return {
-        "id": line.id,
+        "id": to_global_id_or_none(line),
         "order_line": get_order_line_payload(line.order_line),
         "quantity": line.quantity,
     }
@@ -369,8 +373,8 @@ def send_payment_confirmation(order_info, manager):
         "order": get_default_order_payload(order_info.order),
         "recipient_email": order_info.customer_email,
         "payment": {
-            "created": payment.created,
-            "modified": payment.modified,
+            "created": payment.created_at,
+            "modified": payment.modified_at,
             "charge_status": payment.charge_status,
             "total": quantize_price(payment.total, payment_currency),
             "captured_amount": quantize_price(
@@ -427,5 +431,5 @@ def send_order_refunded_confirmation(
 def attach_requester_payload_data(
     payload: dict, user: Optional["User"], app: Optional["App"]
 ):
-    payload["requester_user_id"] = user.id if user else None
-    payload["requester_app_id"] = app.id if app else None
+    payload["requester_user_id"] = to_global_id_or_none(user) if user else None
+    payload["requester_app_id"] = to_global_id_or_none(app) if app else None

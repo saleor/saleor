@@ -240,14 +240,6 @@ class AvataxPlugin(BasePlugin):
         taxed_total.price_with_sale += shipping_price
         taxed_total.price_with_discounts += shipping_price
 
-        voucher_value = checkout_info.checkout.discount
-        # if price with voucher and without is the same it means that we didn't apply
-        # any voucher for specifc product. The rest of the vouchers is applied to total
-        if (
-            voucher_value
-            and taxed_total.price_with_sale == taxed_total.price_with_discounts
-        ):
-            taxed_total.price_with_discounts -= voucher_value
         return max(
             taxed_total.price_with_discounts,
             zero_taxed_money(taxed_total.price_with_discounts.currency),
@@ -256,11 +248,16 @@ class AvataxPlugin(BasePlugin):
     def _calculate_checkout_shipping(
         self, currency: str, lines: List[Dict], shipping_price: TaxedMoney
     ) -> TaxedMoney:
+        discount_amount = Decimal(0.0)
         shipping_tax = Decimal(0.0)
         shipping_net = shipping_price.net.amount
         for line in lines:
             if line["itemCode"] == "Shipping":
+                # The lineAmount does not include the discountAmount,
+                # but tax is calculated for discounted net price, that
+                # take into account provided discount.
                 shipping_net = Decimal(line["lineAmount"])
+                discount_amount = Decimal(line.get("discountAmount", 0.0))
                 shipping_tax = Decimal(line["tax"])
                 break
 
@@ -269,12 +266,13 @@ class AvataxPlugin(BasePlugin):
         )
         if currency == "JPY" and tax_included():
             shipping_gross = Money(
-                amount=shipping_price.gross.amount, currency=currency
+                amount=shipping_price.gross.amount - discount_amount, currency=currency
             )
             shipping_net = Money(
                 amount=shipping_gross.amount - shipping_tax, currency=currency
             )
         else:
+            shipping_net -= discount_amount
             shipping_gross = Money(
                 amount=shipping_net + shipping_tax, currency=currency
             )
@@ -425,50 +423,35 @@ class AvataxPlugin(BasePlugin):
             return base_value
 
         currency = taxes_data.get("currencyCode")
-        undiscounted_line_price = None
         line_price = None
-        line_price_with_discounts = None
 
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") != item_code:
                 continue
-            is_sale_record = line.get("ref1")
-            is_voucher_record = line.get("ref2")
 
+            # The lineAmount does not include the discountAmount, but tax is calculated
+            # for discounted net price, that take into account provided discount.
             tax = Decimal(line.get("tax", 0.0))
+            discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
 
             if currency == "JPY" and tax_included():
-                line_gross = base_value.undiscounted_price.gross
-                if is_sale_record:
-                    line_gross = base_value.price_with_sale.gross
-                elif is_voucher_record:
-                    line_gross = base_value.price_with_discounts.gross
+                line_gross = Money(
+                    base_value.price_with_sale.gross.amount - discount_amount, currency
+                )
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
+                net -= discount_amount
                 line_gross = Money(amount=net + tax, currency=currency)
                 line_net = Money(amount=net, currency=currency)
 
-            total = TaxedMoney(net=line_net, gross=line_gross)
-            if is_sale_record:
-                line_price = total
-            elif is_voucher_record:
-                line_price_with_discounts = total
-            else:
-                undiscounted_line_price = total
+            line_price = TaxedMoney(net=line_net, gross=line_gross)
 
-        if undiscounted_line_price is not None:
-            price = line_price if not line_price is None else undiscounted_line_price
-            if line_price_with_discounts is None:
-                price_with_discounts = (
-                    line_price if not line_price is None else undiscounted_line_price
-                )
-            else:
-                price_with_discounts = line_price_with_discounts
+        if line_price is not None:
             return CheckoutTaxedPricesData(
-                undiscounted_price=undiscounted_line_price,
-                price_with_sale=price,
-                price_with_discounts=price_with_discounts,
+                undiscounted_price=base_value.undiscounted_price,
+                price_with_sale=line_price,
+                price_with_discounts=line_price,
             )
 
         return base_value
@@ -507,47 +490,41 @@ class AvataxPlugin(BasePlugin):
         taxes_data: Dict[str, Any],
         item_code: str,
         tax_included: Callable[[], bool],
-        base_value: TaxedMoney,
+        base_value: OrderTaxedPricesData,
     ) -> OrderTaxedPricesData:
         if not taxes_data or "error" in taxes_data:
             return base_value
 
         currency = taxes_data.get("currencyCode")
-        undiscounted_line_price = None
         line_price_with_discounts = None
 
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") != item_code:
                 continue
-            is_discount_record = line.get("ref1")
 
+            # The lineAmount does not include the discountAmount, but tax is calculated
+            # for discounted net price, that take into account provided discount.
             tax = Decimal(line.get("tax", 0.0))
+            discount_amount = Decimal(line.get("discountAmount", 0.0))
             net = Decimal(line["lineAmount"])
 
             if currency == "JPY" and tax_included():
-                line_gross = base_value.undiscounted_price.gross
-                if is_discount_record:
-                    line_gross = base_value.price_with_discounts.gross
+                line_gross = Money(
+                    base_value.price_with_discounts.gross.amount - discount_amount,
+                    currency,
+                )
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
+                net -= discount_amount
                 line_gross = Money(amount=net + tax, currency=currency)
                 line_net = Money(amount=net, currency=currency)
 
-            total = TaxedMoney(net=line_net, gross=line_gross)
-            if is_discount_record:
-                line_price_with_discounts = total
-            else:
-                undiscounted_line_price = total
+            line_price_with_discounts = TaxedMoney(net=line_net, gross=line_gross)
 
-        if undiscounted_line_price is not None:
-            price_with_discounts = (
-                line_price_with_discounts
-                if line_price_with_discounts is not None
-                else undiscounted_line_price
-            )
+        if line_price_with_discounts is not None:
             return OrderTaxedPricesData(
-                undiscounted_price=undiscounted_line_price,
-                price_with_discounts=price_with_discounts,
+                undiscounted_price=base_value.undiscounted_price,
+                price_with_discounts=line_price_with_discounts,
             )
 
         return base_value

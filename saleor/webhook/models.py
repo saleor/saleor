@@ -16,6 +16,7 @@ class Webhook(models.Model):
     target_url = WebhookURLField(max_length=255)
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
+    subscription_query = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)

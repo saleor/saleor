@@ -141,7 +141,7 @@ def _clean_product_attributes_date_time_range_filter_input(
     values_map = {
         attr.slug: {
             "pk": attr.pk,
-            "values": {val.date_time: val.pk for val in attr.values.all()},
+            "values": {val.pk: val.date_time for val in attr.values.all()},
         }
         for attr in attributes
     }
@@ -152,7 +152,7 @@ def _clean_product_attributes_date_time_range_filter_input(
         lte = val_range.get("lte")
         matching_values_pk = []
 
-        for value, pk in attr_values.items():
+        for pk, value in attr_values.items():
             if is_date:
                 value = value.date()
 

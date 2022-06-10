@@ -211,6 +211,10 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.shipping_zone_created(instance)
+
+    @classmethod
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         response = super().success_response(instance)
@@ -234,6 +238,10 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.shipping_zone_updated(instance)
+
+    @classmethod
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         response = super().success_response(instance)
@@ -252,6 +260,10 @@ class ShippingZoneDelete(ModelDeleteMutation):
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.shipping_zone_deleted(instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -459,6 +471,10 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
         errors_mapping = {"price_amount": "price"}
 
     @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.shipping_price_created(instance)
+
+    @classmethod
     def success_response(cls, instance):
         shipping_method = ChannelContext(node=instance, channel_slug=None)
         response = super().success_response(shipping_method)
@@ -491,6 +507,10 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
         errors_mapping = {"price_amount": "price"}
+
+    @classmethod
+    def post_save_action(cls, info, instance, _cleaned_input):
+        info.context.plugins.shipping_price_updated(instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -530,6 +550,9 @@ class ShippingPriceDelete(BaseMutation):
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()
         shipping_method.id = shipping_method_id
+
+        info.context.plugins.shipping_price_deleted(shipping_method)
+
         return ShippingPriceDelete(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
             shipping_zone=ChannelContext(node=shipping_zone, channel_slug=None),
@@ -583,6 +606,9 @@ class ShippingPriceExcludeProducts(BaseMutation):
         shipping_method.excluded_products.set(
             (current_excluded_products | product_to_exclude).distinct()
         )
+
+        info.context.plugins.shipping_price_updated(shipping_method)
+
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )
@@ -622,6 +648,9 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
             shipping_method.excluded_products.set(
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)
             )
+
+        info.context.plugins.shipping_price_updated(shipping_method)
+
         return ShippingPriceExcludeProducts(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )

@@ -4,49 +4,40 @@ from ...core.permissions import OrderPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.enums import ReportingPeriod
-from ..core.fields import ConnectionField, FilterConnectionField
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import from_global_id_or_error
-from ..decorators import permission_required
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
-from .mutations.discount_order import (
-    OrderDiscountAdd,
-    OrderDiscountDelete,
-    OrderDiscountUpdate,
-    OrderLineDiscountRemove,
-    OrderLineDiscountUpdate,
-)
-from .mutations.draft_orders import (
-    DraftOrderComplete,
-    DraftOrderCreate,
-    DraftOrderDelete,
-    DraftOrderUpdate,
-)
-from .mutations.fulfillments import (
-    FulfillmentApprove,
-    FulfillmentCancel,
-    FulfillmentRefundProducts,
-    FulfillmentReturnProducts,
-    FulfillmentUpdateTracking,
-    OrderFulfill,
-)
-from .mutations.orders import (
-    OrderAddNote,
-    OrderCancel,
-    OrderCapture,
-    OrderConfirm,
-    OrderLineDelete,
-    OrderLinesCreate,
-    OrderLineUpdate,
-    OrderMarkAsPaid,
-    OrderRefund,
-    OrderUpdate,
-    OrderUpdateShipping,
-    OrderVoid,
-)
+from .mutations.draft_order_complete import DraftOrderComplete
+from .mutations.draft_order_create import DraftOrderCreate
+from .mutations.draft_order_delete import DraftOrderDelete
+from .mutations.draft_order_update import DraftOrderUpdate
+from .mutations.fulfillment_approve import FulfillmentApprove
+from .mutations.fulfillment_cancel import FulfillmentCancel
+from .mutations.fulfillment_refund_products import FulfillmentRefundProducts
+from .mutations.fulfillment_return_products import FulfillmentReturnProducts
+from .mutations.fulfillment_update_tracking import FulfillmentUpdateTracking
+from .mutations.order_add_note import OrderAddNote
+from .mutations.order_cancel import OrderCancel
+from .mutations.order_capture import OrderCapture
+from .mutations.order_confirm import OrderConfirm
+from .mutations.order_discount_add import OrderDiscountAdd
+from .mutations.order_discount_delete import OrderDiscountDelete
+from .mutations.order_discount_update import OrderDiscountUpdate
+from .mutations.order_fulfill import OrderFulfill
+from .mutations.order_line_delete import OrderLineDelete
+from .mutations.order_line_discount_remove import OrderLineDiscountRemove
+from .mutations.order_line_discount_update import OrderLineDiscountUpdate
+from .mutations.order_line_update import OrderLineUpdate
+from .mutations.order_lines_create import OrderLinesCreate
+from .mutations.order_mark_as_paid import OrderMarkAsPaid
+from .mutations.order_refund import OrderRefund
+from .mutations.order_update import OrderUpdate
+from .mutations.order_update_shipping import OrderUpdateShipping
+from .mutations.order_void import OrderVoid
 from .resolvers import (
     resolve_draft_orders,
     resolve_homepage_events,
@@ -76,6 +67,9 @@ class OrderQueries(graphene.ObjectType):
             "List of activity events to display on "
             "homepage (at the moment it only contains order-events)."
         ),
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     order = graphene.Field(
         Order,
@@ -90,14 +84,20 @@ class OrderQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of orders.",
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     draft_orders = FilterConnectionField(
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         description="List of draft orders.",
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
-    orders_total = graphene.Field(
+    orders_total = PermissionsField(
         TaxedMoney,
         description="Return the total sales amount from a specific period.",
         period=graphene.Argument(ReportingPeriod, description="A period of time."),
@@ -105,40 +105,45 @@ class OrderQueries(graphene.ObjectType):
             graphene.String,
             description="Slug of a channel for which the data should be returned.",
         ),
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     order_by_token = graphene.Field(
         Order,
-        description="{DEPRECATED_IN_3X_FIELD} Look up an order by token.",
+        description="Look up an order by token.",
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
         token=graphene.Argument(UUID, description="The order's token.", required=True),
     )
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_homepage_events(self, info, *_args, **kwargs):
+    @staticmethod
+    def resolve_homepage_events(_root, info, **kwargs):
         qs = resolve_homepage_events()
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_order(self, info, **data):
+    @staticmethod
+    def resolve_order(_root, _info, **data):
         _, id = from_global_id_or_error(data.get("id"), Order)
         return resolve_order(id)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(self, info, channel=None, **kwargs):
+    @staticmethod
+    def resolve_orders(_root, info, *, channel=None, **kwargs):
         qs = resolve_orders(info, channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_draft_orders(self, info, **kwargs):
+    @staticmethod
+    def resolve_draft_orders(_root, info, **kwargs):
         qs = resolve_draft_orders(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders_total(self, info, period, channel=None, **_kwargs):
+    @staticmethod
+    def resolve_orders_total(_root, info, *, period, channel=None):
         return resolve_orders_total(info, period, channel)
 
-    def resolve_order_by_token(self, _info, token):
+    @staticmethod
+    def resolve_order_by_token(_root, _info, *, token):
         return resolve_order_by_token(token)
 
 

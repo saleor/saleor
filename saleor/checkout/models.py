@@ -37,7 +37,7 @@ def get_default_country():
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -97,7 +97,7 @@ class Checkout(ModelWithMetadata):
     discount_name = models.CharField(max_length=255, blank=True, null=True)
 
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
-    voucher_code = models.CharField(max_length=12, blank=True, null=True)
+    voucher_code = models.CharField(max_length=255, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 
     redirect_url = models.URLField(blank=True, null=True)
@@ -178,6 +178,9 @@ class CheckoutLine(models.Model):
     their `data` field is different.
     """
 
+    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     checkout = models.ForeignKey(
         Checkout, related_name="lines", on_delete=models.CASCADE
     )
@@ -185,9 +188,15 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    price_override = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
 
     class Meta:
-        ordering = ("id",)
+        ordering = ("created_at", "id")
 
     def __str__(self):
         return smart_str(self.variant)

@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Model
 
 from ...core.permissions import MenuPermissions, SitePermissions
@@ -130,6 +131,10 @@ class MenuCreate(ModelMutation):
             instance.items.create(**item)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.menu_created(instance)
+
+    @classmethod
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
@@ -156,6 +161,10 @@ class MenuUpdate(ModelMutation):
         error_type_field = "menu_errors"
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.menu_updated(instance)
+
+    @classmethod
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
@@ -172,6 +181,10 @@ class MenuDelete(ModelDeleteMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.menu_deleted(instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -216,6 +229,10 @@ class MenuItemCreate(ModelMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.menu_item_created(instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -274,6 +291,10 @@ class MenuItemUpdate(MenuItemCreate):
         instance.url = None
         return super().construct_instance(instance, cleaned_data)
 
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.menu_item_updated(instance)
+
 
 class MenuItemDelete(ModelDeleteMutation):
     class Arguments:
@@ -286,6 +307,10 @@ class MenuItemDelete(ModelDeleteMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.menu_item_deleted(instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -451,6 +476,11 @@ class MenuItemMove(BaseMutation):
                 perform_reordering(
                     menu_item.get_ordering_queryset(),
                     {menu_item.pk: operation.sort_order},
+                )
+
+            if operation.sort_order or operation.parent_changed:
+                transaction.on_commit(
+                    lambda: info.context.plugins.menu_item_updated(menu_item)
                 )
 
         menu = qs.get(pk=menu.pk)

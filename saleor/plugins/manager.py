@@ -30,8 +30,8 @@ from ..checkout.interface import CheckoutTaxedPricesData
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxType, zero_taxed_money
-from ..discount import DiscountInfo
+from ..core.taxes import TaxType, zero_money, zero_taxed_money
+from ..discount import DiscountInfo, VoucherType
 from ..order.interface import OrderTaxedPricesData
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -39,13 +39,16 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..app.models import App
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
-    from ..discount.models import Sale
+    from ..discount.models import Sale, Voucher
+    from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
+    from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..page.models import Page
+    from ..page.models import Page, PageType
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
@@ -53,11 +56,19 @@ if TYPE_CHECKING:
         PaymentData,
         PaymentGateway,
         TokenConfig,
+        TransactionActionData,
     )
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Category,
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+    )
     from ..shipping.interface import ShippingMethodData
+    from ..shipping.models import ShippingMethod, ShippingZone
     from ..translation.models import Translation
-    from ..warehouse.models import Stock
+    from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
@@ -208,15 +219,11 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
+
         default_value = base_calculations.base_checkout_total(
-            subtotal=self.calculate_checkout_subtotal(
-                checkout_info, lines, address, discounts
-            ),
-            shipping_price=self.calculate_checkout_shipping(
-                checkout_info, lines, address, discounts
-            ),
-            discount=checkout_info.checkout.discount,
-            currency=currency,
+            checkout_info,
+            discounts,
+            lines,
         )
 
         if default_value <= zero_taxed_money(currency):
@@ -252,7 +259,7 @@ class PluginsManager(PaymentInterface):
                 line_info,
                 address,
                 discounts,
-            ).price_with_sale
+            ).price_with_discounts
             for line_info in lines
         ]
         currency = checkout_info.checkout.currency
@@ -335,6 +342,19 @@ class PluginsManager(PaymentInterface):
             order,
             channel_slug=order.channel.slug,
         ).quantize(Decimal(".0001"))
+
+    def update_taxes_for_order_lines(
+        self,
+        order: "Order",
+        lines: List["OrderLine"],
+    ):
+        lines = self.__run_method_on_plugins(
+            "update_taxes_for_order_lines",
+            lines,
+            order,
+            lines,
+        )
+        return lines
 
     def calculate_checkout_line_total(
         self,
@@ -436,8 +456,14 @@ class PluginsManager(PaymentInterface):
         product: "Product",
     ) -> OrderTaxedPricesData:
         default_value = OrderTaxedPricesData(
-            undiscounted_price=order_line.undiscounted_unit_price,
-            price_with_discounts=order_line.unit_price,
+            undiscounted_price=TaxedMoney(
+                order_line.undiscounted_base_unit_price,
+                order_line.undiscounted_base_unit_price,
+            ),
+            price_with_discounts=TaxedMoney(
+                order_line.base_unit_price,
+                order_line.base_unit_price,
+            ),
         )
         currency = order_line.currency
         line_unit = self.__run_method_on_plugins(
@@ -779,6 +805,225 @@ class PluginsManager(PaymentInterface):
     def page_deleted(self, page: "Page"):
         default_value = None
         return self.__run_method_on_plugins("page_deleted", default_value, page)
+
+    def page_type_created(self, page_type: "PageType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "page_type_created", default_value, page_type
+        )
+
+    def page_type_updated(self, page_type: "PageType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "page_type_updated", default_value, page_type
+        )
+
+    def page_type_deleted(self, page_type: "PageType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "page_type_deleted", default_value, page_type
+        )
+
+    def transaction_action_request(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_action_request",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def address_created(self, address: "Address"):
+        default_value = None
+        return self.__run_method_on_plugins("address_created", default_value, address)
+
+    def address_updated(self, address: "Address"):
+        default_value = None
+        return self.__run_method_on_plugins("address_updated", default_value, address)
+
+    def address_deleted(self, address: "Address"):
+        default_value = None
+        return self.__run_method_on_plugins("address_deleted", default_value, address)
+
+    def app_installed(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_installed", default_value, app)
+
+    def app_updated(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_updated", default_value, app)
+
+    def app_deleted(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_deleted", default_value, app)
+
+    def app_status_changed(self, app: "App"):
+        default_value = None
+        return self.__run_method_on_plugins("app_status_changed", default_value, app)
+
+    def category_created(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_created", default_value, category)
+
+    def category_updated(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_updated", default_value, category)
+
+    def category_deleted(self, category: "Category"):
+        default_value = None
+        return self.__run_method_on_plugins("category_deleted", default_value, category)
+
+    def channel_created(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_created", default_value, channel)
+
+    def channel_updated(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_updated", default_value, channel)
+
+    def channel_deleted(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins("channel_deleted", default_value, channel)
+
+    def channel_status_changed(self, channel: "Channel"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "channel_status_changed", default_value, channel
+        )
+
+    def gift_card_created(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_created", default_value, gift_card
+        )
+
+    def gift_card_updated(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_updated", default_value, gift_card
+        )
+
+    def gift_card_deleted(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_deleted", default_value, gift_card
+        )
+
+    def gift_card_status_changed(self, gift_card: "GiftCard"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_status_changed", default_value, gift_card
+        )
+
+    def menu_created(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_created", default_value, menu)
+
+    def menu_updated(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_updated", default_value, menu)
+
+    def menu_deleted(self, menu: "Menu"):
+        default_value = None
+        return self.__run_method_on_plugins("menu_deleted", default_value, menu)
+
+    def menu_item_created(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_created", default_value, menu_item
+        )
+
+    def menu_item_updated(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_updated", default_value, menu_item
+        )
+
+    def menu_item_deleted(self, menu_item: "MenuItem"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "menu_item_deleted", default_value, menu_item
+        )
+
+    def shipping_price_created(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_created", default_value, shipping_method
+        )
+
+    def shipping_price_updated(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_updated", default_value, shipping_method
+        )
+
+    def shipping_price_deleted(self, shipping_method: "ShippingMethod"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_price_deleted", default_value, shipping_method
+        )
+
+    def shipping_zone_created(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_created", default_value, shipping_zone
+        )
+
+    def shipping_zone_updated(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_updated", default_value, shipping_zone
+        )
+
+    def shipping_zone_deleted(self, shipping_zone: "ShippingZone"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "shipping_zone_deleted", default_value, shipping_zone
+        )
+
+    def staff_created(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_created", default_value, staff_user)
+
+    def staff_updated(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_updated", default_value, staff_user)
+
+    def staff_deleted(self, staff_user: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+
+    def warehouse_created(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_created", default_value, warehouse
+        )
+
+    def warehouse_updated(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_updated", default_value, warehouse
+        )
+
+    def warehouse_deleted(self, warehouse: "Warehouse"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "warehouse_deleted", default_value, warehouse
+        )
+
+    def voucher_created(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_created", default_value, voucher)
+
+    def voucher_updated(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_updated", default_value, voucher)
+
+    def voucher_deleted(self, voucher: "Voucher"):
+        default_value = None
+        return self.__run_method_on_plugins("voucher_deleted", default_value, voucher)
 
     def initialize_payment(
         self, gateway, payment_data: dict, channel_slug: str
@@ -1232,6 +1477,16 @@ class PluginsManager(PaymentInterface):
             info=info,
             data=data,
         )
+
+    def is_event_active_for_any_plugin(
+        self, event: str, channel_slug: Optional[str] = None
+    ) -> bool:
+        """Check if any plugin supports defined event."""
+        plugins = (
+            self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins
+        )
+        only_active_plugins = [plugin for plugin in plugins if plugin.active]
+        return any([plugin.is_event_active(event) for plugin in only_active_plugins])
 
 
 def get_plugins_manager(

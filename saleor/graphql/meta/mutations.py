@@ -260,7 +260,10 @@ class MetadataInput(graphene.InputObjectType):
 
 class UpdateMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Updates metadata of an object."
+        description = (
+            "Updates metadata of an object. To use it, you need to have access to the "
+            "modified object."
+        )
         permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -277,7 +280,7 @@ class UpdateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
@@ -291,7 +294,10 @@ class UpdateMetadata(BaseMetadataMutation):
 
 class DeleteMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Delete metadata of an object."
+        description = (
+            "Delete metadata of an object. To use it, you need to have access to the "
+            "modified object."
+        )
         permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -308,7 +314,7 @@ class DeleteMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_keys = data.pop("keys")
@@ -320,7 +326,10 @@ class DeleteMetadata(BaseMetadataMutation):
 
 class UpdatePrivateMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Updates private metadata of an object."
+        description = (
+            "Updates private metadata of an object. To use it, you need to be an "
+            "authenticated staff user or an app and have access to the modified object."
+        )
         permission_map = PRIVATE_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -337,7 +346,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
@@ -350,7 +359,10 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
 
 class DeletePrivateMetadata(BaseMetadataMutation):
     class Meta:
-        description = "Delete object's private metadata."
+        description = (
+            "Delete object's private metadata. To use it, you need to be an "
+            "authenticated staff user or an app and have access to the modified object."
+        )
         permission_map = PRIVATE_META_PERMISSION_MAP
         error_type_class = MetadataError
         error_type_field = "metadata_errors"
@@ -367,7 +379,7 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_keys = data.pop("keys")

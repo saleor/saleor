@@ -1,7 +1,9 @@
 import requests
+from django.conf import settings
 from django.contrib.sites.models import Site
 
 from ..core.permissions import get_permission_names
+from ..plugins.manager import PluginsManager
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
@@ -24,10 +26,7 @@ def send_app_token(target_url: str, token: str):
     response.raise_for_status()
 
 
-def install_app(
-    app_installation: AppInstallation,
-    activate: bool = False,
-):
+def install_app(app_installation: AppInstallation, activate: bool = False):
     response = requests.get(app_installation.manifest_url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     assigned_permissions = app_installation.permissions.all()
@@ -62,13 +61,12 @@ def install_app(
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
-    token = app.tokens.create(name="Default token")
+    _, token = app.tokens.create(name="Default token")
 
     try:
-        send_app_token(
-            target_url=manifest_data.get("tokenTargetUrl"), token=token.auth_token
-        )
+        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
     except requests.RequestException as e:
         app.delete()
         raise e
-    return app
+    PluginsManager(plugins=settings.PLUGINS).app_installed(app)
+    return app, token

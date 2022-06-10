@@ -7,6 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...core.prices import quantize_price
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import (
     ChargeStatus,
@@ -17,7 +18,7 @@ from .. import (
     gateway,
 )
 from ..error_codes import PaymentErrorCode
-from ..interface import GatewayResponse, PaymentMethodInfo
+from ..interface import GatewayResponse, PaymentMethodInfo, TransactionData
 from ..models import Payment
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -257,6 +258,38 @@ def test_create_payment_information_for_checkout_metadata(payment_dummy, checkou
 
     payment_info = create_payment_information(payment_dummy)
     assert payment_info.checkout_metadata == metadata
+
+
+def test_create_payment_information_for_payment_with_transactions(payment_dummy):
+    # given
+    payment_dummy.transactions.create(
+        amount=payment_dummy.total,
+        currency=payment_dummy.currency,
+        kind=TransactionKind.AUTH,
+        gateway_response={"status": "SUCCESS"},
+        is_success=True,
+    )
+
+    # when
+    payment_info = create_payment_information(payment_dummy)
+
+    # then
+    for transaction in payment_dummy.transactions.all():
+        assert (
+            TransactionData(
+                token=transaction.token,
+                is_success=transaction.is_success,
+                kind=transaction.kind,
+                gateway_response=transaction.gateway_response,
+                amount={
+                    "amount": str(
+                        quantize_price(transaction.amount, transaction.currency)
+                    ),
+                    "currency": transaction.currency,
+                },
+            )
+            in payment_info.transactions
+        )
 
 
 def test_create_payment_information_for_draft_order(draft_order):
@@ -586,7 +619,6 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
 
     authorized_amount = payment.transactions.first().amount
     assert payment.get_authorized_amount().amount == authorized_amount
-    assert payment.order.total_authorized.amount == authorized_amount
 
     payment.transactions.create(
         amount=payment.total,

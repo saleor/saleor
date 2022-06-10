@@ -7,13 +7,10 @@ from ...core.search_tasks import set_product_search_document_values
 
 
 def update_product_search_document_values(apps, _schema_editor):
-    Product = apps.get_model("product", "Product")
-    total_count = Product.objects.filter(search_document="").count()
-
     def on_migrations_complete(sender=None, **kwargs):
-        set_product_search_document_values.delay(total_count, 0)
+        set_product_search_document_values.delay()
 
-    post_migrate.connect(on_migrations_complete)
+    post_migrate.connect(on_migrations_complete, weak=False)
 
 
 class Migration(migrations.Migration):

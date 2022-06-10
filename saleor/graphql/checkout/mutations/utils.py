@@ -1,11 +1,15 @@
 import datetime
 import uuid
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Union
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Type, Union, cast
 
 import graphene
+import pytz
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q
+from django.db.models import Q, QuerySet
+from graphql import ResolveInfo
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
@@ -15,14 +19,29 @@ from ....checkout.utils import (
     clear_delivery_method,
     is_shipping_required,
 )
-from ....core.exceptions import InsufficientStock
+from ....core.exceptions import InsufficientStock, PermissionDenied
+from ....core.permissions import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing
 from ....shipping import interface as shipping_interface
 from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
+from ...core.validators import validate_one_of_args_is_in_mutation
+from ..types import Checkout
+
+if TYPE_CHECKING:
+    from ...core.mutations import BaseMutation
+
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
+
+
+@dataclass
+class CheckoutLineData:
+    quantity: int = 0
+    quantity_to_update: bool = False
+    custom_price: Optional[Decimal] = None
+    custom_price_to_update: bool = False
 
 
 def clean_delivery_method(
@@ -141,9 +160,9 @@ def check_lines_quantity(
 
 
 def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
-    today = datetime.date.today()
+    today = datetime.datetime.now(pytz.UTC)
     is_available_for_purchase = Q(
-        available_for_purchase__lte=today,
+        available_for_purchase_at__lte=today,
         product__variants__id__in=variants_id,
         channel_id=channel_id,
     )
@@ -213,18 +232,75 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
     return checkout
 
 
-def group_quantity_by_variants(lines: List[Dict[str, Any]]) -> List[int]:
-    variant_quantity_map: Dict[str, int] = defaultdict(int)
+def get_checkout(
+    mutation_class: Type["BaseMutation"],
+    info: ResolveInfo,
+    checkout_id: str = None,
+    token: uuid.UUID = None,
+    id: str = None,
+    error_class=CheckoutErrorCode,
+    qs: QuerySet = None,
+):
+    """Return checkout by using the current id field or the deprecated one.
 
-    for quantity, variant_id in (line.values() for line in lines):
-        variant_quantity_map[variant_id] += quantity
+    It is helper logic to return a checkout for mutations that takes into account the
+    current `id` field and the deprecated one (`checkout_id`, `token`). If checkout is
+    not found, it will raise an exception.
+    """
 
-    return list(variant_quantity_map.values())
-
-
-def validate_checkout_email(checkout: models.Checkout):
-    if not checkout.email:
-        raise ValidationError(
-            "Checkout email must be set.",
-            code=CheckoutErrorCode.EMAIL_NOT_SET.value,
+    validate_one_of_args_is_in_mutation(
+        error_class, "checkout_id", checkout_id, "token", token, "id", id
+    )
+    if qs is None:
+        qs = models.Checkout.objects.select_related(
+            "channel",
+            "shipping_method",
+            "collection_point",
+            "billing_address",
+            "shipping_address",
         )
+
+    if id:
+        checkout = mutation_class.get_node_or_error(
+            info, id, only_type=Checkout, field="id", qs=qs
+        )
+    else:  # DEPRECATED
+        if token:
+            checkout = get_checkout_by_token(token, qs=qs)
+        else:
+            checkout = mutation_class.get_node_or_error(
+                info, checkout_id, only_type=Checkout, field="checkout_id", qs=qs
+            )
+    return checkout
+
+
+def group_quantity_and_custom_prices_by_variants(
+    lines: List[Dict[str, Any]]
+) -> List[CheckoutLineData]:
+    variant_checkout_line_data_map: Dict[str, CheckoutLineData] = defaultdict(
+        CheckoutLineData
+    )
+
+    for line in lines:
+        variant_id = cast(str, line.get("variant_id"))
+        line_data = variant_checkout_line_data_map[variant_id]
+        if (quantity := line.get("quantity")) is not None:
+            line_data.quantity += quantity
+            line_data.quantity_to_update = True
+        if "price" in line:
+            line_data.custom_price = line["price"]
+            line_data.custom_price_to_update = True
+
+    return list(variant_checkout_line_data_map.values())
+
+
+def check_permissions_for_custom_prices(app, lines):
+    """Raise PermissionDenied when custom price is changed by user or app without perm.
+
+    Checkout line custom price can be changed only by app with
+    handle checkout permission.
+    """
+    if any(["price" in line for line in lines]) and (
+        not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
+    ):
+        raise PermissionDenied(permissions=[CheckoutPermissions.HANDLE_CHECKOUTS])

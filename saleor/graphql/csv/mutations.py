@@ -123,7 +123,7 @@ class ExportProducts(BaseExportMutation):
         error_type_field = "export_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         input = data["input"]
         scope = cls.get_scope(input, Product)
         export_info = cls.get_export_info(input["export_info"])
@@ -188,12 +188,12 @@ class ExportGiftCards(BaseExportMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Export gift cards to csv file. {PREVIEW_FEATURE}"
+        description = "Export gift cards to csv file." + ADDED_IN_31 + PREVIEW_FEATURE
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = ExportError
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         input = data["input"]
         scope = cls.get_scope(input, GiftCard)
         file_type = input["file_type"]

@@ -43,10 +43,10 @@ def clean_gift_card(gift_card: GiftCard):
 class GiftCardInput(graphene.InputObjectType):
     add_tags = NonNullList(
         graphene.String,
-        description=f"{ADDED_IN_31} The gift card tags to add. {PREVIEW_FEATURE}",
+        description="The gift card tags to add." + ADDED_IN_31 + PREVIEW_FEATURE,
     )
     expiry_date = graphene.types.datetime.Date(
-        description=f"{ADDED_IN_31} The gift card expiry date. {PREVIEW_FEATURE}"
+        description="The gift card expiry date." + ADDED_IN_31 + PREVIEW_FEATURE
     )
 
     # DEPRECATED
@@ -73,14 +73,15 @@ class GiftCardCreateInput(GiftCardInput):
     )
     channel = graphene.String(
         description=(
-            f"{ADDED_IN_31} Slug of a channel from which the email should be sent. "
-            f"{PREVIEW_FEATURE}"
+            "Slug of a channel from which the email should be sent."
+            + ADDED_IN_31
+            + PREVIEW_FEATURE
         )
     )
     is_active = graphene.Boolean(
         required=True,
         description=(
-            f"{ADDED_IN_31} Determine if gift card is active. {PREVIEW_FEATURE}"
+            "Determine if gift card is active." + ADDED_IN_31 + PREVIEW_FEATURE
         ),
     )
     code = graphene.String(
@@ -92,8 +93,7 @@ class GiftCardCreateInput(GiftCardInput):
     )
     note = graphene.String(
         description=(
-            f"{ADDED_IN_31} The gift card note from the staff member. "
-            f"{PREVIEW_FEATURE}"
+            "The gift card note from the staff member." + ADDED_IN_31 + PREVIEW_FEATURE
         )
     )
 
@@ -101,10 +101,10 @@ class GiftCardCreateInput(GiftCardInput):
 class GiftCardUpdateInput(GiftCardInput):
     remove_tags = NonNullList(
         graphene.String,
-        description=f"{ADDED_IN_31} The gift card tags to remove. {PREVIEW_FEATURE}",
+        description="The gift card tags to remove." + ADDED_IN_31 + PREVIEW_FEATURE,
     )
     balance_amount = PositiveDecimal(
-        description=f"{ADDED_IN_31} The gift card balance amount. {PREVIEW_FEATURE}",
+        description="The gift card balance amount." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -240,6 +240,7 @@ class GiftCardCreate(ModelMutation):
                 channel_slug=cleaned_input["channel"],
                 resending=False,
             )
+        info.context.plugins.gift_card_created(instance)
 
     @staticmethod
     def assign_gift_card_tags(instance: models.GiftCard, tags_values: Iterable[str]):
@@ -338,6 +339,7 @@ class GiftCardUpdate(GiftCardCreate):
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
 
+        info.context.plugins.gift_card_updated(instance)
         return cls.success_response(instance)
 
     @classmethod
@@ -366,12 +368,16 @@ class GiftCardDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of the gift card to delete.", required=True)
 
     class Meta:
-        description = f"{ADDED_IN_31} Delete gift card. {PREVIEW_FEATURE}"
+        description = "Delete gift card." + ADDED_IN_31 + PREVIEW_FEATURE
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.gift_card_deleted(instance)
 
 
 class GiftCardDeactivate(BaseMutation):
@@ -399,6 +405,7 @@ class GiftCardDeactivate(BaseMutation):
             events.gift_card_deactivated_event(
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
+        info.context.plugins.gift_card_status_changed(gift_card)
         return GiftCardDeactivate(gift_card=gift_card)
 
 
@@ -428,6 +435,7 @@ class GiftCardActivate(BaseMutation):
             events.gift_card_activated_event(
                 gift_card=gift_card, user=info.context.user, app=info.context.app
             )
+        info.context.plugins.gift_card_status_changed(gift_card)
         return GiftCardActivate(gift_card=gift_card)
 
 
@@ -451,7 +459,7 @@ class GiftCardResend(BaseMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Resend a gift card. {PREVIEW_FEATURE}"
+        description = "Resend a gift card." + ADDED_IN_31 + PREVIEW_FEATURE
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
 
@@ -527,7 +535,7 @@ class GiftCardAddNote(BaseMutation):
         )
 
     class Meta:
-        description = f"{ADDED_IN_31} Adds note to the gift card. {PREVIEW_FEATURE}"
+        description = "Adds note to the gift card." + ADDED_IN_31 + PREVIEW_FEATURE
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
 
@@ -556,4 +564,5 @@ class GiftCardAddNote(BaseMutation):
             app=info.context.app,
             message=cleaned_input["message"],
         )
+        info.context.plugins.gift_card_updated(gift_card)
         return GiftCardAddNote(gift_card=gift_card, event=event)

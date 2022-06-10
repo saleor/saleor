@@ -3,14 +3,16 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
 from urllib.parse import urlparse, urlunparse
 
 import boto3
 import requests
 from botocore.exceptions import ClientError
-from celery.exceptions import MaxRetriesExceededError
+from celery import group
+from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
@@ -18,11 +20,17 @@ from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
+from ...graphql.webhook.subscription_payload import (
+    generate_payload_from_subscription,
+    initialize_request,
+)
 from ...payment import PaymentError
 from ...settings import WEBHOOK_SYNC_TIMEOUT, WEBHOOK_TIMEOUT
 from ...site.models import Site
-from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...webhook.models import Webhook
+from ...webhook import observability
+from ...webhook.event_types import SUBSCRIBABLE_EVENTS, WebhookEventAsyncType
+from ...webhook.observability import WebhookData
+from ...webhook.utils import get_webhooks_for_event
 from . import signature_for_payload
 from .utils import (
     attempt_update,
@@ -52,53 +60,113 @@ class WebhookResponse:
     content: str
     request_headers: Optional[Dict] = None
     response_headers: Optional[Dict] = None
+    response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
 
 
-def _get_webhooks_for_event(event_type, webhooks=None):
-    """Get active webhooks from the database for an event."""
-    permissions = {}
-    required_permission = WebhookEventAsyncType.PERMISSIONS.get(
-        event_type, WebhookEventSyncType.PERMISSIONS.get(event_type)
-    )
-    if required_permission:
-        app_label, codename = required_permission.value.split(".")
-        permissions["app__permissions__content_type__app_label"] = app_label
-        permissions["app__permissions__codename"] = codename
+def create_deliveries_for_subscriptions(
+    event_type, subscribable_object, webhooks, requestor=None
+) -> List[EventDelivery]:
+    """Create webhook payload based on subscription query.
 
-    if webhooks is None:
-        webhooks = Webhook.objects.all()
+    It uses a defined subscription query, defined for webhook to explicitly determine
+    what fields should be included in the payload.
 
-    webhooks = webhooks.filter(
-        is_active=True,
-        app__is_active=True,
-        events__event_type__in=[event_type, WebhookEventAsyncType.ANY],
-        **permissions,
-    )
-    webhooks = webhooks.select_related("app").prefetch_related(
-        "app__permissions__content_type"
-    )
-    return webhooks
+    :param event_type: event type which should be triggered.
+    :param subscribable_object: subscribable object to process via subscription query.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
+    :return: List of event deliveries to send via webhook tasks.
+    """
+    if event_type not in SUBSCRIBABLE_EVENTS:
+        logger.info(
+            "Skipping subscription webhook. Event %s is not subscribable.", event_type
+        )
+        return []
+
+    event_payloads = []
+    event_deliveries = []
+    for webhook in webhooks:
+        data = generate_payload_from_subscription(
+            event_type=event_type,
+            subscribable_object=subscribable_object,
+            subscription_query=webhook.subscription_query,
+            request=initialize_request(requestor),
+            app=webhook.app,
+        )
+        if not data:
+            logger.warning(
+                "No payload was generated with subscription for event: %s" % event_type
+            )
+            continue
+
+        event_payload = EventPayload(payload=json.dumps({**data}))
+        event_payloads.append(event_payload)
+        event_deliveries.append(
+            EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
+        )
+
+    EventPayload.objects.bulk_create(event_payloads)
+    return EventDelivery.objects.bulk_create(event_deliveries)
 
 
-def trigger_webhooks_async(data, event_type, webhooks):
-    payload = EventPayload.objects.create(payload=data)
-    deliveries = create_event_delivery_list_for_webhooks(
-        webhooks=webhooks,
-        event_payload=payload,
-        event_type=event_type,
-    )
+def trigger_webhooks_async(
+    data, event_type, webhooks, subscribable_object=None, requestor=None
+):
+    """Trigger async webhooks - both regular and subscription.
+
+    :param data: used as payload in regular webhooks.
+    :param event_type: used in both webhook types as event type.
+    :param webhooks: used in both webhook types, queryset of async webhooks.
+    :param subscribable_object: subscribable object used in subscription webhooks.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
+    """
+    regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
+    deliveries = []
+
+    if regular_webhooks:
+        payload = EventPayload.objects.create(payload=data)
+        deliveries.extend(
+            create_event_delivery_list_for_webhooks(
+                webhooks=webhooks,
+                event_payload=payload,
+                event_type=event_type,
+            )
+        )
+    if subscription_webhooks:
+        deliveries.extend(
+            create_deliveries_for_subscriptions(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                webhooks=subscription_webhooks,
+                requestor=requestor,
+            )
+        )
+
     for delivery in deliveries:
         send_webhook_request_async.delay(delivery.id)
+
+
+def group_webhooks_by_subscription(webhooks):
+    subscription = [webhook for webhook in webhooks if webhook.subscription_query]
+    regular = [webhook for webhook in webhooks if not webhook.subscription_query]
+
+    return regular, subscription
 
 
 def trigger_webhook_sync(
     event_type: str, data: str, app: "App", timeout=None
 ) -> Optional[Dict[Any, Any]]:
     """Send a synchronous webhook request."""
-    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
+    webhooks = get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
+    if not webhook:
+        raise PaymentError(f"No payment webhook found for event: {event_type}.")
     event_payload = EventPayload.objects.create(payload=data)
     delivery = EventDelivery.objects.create(
         status=EventDeliveryStatus.PENDING,
@@ -106,9 +174,6 @@ def trigger_webhook_sync(
         payload=event_payload,
         webhook=webhook,
     )
-    if not webhooks:
-        raise PaymentError(f"No payment webhook found for event: {event_type}.")
-
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
@@ -145,6 +210,7 @@ def send_webhook_using_http(
         content=response.text,
         request_headers=headers,
         response_headers=dict(response.headers),
+        response_status_code=response.status_code,
         duration=response.elapsed.total_seconds(),
         status=(
             EventDeliveryStatus.SUCCESS if response.ok else EventDeliveryStatus.FAILED
@@ -252,8 +318,14 @@ def send_webhook_request_async(self, event_delivery_id):
     except EventDelivery.DoesNotExist:
         logger.error("Event delivery id: %r not found", event_delivery_id)
         return
-    data = delivery.payload.payload
+
+    if not delivery.webhook.is_active:
+        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
+        return
+
     webhook = delivery.webhook
+    data = delivery.payload.payload
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
@@ -282,6 +354,10 @@ def send_webhook_request_async(self, event_delivery_id):
             try:
                 countdown = self.retry_backoff * (2**self.request.retries)
                 self.retry(countdown=countdown, **self.retry_kwargs)
+            except Retry as retry_error:
+                next_retry = observability.task_next_retry_date(retry_error)
+                observability.report_event_delivery_attempt(attempt, next_retry)
+                raise retry_error
             except MaxRetriesExceededError:
                 task_logger.warning(
                     "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
@@ -304,6 +380,7 @@ def send_webhook_request_async(self, event_delivery_id):
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+    observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
 
@@ -356,6 +433,7 @@ def send_webhook_request_sync(
         if e.response:
             response.content = e.response.text
             response.response_headers = dict(e.response.headers)
+            response.response_status_code = e.response.status_code
 
     except JSONDecodeError as e:
         logger.warning(
@@ -377,9 +455,88 @@ def send_webhook_request_sync(
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
+    observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
+
+
+def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
+    event_type = WebhookEventAsyncType.OBSERVABILITY
+    for webhook in webhooks:
+        scheme = urlparse(webhook.target_url).scheme.lower()
+        failed = 0
+        try:
+            if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
+                for event in events:
+                    response = send_webhook_using_scheme_method(
+                        webhook.target_url,
+                        webhook.saleor_domain,
+                        webhook.secret_key,
+                        event_type,
+                        observability.dump_payload(event),
+                    )
+                    if response.status == EventDeliveryStatus.FAILED:
+                        failed += 1
+            else:
+                response = send_webhook_using_scheme_method(
+                    webhook.target_url,
+                    webhook.saleor_domain,
+                    webhook.secret_key,
+                    event_type,
+                    observability.dump_payload(events),
+                )
+                if response.status == EventDeliveryStatus.FAILED:
+                    failed = len(events)
+        except ValueError:
+            logger.error(
+                "[Observability] Webhook ID: %r unknown webhook scheme: %r",
+                webhook.id,
+                scheme,
+            )
+            continue
+        if failed:
+            logger.warning(
+                "[Observability] Webhook ID: %r failed request to %r "
+                "(%s/%s events dropped): %r.",
+                webhook.id,
+                webhook.target_url,
+                failed,
+                len(events),
+                response.content,
+            )
+            continue
+        logger.debug(
+            "[Observability] Successful delivered %s events to %r.",
+            len(events),
+            webhook.target_url,
+        )
+
+
+@app.task
+def observability_send_events():
+    with observability.opentracing_trace("send_events_task", "task"):
+        if webhooks := observability.get_webhooks():
+            with observability.opentracing_trace("pop_events", "buffer"):
+                events, _ = observability.pop_events_with_remaining_size()
+            if events:
+                with observability.opentracing_trace("send_events", "webhooks"):
+                    send_observability_events(webhooks, events)
+
+
+@app.task
+def observability_reporter_task():
+    with observability.opentracing_trace("reporter_task", "task"):
+        if webhooks := observability.get_webhooks():
+            with observability.opentracing_trace("pop_events", "buffer"):
+                events, batch_count = observability.pop_events_with_remaining_size()
+            if batch_count > 0:
+                tasks = [observability_send_events.s() for _ in range(batch_count)]
+                expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
+                group(tasks).apply_async(expires=expiration)
+            if events:
+                with observability.opentracing_trace("send_events", "webhooks"):
+                    send_observability_events(webhooks, events)
 
 
 # DEPRECATED
@@ -387,7 +544,7 @@ def send_webhook_request_sync(
 @app.task(compression="zlib")
 def trigger_webhooks_for_event(event_type, data):
     """Send a webhook request for an event as an async task."""
-    webhooks = _get_webhooks_for_event(event_type)
+    webhooks = get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
             webhook.app.name,

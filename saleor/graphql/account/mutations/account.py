@@ -3,6 +3,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, notifications, search, utils
@@ -10,6 +11,7 @@ from ....account.error_codes import AccountErrorCode
 from ....account.utils import remove_the_oldest_user_address_if_address_limit_is_reached
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
+from ....core.permissions import AuthorizationFilters
 from ....core.tokens import account_delete_token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -176,12 +178,9 @@ class AccountUpdate(BaseCustomerCreate):
         exclude = ["password"]
         model = models.User
         object_type = User
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -210,15 +209,12 @@ class AccountRequestDeletion(BaseMutation):
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         redirect_url = data["redirect_url"]
         try:
@@ -252,10 +248,7 @@ class AccountDelete(ModelDeleteMutation):
         object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -310,14 +303,11 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         address_type = data.get("type", None)
         user = info.context.user
         cleaned_input = cls.clean_input(
@@ -339,23 +329,40 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         user = info.context.user
         remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
-        info.context.plugins.customer_updated(user)
         user.search_document = search.prepare_user_search_document_value(user)
         user.save(update_fields=["search_document", "updated_at"])
+        transaction.on_commit(
+            lambda: cls.trigger_post_account_address_create_webhooks(
+                info, instance, user
+            )
+        )
+
+    @classmethod
+    def trigger_post_account_address_create_webhooks(cls, info, address, user):
+        info.context.plugins.customer_updated(user)
+        info.context.plugins.address_created(address)
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
-        description = "Updates an address of the logged-in user."
-        model = models.Address
-        object_type = Address
+        auto_permission_message = False
+        description = (
+            "Updates an address of the logged-in user. Requires one of the following "
+            "permissions: MANAGE_USERS, IS_OWNER."
+        )
         error_type_class = AccountError
         error_type_field = "account_errors"
+        model = models.Address
+        object_type = Address
 
 
 class AccountAddressDelete(BaseAddressDelete):
     class Meta:
-        description = "Delete an address of the logged-in user."
+        auto_permission_message = False
+        description = (
+            "Delete an address of the logged-in user. Requires one of the following "
+            "permissions: MANAGE_USERS, IS_OWNER."
+        )
         model = models.Address
         object_type = Address
         error_type_class = AccountError
@@ -375,10 +382,7 @@ class AccountSetDefaultAddress(BaseMutation):
         description = "Sets a default address for the authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -431,10 +435,7 @@ class RequestEmailChange(BaseMutation):
         description = "Request email change of the logged in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -506,10 +507,7 @@ class ConfirmEmailChange(BaseMutation):
         description = "Confirm the email change of the logged-in user."
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
     @classmethod
     def get_token_payload(cls, token):

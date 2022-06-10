@@ -58,15 +58,14 @@ class ExternalNotificationTrigger(BaseMutation):
 
     class Meta:
         description = (
-            f"{ADDED_IN_31} Trigger sending a notification "
-            "with the notify plugin method. "
+            "Trigger sending a notification with the notify plugin method. "
             "Serializes nodes provided as ids parameter and includes this data in "
-            "the notification payload."
+            "the notification payload." + ADDED_IN_31
         )
         error_type_class = ExternalNotificationError
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, _root, info, **data):
         manager = info.context.plugins
         plugin_id = data.get("plugin_id")
         channel_slug = validate_and_get_channel(data, ExternalNotificationErrorCodes)
@@ -95,4 +94,4 @@ class ExternalNotificationTrigger(BaseMutation):
     def _requestor_has_permission(cls, context, permission_type):
         if cls.check_permissions(context, (permission_type,)):
             return True
-        raise PermissionDenied()
+        raise PermissionDenied(permissions=[permission_type])

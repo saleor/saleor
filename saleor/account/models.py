@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Collection, Union
 
 from django.conf import settings
 from django.contrib.auth.models import _user_has_perm  # type: ignore
@@ -79,6 +79,19 @@ class Address(models.Model):
                 # `opclasses` and `fields` should be the same length
                 fields=["first_name", "last_name", "city", "country"],
                 opclasses=["gin_trgm_ops"] * 4,
+            ),
+            GinIndex(
+                name="warehouse_address_search_gin",
+                # `opclasses` and `fields` should be the same length
+                fields=[
+                    "company_name",
+                    "street_address_1",
+                    "street_address_2",
+                    "city",
+                    "postal_code",
+                    "phone",
+                ],
+                opclasses=["gin_trgm_ops"] * 6,
             ),
         ]
 
@@ -263,14 +276,24 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     def get_short_name(self):
         return self.email
 
-    def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None):  # type: ignore
+    def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None) -> bool:
         # This method is overridden to accept perm as BasePermissionEnum
-        perm = perm.value if hasattr(perm, "value") else perm  # type: ignore
+        perm = perm.value if isinstance(perm, BasePermissionEnum) else perm
 
         # Active superusers have all permissions.
         if self.is_active and self.is_superuser and not self._effective_permissions:
             return True
         return _user_has_perm(self, perm, obj)
+
+    def has_perms(
+        self, perm_list: Collection[Union[BasePermissionEnum, str]], obj=None
+    ) -> bool:
+        # This method is overridden to accept perm as BasePermissionEnum
+        perm_list = [
+            perm.value if isinstance(perm, BasePermissionEnum) else perm
+            for perm in perm_list
+        ]
+        return super().has_perms(perm_list, obj)
 
 
 class CustomerNote(models.Model):

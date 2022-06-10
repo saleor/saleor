@@ -66,3 +66,10 @@ class PermissionDenied(Exception):
                 message = "You do not have permission to perform this action"
         super().__init__(message)
         self.permissions = permissions
+
+
+class GiftCardNotApplicable(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+        self.code = CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value

@@ -6,9 +6,8 @@ from ...core.permissions import (
     ShippingPermissions,
 )
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.fields import FilterConnectionField
+from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
-from ..decorators import one_of_permissions_required, permission_required
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -33,40 +32,38 @@ from .types import (
 
 
 class WarehouseQueries(graphene.ObjectType):
-    warehouse = graphene.Field(
+    warehouse = PermissionsField(
         Warehouse,
         description="Look up a warehouse by ID.",
         id=graphene.Argument(
             graphene.ID, description="ID of an warehouse", required=True
         ),
+        permissions=[
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+            ShippingPermissions.MANAGE_SHIPPING,
+        ],
     )
     warehouses = FilterConnectionField(
         WarehouseCountableConnection,
         description="List of warehouses.",
         filter=WarehouseFilterInput(),
         sort_by=WarehouseSortingInput(),
-    )
-
-    @one_of_permissions_required(
-        [
+        permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
             OrderPermissions.MANAGE_ORDERS,
             ShippingPermissions.MANAGE_SHIPPING,
-        ]
+        ],
     )
-    def resolve_warehouse(self, info, **data):
+
+    @staticmethod
+    def resolve_warehouse(_root, _info, **data):
         warehouse_pk = data.get("id")
         _, id = from_global_id_or_error(warehouse_pk, Warehouse)
         return resolve_warehouse(id)
 
-    @one_of_permissions_required(
-        [
-            ProductPermissions.MANAGE_PRODUCTS,
-            OrderPermissions.MANAGE_ORDERS,
-            ShippingPermissions.MANAGE_SHIPPING,
-        ]
-    )
-    def resolve_warehouses(self, info, **kwargs):
+    @staticmethod
+    def resolve_warehouses(_root, info, **kwargs):
         qs = resolve_warehouses()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
@@ -81,25 +78,27 @@ class WarehouseMutations(graphene.ObjectType):
 
 
 class StockQueries(graphene.ObjectType):
-    stock = graphene.Field(
+    stock = PermissionsField(
         Stock,
         description="Look up a stock by ID",
         id=graphene.ID(required=True, description="ID of an warehouse"),
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
     stocks = FilterConnectionField(
         StockCountableConnection,
         description="List of stocks.",
         filter=StockFilterInput(),
+        permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
 
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_stock(self, info, **kwargs):
+    @staticmethod
+    def resolve_stock(_root, _info, **kwargs):
         stock_id = kwargs.get("id")
         _, id = from_global_id_or_error(stock_id, Stock)
         return resolve_stock(id)
 
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_stocks(self, info, **kwargs):
+    @staticmethod
+    def resolve_stocks(_root, info, **kwargs):
         qs = resolve_stocks()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)

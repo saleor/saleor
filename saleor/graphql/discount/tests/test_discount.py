@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.utils import timezone
+from django.utils.functional import SimpleLazyObject
 from django_countries import countries
 from freezegun import freeze_time
 
@@ -12,6 +13,8 @@ from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.discount.mutations import convert_catalogue_info_to_global_ids
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -493,6 +496,63 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.usage_limit == 3
 
 
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_voucher_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_discounts,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+        "code": "testcode123",
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "minCheckoutItemsQuantity": 10,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+        "applyOncePerOrder": True,
+        "applyOncePerCustomer": True,
+        "usageLimit": 3,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    voucher = Voucher.objects.last()
+
+    # then
+    assert content["data"]["voucherCreate"]["voucher"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": graphene.Node.to_global_id("Voucher", voucher.id),
+            "name": voucher.name,
+            "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.VOUCHER_CREATED,
+        [any_webhook],
+        voucher,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
@@ -600,8 +660,7 @@ def test_create_voucher_with_enddate_before_startdate(
     assert errors
 
 
-def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
-    query = """
+UPDATE_VOUCHER_MUTATION = """
     mutation  voucherUpdate($code: String,
         $discountValueType: DiscountValueTypeEnum, $id: ID!,
         $applyOncePerOrder: Boolean, $minCheckoutItemsQuantity: Int) {
@@ -623,7 +682,10 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
                 }
             }
         }
-    """
+"""
+
+
+def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     apply_once_per_order = not voucher.apply_once_per_order
     # Set discount value type to 'fixed' and change it in mutation
     voucher.discount_value_type = DiscountValueType.FIXED
@@ -638,7 +700,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts]
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherUpdate"]["voucher"]
@@ -648,34 +710,143 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
     assert data["minCheckoutItemsQuantity"] == 10
 
 
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_update_voucher_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "code": "testcode123",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["voucherUpdate"]["voucher"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "name": voucher.name,
+            "code": variables["code"],
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.VOUCHER_UPDATED,
+        [any_webhook],
+        voucher,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
+VOUCHER_DELETE_MUTATION = """
+    mutation DeleteVoucher($id: ID!) {
+        voucherDelete(id: $id) {
+            voucher {
+                name
+                id
+            }
+            errors {
+                field
+                code
+                message
+            }
+          }
+        }
+"""
+
+
 def test_voucher_delete_mutation(
     staff_api_client, voucher, permission_manage_discounts
 ):
-    query = """
-        mutation DeleteVoucher($id: ID!) {
-            voucherDelete(id: $id) {
-                voucher {
-                    name
-                    id
-                }
-                errors {
-                    field
-                    code
-                    message
-                }
-              }
-            }
-    """
     variables = {"id": graphene.Node.to_global_id("Voucher", voucher.id)}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts]
+        VOUCHER_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherDelete"]
     assert data["voucher"]["name"] == voucher.name
     with pytest.raises(voucher._meta.model.DoesNotExist):
         voucher.refresh_from_db()
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_voucher_delete_mutation_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOUCHER_DELETE_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["voucherDelete"]["voucher"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "name": voucher.name,
+            "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.VOUCHER_DELETED,
+        [any_webhook],
+        voucher,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
+
+
+VOUCHER_ADD_CATALOGUES_MUTATION = """
+    mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+        voucherCataloguesAdd(id: $id, input: $input) {
+            voucher {
+                name
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
 
 
 def test_voucher_add_catalogues(
@@ -687,20 +858,6 @@ def test_voucher_add_catalogues(
     product_variant_list,
     permission_manage_discounts,
 ):
-    query = """
-        mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
-            voucherCataloguesAdd(id: $id, input: $input) {
-                voucher {
-                    name
-                }
-                errors {
-                    field
-                    code
-                    message
-                }
-            }
-        }
-    """
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -719,7 +876,9 @@ def test_voucher_add_catalogues(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts]
+        VOUCHER_ADD_CATALOGUES_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesAdd"]
@@ -729,6 +888,73 @@ def test_voucher_add_catalogues(
     assert category in voucher.categories.all()
     assert collection in voucher.collections.all()
     assert set(product_variant_list) == set(voucher.variants.all())
+
+
+@freeze_time("2022-05-12 12:00:00")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_voucher_add_catalogues_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    voucher,
+    category,
+    product,
+    collection,
+    product_variant_list,
+    permission_manage_discounts,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    variant_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id)
+        for variant in product_variant_list
+    ]
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "products": [product_id],
+            "collections": [collection_id],
+            "categories": [category_id],
+            "variants": variant_ids,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOUCHER_ADD_CATALOGUES_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCataloguesAdd"]
+
+    # then
+    assert content["data"]["voucherCataloguesAdd"]["voucher"]
+    assert not data["errors"]
+    mocked_webhook_trigger.assert_called_once_with(
+        {
+            "id": variables["id"],
+            "name": voucher.name,
+            "code": voucher.code,
+            "meta": generate_meta(
+                requestor_data=generate_requestor(
+                    SimpleLazyObject(lambda: staff_api_client.user)
+                )
+            ),
+        },
+        WebhookEventAsyncType.VOUCHER_UPDATED,
+        [any_webhook],
+        voucher,
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_voucher_add_catalogues_with_product_without_variant(
@@ -776,6 +1002,22 @@ def test_voucher_add_catalogues_with_product_without_variant(
     assert error["message"] == "Cannot manage products without variants."
 
 
+VOUCHER_REMOVE_CATALOGUES = """
+    mutation voucherCataloguesRemove($id: ID!, $input: CatalogueInput!) {
+        voucherCataloguesRemove(id: $id, input: $input) {
+            voucher {
+                name
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
 def test_voucher_remove_catalogues(
     staff_api_client,
     voucher,
@@ -790,20 +1032,6 @@ def test_voucher_remove_catalogues(
     voucher.categories.add(category)
     voucher.variants.add(*product_variant_list)
 
-    query = """
-        mutation voucherCataloguesRemove($id: ID!, $input: CatalogueInput!) {
-            voucherCataloguesRemove(id: $id, input: $input) {
-                voucher {
-                    name
-                }
-                errors {
-                    field
-                    code
-                    message
-                }
-            }
-        }
-    """
     product_id = graphene.Node.to_global_id("Product", product.id)
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     category_id = graphene.Node.to_global_id("Category", category.id)
@@ -822,7 +1050,7 @@ def test_voucher_remove_catalogues(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_discounts]
+        VOUCHER_REMOVE_CATALOGUES, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesRemove"]

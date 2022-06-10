@@ -1,14 +1,30 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import AppPermission
+from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
 from . import enums
+from .subscription_payload import validate_subscription_query
 from .types import EventDelivery, Webhook
+
+
+def validate_query(query):
+    if not query:
+        return
+    is_valid = validate_subscription_query(query)
+    if not is_valid:
+        raise ValidationError(
+            {
+                "query": ValidationError(
+                    "Subscription query is not valid",
+                    code=WebhookErrorCode.INVALID.value,
+                )
+            }
+        )
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -40,6 +56,12 @@ class WebhookCreateInput(graphene.InputObjectType):
         description="The secret key used to create a hash signature with each payload.",
         required=False,
     )
+    query = graphene.String(
+        description="Subscription query used to define a webhook payload."
+        + ADDED_IN_32
+        + PREVIEW_FEATURE,
+        required=False,
+    )
 
 
 def clean_webhook_events(_info, _instance, data):
@@ -63,7 +85,10 @@ class WebhookCreate(ModelMutation):
         description = "Creates a new webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
 
@@ -90,6 +115,9 @@ class WebhookCreate(ModelMutation):
                 code=WebhookErrorCode.NOT_FOUND,
             )
         clean_webhook_events(info, instance, cleaned_data)
+        if query := cleaned_data.get("query"):
+            validate_query(query)
+            instance.subscription_query = query
         return cleaned_data
 
     @classmethod
@@ -98,12 +126,6 @@ class WebhookCreate(ModelMutation):
         app = info.context.app
         instance.app = app
         return instance
-
-    @classmethod
-    def check_permissions(cls, context):
-        has_perm = super().check_permissions(context)
-        has_perm = bool(context.app) or has_perm
-        return has_perm
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -150,6 +172,12 @@ class WebhookUpdateInput(graphene.InputObjectType):
     secret_key = graphene.String(
         description="Use to create a hash signature with each payload.", required=False
     )
+    query = graphene.String(
+        description="Subscription query used to define a webhook payload."
+        + ADDED_IN_32
+        + PREVIEW_FEATURE,
+        required=False,
+    )
 
 
 class WebhookUpdate(ModelMutation):
@@ -187,6 +215,10 @@ class WebhookUpdate(ModelMutation):
                 code=WebhookErrorCode.NOT_FOUND,
             )
         clean_webhook_events(info, instance, cleaned_data)
+
+        if query := cleaned_data.get("query"):
+            validate_query(query)
+            instance.subscription_query = query
         return cleaned_data
 
     @classmethod
@@ -211,15 +243,12 @@ class WebhookDelete(ModelDeleteMutation):
         description = "Deletes a webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        has_perm = super().check_permissions(context)
-        has_perm = bool(context.app) or has_perm
-        return has_perm
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

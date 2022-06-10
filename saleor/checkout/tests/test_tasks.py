@@ -15,7 +15,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     expired_anonymous_checkout = checkouts_list[0]
     expired_anonymous_checkout.email = None
     expired_anonymous_checkout.user = None
-    expired_anonymous_checkout.created = now - timedelta(days=40)
+    expired_anonymous_checkout.created_at = now - timedelta(days=40)
     expired_anonymous_checkout.last_change = now - timedelta(days=35)
     expired_anonymous_checkout.lines.create(
         checkout=expired_anonymous_checkout, variant=variant, quantity=1
@@ -24,7 +24,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     not_expired_checkout_1 = checkouts_list[1]
     not_expired_checkout_1.email = None
     not_expired_checkout_1.user = None
-    not_expired_checkout_1.created = now - timedelta(days=35)
+    not_expired_checkout_1.created_at = now - timedelta(days=35)
     not_expired_checkout_1.last_change = now - timedelta(days=29)
     not_expired_checkout_1.lines.create(
         checkout=not_expired_checkout_1, variant=variant, quantity=1
@@ -33,7 +33,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     not_expired_checkout_2 = checkouts_list[2]
     not_expired_checkout_2.email = None
     not_expired_checkout_2.user = customer_user
-    not_expired_checkout_2.created = now - timedelta(days=45)
+    not_expired_checkout_2.created_at = now - timedelta(days=45)
     not_expired_checkout_2.last_change = now - timedelta(days=40)
     not_expired_checkout_2.lines.create(
         checkout=not_expired_checkout_2, variant=variant, quantity=1
@@ -42,7 +42,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     not_expired_checkout_3 = checkouts_list[3]
     not_expired_checkout_3.email = "test@example.com"
     not_expired_checkout_3.user = None
-    not_expired_checkout_3.created = now - timedelta(days=45)
+    not_expired_checkout_3.created_at = now - timedelta(days=45)
     not_expired_checkout_3.last_change = now - timedelta(days=40)
     not_expired_checkout_3.lines.create(
         checkout=not_expired_checkout_3, variant=variant, quantity=1
@@ -59,7 +59,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
             not_expired_checkout_2,
             not_expired_checkout_3,
         ],
-        ["created", "last_change", "email", "user"],
+        ["created_at", "last_change", "email", "user"],
     )
 
     # when
@@ -79,7 +79,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     expired_user_checkout_1 = checkouts_list[0]
     expired_user_checkout_1.email = None
     expired_user_checkout_1.user = customer_user
-    expired_user_checkout_1.created = now - timedelta(days=100)
+    expired_user_checkout_1.created_at = now - timedelta(days=100)
     expired_user_checkout_1.last_change = now - timedelta(days=98)
     expired_user_checkout_1.lines.create(
         checkout=expired_user_checkout_1, variant=variant, quantity=1
@@ -88,7 +88,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     expired_user_checkout_2 = checkouts_list[1]
     expired_user_checkout_2.email = "test@example.com"
     expired_user_checkout_2.user = None
-    expired_user_checkout_2.created = now - timedelta(days=100)
+    expired_user_checkout_2.created_at = now - timedelta(days=100)
     expired_user_checkout_2.last_change = now - timedelta(days=91)
     expired_user_checkout_2.lines.create(
         checkout=expired_user_checkout_2, variant=variant, quantity=1
@@ -97,7 +97,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     not_expired_checkout_1 = checkouts_list[2]
     not_expired_checkout_1.email = None
     not_expired_checkout_1.user = None
-    not_expired_checkout_1.created = now - timedelta(days=35)
+    not_expired_checkout_1.created_at = now - timedelta(days=35)
     not_expired_checkout_1.last_change = now - timedelta(days=29)
     not_expired_checkout_1.lines.create(
         checkout=not_expired_checkout_1, variant=variant, quantity=1
@@ -106,7 +106,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     not_expired_checkout_2 = checkouts_list[3]
     not_expired_checkout_2.email = "test@example.com"
     not_expired_checkout_2.user = None
-    not_expired_checkout_2.created = now - timedelta(days=100)
+    not_expired_checkout_2.created_at = now - timedelta(days=100)
     not_expired_checkout_2.last_change = now - timedelta(days=60)
     not_expired_checkout_2.lines.create(
         checkout=not_expired_checkout_2, variant=variant, quantity=1
@@ -115,7 +115,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     not_expired_checkout_3 = checkouts_list[4]
     not_expired_checkout_3.email = None
     not_expired_checkout_3.user = customer_user
-    not_expired_checkout_3.created = now - timedelta(days=100)
+    not_expired_checkout_3.created_at = now - timedelta(days=100)
     not_expired_checkout_3.last_change = now - timedelta(days=89)
     not_expired_checkout_3.lines.create(
         checkout=not_expired_checkout_3, variant=variant, quantity=1
@@ -129,7 +129,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
             not_expired_checkout_2,
             not_expired_checkout_3,
         ],
-        ["created", "last_change", "email", "user"],
+        ["created_at", "last_change", "email", "user"],
     )
 
     # when
@@ -194,7 +194,7 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
 
     expired_anonymous_checkout = checkouts_list[0]
     expired_anonymous_checkout.email = None
-    expired_anonymous_checkout.created = now - timedelta(days=40)
+    expired_anonymous_checkout.created_at = now - timedelta(days=40)
     expired_anonymous_checkout.last_change = now - timedelta(days=35)
     expired_anonymous_checkout.lines.create(
         checkout=expired_anonymous_checkout, variant=variant, quantity=1
@@ -202,7 +202,7 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
 
     expired_user_checkout = checkouts_list[2]
     expired_user_checkout.user = customer_user
-    expired_user_checkout.created = now - timedelta(days=100)
+    expired_user_checkout.created_at = now - timedelta(days=100)
     expired_user_checkout.last_change = now - timedelta(days=95)
     expired_user_checkout.lines.create(
         checkout=expired_user_checkout, variant=variant, quantity=1
@@ -218,7 +218,7 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
             expired_user_checkout,
             empty_checkout,
         ],
-        ["created", "last_change", "email", "user"],
+        ["created_at", "last_change", "email", "user"],
     )
 
     # when

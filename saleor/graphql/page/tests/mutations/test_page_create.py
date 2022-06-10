@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest import mock
 
 import graphene
 import pytz
+from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
 
@@ -15,21 +16,16 @@ from ....tests.utils import get_graphql_content
 
 CREATE_PAGE_MUTATION = """
     mutation CreatePage(
-            $slug: String, $title: String, $content: JSONString, $pageType: ID!
-            $isPublished: Boolean,
-            $attributes: [AttributeValueInput!]) {
-        pageCreate(
-                input: {
-                    slug: $slug, title: $title, pageType: $pageType
-                    content: $content
-                    isPublished: $isPublished, attributes: $attributes}) {
+        $input: PageCreateInput!
+    ) {
+        pageCreate(input: $input) {
             page {
                 id
                 title
                 content
                 slug
                 isPublished
-                publicationDate
+                publishedAt
                 pageType {
                     id
                 }
@@ -43,6 +39,7 @@ CREATE_PAGE_MUTATION = """
                         reference
                         date
                         dateTime
+                        plainText
                         file {
                             url
                             contentType
@@ -81,15 +78,17 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [
-            {"id": tag_attr_id, "values": [tag_value_slug]},
-            {"id": size_attr_id, "values": [non_existent_attr_value]},
-        ],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": tag_attr_id, "values": [tag_value_slug]},
+                {"id": size_attr_id, "values": [non_existent_attr_value]},
+            ],
+        }
     }
 
     response = staff_api_client.post_graphql(
@@ -102,7 +101,64 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert data["page"]["content"] == page_content
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
-    assert data["page"]["publicationDate"] == "2020-03-18"
+    assert data["page"]["publishedAt"] == datetime.now(pytz.utc).isoformat()
+    assert data["page"]["pageType"]["id"] == page_type_id
+    values = (
+        data["page"]["attributes"][0]["values"][0]["slug"],
+        data["page"]["attributes"][1]["values"][0]["slug"],
+    )
+    assert slugify(non_existent_attr_value) in values
+    assert tag_value_slug in values
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_page_create_mutation_with_published_at_date(
+    staff_api_client, permission_manage_pages, page_type
+):
+    page_slug = "test-slug"
+    page_content = dummy_editorjs("test content", True)
+    page_title = "test title"
+    page_is_published = True
+    published_at = datetime.now(pytz.utc).replace(microsecond=0) + timedelta(days=5)
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    # Default attributes defined in product_type fixture
+    tag_attr = page_type.page_attributes.get(name="tag")
+    tag_value_slug = tag_attr.values.first().slug
+    tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
+
+    # Add second attribute
+    size_attr = page_type.page_attributes.get(name="Page size")
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attr.id)
+    non_existent_attr_value = "New value"
+
+    # test creating root page
+    variables = {
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "publishedAt": published_at,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": tag_attr_id, "values": [tag_value_slug]},
+                {"id": size_attr_id, "values": [non_existent_attr_value]},
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    assert data["errors"] == []
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["publishedAt"] == published_at.isoformat()
     assert data["page"]["pageType"]["id"] == page_type_id
     values = (
         data["page"]["attributes"][0]["values"][0]["slug"],
@@ -113,7 +169,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
 
 
 @freeze_time("1914-06-28 10:50")
-@mock.patch("saleor.plugins.webhook.plugin._get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_create_trigger_page_webhook(
     mocked_webhook_trigger,
@@ -134,11 +190,13 @@ def test_page_create_trigger_page_webhook(
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+        }
     }
 
     response = staff_api_client.post_graphql(
@@ -156,31 +214,39 @@ def test_page_create_trigger_page_webhook(
     expected_data = generate_page_payload(page, staff_api_client.user)
 
     mocked_webhook_trigger.assert_called_once_with(
-        expected_data, WebhookEventAsyncType.PAGE_CREATED, [any_webhook]
+        expected_data,
+        WebhookEventAsyncType.PAGE_CREATED,
+        [any_webhook],
+        page,
+        SimpleLazyObject(lambda: staff_api_client.user),
     )
 
 
 def test_page_create_required_fields(
     staff_api_client, permission_manage_pages, page_type
 ):
-    variables = {"pageType": graphene.Node.to_global_id("PageType", page_type.pk)}
+    variables = {
+        "input": {"pageType": graphene.Node.to_global_id("PageType", page_type.pk)}
+    }
     response = staff_api_client.post_graphql(
         CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
     errors = content["data"]["pageCreate"]["errors"]
 
-    assert len(errors) == 1
-    assert errors[0]["field"] == "title"
-    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
+    assert len(errors) == 2
+    assert {error["field"] for error in errors} == {"title", "slug"}
+    assert {error["code"] for error in errors} == {PageErrorCode.REQUIRED.name}
 
 
 def test_create_default_slug(staff_api_client, permission_manage_pages, page_type):
     # test creating root page
     title = "Spanish inquisition"
     variables = {
-        "title": title,
-        "pageType": graphene.Node.to_global_id("PageType", page_type.pk),
+        "input": {
+            "title": title,
+            "pageType": graphene.Node.to_global_id("PageType", page_type.pk),
+        }
     }
     response = staff_api_client.post_graphql(
         CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
@@ -214,12 +280,14 @@ def test_page_create_mutation_missing_required_attributes(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": tag_attr_id, "values": [tag_value_slug]}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": tag_attr_id, "values": [tag_value_slug]}],
+        }
     }
 
     # when
@@ -257,12 +325,14 @@ def test_page_create_mutation_empty_attribute_value(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": tag_attr_id, "values": ["  "]}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": tag_attr_id, "values": ["  "]}],
+        }
     }
 
     # when
@@ -305,12 +375,14 @@ def test_create_page_with_file_attribute(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": attr_value.file_url}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": attr_value.file_url}],
+        }
     }
 
     # when
@@ -341,6 +413,7 @@ def test_create_page_with_file_attribute(
                     "contentType": None,
                 },
                 "reference": None,
+                "plainText": None,
                 "date": None,
                 "dateTime": None,
             }
@@ -374,18 +447,20 @@ def test_create_page_with_file_attribute_new_attribute_value(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [
-            {
-                "id": file_attribute_id,
-                "file": new_value,
-                "contentType": new_value_content_type,
-            }
-        ],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [
+                {
+                    "id": file_attribute_id,
+                    "file": new_value,
+                    "contentType": new_value_content_type,
+                }
+            ],
+        }
     }
 
     # when
@@ -416,6 +491,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
                     "url": "http://testserver/media/" + new_value,
                     "contentType": new_value_content_type,
                 },
+                "plainText": None,
                 "date": None,
                 "dateTime": None,
             }
@@ -448,12 +524,14 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": ""}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": ""}],
+        }
     }
 
     # when
@@ -494,12 +572,14 @@ def test_create_page_with_file_attribute_required_no_file_url_given(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": ""}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": ""}],
+        }
     }
 
     # when
@@ -544,12 +624,14 @@ def test_create_page_with_page_reference_attribute(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": ref_attribute_id, "references": [reference]}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": ref_attribute_id, "references": [reference]}],
+        }
     }
 
     # when
@@ -579,6 +661,7 @@ def test_create_page_with_page_reference_attribute(
                 "file": None,
                 "name": page.title,
                 "reference": reference,
+                "plainText": None,
                 "date": None,
                 "dateTime": None,
             }
@@ -608,11 +691,13 @@ def test_create_page_with_date_attribute(
     date_value = date_time_value.date()
 
     variables = {
-        "title": page_title,
-        "pageType": page_type_id,
-        "attributes": [
-            {"id": date_attribute_id, "date": date_value},
-        ],
+        "input": {
+            "title": page_title,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": date_attribute_id, "date": date_value},
+            ],
+        }
     }
 
     # when
@@ -636,6 +721,7 @@ def test_create_page_with_date_attribute(
             {
                 "file": None,
                 "reference": None,
+                "plainText": None,
                 "dateTime": None,
                 "date": str(date_value),
                 "name": str(date_value),
@@ -665,11 +751,13 @@ def test_create_page_with_date_time_attribute(
     )
     date_time_value = datetime.now(tz=pytz.utc)
     variables = {
-        "title": page_title,
-        "pageType": page_type_id,
-        "attributes": [
-            {"id": date_time_attribute_id, "dateTime": date_time_value},
-        ],
+        "input": {
+            "title": page_title,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": date_time_attribute_id, "dateTime": date_time_value},
+            ],
+        }
     }
 
     # when
@@ -693,10 +781,71 @@ def test_create_page_with_date_time_attribute(
             {
                 "file": None,
                 "reference": None,
+                "plainText": None,
                 "dateTime": date_time_value.isoformat(),
                 "date": None,
                 "name": str(date_time_value),
                 "slug": f"{new_page_pk}_{date_time_attribute.id}",
+            }
+        ],
+    }
+
+    assert expected_attributes_data in data["page"]["attributes"]
+
+
+def test_create_page_with_plain_text_attribute(
+    staff_api_client,
+    permission_manage_pages,
+    page_type,
+    plain_text_attribute_page_type,
+    page,
+):
+    # given
+    page_type.page_attributes.add(plain_text_attribute_page_type)
+
+    page_title = "test title"
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    plain_text_attribute_id = graphene.Node.to_global_id(
+        "Attribute", plain_text_attribute_page_type.id
+    )
+    text = "test plain text attribute content"
+
+    variables = {
+        "input": {
+            "title": page_title,
+            "pageType": page_type_id,
+            "attributes": [
+                {"id": plain_text_attribute_id, "plainText": text},
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["page"]["title"] == page_title
+    assert data["page"]["pageType"]["id"] == page_type_id
+    page_id = data["page"]["id"]
+    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    expected_attributes_data = {
+        "attribute": {"slug": plain_text_attribute_page_type.slug},
+        "values": [
+            {
+                "file": None,
+                "reference": None,
+                "dateTime": None,
+                "date": None,
+                "name": text,
+                "plainText": text,
+                "slug": f"{new_page_pk}_{plain_text_attribute_page_type.id}",
             }
         ],
     }
@@ -730,12 +879,14 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": ""}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": ""}],
+        }
     }
 
     # when
@@ -781,12 +932,14 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": ""}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": ""}],
+        }
     }
 
     # when
@@ -831,12 +984,14 @@ def test_create_page_with_product_reference_attribute(
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": ref_attribute_id, "references": [reference]}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": ref_attribute_id, "references": [reference]}],
+        }
     }
 
     # when
@@ -866,6 +1021,7 @@ def test_create_page_with_product_reference_attribute(
                 "file": None,
                 "name": product.name,
                 "reference": reference,
+                "plainText": None,
                 "dateTime": None,
                 "date": None,
             }
@@ -903,12 +1059,14 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": ""}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": ""}],
+        }
     }
 
     # when
@@ -954,12 +1112,14 @@ def test_create_page_with_product_reference_attribute_required_no_references_giv
 
     # test creating root page
     variables = {
-        "title": page_title,
-        "content": page_content,
-        "isPublished": page_is_published,
-        "slug": page_slug,
-        "pageType": page_type_id,
-        "attributes": [{"id": file_attribute_id, "file": ""}],
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": [{"id": file_attribute_id, "file": ""}],
+        }
     }
 
     # when

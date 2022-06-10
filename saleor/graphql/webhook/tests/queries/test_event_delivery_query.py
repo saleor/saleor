@@ -27,6 +27,7 @@ EVENT_DELIVERY_QUERY = """
                     response
                     requestHeaders
                     responseHeaders
+                    responseStatusCode
                   }
                 }
               }
@@ -72,4 +73,8 @@ def test_webhook_delivery_attempt_query(
     assert (
         attempts_response[0]["node"]["responseHeaders"]
         == event_attempt.response_headers
+    )
+    assert (
+        attempts_response[0]["node"]["responseStatusCode"]
+        == event_attempt.response_status_code
     )

@@ -6,12 +6,14 @@ from .views import GraphQLView
 
 class ReadOnlyMiddleware:
     ALLOWED_MUTATIONS = [
+        "accountRegister",
         "checkoutAddPromoCode",
         "checkoutBillingAddressUpdate",
         "checkoutComplete",
         "checkoutCreate",
         "checkoutCustomerAttach",
         "checkoutCustomerDetach",
+        "checkoutDeliveryMethodUpdate",
         "checkoutEmailUpdate",
         "checkoutLineDelete",
         "checkoutLinesAdd",
@@ -39,6 +41,10 @@ class ReadOnlyMiddleware:
             root_email = getattr(settings, "ROOT_EMAIL", None)
             if root_email and user_email == root_email:
                 return next_(root, info, **kwargs)
+
+        # Bypass authenticated app as to create an app, root user is required
+        if request.app:
+            return next_(root, info, **kwargs)
 
         for selection in info.operation.selection_set.selections:
             selection_name = str(selection.name.value)

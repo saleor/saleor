@@ -104,6 +104,7 @@ AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
 ChannelErrorCode = graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
+
 ExternalNotificationTriggerErrorCode = graphene.Enum.from_enum(
     external_notifications_error_codes.ExternalNotificationErrorCodes
 )
@@ -123,6 +124,17 @@ OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
 InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
 PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
+
+TransactionCreateErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionCreateErrorCode
+)
+TransactionUpdateErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionUpdateErrorCode
+)
+TransactionRequestActionErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionRequestActionErrorCode
+)
+
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )

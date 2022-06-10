@@ -14,10 +14,9 @@ from ..channel.types import (
 from ..core import types
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_31
-from ..core.fields import ConnectionField
+from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import PositiveDecimal
 from ..core.types import ModelObjectType, Money, NonNullList
-from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..product.types import (
     CategoryCountableConnection,
@@ -53,7 +52,7 @@ class SaleChannelListing(ModelObjectType):
         interfaces = [relay.Node]
 
     @staticmethod
-    def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
+    def resolve_channel(root: models.SaleChannelListing, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
@@ -72,22 +71,35 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
     collections = ConnectionField(
         CollectionCountableConnection,
         description="List of collections this sale applies to.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     products = ConnectionField(
-        ProductCountableConnection, description="List of products this sale applies to."
+        ProductCountableConnection,
+        description="List of products this sale applies to.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description=f"{ADDED_IN_31} List of product variants this sale applies to.",
+        description="List of product variants this sale applies to." + ADDED_IN_31,
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     translation = TranslationField(
         SaleTranslation,
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
-    channel_listings = NonNullList(
-        SaleChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(SaleChannelListing),
         description="List of channels available for the sale.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     discount_value = graphene.Float(description="Sale value.")
     currency = graphene.String(description="Currency code for sale.")
@@ -102,31 +114,31 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Sale
 
     @staticmethod
-    def resolve_categories(root: ChannelContext[models.Sale], info, *_args, **kwargs):
+    def resolve_created(root: models.Sale, _info):
+        return root.created_at
+
+    @staticmethod
+    def resolve_categories(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.categories.all()
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listings(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Sale], info):
         return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **kwargs):
+    def resolve_collections(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.collections.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.products.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_variants(root: ChannelContext[models.Sale], info, **kwargs):
         qs = root.node.variants.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
@@ -135,7 +147,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_discount_value(root: ChannelContext[models.Sale], info):
         if not root.channel_slug:
             return None
 
@@ -150,7 +162,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_currency(root: ChannelContext[models.Sale], info):
         if not root.channel_slug:
             return None
 
@@ -183,7 +195,7 @@ class VoucherChannelListing(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):
+    def resolve_channel(root: models.VoucherChannelListing, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
@@ -206,14 +218,23 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
     collections = ConnectionField(
         CollectionCountableConnection,
         description="List of collections this voucher applies to.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     products = ConnectionField(
         ProductCountableConnection,
         description="List of products this voucher applies to.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description=f"{ADDED_IN_31} List of product variants this voucher applies to.",
+        description="List of product variants this voucher applies to." + ADDED_IN_31,
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
     countries = NonNullList(
         types.CountryDisplay,
@@ -234,9 +255,12 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         Money, description="Minimum order value to apply voucher."
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
-    channel_listings = NonNullList(
-        VoucherChannelListing,
+    channel_listings = PermissionsField(
+        NonNullList(VoucherChannelListing),
         description="List of availability in channels for the voucher.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
     )
 
     class Meta:
@@ -250,30 +274,23 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         model = models.Voucher
 
     @staticmethod
-    def resolve_categories(
-        root: ChannelContext[models.Voucher], info, *_args, **kwargs
-    ):
+    def resolve_categories(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.categories.all()
         return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_collections(
-        root: ChannelContext[models.Voucher], info, *_args, **kwargs
-    ):
+    def resolve_collections(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.collections.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.products.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_variants(root: ChannelContext[models.Voucher], info, **kwargs):
         qs = root.node.variants.all()
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
@@ -282,14 +299,14 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_countries(root: ChannelContext[models.Voucher], *_args, **_kwargs):
+    def resolve_countries(root: ChannelContext[models.Voucher], _info):
         return [
             types.CountryDisplay(code=country.code, country=country.name)
             for country in root.node.countries
         ]
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_discount_value(root: ChannelContext[models.Voucher], info):
         if not root.channel_slug:
             return None
 
@@ -304,7 +321,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_currency(root: ChannelContext[models.Voucher], info):
         if not root.channel_slug:
             return None
 
@@ -319,7 +336,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_min_spent(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_min_spent(root: ChannelContext[models.Voucher], info):
         if not root.channel_slug:
             return None
 
@@ -334,8 +351,7 @@ class Voucher(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Voucher], info):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
 
 
@@ -358,8 +374,13 @@ class OrderDiscount(ModelObjectType):
         required=True,
         description="Value of the discount. Can store fixed value or percent value",
     )
-    reason = graphene.String(
-        required=False, description="Explanation for the applied discount."
+    reason = PermissionsField(
+        graphene.String,
+        required=False,
+        description="Explanation for the applied discount.",
+        permissions=[
+            OrderPermissions.MANAGE_ORDERS,
+        ],
     )
     amount = graphene.Field(
         Money, description="Returns amount of discount.", required=True
@@ -373,6 +394,5 @@ class OrderDiscount(ModelObjectType):
         model = models.OrderDiscount
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_reason(root: models.OrderDiscount, _info):
         return root.reason

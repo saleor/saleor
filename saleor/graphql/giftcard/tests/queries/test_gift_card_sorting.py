@@ -150,10 +150,10 @@ def test_sorting_gift_cards_by_used_by(
     permission_manage_gift_card,
 ):
     # given
-    gift_card.created = timezone.now() - datetime.timedelta(days=10)
-    gift_card_expiry_date.created = timezone.now()
+    gift_card.created_at = timezone.now() - datetime.timedelta(days=10)
+    gift_card_expiry_date.created_at = timezone.now()
     gift_card_list = [gift_card_used, gift_card, gift_card_expiry_date]
-    GiftCard.objects.bulk_update(gift_card_list, ["created"])
+    GiftCard.objects.bulk_update(gift_card_list, ["created_at"])
 
     variables = {
         "sortBy": {
