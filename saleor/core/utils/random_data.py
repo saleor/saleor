@@ -83,7 +83,6 @@ from ...product.models import (
 from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
-    create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
@@ -207,7 +206,6 @@ def create_categories(categories_data, placeholder_dir):
         if parent:
             defaults["parent"] = Category.objects.get(pk=parent)
         Category.objects.update_or_create(pk=pk, defaults=defaults)
-        create_category_background_image_thumbnails.delay(pk)
 
 
 def create_collection_channel_listings(collection_channel_listings_data):
