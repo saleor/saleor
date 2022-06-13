@@ -15,6 +15,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
         $name: String,
         $slug: String,
         $kind: ProductTypeKindEnum,
+        $taxClass: ID,
         $taxCode: String,
         $hasVariants: Boolean,
         $isShippingRequired: Boolean,
@@ -26,6 +27,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                 name: $name,
                 slug: $slug,
                 kind: $kind,
+                taxClass: $taxClass,
                 taxCode: $taxCode,
                 hasVariants: $hasVariants,
                 isShippingRequired: $isShippingRequired,
@@ -64,6 +66,9 @@ PRODUCT_TYPE_CREATE_MUTATION = """
 
                     }
                 }
+                taxClass {
+                    id
+                }
             }
             errors {
                 field
@@ -83,6 +88,7 @@ def test_product_type_create_mutation(
     permission_manage_product_types_and_attributes,
     monkeypatch,
     setup_vatlayer,
+    tax_classes,
 ):
     manager = PluginsManager(plugins=setup_vatlayer.PLUGINS)
 
@@ -100,6 +106,7 @@ def test_product_type_create_mutation(
     variant_attributes_ids = [
         graphene.Node.to_global_id("Attribute", att.id) for att in variant_attributes
     ]
+    tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
 
     variables = {
         "name": product_type_name,
@@ -110,6 +117,7 @@ def test_product_type_create_mutation(
         "isShippingRequired": require_shipping,
         "productAttributes": product_attributes_ids,
         "variantAttributes": variant_attributes_ids,
+        "taxClass": tax_class_id,
     }
     initial_count = ProductType.objects.count()
     response = staff_api_client.post_graphql(
@@ -141,6 +149,7 @@ def test_product_type_create_mutation(
     new_instance = ProductType.objects.latest("pk")
     tax_code = manager.get_tax_code_from_object_meta(new_instance).code
     assert tax_code == "wine"
+    assert data["taxClass"]["id"] == tax_class_id
 
 
 def test_product_type_create_mutation_optional_kind(
