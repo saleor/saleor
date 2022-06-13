@@ -42,15 +42,18 @@ if os.environ.get("PYTEST_DB_URL"):
     class Custom(TransactionTestCase):
         def _fixture_teardown(self):
             for db_name in self._databases_names(include_mirrors=False):
-                inhibit_post_migrate = (
-                    self.available_apps is not None or
-                    (
-                        self.serialized_rollback and
-                        hasattr(connections[db_name], '_test_serialized_contents')
-                    )
+                inhibit_post_migrate = self.available_apps is not None or (
+                    self.serialized_rollback
+                    and hasattr(connections[db_name], "_test_serialized_contents")
                 )
-                call_command('flush', verbosity=0, interactive=False,
-                             database=db_name, reset_sequences=False,
-                             allow_cascade=True,
-                             inhibit_post_migrate=inhibit_post_migrate)
+                call_command(
+                    "flush",
+                    verbosity=0,
+                    interactive=False,
+                    database=db_name,
+                    reset_sequences=False,
+                    allow_cascade=True,
+                    inhibit_post_migrate=inhibit_post_migrate,
+                )
+
     django.test.TransactionTestCase = Custom  # type:ignore[misc]
