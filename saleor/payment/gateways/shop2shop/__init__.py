@@ -4,7 +4,7 @@ from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentMethodInfo
 
 
-def dummy_success():
+def shop2shop_success():
     return True
 
 
@@ -15,7 +15,7 @@ def get_client_token(**_):
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    success = dummy_success()
+    success = shop2shop_success()
     error = None
     if not success:
         error = "Unable to authorize transaction"
@@ -40,7 +40,7 @@ def authorize(
 
 def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
-    success = dummy_success()
+    success = shop2shop_success()
     if not success:
         error = "Unable to void the transaction."
     return GatewayResponse(
@@ -57,7 +57,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform capture transaction."""
     error = None
-    success = dummy_success()
+    success = shop2shop_success()
     if not success:
         error = "Unable to process capture"
 
@@ -83,7 +83,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform confirm transaction."""
     error = None
-    success = dummy_success()
+    success = shop2shop_success()
     if not success:
         error = "Unable to process capture"
 
@@ -100,7 +100,7 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
-    success = dummy_success()
+    success = shop2shop_success()
     if not success:
         error = "Unable to process refund"
     return GatewayResponse(
@@ -125,7 +125,7 @@ def process_payment(
         return capture(payment_information, config)
 
     # Process payment by charge status which is selected in the payment form
-    # Note that is for testing by dummy gateway only
+    # Note that is for testing by shop2shop gateway only
     charge_status = token
     authorize_response = authorize(payment_information, config)
     if charge_status == ChargeStatus.NOT_CHARGED:
