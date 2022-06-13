@@ -1,10 +1,10 @@
 interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
-      "lines": [], "code": "13a89b41-b30b-41a0-862d-ed5490e37ca9", "date": "2022-05-05",
-      "customerCode": 0, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
-      null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
-      "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
+      "lines": [], "code": "af2d109e-8c07-4438-b13e-ff4e21024b8a", "date": "2022-06-10",
+      "customerCode": 0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa
+      7", "line2": null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode":
+      "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
       "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
       "USD", "email": "user@email.com"}}'
     headers:
@@ -17,7 +17,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '517'
+      - '535'
       User-Agent:
       - python-requests/2.27.1
     method: POST
@@ -34,21 +34,23 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 05 May 2022 09:28:10 GMT
+      - Fri, 10 Jun 2022 10:43:49 GMT
       ServerDuration:
-      - '00:00:00.0007413'
+      - '00:00:00.0004194'
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
       - nosniff
+      cache-control:
+      - private, no-cache, no-store
       referrer-policy:
       - same-origin
       strict-transport-security:
       - max-age=31536000; includeSubdomains
       x-avalara-uid:
-      - ec2a57cc-993f-4654-be50-27cf2a447760
+      - f4bc7115-59ca-4987-850c-bdc3a18b43ce
       x-correlation-id:
-      - ec2a57cc-993f-4654-be50-27cf2a447760
+      - f4bc7115-59ca-4987-850c-bdc3a18b43ce
       x-frame-options:
       - sameorigin
       x-permitted-cross-domain-policies:
