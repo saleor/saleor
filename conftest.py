@@ -30,13 +30,15 @@ if os.environ.get("PYTEST_DB_URL"):
             ),
         }
 
-    # In case transactional tests are run against a DB that has additional models defined, test cleanup can fail
-    # when Django sends TRUNCATE queries for all tables used during tests. It has no idea about this additional model,
-    # so it's not included in this query. If this model references any table that is being truncated,
-    # query will fail with an error:
-    #  django.db.utils.NotSupportedError: cannot truncate a table referenced in a foreign key constraint
+    # In case transactional tests are run against a DB that has additional models
+    # defined, test cleanup can fail when Django sends TRUNCATE queries for all tables
+    # used during tests. It has no idea about this additional model, so it's not
+    # included in this query. If this model references any table that is being
+    # truncated, query will fail with an error:
+    #  django.db.utils.NotSupportedError: cannot truncate a table referenced in a
+    #                                     foreign key constraint
     #  DETAIL:  Table "new_table" references "existing_table".
-    #  HINT:  Truncate table "new_table" at the same time, or use TRUNCATE ... CASCADE.
+    #  HINT:  Truncate table "new_table" at the same time, or use TRUNCATE ... CASCADE
     class Custom(TransactionTestCase):
         def _fixture_teardown(self):
             for db_name in self._databases_names(include_mirrors=False):
@@ -51,4 +53,4 @@ if os.environ.get("PYTEST_DB_URL"):
                              database=db_name, reset_sequences=False,
                              allow_cascade=True,
                              inhibit_post_migrate=inhibit_post_migrate)
-    django.test.TransactionTestCase = Custom
+    django.test.TransactionTestCase = Custom  # type:ignore[misc]
