@@ -8,6 +8,7 @@ from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout
+from .....payment import StorePaymentMethod
 from .....payment.error_codes import PaymentErrorCode
 from .....payment.interface import StorePaymentMethodEnum
 from .....payment.models import ChargeStatus, Payment
@@ -471,6 +472,40 @@ def test_create_payment_with_store(
     checkout.refresh_from_db()
     payment = checkout.payments.first()
     assert payment.store_payment_method == store.lower()
+
+
+def test_create_payment_with_store_as_none(
+    user_api_client, checkout_without_shipping_required, address
+):
+    # given
+    store = None
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+            "storePaymentMethod": store,
+        },
+    }
+
+    # when
+    user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    checkout.refresh_from_db()
+    payment = checkout.payments.first()
+    assert payment.store_payment_method == StorePaymentMethod.NONE
 
 
 @pytest.mark.parametrize(
