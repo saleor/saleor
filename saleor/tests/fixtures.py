@@ -29,7 +29,7 @@ from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppExtension, AppInstallation
-from ..app.types import AppExtensionMount, AppExtensionTarget, AppType
+from ..app.types import AppExtensionMount, AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
@@ -41,7 +41,7 @@ from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
-from ..core import EventDeliveryStatus, JobStatus, TimePeriodType
+from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.units import MeasurementUnits
@@ -76,7 +76,7 @@ from ..order.models import (
     OrderEvent,
     OrderLine,
 )
-from ..order.search import prepare_order_search_document_value
+from ..order.search import prepare_order_search_vector_value
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
@@ -817,9 +817,9 @@ def order(customer_user, channel_USD):
 
 
 @pytest.fixture
-def order_with_search_document_value(order):
-    order.search_document = prepare_order_search_document_value(order)
-    order.save(update_fields=["search_document"])
+def order_with_search_vector_value(order):
+    order.search_vector = prepare_order_search_vector_value(order)
+    order.save(update_fields=["search_vector"])
     return order
 
 
@@ -5685,8 +5685,8 @@ def allocations(order_list, stock, channel_USD):
     )
 
     for order in order_list:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(order_list, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+    Order.objects.bulk_update(order_list, ["search_vector"])
 
     return Allocation.objects.bulk_create(
         [

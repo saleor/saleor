@@ -60,9 +60,9 @@ def prepare_product_search_vector_value(
 ) -> SearchVector:
     if not already_prefetched:
         prefetch_related_objects([product], *PRODUCT_FIELDS_TO_PREFETCH)
-    search_vector = SearchVector(Value(product.name), weight="A") + SearchVector(
-        Value(product.description_plaintext), weight="C"
-    )
+    search_vector = SearchVector(
+        Value(product.name), config="simple", weight="A"
+    ) + SearchVector(Value(product.description_plaintext), config="simple", weight="C")
     attributes_vector = generate_attributes_search_vector_value(
         product.attributes.all()
     )
@@ -79,9 +79,11 @@ def generate_variants_search_vector_value(product: "Product") -> Optional[Search
     variants = list(product.variants.all())
 
     variant_vectors = [
-        SearchVector(Value(variant.sku), Value(variant.name), weight="A")
+        SearchVector(
+            Value(variant.sku), Value(variant.name), config="simple", weight="A"
+        )
         if variant.sku
-        else SearchVector(Value(variant.name), weight="A")
+        else SearchVector(Value(variant.name), config="simple", weight="A")
         for variant in variants
         if variant.sku or variant.name
     ]
@@ -136,7 +138,11 @@ def generate_attributes_search_vector_value(
 
         if values_list:
             new_vector = reduce(
-                add, (SearchVector(Value(v), weight="B") for v in values_list)
+                add,
+                (
+                    SearchVector(Value(v), config="simple", weight="B")
+                    for v in values_list
+                ),
             )
             if search_vector is not None:
                 search_vector += new_vector
@@ -147,7 +153,7 @@ def generate_attributes_search_vector_value(
 
 def search_products(qs, value):
     if value:
-        query = SearchQuery(value, search_type="websearch")
+        query = SearchQuery(value, search_type="websearch", config="simple")
         lookup = Q(search_vector=query)
         qs = qs.filter(lookup).annotate(
             search_rank=SearchRank(F("search_vector"), query)

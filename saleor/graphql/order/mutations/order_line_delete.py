@@ -6,7 +6,7 @@ from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.fetch import OrderLineInfo
-from ....order.search import update_order_search_document
+from ....order.search import update_order_search_vector
 from ....order.utils import delete_order_line, recalculate_order
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -79,7 +79,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         )
 
         recalculate_order(order)
-        update_order_search_document(order)
+        update_order_search_vector(order)
         func = get_webhook_handler_by_order_status(order.status, info)
         transaction.on_commit(lambda: func(order))
         return OrderLineDelete(order=order, order_line=line)

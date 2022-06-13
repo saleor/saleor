@@ -8,6 +8,7 @@ from ..core.types import SortInputObjectType
 
 class OrderSortField(graphene.Enum):
     NUMBER = ["number"]
+    RANK = ["search_rank", "id"]
     CREATION_DATE = ["created_at", "status", "pk"]
     CREATED_AT = ["created_at", "status", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "status", "pk"]
@@ -17,8 +18,10 @@ class OrderSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
         descriptions = {
+            OrderSortField.RANK.name: (
+                "rank. Note: This option is available only with the `search` filter."
+            ),
             OrderSortField.CREATION_DATE.name: (
                 f"creation date. {DEPRECATED_IN_3X_INPUT}"
             ),

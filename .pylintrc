@@ -3,7 +3,7 @@ load-plugins=pylint.extensions.bad_builtin, pylint.extensions.mccabe, pylint_cel
 django-settings-module=saleor.settings
 
 [MESSAGES CONTROL]
-disable=C0103, C0111, C0330, C0412, C1001, E1004, E1101, I0011, R0903, W0232, W0621
+disable=C0103, C0111, I0011, R0903, W0621, W0622, W0707
 
 [DESIGN]
 max-complexity=5

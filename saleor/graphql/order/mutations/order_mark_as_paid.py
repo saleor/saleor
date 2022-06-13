@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import OrderPermissions
 from ....order.actions import clean_mark_order_as_paid, mark_order_as_paid
 from ....order.error_codes import OrderErrorCode
-from ....order.search import update_order_search_document
+from ....order.search import update_order_search_vector
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ..types import Order
@@ -47,6 +47,6 @@ class OrderMarkAsPaid(BaseMutation):
             order, user, app, info.context.plugins, transaction_reference
         )
 
-        update_order_search_document(order)
+        update_order_search_vector(order)
 
         return OrderMarkAsPaid(order=order)
