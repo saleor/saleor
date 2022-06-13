@@ -6,6 +6,7 @@ from typing import List, Optional
 import graphene
 from django_countries.fields import Country
 from graphene import relay
+from promise import Promise
 
 from ....attribute import models as attribute_models
 from ....core.permissions import (
@@ -857,6 +858,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
+    tax_class = PermissionsField(
+        TaxClass,
+        description=(
+            "Tax class assigned to this product type. All products of this product "
+            "type use this tax class, unless it's overridden in the `Product` type."
+        ),
+        required=True,
+        permissions=[
+            TaxPermissions.MANAGE_TAXES,
+            ProductPermissions.MANAGE_PRODUCTS,
+        ],
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -1231,6 +1244,22 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     @staticmethod
     def resolve_product_type(root: ChannelContext[models.Product], info):
         return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
+
+    @staticmethod
+    def resolve_tax_class(root: ChannelContext[models.Product], info):
+        product_type = (
+            ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
+            if not root.node.tax_class_id
+            else None
+        )
+
+        def resolve_tax_class(product_type):
+            tax_class_id = (
+                product_type.tax_class_id if product_type else root.node.tax_class_id
+            )
+            return TaxClassByIdLoader(info.context).load(tax_class_id)
+
+        return Promise.resolve(product_type).then(resolve_tax_class)
 
     @staticmethod
     def __resolve_references(roots: List["Product"], info):

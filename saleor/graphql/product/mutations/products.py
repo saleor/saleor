@@ -539,6 +539,12 @@ class ProductInput(graphene.InputObjectType):
     description = JSONString(description="Product description." + RICH_CONTENT)
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
+    tax_class = graphene.ID(
+        description=(
+            "ID of a tax class to assign to this product. If not provided, product "
+            "will use the tax class which is assigned to the product type."
+        )
+    )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)

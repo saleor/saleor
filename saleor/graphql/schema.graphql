@@ -3890,6 +3890,13 @@ type Product implements Node & ObjectWithMetadata {
 
   """Whether the product is available for purchase."""
   isAvailableForPurchase: Boolean
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS.
+  """
+  taxClass: TaxClass!
 }
 
 """
@@ -16011,6 +16018,11 @@ input ProductCreateInput {
   """Product slug."""
   slug: String
 
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
   """Tax rate for enabled tax gateway."""
   taxCode: String
 
@@ -16120,6 +16132,11 @@ input ProductInput {
 
   """Product slug."""
   slug: String
+
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
 
   """Tax rate for enabled tax gateway."""
   taxCode: String
