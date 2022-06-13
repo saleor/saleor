@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect default value used in `PaymentInput.storePaymentMethod` - #9943 by @korycins
 - Introduce plain text attribute - #9907 by @IKarbowiak
 - Stop auto-assigning default addresses to checkout - #9933 by @SzymJ
+- Added `OrderFilter.numbers` filter  - #9967 by @SzymJ
 
 #### Saleor Apps
 - Add webhooks `PAGE_TYPE_CREATED`, `PAGE_TYPE_UPDATED` and `PAGE_TYPE_DELETED` - #9859 by @SzymJ
