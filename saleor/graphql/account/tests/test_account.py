@@ -865,8 +865,7 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     user.save(update_fields=["avatar"])
 
     thumbnail_mock = MagicMock(spec=File)
-    thumbnail_mock.name = "image.jpg"
-    user.avatar = avatar_mock
+    thumbnail_mock.name = "thumbnail_image.jpg"
     Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
 
     id = graphene.Node.to_global_id("User", user.pk)
@@ -882,7 +881,7 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://testserver/media/thumbnails/{avatar_mock.name}"
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
     )
 
 

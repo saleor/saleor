@@ -37,7 +37,7 @@ from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
     CustomerEventsByUserLoader,
-    ThumbnailsByUserIdSizeAndFormatLoader,
+    ThumbnailByUserIdSizeAndFormatLoader,
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
@@ -468,7 +468,7 @@ class User(ModelObjectType):
             return Image(url=url, alt=None)
 
         return (
-            ThumbnailsByUserIdSizeAndFormatLoader(info.context)
+            ThumbnailByUserIdSizeAndFormatLoader(info.context)
             .load((root.id, size, format))
             .then(_resolve_avatar)
         )

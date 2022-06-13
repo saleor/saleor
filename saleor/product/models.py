@@ -87,7 +87,7 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
-    background_image = VersatileImageField(
+    background_image = models.ImageField(
         upload_to="category-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)

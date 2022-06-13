@@ -26,6 +26,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
+from ....thumbnail.utils import get_thumbnail_size, prepare_image_proxy_url
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
@@ -53,7 +54,7 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
     RICH_CONTENT,
 )
-from ...core.enums import ReportingPeriod
+from ...core.enums import ReportingPeriod, ThumbnailFormatEnum
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import (
     ConnectionField,
@@ -115,6 +116,7 @@ from ..dataloaders import (
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    ThumbnailByCategoryIdSizeAndFormatLoader,
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
@@ -1584,7 +1586,20 @@ class Category(ModelObjectType):
         description="List of children of the category.",
     )
     background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image.")
+        Image,
+        size=graphene.Int(
+            description=(
+                "Size of the avatar. If not provided the original image "
+                "will be returned."
+            )
+        ),
+        format=ThumbnailFormatEnum(
+            description=(
+                "The format of the image. When not provided, format of the original "
+                "image will be used. Must be provided together with the size value, "
+                "otherwise original image will be returned."
+            )
+        ),
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
 
@@ -1609,15 +1624,30 @@ class Category(ModelObjectType):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_background_image(root: models.Category, info, size=None):
-        if root.background_image:
-            return Image.get_adjusted(
-                image=root.background_image,
-                alt=root.background_image_alt,
-                size=size,
-                rendition_key_set="background_images",
-                info=info,
+    def resolve_background_image(root: models.Category, info, size=None, format=None):
+        if not root.background_image:
+            return
+
+        alt = root.background_image_alt
+        if not size:
+            return Image(url=root.background_image.url, alt=alt)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_background_image(thumbnail):
+            url = (
+                prepare_image_proxy_url(root.id, "Category", size, format)
+                if thumbnail is None
+                else thumbnail.image.url
             )
+            return Image(url=url, alt=alt)
+
+        return (
+            ThumbnailByCategoryIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_background_image)
+        )
 
     @staticmethod
     def resolve_children(root: models.Category, info, **kwargs):

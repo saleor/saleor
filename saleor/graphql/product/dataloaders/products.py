@@ -17,6 +17,7 @@ from ....product.models import (
     ProductVariantChannelListing,
     VariantMedia,
 )
+from ....thumbnail.models import Thumbnail
 from ...core.dataloaders import DataLoader
 
 ProductIdAndChannelSlug = Tuple[int, str]
@@ -643,3 +644,20 @@ class CategoryChildrenByCategoryIdLoader(DataLoader):
             parent_to_children_mapping[category.parent_id].append(category)
 
         return [parent_to_children_mapping.get(key, []) for key in keys]
+
+
+class ThumbnailByCategoryIdSizeAndFormatLoader(DataLoader):
+    context_key = "thumbnail_by_category_size_and_format"
+
+    def batch_load(self, keys):
+        category_ids = [category_id for category_id, _, _ in keys]
+        thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
+            category_id__in=category_ids
+        )
+        thumbnails_by_category_size_and_format_map = defaultdict()
+        for thumbnail in thumbnails:
+            format = thumbnail.format.lower() if thumbnail.format else None
+            thumbnails_by_category_size_and_format_map[
+                (thumbnail.category_id, thumbnail.size, format)
+            ] = thumbnail
+        return [thumbnails_by_category_size_and_format_map.get(key) for key in keys]

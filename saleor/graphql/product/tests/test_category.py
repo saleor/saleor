@@ -1,8 +1,9 @@
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
+from django.core.files import File
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -12,8 +13,10 @@ from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
+from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
+from ...core.enums import ThumbnailFormatEnum
 from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
@@ -1216,42 +1219,201 @@ def test_categories_query_ids_not_exists(user_api_client, category):
 
 
 FETCH_CATEGORY_QUERY = """
-    query fetchCategory($id: ID!){
+    query fetchCategory($id: ID!, $size: Int, $format: ThumbnailFormatEnum){
         category(id: $id) {
             name
-            backgroundImage(size: 120) {
-            url
-            alt
+            backgroundImage(size: $size, format: $format) {
+                url
+                alt
             }
         }
     }
     """
 
 
-def test_category_image_query(user_api_client, non_default_category, media_root):
+def test_category_image_query_with_size_and_format_proxy_url_returned(
+    user_api_client, non_default_category, media_root
+):
+    # given
     alt_text = "Alt text for an image."
     category = non_default_category
     image_file, image_name = create_image()
-    category.background_image = image_file
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    category.background_image = background_mock
     category.background_image_alt = alt_text
-    category.save()
+    category.save(update_fields=["background_image", "background_image_alt"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
     category_id = graphene.Node.to_global_id("Category", category.pk)
-    variables = {"id": category_id}
+    variables = {
+        "id": category_id,
+        "size": 120,
+        "format": format,
+    }
+
+    # when
     response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
+
     data = content["data"]["category"]
-    thumbnail_url = category.background_image.thumbnail["120x120"].url
-    assert thumbnail_url in data["backgroundImage"]["url"]
     assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/thumbnail/{category_id}/128/{format.lower()}/"
+    )
+
+
+def test_category_image_query_with_size_proxy_url_returned(
+    user_api_client, non_default_category, media_root
+):
+    # given
+    alt_text = "Alt text for an image."
+    category = non_default_category
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    category.background_image = background_mock
+    category.background_image_alt = alt_text
+    category.save(update_fields=["background_image", "background_image_alt"])
+
+    size = 128
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    variables = {
+        "id": category_id,
+        "size": size,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["category"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/thumbnail/{category_id}/{size}/"
+    )
+
+
+def test_category_image_query_with_size_thumbnail_url_returned(
+    user_api_client, non_default_category, media_root
+):
+    # given
+    alt_text = "Alt text for an image."
+    category = non_default_category
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    category.background_image = background_mock
+    category.background_image_alt = alt_text
+    category.save(update_fields=["background_image", "background_image_alt"])
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(category=category, size=size, image=thumbnail_mock)
+
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    variables = {
+        "id": category_id,
+        "size": 120,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["category"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_category_image_query_only_format_provided_original_image_returned(
+    user_api_client, non_default_category, media_root
+):
+    # given
+    alt_text = "Alt text for an image."
+    category = non_default_category
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    category.background_image = background_mock
+    category.background_image_alt = alt_text
+    category.save(update_fields=["background_image", "background_image_alt"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    variables = {
+        "id": category_id,
+        "format": format,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["category"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/category-backgrounds/{background_mock.name}"
+    )
+
+
+def test_category_image_query_no_size_value_original_image_returned(
+    user_api_client, non_default_category, media_root
+):
+    # given
+    alt_text = "Alt text for an image."
+    category = non_default_category
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    category.background_image = background_mock
+    category.background_image_alt = alt_text
+    category.save(update_fields=["background_image", "background_image_alt"])
+
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    variables = {
+        "id": category_id,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["category"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/category-backgrounds/{background_mock.name}"
+    )
 
 
 def test_category_image_query_without_associated_file(
     user_api_client, non_default_category
 ):
+    # given
     category = non_default_category
     category_id = graphene.Node.to_global_id("Category", category.pk)
     variables = {"id": category_id}
+
+    # when
     response = user_api_client.post_graphql(FETCH_CATEGORY_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["category"]
     assert data["name"] == category.name
