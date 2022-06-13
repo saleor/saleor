@@ -77,6 +77,9 @@ class Event(graphene.Interface):
             WebhookEventAsyncType.APP_UPDATED: AppUpdated,
             WebhookEventAsyncType.APP_DELETED: AppDeleted,
             WebhookEventAsyncType.APP_STATUS_CHANGED: AppStatusChanged,
+            WebhookEventAsyncType.ATTRIBUTE_CREATED: AttributeCreated,
+            WebhookEventAsyncType.ATTRIBUTE_UPDATED: AttributeUpdated,
+            WebhookEventAsyncType.ATTRIBUTE_DELETED: AttributeDeleted,
             WebhookEventAsyncType.CATEGORY_CREATED: CategoryCreated,
             WebhookEventAsyncType.CATEGORY_UPDATED: CategoryUpdated,
             WebhookEventAsyncType.CATEGORY_DELETED: CategoryDeleted,
@@ -238,6 +241,35 @@ class AppDeleted(ObjectType, AppBase):
 
 
 class AppStatusChanged(ObjectType, AppBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeBase(AbstractType):
+    attribute = graphene.Field(
+        "saleor.graphql.attribute.types.Attribute",
+        description="The attribute the event relates to."
+        + ADDED_IN_35
+        + PREVIEW_FEATURE,
+    )
+
+    @staticmethod
+    def resolve_attribute(root, _info):
+        _, attribute = root
+        return attribute
+
+
+class AttributeCreated(ObjectType, AttributeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeUpdated(ObjectType, AttributeBase):
+    class Meta:
+        interfaces = (Event,)
+
+
+class AttributeDeleted(ObjectType, AttributeBase):
     class Meta:
         interfaces = (Event,)
 
@@ -1050,6 +1082,9 @@ SUBSCRIPTION_EVENTS_TYPES = [
     AppUpdated,
     AppDeleted,
     AppStatusChanged,
+    AttributeCreated,
+    AttributeUpdated,
+    AttributeDeleted,
     CategoryCreated,
     CategoryUpdated,
     CategoryDeleted,

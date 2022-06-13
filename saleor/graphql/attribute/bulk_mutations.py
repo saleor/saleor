@@ -62,6 +62,13 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         ).values_list("id", flat=True)
         return list(product_ids)
 
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        attributes = list(queryset)
+        queryset.delete()
+        for attribute in attributes:
+            info.context.plugins.attribute_deleted(attribute)
+
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
@@ -90,6 +97,13 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
             product_models.Product.objects.filter(id__in=product_ids)
         )
         return response
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        attributes = {value.attribute for value in queryset}
+        queryset.delete()
+        for attribute in attributes:
+            info.context.plugins.attribute_updated(attribute)
 
     @classmethod
     def get_product_ids_to_update(cls, value_pks):

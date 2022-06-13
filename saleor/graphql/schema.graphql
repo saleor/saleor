@@ -1348,6 +1348,15 @@ enum WebhookEventTypeEnum {
   """An app status is changed."""
   APP_STATUS_CHANGED
 
+  """A new attribute is created."""
+  ATTRIBUTE_CREATED
+
+  """An attribute is updated."""
+  ATTRIBUTE_UPDATED
+
+  """An attribute is deleted."""
+  ATTRIBUTE_DELETED
+
   """A new category created."""
   CATEGORY_CREATED
 
@@ -1621,6 +1630,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """An app status is changed."""
   APP_STATUS_CHANGED
+
+  """A new attribute is created."""
+  ATTRIBUTE_CREATED
+
+  """An attribute is updated."""
+  ATTRIBUTE_UPDATED
+
+  """An attribute is deleted."""
+  ATTRIBUTE_DELETED
 
   """A new category created."""
   CATEGORY_CREATED
@@ -2298,6 +2316,9 @@ enum WebhookSampleEventTypeEnum {
   APP_UPDATED
   APP_DELETED
   APP_STATUS_CHANGED
+  ATTRIBUTE_CREATED
+  ATTRIBUTE_UPDATED
+  ATTRIBUTE_DELETED
   CATEGORY_CREATED
   CATEGORY_UPDATED
   CATEGORY_DELETED
@@ -20883,6 +20904,75 @@ type AppStatusChanged implements Event {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   app: App
+}
+
+type AttributeCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attribute: Attribute
+}
+
+type AttributeUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attribute: Attribute
+}
+
+type AttributeDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The attribute the event relates to.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  attribute: Attribute
 }
 
 type CategoryCreated implements Event {

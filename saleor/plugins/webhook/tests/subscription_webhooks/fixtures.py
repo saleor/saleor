@@ -71,6 +71,27 @@ def subscription_app_status_changed_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_attribute_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ATTRIBUTE_CREATED, WebhookEventAsyncType.ATTRIBUTE_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_attribute_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ATTRIBUTE_UPDATED, WebhookEventAsyncType.ATTRIBUTE_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_attribute_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.ATTRIBUTE_DELETED, WebhookEventAsyncType.ATTRIBUTE_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_category_created_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.CATEGORY_CREATED, WebhookEventAsyncType.CATEGORY_CREATED
