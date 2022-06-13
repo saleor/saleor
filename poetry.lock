@@ -2716,7 +2716,7 @@ types-urllib3 = "<1.27"
 
 [[package]]
 name = "types-six"
-version = "1.16.15"
+version = "1.16.16"
 description = "Typing stubs for six"
 category = "dev"
 optional = false
@@ -2937,8 +2937,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "7c4df873c991541b61b2408a0674b94b159f2885c49a49459f3a65c0db7ba307"
+python-versions = "~3.9"
+content-hash = "f3a402fd8cca3c13a56dce3aaac99898747d6c5b8afa5a0a3561c145d97106a0"
 
 [metadata.files]
 adyen = [
@@ -4513,8 +4513,8 @@ types-requests = [
     {file = "types_requests-2.27.30-py3-none-any.whl", hash = "sha256:b9b6cd0a6e5d500e56419b79f44ec96f316e9375ff6c8ee566c39d25e9612621"},
 ]
 types-six = [
-    {file = "types-six-1.16.15.tar.gz", hash = "sha256:d244f0537dab0d0570a5bc6f8a60c4da7f0546d960a8677520e6bff214a64fb8"},
-    {file = "types_six-1.16.15-py3-none-any.whl", hash = "sha256:18f6856a7df44fc7a292c2d73093908333e5f7cb858667b8cbefc8ed1e91942e"},
+    {file = "types-six-1.16.16.tar.gz", hash = "sha256:0bfbea0ea5780d861f9deab9053e4809f586f5fb3ef0257ce30b938772a4d09c"},
+    {file = "types_six-1.16.16-py3-none-any.whl", hash = "sha256:b40078231175423affc00dd0cbb127a5a2bf3dee915890a47947ebc1ab25eee7"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.15.tar.gz", hash = "sha256:c89283541ef92e344b7f59f83ea9b5a295b16366ceee3f25ecfc5593c79f794e"},
