@@ -352,8 +352,10 @@ class SaleTranslation(Translation):
         return {"name": self.name}
 
 
-class BaseObjectDiscount(models.Model):
+class BaseObjectDiscount(ModelWithMetadata):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
+    active = models.BooleanField(default=True)
+    code = models.CharField(max_length=256, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     type = models.CharField(
         max_length=10,
