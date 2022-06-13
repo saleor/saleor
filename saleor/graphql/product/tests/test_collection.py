@@ -1,14 +1,17 @@
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
+from django.core.files import File
 from graphql_relay import to_global_id
 
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....tests.utils import dummy_editorjs
+from ....thumbnail.models import Thumbnail
+from ...core.enums import ThumbnailFormatEnum
 from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
@@ -1197,10 +1200,12 @@ def test_collections_query_ids_not_exists(
 
 
 FETCH_COLLECTION_QUERY = """
-    query fetchCollection($id: ID!, $channel: String){
+    query fetchCollection(
+        $id: ID!, $channel: String,  $size: Int, $format: ThumbnailFormatEnum
+    ){
         collection(id: $id, channel: $channel) {
             name
-            backgroundImage(size: 120) {
+            backgroundImage(size: $size, format: $format) {
                url
                alt
             }
@@ -1209,39 +1214,197 @@ FETCH_COLLECTION_QUERY = """
 """
 
 
-def test_collection_image_query(
+def test_collection_image_query_with_size_and_format_proxy_url_returned(
     user_api_client, published_collection, media_root, channel_USD
 ):
+    # given
     alt_text = "Alt text for an image."
+    collection = published_collection
     image_file, image_name = create_image()
-    published_collection.background_image = image_file
-    published_collection.background_image_alt = alt_text
-    published_collection.save()
-    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+        "format": format,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/thumbnail/{collection_id}/128/{format.lower()}/"
+    )
+
+
+def test_collection_image_query_with_size_proxy_url_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    size = 128
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "size": size,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/thumbnail/{collection_id}/{size}/"
+    )
+
+
+def test_collection_image_query_with_size_thumbnail_url_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    size = 128
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(collection=collection, size=size, image=thumbnail_mock)
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_collection_image_query_only_format_provided_original_image_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "format": format,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["collection"]
+    assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/collection-backgrounds/{background_mock.name}"
+    )
+
+
+def test_collection_image_query_no_size_value_original_image_returned(
+    user_api_client, published_collection, media_root, channel_USD
+):
+    # given
+    alt_text = "Alt text for an image."
+    collection = published_collection
+    background_mock = MagicMock(spec=File)
+    background_mock.name = "image.jpg"
+    collection.background_image = background_mock
+    collection.background_image_alt = alt_text
+    collection.save(update_fields=["background_image", "background_image_alt"])
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     variables = {
         "id": collection_id,
         "channel": channel_USD.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
+
     data = content["data"]["collection"]
-    thumbnail_url = published_collection.background_image.thumbnail["120x120"].url
-    assert thumbnail_url in data["backgroundImage"]["url"]
     assert data["backgroundImage"]["alt"] == alt_text
+    assert (
+        data["backgroundImage"]["url"]
+        == f"http://testserver/media/collection-backgrounds/{background_mock.name}"
+    )
 
 
 def test_collection_image_query_without_associated_file(
     user_api_client, published_collection, channel_USD
 ):
-    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
-    variables = {
-        "id": collection_id,
-        "channel": channel_USD.slug,
-    }
+    # given
+    collection = published_collection
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {"id": collection_id, "channel": channel_USD.slug}
+
+    # when
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["collection"]
-    assert data["name"] == published_collection.name
+    assert data["name"] == collection.name
     assert data["backgroundImage"] is None
 
 

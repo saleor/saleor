@@ -646,18 +646,30 @@ class CategoryChildrenByCategoryIdLoader(DataLoader):
         return [parent_to_children_mapping.get(key, []) for key in keys]
 
 
-class ThumbnailByCategoryIdSizeAndFormatLoader(DataLoader):
-    context_key = "thumbnail_by_category_size_and_format"
+class BaseThumbnailBySizeAndFormatLoader(DataLoader):
+    model_name = None
 
     def batch_load(self, keys):
-        category_ids = [category_id for category_id, _, _ in keys]
+        model_name = self.model_name.lower()
+        instance_ids = [id for id, _, _ in keys]
+        lookup = {f"{model_name}_id__in": instance_ids}
         thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
-            category_id__in=category_ids
+            **lookup
         )
-        thumbnails_by_category_size_and_format_map = defaultdict()
+        thumbnails_by_instance_id_size_and_format_map = defaultdict()
         for thumbnail in thumbnails:
             format = thumbnail.format.lower() if thumbnail.format else None
-            thumbnails_by_category_size_and_format_map[
-                (thumbnail.category_id, thumbnail.size, format)
+            thumbnails_by_instance_id_size_and_format_map[
+                (getattr(thumbnail, f"{model_name}_id"), thumbnail.size, format)
             ] = thumbnail
-        return [thumbnails_by_category_size_and_format_map.get(key) for key in keys]
+        return [thumbnails_by_instance_id_size_and_format_map.get(key) for key in keys]
+
+
+class ThumbnailByCategoryIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_category_size_and_format"
+    model_name = "category"
+
+
+class ThumbnailByCollectionIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_collection_size_and_format"
+    model_name = "collection"

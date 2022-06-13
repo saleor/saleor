@@ -889,7 +889,7 @@ class Collection(SeoModel, ModelWithMetadata):
         through=CollectionProduct,
         through_fields=("collection", "product"),
     )
-    background_image = VersatileImageField(
+    background_image = models.ImageField(
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)

@@ -117,6 +117,7 @@ from ..dataloaders import (
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
+    ThumbnailByCollectionIdSizeAndFormatLoader,
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
@@ -1460,7 +1461,20 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         description="List of products in this collection.",
     )
     background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image.")
+        Image,
+        size=graphene.Int(
+            description=(
+                "Size of the image. If not provided the original image "
+                "will be returned."
+            )
+        ),
+        format=ThumbnailFormatEnum(
+            description=(
+                "The format of the image. When not provided, format of the original "
+                "image will be used. Must be provided together with the size value, "
+                "otherwise original image will be returned."
+            )
+        ),
     )
     translation = TranslationField(
         CollectionTranslation,
@@ -1487,17 +1501,32 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_background_image(
-        root: ChannelContext[models.Collection], info, *, size=None
+        root: ChannelContext[models.Collection], info, size=None, format=None
     ):
-        if root.node.background_image:
-            node = root.node
-            return Image.get_adjusted(
-                image=node.background_image,
-                alt=node.background_image_alt,
-                size=size,
-                rendition_key_set="background_images",
-                info=info,
+        node = root.node
+        if not node.background_image:
+            return
+
+        alt = node.background_image_alt
+        if not size:
+            return Image(url=node.background_image.url, alt=alt)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_background_image(thumbnail):
+            url = (
+                prepare_image_proxy_url(node.id, "Collection", size, format)
+                if thumbnail is None
+                else thumbnail.image.url
             )
+            return Image(url=url, alt=alt)
+
+        return (
+            ThumbnailByCollectionIdSizeAndFormatLoader(info.context)
+            .load((node.id, size, format))
+            .then(_resolve_background_image)
+        )
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
@@ -1589,7 +1618,7 @@ class Category(ModelObjectType):
         Image,
         size=graphene.Int(
             description=(
-                "Size of the avatar. If not provided the original image "
+                "Size of the image. If not provided the original image "
                 "will be returned."
             )
         ),
