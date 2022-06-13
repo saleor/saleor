@@ -2665,7 +2665,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-freezegun"
-version = "1.1.9"
+version = "1.1.10"
 description = "Typing stubs for freezegun"
 category = "dev"
 optional = false
@@ -2937,8 +2937,8 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "1.1"
-  python-versions = "~3.9"
-content-hash = "7c4df873c991541b61b2408a0674b94b159f2885c49a49459f3a65c0db7ba307"
+python-versions = "~3.9"
+content-hash = "5ccda295383be19d7114adcbb832031d1f5b98bc75f915671364ac6e06f49dd4"
 
 [metadata.files]
 adyen = [
@@ -4489,8 +4489,8 @@ types-certifi = [
     {file = "types_certifi-2021.10.8.2-py3-none-any.whl", hash = "sha256:d8d61752071a10747f441c169967e31d43c1875d851973f4f9851c1cb8c5ed9d"},
 ]
 types-freezegun = [
-    {file = "types-freezegun-1.1.9.tar.gz", hash = "sha256:6f05108d468baecadf999873bd37e57b25ceb35d35d3f83e7a742f25d6fe8b0e"},
-    {file = "types_freezegun-1.1.9-py3-none-any.whl", hash = "sha256:fe1dd73372d96358dcb93e3aeb66d39f6ac63749e0724f13554cc145e2120efe"},
+    {file = "types-freezegun-1.1.10.tar.gz", hash = "sha256:cb3a2d2eee950eacbaac0673ab50499823365ceb8c655babb1544a41446409ec"},
+    {file = "types_freezegun-1.1.10-py3-none-any.whl", hash = "sha256:fadebe72213e0674036153366205038e1f95c8ca96deb4ef9b71ddc15413543e"},
 ]
 types-pkg-resources = [
     {file = "types-pkg_resources-0.1.3.tar.gz", hash = "sha256:834a9b8d3dbea343562fd99d5d3359a726f6bf9d3733bccd2b4f3096fbab9dae"},
