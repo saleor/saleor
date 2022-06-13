@@ -50,10 +50,11 @@ from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.availability import get_variant_availability
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
+from ....thumbnail.models import Thumbnail
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_product_deleted_payload
-from ...core.enums import AttributeErrorCode, ReportingPeriod
+from ...core.enums import AttributeErrorCode, ReportingPeriod, ThumbnailFormatEnum
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -3640,11 +3641,17 @@ def test_products_query_with_filter_has_preordered_variants_after_end_date(
 
 
 QUERY_PRODUCT_MEDIA_BY_ID = """
-    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+    query productMediaById(
+        $mediaId: ID!,
+        $productId: ID!,
+        $channel: String,
+        $size: Int,
+        $format: ThumbnailFormatEnum,
+    ) {
         product(id: $productId, channel: $channel) {
             mediaById(id: $mediaId) {
                 id
-                url(size: 200)
+                url(size: $size, format: $format)
             }
         }
     }
@@ -3713,6 +3720,138 @@ def test_query_product_media_by_invalid_id(
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
     assert content["data"]["product"]["mediaById"] is None
+
+
+def test_query_product_media_by_id_with_size_and_format_proxy_url_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    format = ThumbnailFormatEnum.WEBP.name
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+        "format": format,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://testserver/thumbnail/{media_id}/128/{format.lower()}/"
+    )
+
+
+def test_query_product_media_by_id_with_size_proxy_url_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://testserver/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_with_size_thumbnail_url_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    size = 128
+    thumbnail_mock = mock.MagicMock(spec=File)
+    thumbnail_mock.name = "thumbnail_image.jpg"
+    Thumbnail.objects.create(product_media=media, size=size, image=thumbnail_mock)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://testserver/media/thumbnails/{thumbnail_mock.name}"
+    )
+
+
+def test_query_product_media_by_id_only_format_provided_original_image_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.WEBP.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://testserver/media/{media.image.name}"
+    )
+
+
+def test_query_product_media_by_id_no_size_value_original_image_returned(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://testserver/media/{media.image.name}"
+    )
 
 
 QUERY_PRODUCT_IMAGE_BY_ID = """

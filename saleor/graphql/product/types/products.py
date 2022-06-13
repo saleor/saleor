@@ -118,6 +118,7 @@ from ..dataloaders import (
     SelectedAttributesByProductVariantIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
     ThumbnailByCollectionIdSizeAndFormatLoader,
+    ThumbnailByProductMediaIdSizeAndFormatLoader,
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
@@ -1740,7 +1741,19 @@ class ProductMedia(ModelObjectType):
     url = graphene.String(
         required=True,
         description="The URL of the media.",
-        size=graphene.Int(description="Size of the image."),
+        size=graphene.Int(
+            description=(
+                "Size of the image. If not provided the original image "
+                "will be returned."
+            )
+        ),
+        format=ThumbnailFormatEnum(
+            description=(
+                "The format of the image. When not provided, format of the original "
+                "image will be used. Must be provided together with the size value, "
+                "otherwise original image will be returned."
+            )
+        ),
     )
 
     class Meta:
@@ -1749,15 +1762,32 @@ class ProductMedia(ModelObjectType):
         model = models.ProductMedia
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None):
+    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
         if root.external_url:
             return root.external_url
 
-        if size:
-            url = get_thumbnail(root.image, size, method="thumbnail")
-        else:
-            url = root.image.url
-        return info.context.build_absolute_uri(url)
+        if not root.image:
+            return
+
+        if not size:
+            return info.context.build_absolute_uri(root.image.url)
+
+        format = format.lower() if format else None
+        size = get_thumbnail_size(size)
+
+        def _resolve_url(thumbnail):
+            url = (
+                prepare_image_proxy_url(root.id, "ProductMedia", size, format)
+                if thumbnail is None
+                else thumbnail.image.url
+            )
+            return info.context.build_absolute_uri(url)
+
+        return (
+            ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
+            .load((root.id, size, format))
+            .then(_resolve_url)
+        )
 
     @staticmethod
     def __resolve_references(roots: List["ProductMedia"], _info):

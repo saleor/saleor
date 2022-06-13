@@ -673,3 +673,8 @@ class ThumbnailByCategoryIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoade
 class ThumbnailByCollectionIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
     context_key = "thumbnail_by_collection_size_and_format"
     model_name = "collection"
+
+
+class ThumbnailByProductMediaIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_productmedia_size_and_format"
+    model_name = "product_media"

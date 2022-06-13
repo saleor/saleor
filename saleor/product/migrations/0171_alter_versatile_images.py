@@ -24,4 +24,13 @@ class Migration(migrations.Migration):
                 blank=True, null=True, upload_to="collection-backgrounds"
             ),
         ),
+        migrations.RemoveField(
+            model_name="productmedia",
+            name="ppoi",
+        ),
+        migrations.AlterField(
+            model_name="productmedia",
+            name="image",
+            field=models.ImageField(blank=True, null=True, upload_to="products"),
+        ),
     ]
