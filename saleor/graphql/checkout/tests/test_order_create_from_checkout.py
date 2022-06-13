@@ -145,7 +145,7 @@ def test_order_from_checkout(
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
-    assert order.search_document
+    assert order.search_vector
 
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)

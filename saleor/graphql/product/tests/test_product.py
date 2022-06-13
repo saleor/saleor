@@ -2955,7 +2955,8 @@ def test_products_query_with_filter_search_by_dropdown_attribute_value(
 
 
 @pytest.mark.parametrize(
-    "search_value", ["eco mode", "ECO Performance", "performant*", "modes"]
+    "search_value",
+    ["eco mode", "ECO Performance", "performance", "eco performance mode"],
 )
 def test_products_query_with_filter_search_by_multiselect_attribute_value(
     search_value,

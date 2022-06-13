@@ -73,9 +73,7 @@ def test_delete_order_discount_from_order_with_old_id(
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
 
-    assert order.search_document
-    assert name not in order.search_document
-    assert translated_name not in order.search_document
+    assert order.search_vector
 
 
 ORDER_DISCOUNT_UPDATE = """
