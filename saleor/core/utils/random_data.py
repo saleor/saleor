@@ -82,10 +82,7 @@ from ...product.models import (
 )
 from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
-from ...product.thumbnails import (
-    create_collection_background_image_thumbnails,
-    create_product_thumbnails,
-)
+from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
@@ -230,7 +227,6 @@ def create_collections(data, placeholder_dir):
             background_image = get_image(placeholder_dir, image_name)
             defaults["background_image"] = background_image
         Collection.objects.update_or_create(pk=pk, defaults=defaults)
-        create_collection_background_image_thumbnails.delay(pk)
 
 
 def assign_products_to_collections(associations: list):

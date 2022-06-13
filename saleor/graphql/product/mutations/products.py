@@ -30,10 +30,7 @@ from ....product.tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
 )
-from ....product.thumbnails import (
-    create_collection_background_image_thumbnails,
-    create_product_thumbnails,
-)
+from ....product.thumbnails import create_product_thumbnails
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
 from ....thumbnail import models as thumbnail_models
@@ -259,12 +256,6 @@ class CollectionCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
-        instance.save()
-        if cleaned_input.get("background_image"):
-            create_collection_background_image_thumbnails.delay(instance.pk)
-
-    @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         info.context.plugins.collection_created(instance)
 
@@ -294,6 +285,16 @@ class CollectionUpdate(CollectionCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        # delete old background image and related thumbnails
+        if "background_image" in cleaned_data and instance.background_image:
+            instance.background_image.delete()
+            thumbnail_models.Thumbnail.objects.filter(
+                collection_id=instance.id
+            ).delete()
+        return super().construct_instance(instance, cleaned_data)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
