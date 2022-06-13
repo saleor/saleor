@@ -9426,6 +9426,7 @@ input OrderFilterInput {
   ids: [ID!]
   giftCardUsed: Boolean
   giftCardBought: Boolean
+  numbers: [String!]
 }
 
 enum OrderStatusFilter {
