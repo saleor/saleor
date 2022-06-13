@@ -385,7 +385,7 @@ def add_variant_to_order(
             net=untaxed_undiscounted_price, gross=untaxed_undiscounted_price
         )
         total_price = unit_price * quantity
-        undiscounted_total_price = unit_price * quantity
+        undiscounted_total_price = undiscounted_unit_price * quantity
 
         product_name = str(product)
         variant_name = str(variant)
