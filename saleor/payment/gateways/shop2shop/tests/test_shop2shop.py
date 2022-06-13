@@ -3,6 +3,33 @@ from decimal import Decimal
 import pytest
 
 from .... import ChargeStatus, PaymentError, TransactionKind, gateway
+from ....models import Payment
+
+
+@pytest.fixture
+def payment_shop2shop(db, order_with_lines):
+    return Payment.objects.create(
+        gateway="yebofresh.payments.shop2shop",
+        order=order_with_lines,
+        is_active=True,
+        cc_first_digits="4111",
+        cc_last_digits="1111",
+        cc_brand="visa",
+        cc_exp_month=12,
+        cc_exp_year=2027,
+        total=order_with_lines.total.gross.amount,
+        currency=order_with_lines.total.gross.currency,
+        billing_first_name=order_with_lines.billing_address.first_name,
+        billing_last_name=order_with_lines.billing_address.last_name,
+        billing_company_name=order_with_lines.billing_address.company_name,
+        billing_address_1=order_with_lines.billing_address.street_address_1,
+        billing_address_2=order_with_lines.billing_address.street_address_2,
+        billing_city=order_with_lines.billing_address.city,
+        billing_postal_code=order_with_lines.billing_address.postal_code,
+        billing_country_code=order_with_lines.billing_address.country.code,
+        billing_country_area=order_with_lines.billing_address.country_area,
+        billing_email=order_with_lines.user_email,
+    )
 
 
 @pytest.fixture(autouse=True)
