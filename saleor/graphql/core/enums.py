@@ -28,6 +28,7 @@ from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...site import error_codes as site_error_codes
+from ...thumbnail import ThumbnailFormat
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
@@ -90,6 +91,7 @@ LanguageCodeEnum = graphene.Enum(
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
 TimePeriodTypeEnum = to_enum(TimePeriodType)
+ThumbnailFormatEnum = to_enum(ThumbnailFormat)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)

@@ -7402,8 +7402,15 @@ type User implements Node & ObjectWithMetadata {
   """List of user's permission groups which user can manage."""
   editableGroups: [Group!]
   avatar(
-    """Size of the avatar."""
+    """
+    Size of the avatar. If not provided the original image will be returned.
+    """
     size: Int
+
+    """
+    The format of the avatar. When not provided format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    """
+    format: ThumbnailFormatEnum
   ): Image
 
   """
@@ -9168,6 +9175,11 @@ type Group implements Node {
   True, if the currently authenticated user has rights to manage a group.
   """
   userCanManage: Boolean!
+}
+
+"""An enumeration."""
+enum ThumbnailFormatEnum {
+  WEBP
 }
 
 """History log of the customer."""

@@ -25,7 +25,7 @@ from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUse
 from ..checkout.types import Checkout
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
-from ..core.enums import LanguageCodeEnum
+from ..core.enums import LanguageCodeEnum, ThumbnailFormatEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
@@ -290,7 +290,22 @@ class User(ModelObjectType):
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
-    avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
+    avatar = graphene.Field(
+        Image,
+        size=graphene.Int(
+            description=(
+                "Size of the avatar. If not provided the original image "
+                "will be returned."
+            )
+        ),
+        format=ThumbnailFormatEnum(
+            description=(
+                "The format of the avatar. When not provided format of the original "
+                "image will be used. Must be provided together with the size value, "
+                "otherwise original image will be returned."
+            )
+        ),
+    )
     events = PermissionsField(
         NonNullList(CustomerEvent),
         description="List of events associated with the user.",

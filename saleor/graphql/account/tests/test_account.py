@@ -42,6 +42,7 @@ from ....webhook.payloads import (
     generate_meta,
     generate_requestor,
 )
+from ...core.enums import ThumbnailFormatEnum
 from ...core.utils import str_to_enum, to_global_id_or_none
 from ...tests.utils import (
     assert_graphql_error_with_message,
@@ -788,10 +789,10 @@ def test_user_query_object_with_invalid_object_type(
 
 
 USER_AVATAR_QUERY = """
-    query User($id: ID, $size: Int) {
+    query User($id: ID, $size: Int, $format: ThumbnailFormatEnum) {
         user(id: $id) {
             id
-            avatar(size: $size) {
+            avatar(size: $size, format: $format) {
                 url
                 alt
             }
@@ -800,7 +801,36 @@ USER_AVATAR_QUERY = """
 """
 
 
-def test_query_user_avatar_proxy_url_returned(
+def test_query_user_avatar_with_size_and_format_proxy_url_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "size": 120, "format": format}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/thumbnail/{id}/128/{format.lower()}/"
+    )
+
+
+def test_query_user_avatar_with_size_proxy_url_returned(
     staff_api_client, media_root, permission_manage_staff
 ):
     # given
@@ -822,6 +852,67 @@ def test_query_user_avatar_proxy_url_returned(
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert data["avatar"]["url"] == f"http://testserver/thumbnail/{id}/128/"
+
+
+def test_query_user_avatar_with_size_thumbnail_url_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    thumbnail_mock = MagicMock(spec=File)
+    thumbnail_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    Thumbnail.objects.create(user=user, size=128, image=thumbnail_mock)
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "size": 120}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/media/thumbnails/{avatar_mock.name}"
+    )
+
+
+def test_query_user_avatar_only_format_provided_original_image_returned(
+    staff_api_client, media_root, permission_manage_staff
+):
+    # given
+    user = staff_api_client.user
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save(update_fields=["avatar"])
+
+    format = ThumbnailFormatEnum.WEBP.name
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id, "format": format}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert (
+        data["avatar"]["url"]
+        == f"http://testserver/media/user-avatars/{avatar_mock.name}"
+    )
 
 
 def test_query_user_avatar_no_size_value(
