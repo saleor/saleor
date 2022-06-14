@@ -79,6 +79,8 @@ def serialize_checkout_lines_for_tax_calculation(
     lines: Iterable["CheckoutLineInfo"],
     include_taxes_in_prices: bool,
 ) -> List[dict]:
+    # TODO: We should send base price here. Insted of taxed values.
+    # Some tax app like Avalara could raise gross value of lines.
     currency = checkout_info.checkout.currency
 
     def untaxed_price_amount(price: TaxedMoney) -> Decimal:

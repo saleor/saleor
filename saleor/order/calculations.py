@@ -69,33 +69,27 @@ def _apply_tax_data(
     order: Order, lines: Iterable[OrderLine], tax_data: TaxData
 ) -> None:
     """Apply all prices from tax data to order and order lines."""
-
-    def create_taxed_money(net: Decimal, gross: Decimal) -> TaxedMoney:
-        currency = order.currency
-        return TaxedMoney(net=Money(net, currency), gross=Money(gross, currency))
-
-    order.total = create_taxed_money(
-        net=tax_data.total_net_amount, gross=tax_data.total_gross_amount
+    currency = order.currency
+    shipping_price = TaxedMoney(
+        net=Money(tax_data.shipping_price_net_amount, currency),
+        gross=Money(tax_data.shipping_price_gross_amount, currency),
     )
-    order.shipping_price = create_taxed_money(
-        net=tax_data.shipping_price_net_amount,
-        gross=tax_data.shipping_price_gross_amount,
-    )
+
+    order.shipping_price = shipping_price
     order.shipping_tax_rate = tax_data.shipping_tax_rate
 
-    tax_lines = {line.id: line for line in tax_data.lines}
-    zipped_order_and_tax_lines = (
-        (line, tax_lines[line.id]) for line in lines  # type:ignore
-    )
-
-    for (order_line, tax_line) in zipped_order_and_tax_lines:
-        order_line.unit_price = create_taxed_money(
-            net=tax_line.unit_net_amount, gross=tax_line.unit_gross_amount
+    subtotal = zero_taxed_money(order.currency)
+    for (order_line, tax_line) in zip(lines, tax_data.lines):
+        line_total_price = TaxedMoney(
+            net=Money(tax_line.total_net_amount, currency),
+            gross=Money(tax_line.total_gross_amount, currency),
         )
-        order_line.total_price = create_taxed_money(
-            net=tax_line.total_net_amount, gross=tax_line.total_gross_amount
-        )
+        order_line.total_price = line_total_price
+        order_line.unit_price = line_total_price / order_line.quantity
         order_line.tax_rate = tax_line.tax_rate
+        subtotal += line_total_price
+
+    order.total = shipping_price + subtotal
 
 
 def _recalculate_order_discounts(order: Order, lines: Iterable[OrderLine]) -> None:
@@ -155,6 +149,8 @@ def fetch_order_prices_if_expired(
             # Remove type ignore after refactore order tax interface
             _apply_tax_data(order, lines, tax_data)  # type: ignore
 
+        # TODO in separete PR:
+        # discount should be calculated before taxes.
         _recalculate_order_discounts(order, lines)
 
         order.save(
