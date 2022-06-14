@@ -5571,6 +5571,11 @@ type ProductPricingInfo {
   The discounted price range of the product variants in the local currency.
   """
   priceRangeLocalCurrency: TaxedMoneyRange
+
+  """
+  Determines whether this product's price displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """Represents a range of monetary values."""

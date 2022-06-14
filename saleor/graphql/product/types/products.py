@@ -29,6 +29,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
+from ....tax.utils import get_display_gross_prices
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
@@ -84,7 +85,11 @@ from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
-from ...tax.dataloaders import TaxClassByIdLoader
+from ...tax.dataloaders import (
+    TaxClassByIdLoader,
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
 from ...tax.types import TaxClass
 from ...translations.fields import TranslationField
 from ...translations.types import (
@@ -195,6 +200,13 @@ class ProductPricingInfo(BasePricingInfo):
             "The discounted price range of the product variants "
             "in the local currency."
         ),
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether this product's price displayed in a storefront "
+            "should include taxes."
+        ),
+        required=True,
     )
 
     class Meta:
@@ -953,7 +965,9 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
         channel_slug = str(root.channel_slug)
         context = info.context
+        address_country = address.country if address is not None else None
 
+        channel = ChannelBySlugLoader(context).load(channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
@@ -964,62 +978,79 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             )
         )
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
-        channel = ChannelBySlugLoader(context).load(channel_slug)
+        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
 
-        address_country = address.country if address is not None else None
+        def load_tax_configuration(data):
+            (
+                channel,
+                product_channel_listing,
+                variants,
+                variants_channel_listing,
+                collections,
+                discounts,
+            ) = data
 
-        def calculate_pricing_info(discounts):
-            def calculate_pricing_with_channel(channel):
-                def calculate_pricing_with_product_channel_listings(
-                    product_channel_listing,
-                ):
-                    def calculate_pricing_with_variants(variants):
-                        def calculate_pricing_with_variants_channel_listings(
-                            variants_channel_listing,
-                        ):
-                            def calculate_pricing_with_collections(collections):
-                                if not variants_channel_listing:
-                                    return None
+            def load_tax_country_exceptions(tax_config):
+                def calculate_pricing_info(tax_configs_per_country):
+                    if not variants_channel_listing:
+                        return None
 
-                                local_currency = None
-                                country_code = (
-                                    address_country or channel.default_country.code
-                                )
-                                local_currency = get_currency_for_country(country_code)
+                    local_currency = None
+                    country_code = address_country or channel.default_country.code
+                    local_currency = get_currency_for_country(country_code)
 
-                                availability = get_product_availability(
-                                    product=root.node,
-                                    product_channel_listing=product_channel_listing,
-                                    variants=variants,
-                                    variants_channel_listing=variants_channel_listing,
-                                    collections=collections,
-                                    discounts=discounts,
-                                    channel=channel,
-                                    manager=context.plugins,
-                                    country=Country(country_code),
-                                    local_currency=local_currency,
-                                )
-                                return ProductPricingInfo(**asdict(availability))
+                    tax_config_country = next(
+                        (
+                            tc
+                            for tc in tax_configs_per_country
+                            if tc.country.code == country_code
+                        ),
+                        None,
+                    )
+                    display_gross_prices = get_display_gross_prices(
+                        tax_config,
+                        tax_config_country,
+                    )
 
-                            return collections.then(calculate_pricing_with_collections)
+                    availability = get_product_availability(
+                        product=root.node,
+                        product_channel_listing=product_channel_listing,
+                        variants=variants,
+                        variants_channel_listing=variants_channel_listing,
+                        collections=collections,
+                        discounts=discounts,
+                        channel=channel,
+                        manager=context.plugins,
+                        country=Country(country_code),
+                        local_currency=local_currency,
+                    )
 
-                        return variants_channel_listing.then(
-                            calculate_pricing_with_variants_channel_listings
-                        )
+                    pricing_info = asdict(availability)
+                    pricing_info["display_gross_prices"] = display_gross_prices
+                    return ProductPricingInfo(**pricing_info)
 
-                    return variants.then(calculate_pricing_with_variants)
-
-                return product_channel_listing.then(
-                    calculate_pricing_with_product_channel_listings
+                return (
+                    TaxConfigurationPerCountryByTaxConfigurationIDLoader(context)
+                    .load(tax_config.id)
+                    .then(calculate_pricing_info)
                 )
 
-            return channel.then(calculate_pricing_with_channel)
+            return (
+                TaxConfigurationByChannelId(context)
+                .load(channel.id)
+                .then(load_tax_country_exceptions)
+            )
 
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
+        return Promise.all(
+            [
+                channel,
+                product_channel_listing,
+                variants,
+                variants_channel_listing,
+                collections,
+                discounts,
+            ]
+        ).then(load_tax_configuration)
 
     @staticmethod
     @traced_resolver
