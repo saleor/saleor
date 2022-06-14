@@ -197,6 +197,14 @@ class BasePlugin:
 
     authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
 
+    #  Update order lines taxes.
+    #
+    #  Overwrite this method if you need to apply specific logic for applying taxes on
+    #  order lines. Return Iterable["OrderLine"].
+    update_taxes_for_order_lines: Callable[
+        ["Order", List["OrderLine"], List["OrderLine"]], List["OrderLine"]
+    ]
+
     #  Calculate checkout line total.
     #
     #  Overwrite this method if you need to apply specific logic for the calculation
@@ -750,6 +758,24 @@ class BasePlugin:
     #  It is used only by the old storefront. The returned value determines if
     #  storefront should append info to the price about "including/excluding X% VAT".
     show_taxes_on_storefront: Callable[[bool], bool]
+
+    #  Trigger when staff user is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a staff user is
+    #  created.
+    staff_created: Callable[["User", Any], Any]
+
+    #  Trigger when staff user is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a staff user is
+    #  updated.
+    staff_updated: Callable[["User", Any], Any]
+
+    #  Trigger when staff user is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after a staff user is
+    #  deleted.
+    staff_deleted: Callable[["User", Any], Any]
 
     #  Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]

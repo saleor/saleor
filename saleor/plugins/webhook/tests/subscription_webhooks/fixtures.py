@@ -529,6 +529,29 @@ def subscription_product_created_multiple_events_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_staff_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.STAFF_CREATED, WebhookEventAsyncType.STAFF_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_staff_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.STAFF_UPDATED,
+        WebhookEventAsyncType.STAFF_UPDATED,
+    )
+
+
+@pytest.fixture
+def subscription_staff_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        subscription_queries.STAFF_DELETED,
+        WebhookEventAsyncType.STAFF_DELETED,
+    )
+
+
+@pytest.fixture
 def subscription_translation_created_webhook(subscription_webhook):
     return subscription_webhook(
         subscription_queries.TRANSLATION_CREATED,

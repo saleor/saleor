@@ -40,6 +40,7 @@ class AttrValuesInput:
     file_url: Optional[str] = None
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
+    plain_text: Optional[str] = None
     boolean: Optional[bool] = None
     date: Optional[str] = None
     date_time: Optional[str] = None
@@ -140,6 +141,216 @@ class AttributeAssignmentMixin:
         return int(internal_id)
 
     @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        lookup_field: str,
+        value,
+    ):
+        assignment = instance.attributes.filter(
+            assignment__attribute=attribute, **{f"values__{lookup_field}": value}
+        ).first()
+        return (
+            None
+            if assignment is None
+            else assignment.values.filter(**{lookup_field: value}).first()
+        )
+
+    @classmethod
+    def clean_input(
+        cls,
+        raw_input: dict,
+        attributes_qs: "QuerySet",
+        creation: bool = True,
+        is_page_attributes: bool = False,
+    ) -> T_INPUT_MAP:
+        """Resolve and prepare the input for further checks.
+
+        :param raw_input: The user's attributes input.
+        :param attributes_qs:
+            A queryset of attributes, the attribute values must be prefetched.
+            Prefetch is needed by ``_pre_save_values`` during save.
+        :param creation: Whether the input is from creation mutation.
+        :param is_page_attributes: Whether the input is for page type or not.
+
+        :raises ValidationError: contain the message.
+        :return: The resolved data
+        """
+        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
+
+        # Mapping to associate the input values back to the resolved attribute nodes
+        pks = {}
+        slugs = {}
+
+        # Temporary storage of the passed ID for error reporting
+        global_ids = []
+
+        for attribute_input in raw_input:
+            global_id = attribute_input.get("id")
+            slug = attribute_input.get("slug")
+            values = AttrValuesInput(
+                global_id=global_id,
+                values=attribute_input.get("values", []),
+                file_url=cls._clean_file_url(attribute_input.get("file")),
+                content_type=attribute_input.get("content_type"),
+                references=attribute_input.get("references", []),
+                rich_text=attribute_input.get("rich_text"),
+                plain_text=attribute_input.get("plain_text"),
+                boolean=attribute_input.get("boolean"),
+                date=attribute_input.get("date"),
+                date_time=attribute_input.get("date_time"),
+            )
+
+            if global_id:
+                internal_id = cls._resolve_attribute_global_id(error_class, global_id)
+                global_ids.append(global_id)
+                pks[internal_id] = values
+            elif slug:
+                slugs[slug] = values
+            else:
+                raise ValidationError(
+                    "You must whether supply an ID or a slug",
+                    code=error_class.REQUIRED.value,  # type: ignore
+                )
+
+        attributes = cls._resolve_attribute_nodes(
+            attributes_qs,
+            error_class,
+            global_ids=global_ids,
+            pks=pks.keys(),
+            slugs=slugs.keys(),
+        )
+        attr_with_invalid_references = []
+        cleaned_input = []
+        for attribute in attributes:
+            key = pks.get(attribute.pk, None)
+
+            # Retrieve the primary key by slug if it
+            # was not resolved through a global ID but a slug
+            if key is None:
+                key = slugs[attribute.slug]
+
+            if attribute.input_type == AttributeInputType.REFERENCE:
+                try:
+                    key = cls._validate_references(error_class, attribute, key)
+                except GraphQLError:
+                    attr_with_invalid_references.append(attribute)
+
+            cleaned_input.append((attribute, key))
+
+        if attr_with_invalid_references:
+            raise ValidationError(
+                "Provided references are invalid. Some of the nodes "
+                "do not exist or are different types than types defined "
+                "in attribute entity type.",
+                code=error_class.INVALID.value,  # type: ignore
+            )
+
+        cls._validate_attributes_input(
+            cleaned_input,
+            attributes_qs,
+            creation=creation,
+            is_page_attributes=is_page_attributes,
+        )
+
+        return cleaned_input
+
+    @staticmethod
+    def _clean_file_url(file_url: Optional[str]):
+        # extract storage path from file URL
+        return (
+            re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
+            if file_url is not None
+            else file_url
+        )
+
+    @classmethod
+    def _validate_references(
+        cls, error_class, attribute: attribute_models.Attribute, values: AttrValuesInput
+    ) -> AttrValuesInput:
+        references = values.references
+        if not references:
+            return values
+
+        entity_model = cls.ENTITY_TYPE_TO_MODEL_MAPPING[
+            attribute.entity_type  # type: ignore
+        ]
+        try:
+            ref_instances = get_nodes(
+                references, attribute.entity_type, model=entity_model
+            )
+            values.references = ref_instances
+            return values
+        except GraphQLError:
+            raise ValidationError("Invalid reference type.", code=error_class.INVALID)
+
+    @classmethod
+    def _validate_attributes_input(
+        cls,
+        cleaned_input: T_INPUT_MAP,
+        attribute_qs: "QuerySet",
+        *,
+        creation: bool,
+        is_page_attributes: bool
+    ):
+        """Check the cleaned attribute input.
+
+        An Attribute queryset is supplied.
+
+        - ensure all required attributes are passed
+        - ensure the values are correct
+
+        :raises ValidationError: when an invalid operation was found.
+        """
+        if errors := validate_attributes_input(
+            cleaned_input,
+            attribute_qs,
+            is_page_attributes=is_page_attributes,
+            creation=creation,
+        ):
+            raise ValidationError(errors)
+
+    @classmethod
+    def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
+        """Save the cleaned input into the database against the given instance.
+
+        Note: this should always be ran inside a transaction.
+
+        :param instance: the product or variant to associate the attribute against.
+        :param cleaned_input: the cleaned user input (refer to clean_attributes)
+        """
+        pre_save_methods_mapping = {
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
+        }
+        clean_assignment = []
+        for attribute, attr_values in cleaned_input:
+            if (input_type := attribute.input_type) in pre_save_methods_mapping:
+                pre_save_func = pre_save_methods_mapping[input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
+            else:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
+
+            associate_attribute_values_to_instance(
+                instance, attribute, *attribute_values
+            )
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+
+        # drop attribute assignment model when values are unassigned from instance
+        if clean_assignment:
+            instance.attributes.filter(
+                assignment__attribute_id__in=clean_assignment
+            ).delete()
+
+    @classmethod
     def _pre_save_values(
         cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
@@ -186,6 +397,21 @@ class AttributeAssignmentMixin:
             "name": truncatechars(
                 clean_editor_js(attr_values.rich_text, to_string=True), 200
             ),
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_plain_text_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        if not attr_values.plain_text:
+            return tuple()
+        defaults = {
+            "plain_text": attr_values.plain_text,
+            "name": truncatechars(attr_values.plain_text, 200),
         }
         return cls._update_or_create_value(instance, attribute, defaults)
 
@@ -325,214 +551,6 @@ class AttributeAssignmentMixin:
             value.slug = generate_unique_slug(value, name)  # type: ignore
             value.save()
         return (value,)
-
-    @classmethod
-    def _get_assigned_attribute_value_if_exists(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        lookup_field: str,
-        value,
-    ):
-        assignment = instance.attributes.filter(
-            assignment__attribute=attribute, **{f"values__{lookup_field}": value}
-        ).first()
-        return (
-            None
-            if assignment is None
-            else assignment.values.filter(**{lookup_field: value}).first()
-        )
-
-    @classmethod
-    def clean_input(
-        cls,
-        raw_input: dict,
-        attributes_qs: "QuerySet",
-        creation: bool = True,
-        is_page_attributes: bool = False,
-    ) -> T_INPUT_MAP:
-        """Resolve and prepare the input for further checks.
-
-        :param raw_input: The user's attributes input.
-        :param attributes_qs:
-            A queryset of attributes, the attribute values must be prefetched.
-            Prefetch is needed by ``_pre_save_values`` during save.
-        :param creation: Whether the input is from creation mutation.
-        :param is_page_attributes: Whether the input is for page type or not.
-
-        :raises ValidationError: contain the message.
-        :return: The resolved data
-        """
-        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
-
-        # Mapping to associate the input values back to the resolved attribute nodes
-        pks = {}
-        slugs = {}
-
-        # Temporary storage of the passed ID for error reporting
-        global_ids = []
-
-        for attribute_input in raw_input:
-            global_id = attribute_input.get("id")
-            slug = attribute_input.get("slug")
-            values = AttrValuesInput(
-                global_id=global_id,
-                values=attribute_input.get("values", []),
-                file_url=cls._clean_file_url(attribute_input.get("file")),
-                content_type=attribute_input.get("content_type"),
-                references=attribute_input.get("references", []),
-                rich_text=attribute_input.get("rich_text"),
-                boolean=attribute_input.get("boolean"),
-                date=attribute_input.get("date"),
-                date_time=attribute_input.get("date_time"),
-            )
-
-            if global_id:
-                internal_id = cls._resolve_attribute_global_id(error_class, global_id)
-                global_ids.append(global_id)
-                pks[internal_id] = values
-            elif slug:
-                slugs[slug] = values
-            else:
-                raise ValidationError(
-                    "You must whether supply an ID or a slug",
-                    code=error_class.REQUIRED.value,  # type: ignore
-                )
-
-        attributes = cls._resolve_attribute_nodes(
-            attributes_qs,
-            error_class,
-            global_ids=global_ids,
-            pks=pks.keys(),
-            slugs=slugs.keys(),
-        )
-        attr_with_invalid_references = []
-        cleaned_input = []
-        for attribute in attributes:
-            key = pks.get(attribute.pk, None)
-
-            # Retrieve the primary key by slug if it
-            # was not resolved through a global ID but a slug
-            if key is None:
-                key = slugs[attribute.slug]
-
-            if attribute.input_type == AttributeInputType.REFERENCE:
-                try:
-                    key = cls._validate_references(error_class, attribute, key)
-                except GraphQLError:
-                    attr_with_invalid_references.append(attribute)
-
-            cleaned_input.append((attribute, key))
-
-        if attr_with_invalid_references:
-            raise ValidationError(
-                "Provided references are invalid. Some of the nodes "
-                "do not exist or are different types than types defined "
-                "in attribute entity type.",
-                code=error_class.INVALID.value,  # type: ignore
-            )
-
-        cls._validate_attributes_input(
-            cleaned_input,
-            attributes_qs,
-            creation=creation,
-            is_page_attributes=is_page_attributes,
-        )
-
-        return cleaned_input
-
-    @staticmethod
-    def _clean_file_url(file_url: Optional[str]):
-        # extract storage path from file URL
-        return (
-            re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
-            if file_url is not None
-            else file_url
-        )
-
-    @classmethod
-    def _validate_references(
-        cls, error_class, attribute: attribute_models.Attribute, values: AttrValuesInput
-    ) -> AttrValuesInput:
-        references = values.references
-        if not references:
-            return values
-
-        entity_model = cls.ENTITY_TYPE_TO_MODEL_MAPPING[
-            attribute.entity_type  # type: ignore
-        ]
-        try:
-            ref_instances = get_nodes(
-                references, attribute.entity_type, model=entity_model
-            )
-            values.references = ref_instances
-            return values
-        except GraphQLError:
-            raise ValidationError("Invalid reference type.", code=error_class.INVALID)
-
-    @classmethod
-    def _validate_attributes_input(
-        cls,
-        cleaned_input: T_INPUT_MAP,
-        attribute_qs: "QuerySet",
-        *,
-        creation: bool,
-        is_page_attributes: bool
-    ):
-        """Check the cleaned attribute input.
-
-        An Attribute queryset is supplied.
-
-        - ensure all required attributes are passed
-        - ensure the values are correct
-
-        :raises ValidationError: when an invalid operation was found.
-        """
-        if errors := validate_attributes_input(
-            cleaned_input,
-            attribute_qs,
-            is_page_attributes=is_page_attributes,
-            creation=creation,
-        ):
-            raise ValidationError(errors)
-
-    @classmethod
-    def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
-        """Save the cleaned input into the database against the given instance.
-
-        Note: this should always be ran inside a transaction.
-
-        :param instance: the product or variant to associate the attribute against.
-        :param cleaned_input: the cleaned user input (refer to clean_attributes)
-        """
-        pre_save_methods_mapping = {
-            AttributeInputType.FILE: cls._pre_save_file_value,
-            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
-            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
-            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
-            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
-            AttributeInputType.DATE: cls._pre_save_date_time_values,
-            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
-        }
-        clean_assignment = []
-        for attribute, attr_values in cleaned_input:
-            if (input_type := attribute.input_type) in pre_save_methods_mapping:
-                pre_save_func = pre_save_methods_mapping[input_type]
-                attribute_values = pre_save_func(instance, attribute, attr_values)
-            else:
-                attribute_values = cls._pre_save_values(attribute, attr_values)
-
-            associate_attribute_values_to_instance(
-                instance, attribute, *attribute_values
-            )
-            if not attribute_values:
-                clean_assignment.append(attribute.pk)
-
-        # drop attribute assignment model when values are unassigned from instance
-        if clean_assignment:
-            instance.attributes.filter(
-                assignment__attribute_id__in=clean_assignment
-            ).delete()
 
 
 def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
@@ -756,8 +774,6 @@ def validate_values(
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
-        elif not is_numeric and len(value) > name_field.max_length:
-            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
         elif is_numeric:
             try:
                 float(value)
@@ -765,6 +781,8 @@ def validate_values(
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attribute_id)
+        elif len(value) > name_field.max_length:
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
 
 
 def validate_required_attributes(

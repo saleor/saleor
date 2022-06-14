@@ -450,6 +450,53 @@ SHIPPING_ZONE_DELETED = """
     }
 """
 
+STAFF_CREATED = (
+    fragments.STAFF_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffCreated{
+          user{
+            ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+STAFF_UPDATED = (
+    fragments.STAFF_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffUpdated{
+          user{
+            ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+STAFF_DELETED = (
+    fragments.STAFF_DETAILS
+    + """
+    subscription{
+      event{
+        ...on StaffDeleted{
+          user{
+            ...StaffDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 PRODUCT_UPDATED = """
     subscription{
       event{
@@ -782,13 +829,13 @@ FULFILLMENT_CANCELED = (
 )
 
 CUSTOMER_CREATED = (
-    fragments.USER_DETAILS
+    fragments.CUSTOMER_DETAILS
     + """
     subscription{
       event{
         ...on CustomerCreated{
           user{
-            ...UserDetails
+            ...CustomerDetails
           }
         }
       }
@@ -797,13 +844,13 @@ CUSTOMER_CREATED = (
 )
 
 CUSTOMER_UPDATED = (
-    fragments.USER_DETAILS
+    fragments.CUSTOMER_DETAILS
     + """
     subscription{
       event{
         ...on CustomerUpdated{
           user{
-            ...UserDetails
+            ...CustomerDetails
           }
         }
       }
@@ -863,6 +910,9 @@ CHECKOUT_CREATED = """
         ...on CheckoutCreated{
           checkout{
             id
+            totalPrice{
+                currency
+            }
           }
         }
       }

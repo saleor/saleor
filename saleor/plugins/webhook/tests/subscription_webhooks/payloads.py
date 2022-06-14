@@ -94,7 +94,7 @@ def generate_customer_payload(customer):
             "email": customer.email,
             "firstName": customer.first_name,
             "lastName": customer.last_name,
-            "isStaff": customer.is_staff,
+            "isStaff": False,
             "isActive": customer.is_active,
             "addresses": [
                 {"id": graphene.Node.to_global_id("Address", address.pk)}
@@ -107,6 +107,18 @@ def generate_customer_payload(customer):
             "defaultBillingAddress": (
                 generate_address_payload(customer.default_billing_address)
             ),
+        }
+    }
+
+
+def generate_staff_payload(staff_user):
+    return {
+        "user": {
+            "email": staff_user.email,
+            "firstName": staff_user.first_name,
+            "lastName": staff_user.last_name,
+            "isStaff": True,
+            "isActive": staff_user.is_active,
         }
     }
 
