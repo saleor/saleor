@@ -8,11 +8,12 @@ from ...channel import models
 from ...core.permissions import ChannelPermissions
 from ..core.descriptions import ADDED_IN_31
 from ..core.fields import PermissionsField
-from ..core.types import CountryDisplay, ModelObjectType
+from ..core.types import CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
+from ..warehouse.types import Warehouse
 from . import ChannelContext
-from .dataloaders import ChannelWithHasOrdersByIdLoader
+from .dataloaders import ChannelWithHasOrdersByIdLoader, WarehousesByChannelIdLoader
 
 
 class ChannelContextTypeForObjectType(graphene.ObjectType):
@@ -139,6 +140,11 @@ class Channel(ModelObjectType):
         ),
         required=True,
     )
+    warehouses = NonNullList(
+        Warehouse,
+        description="List of warehouses assigned to this channel.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents channel."
@@ -158,3 +164,7 @@ class Channel(ModelObjectType):
         return CountryDisplay(
             code=root.default_country.code, country=root.default_country.name
         )
+
+    @staticmethod
+    def resolve_warehouses(root: models.Channel, info):
+        return WarehousesByChannelIdLoader(info.context).load(root.id)

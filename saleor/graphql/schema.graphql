@@ -3593,6 +3593,9 @@ type Channel implements Node {
   Added in Saleor 3.1.
   """
   defaultCountry: CountryDisplay!
+
+  """List of warehouses assigned to this channel."""
+  warehouses: [Warehouse!]!
 }
 
 """Represents shipping method postal code rule."""
