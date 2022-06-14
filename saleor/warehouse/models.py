@@ -116,10 +116,10 @@ class WarehouseQueryset(models.QuerySet):
 
 
 class Warehouse(ModelWithMetadata):
-
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    channels = models.ManyToManyField(Channel, related_name="warehouses")
     shipping_zones = models.ManyToManyField(
         ShippingZone, blank=True, related_name="warehouses"
     )
