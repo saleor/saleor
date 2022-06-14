@@ -138,9 +138,8 @@ For dashboard go to the [saleor-dashboard](https://github.com/saleor/saleor-dash
 
 Want to see Saleor in action?
 
-* [View React Storefront](https://reactstorefront.vercel.app/)
+* [View React Storefront](https://demo.saleor.io/)
 * [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
-* [View Legacy Storefront](https://demo.saleor.io/)
 
 Or launch the demo on a free Heroku instance.
 
