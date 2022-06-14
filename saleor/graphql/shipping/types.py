@@ -1,7 +1,7 @@
 import graphene
 from graphene import relay
 
-from ...core.permissions import ShippingPermissions
+from ...core.permissions import ShippingPermissions, TaxPermissions
 from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...product import models as product_models
@@ -29,6 +29,8 @@ from ..core.types import (
 )
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
+from ..tax.dataloaders import TaxClassByIdLoader
+from ..tax.types import TaxClass
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
@@ -125,6 +127,15 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     minimum_delivery_days = graphene.Int(
         description="Minimal number of days for delivery."
     )
+    tax_class = PermissionsField(
+        TaxClass,
+        description="Tax class assigned to this shipping method.",
+        required=True,
+        permissions=[
+            TaxPermissions.MANAGE_TAXES,
+            ShippingPermissions.MANAGE_SHIPPING,
+        ],
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -209,6 +220,10 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
             )
 
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+
+    @staticmethod
+    def resolve_tax_class(root: ChannelContext[models.ShippingMethod], info):
+        return TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):

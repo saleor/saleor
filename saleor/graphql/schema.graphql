@@ -2846,6 +2846,13 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
 
   """Minimal number of days for delivery."""
   minimumDeliveryDays: Int
+
+  """
+  Tax class assigned to this shipping method.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_SHIPPING.
+  """
+  taxClass: TaxClass!
 }
 
 """An enumeration."""
@@ -15301,6 +15308,11 @@ input ShippingPriceInput {
 
   """Inclusion type for currently assigned postal code rules."""
   inclusionType: PostalCodeRuleInclusionTypeEnum
+
+  """
+  ID of a tax class to assign to this shipping method. If not provided, the default tax class will be used.
+  """
+  taxClass: ID
 }
 
 scalar WeightScalar
