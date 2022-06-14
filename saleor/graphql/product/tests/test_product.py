@@ -2,8 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest import mock
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import before_after
 import graphene
@@ -3783,7 +3782,7 @@ def test_query_product_media_by_id_with_size_thumbnail_url_returned(
     media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
 
     size = 128
-    thumbnail_mock = mock.MagicMock(spec=File)
+    thumbnail_mock = MagicMock(spec=File)
     thumbnail_mock.name = "thumbnail_image.jpg"
     Thumbnail.objects.create(product_media=media, size=size, image=thumbnail_mock)
 
@@ -9466,15 +9465,6 @@ def test_product_media_create_mutation(
     permission_manage_products,
     media_root,
 ):
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.graphql.product.mutations.products."
-            "create_product_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
@@ -9497,8 +9487,6 @@ def test_product_media_create_mutation(
     assert file_name.startswith(f"products/{img_name}")
     assert file_name.endswith(format)
 
-    # The image creation should have triggered a warm-up
-    mock_create_thumbnails.assert_called_once_with(product_image.pk)
     product_updated_mock.assert_called_once_with(product)
 
 
@@ -9679,15 +9667,6 @@ def test_product_image_update_mutation(
     }
     """
 
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.graphql.product.mutations.products."
-            "create_product_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-
     media_obj = product_with_image.media.first()
     alt = "damage alt"
     variables = {
@@ -9700,9 +9679,6 @@ def test_product_image_update_mutation(
     content = get_graphql_content(response)
     assert content["data"]["productMediaUpdate"]["media"]["alt"] == alt
 
-    # We did not update the image field,
-    # the image should not have triggered a warm-up
-    assert mock_create_thumbnails.call_count == 0
     product_updated_mock.assert_called_once_with(product_with_image)
 
 
@@ -10746,7 +10722,7 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
 """
 
 
-@mock.patch(
+@patch(
     "saleor.graphql.product.types.products.get_variant_availability",
     wraps=get_variant_availability,
 )

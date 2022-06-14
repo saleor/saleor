@@ -956,9 +956,7 @@ def test_delete_collection(
     deleted_webhook_mock.assert_called_once()
 
 
-@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_collection_with_background_image(
-    delete_versatile_image_mock,
     staff_api_client,
     collection_with_image,
     permission_manage_products,
@@ -988,7 +986,6 @@ def test_delete_collection_with_background_image(
         collection.refresh_from_db()
     # ensure all related thumbnails has been deleted
     assert not Thumbnail.objects.filter(collection_id=collection_id)
-    delete_versatile_image_mock.assert_called_once_with(collection.background_image)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

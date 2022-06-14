@@ -82,7 +82,6 @@ from ...product.models import (
 )
 from ...product.search import update_products_search_vector
 from ...product.tasks import update_products_discounted_prices_of_discount_task
-from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
@@ -503,7 +502,6 @@ def create_product_image(product, placeholder_dir, image_name):
         return None
     product_image = ProductMedia(product=product, image=image)
     product_image.save()
-    create_product_thumbnails.delay(product_image.pk)
     return product_image
 
 

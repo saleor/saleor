@@ -30,7 +30,6 @@ from ....product.tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
 )
-from ....product.thumbnails import create_product_thumbnails
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
 from ....thumbnail import models as thumbnail_models
@@ -1315,7 +1314,6 @@ class ProductMediaCreate(BaseMutation):
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
-            create_product_thumbnails.delay(media.pk)
         if media_url:
             # Remote URLs can point to the images or oembed data.
             # In case of images, file is downloaded. Otherwise we keep only
@@ -1330,7 +1328,6 @@ class ProductMediaCreate(BaseMutation):
                     alt=alt,
                     type=ProductMediaTypes.IMAGE,
                 )
-                create_product_thumbnails.delay(media.pk)
             else:
                 oembed_data, media_type = get_oembed_data(media_url, "media_url")
                 media = product.media.create(
