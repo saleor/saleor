@@ -5,6 +5,9 @@ if TYPE_CHECKING:
     from .models import FulfillmentLine
 
 
+default_app_config = "saleor.order.app.OrderAppConfig"
+
+
 class OrderStatus:
     DRAFT = "draft"  # fully editable, not finalized order created by staff users
     UNCONFIRMED = (
