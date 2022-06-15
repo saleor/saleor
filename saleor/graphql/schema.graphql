@@ -8617,7 +8617,6 @@ type Order implements Node & ObjectWithMetadata {
 
   """List of user gift cards."""
   giftCards: [GiftCard!]!
-  displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight!
   redirectUrl: String
@@ -8684,6 +8683,11 @@ type Order implements Node & ObjectWithMetadata {
 
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """An enumeration."""
