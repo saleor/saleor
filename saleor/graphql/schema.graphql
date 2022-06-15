@@ -2906,6 +2906,13 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
 
   """Minimal number of days for delivery."""
   minimumDeliveryDays: Int
+
+  """
+  Tax class assigned to this shipping method.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_SHIPPING.
+  """
+  taxClass: TaxClass!
 }
 
 """An enumeration."""
@@ -3950,6 +3957,13 @@ type Product implements Node & ObjectWithMetadata {
 
   """Whether the product is available for purchase."""
   isAvailableForPurchase: Boolean
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS.
+  """
+  taxClass: TaxClass!
 }
 
 """
@@ -4034,6 +4048,13 @@ type ProductType implements Node & ObjectWithMetadata {
   """A type of tax. Assigned by enabled tax gateway"""
   taxType: TaxType
 
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  taxClass: TaxClass!
+
   """Variant attributes of that product type."""
   variantAttributes(
     """Define scope of returned attributes."""
@@ -4106,6 +4127,93 @@ type TaxType {
 
   """External tax code used to identify given tax group."""
   taxCode: String
+}
+
+"""
+Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxClass implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the tax class."""
+  name: String!
+
+  """
+  Determines whether a tax class is a default one. Default tax class is created by the system and cannot be removed.
+  """
+  isDefault: Boolean!
+
+  """Country-specific tax rates for this tax class."""
+  countries: [TaxClassCountryRate!]!
+}
+
+"""
+Country-specific tax rate value for a tax class.
+
+Added in Saleor 3.5.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxClassCountryRate {
+  """Country in which this tax rate applies."""
+  country: CountryDisplay!
+
+  """Tax rate value."""
+  rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass!
 }
 
 """
@@ -7077,93 +7185,6 @@ type TaxConfigurationCountableEdge {
 input TaxConfigurationFilterInput {
   metadata: [MetadataFilter!]
   ids: [ID!]
-}
-
-"""
-Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
-
-Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type TaxClass implements Node & ObjectWithMetadata {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the tax class."""
-  name: String!
-
-  """
-  Determines whether a tax class is a default one. Default tax class is created by the system and cannot be removed.
-  """
-  isDefault: Boolean!
-
-  """Country-specific tax rates for this tax class."""
-  countries: [TaxClassCountryRate!]!
-}
-
-"""
-Country-specific tax rate value for a tax class.
-
-Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type TaxClassCountryRate {
-  """Country in which this tax rate applies."""
-  country: CountryDisplay!
-
-  """Tax rate value."""
-  rate: Float!
-
-  """Related tax class."""
-  taxClass: TaxClass!
 }
 
 type TaxClassCountableConnection {
@@ -15445,6 +15466,11 @@ input ShippingPriceInput {
 
   """Inclusion type for currently assigned postal code rules."""
   inclusionType: PostalCodeRuleInclusionTypeEnum
+
+  """
+  ID of a tax class to assign to this shipping method. If not provided, the default tax class will be used.
+  """
+  taxClass: ID
 }
 
 scalar WeightScalar
@@ -16162,6 +16188,11 @@ input ProductCreateInput {
   """Product slug."""
   slug: String
 
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
   """Tax rate for enabled tax gateway."""
   taxCode: String
 
@@ -16271,6 +16302,11 @@ input ProductInput {
 
   """Product slug."""
   slug: String
+
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
 
   """Tax rate for enabled tax gateway."""
   taxCode: String
@@ -16536,6 +16572,11 @@ input ProductTypeInput {
 
   """Tax rate for enabled tax gateway."""
   taxCode: String
+
+  """
+  ID of a tax class to assign to this product type. All products of this product type would use this tax class, unless it's overridden in the `Product` type.
+  """
+  taxClass: ID
 }
 
 """

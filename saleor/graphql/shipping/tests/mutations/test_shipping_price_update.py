@@ -26,6 +26,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
         $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!],
         $deletePostalCodeRules: [ID!],
         $inclusionType: PostalCodeRuleInclusionTypeEnum,
+        $taxClass: ID
     ) {
         shippingPriceUpdate(
             id: $id, input: {
@@ -39,6 +40,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
                 addPostalCodeRules: $addPostalCodeRules,
                 deletePostalCodeRules: $deletePostalCodeRules,
                 inclusionType: $inclusionType,
+                taxClass: $taxClass
             }) {
             errors {
                 field
@@ -56,6 +58,9 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
                     start
                     end
                 }
+                taxClass {
+                    id
+                }
             }
         }
     }
@@ -63,7 +68,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
 
 
 def test_update_shipping_method(
-    staff_api_client, shipping_zone, permission_manage_shipping
+    staff_api_client, shipping_zone, permission_manage_shipping, tax_classes
 ):
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
@@ -74,6 +79,7 @@ def test_update_shipping_method(
     max_del_days = 8
     min_del_days = 2
     description = dummy_editorjs("description", True)
+    tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
     variables = {
         "shippingZone": shipping_zone_id,
         "id": shipping_method_id,
@@ -81,6 +87,7 @@ def test_update_shipping_method(
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
+        "taxClass": tax_class_id,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -91,6 +98,7 @@ def test_update_shipping_method(
     assert data["shippingMethod"]["description"] == description
     assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
     assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
+    assert data["shippingMethod"]["taxClass"]["id"] == tax_class_id
 
 
 @freeze_time("2022-05-12 12:00:00")

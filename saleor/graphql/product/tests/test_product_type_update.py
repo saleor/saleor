@@ -15,6 +15,7 @@ mutation updateProductType(
     $hasVariants: Boolean!,
     $isShippingRequired: Boolean!,
     $productAttributes: [ID!],
+    $taxClass: ID
     ) {
         productTypeUpdate(
         id: $id,
@@ -23,6 +24,7 @@ mutation updateProductType(
             hasVariants: $hasVariants,
             isShippingRequired: $isShippingRequired,
             productAttributes: $productAttributes
+            taxClass: $taxClass
         }) {
             productType {
                 name
@@ -33,6 +35,9 @@ mutation updateProductType(
                     id
                 }
                 productAttributes {
+                    id
+                }
+                taxClass {
                     id
                 }
             }
@@ -51,6 +56,7 @@ def test_product_type_update_mutation(
     product_type,
     product,
     permission_manage_product_types_and_attributes,
+    tax_classes,
 ):
     query = PRODUCT_TYPE_UPDATE_MUTATION
     product_type_name = "test type updated"
@@ -58,6 +64,7 @@ def test_product_type_update_mutation(
     has_variants = True
     require_shipping = False
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
 
     # Test scenario: remove all product attributes using [] as input
     # but do not change variant attributes
@@ -73,6 +80,7 @@ def test_product_type_update_mutation(
         "hasVariants": has_variants,
         "isShippingRequired": require_shipping,
         "productAttributes": product_attributes_ids,
+        "taxClass": tax_class_id,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
@@ -85,6 +93,7 @@ def test_product_type_update_mutation(
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
     assert len(data["variantAttributes"]) == (variant_attributes.count())
+    assert data["taxClass"]["id"] == tax_class_id
 
 
 def test_product_type_update_mutation_not_valid_attributes(

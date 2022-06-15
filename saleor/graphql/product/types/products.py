@@ -6,12 +6,15 @@ from typing import List, Optional
 import graphene
 from django_countries.fields import Country
 from graphene import relay
+from promise import Promise
 
 from ....attribute import models as attribute_models
 from ....core.permissions import (
     AuthorizationFilters,
     OrderPermissions,
     ProductPermissions,
+    ProductTypePermissions,
+    TaxPermissions,
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
@@ -81,6 +84,8 @@ from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
+from ...tax.dataloaders import TaxClassByIdLoader
+from ...tax.types import TaxClass
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -853,6 +858,18 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
+    tax_class = PermissionsField(
+        TaxClass,
+        description=(
+            "Tax class assigned to this product type. All products of this product "
+            "type use this tax class, unless it's overridden in the `Product` type."
+        ),
+        required=True,
+        permissions=[
+            TaxPermissions.MANAGE_TAXES,
+            ProductPermissions.MANAGE_PRODUCTS,
+        ],
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -1229,6 +1246,22 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
 
     @staticmethod
+    def resolve_tax_class(root: ChannelContext[models.Product], info):
+        product_type = (
+            ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
+            if not root.node.tax_class_id
+            else None
+        )
+
+        def resolve_tax_class(product_type):
+            tax_class_id = (
+                product_type.tax_class_id if product_type else root.node.tax_class_id
+            )
+            return TaxClassByIdLoader(info.context).load(tax_class_id)
+
+        return Promise.resolve(product_type).then(resolve_tax_class)
+
+    @staticmethod
     def __resolve_references(roots: List["Product"], info):
         requestor = get_user_or_app_from_context(info.context)
         channels = defaultdict(set)
@@ -1281,6 +1314,19 @@ class ProductType(ModelObjectType):
     )
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
+    )
+    tax_class = PermissionsField(
+        TaxClass,
+        description=(
+            "Tax class assigned to this product type. All products of this product "
+            "type use this tax class, unless it's overridden in the `Product` type."
+        ),
+        required=True,
+        permissions=[
+            TaxPermissions.MANAGE_TAXES,
+            ProductPermissions.MANAGE_PRODUCTS,
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+        ],
     )
     variant_attributes = NonNullList(
         Attribute,
@@ -1416,6 +1462,10 @@ class ProductType(ModelObjectType):
     @staticmethod
     def resolve_weight(root: models.ProductType, _info):
         return convert_weight_to_default_weight_unit(root.weight)
+
+    @staticmethod
+    def resolve_tax_class(root: models.ProductType, info):
+        return TaxClassByIdLoader(info.context).load(root.tax_class_id)
 
     @staticmethod
     def __resolve_references(roots: List["ProductType"], _info):

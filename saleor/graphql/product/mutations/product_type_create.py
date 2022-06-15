@@ -5,6 +5,7 @@ from ....attribute import AttributeType
 from ....core.permissions import ProductTypePermissions
 from ....product import ProductTypeKind, models
 from ....product.error_codes import ProductErrorCode
+from ....tax.models import TaxClass
 from ...core.mutations import ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import NonNullList, ProductError
@@ -45,6 +46,13 @@ class ProductTypeInput(graphene.InputObjectType):
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
+    tax_class = graphene.ID(
+        description=(
+            "ID of a tax class to assign to this product type. All products of this "
+            "product type would use this tax class, unless it's overridden in the "
+            "`Product` type."
+        )
+    )
 
 
 class ProductTypeCreate(ModelMutation):
@@ -92,6 +100,11 @@ class ProductTypeCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
+
+        if "tax_class" in data and data["tax_class"] is None:
+            cleaned_input["tax_class"] = TaxClass.objects.filter(
+                is_default=True
+            ).first()
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:

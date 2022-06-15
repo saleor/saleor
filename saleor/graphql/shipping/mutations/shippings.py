@@ -16,6 +16,7 @@ from ....shipping.utils import (
     default_shipping_zone_exists,
     get_countries_without_shipping_zone,
 )
+from ....tax.models import TaxClass
 from ...channel.types import ChannelContext
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -65,6 +66,12 @@ class ShippingPriceInput(graphene.InputObjectType):
     )
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
         description="Inclusion type for currently assigned postal code rules.",
+    )
+    tax_class = graphene.ID(
+        description=(
+            "ID of a tax class to assign to this shipping method. If not provided, "
+            "the default tax class will be used."
+        )
     )
 
 
@@ -324,6 +331,11 @@ class ShippingPriceMixin:
                     )
                 }
             )
+
+        if "tax_class" in cleaned_input and cleaned_input["tax_class"] is None:
+            cleaned_input["tax_class"] = TaxClass.objects.filter(
+                is_default=True
+            ).first()
 
         return cleaned_input
 
