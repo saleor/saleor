@@ -7933,6 +7933,11 @@ type Checkout implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactions: [TransactionItem!]
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """

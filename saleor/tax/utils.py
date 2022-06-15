@@ -5,11 +5,11 @@ if TYPE_CHECKING:
 
 
 def get_display_gross_prices(
-    tax_configuration: "TaxConfiguration",
+    channel_tax_configuration: "TaxConfiguration",
     country_tax_configuration: Optional["TaxConfigurationPerCountry"],
 ):
     return (
         country_tax_configuration.display_gross_prices
         if country_tax_configuration
-        else tax_configuration.display_gross_prices
+        else channel_tax_configuration.display_gross_prices
     )

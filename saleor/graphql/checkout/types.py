@@ -11,6 +11,7 @@ from ...core.permissions import (
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
+from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -40,6 +41,10 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
+from ..tax.dataloaders import (
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
@@ -453,7 +458,6 @@ class Checkout(ModelObjectType):
         description="The shipping method related with checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
-
     delivery_method = graphene.Field(
         DeliveryMethod,
         description=(
@@ -462,7 +466,6 @@ class Checkout(ModelObjectType):
             + PREVIEW_FEATURE
         ),
     )
-
     subtotal_price = graphene.Field(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
@@ -480,7 +483,6 @@ class Checkout(ModelObjectType):
     language_code = graphene.Field(
         LanguageCodeEnum, description="Checkout language code.", required=True
     )
-
     transactions = NonNullList(
         TransactionItem,
         description=(
@@ -489,6 +491,13 @@ class Checkout(ModelObjectType):
             + ADDED_IN_34
             + PREVIEW_FEATURE
         ),
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether checkout prices should include taxes when displayed "
+            "in a storefront."
+        ),
+        required=True,
     )
 
     class Meta:
@@ -760,6 +769,33 @@ class Checkout(ModelObjectType):
     )
     def resolve_transactions(root: models.Checkout, info):
         return TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+
+    @staticmethod
+    def resolve_display_gross_prices(root: models.Checkout, info):
+        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+        country_code = root.get_country()
+
+        def load_tax_country_exceptions(tax_config):
+            tax_configs_per_country = (
+                TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
+                    tax_config.id
+                )
+            )
+
+            def calculate_display_gross_prices(tax_configs_per_country):
+                tax_config_country = next(
+                    (
+                        tc
+                        for tc in tax_configs_per_country
+                        if tc.country.code == country_code
+                    ),
+                    None,
+                )
+                return get_display_gross_prices(tax_config, tax_config_country)
+
+            return tax_configs_per_country.then(calculate_display_gross_prices)
+
+        return tax_config.then(load_tax_country_exceptions)
 
 
 class CheckoutCountableConnection(CountableConnection):
