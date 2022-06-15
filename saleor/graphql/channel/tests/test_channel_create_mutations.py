@@ -23,6 +23,9 @@ CHANNEL_CREATE_MUTATION = """
                     code
                     country
                 }
+                warehouses {
+                    slug
+                }
             }
             errors{
                 field
@@ -273,6 +276,53 @@ def test_channel_create_mutation_with_shipping_zones(
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
     for shipping_zone in shipping_zones:
         shipping_zone.channels.get(slug=slug)
+
+
+def test_channel_create_mutation_with_warehouses(
+    permission_manage_channels,
+    staff_api_client,
+    warehouses,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    warehouses_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses
+    ]
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "addWarehouses": warehouses_ids,
+            "defaultCountry": default_country,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get(
+        id=graphene.Node.from_global_id(channel_data["id"])[1]
+    )
+    assert channel_data["name"] == channel.name == name
+    assert channel_data["slug"] == channel.slug == slug
+    assert channel_data["currencyCode"] == channel.currency_code == currency_code
+    assert {
+        warehouse_data["slug"] for warehouse_data in channel_data["warehouses"]
+    } == {warehouse.slug for warehouse in warehouses}
 
 
 @freeze_time("2022-05-12 12:00:00")

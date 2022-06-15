@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
@@ -12,7 +13,9 @@ from ...core.permissions import ChannelPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils.date_time import convert_to_utc_date_time
 from ...order.models import Order
+from ...shipping.models import ShippingZone
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
+from ...warehouse.models import Warehouse
 from ..account.enums import CountryCodeEnum
 from ..core.descriptions import ADDED_IN_31
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -24,6 +27,16 @@ from .types import Channel
 
 class ChannelInput(graphene.InputObjectType):
     is_active = graphene.Boolean(description="isActive flag.")
+    add_shipping_zones = NonNullList(
+        graphene.ID,
+        description="List of shipping zones to assign to the channel.",
+        required=False,
+    )
+    add_warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouses to assign to the channel.",
+        required=False,
+    )
 
 
 class ChannelCreateInput(ChannelInput):
@@ -39,11 +52,6 @@ class ChannelCreateInput(ChannelInput):
             "when the country was not explicitly provided." + ADDED_IN_31
         ),
         required=True,
-    )
-    add_shipping_zones = NonNullList(
-        graphene.ID,
-        description="List of shipping zones to assign to the channel.",
-        required=False,
     )
 
 
@@ -81,6 +89,9 @@ class ChannelCreate(ModelMutation):
         shipping_zones = cleaned_data.get("add_shipping_zones")
         if shipping_zones:
             instance.shipping_zones.add(*shipping_zones)
+        warehouses = cleaned_data.get("add_warehouses")
+        if warehouses:
+            instance.warehouses.add(*warehouses)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
@@ -97,14 +108,14 @@ class ChannelUpdateInput(ChannelInput):
             "when the country was not explicitly provided." + ADDED_IN_31
         )
     )
-    add_shipping_zones = NonNullList(
-        graphene.ID,
-        description="List of shipping zones to assign to the channel.",
-        required=False,
-    )
     remove_shipping_zones = NonNullList(
         graphene.ID,
         description="List of shipping zones to unassign from the channel.",
+        required=False,
+    )
+    remove_warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouses to unassign from the channel.",
         required=False,
     )
 
@@ -126,12 +137,21 @@ class ChannelUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        error = check_for_duplicates(
+        errors = {}
+        if error := check_for_duplicates(
             data, "add_shipping_zones", "remove_shipping_zones", "shipping_zones"
-        )
-        if error:
+        ):
             error.code = ChannelErrorCode.DUPLICATED_INPUT_ITEM.value
-            raise ValidationError({"shipping_zones": error})
+            errors["shipping_zones"] = error
+
+        if error := check_for_duplicates(
+            data, "add_warehouses", "remove_warehouses", "warehouses"
+        ):
+            error.code = ChannelErrorCode.DUPLICATED_INPUT_ITEM.value
+            errors["warehouses"] = error
+
+        if errors:
+            raise ValidationError(errors)
 
         cleaned_input = super().clean_input(info, instance, data)
         slug = cleaned_input.get("slug")
@@ -144,6 +164,11 @@ class ChannelUpdate(ModelMutation):
     @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
+        cls._update_shipping_zones(instance, cleaned_data)
+        cls._update_warehouses(instance, cleaned_data)
+
+    @classmethod
+    def _update_shipping_zones(cls, instance, cleaned_data):
         add_shipping_zones = cleaned_data.get("add_shipping_zones")
         if add_shipping_zones:
             instance.shipping_zones.add(*add_shipping_zones)
@@ -160,6 +185,43 @@ class ChannelUpdate(ModelMutation):
             drop_invalid_shipping_methods_relations_for_given_channels.delay(
                 shipping_method_ids, [instance.id]
             )
+
+    @classmethod
+    def _update_warehouses(cls, instance, cleaned_data):
+        add_warehouses = cleaned_data.get("add_warehouses")
+        if add_warehouses:
+            instance.warehouses.add(*add_warehouses)
+        remove_warehouses = cleaned_data.get("remove_warehouses")
+        if remove_warehouses:
+            instance.warehouses.remove(*remove_warehouses)
+            cls._delete_invalid_warehouse_to_shipping_zone_relations(remove_warehouses)
+
+    @classmethod
+    def _delete_invalid_warehouse_to_shipping_zone_relations(cls, remove_warehouses):
+        warehouse_ids = [warehouse.id for warehouse in remove_warehouses]
+
+        shipping_zones = ShippingZone.objects.filter(
+            warehouses__in=remove_warehouses
+        ).values_list("id", "warehouses", "channels")
+
+        warehouses = Warehouse.objects.filter(
+            id__in=warehouse_ids, shipping_zones__isnull=False
+        ).values_list("shipping_zones", "id", "channels")
+        shipping_zone_intersection = shipping_zones.intersection(warehouses)
+        intersection_map = defaultdict(set)
+        for zone_id, warehouse_id, _ in shipping_zone_intersection:
+            intersection_map[warehouse_id].add(zone_id)
+
+        warehouse_to_zone_map = defaultdict(set)
+        for zone_id, warehouse_id, _ in shipping_zones:
+            warehouse_to_zone_map[warehouse_id].add(zone_id)
+
+        for warehouse in remove_warehouses:
+            to_remove = warehouse_to_zone_map.get(
+                warehouse.id, set()
+            ) - intersection_map.get(warehouse.id, set())
+            if to_remove:
+                warehouse.shipping_zones.remove(*to_remove)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
