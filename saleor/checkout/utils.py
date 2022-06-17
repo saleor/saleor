@@ -528,7 +528,8 @@ def recalculate_checkout_discounts(
     If discounts are assigned to checkout we skiping Saleor voucher calculations.
     """
     # if checkout_info.discounts:
-    _recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
+    if checkout_info.checkout.promo_codes:
+        _recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
     # else:
     #     _recalculate_checkout_discount(manager, checkout_info, lines, discounts)
 
