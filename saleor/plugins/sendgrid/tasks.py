@@ -153,15 +153,15 @@ def send_invoice_email_task(payload: dict, configuration: dict):
         payload=payload,
     )
     invoice_events.notification_invoice_sent_event(
-        user_id=payload["requester_user_id"],
-        app_id=payload["requester_app_id"],
-        invoice_id=payload["invoice"]["id"],
+        user_id=from_global_id_or_none(payload["requester_user_id"]),
+        app_id=from_global_id_or_none(payload["requester_app_id"]),
+        invoice_id=from_global_id_or_none(payload["invoice"]["id"]),
         customer_email=payload["recipient_email"],
     )
     order_events.event_invoice_sent_notification(
-        order_id=payload["invoice"]["order_id"],
-        user_id=payload["requester_user_id"],
-        app_id=payload["requester_app_id"],
+        order_id=from_global_id_or_none(payload["invoice"]["order_id"]),
+        user_id=from_global_id_or_none(payload["requester_user_id"]),
+        app_id=from_global_id_or_none(payload["requester_app_id"]),
         email=payload["recipient_email"],
     )
 

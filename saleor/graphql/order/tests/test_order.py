@@ -32,8 +32,8 @@ from ....order.events import order_replacement_created
 from ....order.models import Order, OrderEvent, OrderLine, get_order_number
 from ....order.notifications import get_default_order_payload
 from ....order.search import (
-    prepare_order_search_document_value,
-    update_order_search_document,
+    prepare_order_search_vector_value,
+    update_order_search_vector,
 )
 from ....order.utils import update_order_authorize_data, update_order_charge_data
 from ....payment import ChargeStatus, PaymentError, TransactionAction, TransactionStatus
@@ -2291,7 +2291,7 @@ def test_draft_order_create(
     assert order.shipping_method == shipping_method
     assert order.billing_address
     assert order.shipping_address
-    assert order.search_document
+    assert order.search_vector
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -3242,7 +3242,7 @@ def test_draft_order_update(
     order.refresh_from_db()
     assert order.voucher
     assert order.customer_note == customer_note
-    assert order.search_document
+    assert order.search_vector
 
 
 def test_draft_order_update_with_non_draft_order(
@@ -3823,7 +3823,7 @@ def test_draft_order_complete(
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
     assert data["origin"] == OrderOrigin.DRAFT.upper()
-    assert order.search_document
+    assert order.search_vector
 
     for line in order.lines.all():
         allocation = line.allocations.get()
@@ -4591,9 +4591,6 @@ def test_order_lines_create(
     assert data["errors"][0]["field"] == "quantity"
     assert data["errors"][0]["variants"] == [variant_id]
     product_variant_out_of_stock_webhook_mock.assert_not_called()
-
-    order.refresh_from_db()
-    assert variant.sku.lower() in order.search_document
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
@@ -5401,10 +5398,6 @@ def test_order_line_remove_with_back_in_stock_webhook(
     ) == 3
     back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.first())
 
-    order.refresh_from_db()
-    assert order.search_document
-    assert line.product_sku not in order.search_document
-
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
@@ -5515,9 +5508,6 @@ def test_order_update(
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
-    assert graphql_address_data["firstName"].lower() in order.search_document
-    assert graphql_address_data["lastName"].lower() in order.search_document
-    assert email.lower() in order.search_document
     order_updated_webhook_mock.assert_called_once_with(order)
 
 
@@ -6098,7 +6088,6 @@ def test_order_mark_as_paid_with_external_reference(
     assert event_reference == transaction_reference
     order_payments = order.payments.filter(psp_reference=transaction_reference)
     assert order_payments.count() == 1
-    assert transaction_reference in order.search_document
 
 
 def test_order_mark_as_paid(
@@ -8476,7 +8465,6 @@ def test_query_draft_orders_with_sort(
         ({"search": "discount name"}, 2),
         ({"search": "Some other"}, 1),
         ({"search": "translated"}, 1),
-        ({"search": "user_email"}, 2),
         ({"search": "test@mirumee.com"}, 1),
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
@@ -8561,8 +8549,8 @@ def test_orders_query_with_filter_search(
         tax_rate=Decimal("0.23"),
     )
     for order in orders:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(orders, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+    Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -8603,8 +8591,8 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     payment = Payment.objects.create(order=order_with_payment)
     global_id = graphene.Node.to_global_id("Payment", payment.pk)
     for order in orders:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(orders, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+    Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": {"search": global_id}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -8615,11 +8603,11 @@ def test_orders_query_with_filter_search_by_global_payment_id(
 
 def test_orders_query_with_filter_search_by_number(
     orders_query_with_filter,
-    order_with_search_document_value,
+    order_with_search_vector_value,
     staff_api_client,
     permission_manage_orders,
 ):
-    order = order_with_search_document_value
+    order = order_with_search_vector_value
     variables = {"filter": {"search": order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
@@ -8629,11 +8617,11 @@ def test_orders_query_with_filter_search_by_number(
 
 def test_orders_query_with_filter_search_by_number_with_hash(
     orders_query_with_filter,
-    order_with_search_document_value,
+    order_with_search_vector_value,
     staff_api_client,
     permission_manage_orders,
 ):
-    order = order_with_search_document_value
+    order = order_with_search_vector_value
     variables = {"filter": {"search": f"#{order.number}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
@@ -8672,7 +8660,7 @@ def test_order_query_with_filter_search_by_product_sku_order_line(
     """
     order = order_line.order
     order.refresh_from_db()
-    update_order_search_document(order)
+    update_order_search_vector(order)
 
     variables = {"filter": {"search": order_line.product_sku}}
     response = staff_api_client.post_graphql(
@@ -8888,7 +8876,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
         ]
     )
     order.refresh_from_db()
-    update_order_search_document(order)
+    update_order_search_vector(order)
 
     variables = {"filter": {"search": lines[0].product_sku}}
     response = staff_api_client.post_graphql(
@@ -8904,7 +8892,6 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
         ({"search": "discount name"}, 2),
         ({"search": "Some other"}, 1),
         ({"search": "translated"}, 1),
-        ({"search": "user_email"}, 2),
         ({"search": "test@mirumee.com"}, 1),
         ({"search": "Leslie"}, 1),
         ({"search": "leslie wade"}, 1),
@@ -8960,8 +8947,9 @@ def test_draft_orders_query_with_filter_search(
         ]
     )
     for order in orders:
-        order.search_document = prepare_order_search_document_value(order)
-    Order.objects.bulk_update(orders, ["search_document"])
+        order.search_vector = prepare_order_search_vector_value(order)
+        print(">>>", order.search_vector)
+    Order.objects.bulk_update(orders, ["search_vector"])
 
     variables = {"filter": draft_orders_filter}
 
@@ -8977,7 +8965,7 @@ def test_draft_orders_query_with_filter_search_by_number(
     staff_api_client,
     permission_manage_orders,
 ):
-    update_order_search_document(draft_order)
+    update_order_search_vector(draft_order)
     variables = {"filter": {"search": draft_order.number}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
@@ -8991,7 +8979,7 @@ def test_draft_orders_query_with_filter_search_by_number_with_hash(
     staff_api_client,
     permission_manage_orders,
 ):
-    update_order_search_document(draft_order)
+    update_order_search_vector(draft_order)
     variables = {"filter": {"search": f"#{draft_order.number}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
@@ -9157,6 +9145,63 @@ def test_orders_query_with_filter_charge_status(
     # then
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == expected_count
+
+
+def test_order_query_with_filter_numbers(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    channel_USD,
+):
+    # given
+    variables = {
+        "filter": {
+            "numbers": [str(orders[0].number), str(orders[2].number)],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"]
+    assert len(order_data) == 2
+    for order in [
+        {"node": {"id": graphene.Node.to_global_id("Order", orders[0].id)}},
+        {"node": {"id": graphene.Node.to_global_id("Order", orders[2].id)}},
+    ]:
+        assert order in order_data
+
+
+def test_order_query_with_filter_not_allow_numbers_and_ids_together(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    channel_USD,
+):
+    # given
+    variables = {
+        "filter": {
+            "numbers": [str(orders[0].number), str(orders[2].number)],
+            "ids": [graphene.Node.to_global_id("Order", orders[1].id)],
+        },
+    }
+    error_message = "'ids' and 'numbers` are not allowed to use together in filter."
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+    content = get_graphql_content_from_response(response)
+
+    # then
+    assert content["errors"][0]["message"] == error_message
+    assert not content["data"]["orders"]
 
 
 QUERY_GET_VARIANTS_FROM_ORDER = """
@@ -9580,3 +9625,42 @@ def test_order_by_token_query_payment_details_available_fields_with_permissions(
     content = get_graphql_content(response)
 
     assert_order_and_payment_ids(content, payment_txn_captured)
+
+
+SEARCH_ORDERS_QUERY = """
+    query Orders(
+        $filters: OrderFilterInput,
+        $sortBy: OrderSortingInput,
+        $after: String,
+    ) {
+        orders(
+            first: 5,
+            filter: $filters,
+            sortBy: $sortBy,
+            after: $after,
+        ) {
+            edges {
+                node {
+                    id
+                }
+                cursor
+            }
+        }
+    }
+"""
+
+
+def test_sort_order_by_rank_without_search(staff_api_client, permission_manage_orders):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+    }
+    response = staff_api_client.post_graphql(SEARCH_ORDERS_QUERY, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+
+    assert "errors" in content
+    assert (
+        content["errors"][0]["message"]
+        == "Sorting by RANK is available only when using a search filter."
+    )

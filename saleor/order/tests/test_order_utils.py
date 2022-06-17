@@ -323,37 +323,46 @@ def test_update_taxes_for_order_lines_discounted_price(order_with_lines):
         assert line.undiscounted_total_price == total_price + discount
 
 
-def test_add_variant_to_order(order, customer_user, variant, site_settings):
+def test_add_variant_to_order(
+    order, customer_user, variant, site_settings, discount_info
+):
     # given
-    unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
-    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
-    tax_rate = Decimal("0.23")
-    unit_price_data = OrderTaxedPricesData(
-        undiscounted_price=unit_price,
-        price_with_discounts=unit_price,
+    manager = get_plugins_manager()
+    quantity = 4
+    collections = variant.product.collections.all()
+    channel_listing = variant.channel_listings.get(channel=order.channel)
+    base_unit_price = variant.get_price(
+        variant.product, collections, order.channel, channel_listing, [discount_info]
     )
-    total_price_data = OrderTaxedPricesData(
-        undiscounted_price=total_price,
-        price_with_discounts=total_price,
+    unit_price = TaxedMoney(net=base_unit_price, gross=base_unit_price)
+    total_price = unit_price * quantity
+    undiscounted_base_unit_price = variant.get_price(
+        variant.product, collections, order.channel, channel_listing, []
     )
-    manager = Mock(
-        calculate_order_line_unit=Mock(return_value=unit_price_data),
-        calculate_order_line_total=Mock(return_value=total_price_data),
-        get_order_line_tax_rate=Mock(return_value=tax_rate),
+    undiscounted_unit_price = TaxedMoney(
+        net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
     )
-    app = None
+    undiscounted_total_price = undiscounted_unit_price * quantity
 
     # when
     line = add_variant_to_order(
-        order, variant, 4, customer_user, app, manager, site_settings
+        order,
+        variant,
+        quantity,
+        customer_user,
+        None,
+        manager,
+        site_settings,
+        [discount_info],
     )
 
     # then
     assert line.unit_price == unit_price
     assert line.total_price == total_price
-    assert line.undiscounted_unit_price == unit_price
-    assert line.undiscounted_total_price == total_price
-    assert line.tax_rate == tax_rate
+    assert line.undiscounted_unit_price == undiscounted_unit_price
+    assert line.undiscounted_total_price == undiscounted_total_price
+    assert line.unit_price != line.undiscounted_unit_price
+    assert line.undiscounted_unit_price != line.undiscounted_total_price
 
 
 def test_add_gift_cards_to_order(

@@ -51,6 +51,7 @@ jobs:
 
       - name: Migrate
         run: |
+          export DJANGO_SETTINGS_MODULE=saleor.tests.settings
           ./manage.py migrate
 
       - name: Checkout base

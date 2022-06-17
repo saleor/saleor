@@ -1,4 +1,7 @@
+from typing import List, Optional
+
 import graphene
+from graphql import GraphQLError
 
 from ...core.permissions import OrderPermissions
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -46,8 +49,16 @@ from .resolvers import (
     resolve_orders,
     resolve_orders_total,
 )
-from .sorters import OrderSortingInput
+from .sorters import OrderSortField, OrderSortingInput
 from .types import Order, OrderCountableConnection, OrderEventCountableConnection
+
+
+def search_string_in_kwargs(kwargs: dict) -> bool:
+    return bool(kwargs.get("filter", {}).get("search", "").strip())
+
+
+def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
+    return kwargs.get("sort_by", {}).get("field") or None
 
 
 class OrderFilterInput(FilterInputObjectType):
@@ -128,12 +139,38 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders(_root, info, *, channel=None, **kwargs):
+        if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
+            # sort by RANK can be used only with search filter
+            if not search_string_in_kwargs(kwargs):
+                raise GraphQLError(
+                    "Sorting by RANK is available only when using a search filter."
+                )
+        if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
+            # default to sorting by RANK if search is used
+            # and no explicit sorting is requested
+            product_type = info.schema.get_type("OrderSortingInput")
+            kwargs["sort_by"] = product_type.create_container(
+                {"direction": "-", "field": ["search_rank", "id"]}
+            )
         qs = resolve_orders(info, channel)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
 
     @staticmethod
     def resolve_draft_orders(_root, info, **kwargs):
+        if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
+            # sort by RANK can be used only with search filter
+            if not search_string_in_kwargs(kwargs):
+                raise GraphQLError(
+                    "Sorting by RANK is available only when using a search filter."
+                )
+        if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
+            # default to sorting by RANK if search is used
+            # and no explicit sorting is requested
+            product_type = info.schema.get_type("OrderSortingInput")
+            kwargs["sort_by"] = product_type.create_container(
+                {"direction": "-", "field": ["search_rank", "id"]}
+            )
         qs = resolve_draft_orders(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
