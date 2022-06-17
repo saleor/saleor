@@ -478,7 +478,7 @@ def _create_order(
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
     )
-    if checkout.discount:
+    if checkout.discounts:
         # store voucher as a fixed value as it this the simplest solution for now.
         # This will be solved when we refactor the voucher logic to use .discounts
         # relations
@@ -486,18 +486,19 @@ def _create_order(
         # When we have a voucher for specific products we track it directly in the
         # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
         # as we apply it only for single quantity of the cheapest item.
+        checkout_discount = checkout.discounts.first()
         if not voucher or (
             voucher.type != VoucherType.SPECIFIC_PRODUCT
             and not voucher.apply_once_per_order
         ):
             order.discounts.create(
-                type=DiscountType.VOUCHER,
-                value_type=DiscountValueType.FIXED,
-                value=checkout.discount.amount,
-                name=checkout.discount_name,
-                translated_name=checkout.translated_discount_name,
-                currency=checkout.currency,
-                amount_value=checkout.discount_amount,
+                type=checkout_discount.type,
+                value_type=checkout_discount.value_type,
+                value=checkout_discount.value,
+                name=checkout_discount.name,
+                translated_name=checkout_discount.translated_name,
+                currency=checkout_discount.currency,
+                amount_value=checkout_discount.amount_value,
             )
 
     order_lines = []
@@ -902,7 +903,7 @@ def _handle_allocations_of_order_lines(
 def _handle_checkout_discount(
     order: "Order", checkout: "Checkout", voucher: Optional["Voucher"]
 ):
-    if checkout.discount:
+    if checkout.discounts:
         # store voucher as a fixed value as it this the simplest solution for now.
         # This will be solved when we refactor the voucher logic to use .discounts
         # relations
@@ -910,18 +911,20 @@ def _handle_checkout_discount(
         # When we have a voucher for specific products we track it directly in the
         # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
         # as we apply it only for single quantity of the cheapest item.
+        checkout_discount = checkout.discounts.first()
         if not voucher or (
             voucher.type != VoucherType.SPECIFIC_PRODUCT
             and not voucher.apply_once_per_order
         ):
+
             order.discounts.create(
-                type=DiscountType.VOUCHER,
-                value_type=DiscountValueType.FIXED,
-                value=checkout.discount.amount,
-                name=checkout.discount_name,
-                translated_name=checkout.translated_discount_name,
-                currency=checkout.currency,
-                amount_value=checkout.discount_amount,
+                type=checkout_discount.type,
+                value_type=checkout_discount.value_type,
+                value=checkout_discount.value,
+                name=checkout_discount.name,
+                translated_name=checkout_discount.translated_name,
+                currency=checkout_discount.currency,
+                amount_value=checkout_discount.amount_value,
             )
 
 
