@@ -31,6 +31,82 @@ def payment_shop2shop(db, order_with_lines):
         billing_email=order_with_lines.user_email,
     )
 
+@pytest.fixture
+def shop2shop_payment_txn_preauth(order_with_lines, payment_shop2shop):
+    order = order_with_lines
+    payment = payment_shop2shop
+    payment.order = order
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.AUTH,
+        gateway_response={},
+        is_success=True,
+    )
+    return payment
+
+
+@pytest.fixture
+def shop2shop_payment_txn_captured(order_with_lines, payment_shop2shop):
+    order = order_with_lines
+    payment = payment_shop2shop
+    payment.order = order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+    return payment
+
+
+@pytest.fixture
+def shop2shop_payment_txn_to_confirm(order_with_lines, payment_shop2shop):
+    order = order_with_lines
+    payment = payment_shop2shop
+    payment.order = order
+    payment.to_confirm = True
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        gateway_response={},
+        is_success=True,
+        action_required=True,
+    )
+    return payment
+
+
+@pytest.fixture
+def shop2shop_payment_txn_refunded(order_with_lines, payment_shop2shop):
+    order = order_with_lines
+    payment = payment_shop2shop
+    payment.order = order
+    payment.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment.is_active = False
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.REFUND,
+        gateway_response={},
+        is_success=True,
+    )
+    return payment
+
+
+@pytest.fixture
+def shop2shop_payment_not_authorized(payment_shop2shop):
+    payment_shop2shop.is_active = False
+    payment_shop2shop.save()
+    return payment_shop2shop
+
 
 @pytest.fixture(autouse=True)
 def setup_shop2shop_gateway(settings):
@@ -39,7 +115,7 @@ def setup_shop2shop_gateway(settings):
     return settings
 
 
-def test_authorize_success(payment_shop2shop):
+def test_shop2shop_authorize_success(payment_shop2shop):
     txn = gateway.authorize(payment=payment_shop2shop, token="Fake")
     assert txn.is_success
     assert txn.kind == TransactionKind.AUTH
@@ -62,7 +138,7 @@ def test_authorize_success(payment_shop2shop):
         (True, ChargeStatus.FULLY_REFUNDED),
     ],
 )
-def test_authorize_failed(is_active, charge_status, payment_shop2shop):
+def test_shop2shop_authorize_failed(is_active, charge_status, payment_shop2shop):
     payment = payment_shop2shop
     payment.is_active = is_active
     payment.charge_status = charge_status
@@ -72,7 +148,7 @@ def test_authorize_failed(is_active, charge_status, payment_shop2shop):
         assert txn is None
 
 
-def test_authorize_gateway_error(payment_shop2shop, monkeypatch):
+def test_shop2shop_authorize_gateway_error(payment_shop2shop, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.shop2shop.shop2shop_success",
                         lambda: False)
     with pytest.raises(PaymentError):
@@ -82,16 +158,16 @@ def test_authorize_gateway_error(payment_shop2shop, monkeypatch):
         assert txn.payment == payment_shop2shop
 
 
-def test_void_success(payment_txn_preauth):
-    assert payment_txn_preauth.is_active
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
-    txn = gateway.void(payment=payment_txn_preauth)
+def test_shop2shop_void_success(shop2shop_payment_txn_preauth):
+    assert shop2shop_payment_txn_preauth.is_active
+    assert shop2shop_payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    txn = gateway.void(payment=shop2shop_payment_txn_preauth)
     assert txn.is_success
     assert txn.kind == TransactionKind.VOID
-    assert txn.payment == payment_txn_preauth
-    payment_txn_preauth.refresh_from_db()
-    assert not payment_txn_preauth.is_active
-    assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
+    assert txn.payment == shop2shop_payment_txn_preauth
+    shop2shop_payment_txn_preauth.refresh_from_db()
+    assert not shop2shop_payment_txn_preauth.is_active
+    assert shop2shop_payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
 
 
 @pytest.mark.parametrize(
@@ -108,7 +184,7 @@ def test_void_success(payment_txn_preauth):
         (True, ChargeStatus.FULLY_REFUNDED),
     ],
 )
-def test_void_failed(is_active, charge_status, payment_shop2shop):
+def test_shop2shop_void_failed(is_active, charge_status, payment_shop2shop):
     payment = payment_shop2shop
     payment.is_active = is_active
     payment.charge_status = charge_status
@@ -118,27 +194,27 @@ def test_void_failed(is_active, charge_status, payment_shop2shop):
         assert txn is None
 
 
-def test_void_gateway_error(payment_txn_preauth, monkeypatch):
+def test_shop2shop_void_gateway_error(shop2shop_payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.shop2shop.shop2shop_success",
                         lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway.void(payment=payment_txn_preauth)
+        txn = gateway.void(payment=shop2shop_payment_txn_preauth)
         assert txn.kind == TransactionKind.VOID
         assert not txn.is_success
-        assert txn.payment == payment_txn_preauth
+        assert txn.payment == shop2shop_payment_txn_preauth
 
 
 @pytest.mark.parametrize(
     "amount, charge_status",
     [("98.40", ChargeStatus.FULLY_CHARGED), (70, ChargeStatus.PARTIALLY_CHARGED)],
 )
-def test_capture_success(amount, charge_status, payment_txn_preauth):
-    txn = gateway.capture(payment=payment_txn_preauth, amount=Decimal(amount))
+def test_shop2shop_capture_success(amount, charge_status, shop2shop_payment_txn_preauth):
+    txn = gateway.capture(payment=shop2shop_payment_txn_preauth, amount=Decimal(amount))
     assert txn.is_success
-    assert txn.payment == payment_txn_preauth
-    payment_txn_preauth.refresh_from_db()
-    assert payment_txn_preauth.charge_status == charge_status
-    assert payment_txn_preauth.is_active
+    assert txn.payment == shop2shop_payment_txn_preauth
+    shop2shop_payment_txn_preauth.refresh_from_db()
+    assert shop2shop_payment_txn_preauth.charge_status == charge_status
+    assert shop2shop_payment_txn_preauth.is_active
 
 
 @pytest.mark.parametrize(
@@ -151,7 +227,7 @@ def test_capture_success(amount, charge_status, payment_txn_preauth):
         (80, 0, ChargeStatus.FULLY_REFUNDED, True),
     ],
 )
-def test_capture_failed(
+def test_shop2shop_capture_failed(
     amount, captured_amount, charge_status, is_active, payment_shop2shop
 ):
     payment = payment_shop2shop
@@ -164,14 +240,14 @@ def test_capture_failed(
         assert txn is None
 
 
-def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
+def test_shop2shop_capture_gateway_error(shop2shop_payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.shop2shop.shop2shop_success",
                         lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway.capture(payment=payment_txn_preauth, amount=80)
+        txn = gateway.capture(payment=shop2shop_payment_txn_preauth, amount=80)
         assert txn.kind == TransactionKind.CAPTURE
         assert not txn.is_success
-        assert txn.payment == payment_txn_preauth
+        assert txn.payment == shop2shop_payment_txn_preauth
 
 
 @pytest.mark.parametrize(
@@ -184,15 +260,15 @@ def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
         (80, 10, 70, ChargeStatus.PARTIALLY_REFUNDED, True),
     ],
 )
-def test_refund_success(
+def test_shop2shop_refund_success(
     initial_captured_amount,
     refund_amount,
     final_captured_amount,
     final_charge_status,
     active_after,
-    payment_txn_captured,
+    shop2shop_payment_txn_captured,
 ):
-    payment = payment_txn_captured
+    payment = shop2shop_payment_txn_captured
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = initial_captured_amount
     payment.save()
@@ -217,7 +293,7 @@ def test_refund_success(
         (80, 0, ChargeStatus.FULLY_REFUNDED),
     ],
 )
-def test_refund_failed(
+def test_shop2shop_refund_failed(
     initial_captured_amount, refund_amount, initial_charge_status, payment_shop2shop
 ):
     payment = payment_shop2shop
@@ -229,10 +305,10 @@ def test_refund_failed(
         assert txn is None
 
 
-def test_refund_gateway_error(payment_txn_captured, monkeypatch):
+def test_shop2shop_refund_gateway_error(shop2shop_payment_txn_captured, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.shop2shop.shop2shop_success",
                         lambda: False)
-    payment = payment_txn_captured
+    payment = shop2shop_payment_txn_captured
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = Decimal("80.00")
     payment.save()
