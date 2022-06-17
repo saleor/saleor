@@ -69,3 +69,4 @@ jobs:
         diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
         upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
         upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
+      if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
