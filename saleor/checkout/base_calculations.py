@@ -223,12 +223,13 @@ def base_checkout_total(
 
     shipping_price = base_checkout_delivery_price(checkout_info, lines)
 
-    if checkout_info.discounts:
+    discount = zero_money(currency)
+    if checkout_info.discounts and checkout_info.discounts[0].active:
         # When we want to implement multiple discounts
         # we should sum discount amounts here.
         discount = checkout_info.discounts[0].amount
-    else:
-        discount = checkout_info.checkout.discount
+    # else:
+    #     discount = checkout_info.checkout.discount
 
     zero = zero_taxed_money(currency)
     total = subtotal + shipping_price - discount

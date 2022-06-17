@@ -6,10 +6,10 @@ from graphql.error import GraphQLError
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import fetch_checkout_info
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     remove_promo_code_from_checkout,
-    remove_voucher_from_checkout,
+    remove_voucher_from_checkout, recalculate_checkout_discounts,
 )
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
@@ -83,14 +83,17 @@ class CheckoutRemovePromoCode(BaseMutation):
         )
 
         manager = info.context.plugins
+        lines_info,_ = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
-            checkout, [], info.context.discounts, manager
+            checkout, lines_info, info.context.discounts, manager
         )
+
         if promo_code:
             remove_promo_code_from_checkout(checkout_info, promo_code)
         else:
             cls.remove_promo_code_by_id(info, checkout, object_type, promo_code_pk)
 
+        recalculate_checkout_discounts(manager, checkout_info, lines_info, info.context.discounts)
         manager.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
 

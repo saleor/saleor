@@ -8,7 +8,7 @@ from ...core.permissions import (
     CheckoutPermissions,
     PaymentPermissions,
 )
-from ...core.taxes import zero_taxed_money
+from ...core.taxes import zero_taxed_money, zero_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
 from ...warehouse import models as warehouse_models
@@ -499,6 +499,12 @@ class Checkout(ModelObjectType):
             + PREVIEW_FEATURE
         ),
     )
+    promo_codes = NonNullList(
+        graphene.String,
+        description=(
+            "List of all promo codes attached to the checkout."
+        )
+    )
 
     class Meta:
         description = "Checkout object."
@@ -720,6 +726,21 @@ class Checkout(ModelObjectType):
     @staticmethod
     def resolve_discounts(root: models.Checkout, info):
         return CheckoutDiscountsByCheckoutTokenLoader(info.context).load(root.token)
+
+    @staticmethod
+    def resolve_discount(root: models.Checkout, info):
+        discount = root.discounts.first()
+        return discount.amount if discount else zero_money(root.currency)
+
+    @staticmethod
+    def resolve_discount_name(root: models.Checkout, info):
+        discount = root.discounts.first()
+        return discount.name if discount else None
+
+    @staticmethod
+    def resolve_translated_discount_name(root: models.Checkout, info):
+        discount = root.discounts.first()
+        return discount.translated_name if discount else None
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

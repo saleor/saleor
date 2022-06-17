@@ -97,6 +97,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = "checkout"
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        exclude = ["promo_codes"]
 
     @classmethod
     def clean_checkout_lines(

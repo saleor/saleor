@@ -1,11 +1,15 @@
 """Checkout-related utility functions."""
+from dataclasses import asdict
+from functools import partial
+
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from prices import Money
+from prices import Money, fixed_discount, percentage_discount
 
+from .base_calculations import calculate_base_line_total_price
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
 from ..core.taxes import zero_money, zero_taxed_money
@@ -14,9 +18,9 @@ from ..core.utils.promo_code import (
     promo_code_is_gift_card,
     promo_code_is_voucher,
 )
-from ..discount import DiscountInfo, VoucherType
+from ..discount import DiscountInfo, VoucherType, DiscountValueType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
-from ..discount.models import NotApplicable, Voucher
+from ..discount.models import NotApplicable, Voucher, CheckoutDiscount
 from ..discount.utils import (
     apply_discount_to_value,
     get_products_voucher_discount,
@@ -523,10 +527,10 @@ def recalculate_checkout_discounts(
     assigned to checkout.
     If discounts are assigned to checkout we skiping Saleor voucher calculations.
     """
-    if checkout_info.discounts:
-        _recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
-    else:
-        _recalculate_checkout_discount(manager, checkout_info, lines, discounts)
+    # if checkout_info.discounts:
+    _recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
+    # else:
+    #     _recalculate_checkout_discount(manager, checkout_info, lines, discounts)
 
 
 def _recalculate_checkout_discounts(
@@ -540,7 +544,40 @@ def _recalculate_checkout_discounts(
     Update amount for all discounts assigned to checkout.
     """
     # TODO: recalculate discounts after merge sync tax
-    pass
+    # FIXME: pass discounts
+    checkout_subtotal = sum([
+        calculate_base_line_total_price(
+            line,
+            checkout_info.channel,
+            discounts,
+        ).price_with_sale
+        for line in lines
+    ], zero_money(checkout_info.checkout.currency))
+
+    raw_discounts = manager.get_discounts_for_checkout(checkout_info, lines)
+    checkout_info.checkout.discounts.all().delete()
+
+    # we handle only single discount for now
+    if raw_discounts:
+        raw_discount = raw_discounts[0]
+
+        discount_fun = None
+        if raw_discount.value_type == DiscountValueType.FIXED:
+            discount_amount = Money(
+                raw_discount.value, checkout_info.checkout.currency
+            )
+            discount_fun =  partial(fixed_discount, discount=discount_amount)
+        elif raw_discount.value_type == DiscountValueType.PERCENTAGE:
+            discount_fun = partial(
+                percentage_discount, percentage=raw_discount.value
+            )
+        money_discount_amount = zero_money(checkout_info.checkout.currency)
+        if discount_fun:
+            money_discount_amount = checkout_subtotal - discount_fun(checkout_subtotal)
+
+        discount = checkout_info.checkout.discounts.create(**asdict(raw_discount), amount_value=money_discount_amount.amount, currency=checkout_info.checkout.currency)
+        checkout_info.discounts = [discount]
+
 
 
 def _recalculate_checkout_discount(
@@ -607,20 +644,24 @@ def add_promo_code_to_checkout(
 
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
-    if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(
-            manager, checkout_info, lines, promo_code, discounts
-        )
-    elif promo_code_is_gift_card(promo_code):
-        user_email = cast(str, checkout_info.get_customer_email())
-        add_gift_card_code_to_checkout(
-            checkout_info.checkout,
-            user_email,
-            promo_code,
-            checkout_info.channel.currency_code,
-        )
-    else:
-        raise InvalidPromoCode()
+    # if promo_code_is_voucher(promo_code):
+    #     add_voucher_code_to_checkout(
+    #         manager, checkout_info, lines, promo_code, discounts
+    #     )
+    # elif promo_code_is_gift_card(promo_code):
+    #     user_email = cast(str, checkout_info.get_customer_email())
+    #     add_gift_card_code_to_checkout(
+    #         checkout_info.checkout,
+    #         user_email,
+    #         promo_code,
+    #         checkout_info.channel.currency_code,
+    #     )
+    # else:
+    promo_codes = checkout_info.checkout.promo_codes
+    promo_codes.append(promo_code)
+    checkout_info.checkout.promo_codes = list(set(promo_codes))
+    checkout_info.checkout.save()
+        # raise InvalidPromoCode()
 
 
 def add_voucher_code_to_checkout(
@@ -689,10 +730,13 @@ def add_voucher_to_checkout(
 
 def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
     """Remove gift card or voucher data from checkout."""
-    if promo_code_is_voucher(promo_code):
-        remove_voucher_code_from_checkout(checkout_info, promo_code)
-    elif promo_code_is_gift_card(promo_code):
-        remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
+    current_promo_codes = checkout_info.checkout.promo_codes
+    checkout_info.checkout.promo_codes = [code for code in current_promo_codes if promo_code!=code]
+    checkout_info.checkout.save()
+    # if promo_code_is_voucher(promo_code):
+    #     remove_voucher_code_from_checkout(checkout_info, promo_code)
+    # elif promo_code_is_gift_card(promo_code):
+    #     remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
 
 
 def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):

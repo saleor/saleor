@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import json
 import logging
 from typing import TYPE_CHECKING, Any, List, Optional, Union
@@ -9,6 +11,7 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...discount.interface import DiscountData
 from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
@@ -32,6 +35,7 @@ from ...webhook.payloads import (
     generate_sale_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
+    generate_checkout_payload_for_discounts,
 )
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
@@ -53,6 +57,7 @@ if TYPE_CHECKING:
     from ...account.models import Address, User
     from ...channel.models import Channel
     from ...checkout.models import Checkout
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
     from ...graphql.discount.mutations import NodeCatalogueInfo
@@ -1137,6 +1142,42 @@ class WebhookPlugin(BasePlugin):
                     )
                     methods.extend(shipping_methods)
         return methods
+
+
+    def get_discounts_for_checkout(
+        self,
+        checkout_info: "CheckoutInfo",
+        lines: List["CheckoutLineInfo"],
+        previous_value: List["DiscountData"],
+    ) -> List["DiscountData"]:
+        apps = App.objects.for_event_type(
+            WebhookEventSyncType.CHECKOUT_EXTERNAL_DISCOUNTS
+        ).prefetch_related("webhooks")
+        discounts = previous_value
+        if apps:
+            payload = generate_checkout_payload_for_discounts(
+                checkout_info, lines, self.requestor
+            )
+            for app in apps:
+                discounts_data = trigger_webhook_sync(
+                    event_type=WebhookEventSyncType.CHECKOUT_EXTERNAL_DISCOUNTS,
+                    data=payload,
+                    app=app,
+                )
+                if discounts_data:
+                    discounts.extend(
+                        DiscountData(
+                            name=discount_data.get("name", ""),
+                            value_type=discount_data.get("value_type", "fixed"),
+                            value=Decimal(discount_data.get("value", 0)),
+                            active=discount_data.get("active", True),
+                            translated_name=discount_data.get("translated_name", ""),
+                            code=discount_data.get("code"),
+                            reason=discount_data.get("reason"),
+                        )
+                        for discount_data in discounts_data
+                    )
+        return discounts
 
     def excluded_shipping_methods_for_order(
         self,

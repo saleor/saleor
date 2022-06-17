@@ -70,6 +70,7 @@ if TYPE_CHECKING:
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
+    from ..discount.interface import DiscountData
 
 NotifyEventTypeChoice = str
 
@@ -1430,6 +1431,18 @@ class PluginsManager(PaymentInterface):
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_verify", default_value, data, request
+        )
+
+    def get_discounts_for_checkout(
+            self,
+            checkout_info: "CheckoutInfo",
+            lines: List["CheckoutLineInfo"],
+    )-> List["DiscountData"]:
+        return self.__run_method_on_plugins(
+            "get_discounts_for_checkout",
+            [],
+            checkout_info,
+            lines
         )
 
     def excluded_shipping_methods_for_order(

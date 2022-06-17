@@ -103,7 +103,7 @@ class Checkout(ModelWithMetadata):
         models.CharField(
             max_length=255,
         ),
-        default=list,
+        default=list
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 

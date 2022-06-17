@@ -8,7 +8,8 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
     update_delivery_method_lists_for_checkout_info,
 )
-from ....checkout.utils import add_promo_code_to_checkout
+from ....checkout.utils import add_promo_code_to_checkout, \
+    recalculate_checkout_discounts
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -92,6 +93,7 @@ class CheckoutAddPromoCode(BaseMutation):
             promo_code,
             discounts,
         )
+        recalculate_checkout_discounts(manager, checkout_info, lines, discounts)
 
         update_delivery_method_lists_for_checkout_info(
             checkout_info,

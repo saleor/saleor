@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import json
 import uuid
 from collections import defaultdict
@@ -13,8 +15,10 @@ from graphene.utils.str_converters import to_camel_case
 from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
+from ..checkout.base_calculations import calculate_base_line_total_price, base_checkout_delivery_price
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price, quantize_price_fields
+from ..core.taxes import zero_money
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
@@ -22,6 +26,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..discount.interface import DiscountData
 from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -47,6 +52,7 @@ if TYPE_CHECKING:
 
 
 if TYPE_CHECKING:
+    from ..checkout.fetch import CheckoutInfo
     from ..discount.models import Sale
     from ..graphql.discount.mutations import NodeCatalogueInfo
     from ..invoice.models import Invoice
@@ -527,6 +533,47 @@ def generate_checkout_payload(
     )
     return checkout_data
 
+
+@traced_payload_generator
+def generate_checkout_payload_for_discounts(
+        checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
+requestor: Optional["RequestorOrLazyObject"] = None
+):
+    # FIXME after merging tax logic: https://github.com/saleor/saleor/pull/9526
+    # the payload should be replaced with the logic created in this PR
+    base_checkout_payload = json.loads(generate_checkout_payload(checkout_info.checkout, requestor))[0]
+    discounts = fetch_active_discounts()
+    # shipping_amount = base_checkout_delivery_price(
+    #     checkout_info,
+    #     lines=lines
+    # )
+    delivery_method = checkout_info.delivery_method_info.delivery_method
+    shipping_amount = delivery_method.price if delivery_method else zero_money(checkout_info.checkout.currency)
+    base_checkout_payload["total_amount"] = sum([
+        calculate_base_line_total_price(line, checkout_info.channel, discounts).price_with_sale.amount
+        for line in lines
+    ], 0)
+    base_checkout_payload["total_amount"] += shipping_amount.amount
+    base_checkout_payload["shipping_amount"] = shipping_amount.amount
+    base_checkout_payload["promo_codes"] = checkout_info.checkout.promo_codes
+
+    serializer = PayloadSerializer()
+    base_checkout_payload["discounts"] = json.loads(
+        serializer.serialize(
+           checkout_info.discounts,
+           fields=[
+               "name",
+               "value_type",
+               "value",
+               "active",
+               "translated_name",
+               "code",
+               "reason",
+           ]
+        )
+    )
+    return json.dumps([base_checkout_payload], cls=CustomJsonEncoder)
 
 @traced_payload_generator
 def generate_customer_payload(

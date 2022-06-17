@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo, Voucher
+    from ..discount.interface import DiscountData
     from ..discount.models import Sale
     from ..giftcard.models import GiftCard
     from ..graphql.discount.mutations import NodeCatalogueInfo
@@ -465,6 +466,10 @@ class BasePlugin:
 
     get_shipping_methods_for_checkout: Callable[
         ["Checkout", Any], List["ShippingMethodData"]
+    ]
+
+    get_discounts_for_checkout: Callable[
+        ["Checkout", List["DiscountData"]], List["DiscountData"]
     ]
 
     get_supported_currencies: Callable[[Any], Any]

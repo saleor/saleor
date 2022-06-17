@@ -402,6 +402,8 @@ class WebhookEventSyncType:
     CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
+    CHECKOUT_EXTERNAL_DISCOUNTS = "checkout_external_discounts"
+
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
         PAYMENT_CAPTURE: "Capture payment",
@@ -413,6 +415,7 @@ class WebhookEventSyncType:
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
+        CHECKOUT_EXTERNAL_DISCOUNTS: "External discount for the checkout"
     }
 
     CHOICES = [
@@ -432,6 +435,10 @@ class WebhookEventSyncType:
             CHECKOUT_FILTER_SHIPPING_METHODS,
             DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
         ),
+        (
+            CHECKOUT_EXTERNAL_DISCOUNTS,
+            DISPLAY_LABELS[CHECKOUT_EXTERNAL_DISCOUNTS]
+        )
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -457,6 +464,7 @@ class WebhookEventSyncType:
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
         ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
         CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
+        CHECKOUT_EXTERNAL_DISCOUNTS: CheckoutPermissions.HANDLE_CHECKOUTS,
     }
 
 
