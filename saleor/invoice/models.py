@@ -12,10 +12,6 @@ from ..order.models import Order
 from . import InvoiceEvents
 
 
-class InvoiceQueryset(models.QuerySet):
-    def ready(self):
-        return self.filter(job__status=JobStatus.SUCCESS)
-
 
 class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
