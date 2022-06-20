@@ -66,7 +66,7 @@ class WebhookResponse:
 
 
 def create_deliveries_for_subscriptions(
-    event_type, subscribable_object, webhooks, requestor=None
+    event_type, subscribable_object, webhooks, requestor=None, sync_event=False
 ) -> List[EventDelivery]:
     """Create webhook payload based on subscription query.
 
@@ -76,6 +76,7 @@ def create_deliveries_for_subscriptions(
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
     :param requestor: used in subscription webhooks to generate meta data for payload.
+    :param sync_event: flag indicating synchronous event.
     :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in SUBSCRIBABLE_EVENTS:
@@ -91,7 +92,7 @@ def create_deliveries_for_subscriptions(
             event_type=event_type,
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
-            request=initialize_request(requestor),
+            request=initialize_request(requestor, sync_event),
             app=webhook.app,
         )
         if not data:
@@ -176,6 +177,7 @@ def trigger_webhook_sync(
             event_type=event_type,
             subscribable_object=subscribable_object,
             webhooks=[webhook],
+            sync_event=True,
         )[0]
 
     else:

@@ -681,3 +681,13 @@ def subscription_order_filter_shipping_methods_webhook(subscription_webhook):
         subscription_queries.ORDER_FILTER_SHIPPING_METHODS,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
+
+
+@pytest.fixture
+def subscription_checkout_filter_shipping_methods_webhook_with_circular_fields(
+    subscription_webhook,
+):
+    return subscription_webhook(
+        subscription_queries.CHECKOUT_FILTER_SHIPPING_METHODS_CIRCULAR,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )

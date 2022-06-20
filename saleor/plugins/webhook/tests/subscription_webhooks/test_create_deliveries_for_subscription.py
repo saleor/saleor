@@ -1648,3 +1648,30 @@ def test_generate_payload_from_subscription_return_permission_errors_in_payload(
     assert payload["errors"][0]["extensions"]["exception"]["code"] == error_code
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
+
+
+def test_generate_sync_event_payload_with_circular_call(
+    checkout_ready_to_complete,
+    subscription_checkout_filter_shipping_methods_webhook_with_circular_fields,
+):
+
+    # given
+    webhooks = [
+        subscription_checkout_filter_shipping_methods_webhook_with_circular_fields
+    ]
+    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, checkout_ready_to_complete, webhooks, sync_event=True
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.payload)
+
+    assert len(payload["errors"]) == 1
+    assert (
+        payload["errors"][0]["message"]
+        == "Resolving this field is not allowed in synchronous events."
+    )
+    assert payload["checkout"] is None

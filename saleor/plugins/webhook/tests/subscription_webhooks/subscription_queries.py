@@ -1497,12 +1497,29 @@ subscription{
 }
 """
 
+
 CHECKOUT_FILTER_SHIPPING_METHODS = """
 subscription{
   event{
     ...on CheckoutFilterShippingMethods{
       checkout{
         id
+      }
+    }
+  }
+}
+"""
+
+
+CHECKOUT_FILTER_SHIPPING_METHODS_CIRCULAR = """
+subscription{
+  event{
+    ...on CheckoutFilterShippingMethods{
+      checkout{
+        id
+        shippingMethods{
+          id
+        }
       }
     }
   }

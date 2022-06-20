@@ -12,6 +12,7 @@ from promise import Promise
 from ...account.models import Address
 from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
+from ...core.exceptions import CircularQuery
 from ...core.permissions import (
     AccountPermissions,
     AppPermission,
@@ -1403,6 +1404,11 @@ class Order(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_methods(cls, root: models.Order, info):
+        if hasattr(info.context, "sync_event") and info.context.sync_event:
+            raise CircularQuery(
+                "Resolving this field is not allowed in synchronous events."
+            )
+
         def with_channel(channel):
             def with_listings(channel_listings):
                 return get_valid_shipping_methods_for_order(
@@ -1421,6 +1427,10 @@ class Order(ModelObjectType):
     @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(cls, root: models.Order, info):
+        if hasattr(info.context, "sync_event") and info.context.sync_event:
+            raise CircularQuery(
+                "Resolving this field is not allowed in synchronous events."
+            )
         return cls.resolve_shipping_methods(root, info).then(
             lambda methods: [method for method in methods if method.active]
         )
