@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
+from ....channel import models as channel_models
 from ....core.permissions import ShippingPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....product import models as product_models
@@ -118,6 +119,8 @@ class ShippingZoneMixin:
             raise ValidationError(errors)
 
         cleaned_input = super().clean_input(info, instance, data)
+        if add_warehouses := cleaned_input.get("add_warehouses"):
+            cls.clean_add_warehouses(instance, add_warehouses, cleaned_input)
         cleaned_input = cls.clean_default(instance, cleaned_input)
         return cleaned_input
 
@@ -140,6 +143,101 @@ class ShippingZoneMixin:
         if error:
             error.code = ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
             errors[error_class_field].append(error)
+
+    @classmethod
+    def clean_add_warehouses(cls, shipping_zone, warehouses, cleaned_input):
+        """Check if all warehouses to add has common channel with shipping zone.
+
+        Raise and error when the condition is not fulfilled.
+        """
+        warehouse_ids = [warehouse.id for warehouse in warehouses]
+
+        remove_channel_ids = set()
+        if remove_channels := cleaned_input.get("remove_channels"):
+            remove_channel_ids = {channel.id for channel in remove_channels}
+
+        add_channel_ids = set()
+        if add_channels := cleaned_input.get("add_channels"):
+            add_channel_ids = {channel.id for channel in add_channels}
+
+        ChannelWarehouse = channel_models.Channel.warehouses.through
+        channel_warehouses = ChannelWarehouse.objects.filter(
+            warehouse_id__in=warehouse_ids
+        ).values_list("warehouse_id", "channel_id")
+
+        # any warehouse from the list cannot be assigned when:
+        # 1) where there are no channels assigned to any warehouse
+        # 2) any channel is will be not assigned to the shipping zone
+        if not channel_warehouses or (not shipping_zone.id and not add_channel_ids):
+            invalid_warehouse_ids = warehouse_ids
+
+        warehouse_to_channel_mapping = defaultdict(set)
+        for warehouse_id, channel_id in channel_warehouses.values_list(
+            "warehouse_id", "channel_id"
+        ):
+            warehouse_to_channel_mapping[warehouse_id].add(channel_id)
+
+        # if the shipping zone does not exist yet, all zone channels will be channels
+        # provided in `add_channels` field
+        shipping_zone_channel_ids = (
+            add_channel_ids
+            if not shipping_zone.id
+            else cls._get_shipping_zone_channel_ids(
+                shipping_zone, remove_channel_ids, add_channel_ids
+            )
+        )
+
+        invalid_warehouse_ids = cls._find_invalid_warehouses(
+            warehouse_to_channel_mapping, warehouse_ids, shipping_zone_channel_ids
+        )
+
+        if invalid_warehouse_ids:
+            invalid_warehouses = {
+                graphene.Node.to_global_id("Warehouse", pk)
+                for pk in invalid_warehouse_ids
+            }
+            raise ValidationError(
+                {
+                    "add_warehouses": ValidationError(
+                        "Only warehouses that have common channel with shipping zone "
+                        "can be assigned.",
+                        code=ShippingErrorCode.INVALID,
+                        params={
+                            "warehouses": invalid_warehouses,
+                        },
+                    )
+                }
+            )
+
+    @staticmethod
+    def _get_shipping_zone_channel_ids(
+        shipping_zone, remove_channel_ids, add_channel_ids
+    ):
+        # get shipping zone channels
+        ShippingZoneChannel = models.ShippingZone.channels.through
+        shipping_zone_channel_ids = set(
+            ShippingZoneChannel.objects.filter(shippingzone_id=shipping_zone.id)
+            .exclude(channel_id__in=remove_channel_ids)
+            .values_list("channel_id", flat=True)
+        )
+        # shipping zone channels set need to be updated with channels
+        # that will be removed and added to shipping zone
+        return shipping_zone_channel_ids | add_channel_ids
+
+    @staticmethod
+    def _find_invalid_warehouses(
+        warehouse_to_channel_mapping, warehouse_ids, zone_channel_ids
+    ):
+        invalid_warehouse_ids = []
+        for warehouse_id in warehouse_ids:
+            warehouse_channels = warehouse_to_channel_mapping.get(warehouse_id)
+            # warehouse cannot be added if it hasn't got any channel assigned
+            # or if it does not have common channel with shipping zone
+            if not warehouse_channels or not warehouse_channels.intersection(
+                zone_channel_ids
+            ):
+                invalid_warehouse_ids.append(warehouse_id)
+        return invalid_warehouse_ids
 
     @classmethod
     def clean_default(cls, instance, data):

@@ -471,3 +471,121 @@ def test_update_shipping_zone_same_channel_id_in_add_and_remove_list(
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert len(data["channels"]) == 1
     assert data["channels"][0]["id"] == add_channel_id
+
+
+def test_update_shipping_zone_add_invalid_warehouses(
+    staff_api_client,
+    shipping_zone,
+    warehouses,
+    warehouse_JPY,
+    permission_manage_shipping,
+    channel_USD,
+    channel_PLN,
+    channel_JPY,
+):
+    """Ensure an error is raised when the warehouse that has not a common
+    channel with shipping zone is added."""
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    # warehouse with common USD channel
+    warehouse_usd_id = graphene.Node.to_global_id("Warehouse", warehouses[0].pk)
+
+    # warehouse with common PLN channel
+    warehouse_pln_id = graphene.Node.to_global_id("Warehouse", warehouses[1].pk)
+    warehouses[1].channels.set([channel_PLN])
+
+    # assign only USD channel to shipping zone
+    # the channel PLN will be added in mutation
+    shipping_zone.channels.set([channel_USD])
+
+    # warehouse without common channel
+    warehouse_jpy_id = graphene.Node.to_global_id("Warehouse", warehouse_JPY.pk)
+    warehouse_JPY.channels.set([channel_JPY])
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": [warehouse_usd_id, warehouse_jpy_id, warehouse_pln_id],
+        "addChannels": [channel_id],
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "addWarehouses"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["warehouses"] == [warehouse_jpy_id]
+
+
+def test_update_shipping_zone_add_warehouse_without_any_channel(
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    permission_manage_shipping,
+    channel_PLN,
+):
+    """Ensure an error is raised when the warehouse that has not a common
+    channel with shipping zone is added."""
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    warehouse.channels.clear()
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": [warehouse_id],
+        "addChannels": [channel_id],
+    }
+    response = staff_api_client.post_graphql(
+        UPDATE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "addWarehouses"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["warehouses"] == [warehouse_id]
+
+
+def test_update_shipping_zone_add_warehouses_and_remove_common_channel(
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    channel_USD,
+    permission_manage_shipping,
+):
+    """Ensure an error is raised when the warehouse is added and common channel
+    with the shipping zone is removed."""
+    # given
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": [warehouse_id],
+        "removeChannels": [channel_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "addWarehouses"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["warehouses"] == [warehouse_id]

@@ -5373,7 +5373,7 @@ def staff_notification_recipient(db, staff_user):
 
 
 @pytest.fixture
-def warehouse(address, shipping_zone):
+def warehouse(address, shipping_zone, channel_USD):
     warehouse = Warehouse.objects.create(
         address=address,
         name="Example Warehouse",
@@ -5381,6 +5381,7 @@ def warehouse(address, shipping_zone):
         email="test@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
     warehouse.save()
     return warehouse
 
@@ -5399,8 +5400,8 @@ def warehouse_JPY(address, shipping_zone_JPY):
 
 
 @pytest.fixture
-def warehouses(address, address_usa):
-    return Warehouse.objects.bulk_create(
+def warehouses(address, address_usa, channel_USD):
+    warehouses = Warehouse.objects.bulk_create(
         [
             Warehouse(
                 address=address.get_copy(),
@@ -5416,6 +5417,9 @@ def warehouses(address, address_usa):
             ),
         ]
     )
+    for warehouse in warehouses:
+        warehouse.channels.add(channel_USD)
+    return warehouses
 
 
 @pytest.fixture()
@@ -5605,13 +5609,14 @@ def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
 
 
 @pytest.fixture
-def warehouse_no_shipping_zone(address):
+def warehouse_no_shipping_zone(address, channel_USD):
     warehouse = Warehouse.objects.create(
         address=address,
         name="Warehouse without shipping zone",
         slug="warehouse-no-shipping-zone",
         email="test2@example.com",
     )
+    warehouse.channels.add(channel_USD)
     return warehouse
 
 
