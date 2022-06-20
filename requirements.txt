@@ -91,7 +91,7 @@ maxminddb==2.2.0; python_version >= "3.6"
 measurement==3.2.0
 micawber==0.5.4
 mpmath==1.2.1; python_version >= "3.7"
-msrest==0.7.0; python_version >= "3.6"
+msrest==0.7.1; python_version >= "3.6"
 oauthlib==3.2.0; python_version >= "3.6"
 openpyxl==3.0.10; python_version >= "3.6"
 opentracing==2.4.0
