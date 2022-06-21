@@ -596,7 +596,6 @@ def test_channel_update_mutation_add_and_remove_warehouse(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
-    warehouses_count = channel_USD.warehouses.count()
     remove_warehouse = graphene.Node.to_global_id("Warehouse", warehouses[0].pk)
     add_warehouse = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -625,7 +624,6 @@ def test_channel_update_mutation_add_and_remove_warehouse(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
-    assert len(channel_data["warehouses"]) == warehouses_count
     assert {
         warehouse_data["slug"] for warehouse_data in channel_data["warehouses"]
     } == {warehouse.slug for warehouse in warehouses[1:] + [warehouse]}

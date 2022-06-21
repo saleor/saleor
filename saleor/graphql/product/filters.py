@@ -321,7 +321,7 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
 
     stocks = (
-        Stock.objects.for_channel(channel_slug)
+        Stock.objects.for_channel_and_country(channel_slug)
         .filter(quantity__gt=Coalesce(allocated_subquery, 0))
         .values("product_variant_id")
     )

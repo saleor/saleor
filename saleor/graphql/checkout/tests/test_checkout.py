@@ -2384,11 +2384,11 @@ def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehous
     ]
 
 
-def test_checkout_avail_collect_points_returns_empty_list_when_not_in_shipping_zone(
+def test_checkout_avail_collect_points_returns_empty_list_when_no_channels(
     api_client, warehouse_for_cc, checkout_with_items_for_cc
 ):
     query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
-    warehouse_for_cc.shipping_zones.filter(name="Poland").delete()
+    checkout_with_items_for_cc.channel.warehouses.remove(warehouse_for_cc)
 
     variables = {"id": to_global_id_or_none(checkout_with_items_for_cc)}
     response = api_client.post_graphql(query, variables)

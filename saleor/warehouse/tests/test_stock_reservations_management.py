@@ -75,6 +75,7 @@ def test_multiple_stocks_are_reserved_if_single_stock_is_not_enough(
         email=warehouse.email,
     )
     secondary_warehouse.shipping_zones.add(shipping_zone)
+    secondary_warehouse.channels.add(channel_USD)
     secondary_warehouse.save()
 
     secondary_stock = Stock.objects.create(

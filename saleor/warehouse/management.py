@@ -67,7 +67,7 @@ def allocate_stocks(
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
-        .for_country_and_channel(country_code, channel_slug)
+        .for_channel_and_country(channel_slug, country_code)
         .filter(**filter_lookup)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")

@@ -333,7 +333,7 @@ def test_stock_quantity_is_sum_of_quantities_from_warehouses_that_support_countr
 
     # Create another warehouse with a different shipping zone that supports PL. As
     # a result there should be two shipping zones and two warehouses that support PL.
-    stocks = variant.stocks.for_country_and_channel("PL", channel_USD.slug)
+    stocks = variant.stocks.for_channel_and_country(channel_USD.slug, "PL")
     warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="WarehousePL",
@@ -341,9 +341,10 @@ def test_stock_quantity_is_sum_of_quantities_from_warehouses_that_support_countr
         email="warehousePL@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
-    stocks = variant.stocks.for_country_and_channel("PL", channel_USD.slug)
+    stocks = variant.stocks.for_channel_and_country(channel_USD.slug, "PL")
     sum_quantities = sum([stock.quantity for stock in stocks])
 
     variables = {

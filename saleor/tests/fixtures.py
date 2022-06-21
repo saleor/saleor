@@ -5423,7 +5423,7 @@ def warehouses(address, address_usa, channel_USD):
 
 
 @pytest.fixture()
-def warehouses_for_cc(address, shipping_zones):
+def warehouses_for_cc(address, shipping_zones, channel_USD):
     warehouses = Warehouse.objects.bulk_create(
         [
             Warehouse(
@@ -5457,15 +5457,14 @@ def warehouses_for_cc(address, shipping_zones):
             ),
         ]
     )
-    for warehouse in warehouses:
-        warehouse.shipping_zones.add(shipping_zones[0])
-        warehouse.shipping_zones.add(shipping_zones[1])
-        warehouse.save()
+    for shipping_zone in shipping_zones:
+        shipping_zone.warehouses.add(*warehouses)
+    channel_USD.warehouses.add(*warehouses)
     return warehouses
 
 
 @pytest.fixture
-def warehouse_for_cc(address, product_variant_list, shipping_zones):
+def warehouse_for_cc(address, product_variant_list, shipping_zones, channel_USD):
     warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="Local Warehouse",
@@ -5474,8 +5473,8 @@ def warehouse_for_cc(address, product_variant_list, shipping_zones):
         is_private=False,
         click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
     )
-    warehouse.shipping_zones.add(shipping_zones[0])
-    warehouse.shipping_zones.add(shipping_zones[1])
+    warehouse.shipping_zones.add(shipping_zones[0], shipping_zones[1])
+    warehouse.channels.add(channel_USD)
 
     Stock.objects.bulk_create(
         [

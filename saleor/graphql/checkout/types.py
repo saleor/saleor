@@ -16,7 +16,7 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
+from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -678,28 +678,13 @@ class Checkout(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_available_collection_points(root: models.Checkout, info):
-        def get_available_collection_points(data):
-            address, lines, channel = data
+        def get_available_collection_points(lines):
+            return get_valid_collection_points_for_checkout(lines, root.channel_id)
 
-            if address:
-                country_code = address.country.code
-            else:
-                country_code = channel.default_country.code
-
-            return get_valid_collection_points_for_checkout(
-                lines, country_code=country_code
-            )
-
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
-        address = (
-            AddressByIdLoader(info.context).load(root.shipping_address_id)
-            if root.shipping_address_id
-            else None
-        )
-
-        return Promise.all([address, lines, channel]).then(
-            get_available_collection_points
+        return (
+            CheckoutLinesInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(get_available_collection_points)
         )
 
     @staticmethod

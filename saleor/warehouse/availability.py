@@ -225,7 +225,7 @@ def check_stock_quantity_bulk(
         filter_lookup.update(additional_filter_lookup)
 
     all_variants_stocks = (
-        Stock.objects.for_country_and_channel(country_code, channel_slug)
+        Stock.objects.for_channel_and_country(channel_slug, country_code)
         .filter(**filter_lookup)
         .annotate_available_quantity()
     )

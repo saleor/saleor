@@ -656,7 +656,7 @@ def _create_fulfillment_lines(
     lines = [line_data["order_line"] for line_data in lines_data]
     variants = [line.variant for line in lines]
     stocks = (
-        Stock.objects.for_channel(channel_slug)
+        Stock.objects.for_channel_and_country(channel_slug)
         .filter(warehouse_id=warehouse_pk, product_variant__in=variants)
         .select_related("product_variant")
     )
