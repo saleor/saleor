@@ -51,6 +51,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ...account.models import Address, User
+    from ...attribute.models import Attribute
     from ...channel.models import Channel
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
@@ -153,6 +154,39 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         self._trigger_app_event(WebhookEventAsyncType.APP_STATUS_CHANGED, app)
+
+    def _trigger_attribute_event(self, event_type, attribute):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = {
+                "id": graphene.Node.to_global_id("Attribute", attribute.id),
+                "name": attribute.name,
+                "slug": attribute.slug,
+                "meta": self._generate_meta(),
+            }
+            trigger_webhooks_async(
+                payload, event_type, webhooks, attribute, self.requestor
+            )
+
+    def attribute_created(self, attribute: "Attribute", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_attribute_event(
+            WebhookEventAsyncType.ATTRIBUTE_CREATED, attribute
+        )
+
+    def attribute_updated(self, attribute: "Attribute", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_attribute_event(
+            WebhookEventAsyncType.ATTRIBUTE_UPDATED, attribute
+        )
+
+    def attribute_deleted(self, attribute: "Attribute", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_attribute_event(
+            WebhookEventAsyncType.ATTRIBUTE_DELETED, attribute
+        )
 
     def __trigger_category_event(self, event_type, category):
         if webhooks := get_webhooks_for_event(event_type):
