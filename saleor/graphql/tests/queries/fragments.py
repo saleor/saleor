@@ -393,3 +393,11 @@ fragment AttributeDetails on Attribute {
   inputType
 }
 """
+
+ATTRIBUTE_VALUE_DETAILS = """
+fragment AttributeValueDetails on AttributeValue {
+  name
+  slug
+  value
+}
+"""

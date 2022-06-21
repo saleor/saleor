@@ -198,22 +198,47 @@ def test_sort_values_trigger_webhook(
         staff_api_client.post_graphql(ATTRIBUTE_VALUES_REORDER_MUTATION, variables)
     )["data"]["attributeReorderValues"]
 
-    # then
-    assert not content["errors"]
-    assert content["attribute"]["id"] == attribute_id
-    mocked_webhook_trigger.assert_called_once_with(
+    meta = generate_meta(
+        requestor_data=generate_requestor(
+            SimpleLazyObject(lambda: staff_api_client.user)
+        )
+    )
+
+    attribute_updated_call = mock.call(
         {
             "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
             "name": color_attribute.name,
             "slug": color_attribute.slug,
-            "meta": generate_meta(
-                requestor_data=generate_requestor(
-                    SimpleLazyObject(lambda: staff_api_client.user)
-                )
-            ),
+            "meta": meta,
         },
         WebhookEventAsyncType.ATTRIBUTE_UPDATED,
         [any_webhook],
         color_attribute,
         SimpleLazyObject(lambda: staff_api_client.user),
     )
+
+    def generate_attribute_value_update_call(value):
+        return mock.call(
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", value.id),
+                "name": value.name,
+                "slug": value.slug,
+                "value": value.value,
+                "meta": meta,
+            },
+            WebhookEventAsyncType.ATTRIBUTE_VALUE_UPDATED,
+            [any_webhook],
+            value,
+            SimpleLazyObject(lambda: staff_api_client.user),
+        )
+
+    attribute_value_1_updated_call = generate_attribute_value_update_call(values[0])
+    attribute_value_2_updated_call = generate_attribute_value_update_call(values[2])
+
+    # then
+    assert not content["errors"]
+    assert content["attribute"]["id"] == attribute_id
+    assert len(mocked_webhook_trigger.call_args_list) == 3
+    assert attribute_updated_call in mocked_webhook_trigger.call_args_list
+    assert attribute_value_1_updated_call in mocked_webhook_trigger.call_args_list
+    assert attribute_value_2_updated_call in mocked_webhook_trigger.call_args_list
