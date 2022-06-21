@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..app.models import App
+    from ..attribute.models import Attribute
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
@@ -862,6 +863,24 @@ class PluginsManager(PaymentInterface):
     def app_status_changed(self, app: "App"):
         default_value = None
         return self.__run_method_on_plugins("app_status_changed", default_value, app)
+
+    def attribute_created(self, attribute: "Attribute"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_created", default_value, attribute
+        )
+
+    def attribute_updated(self, attribute: "Attribute"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_updated", default_value, attribute
+        )
+
+    def attribute_deleted(self, attribute: "Attribute"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "attribute_deleted", default_value, attribute
+        )
 
     def category_created(self, category: "Category"):
         default_value = None

@@ -111,6 +111,54 @@ APP_STATUS_CHANGED = (
 )
 
 
+ATTRIBUTE_CREATED = (
+    fragments.ATTRIBUTE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeCreated{
+          attribute{
+            ...AttributeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_UPDATED = (
+    fragments.ATTRIBUTE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeUpdated{
+          attribute{
+            ...AttributeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+ATTRIBUTE_DELETED = (
+    fragments.ATTRIBUTE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AttributeDeleted{
+          attribute{
+            ...AttributeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
 GIFT_CARD_CREATED = (
     fragments.GIFT_CARD_DETAILS
     + """

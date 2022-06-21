@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..app.models import App
+    from ..attribute.models import Attribute
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
@@ -187,6 +188,24 @@ class BasePlugin:
     assign_tax_code_to_object_meta: Callable[
         [Union["Product", "ProductType"], Union[str, NoneType], Any], Any
     ]
+
+    #  Trigger when attribute is created.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute is
+    #  installed.
+    attribute_created: Callable[["Attribute", None], None]
+
+    #  Trigger when attribute is deleted.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute is
+    #  deleted.
+    attribute_deleted: Callable[["Attribute", None], None]
+
+    #  Trigger when attribute is updated.
+    #
+    #  Overwrite this method if you need to trigger specific logic after an attribute is
+    #  updated.
+    attribute_updated: Callable[["Attribute", None], None]
 
     #  Authenticate user which should be assigned to the request.
     #
