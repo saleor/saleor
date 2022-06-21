@@ -38,7 +38,9 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo, Voucher
     from ..discount.models import Sale
     from ..giftcard.models import GiftCard
-    from ..graphql.discount.mutations import NodeCatalogueInfo
+    from ..graphql.discount.mutations.sale_base_discount_catalogue import (
+        NodeCatalogueInfo,
+    )
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine

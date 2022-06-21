@@ -48,7 +48,9 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     from ..discount.models import Sale
-    from ..graphql.discount.mutations import NodeCatalogueInfo
+    from ..graphql.discount.mutations.sale_base_discount_catalogue import (
+        NodeCatalogueInfo,
+    )
     from ..invoice.models import Invoice
     from ..payment.interface import PaymentData, TransactionActionData
     from ..payment.models import Payment

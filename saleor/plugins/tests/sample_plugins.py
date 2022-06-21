@@ -23,7 +23,9 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...discount.models import Sale
-    from ...graphql.discount.mutations import NodeCatalogueInfo
+    from ...graphql.discount.mutations.sale_base_discount_catalogue import (
+        NodeCatalogueInfo,
+    )
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType, ProductVariant
 

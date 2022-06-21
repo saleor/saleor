@@ -55,7 +55,9 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
-    from ...graphql.discount.mutations import NodeCatalogueInfo
+    from ...graphql.discount.mutations.sale_base_discount_catalogue import (
+        NodeCatalogueInfo,
+    )
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
