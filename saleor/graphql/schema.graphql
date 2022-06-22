@@ -5754,6 +5754,7 @@ input WarehouseFilterInput {
   search: String
   ids: [ID!]
   isPrivate: Boolean
+  channels: [ID!]
 }
 
 input WarehouseSortingInput {

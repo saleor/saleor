@@ -5387,7 +5387,7 @@ def warehouse(address, shipping_zone, channel_USD):
 
 
 @pytest.fixture
-def warehouse_JPY(address, shipping_zone_JPY):
+def warehouse_JPY(address, shipping_zone_JPY, channel_JPY):
     warehouse = Warehouse.objects.create(
         address=address,
         name="Example Warehouse JPY",
@@ -5395,6 +5395,7 @@ def warehouse_JPY(address, shipping_zone_JPY):
         email="test-jpy@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone_JPY)
+    warehouse.channels.add(channel_JPY)
     warehouse.save()
     return warehouse
 
