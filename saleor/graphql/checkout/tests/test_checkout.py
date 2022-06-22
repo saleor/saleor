@@ -2279,19 +2279,24 @@ query AvailableCollectionPoints($id: ID) {
 
 
 def test_available_collection_points_for_preorders_variants_in_checkout(
-    api_client, staff_api_client, checkout_with_preorders_only
+    api_client, staff_api_client, checkout_with_preorders_only, channel_USD
 ):
+    # given
     expected_collection_points = list(
-        Warehouse.objects.for_country("US")
+        Warehouse.objects.for_channel(channel_USD.id)
         .exclude(
             click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
         )
         .values("name")
     )
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
         variables={"id": to_global_id_or_none(checkout_with_preorders_only)},
     )
+
+    # then
     response_content = get_graphql_content(response)
     assert (
         expected_collection_points

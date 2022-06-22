@@ -33,13 +33,34 @@ class WarehouseQueryset(models.QuerySet):
     def prefetch_data(self):
         return self.select_related("address").prefetch_related("shipping_zones")
 
-    # TODO: channel should be added
-    def for_country(self, country: str):
-        return (
-            self.prefetch_data()
-            .filter(shipping_zones__countries__contains=country)
-            .order_by("pk")
+    def for_country_and_channel(self, country: str, channel_id: int):
+        ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
+        WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
+        WarehouseChannel = Channel.warehouses.through  # type: ignore
+
+        shipping_zones = ShippingZone.objects.filter(
+            countries__contains=country
+        ).values("pk")
+        shipping_zone_channels = ShippingZoneChannel.objects.filter(
+            Exists(shipping_zones.filter(pk=OuterRef("shippingzone_id"))),
+            channel_id=channel_id,
         )
+
+        warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
+            Exists(
+                shipping_zone_channels.filter(
+                    shippingzone_id=OuterRef("shippingzone_id")
+                )
+            ),
+            Exists(
+                WarehouseChannel.objects.filter(
+                    channel_id=channel_id, warehouse_id=OuterRef("warehouse_id")
+                )
+            ),
+        ).values("warehouse_id")
+        return self.filter(
+            Exists(warehouse_shipping_zones.filter(warehouse_id=OuterRef("pk")))
+        ).order_by("pk")
 
     def applicable_for_click_and_collect_no_quantity_check(
         self, lines_qs: QuerySet[CheckoutLine], channel_id: int
