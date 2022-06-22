@@ -3,12 +3,8 @@ from functools import partial
 from django.db import migrations
 from django.db.models import F, Q
 from django.db.models.signals import post_migrate
-from saleor.plugins.manager import get_plugins_manager
 from saleor.order.app import OrderAppConfig
-from saleor.celeryconf import app
-
-# We need to send `order_updated` for each updated order. When we drop plugin manager
-# we should rewrite `send_order_updated`
+from saleor.order.tasks import send_order_updated
 
 BATCH_SIZE = 500
 
@@ -30,19 +26,6 @@ def queryset_in_batches(queryset):
         yield pks
 
         start_pk = pks[-1]
-
-
-@app.task
-def send_order_updated(order_ids):
-    from saleor.order.models import Order
-
-    # We need to import Order in this way because when we import it by
-    # `Order = apps.get_model("order", "Order")` models doesn't contains
-    # model methods which are required by `order_updated`
-
-    manager = get_plugins_manager()
-    for order in Order.objects.filter(id__in=order_ids):
-        manager.order_updated(order)
 
 
 def set_order_line_base_prices(apps, schema_editor):
