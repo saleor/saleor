@@ -30,9 +30,6 @@ class WarehouseQueryset(models.QuerySet):
             )
         ).order_by("pk")
 
-    def prefetch_data(self):
-        return self.select_related("address").prefetch_related("shipping_zones")
-
     def for_country_and_channel(self, country: str, channel_id: int):
         ShippingZoneChannel = Channel.shipping_zones.through  # type: ignore
         WarehouseShippingZone = ShippingZone.warehouses.through  # type: ignore
