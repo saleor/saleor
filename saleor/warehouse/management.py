@@ -107,6 +107,14 @@ def allocate_stocks(
             "quantity_allocated_sum"
         ]
 
+    def sort_stocks(stock_data):
+        return stock_data["quantity"] - quantity_allocation_for_stocks.get(
+            stock_data["pk"], 0
+        )
+
+    # prioritize stocks with the highest quantity available
+    stocks.sort(key=sort_stocks, reverse=True)
+
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
     for stock_data in stocks:
         variant = stock_data.pop("product_variant")
