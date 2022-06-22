@@ -23,6 +23,7 @@ from ..core.types import ChannelError, ChannelErrorCode, NonNullList
 from ..core.utils import get_duplicated_values, get_duplicates_items
 from ..utils.validators import check_for_duplicates
 from .types import Channel
+from .utils import delete_invalid_warehouse_to_shipping_zone_relations
 
 
 class ChannelInput(graphene.InputObjectType):
@@ -194,63 +195,8 @@ class ChannelUpdate(ModelMutation):
         remove_warehouses = cleaned_data.get("remove_warehouses")
         if remove_warehouses:
             instance.warehouses.remove(*remove_warehouses)
-            cls._delete_invalid_warehouse_to_shipping_zone_relations(
-                instance, remove_warehouses
-            )
-
-    @classmethod
-    def _delete_invalid_warehouse_to_shipping_zone_relations(
-        cls, channel, remove_warehouses
-    ):
-        warehouse_ids = [warehouse.id for warehouse in remove_warehouses]
-
-        ChannelWarehouse = models.Channel.warehouses.through
-        channel_warehouses = ChannelWarehouse.objects.filter(
-            warehouse_id__in=warehouse_ids
-        )
-
-        ShippingZoneWarehouse = ShippingZone.warehouses.through
-        shipping_zone_warehouses = ShippingZoneWarehouse.objects.filter(
-            warehouse_id__in=warehouse_ids
-        )
-
-        ShippingZoneChannel = ShippingZone.channels.through
-        shipping_zone_channels = ShippingZoneChannel.objects.filter(
-            Exists(
-                shipping_zone_warehouses.filter(
-                    shippingzone_id=OuterRef("shippingzone_id")
-                )
-            )
-        )
-
-        warehouse_to_channel_ids = defaultdict(set)
-        for warehouse_id, channel_id in channel_warehouses.values_list(
-            "warehouse_id", "channel_id"
-        ):
-            # the channel will be deleted so we do not want to add this channel
-            if channel_id != channel.id:
-                warehouse_to_channel_ids[warehouse_id].add(channel_id)
-
-        zone_to_channel_ids = defaultdict(set)
-        for zone_id, channel_id in shipping_zone_channels.values_list(
-            "shippingzone_id", "channel_id"
-        ):
-            zone_to_channel_ids[zone_id].add(channel_id)
-
-        shipping_zone_warehouses_to_delete = []
-        for id, zone_id, warehouse_id in shipping_zone_warehouses.values_list(
-            "id", "shippingzone_id", "warehouse_id"
-        ):
-            warehouse_channels = warehouse_to_channel_ids.get(warehouse_id, set())
-            zone_channels = zone_to_channel_ids.get(zone_id, set())
-            # if there is no common channels between shipping zone and warehouse
-            # the relation should be deleted
-            if not warehouse_channels.intersection(zone_channels):
-                shipping_zone_warehouses_to_delete.append(id)
-
-        ShippingZoneWarehouse.objects.filter(
-            id__in=shipping_zone_warehouses_to_delete
-        ).delete()
+            warehouse_ids = [warehouse.id for warehouse in remove_warehouses]
+            delete_invalid_warehouse_to_shipping_zone_relations(instance, warehouse_ids)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
@@ -357,7 +303,9 @@ class ChannelDelete(ModelDeleteMutation):
             cls.perform_delete_with_order_migration(origin_channel, target_channel)
         else:
             cls.perform_delete_channel_without_order(origin_channel)
-        cls.delete_invalid_warehouse_to_shipping_zone_relations(origin_channel)
+        delete_invalid_warehouse_to_shipping_zone_relations(
+            origin_channel, origin_channel.warehouses.values("id")
+        )
         return super().perform_mutation(_root, info, **data)
 
     @classmethod
@@ -385,7 +333,8 @@ class ChannelDelete(ModelDeleteMutation):
         for warehouse_id, channel_id in channel_warehouses.values_list(
             "warehouse_id", "channel_id"
         ):
-            # the channel will be deleted so we do not want to add this channel
+            # the channel will be deleted so we do not want this channel in warehouse
+            # channels set
             if channel_id != channel.id:
                 warehouse_to_channel_ids[warehouse_id].add(channel_id)
 

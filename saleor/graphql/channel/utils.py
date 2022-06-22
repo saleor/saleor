@@ -1,10 +1,14 @@
+from collections import defaultdict
+
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 from django.utils.functional import SimpleLazyObject
 from graphql.error import GraphQLError
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ...channel.models import Channel
 from ...channel.utils import get_default_channel
+from ...shipping.models import ShippingZone
 
 
 def get_default_channel_slug_or_graphql_error() -> SimpleLazyObject:
@@ -71,3 +75,56 @@ def clean_channel(
                 }
             )
     return channel
+
+
+def delete_invalid_warehouse_to_shipping_zone_relations(channel, warehouse_ids):
+    """Delete not valid warehouse-zone relations after unlinking warehouse from channel.
+
+    Look up for warehouse to shipping zone relations that will not have common channels
+    after unlinking the given channel from given warehouses.
+    The warehouse can be linked with shipping zone only if common channel exists.
+    """
+    ChannelWarehouse = Channel.warehouses.through
+    channel_warehouses = ChannelWarehouse.objects.filter(warehouse_id__in=warehouse_ids)
+
+    ShippingZoneWarehouse = ShippingZone.warehouses.through
+    shipping_zone_warehouses = ShippingZoneWarehouse.objects.filter(
+        warehouse_id__in=warehouse_ids
+    )
+
+    ShippingZoneChannel = ShippingZone.channels.through
+    shipping_zone_channels = ShippingZoneChannel.objects.filter(
+        Exists(
+            shipping_zone_warehouses.filter(shippingzone_id=OuterRef("shippingzone_id"))
+        )
+    )
+
+    warehouse_to_channel_ids = defaultdict(set)
+    for warehouse_id, channel_id in channel_warehouses.values_list(
+        "warehouse_id", "channel_id"
+    ):
+        # the channel will be deleted so we do not want this channel in warehouse
+        # channels set
+        if channel_id != channel.id:
+            warehouse_to_channel_ids[warehouse_id].add(channel_id)
+
+    zone_to_channel_ids = defaultdict(set)
+    for zone_id, channel_id in shipping_zone_channels.values_list(
+        "shippingzone_id", "channel_id"
+    ):
+        zone_to_channel_ids[zone_id].add(channel_id)
+
+    shipping_zone_warehouses_to_delete = []
+    for id, zone_id, warehouse_id in shipping_zone_warehouses.values_list(
+        "id", "shippingzone_id", "warehouse_id"
+    ):
+        warehouse_channels = warehouse_to_channel_ids.get(warehouse_id, set())
+        zone_channels = zone_to_channel_ids.get(zone_id, set())
+        # if there is no common channels between shipping zone and warehouse
+        # the relation should be deleted
+        if not warehouse_channels.intersection(zone_channels):
+            shipping_zone_warehouses_to_delete.append(id)
+
+    ShippingZoneWarehouse.objects.filter(
+        id__in=shipping_zone_warehouses_to_delete
+    ).delete()
