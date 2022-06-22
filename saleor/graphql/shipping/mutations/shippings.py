@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Exists, OuterRef
 from django.db.utils import IntegrityError
 
 from ....channel import models as channel_models
@@ -163,7 +164,7 @@ class ShippingZoneMixin:
         ChannelWarehouse = channel_models.Channel.warehouses.through
         channel_warehouses = ChannelWarehouse.objects.filter(
             warehouse_id__in=warehouse_ids
-        ).values_list("warehouse_id", "channel_id")
+        )
 
         # any warehouse from the list cannot be assigned when:
         # 1) where there are no channels assigned to any warehouse
@@ -289,9 +290,59 @@ class ShippingZoneMixin:
             )
             shipping_channel_listings.delete()
             channel_ids = [channel.id for channel in remove_channels]
+            cls.delete_invalid_shipping_zone_to_warehouse_relation(instance)
             drop_invalid_shipping_methods_relations_for_given_channels.delay(
                 shipping_method_ids, channel_ids
             )
+
+    @classmethod
+    def delete_invalid_shipping_zone_to_warehouse_relation(cls, shipping_zone):
+        """Drop zone-warehouse relations that becomes invalid after channels deletion.
+
+        Remove all shipping zone to warehouse relations that will not have common
+        channel after removing given channels from the shipping zone.
+        """
+        WarehouseShippingZone = models.ShippingZone.warehouses.through
+        ChannelWarehouse = channel_models.Channel.warehouses.through
+        ShippingZoneChannel = models.ShippingZone.channels.through
+
+        warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
+            shippingzone_id=shipping_zone.id
+        )
+
+        channel_warehouses = ChannelWarehouse.objects.filter(
+            Exists(
+                warehouse_shipping_zones.filter(warehouse_id=OuterRef("warehouse_id"))
+            )
+        )
+
+        warehouse_to_channel_mapping = defaultdict(set)
+        for warehouse_id, channel_id in channel_warehouses.values_list(
+            "warehouse_id", "channel_id"
+        ):
+            warehouse_to_channel_mapping[warehouse_id].add(channel_id)
+
+        shipping_zone_channel_ids = set(
+            ShippingZoneChannel.objects.filter(
+                shippingzone_id=shipping_zone.id
+            ).values_list("channel_id", flat=True)
+        )
+
+        shipping_zone_warehouses_to_delete = []
+        for id, warehouse_id in warehouse_shipping_zones.values_list(
+            "id", "warehouse_id"
+        ):
+            warehouse_channels = warehouse_to_channel_mapping.get(warehouse_id, set())
+            # if there is no common channels between shipping zone and warehouse
+            # the relation should be deleted
+            if not warehouse_channels or not warehouse_channels.intersection(
+                shipping_zone_channel_ids
+            ):
+                shipping_zone_warehouses_to_delete.append(id)
+
+        WarehouseShippingZone.objects.filter(
+            id__in=shipping_zone_warehouses_to_delete
+        ).delete()
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):

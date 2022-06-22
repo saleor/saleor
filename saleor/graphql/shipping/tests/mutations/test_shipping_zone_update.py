@@ -589,3 +589,50 @@ def test_update_shipping_zone_add_warehouses_and_remove_common_channel(
     assert data["errors"][0]["field"] == "addWarehouses"
     assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
     assert data["errors"][0]["warehouses"] == [warehouse_id]
+
+
+def test_update_shipping_zone_remove_channels_remove_common_warehouse_channel(
+    staff_api_client,
+    shipping_zone,
+    warehouses,
+    channel_USD,
+    channel_PLN,
+    permission_manage_shipping,
+):
+    """Ensure the shipping zone to channel relation is deleted when common channel
+    is removed from shipping zone."""
+    # given
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    shipping_zone.warehouses.add(*warehouses)
+    shipping_zone.channels.add(channel_PLN)
+
+    assert shipping_zone.channels.count() == 2
+
+    warehouses[1].channels.add(channel_PLN)
+
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "removeChannels": [channel_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_SHIPPING_ZONE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert not data["errors"]
+    shipping_zone_data = content["data"]["shippingZoneUpdate"]["shippingZone"]
+    assert len(shipping_zone_data["channels"]) == 1
+    assert shipping_zone_data["channels"][0]["id"] == graphene.Node.to_global_id(
+        "Channel", channel_PLN.pk
+    )
+    assert len(shipping_zone_data["warehouses"]) == 1
+    assert shipping_zone_data["warehouses"][0]["slug"] == warehouses[1].slug
