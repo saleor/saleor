@@ -21,21 +21,6 @@ from .mutations.voucher_create import VoucherCreate
 from .mutations.voucher_delete import VoucherDelete
 from .mutations.voucher_remove_catalogues import VoucherRemoveCatalogues
 from .mutations.voucher_update import VoucherUpdate
-
-# from .mutations import (
-#     SaleAddCatalogues,
-#     SaleChannelListingUpdate,
-#     SaleCreate,
-#     SaleDelete,
-#     SaleRemoveCatalogues,
-#     SaleUpdate,
-#     VoucherAddCatalogues,
-#     VoucherChannelListingUpdate,
-#     VoucherCreate,
-#     VoucherDelete,
-#     VoucherRemoveCatalogues,
-#     VoucherUpdate,
-# )
 from .resolvers import resolve_sale, resolve_sales, resolve_voucher, resolve_vouchers
 from .sorters import SaleSortingInput, VoucherSortingInput
 from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConnection
